@@ -29,7 +29,7 @@ export default function HomePage() {
             priceCurrency: "USD",
             priceValidUntil: "2027-12-31",
             description:
-              "For growing firms. Up to 15 active projects, 25 team members, AI features.",
+              "For growing firms. Up to 15 active projects, 25 team members, AI assistant (BYOK), property management.",
           },
           {
             "@type": "Offer",
@@ -38,7 +38,7 @@ export default function HomePage() {
             priceCurrency: "USD",
             priceValidUntil: "2027-12-31",
             description:
-              "For established companies. Unlimited projects, unlimited users, priority support.",
+              "For established companies. Unlimited projects, unlimited team members, tenant and vendor portals, dedicated support channel.",
           },
         ],
         featureList: [
@@ -78,7 +78,7 @@ export default function HomePage() {
             name: "How does ConstructionERP compare to Procore or Buildertrend?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Unlike legacy platforms, ConstructionERP is built on modern cloud infrastructure with AI capabilities from day one. It combines construction project management AND property management in one platform -- so you do not need separate systems for building and managing real estate. Pricing starts at $79/month versus the $375+ typical of enterprise construction software.",
+              text: "Unlike legacy platforms, ConstructionERP is built on modern cloud infrastructure with AI capabilities available from day one. It combines construction project management AND property management in one platform -- so you do not need separate systems for building and managing real estate. Pricing starts at $79/month versus the $375+ typical of enterprise construction software.",
             },
           },
           {
@@ -86,7 +86,7 @@ export default function HomePage() {
             name: "What AI features does ConstructionERP include?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "ConstructionERP includes AI-powered document extraction (invoices, contracts, lien waivers), natural language search across all project data, predictive cost forecasting, schedule risk analysis, and an AI assistant that can answer questions about your projects, finances, and properties in real time. You can connect your own AI provider (OpenAI, Claude, Gemini, and 7 others).",
+              text: "ConstructionERP includes an AI assistant that can answer questions about your projects, finances, and properties in real time, plus AI-powered document extraction for invoices, contracts, and lien waivers. AI features use a bring-your-own-key model -- you connect your preferred provider (OpenAI, Claude, Gemini, and 7 others) so you control costs and data privacy.",
             },
           },
           {
@@ -435,10 +435,10 @@ export default function HomePage() {
               <ul className="hp-pricing-features">
                 <li>Up to 3 active projects</li>
                 <li>5 team members</li>
-                <li>Project management</li>
-                <li>Financial tracking</li>
-                <li>Document storage (10 GB)</li>
-                <li>Basic reporting</li>
+                <li>Project management with Gantt scheduling</li>
+                <li>Invoicing and payment tracking</li>
+                <li>10 GB document storage</li>
+                <li>Standard reports</li>
                 <li>Email support</li>
               </ul>
               <Link href="/register" className="hp-pricing-btn">
@@ -462,13 +462,13 @@ export default function HomePage() {
                 <li>Up to 15 active projects</li>
                 <li>25 team members</li>
                 <li>Everything in Starter, plus:</li>
-                <li>Property management</li>
-                <li>AI assistant and document extraction</li>
-                <li>CRM and bid management</li>
+                <li>Property and lease management</li>
+                <li>AI assistant (bring your own API key)</li>
+                <li>CRM and bid pipeline</li>
                 <li>Workforce time tracking</li>
-                <li>Document storage (100 GB)</li>
-                <li>Advanced reporting and exports</li>
-                <li>Priority email support</li>
+                <li>50 GB document storage</li>
+                <li>PDF and Excel report exports</li>
+                <li>Priority support</li>
               </ul>
               <Link href="/register" className="hp-pricing-btn hp-pricing-btn-primary">
                 Start Free Trial
@@ -487,16 +487,16 @@ export default function HomePage() {
                 <span className="hp-pricing-period">/month</span>
               </div>
               <ul className="hp-pricing-features">
-                <li>Unlimited active projects</li>
+                <li>Unlimited projects</li>
                 <li>Unlimited team members</li>
                 <li>Everything in Professional, plus:</li>
-                <li>Custom AI provider integration</li>
-                <li>Predictive cost forecasting</li>
+                <li>Multi-provider AI configuration</li>
+                <li>AI document extraction</li>
                 <li>Tenant and vendor portals</li>
-                <li>SSO and advanced security</li>
-                <li>Document storage (1 TB)</li>
-                <li>Custom report builder</li>
-                <li>Dedicated account manager</li>
+                <li>Advanced RBAC and audit logging</li>
+                <li>500 GB document storage</li>
+                <li>Scheduled report delivery</li>
+                <li>Dedicated support channel</li>
               </ul>
               <Link href="/register" className="hp-pricing-btn">
                 Start Free Trial
@@ -550,13 +550,12 @@ export default function HomePage() {
             <details className="hp-faq-item">
               <summary>What AI features are included?</summary>
               <p>
-                AI-powered document extraction (invoices, contracts, lien
-                waivers), natural language search across all project data,
-                predictive cost forecasting, schedule risk analysis, and an AI
-                assistant that can answer questions about your projects,
-                finances, and properties in real time. You can connect your
-                preferred AI provider -- we support OpenAI, Anthropic Claude,
-                Google Gemini, and seven others.
+                An AI assistant that answers questions about your projects,
+                finances, and properties in real time, plus AI-powered
+                document extraction for invoices, contracts, and lien waivers.
+                AI features use a bring-your-own-key model -- you connect your
+                preferred provider (OpenAI, Anthropic Claude, Google Gemini,
+                and seven others) so you control costs and data privacy.
               </p>
             </details>
             <details className="hp-faq-item">
