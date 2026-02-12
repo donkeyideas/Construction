@@ -1,0 +1,738 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - People Directory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#2c5282', light: '#3b6ba5', dark: '#1e3a5f' },
+            accent: { DEFAULT: '#c9a84c', light: '#d4b96a', dark: '#b08f3a' },
+            surface: { dark: '#243447', light: '#ffffff' },
+            border: { dark: '#344258', light: '#d1d9e6' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #2c5282, #c9a84c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #344258; border-radius: 4px; }
+  </style>
+</head>
+<body class="dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark')" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Sidebar -->
+  <aside class="fixed top-0 left-0 h-screen w-[260px] dark:bg-[#1e2d3f] bg-[#f0f2f5] border-r dark:border-[#344258] border-[#d1d9e6] z-40 flex flex-col">
+
+    <!-- Sidebar Header / Logo -->
+    <div class="h-16 px-5 flex items-center gap-3 border-b dark:border-[#344258] border-[#d1d9e6] flex-shrink-0">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-base font-bold">ConstructionERP</span>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll px-3 py-4 space-y-6">
+
+      <!-- OVERVIEW -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Overview</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+      </div>
+
+      <!-- CONSTRUCTION -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Construction</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="folder-kanban" class="w-4 h-4"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+          Safety
+        </a>
+      </div>
+
+      <!-- REAL ESTATE -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Real Estate</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Properties
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          Leases
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+          Maintenance
+        </a>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Financial</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          AP
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="credit-card" class="w-4 h-4"></i>
+          AR
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          GL
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          Job Costing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="landmark" class="w-4 h-4"></i>
+          Banking
+        </a>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Documents</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="library" class="w-4 h-4"></i>
+          Library
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="file-signature" class="w-4 h-4"></i>
+          Contracts
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          Plan Room
+        </a>
+      </div>
+
+      <!-- PEOPLE -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">People</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-brand/10 text-brand font-medium">
+          <i data-lucide="contact" class="w-4 h-4"></i>
+          Directory
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          Time & Attendance
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="truck" class="w-4 h-4"></i>
+          Equipment
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Vendors
+        </a>
+      </div>
+
+      <!-- BUSINESS DEVELOPMENT -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Business Development</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="git-branch" class="w-4 h-4"></i>
+          Pipeline
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>
+          Opportunities
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="gavel" class="w-4 h-4"></i>
+          Bids & Proposals
+        </a>
+      </div>
+
+      <!-- REPORTS -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Reports</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="file-bar-chart" class="w-4 h-4"></i>
+          Report Center
+        </a>
+      </div>
+
+      <!-- AI INTELLIGENCE -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">AI Intelligence</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          Automation
+        </a>
+      </div>
+
+      <!-- ADMINISTRATION -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Administration</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="user-cog" class="w-4 h-4"></i>
+          Users & Roles
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Company Settings
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="plug" class="w-4 h-4"></i>
+          Integrations
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          Security
+        </a>
+      </div>
+
+    </nav>
+  </aside>
+
+  <!-- Main Content Area (offset by sidebar) -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- Top Bar -->
+    <header class="h-16 border-b dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-30">
+
+      <!-- Left: Breadcrumb -->
+      <div class="flex items-center gap-2 text-sm">
+        <span class="dark:text-gray-500 text-gray-400">People</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 dark:text-gray-600 text-gray-300"></i>
+        <span class="font-medium dark:text-gray-100 text-gray-900">Directory</span>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-4">
+        <!-- Search -->
+        <div class="relative hidden lg:block">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i data-lucide="search" class="w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+          </div>
+          <input
+            type="text"
+            placeholder="Search..."
+            class="w-56 pl-9 pr-4 py-1.5 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-100 text-gray-900 placeholder:dark:text-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors"
+          >
+        </div>
+
+        <!-- Notifications -->
+        <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors" title="Notifications">
+          <i data-lucide="bell" class="w-5 h-5 dark:text-gray-400 text-gray-500"></i>
+          <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+        </button>
+
+        <!-- Theme Toggle (topbar) -->
+        <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors" title="Toggle theme">
+          <i data-lucide="sun" class="w-5 h-5 hidden dark:block dark:text-gray-400"></i>
+          <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-gray-500"></i>
+        </button>
+
+        <!-- User Avatar -->
+        <button class="flex items-center gap-2" title="Account menu">
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand text-sm font-semibold">JM</div>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 p-6">
+
+      <!-- Header Row -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-6">
+          <h1 class="text-2xl font-bold">People Directory <span class="dark:text-gray-500 text-gray-400 font-normal text-lg">(87)</span></h1>
+
+          <!-- Toggle Tabs -->
+          <div class="flex items-center dark:bg-[#243447] bg-[#f8f9fb] rounded-lg border dark:border-[#344258] border-[#d1d9e6] p-0.5">
+            <button class="px-4 py-1.5 rounded-md text-sm font-medium bg-brand text-white transition-colors">
+              Employees (52)
+            </button>
+            <button class="px-4 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600 dark:hover:text-gray-200 hover:text-gray-900 transition-colors">
+              Subcontractors (28)
+            </button>
+            <button class="px-4 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600 dark:hover:text-gray-200 hover:text-gray-900 transition-colors">
+              Vendors (7)
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-50 transition-colors">
+            <i data-lucide="upload" class="w-4 h-4"></i>
+            Import
+          </button>
+          <button class="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Add Person
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="flex items-center gap-3 mb-6 flex-wrap">
+        <!-- Role -->
+        <select class="px-3 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors appearance-none pr-8 bg-no-repeat bg-[length:16px] bg-[center_right_8px]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;)">
+          <option>All Roles</option>
+          <option>Project Manager</option>
+          <option>Superintendent</option>
+          <option>Field Worker</option>
+          <option>Admin</option>
+          <option>Accountant</option>
+        </select>
+        <!-- Trade -->
+        <select class="px-3 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors appearance-none pr-8 bg-no-repeat bg-[length:16px] bg-[center_right_8px]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;)">
+          <option>All Trades</option>
+          <option>Electrical</option>
+          <option>Plumbing</option>
+          <option>HVAC</option>
+          <option>Concrete</option>
+          <option>Steel</option>
+          <option>General Labor</option>
+        </select>
+        <!-- Project -->
+        <select class="px-3 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors appearance-none pr-8 bg-no-repeat bg-[length:16px] bg-[center_right_8px]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;)">
+          <option>All Projects</option>
+          <option>Riverside Commons</option>
+          <option>Heritage Tower</option>
+          <option>Metro Transit Hub</option>
+          <option>Oakwood Residential</option>
+          <option>Lakeside Condos</option>
+        </select>
+        <!-- Certification Status -->
+        <select class="px-3 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors appearance-none pr-8 bg-no-repeat bg-[length:16px] bg-[center_right_8px]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;)">
+          <option>All Certifications</option>
+          <option>Valid</option>
+          <option>Expiring Soon</option>
+          <option>Expired</option>
+        </select>
+        <!-- Search -->
+        <div class="relative ml-auto">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i data-lucide="search" class="w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+          </div>
+          <input type="text" placeholder="Search people..." class="w-56 pl-9 pr-4 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 placeholder:dark:text-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors">
+        </div>
+      </div>
+
+      <!-- People Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+
+        <!-- Card 1: John Mitchell -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5 hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400 flex-shrink-0">JM</div>
+              <div>
+                <h3 class="font-semibold text-sm group-hover:text-brand transition-colors">John Mitchell</h3>
+                <p class="text-xs dark:text-gray-400 text-gray-500">Executive / Owner</p>
+              </div>
+            </div>
+            <!-- Cert indicator: Valid -->
+            <div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20" title="All certifications valid">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-green-400"></i>
+              <span class="text-[10px] font-medium text-green-400">Valid</span>
+            </div>
+          </div>
+          <!-- Contact -->
+          <div class="space-y-1.5 mb-4">
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              <span>(512) 555-0101</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>j.mitchell@constructionerp.com</span>
+            </div>
+          </div>
+          <!-- Project Badges -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand/10 text-brand border border-brand/20">All Projects</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Sarah Kim -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5 hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-sm font-bold text-purple-400 flex-shrink-0">SK</div>
+              <div>
+                <h3 class="font-semibold text-sm group-hover:text-brand transition-colors">Sarah Kim</h3>
+                <p class="text-xs dark:text-gray-400 text-gray-500">Project Manager</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20" title="All certifications valid">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-green-400"></i>
+              <span class="text-[10px] font-medium text-green-400">Valid</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 mb-4">
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              <span>(512) 555-0142</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>s.kim@constructionerp.com</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Riverside</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Heritage</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Mike Torres -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5 hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-sm font-bold text-green-400 flex-shrink-0">MT</div>
+              <div>
+                <h3 class="font-semibold text-sm group-hover:text-brand transition-colors">Mike Torres</h3>
+                <p class="text-xs dark:text-gray-400 text-gray-500">Superintendent</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20" title="All certifications valid">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-green-400"></i>
+              <span class="text-[10px] font-medium text-green-400">Valid</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 mb-4">
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              <span>(512) 555-0187</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>m.torres@constructionerp.com</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Riverside</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Dave Miller -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5 hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-sm font-bold text-amber-400 flex-shrink-0">DM</div>
+              <div>
+                <h3 class="font-semibold text-sm group-hover:text-brand transition-colors">Dave Miller</h3>
+                <p class="text-xs dark:text-gray-400 text-gray-500">Maintenance Tech</p>
+              </div>
+            </div>
+            <!-- Cert indicator: Expiring -->
+            <div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20" title="OSHA 30 expiring Feb 28">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span class="text-[10px] font-medium text-amber-400">Expiring</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 mb-4">
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              <span>(512) 555-0234</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>d.miller@constructionerp.com</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Properties Team</span>
+          </div>
+        </div>
+
+        <!-- Card 5: Chris Brooks -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5 hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center text-sm font-bold text-cyan-400 flex-shrink-0">CB</div>
+              <div>
+                <h3 class="font-semibold text-sm group-hover:text-brand transition-colors">Chris Brooks</h3>
+                <p class="text-xs dark:text-gray-400 text-gray-500">Field Worker</p>
+                <p class="text-[10px] dark:text-gray-500 text-gray-400">Electrician</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20" title="All certifications valid">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-green-400"></i>
+              <span class="text-[10px] font-medium text-green-400">Valid</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 mb-4">
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              <span>(512) 555-0298</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>c.brooks@constructionerp.com</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Riverside</span>
+          </div>
+        </div>
+
+        <!-- Card 6: Lisa Park -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5 hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center text-sm font-bold text-rose-400 flex-shrink-0">LP</div>
+              <div>
+                <h3 class="font-semibold text-sm group-hover:text-brand transition-colors">Lisa Park</h3>
+                <p class="text-xs dark:text-gray-400 text-gray-500">Accountant / Controller</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 px-2 py-0.5 rounded-full dark:bg-white/5 bg-gray-100 border dark:border-[#344258] border-[#d1d9e6]" title="No certifications required">
+              <span class="text-[10px] font-medium dark:text-gray-500 text-gray-400">N/A</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 mb-4">
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              <span>(512) 555-0315</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>l.park@constructionerp.com</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand/10 text-brand border border-brand/20">All Projects</span>
+          </div>
+        </div>
+
+        <!-- Card 7: Tom Garcia -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5 hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center text-sm font-bold text-orange-400 flex-shrink-0">TG</div>
+              <div>
+                <h3 class="font-semibold text-sm group-hover:text-brand transition-colors">Tom Garcia</h3>
+                <p class="text-xs dark:text-gray-400 text-gray-500">Subcontractor</p>
+                <p class="text-[10px] dark:text-gray-500 text-gray-400">Volt Electric</p>
+              </div>
+            </div>
+            <!-- Cert indicator: Expiring -->
+            <div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20" title="Insurance expiring Mar 5">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span class="text-[10px] font-medium text-amber-400">Expiring</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 mb-4">
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              <span>(512) 555-0456</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>t.garcia@voltelectric.com</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Riverside</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Metro Transit</span>
+          </div>
+        </div>
+
+        <!-- Card 8: Rachel Kim -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5 hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-teal-500/20 flex items-center justify-center text-sm font-bold text-teal-400 flex-shrink-0">RK</div>
+              <div>
+                <h3 class="font-semibold text-sm group-hover:text-brand transition-colors">Rachel Kim</h3>
+                <p class="text-xs dark:text-gray-400 text-gray-500">Subcontractor</p>
+                <p class="text-[10px] dark:text-gray-500 text-gray-400">AquaPipe Plumbing</p>
+              </div>
+            </div>
+            <!-- Cert indicator: Expired -->
+            <div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20" title="Plumbing License EXPIRED">
+              <i data-lucide="x-circle" class="w-3.5 h-3.5 text-red-400"></i>
+              <span class="text-[10px] font-medium text-red-400">Expired</span>
+            </div>
+          </div>
+          <div class="space-y-1.5 mb-4">
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              <span>(512) 555-0521</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs dark:text-gray-400 text-gray-500">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              <span>r.kim@aquapipeplumbing.com</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Riverside</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Certification & Compliance Alerts -->
+      <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+        <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <h2 class="font-semibold text-base">Certification & Compliance Alerts</h2>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">4 alerts</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b dark:border-[#344258] border-[#d1d9e6]">
+                <th class="text-left text-xs font-semibold dark:text-gray-400 text-gray-500 uppercase tracking-wider px-6 py-3">Person / Company</th>
+                <th class="text-left text-xs font-semibold dark:text-gray-400 text-gray-500 uppercase tracking-wider px-6 py-3">Certification</th>
+                <th class="text-left text-xs font-semibold dark:text-gray-400 text-gray-500 uppercase tracking-wider px-6 py-3">Expiry Date</th>
+                <th class="text-left text-xs font-semibold dark:text-gray-400 text-gray-500 uppercase tracking-wider px-6 py-3">Status</th>
+                <th class="text-left text-xs font-semibold dark:text-gray-400 text-gray-500 uppercase tracking-wider px-6 py-3">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y dark:divide-[#344258] divide-[#d1d9e6]">
+              <!-- Row 1: Dave Miller -->
+              <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-400">DM</div>
+                    <div>
+                      <p class="text-sm font-medium">Dave Miller</p>
+                      <p class="text-xs dark:text-gray-500 text-gray-400">Maintenance Tech</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm dark:text-gray-300 text-gray-700">OSHA 30</td>
+                <td class="px-6 py-4 text-sm dark:text-gray-300 text-gray-700">Feb 28, 2026</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+                    Expiring in 17 days
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-brand/10 text-brand hover:bg-brand/20 transition-colors">Send Reminder</button>
+                </td>
+              </tr>
+              <!-- Row 2: Tom Garcia -->
+              <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-xs font-bold text-orange-400">TG</div>
+                    <div>
+                      <p class="text-sm font-medium">Tom Garcia</p>
+                      <p class="text-xs dark:text-gray-500 text-gray-400">Volt Electric</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm dark:text-gray-300 text-gray-700">General Liability Insurance</td>
+                <td class="px-6 py-4 text-sm dark:text-gray-300 text-gray-700">Mar 5, 2026</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+                    Expiring in 22 days
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-brand/10 text-brand hover:bg-brand/20 transition-colors">Request Update</button>
+                </td>
+              </tr>
+              <!-- Row 3: Rachel Kim -->
+              <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-xs font-bold text-teal-400">RK</div>
+                    <div>
+                      <p class="text-sm font-medium">Rachel Kim</p>
+                      <p class="text-xs dark:text-gray-500 text-gray-400">AquaPipe Plumbing</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm dark:text-gray-300 text-gray-700">Plumbing License</td>
+                <td class="px-6 py-4 text-sm dark:text-gray-300 text-gray-700">Jan 15, 2026</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                    <i data-lucide="x-circle" class="w-3 h-3"></i>
+                    EXPIRED
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors">Block Assignment</button>
+                </td>
+              </tr>
+              <!-- Row 4: ABC Steel Co -->
+              <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gray-500/20 flex items-center justify-center text-xs font-bold dark:text-gray-400 text-gray-500">AS</div>
+                    <div>
+                      <p class="text-sm font-medium">ABC Steel Co</p>
+                      <p class="text-xs dark:text-gray-500 text-gray-400">Vendor</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm dark:text-gray-300 text-gray-700">Workers Comp Insurance</td>
+                <td class="px-6 py-4 text-sm dark:text-gray-300 text-gray-700">Mar 10, 2026</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+                    Expiring in 27 days
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-brand/10 text-brand hover:bg-brand/20 transition-colors">Request Update</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Initialize Lucide Icons -->
+  <script>lucide.createIcons();</script>
+
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstructionERP -- Building Smarter from Blueprint to Closeout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  :root {
+    --bg: #ffffff; --surface: #f5f0eb; --topbar-bg: #fffcf9;
+    --blue: #1d4ed8; --blue-light: #eff6ff; --amber: #b45309; --amber-light: #fef3c7;
+    --text: #292524; --muted: #78716c; --border: #d6d3d1;
+    --green: #16a34a; --red: #dc2626;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'Inter', -apple-system, sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #1c1917; --surface: #292524; --topbar-bg: #1c1917;
+    --blue-light: rgba(29,78,216,.15); --amber-light: rgba(180,83,9,.15);
+    --text: #f5f0eb; --muted: #a8a29e; --border: #44403c;
+  }
+
+  body { font-family: var(--font-sans); color: var(--text); background: var(--bg); line-height: 1.6; transition: background 0.3s, color 0.3s; }
+  .serif { font-family: var(--font-serif); }
+  h1, h2, h3, h4 { font-family: var(--font-serif); line-height: 1.2; color: var(--text); }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  .muted { color: var(--muted); }
+
+  /* NAV */
+  .nav { background: var(--topbar-bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .nav-logo { font-family: var(--font-serif); font-size: 1.35rem; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+  .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+  .nav-links a { text-decoration: none; color: var(--muted); font-size: 0.9rem; font-weight: 500; position: relative; transition: color 0.3s; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1.5px; background: var(--amber); transition: width 0.3s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-cta { background: var(--blue); color: #fff !important; padding: 8px 22px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; transition: background 0.3s, transform 0.2s; }
+  .nav-cta::after { display: none !important; }
+  .nav-cta:hover { background: #1e40af; transform: translateY(-1px); }
+  .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+  .hamburger span { display: block; width: 22px; height: 2px; background: var(--text); margin: 5px 0; transition: all 0.3s; }
+  .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .hamburger.active span:nth-child(2) { opacity: 0; }
+  .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  .mobile-menu { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--topbar-bg); border-bottom: 1px solid var(--border); padding: 20px 24px; }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a { display: block; padding: 10px 0; color: var(--muted); text-decoration: none; font-size: 0.95rem; font-weight: 500; border-bottom: 1px solid var(--border); }
+  .mobile-menu a:last-child { border: none; }
+  .mobile-menu .nav-cta-mobile { display: inline-block; margin-top: 12px; background: var(--blue); color: #fff; padding: 10px 28px; border-radius: 6px; font-weight: 600; }
+
+  /* THEME TOGGLE */
+  .theme-toggle {
+    position: fixed; bottom: 24px; right: 24px; z-index: 200;
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg); cursor: pointer; display: flex; align-items: center;
+    justify-content: center; box-shadow: 0 2px 12px rgba(0,0,0,0.1); transition: background 0.3s;
+  }
+  .theme-toggle svg { width: 20px; height: 20px; stroke: var(--amber); fill: none; stroke-width: 2; }
+
+  /* HERO */
+  .hero { display: flex; min-height: 90vh; }
+  .hero-image { flex: 1; overflow: hidden; background: var(--surface); }
+  .hero-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 6s ease; }
+  .hero:hover .hero-image img { transform: scale(1.03); }
+  .hero-content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 80px 64px; }
+  .hero-accent { width: 60px; height: 3px; background: var(--amber); margin-bottom: 28px; }
+  .hero h1 { font-size: 3.2rem; font-weight: 800; color: var(--text); margin-bottom: 20px; letter-spacing: -0.02em; }
+  .hero p { font-size: 1.1rem; color: var(--muted); max-width: 440px; margin-bottom: 36px; line-height: 1.7; }
+  .hero-actions { display: flex; align-items: center; gap: 28px; }
+  .btn-blue { background: var(--blue); color: #fff; padding: 14px 32px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; font-family: var(--font-sans); cursor: pointer; text-decoration: none; transition: background 0.3s, transform 0.2s; display: inline-block; }
+  .btn-blue:hover { background: #1e40af; transform: translateY(-2px); }
+  .link-arrow { color: var(--amber); text-decoration: none; font-weight: 600; font-size: 0.95rem; position: relative; transition: color 0.3s; }
+  .link-arrow:hover { color: #92400e; }
+
+  /* STORY */
+  .story { padding: 100px 24px; }
+  .story-inner { max-width: 600px; margin: 0 auto; text-align: center; }
+  .story-inner p { font-size: 1.15rem; color: var(--muted); line-height: 1.85; }
+
+  /* STEPS */
+  .steps { padding: 80px 24px 100px; background: var(--surface); }
+  .steps h2 { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 60px; }
+  .steps-row { display: flex; align-items: flex-start; justify-content: center; gap: 0; max-width: 900px; margin: 0 auto; position: relative; }
+  .step { flex: 1; text-align: center; position: relative; padding: 0 20px; }
+  .step-number { width: 56px; height: 56px; border-radius: 50%; background: var(--blue); color: #fff; font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; position: relative; z-index: 2; }
+  .step h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; }
+  .step p { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+  .steps-row::before { content: ''; position: absolute; top: 28px; left: 16.6%; right: 16.6%; height: 2px; border-top: 2.5px dotted var(--border); z-index: 1; }
+
+  /* MODULE BLOCKS */
+  .module-block { display: flex; align-items: center; min-height: 480px; }
+  .module-block.reverse { flex-direction: row-reverse; }
+  .module-img { flex: 1; overflow: hidden; min-height: 480px; background: var(--surface); }
+  .module-img img { width: 100%; height: 100%; object-fit: cover; min-height: 480px; transition: transform 0.6s ease; }
+  .module-img:hover img { transform: scale(1.04); }
+  .module-text { flex: 1; padding: 60px 64px; }
+  .module-text .label { text-transform: uppercase; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; color: var(--amber); margin-bottom: 12px; }
+  .module-text h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 16px; }
+  .module-text p { font-size: 1rem; color: var(--muted); line-height: 1.75; margin-bottom: 24px; max-width: 440px; }
+  .module-text .link-arrow { font-size: 0.9rem; }
+
+  /* STATS BANNER */
+  .stats-banner { background: var(--surface); padding: 80px 24px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; max-width: 960px; margin: 0 auto; text-align: center; }
+  .stat-number { font-family: var(--font-serif); font-size: 3rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+  .stat-label { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
+
+  /* TESTIMONIAL */
+  .testimonial { padding: 100px 24px; }
+  .testimonial-inner { max-width: 700px; margin: 0 auto; text-align: center; position: relative; }
+  .testimonial-mark { font-family: var(--font-serif); font-size: 8rem; color: var(--amber); opacity: 0.2; line-height: 1; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); }
+  .testimonial blockquote { font-family: var(--font-serif); font-style: italic; font-size: 1.65rem; font-weight: 400; color: var(--text); line-height: 1.55; margin-bottom: 28px; position: relative; z-index: 1; }
+  .testimonial cite { font-style: normal; font-size: 0.95rem; color: var(--muted); }
+  .testimonial cite strong { color: var(--text); font-weight: 600; }
+
+  /* MODULES GRID */
+  .modules-grid { padding: 80px 24px 100px; }
+  .modules-grid h2 { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 48px; }
+  .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 1080px; margin: 0 auto; }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 36px 28px; transition: transform 0.3s, box-shadow 0.3s; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+  .card-icon { width: 44px; height: 44px; background: var(--surface); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+  .card-icon svg { width: 22px; height: 22px; stroke: var(--amber); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; }
+  .card p { font-size: 0.88rem; color: var(--muted); line-height: 1.65; }
+
+  /* CTA */
+  .cta-section { background: var(--surface); padding: 100px 24px; text-align: center; }
+  .cta-section h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 12px; }
+  .cta-section p { font-size: 1.05rem; color: var(--muted); margin-bottom: 32px; }
+  .cta-section .btn-blue { padding: 16px 40px; font-size: 1rem; }
+
+  /* FOOTER */
+  .footer { border-top: 1px solid var(--border); padding: 60px 24px 40px; }
+  .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; max-width: 1080px; margin: 0 auto 48px; }
+  .footer h4 { font-family: var(--font-serif); font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+  .footer ul { list-style: none; }
+  .footer li { margin-bottom: 8px; }
+  .footer a { text-decoration: none; color: var(--muted); font-size: 0.88rem; transition: color 0.3s; }
+  .footer a:hover { color: var(--amber); }
+  .footer-bottom { text-align: center; font-size: 0.82rem; color: var(--muted); padding-top: 24px; border-top: 1px solid var(--border); max-width: 1080px; margin: 0 auto; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hamburger { display: block; }
+    .hero { flex-direction: column; min-height: auto; }
+    .hero-image { min-height: 50vh; }
+    .hero-image img { min-height: 50vh; }
+    .hero-content { padding: 48px 24px; }
+    .hero h1 { font-size: 2.2rem; }
+    .module-block, .module-block.reverse { flex-direction: column; min-height: auto; }
+    .module-img { min-height: 300px; width: 100%; }
+    .module-img img { min-height: 300px; }
+    .module-text { padding: 40px 24px; }
+    .module-text h2 { font-size: 1.65rem; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+    .stat-number { font-size: 2.4rem; }
+    .steps-row { flex-direction: column; gap: 36px; }
+    .steps-row::before { display: none; }
+    .cards-grid { grid-template-columns: 1fr; max-width: 400px; }
+    .testimonial blockquote { font-size: 1.3rem; }
+    .cta-section h2 { font-size: 1.8rem; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- THEME TOGGLE -->
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">
+  <svg id="sunIcon" style="display:none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  <svg id="moonIcon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="#" class="nav-logo">ConstructionERP</a>
+    <ul class="nav-links">
+      <li><a href="#story">About</a></li>
+      <li><a href="#modules">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="#trial" class="nav-cta">Start Free Trial</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#story">About</a>
+    <a href="#modules">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#contact">Contact</a>
+    <a href="#trial" class="nav-cta-mobile">Start Free Trial</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-image">
+    <img src="https://placehold.co/800x900/b45309/ffffff?text=Construction+Site" alt="Active construction site with cranes and steel framework">
+  </div>
+  <div class="hero-content">
+    <div class="hero-accent"></div>
+    <h1>Building Smarter from Blueprint to Closeout</h1>
+    <p>A unified platform for general contractors, real estate developers, and property managers &mdash; bringing projects, finances, and operations into one command center.</p>
+    <div class="hero-actions">
+      <a href="#trial" class="btn-blue">Explore Platform</a>
+      <a href="#story" class="link-arrow">Our Story &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- STORY -->
+<section class="story" id="story">
+  <div class="story-inner">
+    <p>We built ConstructionERP because builders deserve better than disconnected spreadsheets and outdated legacy systems. From preconstruction bids to final closeout, our platform brings every project, every dollar, and every document together &mdash; so your team can focus on what they do best: building.</p>
+  </div>
+</section>
+
+<!-- 3-STEP PROCESS -->
+<section class="steps">
+  <div class="container">
+    <h2>How It Works</h2>
+    <div class="steps-row">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Sign Up</h3>
+        <p>Create your account and set up your company profile in under five minutes.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Import Your Projects</h3>
+        <p>Bring in active jobs, budgets, subcontractor lists, and documents with guided onboarding.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Build with Confidence</h3>
+        <p>Go live with real-time dashboards, automated workflows, and full project visibility.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES ALTERNATING -->
+<section id="modules">
+  <div class="module-block">
+    <div class="module-img">
+      <img src="https://placehold.co/700x480/292524/ffffff?text=Project+Management" alt="Project Management Module">
+    </div>
+    <div class="module-text">
+      <div class="label">Module</div>
+      <h2>Project Management</h2>
+      <p>Gantt charts, daily logs, RFIs, submittals, and change orders &mdash; all in one place. Track every milestone from groundbreaking to substantial completion with real-time progress dashboards and automated notifications.</p>
+      <a href="#" class="link-arrow">Learn More &rarr;</a>
+    </div>
+  </div>
+
+  <div class="module-block reverse">
+    <div class="module-img">
+      <img src="https://placehold.co/700x480/1d4ed8/ffffff?text=Property+Management" alt="Property Management Module">
+    </div>
+    <div class="module-text">
+      <div class="label">Module</div>
+      <h2>Property Management</h2>
+      <p>Unit tracking, lease management, tenant communications, and maintenance workflows for your completed assets. Manage the full lifecycle from construction handover to long-term property operations.</p>
+      <a href="#" class="link-arrow">Learn More &rarr;</a>
+    </div>
+  </div>
+
+  <div class="module-block">
+    <div class="module-img">
+      <img src="https://placehold.co/700x480/78716c/ffffff?text=Financial+Management" alt="Financial Management Module">
+    </div>
+    <div class="module-text">
+      <div class="label">Module</div>
+      <h2>Financial Management</h2>
+      <p>Job costing, accounts payable and receivable, progress billing, lien waivers, and budget vs. actual analysis. See exactly where every dollar goes across every project in your portfolio.</p>
+      <a href="#" class="link-arrow">Learn More &rarr;</a>
+    </div>
+  </div>
+
+  <div class="module-block reverse">
+    <div class="module-img">
+      <img src="https://placehold.co/700x480/b45309/ffffff?text=Document+Management" alt="Document Management Module">
+    </div>
+    <div class="module-text">
+      <div class="label">Module</div>
+      <h2>Document Management</h2>
+      <p>Plan room with version control, centralized document library, and AI-powered data extraction. Upload blueprints, specs, contracts, and permits &mdash; then find anything in seconds with intelligent search.</p>
+      <a href="#" class="link-arrow">Learn More &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- STAT BANNER -->
+<section class="stats-banner">
+  <div class="stats-grid">
+    <div>
+      <div class="stat-number">1,200+</div>
+      <div class="stat-label">Contractors Nationwide</div>
+    </div>
+    <div>
+      <div class="stat-number">99.9%</div>
+      <div class="stat-label">Platform Uptime</div>
+    </div>
+    <div>
+      <div class="stat-number">35%</div>
+      <div class="stat-label">Average Cost Savings</div>
+    </div>
+    <div>
+      <div class="stat-number">24/7</div>
+      <div class="stat-label">Dedicated Support</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section class="testimonial">
+  <div class="testimonial-inner">
+    <div class="testimonial-mark">&ldquo;</div>
+    <blockquote>ConstructionERP gave us real-time visibility across 14 active job sites. Change orders that used to take three days now close in hours. It transformed how we run our business.</blockquote>
+    <cite><strong>Marcus Rivera</strong>, President, Ironclad General Contractors</cite>
+  </div>
+</section>
+
+<!-- REMAINING MODULES GRID -->
+<section class="modules-grid">
+  <div class="container">
+    <h2>And So Much More</h2>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3>CRM &amp; Bids</h3>
+        <p>Track leads, manage bid invitations, generate proposals, and convert opportunities into active projects &mdash; all from a centralized pipeline view.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <h3>Workforce Management</h3>
+        <p>Time tracking, crew scheduling, certified payroll, safety compliance, and field worker mobile access for every job site in your portfolio.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <h3>AI Intelligence</h3>
+        <p>Predictive cost forecasting, schedule risk analysis, material price trend alerts, and natural language queries across all your project data.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3>Enterprise Security</h3>
+        <p>Role-based access control, SOC 2 compliance, SSO integration, audit logging, and encrypted document storage built for enterprise scale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="trial">
+  <h2>Start Building Smarter Today</h2>
+  <p>Join 1,200+ contractors who chose clarity over chaos.</p>
+  <a href="#" class="btn-blue">Start Free Trial</a>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer" id="contact">
+  <div class="footer-grid">
+    <div>
+      <h4>Product</h4>
+      <ul>
+        <li><a href="#">Overview</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Changelog</a></li>
+        <li><a href="#">Documentation</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Modules</h4>
+      <ul>
+        <li><a href="#">Project Management</a></li>
+        <li><a href="#">Property Management</a></li>
+        <li><a href="#">Financial Management</a></li>
+        <li><a href="#">Document Management</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Cookie Policy</a></li>
+        <li><a href="#">GDPR</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 ConstructionERP. All rights reserved.</div>
+</footer>
+
+<script>
+  var hamburger = document.getElementById("hamburger");
+  var mobileMenu = document.getElementById("mobileMenu");
+
+  hamburger.addEventListener("click", function() {
+    hamburger.classList.toggle("active");
+    mobileMenu.classList.toggle("open");
+  });
+
+  mobileMenu.querySelectorAll("a").forEach(function(link) {
+    link.addEventListener("click", function() {
+      hamburger.classList.remove("active");
+      mobileMenu.classList.remove("open");
+    });
+  });
+
+  var observerOptions = { threshold: 0.15, rootMargin: "0px 0px -40px 0px" };
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = "1";
+        entry.target.style.transform = "translateY(0)";
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll(".story, .steps, .module-block, .stats-banner, .testimonial, .modules-grid, .cta-section").forEach(function(el) {
+    el.style.opacity = "0";
+    el.style.transform = "translateY(24px)";
+    el.style.transition = "opacity 0.7s ease, transform 0.7s ease";
+    observer.observe(el);
+  });
+
+  function toggleTheme() {
+    var html = document.documentElement;
+    var isDark = html.getAttribute("data-theme") === "dark";
+    if (isDark) {
+      html.removeAttribute("data-theme");
+      document.getElementById("sunIcon").style.display = "none";
+      document.getElementById("moonIcon").style.display = "block";
+      localStorage.setItem("construction-erp-theme", "light");
+    } else {
+      html.setAttribute("data-theme", "dark");
+      document.getElementById("sunIcon").style.display = "block";
+      document.getElementById("moonIcon").style.display = "none";
+      localStorage.setItem("construction-erp-theme", "dark");
+    }
+  }
+
+  (function() {
+    var t = localStorage.getItem("construction-erp-theme");
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.getElementById("sunIcon").style.display = "block";
+      document.getElementById("moonIcon").style.display = "none";
+    }
+  })();
+</script>
+</body>
+</html>

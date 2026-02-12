@@ -1,0 +1,756 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Daily Field Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#2c5282', light: '#3b6ba5', dark: '#1e3a5f' },
+            accent: { DEFAULT: '#c9a84c', light: '#d4b96a', dark: '#b08f3a' },
+            surface: { dark: '#243447', light: '#ffffff' },
+            border: { dark: '#344258', light: '#d1d9e6' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #2c5282, #c9a84c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-thumb { background: #344258; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: #bcc5d4; border-radius: 3px; }
+    /* Signature pad dashed border */
+    .signature-pad { border: 2px dashed; }
+    .dark .signature-pad { border-color: #4a5d73; }
+    .signature-pad { border-color: #bcc5d4; }
+    /* Formatting toolbar buttons */
+    .fmt-btn { transition: background 0.15s; }
+    .fmt-btn:hover { background: rgba(44, 82, 130, 0.15); }
+    /* Sky condition icon button */
+    .sky-btn { transition: all 0.15s; }
+    .sky-btn.active { border-color: #2c5282; background: rgba(44, 82, 130, 0.1); }
+    .dark .sky-btn.active { background: rgba(44, 82, 130, 0.15); }
+  </style>
+</head>
+<body class="dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark')" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Layout wrapper -->
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 flex-shrink-0 dark:bg-[#1e2d3f] bg-[#f0f2f5] border-r dark:border-[#344258] border-[#d1d9e6] flex flex-col overflow-y-auto">
+      <!-- Logo -->
+      <div class="h-16 flex items-center gap-2 px-5 border-b dark:border-[#344258] border-[#d1d9e6] flex-shrink-0">
+        <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+          <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="text-lg font-bold">ConstructionERP</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+        <!-- Dashboard -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4.5 h-4.5"></i>
+          Dashboard
+        </a>
+
+        <!-- Construction section -->
+        <div class="pt-4 pb-1">
+          <span class="px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Construction</span>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="folder-kanban" class="w-4.5 h-4.5"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-brand/10 text-brand font-medium">
+          <i data-lucide="clipboard-list" class="w-4.5 h-4.5"></i>
+          Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="calendar-range" class="w-4.5 h-4.5"></i>
+          Schedule
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="message-square-plus" class="w-4.5 h-4.5"></i>
+          RFIs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="file-diff" class="w-4.5 h-4.5"></i>
+          Change Orders
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="shield-check" class="w-4.5 h-4.5"></i>
+          Safety
+        </a>
+
+        <!-- Financial section -->
+        <div class="pt-4 pb-1">
+          <span class="px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Financial</span>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="dollar-sign" class="w-4.5 h-4.5"></i>
+          Job Costing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="receipt" class="w-4.5 h-4.5"></i>
+          Invoicing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4.5 h-4.5"></i>
+          Reports
+        </a>
+
+        <!-- Documents section -->
+        <div class="pt-4 pb-1">
+          <span class="px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Documents</span>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="folder-open" class="w-4.5 h-4.5"></i>
+          Plan Room
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="file-text" class="w-4.5 h-4.5"></i>
+          Contracts
+        </a>
+
+        <!-- Settings -->
+        <div class="pt-4 pb-1">
+          <span class="px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">System</span>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="settings" class="w-4.5 h-4.5"></i>
+          Settings
+        </a>
+      </nav>
+
+      <!-- User area at bottom -->
+      <div class="p-3 border-t dark:border-[#344258] border-[#d1d9e6] flex-shrink-0">
+        <div class="flex items-center gap-3 px-3 py-2">
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand font-semibold text-xs">JM</div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium truncate">John Martinez</div>
+            <div class="text-xs dark:text-gray-500 text-gray-400 truncate">Superintendent</div>
+          </div>
+          <i data-lucide="log-out" class="w-4 h-4 dark:text-gray-500 text-gray-400 cursor-pointer hover:text-brand transition-colors"></i>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main area (topbar + content) -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+      <!-- TOP BAR -->
+      <header class="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white">
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-sm">
+          <span class="dark:text-gray-500 text-gray-400">Construction</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <span class="dark:text-gray-500 text-gray-400">Projects</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <span class="dark:text-gray-500 text-gray-400">Riverside Commons Phase II</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <span class="dark:text-gray-100 text-gray-900 font-medium">Daily Log</span>
+        </nav>
+
+        <!-- Topbar actions -->
+        <div class="flex items-center gap-3">
+          <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+            <i data-lucide="bell" class="w-5 h-5 dark:text-gray-400 text-gray-500"></i>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+            <i data-lucide="search" class="w-5 h-5 dark:text-gray-400 text-gray-500"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN CONTENT (scrollable) -->
+      <main class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-5xl mx-auto space-y-6">
+
+          <!-- Page Header -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 class="text-2xl font-bold">Daily Field Report</h1>
+              <!-- Date selector -->
+              <div class="flex items-center gap-3 mt-2">
+                <button class="p-1.5 rounded-md dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+                  <i data-lucide="chevron-left" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                </button>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] cursor-pointer">
+                  <i data-lucide="calendar" class="w-4 h-4 text-brand"></i>
+                  <span class="text-sm font-medium">February 11, 2026</span>
+                </div>
+                <button class="p-1.5 rounded-md dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+                  <i data-lucide="chevron-right" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                </button>
+                <!-- Status badge -->
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+                  <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                  Draft
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button class="px-4 py-2 text-sm font-medium rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-50 transition-colors">
+                Save Draft
+              </button>
+              <button class="px-4 py-2 text-sm font-medium rounded-lg bg-brand hover:bg-brand-dark text-white transition-colors flex items-center gap-2">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                Submit Report
+              </button>
+            </div>
+          </div>
+
+          <!-- 1. WEATHER CONDITIONS -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                <i data-lucide="cloud-sun" class="w-4.5 h-4.5 text-cyan-500"></i>
+              </div>
+              <h2 class="text-base font-semibold">Weather Conditions</h2>
+            </div>
+            <div class="p-6 space-y-5">
+              <!-- Inputs row -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-xs font-medium dark:text-gray-400 text-gray-500 mb-1.5">Temperature</label>
+                  <div class="relative">
+                    <input type="text" value="72" class="w-full px-3 py-2 pr-10 text-sm rounded-lg dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs dark:text-gray-500 text-gray-400">F</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium dark:text-gray-400 text-gray-500 mb-1.5">Conditions</label>
+                  <select class="w-full px-3 py-2 text-sm rounded-lg dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 appearance-none cursor-pointer">
+                    <option>Clear</option>
+                    <option selected>Partly Cloudy</option>
+                    <option>Cloudy</option>
+                    <option>Rain</option>
+                    <option>Snow</option>
+                    <option>Fog</option>
+                    <option>Windy</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium dark:text-gray-400 text-gray-500 mb-1.5">Wind Speed</label>
+                  <div class="relative">
+                    <input type="text" value="8" class="w-full px-3 py-2 pr-12 text-sm rounded-lg dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs dark:text-gray-500 text-gray-400">mph</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium dark:text-gray-400 text-gray-500 mb-1.5">Precipitation</label>
+                  <select class="w-full px-3 py-2 text-sm rounded-lg dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 appearance-none cursor-pointer">
+                    <option selected>None</option>
+                    <option>Light Rain</option>
+                    <option>Heavy Rain</option>
+                    <option>Light Snow</option>
+                    <option>Heavy Snow</option>
+                    <option>Sleet</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Auto-filled note -->
+              <p class="text-xs dark:text-gray-500 text-gray-400 flex items-center gap-1.5">
+                <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                Auto-filled from OpenWeatherMap
+              </p>
+
+              <!-- Sky conditions icons -->
+              <div>
+                <label class="block text-xs font-medium dark:text-gray-400 text-gray-500 mb-2">Sky Conditions</label>
+                <div class="flex items-center gap-3">
+                  <button class="sky-btn flex flex-col items-center gap-1.5 px-4 py-3 rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:hover:border-brand/50 hover:border-brand/50 transition-all">
+                    <i data-lucide="sun" class="w-6 h-6 text-yellow-500"></i>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Sunny</span>
+                  </button>
+                  <button class="sky-btn active flex flex-col items-center gap-1.5 px-4 py-3 rounded-lg border border-brand dark:bg-brand/10 bg-brand/5 transition-all">
+                    <i data-lucide="cloud-sun" class="w-6 h-6 text-brand"></i>
+                    <span class="text-xs text-brand font-medium">Partly Cloudy</span>
+                  </button>
+                  <button class="sky-btn flex flex-col items-center gap-1.5 px-4 py-3 rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:hover:border-brand/50 hover:border-brand/50 transition-all">
+                    <i data-lucide="cloud" class="w-6 h-6 dark:text-gray-400 text-gray-500"></i>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Cloudy</span>
+                  </button>
+                  <button class="sky-btn flex flex-col items-center gap-1.5 px-4 py-3 rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:hover:border-brand/50 hover:border-brand/50 transition-all">
+                    <i data-lucide="cloud-rain" class="w-6 h-6 dark:text-gray-400 text-gray-500"></i>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Rain</span>
+                  </button>
+                  <button class="sky-btn flex flex-col items-center gap-1.5 px-4 py-3 rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:hover:border-brand/50 hover:border-brand/50 transition-all">
+                    <i data-lucide="snowflake" class="w-6 h-6 dark:text-gray-400 text-gray-500"></i>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Snow</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 2. WORKFORCE ON SITE -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <i data-lucide="hard-hat" class="w-4.5 h-4.5 text-green-500"></i>
+              </div>
+              <h2 class="text-base font-semibold">Workforce on Site</h2>
+            </div>
+            <div class="p-6">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b dark:border-[#344258] border-[#d1d9e6]">
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Trade</th>
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Company</th>
+                      <th class="text-center py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Headcount</th>
+                      <th class="text-center py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Hours</th>
+                      <th class="w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y dark:divide-[#344258] divide-[#d1d9e6]">
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Electricians</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">Volt Electric</td>
+                      <td class="py-3 px-3 text-center">6</td>
+                      <td class="py-3 px-3 text-center">48</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Plumbers</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">AquaPipe</td>
+                      <td class="py-3 px-3 text-center">4</td>
+                      <td class="py-3 px-3 text-center">32</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">HVAC</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">CoolAir HVAC</td>
+                      <td class="py-3 px-3 text-center">5</td>
+                      <td class="py-3 px-3 text-center">40</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Laborers</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">In-House</td>
+                      <td class="py-3 px-3 text-center">8</td>
+                      <td class="py-3 px-3 text-center">64</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Superintendent</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">In-House</td>
+                      <td class="py-3 px-3 text-center">1</td>
+                      <td class="py-3 px-3 text-center">8</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr class="border-t-2 dark:border-[#3d4f64] border-gray-300">
+                      <td class="py-3 px-3 font-semibold" colspan="2">Total</td>
+                      <td class="py-3 px-3 text-center font-semibold">24</td>
+                      <td class="py-3 px-3 text-center font-semibold">192</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <button class="mt-4 flex items-center gap-2 text-sm text-brand hover:text-brand-light transition-colors font-medium">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                Add Trade
+              </button>
+            </div>
+          </section>
+
+          <!-- 3. WORK PERFORMED -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center">
+                <i data-lucide="hammer" class="w-4.5 h-4.5 text-brand"></i>
+              </div>
+              <h2 class="text-base font-semibold">Work Performed</h2>
+            </div>
+            <div class="p-6">
+              <!-- Formatting toolbar -->
+              <div class="flex items-center gap-1 px-2 py-1.5 rounded-t-lg border border-b-0 dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white">
+                <button class="fmt-btn p-1.5 rounded" title="Bold">
+                  <i data-lucide="bold" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                </button>
+                <button class="fmt-btn p-1.5 rounded" title="Italic">
+                  <i data-lucide="italic" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                </button>
+                <div class="w-px h-5 dark:bg-[#344258] bg-[#d1d9e6] mx-1"></div>
+                <button class="fmt-btn p-1.5 rounded" title="Bullet List">
+                  <i data-lucide="list" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                </button>
+              </div>
+              <!-- Textarea -->
+              <textarea rows="6" class="w-full px-4 py-3 text-sm rounded-b-lg border dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 resize-y">Electrical rough-in continued on floors 3-4. Branch circuit wiring 75% complete on floor 3. Plumbing team completed waste line installation in north wing. HVAC ductwork installation began on floor 2.</textarea>
+            </div>
+          </section>
+
+          <!-- 4. EQUIPMENT ON SITE -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <i data-lucide="truck" class="w-4.5 h-4.5 text-orange-500"></i>
+              </div>
+              <h2 class="text-base font-semibold">Equipment on Site</h2>
+            </div>
+            <div class="p-6">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b dark:border-[#344258] border-[#d1d9e6]">
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Equipment</th>
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Status</th>
+                      <th class="text-center py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Hours Used</th>
+                      <th class="w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y dark:divide-[#344258] divide-[#d1d9e6]">
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Tower Crane #1</td>
+                      <td class="py-3 px-3">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-500">
+                          <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Operating
+                        </span>
+                      </td>
+                      <td class="py-3 px-3 text-center">8</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Concrete Pump</td>
+                      <td class="py-3 px-3">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-500">
+                          <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>Standby
+                        </span>
+                      </td>
+                      <td class="py-3 px-3 text-center">0</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Man Lift #3</td>
+                      <td class="py-3 px-3">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-500">
+                          <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Operating
+                        </span>
+                      </td>
+                      <td class="py-3 px-3 text-center">6</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Forklift</td>
+                      <td class="py-3 px-3">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-500">
+                          <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Operating
+                        </span>
+                      </td>
+                      <td class="py-3 px-3 text-center">4</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <button class="mt-4 flex items-center gap-2 text-sm text-brand hover:text-brand-light transition-colors font-medium">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                Add Equipment
+              </button>
+            </div>
+          </section>
+
+          <!-- 5. MATERIALS DELIVERED -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <i data-lucide="package" class="w-4.5 h-4.5 text-purple-500"></i>
+              </div>
+              <h2 class="text-base font-semibold">Materials Delivered</h2>
+            </div>
+            <div class="p-6">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b dark:border-[#344258] border-[#d1d9e6]">
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Item</th>
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Quantity</th>
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Supplier</th>
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">PO Number</th>
+                      <th class="w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y dark:divide-[#344258] divide-[#d1d9e6]">
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">EMT Conduit 3/4"</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">500 LF</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">Graybar Electric</td>
+                      <td class="py-3 px-3">
+                        <span class="text-brand font-medium">PO-2026-0234</span>
+                      </td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Copper Pipe 1"</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">200 LF</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">Ferguson</td>
+                      <td class="py-3 px-3">
+                        <span class="text-brand font-medium">PO-2026-0228</span>
+                      </td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <button class="mt-4 flex items-center gap-2 text-sm text-brand hover:text-brand-light transition-colors font-medium">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                Add Delivery
+              </button>
+            </div>
+          </section>
+
+          <!-- 6. VISITORS LOG -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                <i data-lucide="users" class="w-4.5 h-4.5 text-indigo-500"></i>
+              </div>
+              <h2 class="text-base font-semibold">Visitors Log</h2>
+            </div>
+            <div class="p-6">
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b dark:border-[#344258] border-[#d1d9e6]">
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Name</th>
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Company</th>
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Purpose</th>
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Time In</th>
+                      <th class="text-left py-3 px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Time Out</th>
+                      <th class="w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y dark:divide-[#344258] divide-[#d1d9e6]">
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">David Chen</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">City of Austin</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">Electrical Inspection</td>
+                      <td class="py-3 px-3 dark:text-gray-300 text-gray-700">9:30 AM</td>
+                      <td class="py-3 px-3 dark:text-gray-300 text-gray-700">10:45 AM</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                    <tr class="dark:hover:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                      <td class="py-3 px-3 font-medium">Lisa Park</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">Meridian Dev Group</td>
+                      <td class="py-3 px-3 dark:text-gray-400 text-gray-600">Owner Walk</td>
+                      <td class="py-3 px-3 dark:text-gray-300 text-gray-700">2:00 PM</td>
+                      <td class="py-3 px-3 dark:text-gray-300 text-gray-700">3:30 PM</td>
+                      <td class="py-3 px-1">
+                        <button class="p-1 rounded dark:hover:bg-white/5 hover:bg-gray-200 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400"></i></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <button class="mt-4 flex items-center gap-2 text-sm text-brand hover:text-brand-light transition-colors font-medium">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                Add Visitor
+              </button>
+            </div>
+          </section>
+
+          <!-- 7. SAFETY OBSERVATIONS -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                  <i data-lucide="shield-check" class="w-4.5 h-4.5 text-red-500"></i>
+                </div>
+                <h2 class="text-base font-semibold">Safety Observations</h2>
+              </div>
+              <!-- Safety score -->
+              <div class="flex items-center gap-3">
+                <span class="text-xs dark:text-gray-400 text-gray-500 font-medium">Safety Score</span>
+                <div class="flex items-center gap-2">
+                  <div class="w-24 h-2 rounded-full dark:bg-[#344258] bg-[#d1d9e6] overflow-hidden">
+                    <div class="h-full rounded-full bg-green-500" style="width: 94%"></div>
+                  </div>
+                  <span class="text-sm font-bold text-green-500">94/100</span>
+                </div>
+              </div>
+            </div>
+            <div class="p-6">
+              <textarea rows="4" class="w-full px-4 py-3 text-sm rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 resize-y">All workers wearing required PPE. Fall protection in place on floors 3-4. Housekeeping satisfactory. One minor trip hazard noted near south stairwell - corrected immediately.</textarea>
+            </div>
+          </section>
+
+          <!-- 8. PHOTOS -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-pink-500/10 flex items-center justify-center">
+                  <i data-lucide="camera" class="w-4.5 h-4.5 text-pink-500"></i>
+                </div>
+                <h2 class="text-base font-semibold">Photos</h2>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-1.5 text-xs font-medium rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+                  <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                  Take Photo
+                </button>
+                <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-brand hover:bg-brand-dark text-white transition-colors flex items-center gap-1.5">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                  Upload Photos
+                </button>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Photo placeholder 1 -->
+                <div>
+                  <div class="aspect-[4/3] rounded-lg dark:bg-[#1a2332] bg-gray-200 border-2 border-dashed dark:border-[#344258] border-[#bcc5d4] flex flex-col items-center justify-center gap-2 cursor-pointer dark:hover:border-brand/40 hover:border-brand/40 transition-colors">
+                    <i data-lucide="camera" class="w-8 h-8 dark:text-gray-600 text-gray-400"></i>
+                    <span class="text-xs dark:text-gray-600 text-gray-400">Click to add</span>
+                  </div>
+                  <input type="text" placeholder="Add caption..." class="w-full mt-2 px-2.5 py-1.5 text-xs rounded-md dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 dark:placeholder-gray-600 placeholder-gray-400 focus:outline-none focus:border-brand">
+                </div>
+                <!-- Photo placeholder 2 -->
+                <div>
+                  <div class="aspect-[4/3] rounded-lg dark:bg-[#1a2332] bg-gray-200 border-2 border-dashed dark:border-[#344258] border-[#bcc5d4] flex flex-col items-center justify-center gap-2 cursor-pointer dark:hover:border-brand/40 hover:border-brand/40 transition-colors">
+                    <i data-lucide="camera" class="w-8 h-8 dark:text-gray-600 text-gray-400"></i>
+                    <span class="text-xs dark:text-gray-600 text-gray-400">Click to add</span>
+                  </div>
+                  <input type="text" placeholder="Add caption..." class="w-full mt-2 px-2.5 py-1.5 text-xs rounded-md dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 dark:placeholder-gray-600 placeholder-gray-400 focus:outline-none focus:border-brand">
+                </div>
+                <!-- Photo placeholder 3 -->
+                <div>
+                  <div class="aspect-[4/3] rounded-lg dark:bg-[#1a2332] bg-gray-200 border-2 border-dashed dark:border-[#344258] border-[#bcc5d4] flex flex-col items-center justify-center gap-2 cursor-pointer dark:hover:border-brand/40 hover:border-brand/40 transition-colors">
+                    <i data-lucide="camera" class="w-8 h-8 dark:text-gray-600 text-gray-400"></i>
+                    <span class="text-xs dark:text-gray-600 text-gray-400">Click to add</span>
+                  </div>
+                  <input type="text" placeholder="Add caption..." class="w-full mt-2 px-2.5 py-1.5 text-xs rounded-md dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 dark:placeholder-gray-600 placeholder-gray-400 focus:outline-none focus:border-brand">
+                </div>
+                <!-- Photo placeholder 4 -->
+                <div>
+                  <div class="aspect-[4/3] rounded-lg dark:bg-[#1a2332] bg-gray-200 border-2 border-dashed dark:border-[#344258] border-[#bcc5d4] flex flex-col items-center justify-center gap-2 cursor-pointer dark:hover:border-brand/40 hover:border-brand/40 transition-colors">
+                    <i data-lucide="camera" class="w-8 h-8 dark:text-gray-600 text-gray-400"></i>
+                    <span class="text-xs dark:text-gray-600 text-gray-400">Click to add</span>
+                  </div>
+                  <input type="text" placeholder="Add caption..." class="w-full mt-2 px-2.5 py-1.5 text-xs rounded-md dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 dark:placeholder-gray-600 placeholder-gray-400 focus:outline-none focus:border-brand">
+                </div>
+              </div>
+              <p class="text-xs dark:text-gray-500 text-gray-400 flex items-center gap-1.5 mt-4">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                Photos auto-tagged with GPS location and timestamp
+              </p>
+            </div>
+          </section>
+
+          <!-- 9. DELAYS / ISSUES -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <i data-lucide="alert-triangle" class="w-4.5 h-4.5 text-amber-500"></i>
+              </div>
+              <h2 class="text-base font-semibold">Delays / Issues</h2>
+            </div>
+            <div class="p-6">
+              <textarea rows="3" class="w-full px-4 py-3 text-sm rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 resize-y">No significant delays today. Minor 30-minute hold for electrical inspection on floor 3.</textarea>
+            </div>
+          </section>
+
+          <!-- 10. SIGNATURE -->
+          <section class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+            <div class="px-6 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center">
+                <i data-lucide="pen-tool" class="w-4.5 h-4.5 text-brand"></i>
+              </div>
+              <h2 class="text-base font-semibold">Signature</h2>
+            </div>
+            <div class="p-6 space-y-5">
+              <!-- Signature pad -->
+              <div>
+                <label class="block text-xs font-medium dark:text-gray-400 text-gray-500 mb-2">Digital Signature</label>
+                <div class="signature-pad rounded-lg h-32 dark:bg-[#1a2332] bg-white flex items-center justify-center cursor-crosshair">
+                  <span class="text-sm dark:text-gray-600 text-gray-400">Click or draw to sign</span>
+                </div>
+              </div>
+              <!-- Fields -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-medium dark:text-gray-400 text-gray-500 mb-1.5">Signed By</label>
+                  <input type="text" value="John Martinez" class="w-full px-3 py-2 text-sm rounded-lg dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium dark:text-gray-400 text-gray-500 mb-1.5">Date</label>
+                  <input type="text" value="February 11, 2026" class="w-full px-3 py-2 text-sm rounded-lg dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30" readonly>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium dark:text-gray-400 text-gray-500 mb-1.5">Title</label>
+                  <input type="text" value="Superintendent" class="w-full px-3 py-2 text-sm rounded-lg dark:bg-[#1a2332] bg-white border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-100 text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30">
+                </div>
+              </div>
+              <!-- Sign & Submit -->
+              <div class="flex items-center justify-end pt-2">
+                <button class="px-6 py-2.5 text-sm font-semibold rounded-lg bg-brand hover:bg-brand-dark text-white transition-colors flex items-center gap-2">
+                  <i data-lucide="check-circle" class="w-4 h-4"></i>
+                  Sign & Submit
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Bottom spacing -->
+          <div class="h-8"></div>
+
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

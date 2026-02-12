@@ -1,0 +1,660 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Riverside Apartments</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#2c5282', light: '#3b6ba5', dark: '#1e3a5f' },
+            accent: { DEFAULT: '#c9a84c', light: '#d4b96a', dark: '#b08f3a' },
+            surface: { dark: '#243447', light: '#ffffff' },
+            border: { dark: '#344258', light: '#d1d9e6' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #2c5282, #c9a84c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #344258; border-radius: 4px; }
+    .unit-cell { transition: transform 0.1s ease, box-shadow 0.1s ease; }
+    .unit-cell:hover { transform: scale(1.15); z-index: 10; }
+  </style>
+</head>
+<body class="dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark')" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex-shrink-0 dark:bg-[#1e2d3f] bg-[#f0f2f5] border-r dark:border-[#344258] border-[#d1d9e6] flex flex-col overflow-y-auto scrollbar-thin">
+      <!-- Logo -->
+      <div class="h-16 flex items-center gap-2 px-5 border-b dark:border-[#344258] border-[#d1d9e6]">
+        <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center flex-shrink-0">
+          <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="text-lg font-bold">ConstructionERP</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 px-3 py-4 space-y-1">
+        <!-- Dashboard -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+
+        <!-- Projects -->
+        <div class="pt-3">
+          <div class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Construction</div>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="hard-hat" class="w-4 h-4"></i>
+            Projects
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="calendar-range" class="w-4 h-4"></i>
+            Scheduling
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            Subcontractors
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            Estimates
+          </a>
+        </div>
+
+        <!-- Real Estate -->
+        <div class="pt-3">
+          <div class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Real Estate</div>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-brand/10 text-brand font-medium">
+            <i data-lucide="building" class="w-4 h-4"></i>
+            Properties
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="key" class="w-4 h-4"></i>
+            Leases
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="user-check" class="w-4 h-4"></i>
+            Tenants
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="wrench" class="w-4 h-4"></i>
+            Maintenance
+          </a>
+        </div>
+
+        <!-- Finance -->
+        <div class="pt-3">
+          <div class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Finance</div>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="wallet" class="w-4 h-4"></i>
+            Accounting
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="file-bar-chart" class="w-4 h-4"></i>
+            Reports
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="receipt" class="w-4 h-4"></i>
+            Invoices
+          </a>
+        </div>
+
+        <!-- Tools -->
+        <div class="pt-3">
+          <div class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Tools</div>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            AI Assistant
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="folder" class="w-4 h-4"></i>
+            Documents
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            Settings
+          </a>
+        </div>
+      </nav>
+
+      <!-- User / Bottom -->
+      <div class="border-t dark:border-[#344258] border-[#d1d9e6] px-4 py-3">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand text-sm font-semibold">JD</div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium truncate">John Davis</div>
+            <div class="text-xs dark:text-gray-500 text-gray-400 truncate">Property Manager</div>
+          </div>
+          <button class="dark:text-gray-500 text-gray-400 hover:text-brand transition-colors">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+      <!-- Top Bar -->
+      <header class="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-sm">
+          <span class="dark:text-gray-500 text-gray-400">Real Estate</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <a href="#" class="dark:text-gray-400 text-gray-500 hover:text-brand transition-colors">Properties</a>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <span class="dark:text-gray-100 text-gray-900 font-medium">Riverside Apartments</span>
+        </div>
+        <!-- Top bar actions -->
+        <div class="flex items-center gap-3">
+          <button class="relative p-2 rounded-lg dark:text-gray-400 text-gray-500 hover:dark:bg-white/5 hover:bg-gray-100 transition-colors">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <button class="relative p-2 rounded-lg dark:text-gray-400 text-gray-500 hover:dark:bg-white/5 hover:bg-gray-100 transition-colors">
+            <i data-lucide="search" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Content -->
+      <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+        <!-- Property Header -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-6">
+          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div class="space-y-3">
+              <div class="flex items-center gap-3 flex-wrap">
+                <h1 class="text-2xl font-bold">Riverside Apartments</h1>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand/10 text-brand border border-brand/20">
+                  Residential Multi-Family
+                </span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5"></span>
+                  Active
+                </span>
+              </div>
+              <div class="flex items-center gap-2 text-sm dark:text-gray-400 text-gray-500">
+                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                1200 Riverside Dr, Austin, TX 78741
+              </div>
+              <div class="flex items-center gap-5 text-sm dark:text-gray-400 text-gray-500">
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                  Built 2019
+                </span>
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="ruler" class="w-3.5 h-3.5"></i>
+                  52,000 SF
+                </span>
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="land-plot" class="w-3.5 h-3.5"></i>
+                  2.4 acres
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:bg-white/5 bg-white hover:dark:bg-white/10 hover:bg-gray-50 transition-colors">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+                Edit Property
+              </button>
+              <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:bg-white/5 bg-white hover:dark:bg-white/10 hover:bg-gray-50 transition-colors">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                Generate Report
+              </button>
+              <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-brand hover:bg-brand-dark text-white transition-colors">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                AI Analysis
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-navigation Tabs -->
+        <div class="border-b dark:border-[#344258] border-[#d1d9e6]">
+          <nav class="flex gap-0 -mb-px">
+            <button class="px-5 py-3 text-sm font-medium border-b-2 border-brand text-brand">Overview</button>
+            <button class="px-5 py-3 text-sm font-medium border-b-2 border-transparent dark:text-gray-400 text-gray-500 hover:text-brand hover:border-brand/30 transition-colors">Units</button>
+            <button class="px-5 py-3 text-sm font-medium border-b-2 border-transparent dark:text-gray-400 text-gray-500 hover:text-brand hover:border-brand/30 transition-colors">Leases</button>
+            <button class="px-5 py-3 text-sm font-medium border-b-2 border-transparent dark:text-gray-400 text-gray-500 hover:text-brand hover:border-brand/30 transition-colors">Tenants</button>
+            <button class="px-5 py-3 text-sm font-medium border-b-2 border-transparent dark:text-gray-400 text-gray-500 hover:text-brand hover:border-brand/30 transition-colors">Maintenance</button>
+            <button class="px-5 py-3 text-sm font-medium border-b-2 border-transparent dark:text-gray-400 text-gray-500 hover:text-brand hover:border-brand/30 transition-colors">Marketing</button>
+            <button class="px-5 py-3 text-sm font-medium border-b-2 border-transparent dark:text-gray-400 text-gray-500 hover:text-brand hover:border-brand/30 transition-colors">Financials</button>
+          </nav>
+        </div>
+
+        <!-- Row 1: KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Occupancy Rate -->
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm dark:text-gray-400 text-gray-500">Occupancy Rate</span>
+              <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <i data-lucide="home" class="w-4 h-4 text-green-400"></i>
+              </div>
+            </div>
+            <div class="text-3xl font-bold text-green-400">96%</div>
+            <div class="text-sm dark:text-gray-400 text-gray-500 mt-1">46 / 48 units</div>
+            <div class="mt-3 w-full h-2 rounded-full dark:bg-white/5 bg-gray-200">
+              <div class="h-2 rounded-full bg-green-500" style="width: 96%"></div>
+            </div>
+          </div>
+
+          <!-- Monthly Revenue -->
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm dark:text-gray-400 text-gray-500">Monthly Revenue</span>
+              <div class="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center">
+                <i data-lucide="dollar-sign" class="w-4 h-4 text-brand"></i>
+              </div>
+            </div>
+            <div class="text-3xl font-bold">$72,000</div>
+            <div class="flex items-center gap-1 mt-1">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5 text-green-400"></i>
+              <span class="text-sm text-green-400 font-medium">+3.2%</span>
+              <span class="text-sm dark:text-gray-500 text-gray-400">vs last month</span>
+            </div>
+          </div>
+
+          <!-- Avg Rent/SF -->
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm dark:text-gray-400 text-gray-500">Avg Rent / SF</span>
+              <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <i data-lucide="bar-chart-3" class="w-4 h-4 text-purple-400"></i>
+              </div>
+            </div>
+            <div class="text-3xl font-bold">$1.38</div>
+            <div class="text-sm dark:text-gray-400 text-gray-500 mt-1">
+              Market: <span class="dark:text-gray-300 text-gray-700 font-medium">$1.42</span>
+            </div>
+          </div>
+
+          <!-- Open Maintenance -->
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm dark:text-gray-400 text-gray-500">Open Maintenance</span>
+              <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                <i data-lucide="wrench" class="w-4 h-4 text-accent"></i>
+              </div>
+            </div>
+            <div class="text-3xl font-bold">3</div>
+            <div class="flex items-center gap-1 mt-1">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-accent"></i>
+              <span class="text-sm text-accent font-medium">1 urgent</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Unit Grid + Lease Expirations -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Unit Status Grid (2/3) -->
+          <div class="lg:col-span-2 dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-6">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="text-base font-semibold">Unit Status Grid</h3>
+              <a href="#" class="text-sm text-brand hover:text-brand-light transition-colors flex items-center gap-1">
+                View All Units
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+
+            <!-- Grid: 8 columns x 6 rows = 48 units -->
+            <div class="grid grid-cols-8 gap-1.5 mb-5">
+              <!-- Row 1: Units 101-108 -->
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 101 - Occupied">101</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 102 - Occupied">102</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 103 - Occupied">103</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 104 - Occupied">104</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 105 - Occupied">105</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 106 - Occupied">106</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 107 - Occupied">107</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-[10px] font-medium text-yellow-400 cursor-pointer" title="Unit 108 - Vacant">108</div>
+
+              <!-- Row 2: Units 201-208 -->
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 201 - Occupied">201</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 202 - Occupied">202</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 203 - Occupied">203</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-[10px] font-medium text-blue-400 cursor-pointer" title="Unit 204 - Reserved">204</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 205 - Occupied">205</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 206 - Occupied">206</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 207 - Occupied">207</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 208 - Occupied">208</div>
+
+              <!-- Row 3: Units 301-308 -->
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 301 - Occupied">301</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 302 - Occupied">302</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 303 - Occupied">303</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 304 - Occupied">304</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-red-500/20 border border-red-500/30 flex items-center justify-center text-[10px] font-medium text-red-400 cursor-pointer" title="Unit 305 - Maintenance">305</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 306 - Occupied">306</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 307 - Occupied">307</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 308 - Occupied">308</div>
+
+              <!-- Row 4: Units 401-408 -->
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 401 - Occupied">401</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 402 - Occupied">402</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 403 - Occupied">403</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 404 - Occupied">404</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 405 - Occupied">405</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 406 - Occupied">406</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 407 - Occupied">407</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 408 - Occupied">408</div>
+
+              <!-- Row 5: Units 501-508 (using 1xx for floor 5 style or continuing numbering) -->
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 501 - Occupied">501</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 502 - Occupied">502</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 503 - Occupied">503</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-[10px] font-medium text-yellow-400 cursor-pointer" title="Unit 504 - Vacant">504</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 505 - Occupied">505</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 506 - Occupied">506</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 507 - Occupied">507</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 508 - Occupied">508</div>
+
+              <!-- Row 6: Units 601-608 -->
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 601 - Occupied">601</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 602 - Occupied">602</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 603 - Occupied">603</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 604 - Occupied">604</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 605 - Occupied">605</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 606 - Occupied">606</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 607 - Occupied">607</div>
+              <div class="unit-cell relative aspect-square rounded-md bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] font-medium text-green-400 cursor-pointer" title="Unit 608 - Occupied">608</div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex items-center gap-5 text-xs dark:text-gray-400 text-gray-500">
+              <span class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-sm bg-green-500/20 border border-green-500/30"></span>
+                Occupied (44)
+              </span>
+              <span class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-sm bg-yellow-500/20 border border-yellow-500/30"></span>
+                Vacant (2)
+              </span>
+              <span class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-sm bg-red-500/20 border border-red-500/30"></span>
+                Maintenance (1)
+              </span>
+              <span class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-sm bg-blue-500/20 border border-blue-500/30"></span>
+                Reserved (1)
+              </span>
+            </div>
+          </div>
+
+          <!-- Upcoming Lease Expirations (1/3) -->
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-6">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="text-base font-semibold">Upcoming Lease Expirations</h3>
+              <a href="#" class="text-sm text-brand hover:text-brand-light transition-colors flex items-center gap-1">
+                View All Leases
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+
+            <div class="space-y-3">
+              <!-- Lease 1 -->
+              <div class="p-3 rounded-lg dark:bg-white/[0.03] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium">Unit 204</span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-500/10 text-green-400 border border-green-500/20">Renewal Sent</span>
+                </div>
+                <div class="text-sm dark:text-gray-400 text-gray-500">Sarah Chen</div>
+                <div class="flex items-center justify-between mt-1.5">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">Mar 15, 2026</span>
+                  <span class="text-xs font-medium text-accent">28 days</span>
+                </div>
+              </div>
+
+              <!-- Lease 2 -->
+              <div class="p-3 rounded-lg dark:bg-white/[0.03] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium">Unit 312</span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">Pending</span>
+                </div>
+                <div class="text-sm dark:text-gray-400 text-gray-500">Mike Johnson</div>
+                <div class="flex items-center justify-between mt-1.5">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">Apr 1, 2026</span>
+                  <span class="text-xs font-medium dark:text-gray-400 text-gray-500">47 days</span>
+                </div>
+              </div>
+
+              <!-- Lease 3 -->
+              <div class="p-3 rounded-lg dark:bg-white/[0.03] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium">Unit 108</span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20">Not Started</span>
+                </div>
+                <div class="text-sm dark:text-gray-400 text-gray-500">Lisa Park</div>
+                <div class="flex items-center justify-between mt-1.5">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">Apr 30, 2026</span>
+                  <span class="text-xs font-medium dark:text-gray-400 text-gray-500">76 days</span>
+                </div>
+              </div>
+
+              <!-- Lease 4 -->
+              <div class="p-3 rounded-lg dark:bg-white/[0.03] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium">Unit 415</span>
+                </div>
+                <div class="text-sm dark:text-gray-400 text-gray-500">James Wu</div>
+                <div class="flex items-center justify-between mt-1.5">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">May 15, 2026</span>
+                  <span class="text-xs font-medium dark:text-gray-400 text-gray-500">91 days</span>
+                </div>
+              </div>
+
+              <!-- Lease 5 -->
+              <div class="p-3 rounded-lg dark:bg-white/[0.03] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium">Unit 201</span>
+                </div>
+                <div class="text-sm dark:text-gray-400 text-gray-500">Ana Rivera</div>
+                <div class="flex items-center justify-between mt-1.5">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">Jun 1, 2026</span>
+                  <span class="text-xs font-medium dark:text-gray-400 text-gray-500">108 days</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Maintenance + NOI Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Recent Maintenance Requests -->
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-6">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="text-base font-semibold">Recent Maintenance Requests</h3>
+              <a href="#" class="text-sm text-brand hover:text-brand-light transition-colors flex items-center gap-1">
+                View All Maintenance
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+
+            <div class="space-y-3">
+              <!-- Request 1 -->
+              <div class="p-4 rounded-lg dark:bg-white/[0.03] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <h4 class="text-sm font-medium">Leaking faucet - Unit 305</h4>
+                    <span class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Reported 2 days ago</span>
+                  </div>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Assigned</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex items-center gap-1 text-xs dark:text-gray-400 text-gray-500">
+                    <i data-lucide="flag" class="w-3 h-3"></i>
+                    Priority: <span class="font-medium dark:text-yellow-400 text-yellow-600">Medium</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Request 2 -->
+              <div class="p-4 rounded-lg dark:bg-white/[0.03] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <h4 class="text-sm font-medium">AC not cooling - Unit 118</h4>
+                    <span class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Reported 1 day ago</span>
+                  </div>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-accent/10 text-accent border border-accent/20">In Progress</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex items-center gap-1 text-xs dark:text-gray-400 text-gray-500">
+                    <i data-lucide="flag" class="w-3 h-3"></i>
+                    Priority: <span class="font-medium text-accent">High</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Request 3 -->
+              <div class="p-4 rounded-lg dark:bg-white/[0.03] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <h4 class="text-sm font-medium">Broken window lock - Unit 422</h4>
+                    <span class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Reported today</span>
+                  </div>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium dark:bg-white/5 bg-gray-100 dark:text-gray-400 text-gray-500 border dark:border-[#344258] border-[#d1d9e6]">New</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex items-center gap-1 text-xs dark:text-gray-400 text-gray-500">
+                    <i data-lucide="flag" class="w-3 h-3"></i>
+                    Priority: <span class="font-medium dark:text-gray-300 text-gray-600">Low</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- NOI Chart -->
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-6">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-base font-semibold">Net Operating Income</h3>
+              <div class="flex items-center gap-1.5">
+                <i data-lucide="trending-up" class="w-4 h-4 text-green-400"></i>
+                <span class="text-sm text-green-400 font-medium">+4.1% YoY</span>
+              </div>
+            </div>
+            <div class="text-sm dark:text-gray-400 text-gray-500 mb-5">Current Month: <span class="dark:text-gray-100 text-gray-900 font-semibold">$48,200</span></div>
+
+            <!-- CSS Bar Chart -->
+            <div class="flex items-end gap-3 h-48">
+              <!-- Sep -->
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full rounded-t-md bg-brand/60 dark:bg-brand/50" style="height: 72%"></div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Sep</span>
+              </div>
+              <!-- Oct -->
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full rounded-t-md bg-brand/60 dark:bg-brand/50" style="height: 78%"></div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Oct</span>
+              </div>
+              <!-- Nov -->
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full rounded-t-md bg-brand/60 dark:bg-brand/50" style="height: 70%"></div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Nov</span>
+              </div>
+              <!-- Dec -->
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full rounded-t-md bg-brand/60 dark:bg-brand/50" style="height: 82%"></div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Dec</span>
+              </div>
+              <!-- Jan -->
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full rounded-t-md bg-brand/70 dark:bg-brand/60" style="height: 88%"></div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Jan</span>
+              </div>
+              <!-- Feb (current) -->
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div class="w-full rounded-t-md bg-brand" style="height: 92%"></div>
+                <span class="text-[10px] font-medium dark:text-gray-300 text-gray-600">Feb</span>
+              </div>
+            </div>
+
+            <!-- Y-axis reference -->
+            <div class="flex items-center justify-between mt-3 pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+              <span class="text-xs dark:text-gray-500 text-gray-400">$38K</span>
+              <span class="text-xs dark:text-gray-500 text-gray-400">$42K</span>
+              <span class="text-xs dark:text-gray-500 text-gray-400">$45K</span>
+              <span class="text-xs dark:text-gray-500 text-gray-400">$47K</span>
+              <span class="text-xs dark:text-gray-500 text-gray-400">$47.5K</span>
+              <span class="text-xs font-medium dark:text-gray-300 text-gray-600">$48.2K</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Property Details (Full Width) -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] rounded-md border dark:border-[#344258] border-[#d1d9e6] p-6">
+          <h3 class="text-base font-semibold mb-5">Property Details</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+            <!-- Left Column -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between py-2 border-b dark:border-[#344258]/60 border-[#d1d9e6]">
+                <span class="text-sm dark:text-gray-400 text-gray-500">Purchase Price</span>
+                <span class="text-sm font-semibold">$6,200,000</span>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b dark:border-[#344258]/60 border-[#d1d9e6]">
+                <span class="text-sm dark:text-gray-400 text-gray-500">Current Value</span>
+                <span class="text-sm font-semibold text-green-400">$7,400,000</span>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b dark:border-[#344258]/60 border-[#d1d9e6]">
+                <span class="text-sm dark:text-gray-400 text-gray-500">Mortgage Balance</span>
+                <span class="text-sm font-semibold">$4,800,000</span>
+              </div>
+              <div class="flex items-center justify-between py-2">
+                <span class="text-sm dark:text-gray-400 text-gray-500">Annual Property Tax</span>
+                <span class="text-sm font-semibold">$62,000</span>
+              </div>
+            </div>
+            <!-- Right Column -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between py-2 border-b dark:border-[#344258]/60 border-[#d1d9e6]">
+                <span class="text-sm dark:text-gray-400 text-gray-500">Insurance</span>
+                <span class="text-sm font-semibold">$24,000 / yr</span>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b dark:border-[#344258]/60 border-[#d1d9e6]">
+                <span class="text-sm dark:text-gray-400 text-gray-500">HOA / Association</span>
+                <span class="text-sm font-semibold dark:text-gray-400 text-gray-500">N/A</span>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b dark:border-[#344258]/60 border-[#d1d9e6]">
+                <span class="text-sm dark:text-gray-400 text-gray-500">Management Fee</span>
+                <span class="text-sm font-semibold">8%</span>
+              </div>
+              <div class="flex items-center justify-between py-2">
+                <span class="text-sm dark:text-gray-400 text-gray-500">Cap Rate</span>
+                <span class="text-sm font-semibold text-brand">7.8%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

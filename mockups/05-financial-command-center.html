@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Financial Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#3b82f6', light: '#60a5fa', dark: '#2563eb' },
+            accent: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
+            surface: { dark: '#141414', light: '#f8f9fa' },
+            border: { dark: '#262626', light: '#e5e7eb' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #3b82f6, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Cash flow chart line */
+    .cash-flow-chart {
+      position: relative;
+      height: 200px;
+    }
+    .chart-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+    }
+    .chart-line svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* P&L bar widths */
+    .pnl-bar { transition: width 0.6s ease; }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-thumb { background: #262626; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  </style>
+</head>
+<body class="dark:bg-[#0a0a0a] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark')" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- App Shell -->
+  <div class="flex min-h-screen">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="fixed top-0 left-0 bottom-0 w-64 dark:bg-[#0f0f0f] bg-[#f3f4f6] border-r dark:border-[#262626] border-[#e5e7eb] flex flex-col z-30 overflow-y-auto">
+
+      <!-- Logo -->
+      <div class="h-16 flex items-center gap-2.5 px-5 border-b dark:border-[#262626] border-[#e5e7eb] flex-shrink-0">
+        <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+          <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="text-base font-bold">ConstructionERP</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
+
+        <!-- Dashboard -->
+        <a href="04-executive-dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+
+        <!-- Projects -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+          Projects
+        </a>
+
+        <!-- Properties -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Properties
+        </a>
+
+        <!-- Financial (expanded, active section) -->
+        <div>
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-white text-gray-900 font-medium dark:bg-white/5 bg-gray-200 cursor-default">
+            <i data-lucide="dollar-sign" class="w-4 h-4 text-brand"></i>
+            Financial
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 ml-auto"></i>
+          </div>
+          <div class="ml-4 mt-1 space-y-0.5 border-l dark:border-[#262626] border-[#e5e7eb] pl-4">
+            <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-md text-brand font-medium bg-brand/10 text-sm">
+              Dashboard
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-md dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors text-sm">
+              General Ledger
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-md dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors text-sm">
+              Accounts Payable
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-md dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors text-sm">
+              Accounts Receivable
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-md dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors text-sm">
+              Job Costing
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-1.5 rounded-md dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors text-sm">
+              Budgets
+            </a>
+          </div>
+        </div>
+
+        <!-- CRM -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="handshake" class="w-4 h-4"></i>
+          CRM
+        </a>
+
+        <!-- Documents -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          Documents
+        </a>
+
+        <!-- HR & Workforce -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          HR & Workforce
+        </a>
+
+        <!-- Reports -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Reports
+        </a>
+
+        <!-- AI Assistant -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="px-3 py-4 border-t dark:border-[#262626] border-[#e5e7eb] flex-shrink-0">
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200 transition-colors text-sm">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Settings
+        </a>
+        <div class="flex items-center gap-3 px-3 py-2 mt-1">
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand font-semibold text-xs">JD</div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium truncate">John Doe</div>
+            <div class="text-xs dark:text-gray-500 text-gray-400 truncate">CFO</div>
+          </div>
+          <i data-lucide="log-out" class="w-4 h-4 dark:text-gray-500 text-gray-400 cursor-pointer hover:text-red-500 transition-colors flex-shrink-0"></i>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ===== MAIN AREA ===== -->
+    <div class="flex-1 ml-64">
+
+      <!-- Top Bar -->
+      <header class="h-16 border-b dark:border-[#262626] border-[#e5e7eb] dark:bg-[#0a0a0a] bg-white flex items-center justify-between px-6 sticky top-0 z-20">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-sm">
+          <span class="dark:text-gray-500 text-gray-400">Financial</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <span class="font-medium">Command Center</span>
+        </div>
+        <!-- Right side actions -->
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 dark:text-gray-500 text-gray-400"></i>
+            <input type="text" placeholder="Search..." class="pl-9 pr-4 py-1.5 text-sm rounded-lg dark:bg-surface-dark bg-surface-light border dark:border-border-dark border-border-light focus:outline-none focus:ring-2 focus:ring-brand/50 w-56">
+          </div>
+          <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+            <i data-lucide="bell" class="w-4.5 h-4.5 dark:text-gray-400 text-gray-600"></i>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <div class="text-sm dark:text-gray-400 text-gray-500">Feb 11, 2026</div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="p-6 space-y-6">
+
+        <!-- Page Title -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold">Financial Command Center</h1>
+            <p class="text-sm dark:text-gray-400 text-gray-500 mt-1">Executive-level financial overview -- Q1 2026</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select class="text-sm px-3 py-1.5 rounded-lg dark:bg-surface-dark bg-surface-light border dark:border-border-dark border-border-light focus:outline-none focus:ring-2 focus:ring-brand/50">
+              <option>Q1 2026</option>
+              <option>Q4 2025</option>
+              <option>Q3 2025</option>
+              <option>FY 2025</option>
+            </select>
+            <button class="flex items-center gap-2 text-sm px-4 py-1.5 bg-brand hover:bg-brand-dark text-white rounded-lg transition-colors font-medium">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== ROW 1: KPI Cards ===== -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+
+          <!-- Net Income -->
+          <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl p-5 border dark:border-[#262626] border-[#e5e7eb]">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm dark:text-gray-400 text-gray-500 font-medium">Net Income</span>
+              <div class="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-4.5 h-4.5 text-green-500"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-bold">$1.8M</div>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="text-sm text-green-500 font-medium">+12.4% YoY</span>
+            </div>
+          </div>
+
+          <!-- Gross Margin -->
+          <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl p-5 border dark:border-[#262626] border-[#e5e7eb]">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm dark:text-gray-400 text-gray-500 font-medium">Gross Margin</span>
+              <div class="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+                <i data-lucide="percent" class="w-4.5 h-4.5 text-brand"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-bold">22.3%</div>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="text-sm text-brand font-medium">Industry avg 18%</span>
+            </div>
+          </div>
+
+          <!-- AR Aging -->
+          <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl p-5 border dark:border-[#262626] border-[#e5e7eb]">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm dark:text-gray-400 text-gray-500 font-medium">AR Aging</span>
+              <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+                <i data-lucide="alert-triangle" class="w-4.5 h-4.5 text-accent"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-bold">$2.1M</div>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="text-sm text-accent font-medium">$480K overdue</span>
+            </div>
+          </div>
+
+          <!-- AP Due -->
+          <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl p-5 border dark:border-[#262626] border-[#e5e7eb]">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm dark:text-gray-400 text-gray-500 font-medium">AP Due</span>
+              <div class="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <i data-lucide="clock" class="w-4.5 h-4.5 text-red-500"></i>
+              </div>
+            </div>
+            <div class="text-2xl font-bold">$1.4M</div>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="text-sm text-red-500 font-medium">Due this month</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== ROW 2: P&L Summary ===== -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb]">
+          <div class="px-6 py-4 border-b dark:border-[#262626] border-[#e5e7eb] flex items-center justify-between">
+            <h2 class="text-base font-semibold">Profit & Loss Summary</h2>
+            <span class="text-xs dark:text-gray-500 text-gray-400">Period: Jan 1 - Feb 11, 2026</span>
+          </div>
+          <div class="p-6">
+            <table class="w-full">
+              <thead>
+                <tr class="text-xs dark:text-gray-500 text-gray-400 uppercase tracking-wider">
+                  <th class="text-left pb-3 font-medium w-48">Line Item</th>
+                  <th class="text-right pb-3 font-medium w-40">Amount</th>
+                  <th class="text-left pb-3 font-medium pl-6">Proportion</th>
+                </tr>
+              </thead>
+              <tbody class="text-sm">
+                <!-- Revenue -->
+                <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                  <td class="py-3 font-medium">Revenue</td>
+                  <td class="py-3 text-right font-semibold text-green-500">$12,400,000</td>
+                  <td class="py-3 pl-6">
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1 h-3 dark:bg-white/5 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-green-500 rounded-full pnl-bar" style="width: 100%"></div>
+                      </div>
+                      <span class="text-xs dark:text-gray-500 text-gray-400 w-12 text-right">100%</span>
+                    </div>
+                  </td>
+                </tr>
+                <!-- COGS -->
+                <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                  <td class="py-3 font-medium">Cost of Goods Sold</td>
+                  <td class="py-3 text-right font-semibold text-red-400">($9,633,200)</td>
+                  <td class="py-3 pl-6">
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1 h-3 dark:bg-white/5 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-red-400 rounded-full pnl-bar" style="width: 77.7%"></div>
+                      </div>
+                      <span class="text-xs dark:text-gray-500 text-gray-400 w-12 text-right">77.7%</span>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Gross Profit -->
+                <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60 dark:bg-white/[0.02] bg-blue-50/30">
+                  <td class="py-3 font-semibold">Gross Profit</td>
+                  <td class="py-3 text-right font-bold text-brand">$2,766,800</td>
+                  <td class="py-3 pl-6">
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1 h-3 dark:bg-white/5 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-brand rounded-full pnl-bar" style="width: 22.3%"></div>
+                      </div>
+                      <span class="text-xs dark:text-gray-500 text-gray-400 w-12 text-right">22.3%</span>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Operating Expenses -->
+                <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                  <td class="py-3 font-medium">Operating Expenses</td>
+                  <td class="py-3 text-right font-semibold text-red-400">($966,800)</td>
+                  <td class="py-3 pl-6">
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1 h-3 dark:bg-white/5 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-accent rounded-full pnl-bar" style="width: 7.8%"></div>
+                      </div>
+                      <span class="text-xs dark:text-gray-500 text-gray-400 w-12 text-right">7.8%</span>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Net Income -->
+                <tr class="dark:bg-green-500/5 bg-green-50/50">
+                  <td class="py-3 font-bold text-base">Net Income</td>
+                  <td class="py-3 text-right font-bold text-base text-green-500">$1,800,000</td>
+                  <td class="py-3 pl-6">
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1 h-3 dark:bg-white/5 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-green-500 rounded-full pnl-bar" style="width: 14.5%"></div>
+                      </div>
+                      <span class="text-xs dark:text-gray-500 text-gray-400 w-12 text-right">14.5%</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ===== ROW 3: Charts ===== -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Cash Flow Forecast -->
+          <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb]">
+            <div class="px-6 py-4 border-b dark:border-[#262626] border-[#e5e7eb] flex items-center justify-between">
+              <h2 class="text-base font-semibold">Cash Flow Forecast</h2>
+              <span class="text-xs dark:text-gray-500 text-gray-400">13-Week Projection</span>
+            </div>
+            <div class="p-6">
+              <!-- Y-axis labels + chart area -->
+              <div class="flex gap-3">
+                <!-- Y-axis -->
+                <div class="flex flex-col justify-between text-xs dark:text-gray-500 text-gray-400 py-1 w-10 text-right flex-shrink-0" style="height: 200px;">
+                  <span>$4M</span>
+                  <span>$3M</span>
+                  <span>$2M</span>
+                  <span>$1M</span>
+                  <span>$0</span>
+                </div>
+                <!-- Chart -->
+                <div class="flex-1 relative" style="height: 200px;">
+                  <!-- Grid lines -->
+                  <div class="absolute inset-0 flex flex-col justify-between">
+                    <div class="border-b dark:border-[#262626]/50 border-[#e5e7eb]/50"></div>
+                    <div class="border-b dark:border-[#262626]/50 border-[#e5e7eb]/50"></div>
+                    <div class="border-b dark:border-[#262626]/50 border-[#e5e7eb]/50"></div>
+                    <div class="border-b dark:border-[#262626]/50 border-[#e5e7eb]/50"></div>
+                    <div class="border-b dark:border-[#262626]/50 border-[#e5e7eb]/50"></div>
+                  </div>
+                  <!-- SVG Line Chart -->
+                  <svg class="absolute inset-0 w-full h-full" viewBox="0 0 520 200" preserveAspectRatio="none" fill="none">
+                    <!-- Actual line (solid, weeks 1-7) -->
+                    <polyline
+                      points="0,80 40,75 80,90 120,60 160,55 200,70 240,50"
+                      stroke="#3b82f6"
+                      stroke-width="2.5"
+                      fill="none"
+                      stroke-linejoin="round"
+                      stroke-linecap="round"
+                    />
+                    <!-- Fill under actual line -->
+                    <polygon
+                      points="0,200 0,80 40,75 80,90 120,60 160,55 200,70 240,50 240,200"
+                      fill="url(#blueGradient)"
+                      opacity="0.15"
+                    />
+                    <!-- Projected line (dashed, weeks 7-13) -->
+                    <polyline
+                      points="240,50 280,45 320,55 360,40 400,35 440,30 480,25 520,20"
+                      stroke="#3b82f6"
+                      stroke-width="2"
+                      fill="none"
+                      stroke-dasharray="6,4"
+                      stroke-linejoin="round"
+                      stroke-linecap="round"
+                      opacity="0.6"
+                    />
+                    <!-- Fill under projected line -->
+                    <polygon
+                      points="240,200 240,50 280,45 320,55 360,40 400,35 440,30 480,25 520,20 520,200"
+                      fill="url(#blueGradient)"
+                      opacity="0.06"
+                    />
+                    <!-- Divider line between actual and projected -->
+                    <line x1="240" y1="0" x2="240" y2="200" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,3" opacity="0.3" />
+                    <!-- Data points on actual line -->
+                    <circle cx="0" cy="80" r="3" fill="#3b82f6" />
+                    <circle cx="40" cy="75" r="3" fill="#3b82f6" />
+                    <circle cx="80" cy="90" r="3" fill="#3b82f6" />
+                    <circle cx="120" cy="60" r="3" fill="#3b82f6" />
+                    <circle cx="160" cy="55" r="3" fill="#3b82f6" />
+                    <circle cx="200" cy="70" r="3" fill="#3b82f6" />
+                    <circle cx="240" cy="50" r="3.5" fill="#3b82f6" stroke="white" stroke-width="1.5" />
+                    <defs>
+                      <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#3b82f6" />
+                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
+              <!-- X-axis labels -->
+              <div class="flex gap-3 mt-2">
+                <div class="w-10 flex-shrink-0"></div>
+                <div class="flex-1 flex justify-between text-xs dark:text-gray-500 text-gray-400">
+                  <span>W1</span>
+                  <span>W3</span>
+                  <span>W5</span>
+                  <span class="text-brand font-medium">W7</span>
+                  <span>W9</span>
+                  <span>W11</span>
+                  <span>W13</span>
+                </div>
+              </div>
+              <!-- Legend -->
+              <div class="flex items-center gap-6 mt-4 text-xs dark:text-gray-400 text-gray-500">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-0.5 bg-brand rounded"></div>
+                  <span>Actual</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-0.5 bg-brand/60 rounded" style="background: repeating-linear-gradient(90deg, #3b82f6 0, #3b82f6 4px, transparent 4px, transparent 7px);"></div>
+                  <span>Projected</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Budget vs Actual -->
+          <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb]">
+            <div class="px-6 py-4 border-b dark:border-[#262626] border-[#e5e7eb] flex items-center justify-between">
+              <h2 class="text-base font-semibold">Budget vs Actual</h2>
+              <span class="text-xs dark:text-gray-500 text-gray-400">By Division</span>
+            </div>
+            <div class="p-6 space-y-5">
+
+              <!-- Sitework -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-sm font-medium">Sitework</span>
+                  <span class="text-xs dark:text-gray-400 text-gray-500">$1.2M / $1.4M</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Budget</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-brand/30 rounded" style="width: 100%"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Actual</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-brand rounded" style="width: 85.7%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Concrete -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-sm font-medium">Concrete</span>
+                  <span class="text-xs dark:text-gray-400 text-gray-500">$2.3M / $2.1M</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Budget</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-brand/30 rounded" style="width: 91.3%"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Actual</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-red-400 rounded" style="width: 100%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Steel -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-sm font-medium">Steel</span>
+                  <span class="text-xs dark:text-gray-400 text-gray-500">$1.8M / $2.0M</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Budget</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-brand/30 rounded" style="width: 100%"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Actual</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-brand rounded" style="width: 90%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- MEP -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-sm font-medium">MEP</span>
+                  <span class="text-xs dark:text-gray-400 text-gray-500">$3.1M / $3.0M</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Budget</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-brand/30 rounded" style="width: 96.8%"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Actual</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-accent rounded" style="width: 100%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Finishes -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-sm font-medium">Finishes</span>
+                  <span class="text-xs dark:text-gray-400 text-gray-500">$0.9M / $1.1M</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Budget</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-brand/30 rounded" style="width: 100%"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] dark:text-gray-500 text-gray-400 w-12">Actual</span>
+                    <div class="flex-1 h-4 dark:bg-white/5 bg-gray-200 rounded overflow-hidden">
+                      <div class="h-full bg-brand rounded" style="width: 81.8%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Legend -->
+              <div class="flex items-center gap-6 pt-2 text-xs dark:text-gray-400 text-gray-500">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-brand/30 rounded"></div>
+                  <span>Budget</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-brand rounded"></div>
+                  <span>Under Budget</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-red-400 rounded"></div>
+                  <span>Over Budget</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-accent rounded"></div>
+                  <span>At Risk</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== ROW 4: AR/AP Aging Tables ===== -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- AR Aging Buckets -->
+          <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb]">
+            <div class="px-6 py-4 border-b dark:border-[#262626] border-[#e5e7eb] flex items-center justify-between">
+              <h2 class="text-base font-semibold">Accounts Receivable Aging</h2>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">$480K overdue</span>
+            </div>
+            <div class="p-6 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-xs dark:text-gray-500 text-gray-400 uppercase tracking-wider">
+                    <th class="text-left pb-3 font-medium">Bucket</th>
+                    <th class="text-right pb-3 font-medium">Amount</th>
+                    <th class="text-right pb-3 font-medium">Count</th>
+                    <th class="text-right pb-3 font-medium">% of Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        Current
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold">$1,020,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">18</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">48.6%</td>
+                  </tr>
+                  <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                        1 - 30 days
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold">$600,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">12</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">28.6%</td>
+                  </tr>
+                  <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-accent"></div>
+                        31 - 60 days
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold">$280,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">7</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">13.3%</td>
+                  </tr>
+                  <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                        61 - 90 days
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold">$130,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">4</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">6.2%</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                        90+ days
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold text-red-500">$70,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">3</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">3.3%</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="border-t dark:border-[#262626] border-[#e5e7eb]">
+                    <td class="pt-3 font-bold">Total</td>
+                    <td class="pt-3 text-right font-bold">$2,100,000</td>
+                    <td class="pt-3 text-right font-bold">44</td>
+                    <td class="pt-3 text-right font-bold">100%</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- AP Aging Buckets -->
+          <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb]">
+            <div class="px-6 py-4 border-b dark:border-[#262626] border-[#e5e7eb] flex items-center justify-between">
+              <h2 class="text-base font-semibold">Accounts Payable Aging</h2>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 font-medium">$1.4M due</span>
+            </div>
+            <div class="p-6 overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-xs dark:text-gray-500 text-gray-400 uppercase tracking-wider">
+                    <th class="text-left pb-3 font-medium">Bucket</th>
+                    <th class="text-right pb-3 font-medium">Amount</th>
+                    <th class="text-right pb-3 font-medium">Count</th>
+                    <th class="text-right pb-3 font-medium">% of Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        Current
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold">$680,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">22</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">48.6%</td>
+                  </tr>
+                  <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                        1 - 30 days
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold">$420,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">15</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">30.0%</td>
+                  </tr>
+                  <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-accent"></div>
+                        31 - 60 days
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold">$180,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">8</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">12.9%</td>
+                  </tr>
+                  <tr class="border-b dark:border-[#262626]/60 border-[#e5e7eb]/60">
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                        61 - 90 days
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold">$85,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">5</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">6.1%</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 font-medium">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                        90+ days
+                      </div>
+                    </td>
+                    <td class="py-2.5 text-right font-semibold text-red-500">$35,000</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">2</td>
+                    <td class="py-2.5 text-right dark:text-gray-400 text-gray-500">2.5%</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="border-t dark:border-[#262626] border-[#e5e7eb]">
+                    <td class="pt-3 font-bold">Total</td>
+                    <td class="pt-3 text-right font-bold">$1,400,000</td>
+                    <td class="pt-3 text-right font-bold">52</td>
+                    <td class="pt-3 text-right font-bold">100%</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== ROW 5: Quick Actions ===== -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb]">
+          <div class="px-6 py-4 border-b dark:border-[#262626] border-[#e5e7eb]">
+            <h2 class="text-base font-semibold">Quick Actions</h2>
+          </div>
+          <div class="p-6 flex flex-wrap gap-3">
+            <button class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand hover:bg-brand-dark text-white text-sm font-medium transition-colors">
+              <i data-lucide="wallet" class="w-4 h-4"></i>
+              Run Payroll
+            </button>
+            <button class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-dark text-white text-sm font-medium transition-colors">
+              <i data-lucide="file-check" class="w-4 h-4"></i>
+              Approve Invoices (7)
+            </button>
+            <button class="flex items-center gap-2 px-5 py-2.5 rounded-lg dark:bg-white/5 bg-white border dark:border-border-dark border-border-light dark:text-gray-200 text-gray-700 text-sm font-medium dark:hover:bg-white/10 hover:bg-gray-50 transition-colors">
+              <i data-lucide="file-text" class="w-4 h-4"></i>
+              Generate Financial Report
+            </button>
+            <button class="flex items-center gap-2 px-5 py-2.5 rounded-lg dark:bg-white/5 bg-white border dark:border-border-dark border-border-light dark:text-gray-200 text-gray-700 text-sm font-medium dark:hover:bg-white/10 hover:bg-gray-50 transition-colors">
+              <i data-lucide="landmark" class="w-4 h-4"></i>
+              Reconcile Bank
+            </button>
+          </div>
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- Initialize Lucide Icons -->
+  <script>lucide.createIcons();</script>
+
+</body>
+</html>

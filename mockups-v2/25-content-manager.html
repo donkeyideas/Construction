@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstructionERP -- Content Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #ffffff; --surface: #f5f0eb; --topbar-bg: #fffcf9;
+  --blue: #1d4ed8; --blue-light: #eff6ff; --amber: #b45309; --amber-light: #fef3c7;
+  --text: #292524; --muted: #78716c; --border: #d6d3d1;
+  --green: #16a34a; --red: #dc2626; --sidebar-w: 240px;
+  --card-bg: #ffffff; --scrollbar: #ccc;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #1c1917; --surface: #292524; --topbar-bg: #1c1917;
+  --blue-light: rgba(29,78,216,.15); --amber-light: rgba(180,83,9,.15);
+  --text: #f5f0eb; --muted: #a8a29e; --border: #44403c;
+  --card-bg: #292524; --scrollbar: #57534e;
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.5; }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+  background: var(--bg); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100; transition: transform .25s ease;
+}
+.sidebar-brand { padding: 20px 22px 14px; }
+.sidebar-brand h1 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+.sidebar-brand .accent-line { width: 40px; height: 3px; background: var(--amber); border-radius: 2px; margin-top: 10px; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.nav-item { position: relative; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 9px 18px 9px 20px;
+  font-size: .835rem; font-weight: 500; color: var(--muted); text-decoration: none;
+  border-left: 3px solid transparent; cursor: pointer; transition: all .15s;
+}
+.nav-link svg { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-link .label { position: relative; }
+.nav-link .label::after {
+  content: ''; position: absolute; left: 0; bottom: -2px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .25s ease;
+}
+.nav-link:hover .label::after { width: 100%; }
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--blue); border-left-color: var(--blue); background: var(--blue-light); font-weight: 600; }
+.nav-link .chevron { margin-left: auto; width: 14px; height: 14px; transition: transform .2s; }
+.nav-item.open > .nav-link .chevron { transform: rotate(90deg); }
+.nav-children { display: none; padding: 2px 0 4px 0; }
+.nav-item.open > .nav-children { display: block; }
+.nav-child {
+  display: block; padding: 6px 18px 6px 51px; font-size: .8rem; color: var(--muted);
+  text-decoration: none; transition: color .15s; position: relative;
+}
+.nav-child::after {
+  content: ''; position: absolute; left: 51px; bottom: 4px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .2s;
+}
+.nav-child:hover { color: var(--text); }
+.nav-child:hover::after { width: calc(100% - 69px); }
+.nav-child.active { color: var(--blue); font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid var(--border); padding: 6px 0; }
+
+/* ── Topbar ── */
+.topbar {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 52px;
+  background: var(--topbar-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; z-index: 90; transition: left .25s ease;
+}
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .875rem; font-weight: 500; }
+.breadcrumb .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.search-btn {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border: 1px solid var(--border); border-radius: 7px; background: var(--bg);
+  font-size: .8rem; color: var(--muted); cursor: pointer;
+}
+.search-btn kbd { font-size: .7rem; background: var(--surface); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); font-family: var(--font-sans); }
+.notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--muted); }
+.notif-btn svg { width: 20px; height: 20px; }
+.notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); color: #fff; font-size: .6rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 600; }
+
+/* ── Sidebar Toggle + Overlay ── */
+.sidebar-toggle {
+  display: none; position: fixed; top: 10px; left: 12px; z-index: 110;
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; align-items: center; justify-content: center;
+}
+.sidebar-toggle svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 95; }
+
+/* ── Main Content ── */
+.main { margin-left: var(--sidebar-w); margin-top: 52px; padding: 28px; min-height: calc(100vh - 52px); transition: margin-left .25s; }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px; transition: box-shadow .2s, transform .2s;
+}
+.card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); transform: translateY(-2px); }
+.card-title { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.badge { padding: 2px 9px; border-radius: 10px; font-size: .7rem; font-weight: 600; }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: rgba(220,38,38,.08); color: var(--red); }
+.badge-green { background: rgba(22,163,74,.08); color: var(--green); }
+
+/* ── Page Header ── */
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-header h2 { font-family: var(--font-serif); font-size: 2rem; font-weight: 700; }
+.page-header p { color: var(--muted); font-size: .9rem; margin-top: 2px; }
+.header-actions { display: flex; gap: 10px; align-items: center; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px;
+  border-radius: 7px; font-size: .835rem; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  transition: all .15s; font-family: var(--font-sans); text-decoration: none;
+}
+.btn:hover { background: var(--surface); }
+.btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-primary:hover { background: #1e40af; }
+.btn-sm { padding: 5px 12px; font-size: .78rem; }
+.btn-danger { color: var(--red); border-color: var(--red); background: none; }
+.btn-danger:hover { background: rgba(220,38,38,.06); }
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover { background: #15803d; }
+
+/* ── Status Bar ── */
+.status-bar {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  padding: 12px 20px; background: var(--surface); border-radius: 8px;
+  margin-bottom: 24px; font-size: .82rem;
+}
+.status-bar .sep { width: 1px; height: 20px; background: var(--border); }
+.status-meta { color: var(--muted); }
+.status-meta strong { color: var(--text); font-weight: 600; }
+.draft-badge { background: var(--amber-light); color: var(--amber); padding: 3px 10px; border-radius: 10px; font-size: .72rem; font-weight: 600; }
+
+/* ── Tabs ── */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; overflow-x: auto; }
+.tab {
+  padding: 10px 18px; font-size: .835rem; font-weight: 500; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap;
+  transition: all .15s; position: relative; background: none; border-top: none; border-left: none; border-right: none;
+  font-family: var(--font-sans);
+}
+.tab::after { content:''; position:absolute; left:0; bottom:-1px; width:0; height:2px; background:var(--amber); transition:width .2s; }
+.tab:hover::after { width:100%; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── Content Layout with Version History ── */
+.content-layout { display: flex; gap: 24px; }
+.content-main { flex: 1; min-width: 0; }
+.version-panel {
+  width: 250px; flex-shrink: 0; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px; height: fit-content; position: sticky; top: 80px;
+  transition: all .25s;
+}
+.version-panel.collapsed { width: 40px; padding: 20px 10px; overflow: hidden; }
+.version-panel.collapsed .vp-content { display: none; }
+.vp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.vp-header h3 { font-family: var(--font-serif); font-size: .95rem; font-weight: 600; }
+.vp-toggle { background: none; border: none; cursor: pointer; color: var(--muted); padding: 2px; }
+.vp-toggle svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+.version-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.version-item:last-child { border-bottom: none; }
+.version-date { font-size: .75rem; font-weight: 600; color: var(--text); }
+.version-user { font-size: .7rem; color: var(--muted); margin-top: 1px; }
+.version-change { font-size: .72rem; color: var(--muted); margin-top: 3px; }
+.version-restore { font-size: .72rem; color: var(--amber); cursor: pointer; text-decoration: none; font-weight: 500; margin-top: 4px; display: inline-block; }
+.version-restore:hover { text-decoration: underline; }
+
+/* ── Forms ── */
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: .8rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--bg); color: var(--text); font-size: .835rem; font-family: var(--font-sans);
+  transition: border-color .15s;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--blue); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-select { cursor: pointer; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* ── Hero Preview ── */
+.hero-preview {
+  background: var(--surface); border-radius: 10px; padding: 32px; text-align: center;
+  margin-bottom: 20px; position: relative; overflow: hidden; min-height: 180px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.hero-preview::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--blue) 0%, #3b82f6 50%, var(--amber) 100%);
+  opacity: .12;
+}
+.hero-preview * { position: relative; }
+.hero-preview h3 { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+.hero-preview p { font-size: .82rem; color: var(--muted); max-width: 400px; margin: 0 auto 14px; }
+.hero-preview-buttons { display: flex; gap: 8px; justify-content: center; }
+.hero-preview-btn { padding: 6px 16px; border-radius: 5px; font-size: .72rem; font-weight: 500; }
+.hero-preview-btn.primary { background: var(--blue); color: #fff; }
+.hero-preview-btn.secondary { border: 1px solid var(--border); color: var(--text); }
+.preview-label { position: absolute; top: 10px; left: 14px; font-size: .65rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+/* ── Upload Zone ── */
+.upload-zone {
+  border: 2px dashed var(--border); border-radius: 8px; padding: 24px; text-align: center;
+  cursor: pointer; transition: border-color .2s, background .2s;
+}
+.upload-zone:hover { border-color: var(--blue); background: var(--blue-light); }
+.upload-zone svg { width: 32px; height: 32px; stroke: var(--muted); fill: none; stroke-width: 1.5; margin-bottom: 8px; }
+.upload-zone p { font-size: .82rem; color: var(--muted); }
+.upload-zone .upload-hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+.upload-current { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 10px; background: var(--surface); border-radius: 6px; }
+.upload-thumb { width: 60px; height: 40px; border-radius: 4px; background: var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.upload-thumb svg { width: 20px; height: 20px; stroke: var(--muted); fill: none; stroke-width: 1.5; }
+.upload-info { flex: 1; }
+.upload-info .name { font-size: .78rem; font-weight: 500; }
+.upload-info .size { font-size: .68rem; color: var(--muted); }
+.upload-actions { display: flex; gap: 8px; align-items: center; }
+.upload-remove { font-size: .72rem; color: var(--red); cursor: pointer; text-decoration: none; }
+.upload-remove:hover { text-decoration: underline; }
+
+/* ── Module List ── */
+.module-list { display: flex; flex-direction: column; gap: 12px; }
+.module-item {
+  border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
+  transition: box-shadow .2s;
+}
+.module-item:hover { box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+.module-header {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer;
+}
+.drag-handle { color: var(--muted); cursor: grab; display: flex; }
+.drag-handle svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+.module-name { flex: 1; font-size: .88rem; font-weight: 600; }
+.module-controls { display: flex; align-items: center; gap: 10px; }
+.toggle-switch { position: relative; width: 36px; height: 20px; }
+.toggle-switch input { display: none; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--border); border-radius: 10px;
+  cursor: pointer; transition: background .2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; top: 2px; left: 2px; transition: transform .2s;
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--green); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+.icon-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; border-radius: 4px; transition: color .15s, background .15s; }
+.icon-btn:hover { color: var(--text); background: var(--surface); }
+.icon-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+.icon-btn.danger:hover { color: var(--red); }
+.module-body { padding: 0 16px 16px; border-top: 1px solid var(--border); margin-top: 0; padding-top: 16px; display: none; }
+.module-item.expanded .module-body { display: block; }
+
+/* ── Stats Grid ── */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stat-card {
+  border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;
+  position: relative; background: var(--bg);
+}
+.stat-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+.stat-number { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+.stat-label-text { font-size: .82rem; color: var(--muted); }
+.stat-edit { position: absolute; top: 10px; right: 10px; }
+
+/* ── Testimonial List ── */
+.testimonial-list { display: flex; flex-direction: column; gap: 16px; }
+.testimonial-item {
+  border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--bg);
+}
+.testimonial-item:hover { box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+.testimonial-quote { font-size: .88rem; font-style: italic; line-height: 1.6; margin-bottom: 12px; color: var(--text); }
+.testimonial-author { display: flex; align-items: center; justify-content: space-between; }
+.testimonial-person { display: flex; align-items: center; gap: 10px; }
+.testimonial-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 600; color: var(--amber); }
+.testimonial-name { font-size: .82rem; font-weight: 600; }
+.testimonial-title { font-size: .72rem; color: var(--muted); }
+.star-rating { display: flex; gap: 2px; }
+.star-rating svg { width: 14px; height: 14px; fill: var(--amber); stroke: var(--amber); stroke-width: 1; }
+.star-rating svg.empty { fill: none; stroke: var(--border); }
+.testimonial-controls { display: flex; align-items: center; gap: 10px; }
+
+/* ── Footer Editor ── */
+.footer-columns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.footer-col { border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.footer-col-title { font-size: .82rem; font-weight: 600; margin-bottom: 12px; }
+.footer-link-list { list-style: none; }
+.footer-link-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 0;
+  border-bottom: 1px solid var(--border); font-size: .78rem;
+}
+.footer-link-item:last-child { border-bottom: none; }
+.footer-link-item .link-text { flex: 1; color: var(--text); }
+.footer-link-item .link-url { color: var(--muted); font-size: .7rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.social-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+/* ── Media Library ── */
+.media-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.media-search {
+  flex: 1; min-width: 200px; display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg);
+}
+.media-search input { border: none; background: none; outline: none; flex: 1; font-size: .82rem; color: var(--text); font-family: var(--font-sans); }
+.media-search svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; }
+.filter-pills { display: flex; gap: 6px; }
+.filter-pill {
+  padding: 5px 12px; border: 1px solid var(--border); border-radius: 14px;
+  font-size: .75rem; font-weight: 500; cursor: pointer; background: none; color: var(--muted);
+  font-family: var(--font-sans); transition: all .15s;
+}
+.filter-pill.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.filter-pill:hover:not(.active) { border-color: var(--text); color: var(--text); }
+.media-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px; }
+.media-item { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); }
+.media-item:hover { box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+.media-thumb {
+  height: 120px; background: var(--surface); display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.media-thumb svg { width: 36px; height: 36px; stroke: var(--muted); fill: none; stroke-width: 1.2; }
+.media-thumb .media-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,.5); display: flex;
+  align-items: center; justify-content: center; gap: 8px; opacity: 0; transition: opacity .2s;
+}
+.media-item:hover .media-overlay { opacity: 1; }
+.media-overlay-btn {
+  padding: 5px 10px; border-radius: 5px; font-size: .7rem; font-weight: 500;
+  border: 1px solid rgba(255,255,255,.4); color: #fff; background: rgba(255,255,255,.15);
+  cursor: pointer; transition: background .15s; font-family: var(--font-sans);
+}
+.media-overlay-btn:hover { background: rgba(255,255,255,.3); }
+.media-overlay-btn.del { border-color: rgba(220,38,38,.6); color: #fca5a5; }
+.media-overlay-btn.del:hover { background: rgba(220,38,38,.3); }
+.media-info { padding: 10px 12px; }
+.media-name { font-size: .78rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.media-meta { font-size: .68rem; color: var(--muted); margin-top: 2px; display: flex; justify-content: space-between; }
+
+/* ── Responsive ── */
+@media (max-width: 1280px) {
+  .content-layout { flex-direction: column; }
+  .version-panel { width: 100%; position: static; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .footer-columns { grid-template-columns: repeat(2, 1fr); }
+  .media-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1023px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .overlay.active { display: block; }
+  .topbar { left: 0; padding-left: 56px; }
+  .main { margin-left: 0; }
+}
+@media (max-width: 640px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .footer-columns { grid-template-columns: 1fr; }
+  .media-grid { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 16px; }
+  .page-header h2 { font-size: 1.5rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .social-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar Toggle -->
+<button class="sidebar-toggle" onclick="toggleSidebar()">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h1>ConstructionERP</h1>
+    <div class="accent-line"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <!-- Dashboard -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="label">Dashboard</span>
+      </a>
+    </div>
+    <!-- Projects -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/><line x1="9" y1="8" x2="9" y2="12"/><line x1="15" y1="8" x2="15" y2="12"/></svg>
+        <span class="label">Projects</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Active Projects</a>
+        <a class="nav-child" href="#">Gantt Schedule</a>
+        <a class="nav-child" href="#">Daily Logs</a>
+        <a class="nav-child" href="#">RFIs</a>
+      </div>
+    </div>
+    <!-- Properties -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="label">Properties</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Portfolio</a>
+        <a class="nav-child" href="#">Leases</a>
+        <a class="nav-child" href="#">Maintenance</a>
+      </div>
+    </div>
+    <!-- Financial -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span class="label">Financial</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Job Costing</a>
+        <a class="nav-child" href="#">Accounts Payable</a>
+        <a class="nav-child" href="#">Budget vs Actual</a>
+        <a class="nav-child" href="#">Cash Flow</a>
+      </div>
+    </div>
+    <!-- Documents -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span class="label">Documents</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Library</a>
+        <a class="nav-child" href="#">Plan Room</a>
+      </div>
+    </div>
+    <!-- People -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="label">People</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Directory</a>
+        <a class="nav-child" href="#">Time &amp; Attendance</a>
+        <a class="nav-child" href="#">Certifications</a>
+      </div>
+    </div>
+    <!-- CRM & Bids -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span class="label">CRM &amp; Bids</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Pipeline</a>
+        <a class="nav-child" href="#">Bid Management</a>
+      </div>
+    </div>
+    <!-- AI Assistant -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4c-4.42 0-8 1.34-8 6 0-8 3.58-14 8-14z" stroke-width="1.5"/></svg>
+        <span class="label">AI Assistant</span>
+      </a>
+    </div>
+    <!-- Reports -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="label">Reports</span>
+      </a>
+    </div>
+    <!-- Administration (active section) -->
+    <div class="nav-item open" onclick="toggleNav(this)">
+      <a class="nav-link active" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        <span class="label">Administration</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child active" href="#">Content Manager</a>
+        <a class="nav-child" href="#">User Roles</a>
+        <a class="nav-child" href="#">Integrations</a>
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- Top Bar -->
+<header class="topbar" id="topbar">
+  <div class="breadcrumb">
+    <span class="dot"></span>
+    <span>Administration</span>
+    <span class="dot"></span>
+    <span>Content Manager</span>
+  </div>
+  <div class="topbar-right">
+    <button onclick="toggleTheme()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Toggle theme">
+      <svg id="sunIcon" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="search-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search <kbd>Ctrl+K</kbd>
+    </button>
+    <button class="notif-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-badge">5</span>
+    </button>
+    <div class="avatar">RH</div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main" id="main">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h2>Content Manager</h2>
+      <p>Manage your public-facing website content</p>
+    </div>
+    <div class="header-actions">
+      <a href="#" class="btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Preview Site
+      </a>
+      <button class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        Publish Changes
+      </button>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-meta">Last published: <strong>Jan 28, 2026</strong> by <strong>Sarah Chen</strong></div>
+    <div class="sep"></div>
+    <div class="status-meta">Draft changes: <strong>3 unpublished edits</strong></div>
+    <span class="draft-badge">3 Drafts</span>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="hero">Hero Section</button>
+    <button class="tab" data-tab="modules">Modules</button>
+    <button class="tab" data-tab="stats">Stats</button>
+    <button class="tab" data-tab="testimonials">Testimonials</button>
+    <button class="tab" data-tab="cta">CTA</button>
+    <button class="tab" data-tab="footer">Footer</button>
+    <button class="tab" data-tab="media">Media Library</button>
+  </div>
+
+  <!-- Content Layout -->
+  <div class="content-layout">
+    <div class="content-main">
+
+      <!-- ═══════ HERO SECTION TAB ═══════ -->
+      <div class="tab-content active" id="tab-hero">
+        <!-- Live Preview -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Live Preview
+          </div>
+          <div class="hero-preview">
+            <span class="preview-label">Hero Section</span>
+            <h3>Building Smarter from Blueprint to Closeout</h3>
+            <p>Streamline every phase of your construction projects with our integrated platform for builders, developers, and property managers.</p>
+            <div class="hero-preview-buttons">
+              <span class="hero-preview-btn primary">Explore Platform</span>
+              <span class="hero-preview-btn secondary">Our Story</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div class="card">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit Hero Section
+          </div>
+          <div class="form-group">
+            <label class="form-label">Heading</label>
+            <input type="text" class="form-input" value="Building Smarter from Blueprint to Closeout">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subheading</label>
+            <textarea class="form-textarea">Streamline every phase of your construction projects with our integrated platform for builders, developers, and property managers.</textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Primary CTA Text</label>
+              <input type="text" class="form-input" value="Explore Platform">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Primary CTA Link</label>
+              <input type="text" class="form-input" value="/features">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Secondary CTA Text</label>
+              <input type="text" class="form-input" value="Our Story">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Secondary CTA Link</label>
+              <input type="text" class="form-input" value="/about">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hero Image</label>
+            <div class="upload-zone">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <p>Drag and drop an image, or click to browse</p>
+              <span class="upload-hint">PNG, JPG, or WebP. Max 5MB. Recommended 1920x800.</span>
+            </div>
+            <div class="upload-current">
+              <div class="upload-thumb">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              <div class="upload-info">
+                <div class="name">hero-construction-site.jpg</div>
+                <div class="size">2.4 MB &middot; 1920 x 800</div>
+              </div>
+              <div class="upload-actions">
+                <button class="btn btn-sm">Change Image</button>
+                <a href="#" class="upload-remove">Remove</a>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Background Style</label>
+            <select class="form-select">
+              <option>Image Left</option>
+              <option selected>Image Right</option>
+              <option>Full Width</option>
+              <option>Video Background</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button class="btn">Save Draft</button>
+            <button class="btn btn-primary">Publish Section</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ MODULES TAB ═══════ -->
+      <div class="tab-content" id="tab-modules">
+        <div class="card">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Homepage Modules
+            <span style="font-size:.75rem;color:var(--muted);font-family:var(--font-sans);font-weight:400;margin-left:auto">Drag to reorder</span>
+          </div>
+          <div class="module-list">
+            <!-- Module 1 -->
+            <div class="module-item expanded">
+              <div class="module-header" onclick="toggleModule(this.parentElement)">
+                <div class="drag-handle">
+                  <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>
+                </div>
+                <div class="module-name">Project Management</div>
+                <div class="module-controls">
+                  <label class="toggle-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <button class="icon-btn" onclick="event.stopPropagation()">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="icon-btn danger" onclick="event.stopPropagation()">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="module-body">
+                <div class="form-group">
+                  <label class="form-label">Label</label>
+                  <input type="text" class="form-input" value="Project Management">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Title</label>
+                  <input type="text" class="form-input" value="Track Every Phase from Preconstruction to Closeout">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-textarea">Manage schedules, daily logs, RFIs, and submittals in one unified timeline. Keep your entire team aligned with real-time progress updates and automated milestone tracking.</textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Module Image</label>
+                  <div class="upload-zone">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <p>Drag and drop an image, or click to browse</p>
+                    <span class="upload-hint">PNG, JPG, or WebP. Max 3MB.</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Link URL</label>
+                  <input type="text" class="form-input" value="/features/project-management">
+                </div>
+              </div>
+            </div>
+            <!-- Module 2 -->
+            <div class="module-item">
+              <div class="module-header" onclick="toggleModule(this.parentElement)">
+                <div class="drag-handle">
+                  <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>
+                </div>
+                <div class="module-name">Property Management</div>
+                <div class="module-controls">
+                  <label class="toggle-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <button class="icon-btn" onclick="event.stopPropagation()">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="icon-btn danger" onclick="event.stopPropagation()">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="module-body">
+                <div class="form-group">
+                  <label class="form-label">Label</label>
+                  <input type="text" class="form-input" value="Property Management">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Title</label>
+                  <input type="text" class="form-input" value="Manage Leases, Tenants, and Portfolios in One Place">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-textarea">Oversee your entire real estate portfolio with lease tracking, maintenance requests, and tenant communications. Automate rent collection and track occupancy rates across all properties.</textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Module Image</label>
+                  <div class="upload-zone">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <p>Drag and drop an image, or click to browse</p>
+                    <span class="upload-hint">PNG, JPG, or WebP. Max 3MB.</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Link URL</label>
+                  <input type="text" class="form-input" value="/features/property-management">
+                </div>
+              </div>
+            </div>
+            <!-- Module 3 -->
+            <div class="module-item">
+              <div class="module-header" onclick="toggleModule(this.parentElement)">
+                <div class="drag-handle">
+                  <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>
+                </div>
+                <div class="module-name">Financial Management</div>
+                <div class="module-controls">
+                  <label class="toggle-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <button class="icon-btn" onclick="event.stopPropagation()">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="icon-btn danger" onclick="event.stopPropagation()">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="module-body">
+                <div class="form-group">
+                  <label class="form-label">Label</label>
+                  <input type="text" class="form-input" value="Financial Management">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Title</label>
+                  <input type="text" class="form-input" value="Job Costing, Budgets, and Cash Flow at a Glance">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-textarea">Control costs with real-time budget tracking, automated pay applications, and detailed job costing. Compare actuals to estimates instantly and forecast cash flow across your entire portfolio.</textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Module Image</label>
+                  <div class="upload-zone">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <p>Drag and drop an image, or click to browse</p>
+                    <span class="upload-hint">PNG, JPG, or WebP. Max 3MB.</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Link URL</label>
+                  <input type="text" class="form-input" value="/features/financial-management">
+                </div>
+              </div>
+            </div>
+            <!-- Module 4 -->
+            <div class="module-item">
+              <div class="module-header" onclick="toggleModule(this.parentElement)">
+                <div class="drag-handle">
+                  <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>
+                </div>
+                <div class="module-name">Document Management</div>
+                <div class="module-controls">
+                  <label class="toggle-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <button class="icon-btn" onclick="event.stopPropagation()">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="icon-btn danger" onclick="event.stopPropagation()">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="module-body">
+                <div class="form-group">
+                  <label class="form-label">Label</label>
+                  <input type="text" class="form-input" value="Document Management">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Title</label>
+                  <input type="text" class="form-input" value="Centralized Plans, Specs, and Submittals">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-textarea">Keep every drawing, specification, and submittal organized with version control and automatic distribution. Your plan room goes digital with markup tools and instant sharing to field teams.</textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Module Image</label>
+                  <div class="upload-zone">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <p>Drag and drop an image, or click to browse</p>
+                    <span class="upload-hint">PNG, JPG, or WebP. Max 3MB.</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Link URL</label>
+                  <input type="text" class="form-input" value="/features/document-management">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Module
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ STATS TAB ═══════ -->
+      <div class="tab-content" id="tab-stats">
+        <div class="card">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Homepage Statistics
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <button class="icon-btn stat-edit" style="position:absolute;top:10px;right:10px">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <div class="stat-number">1,200+</div>
+              <div class="stat-label-text">Contractors Worldwide</div>
+            </div>
+            <div class="stat-card">
+              <button class="icon-btn stat-edit" style="position:absolute;top:10px;right:10px">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <div class="stat-number">99.9%</div>
+              <div class="stat-label-text">Platform Uptime</div>
+            </div>
+            <div class="stat-card">
+              <button class="icon-btn stat-edit" style="position:absolute;top:10px;right:10px">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <div class="stat-number">35%</div>
+              <div class="stat-label-text">Cost Savings</div>
+            </div>
+            <div class="stat-card">
+              <button class="icon-btn stat-edit" style="position:absolute;top:10px;right:10px">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <div class="stat-number">24/7</div>
+              <div class="stat-label-text">Dedicated Support</div>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Stat
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ TESTIMONIALS TAB ═══════ -->
+      <div class="tab-content" id="tab-testimonials">
+        <div class="card">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Testimonials
+          </div>
+          <div class="testimonial-list">
+            <div class="testimonial-item">
+              <div class="testimonial-quote">"ConstructionERP transformed how we manage our $50M project portfolio. The integrated scheduling and cost tracking alone saved us over 200 hours per quarter. It is the single best investment we have made in our operations."</div>
+              <div class="testimonial-author">
+                <div class="testimonial-person">
+                  <div class="testimonial-avatar">SC</div>
+                  <div>
+                    <div class="testimonial-name">Sarah Chen</div>
+                    <div class="testimonial-title">VP Operations, Pacific Steel Construction</div>
+                  </div>
+                </div>
+                <div class="testimonial-controls">
+                  <div class="star-rating">
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <button class="icon-btn">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="icon-btn danger">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-item">
+              <div class="testimonial-quote">"We switched from three separate tools to ConstructionERP and cut our admin overhead by 40%. The document management and plan room features are exactly what our field teams needed. Submittals that used to take days now take minutes."</div>
+              <div class="testimonial-author">
+                <div class="testimonial-person">
+                  <div class="testimonial-avatar">MR</div>
+                  <div>
+                    <div class="testimonial-name">Marcus Rivera</div>
+                    <div class="testimonial-title">Director of Operations, Cornerstone Builders</div>
+                  </div>
+                </div>
+                <div class="testimonial-controls">
+                  <div class="star-rating">
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg viewBox="0 0 24 24" class="empty"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <button class="icon-btn">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="icon-btn danger">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Testimonial
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ CTA TAB ═══════ -->
+      <div class="tab-content" id="tab-cta">
+        <div class="card">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
+            Call to Action Section
+          </div>
+          <div class="form-group">
+            <label class="form-label">Heading</label>
+            <input type="text" class="form-input" value="Start Building Smarter Today">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subtext</label>
+            <textarea class="form-textarea">Join over 1,200 construction firms and property managers who trust ConstructionERP to streamline their operations, reduce costs, and deliver projects on time.</textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Button Text</label>
+              <input type="text" class="form-input" value="Start Free Trial">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Button Link</label>
+              <input type="text" class="form-input" value="/signup">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Background Style</label>
+            <select class="form-select">
+              <option selected>Gradient (Blue to Amber)</option>
+              <option>Solid Blue</option>
+              <option>Solid Dark</option>
+              <option>Image Background</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button class="btn">Save Draft</button>
+            <button class="btn btn-primary">Publish Section</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ FOOTER TAB ═══════ -->
+      <div class="tab-content" id="tab-footer">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+            Footer Columns
+          </div>
+          <div class="footer-columns">
+            <!-- Column 1: Product -->
+            <div class="footer-col">
+              <div class="form-group" style="margin-bottom:10px">
+                <label class="form-label">Column Title</label>
+                <input type="text" class="form-input" value="Product">
+              </div>
+              <div class="footer-col-title">Links</div>
+              <ul class="footer-link-list">
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Features</span>
+                  <span class="link-url">/features</span>
+                </li>
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Pricing</span>
+                  <span class="link-url">/pricing</span>
+                </li>
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Integrations</span>
+                  <span class="link-url">/integrations</span>
+                </li>
+              </ul>
+            </div>
+            <!-- Column 2: Modules -->
+            <div class="footer-col">
+              <div class="form-group" style="margin-bottom:10px">
+                <label class="form-label">Column Title</label>
+                <input type="text" class="form-input" value="Modules">
+              </div>
+              <div class="footer-col-title">Links</div>
+              <ul class="footer-link-list">
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Project Mgmt</span>
+                  <span class="link-url">/features/pm</span>
+                </li>
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Properties</span>
+                  <span class="link-url">/features/prop</span>
+                </li>
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Financial</span>
+                  <span class="link-url">/features/fin</span>
+                </li>
+              </ul>
+            </div>
+            <!-- Column 3: Company -->
+            <div class="footer-col">
+              <div class="form-group" style="margin-bottom:10px">
+                <label class="form-label">Column Title</label>
+                <input type="text" class="form-input" value="Company">
+              </div>
+              <div class="footer-col-title">Links</div>
+              <ul class="footer-link-list">
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">About Us</span>
+                  <span class="link-url">/about</span>
+                </li>
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Careers</span>
+                  <span class="link-url">/careers</span>
+                </li>
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Contact</span>
+                  <span class="link-url">/contact</span>
+                </li>
+              </ul>
+            </div>
+            <!-- Column 4: Legal -->
+            <div class="footer-col">
+              <div class="form-group" style="margin-bottom:10px">
+                <label class="form-label">Column Title</label>
+                <input type="text" class="form-input" value="Legal">
+              </div>
+              <div class="footer-col-title">Links</div>
+              <ul class="footer-link-list">
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Privacy Policy</span>
+                  <span class="link-url">/privacy</span>
+                </li>
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Terms of Service</span>
+                  <span class="link-url">/terms</span>
+                </li>
+                <li class="footer-link-item">
+                  <span class="drag-handle" style="cursor:grab"><svg width="12" height="12" viewBox="0 0 24 24" stroke="var(--muted)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+                  <span class="link-text">Security</span>
+                  <span class="link-url">/security</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Media Links -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Social Media Links
+          </div>
+          <div class="social-row">
+            <div class="form-group">
+              <label class="form-label">Twitter / X</label>
+              <input type="text" class="form-input" value="https://twitter.com/constructionerp" placeholder="https://twitter.com/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">LinkedIn</label>
+              <input type="text" class="form-input" value="https://linkedin.com/company/constructionerp" placeholder="https://linkedin.com/company/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Facebook</label>
+              <input type="text" class="form-input" value="https://facebook.com/constructionerp" placeholder="https://facebook.com/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">YouTube</label>
+              <input type="text" class="form-input" value="https://youtube.com/@constructionerp" placeholder="https://youtube.com/@...">
+            </div>
+          </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="card">
+          <div class="card-title">Copyright</div>
+          <div class="form-group">
+            <label class="form-label">Copyright Text</label>
+            <input type="text" class="form-input" value="&copy; 2026 ConstructionERP. All rights reserved.">
+          </div>
+          <div class="form-actions">
+            <button class="btn">Save Draft</button>
+            <button class="btn btn-primary">Publish Footer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ MEDIA LIBRARY TAB ═══════ -->
+      <div class="tab-content" id="tab-media">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            Upload Files
+          </div>
+          <div class="upload-zone">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            <p>Drag and drop files here, or click to browse</p>
+            <span class="upload-hint">Images (PNG, JPG, WebP), Documents (PDF, DOCX), Videos (MP4). Max 50MB per file.</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            All Media
+          </div>
+          <div class="media-toolbar">
+            <div class="media-search">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search media files...">
+            </div>
+            <div class="filter-pills">
+              <button class="filter-pill active">All</button>
+              <button class="filter-pill">Images</button>
+              <button class="filter-pill">Documents</button>
+              <button class="filter-pill">Videos</button>
+            </div>
+          </div>
+          <div class="media-grid">
+            <div class="media-item">
+              <div class="media-thumb" style="background:linear-gradient(135deg,#1d4ed8 0%,#3b82f6 100%)">
+                <svg viewBox="0 0 24 24" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div class="media-overlay">
+                  <button class="media-overlay-btn">Preview</button>
+                  <button class="media-overlay-btn">Copy URL</button>
+                  <button class="media-overlay-btn del">Delete</button>
+                </div>
+              </div>
+              <div class="media-info">
+                <div class="media-name">hero-construction-site.jpg</div>
+                <div class="media-meta"><span>2.4 MB</span><span>Jan 15, 2026</span></div>
+              </div>
+            </div>
+            <div class="media-item">
+              <div class="media-thumb" style="background:linear-gradient(135deg,#b45309 0%,#d97706 100%)">
+                <svg viewBox="0 0 24 24" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div class="media-overlay">
+                  <button class="media-overlay-btn">Preview</button>
+                  <button class="media-overlay-btn">Copy URL</button>
+                  <button class="media-overlay-btn del">Delete</button>
+                </div>
+              </div>
+              <div class="media-info">
+                <div class="media-name">project-dashboard-screenshot.png</div>
+                <div class="media-meta"><span>1.8 MB</span><span>Jan 18, 2026</span></div>
+              </div>
+            </div>
+            <div class="media-item">
+              <div class="media-thumb" style="background:linear-gradient(135deg,#16a34a 0%,#22c55e 100%)">
+                <svg viewBox="0 0 24 24" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div class="media-overlay">
+                  <button class="media-overlay-btn">Preview</button>
+                  <button class="media-overlay-btn">Copy URL</button>
+                  <button class="media-overlay-btn del">Delete</button>
+                </div>
+              </div>
+              <div class="media-info">
+                <div class="media-name">team-photo-office.jpg</div>
+                <div class="media-meta"><span>3.1 MB</span><span>Jan 20, 2026</span></div>
+              </div>
+            </div>
+            <div class="media-item">
+              <div class="media-thumb">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div class="media-overlay">
+                  <button class="media-overlay-btn">Preview</button>
+                  <button class="media-overlay-btn">Copy URL</button>
+                  <button class="media-overlay-btn del">Delete</button>
+                </div>
+              </div>
+              <div class="media-info">
+                <div class="media-name">product-brochure-2026.pdf</div>
+                <div class="media-meta"><span>4.7 MB</span><span>Jan 22, 2026</span></div>
+              </div>
+            </div>
+            <div class="media-item">
+              <div class="media-thumb" style="background:linear-gradient(135deg,#7c3aed 0%,#a78bfa 100%)">
+                <svg viewBox="0 0 24 24" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div class="media-overlay">
+                  <button class="media-overlay-btn">Preview</button>
+                  <button class="media-overlay-btn">Copy URL</button>
+                  <button class="media-overlay-btn del">Delete</button>
+                </div>
+              </div>
+              <div class="media-info">
+                <div class="media-name">financial-module-preview.png</div>
+                <div class="media-meta"><span>1.2 MB</span><span>Jan 24, 2026</span></div>
+              </div>
+            </div>
+            <div class="media-item">
+              <div class="media-thumb" style="background:linear-gradient(135deg,#dc2626 0%,#f87171 100%)">
+                <svg viewBox="0 0 24 24" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                <div class="media-overlay">
+                  <button class="media-overlay-btn">Preview</button>
+                  <button class="media-overlay-btn">Copy URL</button>
+                  <button class="media-overlay-btn del">Delete</button>
+                </div>
+              </div>
+              <div class="media-info">
+                <div class="media-name">platform-demo-video.mp4</div>
+                <div class="media-meta"><span>48.2 MB</span><span>Jan 25, 2026</span></div>
+              </div>
+            </div>
+            <div class="media-item">
+              <div class="media-thumb" style="background:linear-gradient(135deg,#0891b2 0%,#22d3ee 100%)">
+                <svg viewBox="0 0 24 24" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div class="media-overlay">
+                  <button class="media-overlay-btn">Preview</button>
+                  <button class="media-overlay-btn">Copy URL</button>
+                  <button class="media-overlay-btn del">Delete</button>
+                </div>
+              </div>
+              <div class="media-info">
+                <div class="media-name">testimonial-bg-pattern.svg</div>
+                <div class="media-meta"><span>24 KB</span><span>Jan 26, 2026</span></div>
+              </div>
+            </div>
+            <div class="media-item">
+              <div class="media-thumb" style="background:linear-gradient(135deg,#78716c 0%,#a8a29e 100%)">
+                <svg viewBox="0 0 24 24" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div class="media-overlay">
+                  <button class="media-overlay-btn">Preview</button>
+                  <button class="media-overlay-btn">Copy URL</button>
+                  <button class="media-overlay-btn del">Delete</button>
+                </div>
+              </div>
+              <div class="media-info">
+                <div class="media-name">logo-constructionerp-dark.png</div>
+                <div class="media-meta"><span>86 KB</span><span>Jan 28, 2026</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-main -->
+
+    <!-- Version History Panel -->
+    <div class="version-panel" id="versionPanel">
+      <div class="vp-header">
+        <h3>Version History</h3>
+        <button class="vp-toggle" onclick="toggleVersionPanel()" title="Collapse panel">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
+      <div class="vp-content">
+        <div class="version-item">
+          <div class="version-date">Feb 10, 2026 -- 3:42 PM</div>
+          <div class="version-user">Sarah Chen</div>
+          <div class="version-change">Updated hero heading and subtext</div>
+          <a href="#" class="version-restore">Restore</a>
+        </div>
+        <div class="version-item">
+          <div class="version-date">Feb 8, 2026 -- 11:15 AM</div>
+          <div class="version-user">Robert Huang</div>
+          <div class="version-change">Added new testimonial from Marcus Rivera</div>
+          <a href="#" class="version-restore">Restore</a>
+        </div>
+        <div class="version-item">
+          <div class="version-date">Feb 5, 2026 -- 9:30 AM</div>
+          <div class="version-user">Sarah Chen</div>
+          <div class="version-change">Changed stats numbers and updated cost savings to 35%</div>
+          <a href="#" class="version-restore">Restore</a>
+        </div>
+        <div class="version-item">
+          <div class="version-date">Jan 28, 2026 -- 4:18 PM</div>
+          <div class="version-user">Sarah Chen</div>
+          <div class="version-change">Published full site update with new modules section</div>
+          <a href="#" class="version-restore">Restore</a>
+        </div>
+        <div class="version-item">
+          <div class="version-date">Jan 22, 2026 -- 2:05 PM</div>
+          <div class="version-user">Mike Torres</div>
+          <div class="version-change">Updated footer links and social media URLs</div>
+          <a href="#" class="version-restore">Restore</a>
+        </div>
+      </div>
+    </div>
+  </div><!-- /content-layout -->
+</main>
+
+<script>
+/* Sidebar */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.querySelector('.overlay').classList.toggle('active');
+}
+function toggleNav(item) {
+  var wasOpen = item.classList.contains('open');
+  var siblings = item.parentElement.querySelectorAll(':scope > .nav-item.open');
+  siblings.forEach(function(el) { if (el !== item) el.classList.remove('open'); });
+  if (wasOpen) item.classList.remove('open');
+  else item.classList.add('open');
+}
+window.addEventListener('resize', function() {
+  if (window.innerWidth >= 1024) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.querySelector('.overlay').classList.remove('active');
+  }
+});
+
+/* Theme Toggle */
+function toggleTheme(){
+  var html = document.documentElement;
+  var isDark = html.getAttribute("data-theme") === "dark";
+  if(isDark){
+    html.removeAttribute("data-theme");
+    document.getElementById("sunIcon").style.display = "none";
+    document.getElementById("moonIcon").style.display = "block";
+    localStorage.setItem("theme-construction","light");
+  } else {
+    html.setAttribute("data-theme","dark");
+    document.getElementById("sunIcon").style.display = "block";
+    document.getElementById("moonIcon").style.display = "none";
+    localStorage.setItem("theme-construction","dark");
+  }
+}
+(function(){
+  var t = localStorage.getItem("theme-construction");
+  if(t === "dark"){
+    document.documentElement.setAttribute("data-theme","dark");
+    document.getElementById("sunIcon").style.display = "block";
+    document.getElementById("moonIcon").style.display = "none";
+  }
+})();
+
+/* Tabs */
+document.querySelectorAll('.tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+    tab.classList.add('active');
+    var target = document.getElementById('tab-' + tab.getAttribute('data-tab'));
+    if (target) target.classList.add('active');
+  });
+});
+
+/* Module expand/collapse */
+function toggleModule(el) {
+  el.classList.toggle('expanded');
+}
+
+/* Version Panel collapse */
+function toggleVersionPanel() {
+  var panel = document.getElementById('versionPanel');
+  panel.classList.toggle('collapsed');
+}
+
+/* Filter pills */
+document.querySelectorAll('.filter-pill').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    pill.parentElement.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
+    pill.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

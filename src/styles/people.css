@@ -1,0 +1,587 @@
+/* ===================================================
+   People / Workforce Module Styles
+   Construction ERP
+   =================================================== */
+
+/* ===== People Header ===== */
+.people-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.people-header h2 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.people-header-sub {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+.people-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ===== People Search Bar ===== */
+.people-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.people-search-input {
+  flex: 1;
+  min-width: 200px;
+  height: 40px;
+  padding: 0 14px 0 38px;
+  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.people-search-input::placeholder {
+  color: var(--muted);
+}
+
+.people-search-input:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+.people-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.people-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+/* ===== People Tab Bar ===== */
+.people-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  gap: 0;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.people-tab {
+  padding: 10px 18px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.people-tab:hover {
+  color: var(--text);
+}
+
+.people-tab.active {
+  color: var(--text);
+  font-weight: 600;
+  border-bottom-color: var(--color-amber);
+}
+
+/* ===== People Card Grid ===== */
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ===== Contact Card ===== */
+.contact-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  position: relative;
+}
+
+.contact-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"] .contact-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.contact-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.contact-card-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.contact-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.contact-card-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.contact-card-title {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.contact-card-company {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.contact-card-type {
+  flex-shrink: 0;
+}
+
+.contact-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.contact-card-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.contact-card-detail svg {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.contact-card-detail a {
+  color: var(--color-blue);
+  text-decoration: none;
+}
+
+.contact-card-detail a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Certification Warning ===== */
+.cert-warning {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-amber);
+  display: inline-block;
+  flex-shrink: 0;
+  animation: cert-pulse 2s ease-in-out infinite;
+}
+
+@keyframes cert-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.cert-warning-text {
+  font-size: 0.72rem;
+  color: var(--color-amber);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+/* Contact type badge colors */
+.contact-type-employee {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+}
+
+[data-theme="dark"] .contact-type-employee {
+  background: rgba(29, 78, 216, 0.15);
+}
+
+.contact-type-subcontractor {
+  background: var(--color-amber-light);
+  color: var(--color-amber);
+}
+
+[data-theme="dark"] .contact-type-subcontractor {
+  background: rgba(180, 83, 9, 0.15);
+}
+
+.contact-type-vendor {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+[data-theme="dark"] .contact-type-vendor {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+.contact-type-client {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+}
+
+[data-theme="dark"] .contact-type-client {
+  background: rgba(29, 78, 216, 0.15);
+}
+
+.contact-type-tenant {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* ===== Timesheet Grid ===== */
+.timesheet-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-family: var(--font-sans);
+}
+
+.timesheet-grid thead {
+  border-bottom: 2px solid var(--border);
+}
+
+.timesheet-grid th {
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.timesheet-grid th:first-child {
+  text-align: left;
+  min-width: 180px;
+}
+
+.timesheet-grid th.total-col {
+  background: var(--surface);
+  border-radius: 6px 6px 0 0;
+}
+
+.timesheet-grid td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  color: var(--text);
+}
+
+.timesheet-grid td:first-child {
+  text-align: left;
+}
+
+.timesheet-grid tbody tr {
+  transition: background 0.1s;
+}
+
+.timesheet-grid tbody tr:hover {
+  background: var(--surface);
+}
+
+.timesheet-grid .total-col {
+  background: rgba(29, 78, 216, 0.04);
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .timesheet-grid .total-col {
+  background: rgba(29, 78, 216, 0.08);
+}
+
+/* ===== Timesheet Cell ===== */
+.timesheet-cell {
+  min-width: 48px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  text-align: center;
+  transition: background 0.1s;
+}
+
+.timesheet-cell.has-hours {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .timesheet-cell.has-hours {
+  background: rgba(29, 78, 216, 0.15);
+}
+
+.timesheet-cell.no-hours {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+/* ===== Week Navigation ===== */
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.week-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  color: var(--muted);
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.week-nav-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.week-nav-label {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.week-nav-dates {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+/* ===== Timesheet Person Row ===== */
+.timesheet-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timesheet-person-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.timesheet-person-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.timesheet-person-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.timesheet-person-role {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* ===== Time Entry Status ===== */
+.time-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+
+.time-status-pending {
+  background: var(--color-amber-light);
+  color: var(--color-amber);
+}
+
+[data-theme="dark"] .time-status-pending {
+  background: rgba(180, 83, 9, 0.15);
+}
+
+.time-status-approved {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+[data-theme="dark"] .time-status-approved {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+.time-status-rejected {
+  background: var(--color-red-light);
+  color: var(--color-red);
+}
+
+[data-theme="dark"] .time-status-rejected {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+/* ===== Timesheet Summary Row ===== */
+.timesheet-summary {
+  font-weight: 700;
+  background: var(--surface);
+}
+
+.timesheet-summary td {
+  border-bottom: none;
+  padding-top: 12px;
+}
+
+/* ===== Approve All Bar ===== */
+.timesheet-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.timesheet-actions-info {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.timesheet-actions-info strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ===== People Empty State ===== */
+.people-empty {
+  text-align: center;
+  padding: 64px 24px;
+  color: var(--muted);
+}
+
+.people-empty-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: var(--border);
+}
+
+.people-empty-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.people-empty-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 400px;
+  margin: 0 auto 20px;
+  line-height: 1.5;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1023px) {
+  .people-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .people-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .people-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .people-search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .people-tab-bar {
+    overflow-x: auto;
+  }
+
+  .week-nav {
+    flex-wrap: wrap;
+  }
+}

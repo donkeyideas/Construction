@@ -1,0 +1,1177 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Company Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#2c5282', light: '#3b6ba5', dark: '#1e3a5f' },
+            accent: { DEFAULT: '#c9a84c', light: '#d4b96a', dark: '#b08f3a' },
+            surface: { dark: '#243447', light: '#ffffff' },
+            border: { dark: '#344258', light: '#d1d9e6' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #2c5282, #c9a84c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Scrollbar styling */
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #344258; border-radius: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #4a5d73; }
+
+    /* Settings tabs */
+    .settings-tab { transition: all 0.15s ease; }
+    .settings-tab.active { border-left: 3px solid #2c5282; }
+
+    /* Provider card hover */
+    .provider-card { transition: all 0.2s ease; }
+    .provider-card:hover { transform: translateY(-1px); }
+
+    /* Progress bar animation */
+    .progress-fill { transition: width 0.6s ease-out; }
+  </style>
+</head>
+<body class="dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- ============================================================ -->
+  <!-- SIDEBAR (fixed, 260px)                                       -->
+  <!-- ============================================================ -->
+  <aside class="fixed top-0 left-0 bottom-0 w-[260px] dark:bg-[#1e2d3f] bg-[#f0f2f5] border-r dark:border-[#344258] border-[#d1d9e6] z-40 flex flex-col">
+
+    <!-- Logo -->
+    <div class="px-5 h-16 flex items-center gap-3 border-b dark:border-[#344258] border-[#d1d9e6] shrink-0">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-lg font-bold tracking-tight">ConstructionERP</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll py-4 px-3">
+
+      <!-- OVERVIEW -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Overview</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+      </div>
+
+      <!-- CONSTRUCTION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Construction</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          Safety
+        </a>
+      </div>
+
+      <!-- REAL ESTATE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Real Estate</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Properties
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          Leases
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+          Maintenance
+        </a>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Financial</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          Accounts Payable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="credit-card" class="w-4 h-4"></i>
+          Accounts Receivable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          General Ledger
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          Job Costing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="landmark" class="w-4 h-4"></i>
+          Banking
+        </a>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Documents</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          Library
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-signature" class="w-4 h-4"></i>
+          Contracts
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          Plan Room
+        </a>
+      </div>
+
+      <!-- PEOPLE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">People</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Directory
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          Time & Attendance
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="truck" class="w-4 h-4"></i>
+          Equipment
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="store" class="w-4 h-4"></i>
+          Vendors
+        </a>
+      </div>
+
+      <!-- BUSINESS DEVELOPMENT -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Business Development</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="git-branch" class="w-4 h-4"></i>
+          Pipeline
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>
+          Opportunities
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-plus" class="w-4 h-4"></i>
+          Bids & Proposals
+        </a>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Reports</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="pie-chart" class="w-4 h-4"></i>
+          Report Center
+        </a>
+      </div>
+
+      <!-- AI INTELLIGENCE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">AI Intelligence</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          Automation
+        </a>
+      </div>
+
+      <!-- ADMINISTRATION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Administration</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          Users & Roles
+        </a>
+        <!-- Active item -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-brand/10 text-brand font-medium text-sm">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Company Settings
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="plug" class="w-4 h-4"></i>
+          Integrations
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+          Security
+        </a>
+      </div>
+
+    </nav>
+  </aside>
+
+  <!-- ============================================================ -->
+  <!-- MAIN WRAPPER (offset by sidebar)                             -->
+  <!-- ============================================================ -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- ========================================================== -->
+    <!-- TOP BAR                                                    -->
+    <!-- ========================================================== -->
+    <header class="sticky top-0 z-30 h-16 dark:bg-[#1a2332]/80 bg-white/80 backdrop-blur-md border-b dark:border-[#344258] border-[#d1d9e6] flex items-center justify-between px-6 shrink-0">
+
+      <!-- Left: Breadcrumb -->
+      <div class="flex items-center gap-2 text-sm">
+        <span class="dark:text-gray-500 text-gray-400">Administration</span>
+        <span class="dark:text-gray-600 text-gray-300">/</span>
+        <span class="font-medium dark:text-gray-100 text-gray-900">Company Settings</span>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-4">
+
+        <!-- Search -->
+        <div class="relative">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg dark:bg-white/5 bg-gray-100 border dark:border-[#344258] border-[#d1d9e6] text-sm dark:text-gray-400 text-gray-500 cursor-pointer hover:dark:border-gray-600 hover:border-gray-300 transition-colors min-w-[220px]">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Search...</span>
+            <kbd class="ml-auto text-[10px] font-medium dark:bg-white/10 bg-gray-200 px-1.5 py-0.5 rounded dark:text-gray-500 text-gray-400">Cmd+K</kbd>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+          <i data-lucide="bell" class="w-5 h-5 dark:text-gray-400 text-gray-500"></i>
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+        </button>
+
+        <!-- Divider -->
+        <div class="w-px h-8 dark:bg-[#344258] bg-[#d1d9e6]"></div>
+
+        <!-- User -->
+        <button class="flex items-center gap-3 hover:dark:bg-white/5 hover:bg-gray-100 rounded-lg px-2 py-1.5 transition-colors">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+          <div class="text-left hidden lg:block">
+            <p class="text-sm font-medium leading-tight">John Mitchell</p>
+            <p class="text-[11px] dark:text-gray-500 text-gray-400 leading-tight">Admin</p>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 dark:text-gray-500 text-gray-400 hidden lg:block"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ========================================================== -->
+    <!-- MAIN CONTENT                                               -->
+    <!-- ========================================================== -->
+    <main class="flex-1 p-6">
+
+      <!-- Page heading -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold">Company Settings</h1>
+        <p class="text-sm dark:text-gray-400 text-gray-500 mt-1">Manage your company profile, AI providers, integrations, and system configuration.</p>
+      </div>
+
+      <!-- Settings layout: left tabs + right content -->
+      <div class="flex gap-6">
+
+        <!-- ====================================================== -->
+        <!-- LEFT: Vertical Tabs (200px)                            -->
+        <!-- ====================================================== -->
+        <div class="w-[200px] shrink-0">
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md overflow-hidden">
+            <!-- Active tab -->
+            <a href="#section-company" class="settings-tab active flex items-center gap-3 px-4 py-3 text-sm font-medium bg-brand/10 text-brand border-l-[3px] border-brand">
+              <i data-lucide="building-2" class="w-4 h-4"></i>
+              Company Profile
+            </a>
+            <a href="#section-modules" class="settings-tab flex items-center gap-3 px-4 py-3 text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-100 border-l-[3px] border-transparent transition-colors">
+              <i data-lucide="layout-grid" class="w-4 h-4"></i>
+              Modules
+            </a>
+            <a href="#section-ai" class="settings-tab flex items-center gap-3 px-4 py-3 text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-100 border-l-[3px] border-transparent transition-colors">
+              <i data-lucide="brain" class="w-4 h-4"></i>
+              AI Providers
+            </a>
+            <a href="#section-integrations" class="settings-tab flex items-center gap-3 px-4 py-3 text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-100 border-l-[3px] border-transparent transition-colors">
+              <i data-lucide="plug" class="w-4 h-4"></i>
+              Integrations
+            </a>
+            <a href="#section-notifications" class="settings-tab flex items-center gap-3 px-4 py-3 text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-100 border-l-[3px] border-transparent transition-colors">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              Notifications
+            </a>
+            <a href="#section-security" class="settings-tab flex items-center gap-3 px-4 py-3 text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-100 border-l-[3px] border-transparent transition-colors">
+              <i data-lucide="shield" class="w-4 h-4"></i>
+              Security
+            </a>
+            <a href="#section-billing" class="settings-tab flex items-center gap-3 px-4 py-3 text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-100 border-l-[3px] border-transparent transition-colors">
+              <i data-lucide="credit-card" class="w-4 h-4"></i>
+              Billing
+            </a>
+          </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- RIGHT: Content Area                                    -->
+        <!-- ====================================================== -->
+        <div class="flex-1 min-w-0 space-y-8">
+
+          <!-- ================================================== -->
+          <!-- SECTION 1: COMPANY PROFILE                         -->
+          <!-- ================================================== -->
+          <div id="section-company">
+            <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-6">
+              <div class="flex items-center gap-3 mb-6">
+                <div class="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+                  <i data-lucide="building-2" class="w-4 h-4 text-brand"></i>
+                </div>
+                <div>
+                  <h2 class="text-lg font-semibold">Company Profile</h2>
+                  <p class="text-sm dark:text-gray-400 text-gray-500">Basic information about your organization.</p>
+                </div>
+              </div>
+
+              <!-- Form -->
+              <div class="space-y-6">
+
+                <!-- Logo Upload -->
+                <div class="flex items-center gap-6">
+                  <div class="relative group cursor-pointer">
+                    <div class="w-20 h-20 rounded-full dark:bg-[#1f3044] bg-gray-200 border-2 border-dashed dark:border-[#3d4f64] border-gray-300 flex items-center justify-center">
+                      <i data-lucide="camera" class="w-7 h-7 dark:text-gray-500 text-gray-400"></i>
+                    </div>
+                    <div class="absolute inset-0 rounded-full bg-brand/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <i data-lucide="upload" class="w-5 h-5 text-brand"></i>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium">Company Logo</p>
+                    <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">PNG, JPG or SVG. Max 2MB.</p>
+                    <button class="mt-2 text-xs text-brand hover:text-brand-light font-medium transition-colors">Upload Image</button>
+                  </div>
+                </div>
+
+                <!-- Row: Company Name + Company Type -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">Company Name</label>
+                    <input type="text" value="Mitchell Construction Group" class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">Company Type</label>
+                    <select class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors appearance-none cursor-pointer">
+                      <option selected>General Contractor</option>
+                      <option>Specialty Contractor</option>
+                      <option>Developer</option>
+                      <option>Owner/Operator</option>
+                      <option>Architecture/Engineering</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Address: Street -->
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Street Address</label>
+                  <input type="text" value="4200 Industrial Blvd, Suite 300" class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                </div>
+
+                <!-- Address: City, State, ZIP -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">City</label>
+                    <input type="text" value="Dallas" class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">State</label>
+                    <input type="text" value="Texas" class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">ZIP Code</label>
+                    <input type="text" value="75207" class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                  </div>
+                </div>
+
+                <!-- Phone, Email, Website -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">Phone</label>
+                    <input type="tel" value="(214) 555-0180" class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">Email</label>
+                    <input type="email" value="admin@mitchellcg.com" class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">Website</label>
+                    <input type="url" value="https://mitchellcg.com" class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                  </div>
+                </div>
+
+                <!-- Fiscal Year, Currency, Timezone -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">Fiscal Year Start</label>
+                    <select class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors appearance-none cursor-pointer">
+                      <option selected>January</option>
+                      <option>February</option>
+                      <option>March</option>
+                      <option>April</option>
+                      <option>July</option>
+                      <option>October</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">Default Currency</label>
+                    <select class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors appearance-none cursor-pointer">
+                      <option selected>USD</option>
+                      <option>EUR</option>
+                      <option>GBP</option>
+                      <option>CAD</option>
+                      <option>MXN</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1.5">Timezone</label>
+                    <select class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors appearance-none cursor-pointer">
+                      <option selected>America/Chicago (CST)</option>
+                      <option>America/New_York (EST)</option>
+                      <option>America/Denver (MST)</option>
+                      <option>America/Los_Angeles (PST)</option>
+                      <option>America/Phoenix (MST)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Save button -->
+                <div class="flex justify-end pt-2">
+                  <button class="px-6 py-2.5 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg transition-colors">
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================================================== -->
+          <!-- SECTION 2: AI PROVIDERS                            -->
+          <!-- ================================================== -->
+          <div id="section-ai">
+            <div class="mb-6">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <i data-lucide="brain" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div>
+                  <h2 class="text-lg font-semibold">AI Provider Configuration</h2>
+                  <p class="text-sm dark:text-gray-400 text-gray-500">Configure AI providers for chat, document processing, and predictive analytics. Add API keys and select which provider to use for each task.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Provider Cards Grid (2 columns) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+
+              <!-- 1. OpenAI - Connected -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <i data-lucide="sparkles" class="w-5 h-5 text-emerald-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">OpenAI</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-xs text-emerald-400">Connected</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-semibold uppercase tracking-wider bg-brand/10 text-brand px-2 py-1 rounded-full">Default for Chat</span>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                  <label class="text-xs dark:text-gray-500 text-gray-400">Model:</label>
+                  <select class="flex-1 px-2 py-1 rounded dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-xs focus:outline-none focus:ring-1 focus:ring-brand/50 appearance-none cursor-pointer">
+                    <option selected>GPT-4o</option>
+                    <option>GPT-4o-mini</option>
+                    <option>GPT-4-turbo</option>
+                    <option>o1-preview</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">2,450 req / $34.20 this month</span>
+                  <button class="text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors">Connected</button>
+                </div>
+              </div>
+
+              <!-- 2. Anthropic Claude - Connected -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                      <i data-lucide="message-square" class="w-5 h-5 text-orange-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">Anthropic Claude</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-xs text-emerald-400">Connected</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-semibold uppercase tracking-wider bg-purple-500/10 text-purple-400 px-2 py-1 rounded-full">Default for Documents</span>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                  <label class="text-xs dark:text-gray-500 text-gray-400">Model:</label>
+                  <select class="flex-1 px-2 py-1 rounded dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-xs focus:outline-none focus:ring-1 focus:ring-brand/50 appearance-none cursor-pointer">
+                    <option selected>Claude 4.5 Sonnet</option>
+                    <option>Claude Opus 4</option>
+                    <option>Claude 3.5 Haiku</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">890 req / $18.40 this month</span>
+                  <button class="text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors">Connected</button>
+                </div>
+              </div>
+
+              <!-- 3. Google Gemini - Connected -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <i data-lucide="hexagon" class="w-5 h-5 text-blue-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">Google Gemini</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-xs text-emerald-400">Connected</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                  <label class="text-xs dark:text-gray-500 text-gray-400">Model:</label>
+                  <select class="flex-1 px-2 py-1 rounded dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-xs focus:outline-none focus:ring-1 focus:ring-brand/50 appearance-none cursor-pointer">
+                    <option selected>Gemini 2.0 Pro</option>
+                    <option>Gemini 2.0 Flash</option>
+                    <option>Gemini 1.5 Pro</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">120 req / $2.80 this month</span>
+                  <button class="text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors">Connected</button>
+                </div>
+              </div>
+
+              <!-- 4. DeepSeek - Not Configured -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg dark:bg-white/5 bg-gray-200 flex items-center justify-center">
+                      <i data-lucide="telescope" class="w-5 h-5 dark:text-gray-500 text-gray-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">DeepSeek</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full dark:bg-gray-600 bg-gray-400"></span>
+                        <span class="text-xs dark:text-gray-500 text-gray-400">Not Configured</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-3">Deep reasoning and code generation capabilities.</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-600 text-gray-400">No usage data</span>
+                  <button class="text-xs font-medium px-3 py-1.5 border dark:border-[#3d4f64] border-gray-300 rounded-lg dark:text-gray-300 text-gray-600 hover:border-brand hover:text-brand transition-colors">Configure</button>
+                </div>
+              </div>
+
+              <!-- 5. Mistral - Not Configured -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg dark:bg-white/5 bg-gray-200 flex items-center justify-center">
+                      <i data-lucide="wind" class="w-5 h-5 dark:text-gray-500 text-gray-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">Mistral</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full dark:bg-gray-600 bg-gray-400"></span>
+                        <span class="text-xs dark:text-gray-500 text-gray-400">Not Configured</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-3">European AI provider with multilingual models.</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-600 text-gray-400">No usage data</span>
+                  <button class="text-xs font-medium px-3 py-1.5 border dark:border-[#3d4f64] border-gray-300 rounded-lg dark:text-gray-300 text-gray-600 hover:border-brand hover:text-brand transition-colors">Configure</button>
+                </div>
+              </div>
+
+              <!-- 6. Cohere - Not Configured -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg dark:bg-white/5 bg-gray-200 flex items-center justify-center">
+                      <i data-lucide="circle-dot" class="w-5 h-5 dark:text-gray-500 text-gray-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">Cohere</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full dark:bg-gray-600 bg-gray-400"></span>
+                        <span class="text-xs dark:text-gray-500 text-gray-400">Not Configured</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-3">Enterprise search and RAG-optimized models.</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-600 text-gray-400">No usage data</span>
+                  <button class="text-xs font-medium px-3 py-1.5 border dark:border-[#3d4f64] border-gray-300 rounded-lg dark:text-gray-300 text-gray-600 hover:border-brand hover:text-brand transition-colors">Configure</button>
+                </div>
+              </div>
+
+              <!-- 7. Groq - Connected -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">Groq</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-xs text-emerald-400">Connected</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-semibold uppercase tracking-wider bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full">Default for Predictions</span>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                  <label class="text-xs dark:text-gray-500 text-gray-400">Model:</label>
+                  <select class="flex-1 px-2 py-1 rounded dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-xs focus:outline-none focus:ring-1 focus:ring-brand/50 appearance-none cursor-pointer">
+                    <option selected>Llama 3.3 70B</option>
+                    <option>Llama 3.1 8B</option>
+                    <option>Mixtral 8x7B</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">340 req / $0.50 this month</span>
+                  <button class="text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors">Connected</button>
+                </div>
+              </div>
+
+              <!-- 8. Perplexity - Not Configured -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg dark:bg-white/5 bg-gray-200 flex items-center justify-center">
+                      <i data-lucide="search" class="w-5 h-5 dark:text-gray-500 text-gray-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">Perplexity</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full dark:bg-gray-600 bg-gray-400"></span>
+                        <span class="text-xs dark:text-gray-500 text-gray-400">Not Configured</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-3">AI-powered search and research assistant.</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-600 text-gray-400">No usage data</span>
+                  <button class="text-xs font-medium px-3 py-1.5 border dark:border-[#3d4f64] border-gray-300 rounded-lg dark:text-gray-300 text-gray-600 hover:border-brand hover:text-brand transition-colors">Configure</button>
+                </div>
+              </div>
+
+              <!-- 9. xAI Grok - Not Configured -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg dark:bg-white/5 bg-gray-200 flex items-center justify-center">
+                      <i data-lucide="atom" class="w-5 h-5 dark:text-gray-500 text-gray-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">xAI Grok</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full dark:bg-gray-600 bg-gray-400"></span>
+                        <span class="text-xs dark:text-gray-500 text-gray-400">Not Configured</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-3">Real-time knowledge and reasoning model.</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-600 text-gray-400">No usage data</span>
+                  <button class="text-xs font-medium px-3 py-1.5 border dark:border-[#3d4f64] border-gray-300 rounded-lg dark:text-gray-300 text-gray-600 hover:border-brand hover:text-brand transition-colors">Configure</button>
+                </div>
+              </div>
+
+              <!-- 10. Amazon Bedrock - Not Configured -->
+              <div class="provider-card dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg dark:bg-white/5 bg-gray-200 flex items-center justify-center">
+                      <i data-lucide="cloud" class="w-5 h-5 dark:text-gray-500 text-gray-400"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-semibold">Amazon Bedrock</h3>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full dark:bg-gray-600 bg-gray-400"></span>
+                        <span class="text-xs dark:text-gray-500 text-gray-400">Not Configured</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-3">AWS-managed multi-model inference service.</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-600 text-gray-400">No usage data</span>
+                  <button class="text-xs font-medium px-3 py-1.5 border dark:border-[#3d4f64] border-gray-300 rounded-lg dark:text-gray-300 text-gray-600 hover:border-brand hover:text-brand transition-colors">Configure</button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Task Assignment Card -->
+            <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-6 mb-6">
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+                  <i data-lucide="workflow" class="w-4 h-4 text-brand"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold">Default Provider by Task</h3>
+                  <p class="text-xs dark:text-gray-500 text-gray-400">Assign which AI provider handles each type of task.</p>
+                </div>
+              </div>
+              <div class="space-y-3">
+                <!-- Chat Assistant -->
+                <div class="flex items-center justify-between py-3 border-b dark:border-[#344258] border-[#d1d9e6]">
+                  <div class="flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="text-sm font-medium">Chat Assistant</span>
+                  </div>
+                  <select class="px-3 py-1.5 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand/50 appearance-none cursor-pointer min-w-[240px]">
+                    <option selected>OpenAI GPT-4o</option>
+                    <option>Anthropic Claude 4.5 Sonnet</option>
+                    <option>Google Gemini 2.0 Pro</option>
+                    <option>Groq Llama 3.3 70B</option>
+                  </select>
+                </div>
+                <!-- Document Processing -->
+                <div class="flex items-center justify-between py-3 border-b dark:border-[#344258] border-[#d1d9e6]">
+                  <div class="flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="text-sm font-medium">Document Processing</span>
+                  </div>
+                  <select class="px-3 py-1.5 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand/50 appearance-none cursor-pointer min-w-[240px]">
+                    <option>OpenAI GPT-4o</option>
+                    <option selected>Anthropic Claude 4.5 Sonnet</option>
+                    <option>Google Gemini 2.0 Pro</option>
+                    <option>Groq Llama 3.3 70B</option>
+                  </select>
+                </div>
+                <!-- Predictive Analytics -->
+                <div class="flex items-center justify-between py-3 border-b dark:border-[#344258] border-[#d1d9e6]">
+                  <div class="flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="text-sm font-medium">Predictive Analytics</span>
+                  </div>
+                  <select class="px-3 py-1.5 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand/50 appearance-none cursor-pointer min-w-[240px]">
+                    <option>OpenAI GPT-4o</option>
+                    <option>Anthropic Claude 4.5 Sonnet</option>
+                    <option>Google Gemini 2.0 Pro</option>
+                    <option selected>Groq Llama 3.3 70B</option>
+                  </select>
+                </div>
+                <!-- Automation Rules -->
+                <div class="flex items-center justify-between py-3">
+                  <div class="flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="text-sm font-medium">Automation Rules</span>
+                  </div>
+                  <select class="px-3 py-1.5 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand/50 appearance-none cursor-pointer min-w-[240px]">
+                    <option selected>OpenAI GPT-4o-mini</option>
+                    <option>OpenAI GPT-4o</option>
+                    <option>Anthropic Claude 4.5 Sonnet</option>
+                    <option>Groq Llama 3.3 70B</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Budget & Usage Card -->
+            <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-6 mb-6">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <i data-lucide="wallet" class="w-4 h-4 text-accent"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">Budget & Usage</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">Monitor AI spending and set cost controls.</p>
+                  </div>
+                </div>
+                <a href="#" class="text-xs text-brand hover:text-brand-light font-medium transition-colors">View Detailed Usage</a>
+              </div>
+
+              <!-- Monthly Budget Limit -->
+              <div class="flex items-center justify-between mb-5 pb-5 border-b dark:border-[#344258] border-[#d1d9e6]">
+                <div class="flex items-center gap-3">
+                  <span class="text-sm font-medium">Monthly Budget Limit</span>
+                  <input type="text" value="$100.00" class="w-24 px-3 py-1.5 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm text-right focus:outline-none focus:ring-1 focus:ring-brand/50">
+                </div>
+                <!-- Toggle -->
+                <div class="flex items-center gap-2">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">Enforce limit</span>
+                  <button class="relative w-10 h-5 rounded-full bg-brand transition-colors" onclick="this.classList.toggle('bg-brand'); this.classList.toggle('dark:bg-gray-700'); this.classList.toggle('bg-gray-300');">
+                    <span class="absolute top-0.5 left-5 w-4 h-4 rounded-full bg-white shadow transition-transform"></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Current Month Usage -->
+              <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium">Current Month Usage</span>
+                  <span class="text-sm font-semibold">$55.90 <span class="dark:text-gray-500 text-gray-400 font-normal">/ $100.00</span></span>
+                </div>
+                <div class="w-full h-3 rounded-full dark:bg-[#1f3044] bg-gray-200 overflow-hidden">
+                  <div class="progress-fill h-full rounded-full bg-gradient-to-r from-brand to-accent" style="width: 56%"></div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mt-1.5">56% of monthly budget used -- 17 days remaining</p>
+              </div>
+
+              <!-- Usage by Provider Chart -->
+              <div>
+                <p class="text-sm font-medium mb-3">Usage by Provider</p>
+                <div class="space-y-3">
+                  <!-- OpenAI -->
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs dark:text-gray-400 text-gray-500 w-20 shrink-0">OpenAI</span>
+                    <div class="flex-1 h-6 rounded dark:bg-[#1f3044] bg-gray-200 overflow-hidden relative">
+                      <div class="h-full rounded bg-emerald-500/80" style="width: 61%"></div>
+                    </div>
+                    <span class="text-xs font-medium w-14 text-right">$34.20</span>
+                  </div>
+                  <!-- Claude -->
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs dark:text-gray-400 text-gray-500 w-20 shrink-0">Claude</span>
+                    <div class="flex-1 h-6 rounded dark:bg-[#1f3044] bg-gray-200 overflow-hidden relative">
+                      <div class="h-full rounded bg-orange-500/80" style="width: 33%"></div>
+                    </div>
+                    <span class="text-xs font-medium w-14 text-right">$18.40</span>
+                  </div>
+                  <!-- Gemini -->
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs dark:text-gray-400 text-gray-500 w-20 shrink-0">Gemini</span>
+                    <div class="flex-1 h-6 rounded dark:bg-[#1f3044] bg-gray-200 overflow-hidden relative">
+                      <div class="h-full rounded bg-blue-500/80" style="width: 5%"></div>
+                    </div>
+                    <span class="text-xs font-medium w-14 text-right">$2.80</span>
+                  </div>
+                  <!-- Groq -->
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs dark:text-gray-400 text-gray-500 w-20 shrink-0">Groq</span>
+                    <div class="flex-1 h-6 rounded dark:bg-[#1f3044] bg-gray-200 overflow-hidden relative">
+                      <div class="h-full rounded bg-amber-500/80" style="width: 1%"></div>
+                    </div>
+                    <span class="text-xs font-medium w-14 text-right">$0.50</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- API Key Configuration Modal Preview (inline card) -->
+            <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-6">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <i data-lucide="key" class="w-4 h-4 text-emerald-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">Configure OpenAI</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">Manage API key, model selection, and spending limits.</p>
+                  </div>
+                </div>
+                <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors">
+                  <i data-lucide="x" class="w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+                </button>
+              </div>
+
+              <div class="space-y-4">
+                <!-- API Key -->
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">API Key</label>
+                  <div class="relative">
+                    <input type="password" value="sk-proj-abcdef1234567890abcdef1234567890abcdef12" class="w-full px-3 py-2 pr-10 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                    <button class="absolute right-2.5 top-1/2 -translate-y-1/2 dark:text-gray-500 text-gray-400 hover:dark:text-gray-300 hover:text-gray-600 transition-colors">
+                      <i data-lucide="eye" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Model -->
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Model</label>
+                  <select class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors appearance-none cursor-pointer">
+                    <option selected>GPT-4o</option>
+                    <option>GPT-4o-mini</option>
+                    <option>GPT-4-turbo</option>
+                    <option>o1-preview</option>
+                  </select>
+                </div>
+
+                <!-- Monthly Limit -->
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Monthly Limit</label>
+                  <input type="text" value="$50.00" class="w-full px-3 py-2 rounded-lg dark:bg-[#1f3044] bg-white border dark:border-[#3d4f64] border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-3 pt-2">
+                  <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    Test Connection
+                  </button>
+                  <button class="px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg transition-colors">
+                    Save
+                  </button>
+                  <button class="px-4 py-2 border border-red-500/50 text-red-400 hover:bg-red-500/10 text-sm font-medium rounded-lg transition-colors ml-auto">
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================================================== -->
+          <!-- SECTION 3: INTEGRATIONS                            -->
+          <!-- ================================================== -->
+          <div id="section-integrations">
+            <div class="mb-6">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                  <i data-lucide="plug" class="w-4 h-4 text-cyan-400"></i>
+                </div>
+                <div>
+                  <h2 class="text-lg font-semibold">Connected Services</h2>
+                  <p class="text-sm dark:text-gray-400 text-gray-500">Connect third-party applications to extend ConstructionERP functionality.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Integration Cards Grid (3 columns) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+              <!-- 1. QuickBooks -->
+              <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                    <i data-lucide="calculator" class="w-5 h-5 text-green-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">QuickBooks</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">Accounting</p>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-4">Sync invoices, expenses, and financial reports with QuickBooks Online.</p>
+                <button class="w-full py-2 border dark:border-brand/50 border-brand text-brand text-sm font-medium rounded-lg hover:bg-brand/10 transition-colors">Connect</button>
+              </div>
+
+              <!-- 2. Procore -->
+              <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                    <i data-lucide="hard-hat" class="w-5 h-5 text-orange-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">Procore</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">Project Management</p>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-4">Import project data, RFIs, submittals, and daily logs from Procore.</p>
+                <button class="w-full py-2 border dark:border-brand/50 border-brand text-brand text-sm font-medium rounded-lg hover:bg-brand/10 transition-colors">Connect</button>
+              </div>
+
+              <!-- 3. DocuSign - Connected -->
+              <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-emerald-500/30 border-emerald-300 rounded-md p-5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <i data-lucide="file-signature" class="w-5 h-5 text-emerald-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">DocuSign</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">E-Signatures</p>
+                  </div>
+                  <span class="ml-auto flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Connected
+                  </span>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-4">Send and manage contracts, change orders, and agreements for e-signature.</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">Last synced 2 hours ago</span>
+                  <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Disconnect</button>
+                </div>
+              </div>
+
+              <!-- 4. Google Drive -->
+              <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <i data-lucide="folder" class="w-5 h-5 text-blue-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">Google Drive</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">File Storage</p>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-4">Sync project files, plans, and documents with Google Drive folders.</p>
+                <button class="w-full py-2 border dark:border-brand/50 border-brand text-brand text-sm font-medium rounded-lg hover:bg-brand/10 transition-colors">Connect</button>
+              </div>
+
+              <!-- 5. Plaid -->
+              <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                    <i data-lucide="landmark" class="w-5 h-5 text-violet-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">Plaid</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">Banking</p>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-4">Link bank accounts for automatic transaction imports and reconciliation.</p>
+                <button class="w-full py-2 border dark:border-brand/50 border-brand text-brand text-sm font-medium rounded-lg hover:bg-brand/10 transition-colors">Connect</button>
+              </div>
+
+              <!-- 6. Stripe - Connected -->
+              <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-emerald-500/30 border-emerald-300 rounded-md p-5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <i data-lucide="credit-card" class="w-5 h-5 text-emerald-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">Stripe</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">Payments</p>
+                  </div>
+                  <span class="ml-auto flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Connected
+                  </span>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-4">Process payments, manage invoices, and handle client billing online.</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">Last synced 30 min ago</span>
+                  <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Disconnect</button>
+                </div>
+              </div>
+
+              <!-- 7. Slack -->
+              <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                    <i data-lucide="message-circle" class="w-5 h-5 text-purple-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">Slack</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">Notifications</p>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-4">Send project updates, alerts, and daily summaries to Slack channels.</p>
+                <button class="w-full py-2 border dark:border-brand/50 border-brand text-brand text-sm font-medium rounded-lg hover:bg-brand/10 transition-colors">Connect</button>
+              </div>
+
+              <!-- 8. Zapier -->
+              <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                    <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">Zapier</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">Automation</p>
+                  </div>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-4">Build automated workflows between ConstructionERP and 5,000+ apps.</p>
+                <button class="w-full py-2 border dark:border-brand/50 border-brand text-brand text-sm font-medium rounded-lg hover:bg-brand/10 transition-colors">Connect</button>
+              </div>
+
+              <!-- 9. SendGrid - Connected -->
+              <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-emerald-500/30 border-emerald-300 rounded-md p-5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <i data-lucide="mail" class="w-5 h-5 text-emerald-400"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold">SendGrid</h3>
+                    <p class="text-xs dark:text-gray-500 text-gray-400">Email</p>
+                  </div>
+                  <span class="ml-auto flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Connected
+                  </span>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400 mb-4">Transactional emails, notifications, and marketing campaigns via SendGrid.</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs dark:text-gray-500 text-gray-400">Last synced 5 min ago</span>
+                  <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Disconnect</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div><!-- end right content -->
+
+      </div><!-- end settings layout -->
+
+    </main>
+  </div><!-- end main wrapper -->
+
+  <!-- ============================================================ -->
+  <!-- THEME TOGGLE (fixed bottom-right)                            -->
+  <!-- ============================================================ -->
+  <button onclick="document.documentElement.classList.toggle('dark'); setTimeout(() => lucide.createIcons(), 50);"
+    class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full dark:bg-[#243447] bg-white border dark:border-[#344258] border-[#d1d9e6] shadow-lg flex items-center justify-center hover:scale-105 transition-transform">
+    <i data-lucide="sun" class="w-5 h-5 text-amber-400 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 text-gray-600 block dark:hidden"></i>
+  </button>
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

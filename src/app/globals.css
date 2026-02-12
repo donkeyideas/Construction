@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", -apple-system, sans-serif;
+
+  --color-blue: #1d4ed8;
+  --color-blue-light: #eff6ff;
+  --color-blue-dark: #1e40af;
+  --color-amber: #b45309;
+  --color-amber-light: #fef3c7;
+  --color-amber-dark: #92400e;
+  --color-green: #16a34a;
+  --color-green-light: #dcfce7;
+  --color-red: #dc2626;
+  --color-red-light: #fee2e2;
+}
+
+:root {
+  --bg: #ffffff;
+  --surface: #f5f0eb;
+  --topbar-bg: #fffcf9;
+  --card-bg: #ffffff;
+  --text: #292524;
+  --muted: #78716c;
+  --border: #d6d3d1;
+  --sidebar-w: 240px;
+  --scrollbar: #ccc;
+}
+
+[data-theme="dark"] {
+  --bg: #1c1917;
+  --surface: #292524;
+  --topbar-bg: #1c1917;
+  --card-bg: #292524;
+  --text: #f5f0eb;
+  --muted: #a8a29e;
+  --border: #44403c;
+  --scrollbar: #57534e;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  line-height: 1.2;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: 3px;
+}
+
+::selection {
+  background: rgba(29, 78, 216, 0.2);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease forwards;
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.25s ease forwards;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-green);
+  animation: pulse-dot 2s infinite;
+}

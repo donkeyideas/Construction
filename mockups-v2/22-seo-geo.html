@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstructionERP -- SEO &amp; GEO Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #ffffff; --surface: #f5f0eb; --topbar-bg: #fffcf9;
+  --blue: #1d4ed8; --blue-light: #eff6ff; --amber: #b45309; --amber-light: #fef3c7;
+  --text: #292524; --muted: #78716c; --border: #d6d3d1;
+  --green: #16a34a; --red: #dc2626; --sidebar-w: 240px;
+  --card-bg: #ffffff; --donut-hole: #ffffff; --scrollbar: #ccc;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #1c1917; --surface: #292524; --topbar-bg: #1c1917;
+  --blue-light: rgba(29,78,216,.15); --amber-light: rgba(180,83,9,.15);
+  --text: #f5f0eb; --muted: #a8a29e; --border: #44403c;
+  --card-bg: #292524; --donut-hole: #292524; --scrollbar: #57534e;
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.5; }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+  background: var(--bg); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100; transition: transform .25s ease;
+}
+.sidebar-brand { padding: 20px 22px 14px; }
+.sidebar-brand h1 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+.sidebar-brand .accent-line { width: 40px; height: 3px; background: var(--amber); border-radius: 2px; margin-top: 10px; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.nav-item { position: relative; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 9px 18px 9px 20px;
+  font-size: .835rem; font-weight: 500; color: var(--muted); text-decoration: none;
+  border-left: 3px solid transparent; cursor: pointer; transition: all .15s;
+}
+.nav-link svg { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-link .label { position: relative; }
+.nav-link .label::after {
+  content: ''; position: absolute; left: 0; bottom: -2px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .25s ease;
+}
+.nav-link:hover .label::after { width: 100%; }
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--blue); border-left-color: var(--blue); background: var(--blue-light); font-weight: 600; }
+.nav-link .chevron { margin-left: auto; width: 14px; height: 14px; transition: transform .2s; }
+.nav-item.open > .nav-link .chevron { transform: rotate(90deg); }
+.nav-children { display: none; padding: 2px 0 4px 0; }
+.nav-item.open > .nav-children { display: block; }
+.nav-child {
+  display: block; padding: 6px 18px 6px 51px; font-size: .8rem; color: var(--muted);
+  text-decoration: none; transition: color .15s; position: relative;
+}
+.nav-child::after {
+  content: ''; position: absolute; left: 51px; bottom: 4px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .2s;
+}
+.nav-child:hover { color: var(--text); }
+.nav-child:hover::after { width: calc(100% - 69px); }
+.nav-child.active { color: var(--blue); font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid var(--border); padding: 6px 0; }
+
+/* ── Topbar ── */
+.topbar {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 52px;
+  background: var(--topbar-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; z-index: 90; transition: left .25s ease;
+}
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .875rem; font-weight: 500; }
+.breadcrumb .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.search-btn {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border: 1px solid var(--border); border-radius: 7px; background: var(--bg);
+  font-size: .8rem; color: var(--muted); cursor: pointer;
+}
+.search-btn kbd { font-size: .7rem; background: var(--surface); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); font-family: var(--font-sans); }
+.notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--muted); }
+.notif-btn svg { width: 20px; height: 20px; }
+.notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); color: #fff; font-size: .6rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 600; }
+
+/* ── Sidebar Toggle + Overlay ── */
+.sidebar-toggle {
+  display: none; position: fixed; top: 10px; left: 12px; z-index: 110;
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; align-items: center; justify-content: center;
+}
+.sidebar-toggle svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 95; }
+
+/* ── Main Content ── */
+.main { margin-left: var(--sidebar-w); margin-top: 52px; padding: 28px; min-height: calc(100vh - 52px); transition: margin-left .25s; }
+.dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.dash-header h2 { font-family: var(--font-serif); font-size: 2rem; font-weight: 700; }
+.dash-header p { color: var(--muted); font-size: .9rem; margin-top: 2px; }
+.header-date { display: flex; align-items: center; gap: 8px; font-size: .875rem; color: var(--muted); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.4 } }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px; transition: box-shadow .2s, transform .2s;
+}
+.card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); transform: translateY(-2px); }
+.card-title { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* ── KPI Grid ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+.kpi { display: flex; justify-content: space-between; }
+.kpi-info { display: flex; flex-direction: column; gap: 4px; }
+.kpi-value { font-family: var(--font-serif); font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+.kpi-value.amber { color: var(--amber); }
+.kpi-label { font-size: .8rem; color: var(--muted); }
+.kpi-trend { font-size: .75rem; font-weight: 600; display: flex; align-items: center; gap: 3px; }
+.kpi-trend.up { color: var(--green); }
+.kpi-trend.down { color: var(--red); }
+.kpi-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-icon svg { width: 22px; height: 22px; stroke: var(--amber); fill: none; stroke-width: 1.8; }
+
+/* ── Charts Row ── */
+.charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+.chart-header { display: flex; align-items: center; }
+.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 170px; padding-top: 10px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.bar { width: 100%; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--blue), #3b82f6); transition: height .4s ease; min-height: 4px; }
+.bar-label { font-size: .65rem; color: var(--muted); }
+.donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.donut {
+  width: 160px; height: 160px; border-radius: 50%; position: relative;
+}
+.donut-hole {
+  position: absolute; inset: 30px; border-radius: 50%; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.donut-hole strong { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; }
+.donut-hole span { font-size: .72rem; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 18px; justify-content: center; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: .78rem; color: var(--muted); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ── Badges ── */
+.badge { padding: 2px 9px; border-radius: 10px; font-size: .7rem; font-weight: 600; }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: rgba(220,38,38,.08); color: var(--red); }
+.badge-green { background: rgba(22,163,74,.08); color: var(--green); }
+
+.view-all {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 12px;
+  font-size: .8rem; font-weight: 500; color: var(--amber); text-decoration: none; position: relative;
+}
+.view-all::after { content:''; position:absolute; left:0; bottom:-1px; width:0; height:1.5px; background:var(--amber); transition:width .25s; }
+.view-all:hover::after { width:100%; }
+
+/* ── Tabs ── */
+.tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
+.tab-item {
+  padding: 10px 20px; font-size: .85rem; font-weight: 500; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: all .15s; position: relative;
+}
+.tab-item::after {
+  content: ''; position: absolute; left: 20px; right: 20px; bottom: -2px; height: 0; width: 0;
+  background: var(--amber); transition: width .2s;
+}
+.tab-item:hover::after { width: calc(100% - 40px); left: 20px; height: 2px; }
+.tab-item:hover { color: var(--text); }
+.tab-item.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+.tab-item.active::after { display: none; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── Tables ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.data-table th {
+  text-align: left; padding: 10px 12px; font-weight: 600; font-size: .75rem;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .03em;
+  border-bottom: 2px solid var(--border); background: var(--surface);
+}
+.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.data-table tr:hover td { background: var(--surface); }
+.data-table .mono { font-family: 'SF Mono', 'Consolas', monospace; font-size: .78rem; }
+.data-table .text-right { text-align: right; }
+.data-table .text-center { text-align: center; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+  border-radius: 8px; font-size: .82rem; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  transition: all .15s;
+}
+.btn:hover { background: var(--surface); }
+.btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-primary:hover { background: #1e40af; }
+.btn-sm { padding: 4px 10px; font-size: .75rem; }
+.btn-danger { background: none; color: var(--red); border-color: var(--red); }
+.btn-danger:hover { background: rgba(220,38,38,.06); }
+
+/* ── Position / Trend Arrows ── */
+.trend-up { color: var(--green); font-weight: 600; }
+.trend-down { color: var(--red); font-weight: 600; }
+.trend-flat { color: var(--muted); font-weight: 600; }
+
+/* ── Score Badges ── */
+.score-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 36px; padding: 2px 8px; border-radius: 10px; font-size: .75rem; font-weight: 600;
+}
+.score-green { background: rgba(22,163,74,.1); color: var(--green); }
+.score-amber { background: var(--amber-light); color: var(--amber); }
+.score-red { background: rgba(220,38,38,.08); color: var(--red); }
+
+/* ── Filter Bar ── */
+.filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.filter-input {
+  padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: .82rem; background: var(--bg); color: var(--text); font-family: var(--font-sans);
+  min-width: 200px;
+}
+.filter-input:focus { outline: none; border-color: var(--blue); }
+.filter-select {
+  padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: .82rem; background: var(--bg); color: var(--text); font-family: var(--font-sans);
+  cursor: pointer;
+}
+.filter-select:focus { outline: none; border-color: var(--blue); }
+
+/* ── Intent Badges ── */
+.intent-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .68rem; font-weight: 600;
+}
+.intent-informational { background: var(--blue-light); color: var(--blue); }
+.intent-commercial { background: var(--amber-light); color: var(--amber); }
+.intent-transactional { background: rgba(22,163,74,.1); color: var(--green); }
+
+/* ── Status Badges ── */
+.status-claimed { color: var(--green); font-weight: 600; font-size: .78rem; }
+.status-unclaimed { color: var(--red); font-weight: 600; font-size: .78rem; }
+.status-incorrect { color: var(--amber); font-weight: 600; font-size: .78rem; }
+
+/* ── GBP Card ── */
+.gbp-card { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.gbp-info-row { display: flex; gap: 8px; padding: 6px 0; font-size: .82rem; }
+.gbp-info-label { color: var(--muted); min-width: 80px; font-weight: 500; }
+.gbp-info-value { color: var(--text); }
+.stars { color: var(--amber); font-weight: 700; letter-spacing: 1px; }
+
+/* ── Map Placeholder ── */
+.map-placeholder {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  height: 200px; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: .85rem; position: relative; overflow: hidden;
+}
+.map-pin { position: absolute; width: 10px; height: 10px; background: var(--red); border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+
+/* ── Service Area List ── */
+.area-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
+.area-item { display: flex; justify-content: space-between; padding: 6px 0; font-size: .8rem; border-bottom: 1px solid var(--border); }
+.area-name { font-weight: 500; }
+.area-radius { color: var(--muted); }
+
+/* ── Review Card ── */
+.review-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.review-item:last-child { border-bottom: none; }
+.review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.review-author { font-weight: 600; font-size: .82rem; }
+.review-stars { color: var(--amber); font-size: .8rem; }
+.review-text { font-size: .78rem; color: var(--muted); line-height: 1.5; margin-bottom: 6px; }
+.review-meta { display: flex; justify-content: space-between; align-items: center; }
+.review-platform { font-size: .72rem; color: var(--muted); }
+
+/* ── Health Score ── */
+.health-score-wrap { display: flex; align-items: center; gap: 32px; margin-bottom: 20px; }
+.health-donut { width: 120px; height: 120px; border-radius: 50%; position: relative; }
+.health-donut .donut-hole { inset: 20px; }
+.health-donut .donut-hole strong { font-size: 1.2rem; }
+
+/* ── Issue Lists ── */
+.issue-group { margin-bottom: 20px; }
+.issue-group-title { display: flex; align-items: center; gap: 8px; font-size: .85rem; font-weight: 600; margin-bottom: 10px; }
+.issue-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; margin-bottom: 4px; font-size: .8rem; }
+.issue-item.critical { background: rgba(220,38,38,.04); }
+.issue-item.warning { background: var(--amber-light); }
+.issue-item.passed { background: rgba(22,163,74,.04); }
+.issue-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── CWV Cards ── */
+.cwv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+.cwv-card { text-align: center; padding: 16px; background: var(--surface); border-radius: 8px; }
+.cwv-value { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 700; }
+.cwv-label { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+.cwv-metric { font-size: .7rem; color: var(--muted); margin-top: 4px; }
+
+/* ── Page Speed ── */
+.speed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.speed-card { text-align: center; padding: 20px; background: var(--surface); border-radius: 8px; }
+.speed-value { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; }
+.speed-label { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+
+/* ── Backlinks summary ── */
+.bl-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.bl-stat { text-align: center; padding: 16px; background: var(--surface); border-radius: 8px; }
+.bl-stat-value { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 700; }
+.bl-stat-label { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+
+/* ── Two Column Layout ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+/* ── Local SEO Grid ── */
+.local-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+/* ── Expandable Row ── */
+.expand-row { display: none; }
+.expand-row.open { display: table-row; }
+.expand-content { padding: 16px; background: var(--surface); font-size: .78rem; }
+.expand-content .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+.expand-content .detail-label { color: var(--muted); font-weight: 500; }
+.expand-content .detail-value { color: var(--text); }
+.expand-toggle { cursor: pointer; color: var(--blue); font-weight: 500; text-decoration: none; }
+.expand-toggle:hover { text-decoration: underline; }
+
+/* ── Competitor Table ── */
+.competitor-name { font-weight: 600; }
+.competitor-name.highlight { color: var(--blue); }
+
+/* ── Responsive ── */
+@media (max-width: 1280px) {
+  .charts-row { grid-template-columns: 1fr 1fr; }
+  .two-col, .local-grid { grid-template-columns: 1fr; }
+  .bl-summary { grid-template-columns: repeat(2, 1fr); }
+  .cwv-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1023px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .overlay.active { display: block; }
+  .topbar { left: 0; padding-left: 56px; }
+  .main { margin-left: 0; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+  .gbp-card { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .main { padding: 16px; }
+  .dash-header h2 { font-size: 1.5rem; }
+  .tab-bar { overflow-x: auto; }
+  .tab-item { white-space: nowrap; padding: 10px 14px; }
+  .filter-bar { flex-direction: column; }
+  .filter-input { min-width: 100%; }
+  .bl-summary { grid-template-columns: 1fr; }
+  .cwv-grid { grid-template-columns: 1fr; }
+  .speed-grid { grid-template-columns: 1fr; }
+  .area-list { grid-template-columns: 1fr; }
+  .local-grid { grid-template-columns: 1fr; }
+  .data-table { font-size: .72rem; }
+  .data-table th, .data-table td { padding: 6px 6px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar Toggle -->
+<button class="sidebar-toggle" onclick="toggleSidebar()">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h1>ConstructionERP</h1>
+    <div class="accent-line"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <!-- Dashboard -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="label">Dashboard</span>
+      </a>
+    </div>
+    <!-- Projects -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/><line x1="9" y1="8" x2="9" y2="12"/><line x1="15" y1="8" x2="15" y2="12"/></svg>
+        <span class="label">Projects</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Active Projects</a>
+        <a class="nav-child" href="#">Gantt Schedule</a>
+        <a class="nav-child" href="#">Daily Logs</a>
+        <a class="nav-child" href="#">RFIs</a>
+      </div>
+    </div>
+    <!-- Properties -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="label">Properties</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Portfolio</a>
+        <a class="nav-child" href="#">Leases</a>
+        <a class="nav-child" href="#">Maintenance</a>
+      </div>
+    </div>
+    <!-- Financial -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span class="label">Financial</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Job Costing</a>
+        <a class="nav-child" href="#">Accounts Payable</a>
+        <a class="nav-child" href="#">Budget vs Actual</a>
+        <a class="nav-child" href="#">Cash Flow</a>
+      </div>
+    </div>
+    <!-- Documents -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span class="label">Documents</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Library</a>
+        <a class="nav-child" href="#">Plan Room</a>
+      </div>
+    </div>
+    <!-- People -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="label">People</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Directory</a>
+        <a class="nav-child" href="#">Time &amp; Attendance</a>
+        <a class="nav-child" href="#">Certifications</a>
+      </div>
+    </div>
+    <!-- CRM & Bids -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span class="label">CRM &amp; Bids</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Pipeline</a>
+        <a class="nav-child" href="#">Bid Management</a>
+      </div>
+    </div>
+    <!-- AI Assistant -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4c-4.42 0-8 1.34-8 6 0-8 3.58-14 8-14z" stroke-width="1.5"/></svg>
+        <span class="label">AI Assistant</span>
+      </a>
+    </div>
+    <!-- Reports -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="label">Reports</span>
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="nav-item">
+      <a class="nav-link active" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- Top Bar -->
+<header class="topbar" id="topbar">
+  <div class="breadcrumb">
+    <span class="dot"></span>
+    <span>Administration</span>
+    <span class="dot"></span>
+    <span>SEO &amp; GEO</span>
+  </div>
+  <div class="topbar-right">
+    <button onclick="toggleTheme()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Toggle theme">
+      <svg id="sunIcon" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="search-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search <kbd>Ctrl+K</kbd>
+    </button>
+    <button class="notif-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-badge">2</span>
+    </button>
+    <div class="avatar">RH</div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main" id="main">
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <h2>SEO &amp; GEO Management</h2>
+      <p>Optimize your search presence and local visibility</p>
+    </div>
+    <div class="header-date">
+      <span>February 12, 2026</span>
+      <span class="live-dot"></span>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Domain Authority</span>
+        <span class="kpi-value">42<span style="font-size:.9rem;color:var(--muted);font-weight:400">/100</span></span>
+        <span class="kpi-trend up">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +3 this month
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Organic Traffic</span>
+        <span class="kpi-value">8,420<span style="font-size:.75rem;color:var(--muted);font-weight:400">/mo</span></span>
+        <span class="kpi-trend up">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +18.5%
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Keywords Ranked</span>
+        <span class="kpi-value">156</span>
+        <span class="kpi-trend up">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +24 new
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Local Pack Appearances</span>
+        <span class="kpi-value">89</span>
+        <span class="kpi-trend up">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +12%
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('overview')">Overview</div>
+    <div class="tab-item" onclick="switchTab('keywords')">Keywords</div>
+    <div class="tab-item" onclick="switchTab('pages')">Pages</div>
+    <div class="tab-item" onclick="switchTab('local')">Local SEO</div>
+    <div class="tab-item" onclick="switchTab('technical')">Technical</div>
+    <div class="tab-item" onclick="switchTab('backlinks')">Backlinks</div>
+  </div>
+
+  <!-- ═══════════════════ OVERVIEW TAB ═══════════════════ -->
+  <div class="tab-content active" id="tab-overview">
+    <!-- Charts Row -->
+    <div class="charts-row">
+      <div class="card">
+        <div class="card-title">Organic Traffic (Last 12 Months)</div>
+        <div class="bar-chart">
+          <div class="bar-col"><div class="bar" style="height:38%"></div><div class="bar-label">Mar</div></div>
+          <div class="bar-col"><div class="bar" style="height:42%"></div><div class="bar-label">Apr</div></div>
+          <div class="bar-col"><div class="bar" style="height:48%"></div><div class="bar-label">May</div></div>
+          <div class="bar-col"><div class="bar" style="height:45%"></div><div class="bar-label">Jun</div></div>
+          <div class="bar-col"><div class="bar" style="height:55%"></div><div class="bar-label">Jul</div></div>
+          <div class="bar-col"><div class="bar" style="height:60%"></div><div class="bar-label">Aug</div></div>
+          <div class="bar-col"><div class="bar" style="height:58%"></div><div class="bar-label">Sep</div></div>
+          <div class="bar-col"><div class="bar" style="height:65%"></div><div class="bar-label">Oct</div></div>
+          <div class="bar-col"><div class="bar" style="height:72%"></div><div class="bar-label">Nov</div></div>
+          <div class="bar-col"><div class="bar" style="height:78%"></div><div class="bar-label">Dec</div></div>
+          <div class="bar-col"><div class="bar" style="height:88%"></div><div class="bar-label">Jan</div></div>
+          <div class="bar-col"><div class="bar" style="height:100%"></div><div class="bar-label">Feb</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Keyword Rankings Distribution</div>
+        <div class="donut-wrap">
+          <div class="donut" style="background: conic-gradient(var(--green) 0% 11.5%, var(--blue) 11.5% 41.7%, var(--amber) 41.7% 75%, var(--red) 75% 100%);">
+            <div class="donut-hole">
+              <strong>156</strong>
+              <span>Keywords</span>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Pos 1-3: 18</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Pos 4-10: 47</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span>Pos 11-20: 52</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--red)"></span>Pos 21+: 39</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Performing Pages -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">Top Performing Pages</div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th class="text-right">Impressions</th>
+              <th class="text-right">Clicks</th>
+              <th class="text-right">CTR</th>
+              <th class="text-right">Avg Position</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">/homepage</td>
+              <td class="text-right">24,500</td>
+              <td class="text-right">2,180</td>
+              <td class="text-right">8.9%</td>
+              <td class="text-right">4.2</td>
+            </tr>
+            <tr>
+              <td class="mono">/features</td>
+              <td class="text-right">12,300</td>
+              <td class="text-right">890</td>
+              <td class="text-right">7.2%</td>
+              <td class="text-right">6.8</td>
+            </tr>
+            <tr>
+              <td class="mono">/pricing</td>
+              <td class="text-right">8,900</td>
+              <td class="text-right">720</td>
+              <td class="text-right">8.1%</td>
+              <td class="text-right">5.1</td>
+            </tr>
+            <tr>
+              <td class="mono">/blog/construction-erp-guide</td>
+              <td class="text-right">6,200</td>
+              <td class="text-right">540</td>
+              <td class="text-right">8.7%</td>
+              <td class="text-right">3.4</td>
+            </tr>
+            <tr>
+              <td class="mono">/case-studies/pacific-steel</td>
+              <td class="text-right">4,100</td>
+              <td class="text-right">380</td>
+              <td class="text-right">9.3%</td>
+              <td class="text-right">2.8</td>
+            </tr>
+            <tr>
+              <td class="mono">/features/project-management</td>
+              <td class="text-right">3,800</td>
+              <td class="text-right">290</td>
+              <td class="text-right">7.6%</td>
+              <td class="text-right">7.2</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Competitor Comparison -->
+    <div class="card">
+      <div class="card-title">Competitor Comparison</div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th class="text-right">Domain Authority</th>
+              <th class="text-right">Est. Traffic</th>
+              <th class="text-right">Keywords</th>
+              <th class="text-right">Backlinks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="competitor-name highlight">ConstructionERP</span></td>
+              <td class="text-right">42</td>
+              <td class="text-right">8,420</td>
+              <td class="text-right">156</td>
+              <td class="text-right">1,247</td>
+            </tr>
+            <tr>
+              <td><span class="competitor-name">Procore</span></td>
+              <td class="text-right">78</td>
+              <td class="text-right">245,000</td>
+              <td class="text-right">12,400</td>
+              <td class="text-right">48,200</td>
+            </tr>
+            <tr>
+              <td><span class="competitor-name">Buildertrend</span></td>
+              <td class="text-right">64</td>
+              <td class="text-right">89,000</td>
+              <td class="text-right">5,800</td>
+              <td class="text-right">18,500</td>
+            </tr>
+            <tr>
+              <td><span class="competitor-name">CoConstruct</span></td>
+              <td class="text-right">52</td>
+              <td class="text-right">34,200</td>
+              <td class="text-right">2,100</td>
+              <td class="text-right">6,300</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ KEYWORDS TAB ═══════════════════ -->
+  <div class="tab-content" id="tab-keywords">
+    <div class="filter-bar">
+      <input class="filter-input" type="text" placeholder="Search keywords...">
+      <select class="filter-select">
+        <option>All Intents</option>
+        <option>Informational</option>
+        <option>Commercial</option>
+        <option>Transactional</option>
+      </select>
+      <select class="filter-select">
+        <option>All Positions</option>
+        <option>1-3</option>
+        <option>4-10</option>
+        <option>11-20</option>
+        <option>21+</option>
+      </select>
+      <button class="btn btn-primary" style="margin-left:auto">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Track New Keyword
+      </button>
+    </div>
+
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Keyword</th>
+              <th class="text-right">Volume</th>
+              <th class="text-right">Position</th>
+              <th class="text-right">Change</th>
+              <th class="text-right">Difficulty</th>
+              <th>URL</th>
+              <th>Intent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:500">construction erp software</td>
+              <td class="text-right">2,400</td>
+              <td class="text-right"><strong>#4</strong></td>
+              <td class="text-right trend-up">+2</td>
+              <td class="text-right">67</td>
+              <td class="mono">/homepage</td>
+              <td><span class="intent-badge intent-commercial">Commercial</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">construction project management</td>
+              <td class="text-right">5,100</td>
+              <td class="text-right"><strong>#8</strong></td>
+              <td class="text-right trend-up">+1</td>
+              <td class="text-right">72</td>
+              <td class="mono">/features</td>
+              <td><span class="intent-badge intent-informational">Informational</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">job costing software construction</td>
+              <td class="text-right">1,900</td>
+              <td class="text-right"><strong>#3</strong></td>
+              <td class="text-right trend-up">+5</td>
+              <td class="text-right">54</td>
+              <td class="mono">/features/job-costing</td>
+              <td><span class="intent-badge intent-transactional">Transactional</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">real estate erp</td>
+              <td class="text-right">1,200</td>
+              <td class="text-right"><strong>#6</strong></td>
+              <td class="text-right trend-down">-1</td>
+              <td class="text-right">61</td>
+              <td class="mono">/homepage</td>
+              <td><span class="intent-badge intent-commercial">Commercial</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">construction daily log app</td>
+              <td class="text-right">880</td>
+              <td class="text-right"><strong>#2</strong></td>
+              <td class="text-right trend-flat">0</td>
+              <td class="text-right">43</td>
+              <td class="mono">/features/daily-log</td>
+              <td><span class="intent-badge intent-transactional">Transactional</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">property management erp</td>
+              <td class="text-right">720</td>
+              <td class="text-right"><strong>#11</strong></td>
+              <td class="text-right trend-up">+3</td>
+              <td class="text-right">58</td>
+              <td class="mono">/features/property</td>
+              <td><span class="intent-badge intent-commercial">Commercial</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">gantt chart construction</td>
+              <td class="text-right">1,600</td>
+              <td class="text-right"><strong>#7</strong></td>
+              <td class="text-right trend-up">+2</td>
+              <td class="text-right">49</td>
+              <td class="mono">/features/scheduling</td>
+              <td><span class="intent-badge intent-informational">Informational</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">construction bid management</td>
+              <td class="text-right">640</td>
+              <td class="text-right"><strong>#5</strong></td>
+              <td class="text-right trend-up">+1</td>
+              <td class="text-right">52</td>
+              <td class="mono">/features/bids</td>
+              <td><span class="intent-badge intent-commercial">Commercial</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">construction document management</td>
+              <td class="text-right">1,100</td>
+              <td class="text-right"><strong>#9</strong></td>
+              <td class="text-right trend-down">-2</td>
+              <td class="text-right">55</td>
+              <td class="mono">/features/documents</td>
+              <td><span class="intent-badge intent-informational">Informational</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">tenant portal software</td>
+              <td class="text-right">480</td>
+              <td class="text-right"><strong>#14</strong></td>
+              <td class="text-right trend-up">+4</td>
+              <td class="text-right">41</td>
+              <td class="mono">/features/portals</td>
+              <td><span class="intent-badge intent-transactional">Transactional</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ PAGES TAB ═══════════════════ -->
+  <div class="tab-content" id="tab-pages">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+      <button class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Run Full Audit
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Page SEO Audit</div>
+      <div style="overflow-x:auto">
+        <table class="data-table" id="pages-table">
+          <thead>
+            <tr>
+              <th>Page URL</th>
+              <th>Title Tag</th>
+              <th>Meta Description</th>
+              <th>H1</th>
+              <th class="text-center">Score</th>
+              <th class="text-center">Issues</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">/homepage</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Construction ERP Software | Build Smarter</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">All-in-one construction and real estate ERP platform for...</td>
+              <td>Build Smarter with ConstructionERP</td>
+              <td class="text-center"><span class="score-badge score-green">92</span></td>
+              <td class="text-center">0</td>
+              <td><a class="expand-toggle" onclick="toggleExpand('expand-1')">Details</a></td>
+            </tr>
+            <tr class="expand-row" id="expand-1">
+              <td colspan="7">
+                <div class="expand-content">
+                  <div class="detail-grid">
+                    <div><span class="detail-label">Title Tag:</span></div>
+                    <div class="detail-value">Construction ERP Software | Build Smarter (48 chars)</div>
+                    <div><span class="detail-label">Meta Description:</span></div>
+                    <div class="detail-value">All-in-one construction and real estate ERP platform for project management, job costing, and property management. (112 chars)</div>
+                    <div><span class="detail-label">OG Image:</span></div>
+                    <div class="detail-value">Set - /og-homepage.png (1200x630)</div>
+                    <div><span class="detail-label">Canonical URL:</span></div>
+                    <div class="detail-value">https://constructionerp.com/</div>
+                    <div><span class="detail-label">Schema Markup:</span></div>
+                    <div class="detail-value" style="color:var(--green)">Organization + WebSite</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">/features</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Features | ConstructionERP Platform</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Explore project management, scheduling, job costing, and...</td>
+              <td>Platform Features</td>
+              <td class="text-center"><span class="score-badge score-green">87</span></td>
+              <td class="text-center">1</td>
+              <td><a class="expand-toggle" onclick="toggleExpand('expand-2')">Details</a></td>
+            </tr>
+            <tr class="expand-row" id="expand-2">
+              <td colspan="7">
+                <div class="expand-content">
+                  <div class="detail-grid">
+                    <div><span class="detail-label">Title Tag:</span></div>
+                    <div class="detail-value">Features | ConstructionERP Platform (35 chars)</div>
+                    <div><span class="detail-label">Meta Description:</span></div>
+                    <div class="detail-value">Explore project management, scheduling, job costing, and document management tools. (83 chars)</div>
+                    <div><span class="detail-label">OG Image:</span></div>
+                    <div class="detail-value">Set - /og-features.png (1200x630)</div>
+                    <div><span class="detail-label">Canonical URL:</span></div>
+                    <div class="detail-value">https://constructionerp.com/features</div>
+                    <div><span class="detail-label">Schema Markup:</span></div>
+                    <div class="detail-value" style="color:var(--amber)">Missing - SoftwareApplication recommended</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">/pricing</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Pricing Plans | ConstructionERP</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Choose the right plan for your construction business...</td>
+              <td>Simple, Transparent Pricing</td>
+              <td class="text-center"><span class="score-badge score-green">84</span></td>
+              <td class="text-center">1</td>
+              <td><a class="expand-toggle" onclick="toggleExpand('expand-3')">Details</a></td>
+            </tr>
+            <tr class="expand-row" id="expand-3">
+              <td colspan="7">
+                <div class="expand-content">
+                  <div class="detail-grid">
+                    <div><span class="detail-label">Title Tag:</span></div>
+                    <div class="detail-value">Pricing Plans | ConstructionERP (31 chars)</div>
+                    <div><span class="detail-label">Meta Description:</span></div>
+                    <div class="detail-value">Choose the right plan for your construction business. Starter, Professional, and Enterprise tiers. (97 chars)</div>
+                    <div><span class="detail-label">OG Image:</span></div>
+                    <div class="detail-value" style="color:var(--red)">Missing</div>
+                    <div><span class="detail-label">Canonical URL:</span></div>
+                    <div class="detail-value">https://constructionerp.com/pricing</div>
+                    <div><span class="detail-label">Schema Markup:</span></div>
+                    <div class="detail-value" style="color:var(--green)">Product + Offer</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">/blog/construction-erp-guide</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Complete Guide to Construction ERP (2026)</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Everything you need to know about choosing and implementing...</td>
+              <td>The Complete Guide to Construction ERP</td>
+              <td class="text-center"><span class="score-badge score-green">91</span></td>
+              <td class="text-center">0</td>
+              <td><a class="expand-toggle" onclick="toggleExpand('expand-4')">Details</a></td>
+            </tr>
+            <tr class="expand-row" id="expand-4">
+              <td colspan="7">
+                <div class="expand-content">
+                  <div class="detail-grid">
+                    <div><span class="detail-label">Title Tag:</span></div>
+                    <div class="detail-value">Complete Guide to Construction ERP (2026) (41 chars)</div>
+                    <div><span class="detail-label">Meta Description:</span></div>
+                    <div class="detail-value">Everything you need to know about choosing and implementing a construction ERP system. Updated for 2026. (104 chars)</div>
+                    <div><span class="detail-label">OG Image:</span></div>
+                    <div class="detail-value">Set - /og-blog-guide.png (1200x630)</div>
+                    <div><span class="detail-label">Canonical URL:</span></div>
+                    <div class="detail-value">https://constructionerp.com/blog/construction-erp-guide</div>
+                    <div><span class="detail-label">Schema Markup:</span></div>
+                    <div class="detail-value" style="color:var(--green)">Article + BreadcrumbList</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">/case-studies/pacific-steel</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Pacific Steel Case Study | ConstructionERP</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">How Pacific Steel reduced project overruns by 34% using...</td>
+              <td>Pacific Steel Success Story</td>
+              <td class="text-center"><span class="score-badge score-amber">76</span></td>
+              <td class="text-center">2</td>
+              <td><a class="expand-toggle" onclick="toggleExpand('expand-5')">Details</a></td>
+            </tr>
+            <tr class="expand-row" id="expand-5">
+              <td colspan="7">
+                <div class="expand-content">
+                  <div class="detail-grid">
+                    <div><span class="detail-label">Title Tag:</span></div>
+                    <div class="detail-value">Pacific Steel Case Study | ConstructionERP (42 chars)</div>
+                    <div><span class="detail-label">Meta Description:</span></div>
+                    <div class="detail-value">How Pacific Steel reduced project overruns by 34% using ConstructionERP. (72 chars - too short)</div>
+                    <div><span class="detail-label">OG Image:</span></div>
+                    <div class="detail-value" style="color:var(--red)">Missing</div>
+                    <div><span class="detail-label">Canonical URL:</span></div>
+                    <div class="detail-value">https://constructionerp.com/case-studies/pacific-steel</div>
+                    <div><span class="detail-label">Schema Markup:</span></div>
+                    <div class="detail-value" style="color:var(--red)">Missing - CaseStudy recommended</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">/features/project-management</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Project Management Software for Construction</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Manage construction projects from pre-bid to closeout...</td>
+              <td>Construction Project Management</td>
+              <td class="text-center"><span class="score-badge score-green">82</span></td>
+              <td class="text-center">1</td>
+              <td><a class="expand-toggle" onclick="toggleExpand('expand-6')">Details</a></td>
+            </tr>
+            <tr class="expand-row" id="expand-6">
+              <td colspan="7">
+                <div class="expand-content">
+                  <div class="detail-grid">
+                    <div><span class="detail-label">Title Tag:</span></div>
+                    <div class="detail-value">Project Management Software for Construction (45 chars)</div>
+                    <div><span class="detail-label">Meta Description:</span></div>
+                    <div class="detail-value">Manage construction projects from pre-bid to closeout with scheduling, budgeting, and team collaboration tools. (110 chars)</div>
+                    <div><span class="detail-label">OG Image:</span></div>
+                    <div class="detail-value">Set - /og-pm.png (1200x630)</div>
+                    <div><span class="detail-label">Canonical URL:</span></div>
+                    <div class="detail-value">https://constructionerp.com/features/project-management</div>
+                    <div><span class="detail-label">Schema Markup:</span></div>
+                    <div class="detail-value" style="color:var(--amber)">Missing - SoftwareApplication recommended</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">/features/daily-log</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Daily Log App for Construction Sites</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Digital daily logs for construction field teams with photo...</td>
+              <td>Construction Daily Log</td>
+              <td class="text-center"><span class="score-badge score-green">88</span></td>
+              <td class="text-center">0</td>
+              <td><a class="expand-toggle" onclick="toggleExpand('expand-7')">Details</a></td>
+            </tr>
+            <tr class="expand-row" id="expand-7">
+              <td colspan="7">
+                <div class="expand-content">
+                  <div class="detail-grid">
+                    <div><span class="detail-label">Title Tag:</span></div>
+                    <div class="detail-value">Daily Log App for Construction Sites (36 chars)</div>
+                    <div><span class="detail-label">Meta Description:</span></div>
+                    <div class="detail-value">Digital daily logs for construction field teams with photo capture, weather tracking, and crew management. (105 chars)</div>
+                    <div><span class="detail-label">OG Image:</span></div>
+                    <div class="detail-value">Set - /og-dailylog.png (1200x630)</div>
+                    <div><span class="detail-label">Canonical URL:</span></div>
+                    <div class="detail-value">https://constructionerp.com/features/daily-log</div>
+                    <div><span class="detail-label">Schema Markup:</span></div>
+                    <div class="detail-value" style="color:var(--green)">SoftwareApplication</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">/about</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">About Us | ConstructionERP</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></td>
+              <td>About ConstructionERP</td>
+              <td class="text-center"><span class="score-badge score-red">45</span></td>
+              <td class="text-center">3</td>
+              <td><a class="expand-toggle" onclick="toggleExpand('expand-8')">Details</a></td>
+            </tr>
+            <tr class="expand-row" id="expand-8">
+              <td colspan="7">
+                <div class="expand-content">
+                  <div class="detail-grid">
+                    <div><span class="detail-label">Title Tag:</span></div>
+                    <div class="detail-value">About Us | ConstructionERP (26 chars - too short)</div>
+                    <div><span class="detail-label">Meta Description:</span></div>
+                    <div class="detail-value" style="color:var(--red)">Missing</div>
+                    <div><span class="detail-label">OG Image:</span></div>
+                    <div class="detail-value" style="color:var(--red)">Missing</div>
+                    <div><span class="detail-label">Canonical URL:</span></div>
+                    <div class="detail-value">https://constructionerp.com/about</div>
+                    <div><span class="detail-label">Schema Markup:</span></div>
+                    <div class="detail-value" style="color:var(--red)">Missing - Organization recommended</div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ LOCAL SEO TAB ═══════════════════ -->
+  <div class="tab-content" id="tab-local">
+    <!-- Google Business Profile + Service Areas -->
+    <div class="local-grid">
+      <div class="card">
+        <div class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Google Business Profile
+        </div>
+        <div class="gbp-info-row">
+          <span class="gbp-info-label">Business</span>
+          <span class="gbp-info-value" style="font-weight:600">ConstructionERP Inc.</span>
+        </div>
+        <div class="gbp-info-row">
+          <span class="gbp-info-label">Address</span>
+          <span class="gbp-info-value">1200 Westheimer Rd, Suite 400, Houston, TX 77006</span>
+        </div>
+        <div class="gbp-info-row">
+          <span class="gbp-info-label">Phone</span>
+          <span class="gbp-info-value">(713) 555-0142</span>
+        </div>
+        <div class="gbp-info-row">
+          <span class="gbp-info-label">Hours</span>
+          <span class="gbp-info-value">Mon-Fri 8:00 AM - 6:00 PM</span>
+        </div>
+        <div class="gbp-info-row">
+          <span class="gbp-info-label">Categories</span>
+          <span class="gbp-info-value">Software Company, Construction Service</span>
+        </div>
+        <div class="gbp-info-row">
+          <span class="gbp-info-label">Rating</span>
+          <span class="gbp-info-value"><span class="stars">4.7</span> &nbsp;(48 reviews)</span>
+        </div>
+        <div style="margin-top:12px">
+          <button class="btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit Profile
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Service Areas</div>
+        <div class="map-placeholder">
+          <div class="map-pin" style="top:40%;left:30%"></div>
+          <div class="map-pin" style="top:25%;left:55%"></div>
+          <div class="map-pin" style="top:50%;left:45%"></div>
+          <div class="map-pin" style="top:55%;left:35%"></div>
+          <div class="map-pin" style="top:30%;left:75%"></div>
+          <div class="map-pin" style="top:60%;left:70%"></div>
+          <div class="map-pin" style="top:45%;left:85%"></div>
+          <div class="map-pin" style="top:65%;left:60%"></div>
+          <span style="position:relative;z-index:1">Map View - 8 Service Areas</span>
+        </div>
+        <div class="area-list">
+          <div class="area-item"><span class="area-name">Houston Metro</span><span class="area-radius">50 mi</span></div>
+          <div class="area-item"><span class="area-name">Dallas-Fort Worth</span><span class="area-radius">50 mi</span></div>
+          <div class="area-item"><span class="area-name">Austin</span><span class="area-radius">30 mi</span></div>
+          <div class="area-item"><span class="area-name">San Antonio</span><span class="area-radius">30 mi</span></div>
+          <div class="area-item"><span class="area-name">Denver</span><span class="area-radius">40 mi</span></div>
+          <div class="area-item"><span class="area-name">Phoenix</span><span class="area-radius">40 mi</span></div>
+          <div class="area-item"><span class="area-name">Atlanta</span><span class="area-radius">50 mi</span></div>
+          <div class="area-item"><span class="area-name">Miami</span><span class="area-radius">40 mi</span></div>
+        </div>
+        <div style="margin-top:12px">
+          <button class="btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Area
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Local Citations -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">Local Citations</div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Directory</th>
+              <th>Status</th>
+              <th class="text-center">NAP Consistent</th>
+              <th>Last Verified</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:500">Google Business Profile</td>
+              <td><span class="status-claimed">Claimed</span></td>
+              <td class="text-center" style="color:var(--green)">&#10003;</td>
+              <td>Feb 10, 2026</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Yelp</td>
+              <td><span class="status-claimed">Claimed</span></td>
+              <td class="text-center" style="color:var(--green)">&#10003;</td>
+              <td>Feb 8, 2026</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Better Business Bureau</td>
+              <td><span class="status-claimed">Claimed</span></td>
+              <td class="text-center" style="color:var(--green)">&#10003;</td>
+              <td>Jan 28, 2026</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Houzz</td>
+              <td><span class="status-claimed">Claimed</span></td>
+              <td class="text-center" style="color:var(--green)">&#10003;</td>
+              <td>Jan 15, 2026</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Angi</td>
+              <td><span class="status-incorrect">Incorrect</span></td>
+              <td class="text-center" style="color:var(--red)">&#10007;</td>
+              <td>Dec 12, 2025</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">BuildZoom</td>
+              <td><span class="status-claimed">Claimed</span></td>
+              <td class="text-center" style="color:var(--green)">&#10003;</td>
+              <td>Jan 22, 2026</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">LinkedIn</td>
+              <td><span class="status-claimed">Claimed</span></td>
+              <td class="text-center" style="color:var(--green)">&#10003;</td>
+              <td>Feb 5, 2026</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Apple Maps</td>
+              <td><span class="status-unclaimed">Unclaimed</span></td>
+              <td class="text-center" style="color:var(--red)">&#10007;</td>
+              <td>--</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Bing Places</td>
+              <td><span class="status-claimed">Claimed</span></td>
+              <td class="text-center" style="color:var(--green)">&#10003;</td>
+              <td>Jan 18, 2026</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Facebook</td>
+              <td><span class="status-claimed">Claimed</span></td>
+              <td class="text-center" style="color:var(--amber)">&#10003;</td>
+              <td>Feb 1, 2026</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Yellow Pages</td>
+              <td><span class="status-unclaimed">Unclaimed</span></td>
+              <td class="text-center" style="color:var(--red)">&#10007;</td>
+              <td>--</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Thumbtack</td>
+              <td><span class="status-incorrect">Incorrect</span></td>
+              <td class="text-center" style="color:var(--red)">&#10007;</td>
+              <td>Nov 3, 2025</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Reviews Management -->
+    <div class="card">
+      <div class="card-title">Reviews Management</div>
+      <div style="display:flex;gap:24px;margin-bottom:20px;flex-wrap:wrap">
+        <div style="text-align:center;padding:12px 20px;background:var(--surface);border-radius:8px;flex:1;min-width:100px">
+          <div style="font-family:var(--font-serif);font-size:1.3rem;font-weight:700">4.7</div>
+          <div style="font-size:.72rem;color:var(--muted)">Google (32)</div>
+        </div>
+        <div style="text-align:center;padding:12px 20px;background:var(--surface);border-radius:8px;flex:1;min-width:100px">
+          <div style="font-family:var(--font-serif);font-size:1.3rem;font-weight:700">4.5</div>
+          <div style="font-size:.72rem;color:var(--muted)">Yelp (9)</div>
+        </div>
+        <div style="text-align:center;padding:12px 20px;background:var(--surface);border-radius:8px;flex:1;min-width:100px">
+          <div style="font-family:var(--font-serif);font-size:1.3rem;font-weight:700">4.8</div>
+          <div style="font-size:.72rem;color:var(--muted)">G2 (7)</div>
+        </div>
+      </div>
+
+      <div class="review-item">
+        <div class="review-header">
+          <span class="review-author">Mark Henderson</span>
+          <span class="review-stars">5.0</span>
+        </div>
+        <div class="review-text">"We switched from spreadsheets to ConstructionERP last year and it transformed how we manage our residential builds. The daily log feature alone saves us 2 hours a day."</div>
+        <div class="review-meta">
+          <span class="review-platform">Google -- Feb 8, 2026</span>
+          <span class="badge badge-green">Responded</span>
+        </div>
+      </div>
+      <div class="review-item">
+        <div class="review-header">
+          <span class="review-author">Sandra Velasquez</span>
+          <span class="review-stars">4.0</span>
+        </div>
+        <div class="review-text">"Good platform for mid-size contractors. The job costing module is excellent but the reporting could use more customization options. Support team is responsive."</div>
+        <div class="review-meta">
+          <span class="review-platform">Yelp -- Feb 3, 2026</span>
+          <button class="btn btn-sm">Respond</button>
+        </div>
+      </div>
+      <div class="review-item">
+        <div class="review-header">
+          <span class="review-author">James O'Brien</span>
+          <span class="review-stars">5.0</span>
+        </div>
+        <div class="review-text">"Best construction ERP for the price. We manage 8 simultaneous projects and the Gantt scheduling keeps everything on track. Highly recommend for GCs."</div>
+        <div class="review-meta">
+          <span class="review-platform">Google -- Jan 27, 2026</span>
+          <button class="btn btn-sm">Respond</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ TECHNICAL TAB ═══════════════════ -->
+  <div class="tab-content" id="tab-technical">
+    <!-- Site Health Score -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">Site Health</div>
+      <div class="health-score-wrap">
+        <div class="health-donut" style="background:conic-gradient(var(--green) 0% 50%, var(--amber) 50% 78%, var(--red) 78% 100%);">
+          <div class="donut-hole">
+            <strong>78</strong>
+            <span>/100</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.85rem;margin-bottom:8px"><span style="font-weight:600">2</span> Critical &middot; <span style="font-weight:600">4</span> Warnings &middot; <span style="font-weight:600">6</span> Passed</div>
+          <div style="font-size:.78rem;color:var(--muted)">Last crawl: February 11, 2026 at 3:42 AM</div>
+        </div>
+      </div>
+
+      <!-- Critical Issues -->
+      <div class="issue-group">
+        <div class="issue-group-title">
+          <span class="issue-dot" style="background:var(--red);width:8px;height:8px;border-radius:50%;display:inline-block"></span>
+          Critical Issues (2)
+        </div>
+        <div class="issue-item critical">
+          <span class="issue-dot" style="background:var(--red)"></span>
+          3 pages with missing meta descriptions
+        </div>
+        <div class="issue-item critical">
+          <span class="issue-dot" style="background:var(--red)"></span>
+          Sitemap has 2 broken URLs
+        </div>
+      </div>
+
+      <!-- Warnings -->
+      <div class="issue-group">
+        <div class="issue-group-title">
+          <span class="issue-dot" style="background:var(--amber);width:8px;height:8px;border-radius:50%;display:inline-block"></span>
+          Warnings (4)
+        </div>
+        <div class="issue-item warning">
+          <span class="issue-dot" style="background:var(--amber)"></span>
+          12 images missing alt text
+        </div>
+        <div class="issue-item warning">
+          <span class="issue-dot" style="background:var(--amber)"></span>
+          4 pages with slow load time (&gt;3s)
+        </div>
+        <div class="issue-item warning">
+          <span class="issue-dot" style="background:var(--amber)"></span>
+          Duplicate H1 tags on 2 pages
+        </div>
+        <div class="issue-item warning">
+          <span class="issue-dot" style="background:var(--amber)"></span>
+          Missing schema markup on blog posts
+        </div>
+      </div>
+
+      <!-- Passed -->
+      <div class="issue-group">
+        <div class="issue-group-title">
+          <span class="issue-dot" style="background:var(--green);width:8px;height:8px;border-radius:50%;display:inline-block"></span>
+          Passed (6)
+        </div>
+        <div class="issue-item passed">
+          <span class="issue-dot" style="background:var(--green)"></span>
+          SSL certificate valid
+        </div>
+        <div class="issue-item passed">
+          <span class="issue-dot" style="background:var(--green)"></span>
+          Mobile responsive
+        </div>
+        <div class="issue-item passed">
+          <span class="issue-dot" style="background:var(--green)"></span>
+          Robots.txt configured
+        </div>
+        <div class="issue-item passed">
+          <span class="issue-dot" style="background:var(--green)"></span>
+          XML sitemap present
+        </div>
+        <div class="issue-item passed">
+          <span class="issue-dot" style="background:var(--green)"></span>
+          Canonical tags set
+        </div>
+        <div class="issue-item passed">
+          <span class="issue-dot" style="background:var(--green)"></span>
+          Structured data on homepage
+        </div>
+      </div>
+    </div>
+
+    <!-- Core Web Vitals -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Core Web Vitals</div>
+        <div class="cwv-grid">
+          <div class="cwv-card">
+            <div class="cwv-value" style="color:var(--green)">2.1s</div>
+            <div class="cwv-label">LCP</div>
+            <div class="cwv-metric">Largest Contentful Paint</div>
+          </div>
+          <div class="cwv-card">
+            <div class="cwv-value" style="color:var(--green)">45ms</div>
+            <div class="cwv-label">FID</div>
+            <div class="cwv-metric">First Input Delay</div>
+          </div>
+          <div class="cwv-card">
+            <div class="cwv-value" style="color:var(--amber)">0.08</div>
+            <div class="cwv-label">CLS</div>
+            <div class="cwv-metric">Cumulative Layout Shift</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Page Speed</div>
+        <div class="speed-grid">
+          <div class="speed-card">
+            <div class="speed-value" style="color:var(--amber)">72</div>
+            <div class="speed-label">Mobile Score</div>
+          </div>
+          <div class="speed-card">
+            <div class="speed-value" style="color:var(--green)">89</div>
+            <div class="speed-label">Desktop Score</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ BACKLINKS TAB ═══════════════════ -->
+  <div class="tab-content" id="tab-backlinks">
+    <!-- Summary -->
+    <div class="bl-summary">
+      <div class="bl-stat">
+        <div class="bl-stat-value">1,247</div>
+        <div class="bl-stat-label">Total Backlinks</div>
+      </div>
+      <div class="bl-stat">
+        <div class="bl-stat-value">234</div>
+        <div class="bl-stat-label">Referring Domains</div>
+      </div>
+      <div class="bl-stat">
+        <div class="bl-stat-value" style="color:var(--green)">+18</div>
+        <div class="bl-stat-label">New (30d)</div>
+      </div>
+      <div class="bl-stat">
+        <div class="bl-stat-value" style="color:var(--red)">-3</div>
+        <div class="bl-stat-label">Lost (30d)</div>
+      </div>
+    </div>
+
+    <!-- Two column: Table + Donut -->
+    <div class="charts-row" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-title">Top Backlinks</div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Source URL</th>
+                <th class="text-right">DA</th>
+                <th>Anchor Text</th>
+                <th>Type</th>
+                <th>First Seen</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">constructiondive.com/news/erp-tools-2026</td>
+                <td class="text-right">72</td>
+                <td>construction ERP software</td>
+                <td><span class="badge badge-blue">DoFollow</span></td>
+                <td>Jan 15, 2026</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">enr.com/articles/best-construction-tech</td>
+                <td class="text-right">84</td>
+                <td>ConstructionERP</td>
+                <td><span class="badge badge-blue">DoFollow</span></td>
+                <td>Dec 8, 2025</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">forconstructionpros.com/software-review</td>
+                <td class="text-right">68</td>
+                <td>project management platform</td>
+                <td><span class="badge badge-blue">DoFollow</span></td>
+                <td>Nov 22, 2025</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">softwareadvice.com/construction/erp</td>
+                <td class="text-right">76</td>
+                <td>ConstructionERP review</td>
+                <td><span class="badge badge-blue">DoFollow</span></td>
+                <td>Oct 14, 2025</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">capterra.com/construction-software</td>
+                <td class="text-right">80</td>
+                <td>ConstructionERP</td>
+                <td><span class="badge badge-amber">NoFollow</span></td>
+                <td>Sep 30, 2025</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">buildertrend.com/blog/alternatives</td>
+                <td class="text-right">64</td>
+                <td>alternative ERP solutions</td>
+                <td><span class="badge badge-blue">DoFollow</span></td>
+                <td>Jan 28, 2026</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">reddit.com/r/construction/comments/erp</td>
+                <td class="text-right">91</td>
+                <td>constructionerp.com</td>
+                <td><span class="badge badge-amber">NoFollow</span></td>
+                <td>Feb 2, 2026</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">spamlinks-directory.xyz/software</td>
+                <td class="text-right">8</td>
+                <td>click here</td>
+                <td><span class="badge badge-amber">NoFollow</span></td>
+                <td>Feb 6, 2026</td>
+                <td><button class="btn btn-sm btn-danger">Disavow</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Anchor Text Distribution</div>
+        <div class="donut-wrap">
+          <div class="donut" style="background: conic-gradient(var(--blue) 0% 32%, #3b82f6 32% 54%, var(--amber) 54% 72%, var(--green) 72% 86%, var(--red) 86% 100%);">
+            <div class="donut-hole">
+              <strong>1,247</strong>
+              <span>Links</span>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Branded 32%</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>Keyword 22%</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span>URL 18%</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Generic 14%</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--red)"></span>Other 14%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.querySelector('.overlay').classList.toggle('active');
+}
+function toggleNav(item) {
+  var wasOpen = item.classList.contains('open');
+  var siblings = item.parentElement.querySelectorAll(':scope > .nav-item.open');
+  siblings.forEach(function(el) { if (el !== item) el.classList.remove('open'); });
+  if (wasOpen) item.classList.remove('open');
+  else item.classList.add('open');
+}
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+  event.target.classList.add('active');
+  document.getElementById('tab-' + tabName).classList.add('active');
+}
+function toggleExpand(id) {
+  var row = document.getElementById(id);
+  if (row) row.classList.toggle('open');
+}
+window.addEventListener('resize', function() {
+  if (window.innerWidth >= 1024) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.querySelector('.overlay').classList.remove('active');
+  }
+});
+function toggleTheme(){
+  var html=document.documentElement;
+  var isDark=html.getAttribute("data-theme")==="dark";
+  if(isDark){html.removeAttribute("data-theme");document.getElementById("sunIcon").style.display="none";document.getElementById("moonIcon").style.display="block";localStorage.setItem("theme-seo","light")}
+  else{html.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none";localStorage.setItem("theme-seo","dark")}
+}
+(function(){var t=localStorage.getItem("theme-seo");if(t==="dark"){document.documentElement.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none"}})();
+</script>
+</body>
+</html>

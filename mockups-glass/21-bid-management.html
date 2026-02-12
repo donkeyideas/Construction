@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Bids & Proposals</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed' },
+            accent: { DEFAULT: '#ec4899', light: '#f472b6', dark: '#db2777' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .cal-day { min-height: 72px; }
+    .glass-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
+    .light .glass-card { background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.5); }
+    .glass-sidebar { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.06); }
+    .light .glass-sidebar { background: rgba(255,255,255,0.5); border-right: 1px solid rgba(255,255,255,0.4); }
+    .glass-topbar { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .light .glass-topbar { background: rgba(255,255,255,0.5); border-bottom: 1px solid rgba(255,255,255,0.4); }
+    .glass-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+    .light .glass-input { background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.4); }
+    .glass-table { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
+    .light .glass-table { background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.5); }
+  </style>
+</head>
+<body class="dark:text-gray-100 text-gray-900 transition-colors duration-300" style="background: linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%);">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark'); document.body.style.background = document.documentElement.classList.contains('dark') ? 'linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%)' : 'linear-gradient(135deg, #fdf2f8 0%, #ede9fe 25%, #e0f2fe 50%, #ede9fe 75%, #fce7f3 100%)';" class="fixed bottom-6 right-6 z-50 p-3 rounded-full border hover:scale-110 transition-transform" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2);" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Sidebar -->
+  <aside class="fixed top-0 left-0 h-screen w-[260px] glass-sidebar z-40 flex flex-col">
+    <div class="h-16 px-5 flex items-center gap-3 flex-shrink-0" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-base font-bold">ConstructionERP</span>
+    </div>
+    <nav class="flex-1 overflow-y-auto sidebar-scroll px-3 py-4 space-y-6">
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Overview</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+        </a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Construction</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="folder-kanban" class="w-4 h-4"></i> Projects</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="clipboard-list" class="w-4 h-4"></i> Daily Logs</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="hard-hat" class="w-4 h-4"></i> Safety</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Real Estate</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="building" class="w-4 h-4"></i> Properties</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="file-text" class="w-4 h-4"></i> Leases</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="wrench" class="w-4 h-4"></i> Maintenance</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Financial</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Dashboard</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="receipt" class="w-4 h-4"></i> AP</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="credit-card" class="w-4 h-4"></i> AR</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="book-open" class="w-4 h-4"></i> GL</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="calculator" class="w-4 h-4"></i> Job Costing</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="landmark" class="w-4 h-4"></i> Banking</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Documents</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="library" class="w-4 h-4"></i> Library</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="file-signature" class="w-4 h-4"></i> Contracts</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="map" class="w-4 h-4"></i> Plan Room</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">People</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="contact" class="w-4 h-4"></i> Directory</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="clock" class="w-4 h-4"></i> Time & Attendance</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="truck" class="w-4 h-4"></i> Equipment</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="users" class="w-4 h-4"></i> Vendors</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Business Development</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="git-branch" class="w-4 h-4"></i> Pipeline</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="target" class="w-4 h-4"></i> Opportunities</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-brand/10 text-brand font-medium">
+          <i data-lucide="gavel" class="w-4 h-4"></i> Bids & Proposals
+        </a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Reports</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="file-bar-chart" class="w-4 h-4"></i> Report Center</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">AI Intelligence</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="brain" class="w-4 h-4"></i> AI Assistant</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="zap" class="w-4 h-4"></i> Automation</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Administration</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="user-cog" class="w-4 h-4"></i> Users & Roles</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="settings" class="w-4 h-4"></i> Company Settings</a>
+      </div>
+    </nav>
+    <div class="p-4 flex-shrink-0" style="border-top: 1px solid rgba(255,255,255,0.06);">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand text-xs font-semibold">SK</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">Sarah Kim</div>
+          <div class="text-xs truncate" style="color: rgba(255,255,255,0.4);">Sr. Estimator</div>
+        </div>
+        <i data-lucide="log-out" class="w-4 h-4 cursor-pointer hover:text-red-400 transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- Top Bar -->
+    <header class="h-16 glass-topbar sticky top-0 z-30 flex items-center justify-between px-6">
+      <div class="flex items-center gap-2 text-sm">
+        <span style="color: rgba(255,255,255,0.4);">Business Development</span>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5" style="color: rgba(255,255,255,0.2);"></i>
+        <span class="font-medium text-white">Bids & Proposals</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative hidden lg:block">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i data-lucide="search" class="w-4 h-4" style="color: rgba(255,255,255,0.4);"></i>
+          </div>
+          <input type="text" placeholder="Search..." class="w-56 pl-9 pr-4 py-1.5 rounded-lg text-sm glass-input text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-brand/50 transition-colors">
+        </div>
+        <button class="relative p-2 rounded-lg transition-colors" style="color: rgba(255,255,255,0.6);">
+          <i data-lucide="bell" class="w-5 h-5"></i>
+          <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+        </button>
+        <button class="flex items-center gap-2" title="Account menu">
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand text-sm font-semibold">SK</div>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 p-6">
+
+      <!-- Summary KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+
+        <!-- KPI 1: Active Bids -->
+        <div class="glass-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Active Bids</span>
+            <div class="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+              <i data-lucide="file-text" class="w-4 h-4 text-brand"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold">8</div>
+          <div class="text-xs mt-1" style="color: rgba(255,255,255,0.4);">3 due this month</div>
+        </div>
+
+        <!-- KPI 2: Win Rate (YTD) -->
+        <div class="glass-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Win Rate (YTD)</span>
+            <div class="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center">
+              <i data-lucide="trophy" class="w-4 h-4 text-green-500"></i>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-3xl font-bold">38%</span>
+            <span class="flex items-center gap-0.5 text-xs font-medium text-green-500">
+              <i data-lucide="trending-up" class="w-3 h-3"></i>
+              +5%
+            </span>
+          </div>
+          <div class="text-xs mt-1" style="color: rgba(255,255,255,0.4);">vs 33% last year</div>
+        </div>
+
+        <!-- KPI 3: Avg Margin -->
+        <div class="glass-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Avg Margin</span>
+            <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+              <i data-lucide="percent" class="w-4 h-4 text-accent"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold">18.4%</div>
+          <div class="text-xs mt-1" style="color: rgba(255,255,255,0.4);">Across all active bids</div>
+        </div>
+
+        <!-- KPI 4: Pipeline Value -->
+        <div class="glass-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Pipeline Value</span>
+            <div class="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <i data-lucide="dollar-sign" class="w-4 h-4 text-purple-500"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold">$42.6M</div>
+          <div class="text-xs mt-1" style="color: rgba(255,255,255,0.4);">10 total bids</div>
+        </div>
+
+      </div>
+
+      <!-- Header Row -->
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold">Bid Management</h1>
+        <div class="flex items-center gap-3">
+          <!-- View Toggle -->
+          <div class="flex items-center rounded-lg p-0.5" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-brand text-white transition-colors">
+              <i data-lucide="table" class="w-4 h-4"></i>
+              Table
+            </button>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors" style="color: rgba(255,255,255,0.6);">
+              <i data-lucide="calendar" class="w-4 h-4"></i>
+              Calendar
+            </button>
+          </div>
+          <!-- New Bid Button -->
+          <button class="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            New Bid
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="flex items-center gap-3 mb-5 flex-wrap">
+        <select class="px-3 py-2 rounded-lg text-sm glass-input text-white focus:outline-none focus:ring-1 focus:ring-brand/50 transition-colors appearance-none pr-8 bg-no-repeat bg-[length:16px] bg-[center_right_8px]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;)">
+          <option>All Statuses</option>
+          <option>Estimating</option>
+          <option>In Progress</option>
+          <option>Submitted</option>
+          <option>Won</option>
+          <option>Lost</option>
+        </select>
+        <select class="px-3 py-2 rounded-lg text-sm glass-input text-white focus:outline-none focus:ring-1 focus:ring-brand/50 transition-colors appearance-none pr-8 bg-no-repeat bg-[length:16px] bg-[center_right_8px]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;)">
+          <option>All Estimators</option>
+          <option>Sarah K.</option>
+          <option>John M.</option>
+        </select>
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="calendar" class="w-4 h-4" style="color: rgba(255,255,255,0.4);"></i>
+            </div>
+            <input type="text" placeholder="Due from" class="w-32 pl-9 pr-3 py-2 rounded-lg text-sm glass-input text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-brand/50 transition-colors">
+          </div>
+          <span class="text-sm" style="color: rgba(255,255,255,0.4);">to</span>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="calendar" class="w-4 h-4" style="color: rgba(255,255,255,0.4);"></i>
+            </div>
+            <input type="text" placeholder="Due to" class="w-32 pl-9 pr-3 py-2 rounded-lg text-sm glass-input text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-brand/50 transition-colors">
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Bids Table -->
+      <div class="glass-table overflow-hidden mb-6">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <th class="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Bid #</th>
+                <th class="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Project Name</th>
+                <th class="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Client</th>
+                <th class="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Bid Amount</th>
+                <th class="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Est. Cost</th>
+                <th class="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Margin %</th>
+                <th class="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Due Date</th>
+                <th class="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Status</th>
+                <th class="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Estimator</th>
+                <th class="text-center px-4 py-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <!-- Row 1: BID-2026-042 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-042</td>
+                <td class="px-4 py-3 font-medium text-white">University Housing Phase III</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">State University</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$6,400,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.5);">$5,248,000</td>
+                <td class="px-4 py-3 text-right font-medium text-green-400">18.0%</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Feb 5 <span style="color: rgba(255,255,255,0.3);">(Submitted)</span></td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                    Submitted
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Sarah K.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">View</button>
+                </td>
+              </tr>
+
+              <!-- Row 2: BID-2026-041 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-041</td>
+                <td class="px-4 py-3 font-medium text-white">Tech Campus Building B</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">TechCorp</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$4,200,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.5);">$3,444,000</td>
+                <td class="px-4 py-3 text-right font-medium text-green-400">18.0%</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Feb 3 <span style="color: rgba(255,255,255,0.3);">(Submitted)</span></td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                    Submitted
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">John M.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">View</button>
+                </td>
+              </tr>
+
+              <!-- Row 3: BID-2026-040 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-040</td>
+                <td class="px-4 py-3 font-medium text-white">Westlake Office Complex</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Westlake Dev</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$4,800,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.5);">$3,888,000</td>
+                <td class="px-4 py-3 text-right font-medium text-green-400">19.0%</td>
+                <td class="px-4 py-3 text-red-400 font-medium">Feb 20</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    In Progress
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Sarah K.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">Edit</button>
+                </td>
+              </tr>
+
+              <!-- Row 4: BID-2026-039 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-039</td>
+                <td class="px-4 py-3 font-medium text-white">Riverfront Retail</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Retail Ventures</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$2,800,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.5);">$2,352,000</td>
+                <td class="px-4 py-3 text-right font-medium text-amber-400">16.0%</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Feb 25</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    In Progress
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">John M.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">Edit</button>
+                </td>
+              </tr>
+
+              <!-- Row 5: BID-2026-038 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-038</td>
+                <td class="px-4 py-3 font-medium text-white">Sunset Hills Subdivision</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Meridian Group</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$5,200,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.4);">--</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.4);">--</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Mar 10</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-gray-400 border border-gray-500/20" style="background: rgba(255,255,255,0.05);">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                    Estimating
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Sarah K.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">Edit</button>
+                </td>
+              </tr>
+
+              <!-- Row 6: BID-2026-037 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-037</td>
+                <td class="px-4 py-3 font-medium text-white">Airport Business Park</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Sky Holdings</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$8,500,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.4);">--</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.4);">--</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Mar 15</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-gray-400 border border-gray-500/20" style="background: rgba(255,255,255,0.05);">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                    Estimating
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">John M.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">Edit</button>
+                </td>
+              </tr>
+
+              <!-- Row 7: BID-2026-036 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-036</td>
+                <td class="px-4 py-3 font-medium text-white">Community Center Renovation</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">City of Austin</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$1,800,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.5);">$1,530,000</td>
+                <td class="px-4 py-3 text-right font-medium text-amber-400">15.0%</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Feb 28</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    In Progress
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Sarah K.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">Edit</button>
+                </td>
+              </tr>
+
+              <!-- Row 8: BID-2026-035 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-035</td>
+                <td class="px-4 py-3 font-medium text-white">Medical Office Buildout</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">HealthFirst</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$1,500,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.5);">$1,200,000</td>
+                <td class="px-4 py-3 text-right font-medium text-green-400">20.0%</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Jan 28 <span style="color: rgba(255,255,255,0.3);">(Submitted)</span></td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/10 text-green-400 border border-green-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                    Won
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Sarah K.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">View</button>
+                </td>
+              </tr>
+
+              <!-- Row 9: BID-2026-034 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-034</td>
+                <td class="px-4 py-3 font-medium text-white">Parkview Condominiums</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Parkview LLC</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$3,800,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.5);">$3,040,000</td>
+                <td class="px-4 py-3 text-right font-medium text-green-400">20.0%</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Jan 15 <span style="color: rgba(255,255,255,0.3);">(Submitted)</span></td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/10 text-green-400 border border-green-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                    Won
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">John M.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">View</button>
+                </td>
+              </tr>
+
+              <!-- Row 10: BID-2026-033 -->
+              <tr class="hover:bg-white/[0.03] transition-colors">
+                <td class="px-4 py-3 font-mono text-xs" style="color: rgba(255,255,255,0.6);">BID-2026-033</td>
+                <td class="px-4 py-3 font-medium text-white">Industrial Warehouse</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">LogiCorp</td>
+                <td class="px-4 py-3 text-right font-medium text-white">$2,400,000</td>
+                <td class="px-4 py-3 text-right" style="color: rgba(255,255,255,0.5);">$2,040,000</td>
+                <td class="px-4 py-3 text-right font-medium text-amber-400">15.0%</td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">Jan 20 <span style="color: rgba(255,255,255,0.3);">(Submitted)</span></td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                    Lost
+                  </span>
+                </td>
+                <td class="px-4 py-3" style="color: rgba(255,255,255,0.5);">John M.</td>
+                <td class="px-4 py-3 text-center">
+                  <button class="px-3 py-1 text-xs font-medium text-brand hover:text-brand-light transition-colors">View</button>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bottom Section: Calendar + Competitor Tracking -->
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+        <!-- LEFT: Bid Calendar -->
+        <div class="glass-card overflow-hidden">
+          <div class="px-5 py-4 flex items-center justify-between" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+            <div class="flex items-center gap-3">
+              <i data-lucide="calendar-days" class="w-5 h-5 text-brand"></i>
+              <h2 class="text-base font-semibold">Bid Calendar</h2>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="p-1 rounded hover:bg-white/5 transition-colors">
+                <i data-lucide="chevron-left" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i>
+              </button>
+              <span class="text-sm font-medium min-w-[120px] text-center">February 2026</span>
+              <button class="p-1 rounded hover:bg-white/5 transition-colors">
+                <i data-lucide="chevron-right" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i>
+              </button>
+            </div>
+          </div>
+          <div class="p-4">
+            <!-- Day headers -->
+            <div class="grid grid-cols-7 mb-1">
+              <div class="text-center text-[10px] font-semibold uppercase tracking-wider py-2" style="color: rgba(255,255,255,0.4);">Sun</div>
+              <div class="text-center text-[10px] font-semibold uppercase tracking-wider py-2" style="color: rgba(255,255,255,0.4);">Mon</div>
+              <div class="text-center text-[10px] font-semibold uppercase tracking-wider py-2" style="color: rgba(255,255,255,0.4);">Tue</div>
+              <div class="text-center text-[10px] font-semibold uppercase tracking-wider py-2" style="color: rgba(255,255,255,0.4);">Wed</div>
+              <div class="text-center text-[10px] font-semibold uppercase tracking-wider py-2" style="color: rgba(255,255,255,0.4);">Thu</div>
+              <div class="text-center text-[10px] font-semibold uppercase tracking-wider py-2" style="color: rgba(255,255,255,0.4);">Fri</div>
+              <div class="text-center text-[10px] font-semibold uppercase tracking-wider py-2" style="color: rgba(255,255,255,0.4);">Sat</div>
+            </div>
+            <!-- Calendar grid -->
+            <div class="grid grid-cols-7 gap-px rounded-lg overflow-hidden" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);">
+
+              <!-- Week 1: Feb 1-7 -->
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">1</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">2</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">3</span>
+                <div class="mt-1">
+                  <div class="text-[9px] px-1 py-0.5 rounded bg-blue-500/15 text-blue-400 truncate">Tech Campus</div>
+                </div>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">4</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">5</span>
+                <div class="mt-1">
+                  <div class="text-[9px] px-1 py-0.5 rounded bg-blue-500/15 text-blue-400 truncate">Univ Housing</div>
+                </div>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">6</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">7</span>
+              </div>
+
+              <!-- Week 2: Feb 8-14 -->
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">8</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">9</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">10</span>
+              </div>
+              <div class="cal-day p-1.5 ring-2 ring-brand/40 rounded-sm" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs font-bold text-brand">11</span>
+                <div class="mt-0.5 text-[9px]" style="color: rgba(255,255,255,0.4);">Today</div>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">12</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">13</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">14</span>
+              </div>
+
+              <!-- Week 3: Feb 15-21 -->
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">15</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">16</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">17</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">18</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">19</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">20</span>
+                <div class="mt-1">
+                  <div class="text-[9px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-400 truncate">Westlake</div>
+                </div>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">21</span>
+              </div>
+
+              <!-- Week 4: Feb 22-28 -->
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">22</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">23</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">24</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">25</span>
+                <div class="mt-1">
+                  <div class="text-[9px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-400 truncate">Riverfront</div>
+                </div>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">26</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">27</span>
+              </div>
+              <div class="cal-day p-1.5" style="background: rgba(255,255,255,0.03);">
+                <span class="text-xs" style="color: rgba(255,255,255,0.5);">28</span>
+                <div class="mt-1">
+                  <div class="text-[9px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-400 truncate">Community Ctr</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Legend -->
+            <div class="flex items-center gap-4 mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+                <span class="text-[10px]" style="color: rgba(255,255,255,0.5);">Submitted</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                <span class="text-[10px]" style="color: rgba(255,255,255,0.5);">In Progress</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+                <span class="text-[10px]" style="color: rgba(255,255,255,0.5);">Estimating</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Competitor Tracking -->
+        <div class="glass-card overflow-hidden">
+          <div class="px-5 py-4 flex items-center justify-between" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+            <div class="flex items-center gap-3">
+              <i data-lucide="users" class="w-5 h-5 text-accent"></i>
+              <h2 class="text-base font-semibold">Competitor Tracking</h2>
+            </div>
+            <span class="text-xs" style="color: rgba(255,255,255,0.4);">Known competitors on active bids</span>
+          </div>
+          <div class="p-5">
+            <table class="w-full text-sm">
+              <thead>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                  <th class="text-left pb-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Competitor</th>
+                  <th class="text-center pb-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Known Bids</th>
+                  <th class="text-center pb-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Win Rate vs Us</th>
+                  <th class="text-center pb-3 font-semibold text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.5);">Avg Margin</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td class="py-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-xs font-semibold text-red-400">BR</div>
+                      <span class="font-medium text-white">BuildRight Construction</span>
+                    </div>
+                  </td>
+                  <td class="py-3 text-center" style="color: rgba(255,255,255,0.6);">3</td>
+                  <td class="py-3 text-center">
+                    <span class="text-red-400 font-medium">40%</span>
+                  </td>
+                  <td class="py-3 text-center" style="color: rgba(255,255,255,0.5);">~16%</td>
+                </tr>
+                <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td class="py-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center text-xs font-semibold text-purple-400">PB</div>
+                      <span class="font-medium text-white">Premier Builders</span>
+                    </div>
+                  </td>
+                  <td class="py-3 text-center" style="color: rgba(255,255,255,0.6);">2</td>
+                  <td class="py-3 text-center">
+                    <span class="text-green-400 font-medium">33%</span>
+                  </td>
+                  <td class="py-3 text-center" style="color: rgba(255,255,255,0.5);">~17%</td>
+                </tr>
+                <tr class="hover:bg-white/[0.03] transition-colors">
+                  <td class="py-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-xs font-semibold text-amber-400">CG</div>
+                      <span class="font-medium text-white">Cornerstone GC</span>
+                    </div>
+                  </td>
+                  <td class="py-3 text-center" style="color: rgba(255,255,255,0.6);">2</td>
+                  <td class="py-3 text-center">
+                    <span class="text-red-400 font-medium">50%</span>
+                  </td>
+                  <td class="py-3 text-center" style="color: rgba(255,255,255,0.5);">~15%</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Add Competitor Link -->
+            <div class="mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.08);">
+              <a href="#" class="inline-flex items-center gap-2 text-sm text-brand hover:text-brand-light transition-colors font-medium">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                Add Competitor Intelligence
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Initialize Lucide Icons -->
+  <script>lucide.createIcons();</script>
+
+</body>
+</html>

@@ -1,0 +1,616 @@
+/* ==========================================================================
+   Mobile Shell - ConstructionERP Field Worker & Executive Views
+   ========================================================================== */
+
+/* Mobile Shell */
+.mobile-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.mobile-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: 70px; /* space for bottom tabs */
+}
+
+/* Bottom Tabs */
+.mobile-tabs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 6px 0;
+  z-index: 100;
+}
+
+.mobile-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.mobile-tab.active {
+  color: var(--color-blue);
+}
+
+/* Mobile Header */
+.mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.mobile-header h2 {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.mobile-header-date {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Mobile Cards */
+.mobile-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.mobile-card-title {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Clock Button */
+.clock-btn {
+  width: 100%;
+  padding: 18px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.clock-btn:active {
+  transform: scale(0.98);
+}
+
+.clock-btn-in {
+  background: var(--color-green);
+  color: #fff;
+}
+
+.clock-btn-out {
+  background: var(--color-red);
+  color: #fff;
+}
+
+/* Quick Actions Grid */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.quick-action svg {
+  color: var(--color-blue);
+}
+
+/* Mobile KPI */
+.mobile-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.mobile-kpi {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.mobile-kpi-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.mobile-kpi-value {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Mobile Form */
+.mobile-form-field {
+  margin-bottom: 16px;
+}
+
+.mobile-form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.mobile-form-input,
+.mobile-form-select,
+.mobile-form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  box-sizing: border-box;
+}
+
+.mobile-form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.mobile-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--color-blue);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.mobile-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Photo Grid */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.photo-thumb {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.7rem;
+  overflow: hidden;
+}
+
+.photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-thumb-meta {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 2px;
+}
+
+/* Mobile Approval Item */
+.mobile-approval {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.mobile-approval:last-child {
+  border-bottom: none;
+}
+
+.mobile-approval-info {
+  flex: 1;
+}
+
+.mobile-approval-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mobile-approval-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.mobile-approve-btn {
+  padding: 6px 14px;
+  background: var(--color-green);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Timer Display */
+.timer-display {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.timer-time {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.timer-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Status Indicator */
+.mobile-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.mobile-status-clocked-in {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+.mobile-status-clocked-out {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* Task Item */
+.mobile-task {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.mobile-task:last-child {
+  border-bottom: none;
+}
+
+.mobile-task-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.mobile-task-checkbox.done {
+  background: var(--color-green);
+  border-color: var(--color-green);
+}
+
+.mobile-task-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.mobile-task-meta {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Weekly Hours Bar */
+.weekly-hours {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.weekly-hours-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weekly-hours-day {
+  font-size: 0.7rem;
+  color: var(--muted);
+  width: 30px;
+  text-align: right;
+}
+
+.weekly-hours-bar-bg {
+  flex: 1;
+  height: 8px;
+  background: var(--surface);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.weekly-hours-bar {
+  height: 100%;
+  background: var(--color-blue);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.weekly-hours-value {
+  font-size: 0.7rem;
+  color: var(--muted);
+  width: 30px;
+}
+
+/* Profile Section */
+.mobile-profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0;
+  margin-bottom: 16px;
+}
+
+.mobile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.mobile-profile-name {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.mobile-profile-role {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Profile Stats Row */
+.mobile-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Profile Menu */
+.mobile-menu {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.mobile-menu-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-menu-item svg {
+  color: var(--muted);
+}
+
+.mobile-menu-item-danger {
+  color: var(--color-red);
+}
+
+.mobile-menu-item-danger svg {
+  color: var(--color-red);
+}
+
+/* Empty State */
+.mobile-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Section Title */
+.mobile-section-title {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
+/* Notification Item */
+.mobile-notif {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+
+.mobile-notif:last-child {
+  border-bottom: none;
+}
+
+.mobile-notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-blue);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.mobile-notif-text {
+  flex: 1;
+}
+
+.mobile-notif-time {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Photo Upload Button */
+.photo-upload-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 24px 16px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.photo-upload-btn svg {
+  color: var(--color-blue);
+}
+
+.photo-upload-btn input[type="file"] {
+  display: none;
+}
+
+/* Executive AI Query */
+.mobile-ai-input {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.mobile-ai-input input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: var(--font-sans);
+}
+
+.mobile-ai-input button {
+  padding: 10px 16px;
+  background: var(--color-blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Version Info */
+.mobile-version {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--muted);
+  padding: 16px 0;
+}
+
+/* Responsive: on large screens show as phone mockup */
+@media (min-width: 769px) {
+  .mobile-shell {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    height: 80vh;
+    margin: 40px auto;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+  }
+}

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Report Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed' },
+            accent: { DEFAULT: '#ec4899', light: '#f472b6', dark: '#db2777' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .glass-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
+    .light .glass-card { background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.5); }
+    .glass-sidebar { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.06); }
+    .light .glass-sidebar { background: rgba(255,255,255,0.5); border-right: 1px solid rgba(255,255,255,0.4); }
+    .glass-topbar { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .light .glass-topbar { background: rgba(255,255,255,0.5); border-bottom: 1px solid rgba(255,255,255,0.4); }
+    .glass-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+    .light .glass-input { background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.4); }
+  </style>
+</head>
+<body class="dark:text-gray-100 text-gray-900 transition-colors duration-300" style="background: linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%);">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark'); document.body.style.background = document.documentElement.classList.contains('dark') ? 'linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%)' : 'linear-gradient(135deg, #fdf2f8 0%, #ede9fe 25%, #e0f2fe 50%, #ede9fe 75%, #fce7f3 100%)'; lucide.createIcons();" class="fixed bottom-6 right-6 z-50 p-3 rounded-full border hover:scale-110 transition-transform" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2);" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Sidebar -->
+  <aside class="fixed top-0 left-0 h-screen w-[260px] glass-sidebar z-40 flex flex-col">
+    <div class="h-16 px-5 flex items-center gap-3 flex-shrink-0" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-base font-bold">ConstructionERP</span>
+    </div>
+    <nav class="flex-1 overflow-y-auto sidebar-scroll px-3 py-4 space-y-6">
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Overview</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Construction</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="hard-hat" class="w-4 h-4"></i> Projects</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="clipboard-list" class="w-4 h-4"></i> Daily Logs</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="shield-check" class="w-4 h-4"></i> Safety</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Real Estate</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="building" class="w-4 h-4"></i> Properties</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="file-text" class="w-4 h-4"></i> Leases</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="wrench" class="w-4 h-4"></i> Maintenance</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Financial</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Dashboard</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="receipt" class="w-4 h-4"></i> Accounts Payable</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="credit-card" class="w-4 h-4"></i> Accounts Receivable</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="book-open" class="w-4 h-4"></i> General Ledger</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="calculator" class="w-4 h-4"></i> Job Costing</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="landmark" class="w-4 h-4"></i> Banking</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Documents</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="folder-open" class="w-4 h-4"></i> Library</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="file-signature" class="w-4 h-4"></i> Contracts</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="map" class="w-4 h-4"></i> Plan Room</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">People</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="users" class="w-4 h-4"></i> Directory</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="clock" class="w-4 h-4"></i> Time & Attendance</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="truck" class="w-4 h-4"></i> Equipment</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="store" class="w-4 h-4"></i> Vendors</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Business Development</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="git-branch" class="w-4 h-4"></i> Pipeline</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="target" class="w-4 h-4"></i> Opportunities</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="file-plus" class="w-4 h-4"></i> Bids & Proposals</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Reports</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-brand/10 text-brand font-medium">
+          <i data-lucide="pie-chart" class="w-4 h-4"></i> Report Center
+        </a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">AI Intelligence</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="brain" class="w-4 h-4"></i> AI Assistant</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="zap" class="w-4 h-4"></i> Automation</a>
+      </div>
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style="color: rgba(255,255,255,0.35);">Administration</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="shield" class="w-4 h-4"></i> Users & Roles</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="settings" class="w-4 h-4"></i> Company Settings</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="plug" class="w-4 h-4"></i> Integrations</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm" style="color: rgba(255,255,255,0.6);"><i data-lucide="lock" class="w-4 h-4"></i> Security</a>
+      </div>
+    </nav>
+    <div class="p-4 flex-shrink-0" style="border-top: 1px solid rgba(255,255,255,0.06);">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">John Mitchell</div>
+          <div class="text-xs truncate" style="color: rgba(255,255,255,0.4);">Executive</div>
+        </div>
+        <i data-lucide="log-out" class="w-4 h-4 cursor-pointer hover:text-red-400 transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- Top Bar -->
+    <header class="h-16 glass-topbar sticky top-0 z-30 flex items-center justify-between px-6">
+      <div class="flex items-center gap-2 text-sm">
+        <span style="color: rgba(255,255,255,0.4);">Reports</span>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5" style="color: rgba(255,255,255,0.2);"></i>
+        <span class="font-medium text-white">Report Center</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="relative hidden lg:block">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-input text-sm cursor-pointer min-w-[220px]" style="color: rgba(255,255,255,0.4);">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Search...</span>
+            <kbd class="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded" style="background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4);">Cmd+K</kbd>
+          </div>
+        </div>
+        <button class="relative p-2 rounded-lg transition-colors" style="color: rgba(255,255,255,0.6);">
+          <i data-lucide="bell" class="w-5 h-5"></i>
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">5</span>
+        </button>
+        <div class="w-px h-8" style="background: rgba(255,255,255,0.08);"></div>
+        <button class="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/5">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+          <div class="text-left hidden lg:block">
+            <p class="text-sm font-medium leading-tight">John Mitchell</p>
+            <p class="text-[11px] leading-tight" style="color: rgba(255,255,255,0.4);">Executive</p>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 hidden lg:block" style="color: rgba(255,255,255,0.4);"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+
+      <!-- Page Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold">Report Center</h1>
+          <p class="text-sm mt-1" style="color: rgba(255,255,255,0.4);">Generate, schedule, and manage reports across all business areas.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color: rgba(255,255,255,0.4);"></i>
+            <input type="text" placeholder="Search reports..." class="pl-9 pr-4 py-2 rounded-lg glass-input text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-brand/50 transition-colors w-64">
+          </div>
+          <button class="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Build Custom Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Report Categories Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+
+        <!-- Category 1: Financial Reports -->
+        <div class="glass-card p-5 hover:border-white/20 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="dollar-sign" class="w-5 h-5 text-emerald-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Financial Reports</h3>
+              <p class="text-xs leading-relaxed" style="color: rgba(255,255,255,0.4);">Profit & loss, balance sheets, cash flow, budgets, aging reports, and tax summaries.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">P&L Statement</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Balance Sheet</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Cash Flow Statement</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Budget vs Actual</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">AR Aging</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">AP Aging</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Tax Summary</span>
+          </div>
+          <div class="flex items-center justify-between pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <span class="text-xs" style="color: rgba(255,255,255,0.4);">7 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">View Reports <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+          </div>
+        </div>
+
+        <!-- Category 2: Project Reports -->
+        <div class="glass-card p-5 hover:border-white/20 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+              <i data-lucide="hard-hat" class="w-5 h-5 text-brand"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Project Reports</h3>
+              <p class="text-xs leading-relaxed" style="color: rgba(255,255,255,0.4);">Project status, budgets, schedules, change orders, RFIs, daily logs, and safety.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Project Status Summary</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Budget Report</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Schedule Report</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Change Order Log</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">RFI Log</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Daily Log Summary</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Safety Report</span>
+          </div>
+          <div class="flex items-center justify-between pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <span class="text-xs" style="color: rgba(255,255,255,0.4);">7 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">View Reports <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+          </div>
+        </div>
+
+        <!-- Category 3: Property Reports -->
+        <div class="glass-card p-5 hover:border-white/20 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+              <i data-lucide="building" class="w-5 h-5 text-accent"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Property Reports</h3>
+              <p class="text-xs leading-relaxed" style="color: rgba(255,255,255,0.4);">Rent rolls, occupancy, lease expirations, NOI, maintenance, tenant ledgers, and cap rates.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Rent Roll</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Occupancy Report</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Lease Expiration</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">NOI Report</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Maintenance Summary</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Tenant Ledger</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Cap Rate Analysis</span>
+          </div>
+          <div class="flex items-center justify-between pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <span class="text-xs" style="color: rgba(255,255,255,0.4);">7 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">View Reports <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+          </div>
+        </div>
+
+        <!-- Category 4: People Reports -->
+        <div class="glass-card p-5 hover:border-white/20 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="users" class="w-5 h-5 text-purple-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">People Reports</h3>
+              <p class="text-xs leading-relaxed" style="color: rgba(255,255,255,0.4);">Timesheets, payroll prep, overtime, certifications, vendor performance, and equipment utilization.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Timesheet Summary</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Payroll Prep</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Overtime Report</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Certification Status</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Vendor Performance</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Equipment Utilization</span>
+          </div>
+          <div class="flex items-center justify-between pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <span class="text-xs" style="color: rgba(255,255,255,0.4);">6 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">View Reports <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+          </div>
+        </div>
+
+        <!-- Category 5: Compliance Reports -->
+        <div class="glass-card p-5 hover:border-white/20 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="shield-check" class="w-5 h-5 text-red-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Compliance Reports</h3>
+              <p class="text-xs leading-relaxed" style="color: rgba(255,255,255,0.4);">Insurance certificates, licenses, safety compliance, OSHA logs, lien waivers, and permits.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Insurance Certificate Status</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">License Verification</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Safety Compliance</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">OSHA Log</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Lien Waiver Status</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);">Permit Tracker</span>
+          </div>
+          <div class="flex items-center justify-between pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <span class="text-xs" style="color: rgba(255,255,255,0.4);">6 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">View Reports <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+          </div>
+        </div>
+
+        <!-- Category 6: Custom Reports -->
+        <div class="glass-card p-5 hover:border-white/20 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="sliders" class="w-5 h-5 text-cyan-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Custom Reports</h3>
+              <p class="text-xs leading-relaxed" style="color: rgba(255,255,255,0.4);">Build reports with custom fields, filters, and visualizations. Combine data from any module.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full">Custom Fields</span>
+            <span class="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full">Advanced Filters</span>
+            <span class="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full">Charts & Graphs</span>
+            <span class="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full">Cross-Module Data</span>
+            <span class="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full">Export to PDF/Excel</span>
+          </div>
+          <div class="flex items-center justify-between pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <span class="text-xs" style="color: rgba(255,255,255,0.4);">3 saved custom reports</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">View Reports <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Recent Reports Table -->
+      <div class="glass-card p-5 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold">Recent Reports</h3>
+          <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <th class="text-left py-2.5 text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Report Name</th>
+                <th class="text-left py-2.5 text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Category</th>
+                <th class="text-left py-2.5 text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Generated By</th>
+                <th class="text-left py-2.5 text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Date</th>
+                <th class="text-left py-2.5 text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Format</th>
+                <th class="text-right py-2.5 text-xs font-medium uppercase tracking-wide" style="color: rgba(255,255,255,0.4);">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center shrink-0"><i data-lucide="hard-hat" class="w-4 h-4 text-brand"></i></div>
+                    <span class="font-medium text-sm">Project Status Summary - Feb 2026</span>
+                  </div>
+                </td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand/10 text-brand">Project</span></td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">System (Scheduled)</td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">Feb 10, 2026</td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-400">PDF</span></td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="Download"><i data-lucide="download" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="View"><i data-lucide="eye" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 2 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0"><i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-500"></i></div>
+                    <span class="font-medium text-sm">P&L Statement - January 2026</span>
+                  </div>
+                </td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Financial</span></td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">Lisa Park</td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">Feb 5, 2026</td>
+                <td class="py-3">
+                  <div class="flex items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-400">PDF</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400">Excel</span>
+                  </div>
+                </td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="Download"><i data-lucide="download" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="View"><i data-lucide="eye" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 3 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0"><i data-lucide="users" class="w-4 h-4 text-purple-500"></i></div>
+                    <span class="font-medium text-sm">Weekly Timesheet Summary</span>
+                  </div>
+                </td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/10 text-purple-500">People</span></td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">System (Scheduled)</td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">Feb 9, 2026</td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400">Excel</span></td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="Download"><i data-lucide="download" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="View"><i data-lucide="eye" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 4 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0"><i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-500"></i></div>
+                    <span class="font-medium text-sm">AR Aging Report</span>
+                  </div>
+                </td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Financial</span></td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">Lisa Park</td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">Feb 8, 2026</td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-400">PDF</span></td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="Download"><i data-lucide="download" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="View"><i data-lucide="eye" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 5 -->
+              <tr class="hover:bg-white/[0.03] transition-colors" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0"><i data-lucide="shield-check" class="w-4 h-4 text-red-500"></i></div>
+                    <span class="font-medium text-sm">Safety Compliance - All Projects</span>
+                  </div>
+                </td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-500">Compliance</span></td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">Mike Torres</td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">Feb 7, 2026</td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-400">PDF</span></td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="Download"><i data-lucide="download" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="View"><i data-lucide="eye" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 6 -->
+              <tr class="hover:bg-white/[0.03] transition-colors">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0"><i data-lucide="building" class="w-4 h-4 text-accent"></i></div>
+                    <span class="font-medium text-sm">Rent Roll - February 2026</span>
+                  </div>
+                </td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-accent/10 text-accent">Property</span></td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">John Mitchell</td>
+                <td class="py-3 text-sm" style="color: rgba(255,255,255,0.5);">Feb 1, 2026</td>
+                <td class="py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400">Excel</span></td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="Download"><i data-lucide="download" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                    <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" title="View"><i data-lucide="eye" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Scheduled Reports -->
+      <div class="glass-card p-5">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h3 class="text-sm font-semibold">Automated Reports</h3>
+            <p class="text-xs mt-0.5" style="color: rgba(255,255,255,0.4);">Reports generated and distributed on a recurring schedule.</p>
+          </div>
+          <button class="flex items-center gap-2 px-3 py-1.5 bg-brand/10 hover:bg-brand/20 text-brand text-xs font-medium rounded-lg transition-colors">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            Schedule Report
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <!-- Scheduled Report 1 -->
+          <div class="flex items-center gap-4 p-4 rounded-lg" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);">
+            <div class="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
+              <i data-lucide="calendar-clock" class="w-5 h-5 text-brand"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium">Weekly Project Status</p>
+              <p class="text-xs mt-0.5" style="color: rgba(255,255,255,0.4);">Every Monday at 8:00 AM</p>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
+              <span class="text-xs" style="color: rgba(255,255,255,0.4);">Recipients:</span>
+              <div class="flex items-center gap-1">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6);">John M.</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6);">Sarah K.</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-xs" style="color: rgba(255,255,255,0.4);">Next run</p>
+              <p class="text-sm font-medium">Feb 17</p>
+            </div>
+            <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors shrink-0" title="More options">
+              <i data-lucide="more-vertical" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i>
+            </button>
+          </div>
+
+          <!-- Scheduled Report 2 -->
+          <div class="flex items-center gap-4 p-4 rounded-lg" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="calendar-clock" class="w-5 h-5 text-emerald-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium">Monthly Financial Package</p>
+              <p class="text-xs mt-0.5" style="color: rgba(255,255,255,0.4);">1st of every month</p>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
+              <span class="text-xs" style="color: rgba(255,255,255,0.4);">Recipients:</span>
+              <div class="flex items-center gap-1">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6);">John M.</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6);">Lisa P.</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-xs" style="color: rgba(255,255,255,0.4);">Next run</p>
+              <p class="text-sm font-medium">Mar 1</p>
+            </div>
+            <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors shrink-0" title="More options">
+              <i data-lucide="more-vertical" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i>
+            </button>
+          </div>
+
+          <!-- Scheduled Report 3 -->
+          <div class="flex items-center gap-4 p-4 rounded-lg" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);">
+            <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="calendar-clock" class="w-5 h-5 text-purple-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium">Weekly Timesheet Summary</p>
+              <p class="text-xs mt-0.5" style="color: rgba(255,255,255,0.4);">Every Sunday at 6:00 PM</p>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
+              <span class="text-xs" style="color: rgba(255,255,255,0.4);">Recipients:</span>
+              <div class="flex items-center gap-1">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium" style="background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6);">Lisa P.</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-xs" style="color: rgba(255,255,255,0.4);">Next run</p>
+              <p class="text-sm font-medium">Feb 16</p>
+            </div>
+            <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors shrink-0" title="More options">
+              <i data-lucide="more-vertical" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Initialize Lucide Icons -->
+  <script>lucide.createIcons();</script>
+
+</body>
+</html>

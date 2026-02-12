@@ -1,0 +1,473 @@
+/* ===================================================
+   Document Library Styles
+   Construction ERP
+   =================================================== */
+
+/* ===== Document Header ===== */
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.doc-header h2 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.doc-header-sub {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+.doc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ===== Filters ===== */
+.doc-filters {
+  margin-bottom: 20px;
+}
+
+.doc-search-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.doc-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.doc-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.doc-search-input {
+  padding-left: 38px !important;
+}
+
+/* ===== Two-Panel Layout ===== */
+.doc-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ===== Folder Tree ===== */
+.folder-tree {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  position: sticky;
+  top: 80px;
+}
+
+.folder-tree-title {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.folder-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+
+.folder-item:hover {
+  background: var(--surface);
+}
+
+.folder-item.active {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .folder-item.active {
+  background: rgba(29, 78, 216, 0.15);
+}
+
+.folder-empty {
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 12px 10px;
+  line-height: 1.5;
+}
+
+/* ===== Document Content Area ===== */
+.doc-content {
+  min-height: 300px;
+}
+
+.doc-count {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.doc-count-folder {
+  color: var(--color-blue);
+  font-weight: 500;
+}
+
+/* ===== Document Grid ===== */
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ===== Document Card ===== */
+.doc-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.doc-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"] .doc-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.doc-card-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.doc-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-card-name {
+  font-weight: 600;
+  font-size: 0.88rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-card-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.doc-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
+.doc-card-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+
+.doc-card-label {
+  color: var(--muted);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.doc-card-link {
+  color: var(--color-blue);
+  text-decoration: none;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-card-link:hover {
+  text-decoration: underline;
+}
+
+.doc-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.doc-card-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.doc-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.doc-tag-more {
+  font-weight: 600;
+  color: var(--color-blue);
+}
+
+/* ===== File Type Icons ===== */
+.file-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.file-icon-pdf {
+  background: var(--color-red-light);
+  color: var(--color-red);
+}
+
+[data-theme="dark"] .file-icon-pdf {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.file-icon-img {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+[data-theme="dark"] .file-icon-img {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+.file-icon-xls {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+[data-theme="dark"] .file-icon-xls {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+.file-icon-dwg {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+}
+
+[data-theme="dark"] .file-icon-dwg {
+  background: rgba(29, 78, 216, 0.15);
+}
+
+.file-icon-doc {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+}
+
+[data-theme="dark"] .file-icon-doc {
+  background: rgba(29, 78, 216, 0.15);
+}
+
+.file-icon-default {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* ===== Upload Zone (placeholder) ===== */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 40px 24px;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
+
+.upload-zone:hover {
+  border-color: var(--color-blue);
+  background: var(--color-blue-light);
+}
+
+[data-theme="dark"] .upload-zone:hover {
+  background: rgba(29, 78, 216, 0.08);
+}
+
+.upload-zone-icon {
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.upload-zone-text {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.upload-zone-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* ===== Document Badges ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+
+.badge-blue {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+}
+
+[data-theme="dark"] .badge-blue {
+  background: rgba(29, 78, 216, 0.15);
+}
+
+.badge-amber {
+  background: var(--color-amber-light);
+  color: var(--color-amber);
+}
+
+[data-theme="dark"] .badge-amber {
+  background: rgba(180, 83, 9, 0.15);
+}
+
+.badge-green {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+[data-theme="dark"] .badge-green {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+.badge-red {
+  background: var(--color-red-light);
+  color: var(--color-red);
+}
+
+[data-theme="dark"] .badge-red {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.badge-gray {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* ===== Empty State ===== */
+.doc-empty {
+  text-align: center;
+  padding: 64px 24px;
+  color: var(--muted);
+}
+
+.doc-empty-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: var(--border);
+}
+
+.doc-empty-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.doc-empty-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 400px;
+  margin: 0 auto 20px;
+  line-height: 1.5;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1023px) {
+  .doc-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .folder-tree {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .doc-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .doc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .doc-search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .doc-search-wrap {
+    max-width: none;
+  }
+}

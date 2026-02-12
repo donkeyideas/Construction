@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstructionERP -- Administration</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #ffffff; --surface: #f5f0eb; --topbar-bg: #fffcf9;
+  --blue: #1d4ed8; --blue-light: #eff6ff; --amber: #b45309; --amber-light: #fef3c7;
+  --text: #292524; --muted: #78716c; --border: #d6d3d1;
+  --green: #16a34a; --red: #dc2626; --sidebar-w: 240px;
+  --card-bg: #ffffff; --donut-hole: #ffffff; --scrollbar: #ccc;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #1c1917; --surface: #292524; --topbar-bg: #1c1917;
+  --blue-light: rgba(29,78,216,.15); --amber-light: rgba(180,83,9,.15);
+  --text: #f5f0eb; --muted: #a8a29e; --border: #44403c;
+  --card-bg: #292524; --donut-hole: #292524; --scrollbar: #57534e;
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.5; }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+  background: var(--bg); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100; transition: transform .25s ease;
+}
+.sidebar-brand { padding: 20px 22px 14px; }
+.sidebar-brand h1 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+.sidebar-brand .accent-line { width: 40px; height: 3px; background: var(--amber); border-radius: 2px; margin-top: 10px; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.nav-item { position: relative; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 9px 18px 9px 20px;
+  font-size: .835rem; font-weight: 500; color: var(--muted); text-decoration: none;
+  border-left: 3px solid transparent; cursor: pointer; transition: all .15s;
+}
+.nav-link svg { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-link .label { position: relative; }
+.nav-link .label::after {
+  content: ''; position: absolute; left: 0; bottom: -2px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .25s ease;
+}
+.nav-link:hover .label::after { width: 100%; }
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--blue); border-left-color: var(--blue); background: var(--blue-light); font-weight: 600; }
+.nav-link .chevron { margin-left: auto; width: 14px; height: 14px; transition: transform .2s; }
+.nav-item.open > .nav-link .chevron { transform: rotate(90deg); }
+.nav-children { display: none; padding: 2px 0 4px 0; }
+.nav-item.open > .nav-children { display: block; }
+.nav-child {
+  display: block; padding: 6px 18px 6px 51px; font-size: .8rem; color: var(--muted);
+  text-decoration: none; transition: color .15s; position: relative;
+}
+.nav-child::after {
+  content: ''; position: absolute; left: 51px; bottom: 4px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .2s;
+}
+.nav-child:hover { color: var(--text); }
+.nav-child:hover::after { width: calc(100% - 69px); }
+.sidebar-bottom { border-top: 1px solid var(--border); padding: 6px 0; }
+
+/* ── Topbar ── */
+.topbar {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 52px;
+  background: var(--topbar-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; z-index: 90; transition: left .25s ease;
+}
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .875rem; font-weight: 500; }
+.breadcrumb .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.search-btn {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border: 1px solid var(--border); border-radius: 7px; background: var(--bg);
+  font-size: .8rem; color: var(--muted); cursor: pointer;
+}
+.search-btn kbd { font-size: .7rem; background: var(--surface); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); font-family: var(--font-sans); }
+.notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--muted); }
+.notif-btn svg { width: 20px; height: 20px; }
+.notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); color: #fff; font-size: .6rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 600; }
+
+/* ── Sidebar Toggle + Overlay ── */
+.sidebar-toggle {
+  display: none; position: fixed; top: 10px; left: 12px; z-index: 110;
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; align-items: center; justify-content: center;
+}
+.sidebar-toggle svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 95; }
+
+/* ── Main Content ── */
+.main { margin-left: var(--sidebar-w); margin-top: 52px; padding: 28px; min-height: calc(100vh - 52px); transition: margin-left .25s; }
+.dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.dash-header h2 { font-family: var(--font-serif); font-size: 2rem; font-weight: 700; }
+.dash-header p { color: var(--muted); font-size: .9rem; margin-top: 2px; }
+.header-date { display: flex; align-items: center; gap: 8px; font-size: .875rem; color: var(--muted); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.4 } }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px; transition: box-shadow .2s, transform .2s;
+}
+.card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); transform: translateY(-2px); }
+.card-title { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* ── KPI Grid ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+.kpi { display: flex; justify-content: space-between; }
+.kpi-info { display: flex; flex-direction: column; gap: 4px; }
+.kpi-value { font-family: var(--font-serif); font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+.kpi-value.amber { color: var(--amber); }
+.kpi-label { font-size: .8rem; color: var(--muted); }
+.kpi-trend { font-size: .75rem; font-weight: 600; display: flex; align-items: center; gap: 3px; }
+.kpi-trend.up { color: var(--green); }
+.kpi-trend.down { color: var(--red); }
+.kpi-trend.neutral { color: var(--muted); }
+.kpi-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-icon svg { width: 22px; height: 22px; stroke: var(--amber); fill: none; stroke-width: 1.8; }
+
+/* ── Badges ── */
+.badge { padding: 2px 9px; border-radius: 10px; font-size: .7rem; font-weight: 600; }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: rgba(220,38,38,.08); color: var(--red); }
+.badge-green { background: rgba(22,163,74,.08); color: var(--green); }
+
+/* ── Two Column Layout ── */
+.two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; margin-bottom: 24px; }
+.col-stack { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Tables ── */
+.admin-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.admin-table th {
+  text-align: left; padding: 8px 10px; font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+  border-bottom: 2px solid var(--border);
+}
+.admin-table td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: var(--surface); }
+.user-cell { display: flex; align-items: center; gap: 10px; }
+.user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .65rem; font-weight: 600; color: #fff; flex-shrink: 0; }
+.user-name { font-weight: 500; }
+.user-email { font-size: .72rem; color: var(--muted); }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+/* ── Permission Matrix ── */
+.perm-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.perm-table th { text-align: center; padding: 8px 6px; font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); border-bottom: 2px solid var(--border); }
+.perm-table th:first-child { text-align: left; }
+.perm-table td { padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--border); }
+.perm-table td:first-child { text-align: left; font-weight: 500; font-size: .8rem; }
+.perm-table tr:last-child td { border-bottom: none; }
+.check { color: var(--green); font-weight: 700; font-size: .9rem; }
+.cross { color: var(--border); font-size: .9rem; }
+
+/* ── Form Elements ── */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: .78rem; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
+.form-input {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 7px;
+  font-size: .84rem; font-family: var(--font-sans); background: var(--bg); color: var(--text);
+  transition: border-color .2s;
+}
+.form-input:focus { outline: none; border-color: var(--blue); }
+.form-select { appearance: auto; }
+.upload-area {
+  border: 2px dashed var(--border); border-radius: 8px; padding: 20px;
+  text-align: center; color: var(--muted); font-size: .82rem; cursor: pointer;
+  transition: border-color .2s;
+}
+.upload-area:hover { border-color: var(--amber); }
+.upload-area svg { display: block; margin: 0 auto 8px; }
+
+/* ── Buttons ── */
+.btn { padding: 7px 16px; border-radius: 7px; font-size: .8rem; font-weight: 500; font-family: var(--font-sans); cursor: pointer; border: 1px solid var(--border); transition: all .15s; }
+.btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-primary:hover { background: #1e40af; }
+.btn-outline { background: none; color: var(--text); }
+.btn-outline:hover { background: var(--surface); }
+.btn-sm { padding: 4px 10px; font-size: .72rem; }
+
+/* ── Integration Status ── */
+.integration-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.integration-item:last-child { border-bottom: none; }
+.integration-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.integration-icon svg { width: 18px; height: 18px; stroke: var(--amber); fill: none; stroke-width: 1.8; }
+.integration-info { flex: 1; }
+.integration-name { font-size: .84rem; font-weight: 500; }
+.integration-desc { font-size: .72rem; color: var(--muted); }
+.integration-status { font-size: .72rem; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+.integration-status.connected { color: var(--green); }
+.integration-status.disconnected { color: var(--red); }
+
+/* ── Audit Log ── */
+.audit-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.audit-table th {
+  text-align: left; padding: 8px 10px; font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+  border-bottom: 2px solid var(--border);
+}
+.audit-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); }
+.audit-table tr:last-child td { border-bottom: none; }
+.audit-table tr:hover td { background: var(--surface); }
+.audit-time { font-size: .72rem; color: var(--muted); white-space: nowrap; }
+.audit-action { font-weight: 500; }
+
+.view-all {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 12px;
+  font-size: .8rem; font-weight: 500; color: var(--amber); text-decoration: none; position: relative;
+}
+.view-all::after { content:''; position:absolute; left:0; bottom:-1px; width:0; height:1.5px; background:var(--amber); transition:width .25s; }
+.view-all:hover::after { width:100%; }
+
+/* ── Responsive ── */
+@media (max-width: 1280px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+@media (max-width: 1023px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .overlay.active { display: block; }
+  .topbar { left: 0; padding-left: 56px; }
+  .main { margin-left: 0; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .main { padding: 16px; }
+  .dash-header h2 { font-size: 1.5rem; }
+  .admin-table, .perm-table, .audit-table { font-size: .72rem; }
+  .admin-table th, .admin-table td, .audit-table th, .audit-table td { padding: 6px 6px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar Toggle -->
+<button class="sidebar-toggle" onclick="toggleSidebar()">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h1>ConstructionERP</h1>
+    <div class="accent-line"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <!-- Dashboard -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="label">Dashboard</span>
+      </a>
+    </div>
+    <!-- Projects -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/><line x1="9" y1="8" x2="9" y2="12"/><line x1="15" y1="8" x2="15" y2="12"/></svg>
+        <span class="label">Projects</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Active Projects</a>
+        <a class="nav-child" href="#">Gantt Schedule</a>
+        <a class="nav-child" href="#">Daily Logs</a>
+        <a class="nav-child" href="#">RFIs</a>
+      </div>
+    </div>
+    <!-- Properties -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="label">Properties</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Portfolio</a>
+        <a class="nav-child" href="#">Leases</a>
+        <a class="nav-child" href="#">Maintenance</a>
+      </div>
+    </div>
+    <!-- Financial -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span class="label">Financial</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Job Costing</a>
+        <a class="nav-child" href="#">Accounts Payable</a>
+        <a class="nav-child" href="#">Budget vs Actual</a>
+        <a class="nav-child" href="#">Cash Flow</a>
+      </div>
+    </div>
+    <!-- Documents -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span class="label">Documents</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Library</a>
+        <a class="nav-child" href="#">Plan Room</a>
+      </div>
+    </div>
+    <!-- People -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="label">People</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Directory</a>
+        <a class="nav-child" href="#">Time &amp; Attendance</a>
+        <a class="nav-child" href="#">Certifications</a>
+      </div>
+    </div>
+    <!-- CRM & Bids -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span class="label">CRM &amp; Bids</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Pipeline</a>
+        <a class="nav-child" href="#">Bid Management</a>
+      </div>
+    </div>
+    <!-- AI Assistant -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4c-4.42 0-8 1.34-8 6 0-8 3.58-14 8-14z" stroke-width="1.5"/></svg>
+        <span class="label">AI Assistant</span>
+      </a>
+    </div>
+    <!-- Reports -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="label">Reports</span>
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="nav-item">
+      <a class="nav-link active" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- Top Bar -->
+<header class="topbar" id="topbar">
+  <div class="breadcrumb">
+    <span class="dot"></span>
+    <span>Administration</span>
+  </div>
+  <div class="topbar-right">
+    <button onclick="toggleTheme()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Toggle theme">
+      <svg id="sunIcon" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="search-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search <kbd>Ctrl+K</kbd>
+    </button>
+    <button class="notif-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-badge">2</span>
+    </button>
+    <div class="avatar">RH</div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main" id="main">
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <h2>Administration</h2>
+      <p>Manage users, company settings, integrations, and system configuration.</p>
+    </div>
+    <div class="header-date">
+      <span>February 12, 2026</span>
+      <span class="live-dot"></span>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Total Users</span>
+        <span class="kpi-value">47</span>
+        <span class="kpi-trend up">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +5 this month
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Active Companies</span>
+        <span class="kpi-value">3</span>
+        <span class="kpi-trend neutral">
+          Stable
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/></svg>
+      </div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Storage Used</span>
+        <span class="kpi-value amber">24.8 GB</span>
+        <span class="kpi-trend down">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+          62% of 40 GB
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      </div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">API Calls This Month</span>
+        <span class="kpi-value">12,450</span>
+        <span class="kpi-trend up">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +22% vs last month
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two Column Layout -->
+  <div class="two-col">
+    <!-- Left Column -->
+    <div class="col-stack">
+      <!-- User Management -->
+      <div class="card">
+        <div class="card-title">
+          User Management
+          <span style="margin-left:auto"><button class="btn btn-primary btn-sm">+ Invite User</button></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Last Active</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar" style="background:var(--blue)">RH</div>
+                    <div>
+                      <div class="user-name">Robert Hernandez</div>
+                      <div class="user-email">r.hernandez@meridianbuilds.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge badge-blue">Owner</span></td>
+                <td><span class="status-dot" style="background:var(--green)"></span>Active</td>
+                <td>Just now</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar" style="background:#7c3aed">SC</div>
+                    <div>
+                      <div class="user-name">Sarah Chen</div>
+                      <div class="user-email">s.chen@meridianbuilds.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge badge-blue">Admin</span></td>
+                <td><span class="status-dot" style="background:var(--green)"></span>Active</td>
+                <td>12 min ago</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar" style="background:var(--amber)">TM</div>
+                    <div>
+                      <div class="user-name">Tony Martinez</div>
+                      <div class="user-email">t.martinez@meridianbuilds.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge badge-amber">Project Manager</span></td>
+                <td><span class="status-dot" style="background:var(--green)"></span>Active</td>
+                <td>1 hour ago</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar" style="background:var(--green)">DW</div>
+                    <div>
+                      <div class="user-name">Derek Williams</div>
+                      <div class="user-email">d.williams@meridianbuilds.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge badge-amber">Superintendent</span></td>
+                <td><span class="status-dot" style="background:var(--green)"></span>Active</td>
+                <td>3 hours ago</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar" style="background:#0891b2">LP</div>
+                    <div>
+                      <div class="user-name">Lisa Park</div>
+                      <div class="user-email">l.park@meridianbuilds.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge badge-green">Accountant</span></td>
+                <td><span class="status-dot" style="background:var(--green)"></span>Active</td>
+                <td>Yesterday</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar" style="background:#6366f1">JL</div>
+                    <div>
+                      <div class="user-name">James Liu</div>
+                      <div class="user-email">j.liu@meridianbuilds.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge badge-amber">Project Manager</span></td>
+                <td><span class="status-dot" style="background:var(--green)"></span>Active</td>
+                <td>Yesterday</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar" style="background:#9ca3af">MR</div>
+                    <div>
+                      <div class="user-name">Marcus Reed</div>
+                      <div class="user-email">m.reed@apexconcrete.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge" style="background:var(--surface);color:var(--muted)">Field Worker</span></td>
+                <td><span class="status-dot" style="background:var(--amber)"></span>Invited</td>
+                <td>--</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar" style="background:#dc2626">KN</div>
+                    <div>
+                      <div class="user-name">Karen Novak</div>
+                      <div class="user-email">k.novak@meridianbuilds.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge badge-green">Accountant</span></td>
+                <td><span class="status-dot" style="background:var(--red)"></span>Suspended</td>
+                <td>Jan 28, 2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Role & Permissions -->
+      <div class="card">
+        <div class="card-title">Role &amp; Permissions</div>
+        <div style="overflow-x:auto">
+          <table class="perm-table">
+            <thead>
+              <tr>
+                <th>Permission</th>
+                <th>Owner</th>
+                <th>Admin</th>
+                <th>PM</th>
+                <th>Super</th>
+                <th>Acct</th>
+                <th>Field</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Create Projects</td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+              </tr>
+              <tr>
+                <td>Approve Invoices</td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+              </tr>
+              <tr>
+                <td>View Financial Data</td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+              </tr>
+              <tr>
+                <td>Manage Users</td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+              </tr>
+              <tr>
+                <td>Submit Daily Logs</td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="check">&#10003;</span></td>
+              </tr>
+              <tr>
+                <td>Manage Change Orders</td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+              </tr>
+              <tr>
+                <td>View Reports</td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+              </tr>
+              <tr>
+                <td>Configure Integrations</td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="check">&#10003;</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+                <td><span class="cross">--</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-stack">
+      <!-- Company Settings -->
+      <div class="card">
+        <div class="card-title">Company Settings</div>
+        <div class="form-group">
+          <label class="form-label">Company Name</label>
+          <input class="form-input" type="text" value="Meridian Builders Group, LLC">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company Logo</label>
+          <div class="upload-area">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Click to upload or drag and drop<br>
+            <span style="font-size:.72rem;color:var(--muted)">PNG, JPG up to 2MB</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fiscal Year Start</label>
+          <select class="form-input form-select">
+            <option selected>January</option>
+            <option>April</option>
+            <option>July</option>
+            <option>October</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Currency</label>
+          <select class="form-input form-select">
+            <option selected>USD -- United States Dollar</option>
+            <option>CAD -- Canadian Dollar</option>
+            <option>EUR -- Euro</option>
+            <option>GBP -- British Pound</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Timezone</label>
+          <select class="form-input form-select">
+            <option selected>America/New_York (EST)</option>
+            <option>America/Chicago (CST)</option>
+            <option>America/Denver (MST)</option>
+            <option>America/Los_Angeles (PST)</option>
+          </select>
+        </div>
+        <div style="text-align:right;margin-top:8px">
+          <button class="btn btn-outline" style="margin-right:8px">Cancel</button>
+          <button class="btn btn-primary">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- AI Provider Configuration -->
+      <div class="card">
+        <div class="card-title">
+          AI Provider Configuration
+          <span style="margin-left:auto"><button class="btn btn-primary btn-sm">+ Add Provider</button></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th>Status</th>
+                <th>Model</th>
+                <th>Usage</th>
+                <th>Budget</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500">OpenAI</td>
+                <td><span class="badge badge-green">Active</span></td>
+                <td style="font-size:.78rem">GPT-4o</td>
+                <td style="font-size:.78rem">$142.30</td>
+                <td style="font-size:.78rem">$250/mo</td>
+              </tr>
+              <tr>
+                <td style="font-weight:500">Anthropic</td>
+                <td><span class="badge badge-green">Active</span></td>
+                <td style="font-size:.78rem">Claude Opus 4</td>
+                <td style="font-size:.78rem">$89.50</td>
+                <td style="font-size:.78rem">$200/mo</td>
+              </tr>
+              <tr>
+                <td style="font-weight:500">Google</td>
+                <td><span class="badge badge-amber">Inactive</span></td>
+                <td style="font-size:.78rem">Gemini 2.5 Pro</td>
+                <td style="font-size:.78rem">$0.00</td>
+                <td style="font-size:.78rem">$150/mo</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Integration Status -->
+      <div class="card">
+        <div class="card-title">Integration Status</div>
+        <div class="integration-item">
+          <div class="integration-icon">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="integration-info">
+            <div class="integration-name">Stripe</div>
+            <div class="integration-desc">Payment processing and invoicing</div>
+          </div>
+          <div class="integration-status connected">
+            <span class="status-dot" style="background:var(--green)"></span>Connected
+          </div>
+        </div>
+        <div class="integration-item">
+          <div class="integration-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="integration-info">
+            <div class="integration-name">QuickBooks</div>
+            <div class="integration-desc">Accounting and bookkeeping sync</div>
+          </div>
+          <div class="integration-status connected">
+            <span class="status-dot" style="background:var(--green)"></span>Connected
+          </div>
+        </div>
+        <div class="integration-item">
+          <div class="integration-icon">
+            <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/></svg>
+          </div>
+          <div class="integration-info">
+            <div class="integration-name">Procore</div>
+            <div class="integration-desc">Project management data sync</div>
+          </div>
+          <div class="integration-status disconnected">
+            <span class="status-dot" style="background:var(--red)"></span>Disconnected
+          </div>
+        </div>
+        <div class="integration-item">
+          <div class="integration-icon">
+            <svg viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>
+          </div>
+          <div class="integration-info">
+            <div class="integration-name">Weather API</div>
+            <div class="integration-desc">Forecast data for scheduling</div>
+          </div>
+          <div class="integration-status connected">
+            <span class="status-dot" style="background:var(--green)"></span>Connected
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit Log (Full Width) -->
+  <div class="card">
+    <div class="card-title">
+      Audit Log
+      <span style="margin-left:auto"><button class="btn btn-outline btn-sm">Export CSV</button></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="audit-time">Feb 12, 2026 09:42 AM</td>
+            <td>Robert Hernandez</td>
+            <td class="audit-action">User Invited</td>
+            <td>Sent invitation to m.reed@apexconcrete.com with Field Worker role</td>
+          </tr>
+          <tr>
+            <td class="audit-time">Feb 12, 2026 09:15 AM</td>
+            <td>Sarah Chen</td>
+            <td class="audit-action">Permission Updated</td>
+            <td>Changed Tony Martinez role from Superintendent to Project Manager</td>
+          </tr>
+          <tr>
+            <td class="audit-time">Feb 12, 2026 08:50 AM</td>
+            <td>Robert Hernandez</td>
+            <td class="audit-action">Integration Connected</td>
+            <td>Reconnected Weather API integration after token renewal</td>
+          </tr>
+          <tr>
+            <td class="audit-time">Feb 11, 2026 04:32 PM</td>
+            <td>Sarah Chen</td>
+            <td class="audit-action">User Suspended</td>
+            <td>Suspended account for Karen Novak -- access violation reported</td>
+          </tr>
+          <tr>
+            <td class="audit-time">Feb 11, 2026 02:18 PM</td>
+            <td>Robert Hernandez</td>
+            <td class="audit-action">AI Provider Added</td>
+            <td>Configured Anthropic Claude Opus 4 with $200/month budget limit</td>
+          </tr>
+          <tr>
+            <td class="audit-time">Feb 10, 2026 11:05 AM</td>
+            <td>Lisa Park</td>
+            <td class="audit-action">Settings Updated</td>
+            <td>Changed fiscal year start from April to January</td>
+          </tr>
+          <tr>
+            <td class="audit-time">Feb 10, 2026 09:22 AM</td>
+            <td>Sarah Chen</td>
+            <td class="audit-action">Integration Disconnected</td>
+            <td>Disconnected Procore integration for API key rotation</td>
+          </tr>
+          <tr>
+            <td class="audit-time">Feb 09, 2026 03:47 PM</td>
+            <td>Robert Hernandez</td>
+            <td class="audit-action">Company Updated</td>
+            <td>Updated company name from "Meridian Builders" to "Meridian Builders Group, LLC"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <a href="#" class="view-all">View Full Audit Log &rarr;</a>
+  </div>
+</main>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.querySelector('.overlay').classList.toggle('active');
+}
+function toggleNav(item) {
+  var wasOpen = item.classList.contains('open');
+  var siblings = item.parentElement.querySelectorAll(':scope > .nav-item.open');
+  siblings.forEach(function(el) { if (el !== item) el.classList.remove('open'); });
+  if (wasOpen) item.classList.remove('open');
+  else item.classList.add('open');
+}
+window.addEventListener('resize', function() {
+  if (window.innerWidth >= 1024) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.querySelector('.overlay').classList.remove('active');
+  }
+});
+function toggleTheme(){
+  var html=document.documentElement;
+  var isDark=html.getAttribute("data-theme")==="dark";
+  if(isDark){html.removeAttribute("data-theme");document.getElementById("sunIcon").style.display="none";document.getElementById("moonIcon").style.display="block";localStorage.setItem("theme-construction","light")}
+  else{html.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none";localStorage.setItem("theme-construction","dark")}
+}
+(function(){var t=localStorage.getItem("theme-construction");if(t==="dark"){document.documentElement.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none"}})();
+</script>
+</body>
+</html>

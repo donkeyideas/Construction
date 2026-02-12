@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstructionERP -- Executive Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #ffffff; --surface: #f5f0eb; --topbar-bg: #fffcf9;
+  --blue: #1d4ed8; --blue-light: #eff6ff; --amber: #b45309; --amber-light: #fef3c7;
+  --text: #292524; --muted: #78716c; --border: #d6d3d1;
+  --green: #16a34a; --red: #dc2626; --sidebar-w: 240px;
+  --card-bg: #ffffff; --donut-hole: #ffffff; --scrollbar: #ccc;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #1c1917; --surface: #292524; --topbar-bg: #1c1917;
+  --blue-light: rgba(29,78,216,.15); --amber-light: rgba(180,83,9,.15);
+  --text: #f5f0eb; --muted: #a8a29e; --border: #44403c;
+  --card-bg: #292524; --donut-hole: #292524; --scrollbar: #57534e;
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.5; }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+  background: var(--bg); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100; transition: transform .25s ease;
+}
+.sidebar-brand { padding: 20px 22px 14px; }
+.sidebar-brand h1 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+.sidebar-brand .accent-line { width: 40px; height: 3px; background: var(--amber); border-radius: 2px; margin-top: 10px; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.nav-item { position: relative; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 9px 18px 9px 20px;
+  font-size: .835rem; font-weight: 500; color: var(--muted); text-decoration: none;
+  border-left: 3px solid transparent; cursor: pointer; transition: all .15s;
+}
+.nav-link svg { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-link .label { position: relative; }
+.nav-link .label::after {
+  content: ''; position: absolute; left: 0; bottom: -2px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .25s ease;
+}
+.nav-link:hover .label::after { width: 100%; }
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--blue); border-left-color: var(--blue); background: var(--blue-light); font-weight: 600; }
+.nav-link .chevron { margin-left: auto; width: 14px; height: 14px; transition: transform .2s; }
+.nav-item.open > .nav-link .chevron { transform: rotate(90deg); }
+.nav-children { display: none; padding: 2px 0 4px 0; }
+.nav-item.open > .nav-children { display: block; }
+.nav-child {
+  display: block; padding: 6px 18px 6px 51px; font-size: .8rem; color: var(--muted);
+  text-decoration: none; transition: color .15s; position: relative;
+}
+.nav-child::after {
+  content: ''; position: absolute; left: 51px; bottom: 4px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .2s;
+}
+.nav-child:hover { color: var(--text); }
+.nav-child:hover::after { width: calc(100% - 69px); }
+.sidebar-bottom { border-top: 1px solid var(--border); padding: 6px 0; }
+
+/* ── Topbar ── */
+.topbar {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 52px;
+  background: var(--topbar-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; z-index: 90; transition: left .25s ease;
+}
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .875rem; font-weight: 500; }
+.breadcrumb .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.search-btn {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border: 1px solid var(--border); border-radius: 7px; background: var(--bg);
+  font-size: .8rem; color: var(--muted); cursor: pointer;
+}
+.search-btn kbd { font-size: .7rem; background: var(--surface); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); font-family: var(--font-sans); }
+.notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--muted); }
+.notif-btn svg { width: 20px; height: 20px; }
+.notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); color: #fff; font-size: .6rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 600; }
+
+/* ── Sidebar Toggle + Overlay ── */
+.sidebar-toggle {
+  display: none; position: fixed; top: 10px; left: 12px; z-index: 110;
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; align-items: center; justify-content: center;
+}
+.sidebar-toggle svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 95; }
+
+/* ── Main Content ── */
+.main { margin-left: var(--sidebar-w); margin-top: 52px; padding: 28px; min-height: calc(100vh - 52px); transition: margin-left .25s; }
+.dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.dash-header h2 { font-family: var(--font-serif); font-size: 2rem; font-weight: 700; }
+.dash-header p { color: var(--muted); font-size: .9rem; margin-top: 2px; }
+.header-date { display: flex; align-items: center; gap: 8px; font-size: .875rem; color: var(--muted); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.4 } }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px; transition: box-shadow .2s, transform .2s;
+}
+.card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); transform: translateY(-2px); }
+.card-title { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* ── KPI Grid ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+.kpi { display: flex; justify-content: space-between; }
+.kpi-info { display: flex; flex-direction: column; gap: 4px; }
+.kpi-value { font-family: var(--font-serif); font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+.kpi-value.amber { color: var(--amber); }
+.kpi-label { font-size: .8rem; color: var(--muted); }
+.kpi-trend { font-size: .75rem; font-weight: 600; display: flex; align-items: center; gap: 3px; }
+.kpi-trend.up { color: var(--green); }
+.kpi-trend.down { color: var(--red); }
+.kpi-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-icon svg { width: 22px; height: 22px; stroke: var(--amber); fill: none; stroke-width: 1.8; }
+
+/* ── Charts Row ── */
+.charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+.chart-tabs { display: flex; gap: 20px; margin-bottom: 14px; }
+.chart-tab {
+  font-size: .85rem; font-weight: 500; color: var(--muted); cursor: pointer;
+  padding-bottom: 4px; border-bottom: 2px solid transparent; position: relative;
+}
+.chart-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.chart-tab::after { content:''; position:absolute; left:0; bottom:-2px; width:0; height:2px; background:var(--amber); transition:width .2s; }
+.chart-tab:hover::after { width:100%; }
+.time-pills { display: flex; gap: 6px; margin-left: auto; }
+.time-pill {
+  padding: 3px 10px; border: 1px solid var(--border); border-radius: 14px;
+  font-size: .72rem; font-weight: 500; cursor: pointer; background: none; color: var(--muted);
+}
+.time-pill.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.chart-header { display: flex; align-items: center; }
+.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 170px; padding-top: 10px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.bar { width: 100%; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--blue), #3b82f6); transition: height .4s ease; min-height: 4px; }
+.bar-label { font-size: .65rem; color: var(--muted); }
+.donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.donut {
+  width: 160px; height: 160px; border-radius: 50%; position: relative;
+  background: conic-gradient(var(--green) 0% 35%, var(--blue) 35% 77%, var(--amber) 77% 92%, var(--red) 92% 100%);
+}
+.donut-hole {
+  position: absolute; inset: 30px; border-radius: 50%; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.donut-hole strong { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; }
+.donut-hole span { font-size: .72rem; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 18px; justify-content: center; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: .78rem; color: var(--muted); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ── Three Cards Row ── */
+.three-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px; }
+.badge { padding: 2px 9px; border-radius: 10px; font-size: .7rem; font-weight: 600; }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: rgba(220,38,38,.08); color: var(--red); }
+.badge-green { background: rgba(22,163,74,.08); color: var(--green); }
+
+.approval-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.approval-item:last-child { border-bottom: none; }
+.urgency-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.approval-info { flex: 1; }
+.approval-title { font-size: .82rem; font-weight: 500; }
+.approval-meta { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+.approval-amount { font-family: var(--font-serif); font-weight: 600; font-size: .85rem; white-space: nowrap; }
+
+.activity-item { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.activity-item:last-child { border-bottom: none; }
+.activity-icon { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.activity-icon svg { width: 14px; height: 14px; stroke: var(--amber); fill: none; stroke-width: 2; }
+.activity-text { font-size: .8rem; line-height: 1.5; }
+.activity-text strong { font-weight: 600; }
+.activity-text a { color: var(--amber); text-decoration: none; font-weight: 500; }
+.activity-text a:hover { text-decoration: underline; }
+.activity-time { font-size: .68rem; color: var(--muted); margin-top: 2px; }
+
+.insight-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.insight-item:last-child { border-bottom: none; }
+.insight-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.insight-title { font-size: .82rem; font-weight: 500; }
+.insight-desc { font-size: .75rem; color: var(--muted); line-height: 1.5; }
+
+.view-all {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 12px;
+  font-size: .8rem; font-weight: 500; color: var(--amber); text-decoration: none; position: relative;
+}
+.view-all::after { content:''; position:absolute; left:0; bottom:-1px; width:0; height:1.5px; background:var(--amber); transition:width .25s; }
+.view-all:hover::after { width:100%; }
+
+/* ── Quick Access Grid ── */
+.quick-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+.quick-card { text-align: center; padding: 20px 12px; }
+.quick-card:hover { transform: translateY(-3px); box-shadow: 0 6px 24px rgba(0,0,0,.07); }
+.quick-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+.quick-icon svg { width: 20px; height: 20px; stroke: var(--amber); fill: none; stroke-width: 1.8; }
+.quick-name { font-family: var(--font-serif); font-size: .88rem; font-weight: 600; margin-bottom: 3px; }
+.quick-metric { font-size: .75rem; color: var(--muted); }
+
+/* ── Responsive ── */
+@media (max-width: 1280px) {
+  .three-row { grid-template-columns: 1fr 1fr; }
+  .three-row > :last-child { grid-column: span 2; }
+  .quick-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1023px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .overlay.active { display: block; }
+  .topbar { left: 0; padding-left: 56px; }
+  .main { margin-left: 0; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .three-row { grid-template-columns: 1fr; }
+  .three-row > :last-child { grid-column: span 1; }
+  .quick-grid { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 16px; }
+  .dash-header h2 { font-size: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar Toggle -->
+<button class="sidebar-toggle" onclick="toggleSidebar()">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h1>ConstructionERP</h1>
+    <div class="accent-line"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <!-- Dashboard -->
+    <div class="nav-item">
+      <a class="nav-link active" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="label">Dashboard</span>
+      </a>
+    </div>
+    <!-- Projects -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/><line x1="9" y1="8" x2="9" y2="12"/><line x1="15" y1="8" x2="15" y2="12"/></svg>
+        <span class="label">Projects</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Active Projects</a>
+        <a class="nav-child" href="#">Gantt Schedule</a>
+        <a class="nav-child" href="#">Daily Logs</a>
+        <a class="nav-child" href="#">RFIs</a>
+      </div>
+    </div>
+    <!-- Properties -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="label">Properties</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Portfolio</a>
+        <a class="nav-child" href="#">Leases</a>
+        <a class="nav-child" href="#">Maintenance</a>
+      </div>
+    </div>
+    <!-- Financial -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span class="label">Financial</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Job Costing</a>
+        <a class="nav-child" href="#">Accounts Payable</a>
+        <a class="nav-child" href="#">Budget vs Actual</a>
+        <a class="nav-child" href="#">Cash Flow</a>
+      </div>
+    </div>
+    <!-- Documents -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span class="label">Documents</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Library</a>
+        <a class="nav-child" href="#">Plan Room</a>
+      </div>
+    </div>
+    <!-- People -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="label">People</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Directory</a>
+        <a class="nav-child" href="#">Time &amp; Attendance</a>
+        <a class="nav-child" href="#">Certifications</a>
+      </div>
+    </div>
+    <!-- CRM & Bids -->
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span class="label">CRM &amp; Bids</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Pipeline</a>
+        <a class="nav-child" href="#">Bid Management</a>
+      </div>
+    </div>
+    <!-- AI Assistant -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4c-4.42 0-8 1.34-8 6 0-8 3.58-14 8-14z" stroke-width="1.5"/></svg>
+        <span class="label">AI Assistant</span>
+      </a>
+    </div>
+    <!-- Reports -->
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="label">Reports</span>
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- Top Bar -->
+<header class="topbar" id="topbar">
+  <div class="breadcrumb">
+    <span class="dot"></span>
+    <span>Dashboard</span>
+  </div>
+  <div class="topbar-right">
+    <button onclick="toggleTheme()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Toggle theme">
+      <svg id="sunIcon" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="search-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search <kbd>Ctrl+K</kbd>
+    </button>
+    <button class="notif-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-badge">5</span>
+    </button>
+    <div class="avatar">RH</div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main" id="main">
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <h2>Executive Dashboard</h2>
+      <p>Portfolio overview across all active projects and properties.</p>
+    </div>
+    <div class="header-date">
+      <span>February 12, 2026</span>
+      <span class="live-dot"></span>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Active Projects</span>
+        <span class="kpi-value">$47.2M</span>
+        <span class="kpi-trend up">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +18.4%
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/></svg>
+      </div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Cash Position</span>
+        <span class="kpi-value">$3.8M</span>
+        <span class="kpi-trend up">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +6.2%
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Open Change Orders</span>
+        <span class="kpi-value amber">12</span>
+        <span class="kpi-trend down">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+          +3 this week
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-info">
+        <span class="kpi-label">Schedule Performance</span>
+        <span class="kpi-value">94.2%</span>
+        <span class="kpi-trend up">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +1.8%
+        </span>
+      </div>
+      <div class="kpi-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Monthly Billing</div>
+      <div class="chart-header">
+        <div class="chart-tabs">
+          <div class="chart-tab active">Revenue</div>
+          <div class="chart-tab">Costs</div>
+        </div>
+        <div class="time-pills">
+          <button class="time-pill">QTR</button>
+          <button class="time-pill active">12M</button>
+          <button class="time-pill">YTD</button>
+        </div>
+      </div>
+      <div class="bar-chart">
+        <div class="bar-col"><div class="bar" style="height:52%"></div><div class="bar-label">Mar</div></div>
+        <div class="bar-col"><div class="bar" style="height:61%"></div><div class="bar-label">Apr</div></div>
+        <div class="bar-col"><div class="bar" style="height:48%"></div><div class="bar-label">May</div></div>
+        <div class="bar-col"><div class="bar" style="height:74%"></div><div class="bar-label">Jun</div></div>
+        <div class="bar-col"><div class="bar" style="height:82%"></div><div class="bar-label">Jul</div></div>
+        <div class="bar-col"><div class="bar" style="height:90%"></div><div class="bar-label">Aug</div></div>
+        <div class="bar-col"><div class="bar" style="height:78%"></div><div class="bar-label">Sep</div></div>
+        <div class="bar-col"><div class="bar" style="height:65%"></div><div class="bar-label">Oct</div></div>
+        <div class="bar-col"><div class="bar" style="height:58%"></div><div class="bar-label">Nov</div></div>
+        <div class="bar-col"><div class="bar" style="height:42%"></div><div class="bar-label">Dec</div></div>
+        <div class="bar-col"><div class="bar" style="height:88%"></div><div class="bar-label">Jan</div></div>
+        <div class="bar-col"><div class="bar" style="height:95%"></div><div class="bar-label">Feb</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Project Status</div>
+      <div class="donut-wrap">
+        <div class="donut">
+          <div class="donut-hole">
+            <strong>26</strong>
+            <span>Projects</span>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Complete 35%</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>In Progress 42%</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span>Pre-Construction 15%</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--red)"></span>On Hold 8%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three Cards Row -->
+  <div class="three-row">
+    <!-- Pending Approvals -->
+    <div class="card">
+      <div class="card-title">Pending Approvals <span class="badge badge-blue">4</span></div>
+      <div class="approval-item">
+        <span class="urgency-dot" style="background:var(--red)"></span>
+        <div class="approval-info">
+          <div class="approval-title">CO-2026-0034 &mdash; Structural Steel Revision</div>
+          <div class="approval-meta">Riverdale Mixed-Use &middot; Submitted by T. Martinez</div>
+        </div>
+        <div class="approval-amount">$84,500</div>
+      </div>
+      <div class="approval-item">
+        <span class="urgency-dot" style="background:var(--amber)"></span>
+        <div class="approval-info">
+          <div class="approval-title">PA-2026-0012 &mdash; Pay Application #7</div>
+          <div class="approval-meta">Oakmont Office Tower &middot; Submitted by Apex Concrete</div>
+        </div>
+        <div class="approval-amount">$312,000</div>
+      </div>
+      <div class="approval-item">
+        <span class="urgency-dot" style="background:var(--amber)"></span>
+        <div class="approval-info">
+          <div class="approval-title">INV-2026-0891 &mdash; Plumbing Subcontractor</div>
+          <div class="approval-meta">Harbor View Condos &middot; Submitted by AllFlow Plumbing</div>
+        </div>
+        <div class="approval-amount">$47,200</div>
+      </div>
+      <div class="approval-item">
+        <span class="urgency-dot" style="background:var(--green)"></span>
+        <div class="approval-info">
+          <div class="approval-title">CO-2026-0035 &mdash; HVAC Upgrade Request</div>
+          <div class="approval-meta">Greenfield School &middot; Submitted by D. Chen</div>
+        </div>
+        <div class="approval-amount">$23,750</div>
+      </div>
+      <a href="#" class="view-all">View All Approvals &rarr;</a>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card">
+      <div class="card-title">Recent Activity</div>
+      <div class="activity-item">
+        <div class="activity-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div>
+          <div class="activity-text"><strong>Mike Torres</strong> submitted daily log for <a href="#">Riverdale Mixed-Use</a></div>
+          <div class="activity-time">8 minutes ago</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div>
+          <div class="activity-text"><strong>Sarah Chen</strong> answered <a href="#">RFI-0247</a> on Oakmont Tower</div>
+          <div class="activity-time">32 minutes ago</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div>
+          <div class="activity-text"><strong>City Inspector</strong> passed framing inspection at <a href="#">Harbor View Condos</a></div>
+          <div class="activity-time">1 hour ago</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div>
+          <div class="activity-text"><strong>Lisa Park</strong> uploaded revised plans to <a href="#">Plan Room</a></div>
+          <div class="activity-time">2 hours ago</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div>
+          <div class="activity-text"><strong>James Liu</strong> closed out punch list on <a href="#">Elm Street Renovation</a></div>
+          <div class="activity-time">3 hours ago</div>
+        </div>
+      </div>
+      <a href="#" class="view-all">View All Activity &rarr;</a>
+    </div>
+
+    <!-- AI Insights -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        AI Insights
+      </div>
+      <div class="insight-item">
+        <div class="insight-header">
+          <span class="badge badge-red">Critical</span>
+          <span class="insight-title">Budget Overrun Risk</span>
+        </div>
+        <div class="insight-desc">Riverdale Mixed-Use concrete costs are trending 12% over budget. At current pace, the project will exceed the $14.2M contract by $340K. Consider rebidding the remaining pours.</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-header">
+          <span class="badge badge-amber">Warning</span>
+          <span class="insight-title">Weather Delay Forecast</span>
+        </div>
+        <div class="insight-desc">Extended rain forecast Feb 18-22 may impact exterior work on 3 active sites. Recommend shifting interior tasks forward to minimize schedule impact.</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-header">
+          <span class="badge badge-amber">Warning</span>
+          <span class="insight-title">Subcontractor Performance</span>
+        </div>
+        <div class="insight-desc">AllFlow Plumbing has missed 3 of their last 5 milestones on Harbor View. Their rough-in completion is 8 days behind schedule. Review corrective action options.</div>
+      </div>
+      <a href="#" class="view-all">View Details &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Quick Access -->
+  <div class="quick-grid">
+    <div class="card quick-card">
+      <div class="quick-icon">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/></svg>
+      </div>
+      <div class="quick-name">Projects</div>
+      <div class="quick-metric">14 Active</div>
+    </div>
+    <div class="card quick-card">
+      <div class="quick-icon">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="quick-name">Financial</div>
+      <div class="quick-metric">$47.2M Backlog</div>
+    </div>
+    <div class="card quick-card">
+      <div class="quick-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="quick-name">Properties</div>
+      <div class="quick-metric">8 in Portfolio</div>
+    </div>
+    <div class="card quick-card">
+      <div class="quick-icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="quick-name">Documents</div>
+      <div class="quick-metric">1,240 Files</div>
+    </div>
+    <div class="card quick-card">
+      <div class="quick-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="quick-name">People</div>
+      <div class="quick-metric">128 Workers</div>
+    </div>
+    <div class="card quick-card">
+      <div class="quick-icon">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="quick-name">AI Assistant</div>
+      <div class="quick-metric">3 New Insights</div>
+    </div>
+  </div>
+</main>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.querySelector('.overlay').classList.toggle('active');
+}
+function toggleNav(item) {
+  var wasOpen = item.classList.contains('open');
+  var siblings = item.parentElement.querySelectorAll(':scope > .nav-item.open');
+  siblings.forEach(function(el) { if (el !== item) el.classList.remove('open'); });
+  if (wasOpen) item.classList.remove('open');
+  else item.classList.add('open');
+}
+document.querySelectorAll('.chart-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    tab.parentElement.querySelectorAll('.chart-tab').forEach(function(t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+  });
+});
+document.querySelectorAll('.time-pill').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    pill.parentElement.querySelectorAll('.time-pill').forEach(function(p) { p.classList.remove('active'); });
+    pill.classList.add('active');
+  });
+});
+window.addEventListener('resize', function() {
+  if (window.innerWidth >= 1024) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.querySelector('.overlay').classList.remove('active');
+  }
+});
+function toggleTheme(){
+  var html=document.documentElement;
+  var isDark=html.getAttribute("data-theme")==="dark";
+  if(isDark){html.removeAttribute("data-theme");document.getElementById("sunIcon").style.display="none";document.getElementById("moonIcon").style.display="block";localStorage.setItem("theme-construction","light")}
+  else{html.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none";localStorage.setItem("theme-construction","dark")}
+}
+(function(){var t=localStorage.getItem("theme-construction");if(t==="dark"){document.documentElement.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none"}})();
+</script>
+</body>
+</html>

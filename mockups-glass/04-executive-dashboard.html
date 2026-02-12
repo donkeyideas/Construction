@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Executive Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed' },
+            accent: { DEFAULT: '#ec4899', light: '#f472b6', dark: '#db2777' },
+            surface: { dark: 'rgba(255,255,255,0.06)', light: 'rgba(255,255,255,0.65)' },
+            border: { dark: 'rgba(255,255,255,0.1)', light: 'rgba(255,255,255,0.5)' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .glass-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
+    .glass-card-sm { background: rgba(255,255,255,0.04); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    .bar-chart-bar { transition: height 0.6s ease-out; }
+    .donut-ring { fill: none; stroke-width: 4; }
+    .donut-segment { fill: none; stroke-width: 4; stroke-linecap: round; }
+    .animated-mesh {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none;
+    }
+    .animated-mesh::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at 20% 50%, rgba(139,92,246,0.15) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 20%, rgba(236,72,153,0.1) 0%, transparent 50%),
+                  radial-gradient(ellipse at 40% 80%, rgba(6,182,212,0.08) 0%, transparent 50%);
+      animation: meshMove 20s ease-in-out infinite alternate;
+    }
+    @keyframes meshMove {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(-5%, -5%) rotate(3deg); }
+    }
+  </style>
+</head>
+<body class="dark:text-gray-100 text-gray-900 transition-colors duration-300" style="background:linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%);min-height:100vh;">
+
+  <!-- Animated Mesh Background -->
+  <div class="animated-mesh"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="fixed top-0 left-0 bottom-0 w-[260px] z-40 flex flex-col" style="background:rgba(255,255,255,0.04);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-right:1px solid rgba(255,255,255,0.08);">
+    <!-- Logo -->
+    <div class="px-5 h-16 flex items-center gap-3 shrink-0" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-lg font-bold tracking-tight">ConstructionERP</span>
+    </div>
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll py-4 px-3">
+      <!-- OVERVIEW -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Overview</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-brand/10 text-brand font-medium text-sm">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+      </div>
+      <!-- CONSTRUCTION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Construction</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i> Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i> Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="shield-check" class="w-4 h-4"></i> Safety
+        </a>
+      </div>
+      <!-- REAL ESTATE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Real Estate</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i> Properties
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i> Leases
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i> Maintenance
+        </a>
+      </div>
+      <!-- FINANCIAL -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Financial</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i> Accounts Payable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="credit-card" class="w-4 h-4"></i> Accounts Receivable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="book-open" class="w-4 h-4"></i> General Ledger
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="calculator" class="w-4 h-4"></i> Job Costing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="landmark" class="w-4 h-4"></i> Banking
+        </a>
+      </div>
+      <!-- DOCUMENTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Documents</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="folder-open" class="w-4 h-4"></i> Library
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="file-signature" class="w-4 h-4"></i> Contracts
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="map" class="w-4 h-4"></i> Plan Room
+        </a>
+      </div>
+      <!-- PEOPLE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">People</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i> Directory
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="clock" class="w-4 h-4"></i> Time & Attendance
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="truck" class="w-4 h-4"></i> Equipment
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="store" class="w-4 h-4"></i> Vendors
+        </a>
+      </div>
+      <!-- BUSINESS DEVELOPMENT -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Business Development</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="git-branch" class="w-4 h-4"></i> Pipeline
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i> Opportunities
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="file-plus" class="w-4 h-4"></i> Bids & Proposals
+        </a>
+      </div>
+      <!-- REPORTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Reports</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="pie-chart" class="w-4 h-4"></i> Report Center
+        </a>
+      </div>
+      <!-- AI INTELLIGENCE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">AI Intelligence</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i> AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="zap" class="w-4 h-4"></i> Automation
+        </a>
+      </div>
+      <!-- ADMINISTRATION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Administration</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="shield" class="w-4 h-4"></i> Users & Roles
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i> Company Settings
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="plug" class="w-4 h-4"></i> Integrations
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:bg-white/5 hover:text-gray-200 text-sm transition-colors">
+          <i data-lucide="lock" class="w-4 h-4"></i> Security
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="ml-[260px] min-h-screen flex flex-col relative z-10">
+
+    <!-- TOP BAR -->
+    <header class="sticky top-0 z-30 h-16 flex items-center justify-between px-6 shrink-0" style="background:rgba(255,255,255,0.04);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.08);">
+      <!-- Left: Breadcrumb -->
+      <div class="flex items-center gap-2 text-sm">
+        <span class="dark:text-gray-500 text-gray-400">Overview</span>
+        <span class="dark:text-gray-600 text-gray-300">/</span>
+        <span class="font-medium dark:text-gray-100 text-gray-900">Dashboard</span>
+      </div>
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-4">
+        <!-- Search -->
+        <div class="relative">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm dark:text-gray-400 text-gray-500 cursor-pointer transition-colors min-w-[220px]" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Search...</span>
+            <kbd class="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded" style="background:rgba(255,255,255,0.1);">Cmd+K</kbd>
+          </div>
+        </div>
+        <!-- Notifications -->
+        <button class="relative p-2 rounded-lg hover:bg-white/5 transition-colors">
+          <i data-lucide="bell" class="w-5 h-5 dark:text-gray-400 text-gray-500"></i>
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">5</span>
+        </button>
+        <!-- Theme toggle -->
+        <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="p-2 rounded-lg hover:bg-white/5 transition-colors">
+          <i data-lucide="sun" class="w-5 h-5 dark:text-gray-400 text-gray-500 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-5 h-5 dark:text-gray-400 text-gray-500 block dark:hidden"></i>
+        </button>
+        <!-- Divider -->
+        <div class="w-px h-8" style="background:rgba(255,255,255,0.1);"></div>
+        <!-- User -->
+        <button class="flex items-center gap-3 hover:bg-white/5 rounded-lg px-2 py-1.5 transition-colors">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+          <div class="text-left hidden lg:block">
+            <p class="text-sm font-medium leading-tight">John Mitchell</p>
+            <p class="text-[11px] dark:text-gray-500 text-gray-400 leading-tight">Executive</p>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 dark:text-gray-500 text-gray-400 hidden lg:block"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 p-6">
+
+      <!-- Page heading -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold">Executive Dashboard</h1>
+        <p class="text-sm dark:text-gray-400 text-gray-500 mt-1">Welcome back, John. Here is your business overview for February 2026.</p>
+      </div>
+
+      <!-- ROW 1: KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <!-- KPI: Total Revenue -->
+        <div class="rounded-xl p-5 glass-card">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Total Revenue</span>
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <i data-lucide="trending-up" class="w-4 h-4 text-emerald-500"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">$12.4M</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="inline-flex items-center gap-0.5 text-xs font-medium text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+              <i data-lucide="arrow-up-right" class="w-3 h-3"></i> 8.2%
+            </span>
+            <span class="text-xs dark:text-gray-500 text-gray-400">from last month</span>
+          </div>
+        </div>
+        <!-- KPI: Active Projects -->
+        <div class="rounded-xl p-5 glass-card">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Active Projects</span>
+            <div class="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+              <i data-lucide="hard-hat" class="w-4 h-4 text-brand"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">24</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="inline-flex items-center gap-0.5 text-xs font-medium text-brand bg-brand/10 px-1.5 py-0.5 rounded">+3</span>
+            <span class="text-xs dark:text-gray-500 text-gray-400">new this month</span>
+          </div>
+        </div>
+        <!-- KPI: Portfolio Value -->
+        <div class="rounded-xl p-5 glass-card">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Portfolio Value</span>
+            <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+              <i data-lucide="building" class="w-4 h-4 text-accent"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">$48.2M</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="text-xs dark:text-gray-500 text-gray-400">18 properties</span>
+          </div>
+        </div>
+        <!-- KPI: Cash Position -->
+        <div class="rounded-xl p-5 glass-card">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Cash Position</span>
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <i data-lucide="wallet" class="w-4 h-4 text-emerald-500"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">$3.2M</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="inline-flex items-center gap-0.5 text-xs font-medium text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">Healthy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <!-- Monthly Revenue Bar Chart -->
+        <div class="lg:col-span-2 rounded-xl p-5 glass-card">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-sm font-semibold">Monthly Revenue</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Jan - Dec 2025</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="flex items-center gap-1.5 text-xs dark:text-gray-400 text-gray-500">
+                <span class="w-2.5 h-2.5 rounded-sm bg-brand"></span> Revenue
+              </span>
+            </div>
+          </div>
+          <div class="flex items-end gap-2 h-48">
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 55%;" title="$820K"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Jan</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 62%;" title="$940K"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Feb</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 72%;" title="$1.08M"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Mar</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 68%;" title="$1.02M"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Apr</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 78%;" title="$1.17M"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">May</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 85%;" title="$1.28M"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Jun</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 90%;" title="$1.35M"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Jul</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 95%;" title="$1.42M"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Aug</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 82%;" title="$1.23M"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Sep</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 75%;" title="$1.12M"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Oct</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 65%;" title="$975K"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Nov</span></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5"><div class="w-full bg-brand/80 hover:bg-brand rounded-t-md bar-chart-bar transition-colors cursor-pointer" style="height: 100%;" title="$1.50M"></div><span class="text-[10px] dark:text-gray-500 text-gray-400">Dec</span></div>
+          </div>
+        </div>
+        <!-- Project Health -->
+        <div class="rounded-xl p-5 glass-card">
+          <div class="mb-5">
+            <h3 class="text-sm font-semibold">Project Health</h3>
+            <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">24 active projects</p>
+          </div>
+          <div class="flex justify-center mb-5">
+            <div class="relative w-40 h-40">
+              <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                <circle cx="21" cy="21" r="16" class="donut-ring" style="stroke:rgba(255,255,255,0.05);"></circle>
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-emerald-500" stroke-dasharray="75 25" stroke-dashoffset="0"></circle>
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-amber-400" stroke-dasharray="16.67 83.33" stroke-dashoffset="-75"></circle>
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-red-500" stroke-dasharray="8.33 91.67" stroke-dashoffset="-91.67"></circle>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-2xl font-bold">24</span>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Total</span>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span><span class="text-sm dark:text-gray-300 text-gray-600">On Track</span></div>
+              <span class="text-sm font-semibold">18</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span><span class="text-sm dark:text-gray-300 text-gray-600">At Risk</span></div>
+              <span class="text-sm font-semibold">4</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500"></span><span class="text-sm dark:text-gray-300 text-gray-600">Behind</span></div>
+              <span class="text-sm font-semibold">2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: Projects, Alerts, AI Insights -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Active Projects Table -->
+        <div class="rounded-xl p-5 glass-card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold">Active Projects</h3>
+            <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View All</a>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                  <th class="text-left py-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Project</th>
+                  <th class="text-left py-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Status</th>
+                  <th class="text-right py-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Budget</th>
+                  <th class="text-right py-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Done</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="hover:bg-white/[0.02] transition-colors" style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <td class="py-2.5 font-medium text-xs">Riverside Plaza</td>
+                  <td class="py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">On Track</span></td>
+                  <td class="py-2.5 text-right text-xs dark:text-gray-300 text-gray-600">$4.2M</td>
+                  <td class="py-2.5 text-right"><div class="flex items-center justify-end gap-2"><div class="w-12 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.05);"><div class="h-full rounded-full bg-emerald-500" style="width: 72%;"></div></div><span class="text-[11px] font-medium dark:text-gray-400 text-gray-500">72%</span></div></td>
+                </tr>
+                <tr class="hover:bg-white/[0.02] transition-colors" style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <td class="py-2.5 font-medium text-xs">Oak Tower Reno</td>
+                  <td class="py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-400/10 text-amber-400">At Risk</span></td>
+                  <td class="py-2.5 text-right text-xs dark:text-gray-300 text-gray-600">$1.8M</td>
+                  <td class="py-2.5 text-right"><div class="flex items-center justify-end gap-2"><div class="w-12 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.05);"><div class="h-full rounded-full bg-amber-400" style="width: 45%;"></div></div><span class="text-[11px] font-medium dark:text-gray-400 text-gray-500">45%</span></div></td>
+                </tr>
+                <tr class="hover:bg-white/[0.02] transition-colors" style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <td class="py-2.5 font-medium text-xs">Maple Heights</td>
+                  <td class="py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">On Track</span></td>
+                  <td class="py-2.5 text-right text-xs dark:text-gray-300 text-gray-600">$6.1M</td>
+                  <td class="py-2.5 text-right"><div class="flex items-center justify-end gap-2"><div class="w-12 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.05);"><div class="h-full rounded-full bg-emerald-500" style="width: 89%;"></div></div><span class="text-[11px] font-medium dark:text-gray-400 text-gray-500">89%</span></div></td>
+                </tr>
+                <tr class="hover:bg-white/[0.02] transition-colors" style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <td class="py-2.5 font-medium text-xs">Sunset Medical</td>
+                  <td class="py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-500">Behind</span></td>
+                  <td class="py-2.5 text-right text-xs dark:text-gray-300 text-gray-600">$2.9M</td>
+                  <td class="py-2.5 text-right"><div class="flex items-center justify-end gap-2"><div class="w-12 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.05);"><div class="h-full rounded-full bg-red-500" style="width: 31%;"></div></div><span class="text-[11px] font-medium dark:text-gray-400 text-gray-500">31%</span></div></td>
+                </tr>
+                <tr class="hover:bg-white/[0.02] transition-colors">
+                  <td class="py-2.5 font-medium text-xs">Harbor Logistics</td>
+                  <td class="py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">On Track</span></td>
+                  <td class="py-2.5 text-right text-xs dark:text-gray-300 text-gray-600">$3.5M</td>
+                  <td class="py-2.5 text-right"><div class="flex items-center justify-end gap-2"><div class="w-12 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.05);"><div class="h-full rounded-full bg-emerald-500" style="width: 58%;"></div></div><span class="text-[11px] font-medium dark:text-gray-400 text-gray-500">58%</span></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent Alerts -->
+        <div class="rounded-xl p-5 glass-card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold">Recent Alerts</h3>
+            <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View All</a>
+          </div>
+          <div class="space-y-3">
+            <div class="flex gap-3 p-3 rounded-lg glass-card-sm">
+              <div class="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium leading-snug">Sunset Medical: budget exceeded by 12%. Immediate review required.</p>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-500">Critical</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400">2 hours ago</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-3 p-3 rounded-lg glass-card-sm">
+              <div class="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium leading-snug">Oak Tower: concrete delivery delayed 3 days. Schedule impact likely.</p>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-400/10 text-amber-400">Warning</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400">5 hours ago</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-3 p-3 rounded-lg glass-card-sm">
+              <div class="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium leading-snug">Safety inspection due at Maple Heights by Feb 14. No inspector assigned.</p>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-400/10 text-amber-400">Warning</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400">8 hours ago</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-3 p-3 rounded-lg glass-card-sm">
+              <div class="w-2 h-2 rounded-full bg-brand mt-1.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium leading-snug">3 lease renewals coming up in March. Tenant communication pending.</p>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-brand/10 text-brand">Info</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400">1 day ago</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-3 p-3 rounded-lg glass-card-sm">
+              <div class="w-2 h-2 rounded-full bg-brand mt-1.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium leading-snug">New bid request received: Downtown Parking Structure ($8.5M est.).</p>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-brand/10 text-brand">Info</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400">1 day ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="rounded-xl p-5 glass-card">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-semibold">AI Insights</h3>
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/10 text-purple-400">AI</span>
+            </div>
+            <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View All</a>
+          </div>
+          <div class="space-y-3">
+            <div class="p-3 rounded-lg glass-card-sm">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <i data-lucide="trending-up" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-semibold mb-1">Revenue Forecast</p>
+                  <p class="text-[11px] dark:text-gray-400 text-gray-500 leading-relaxed">Based on current pipeline and seasonal trends, Q1 revenue is projected to exceed target by 6.4%.</p>
+                  <a href="#" class="inline-flex items-center gap-1 text-[11px] text-brand font-medium mt-2 hover:text-brand-light transition-colors">View <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+                </div>
+              </div>
+            </div>
+            <div class="p-3 rounded-lg glass-card-sm">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-amber-400/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-semibold mb-1">Cost Overrun Risk</p>
+                  <p class="text-[11px] dark:text-gray-400 text-gray-500 leading-relaxed">Lumber prices up 8% this month. Two projects may see material cost overruns if not renegotiated.</p>
+                  <a href="#" class="inline-flex items-center gap-1 text-[11px] text-brand font-medium mt-2 hover:text-brand-light transition-colors">View <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+                </div>
+              </div>
+            </div>
+            <div class="p-3 rounded-lg glass-card-sm">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <i data-lucide="clock" class="w-4 h-4 text-emerald-500"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-semibold mb-1">Schedule Optimization</p>
+                  <p class="text-[11px] dark:text-gray-400 text-gray-500 leading-relaxed">Shifting Harbor Logistics crew rotation could save 4 working days and reduce overtime by $18K.</p>
+                  <a href="#" class="inline-flex items-center gap-1 text-[11px] text-brand font-medium mt-2 hover:text-brand-light transition-colors">View <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- FIXED THEME TOGGLE -->
+  <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="fixed bottom-6 right-6 z-50 p-3 rounded-full backdrop-blur-sm hover:scale-110 transition-transform" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

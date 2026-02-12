@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Finance Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#3b82f6', light: '#60a5fa', dark: '#2563eb' },
+            accent: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
+            surface: { dark: '#141414', light: '#f8f9fa' },
+            border: { dark: '#262626', light: '#e5e7eb' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+
+    /* Scrollbar styling */
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #262626; border-radius: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #404040; }
+
+    /* Bar chart animation */
+    .bar-chart-bar { transition: height 0.6s ease-out; }
+
+    /* Donut chart */
+    .donut-ring { fill: none; stroke-width: 4; }
+    .donut-segment { fill: none; stroke-width: 4; stroke-linecap: round; }
+
+    /* Projected bar style */
+    .bar-projected {
+      background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(59, 130, 246, 0.15) 2px,
+        rgba(59, 130, 246, 0.15) 4px
+      );
+      border: 1px dashed rgba(59, 130, 246, 0.4);
+    }
+    .bar-projected-expense {
+      background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(156, 163, 175, 0.15) 2px,
+        rgba(156, 163, 175, 0.15) 4px
+      );
+      border: 1px dashed rgba(156, 163, 175, 0.4);
+    }
+  </style>
+</head>
+<body class="dark:bg-[#0a0a0a] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- ============================================================ -->
+  <!-- SIDEBAR (fixed, 260px)                                       -->
+  <!-- ============================================================ -->
+  <aside class="fixed top-0 left-0 bottom-0 w-[260px] dark:bg-[#0f0f0f] bg-[#f3f4f6] border-r dark:border-[#262626] border-[#e5e7eb] z-40 flex flex-col">
+
+    <!-- Logo -->
+    <div class="px-5 h-16 flex items-center gap-3 border-b dark:border-[#262626] border-[#e5e7eb] shrink-0">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-lg font-bold tracking-tight">ConstructionERP</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll py-4 px-3">
+
+      <!-- OVERVIEW -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Overview</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+      </div>
+
+      <!-- CONSTRUCTION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Construction</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          Safety
+        </a>
+      </div>
+
+      <!-- REAL ESTATE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Real Estate</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Properties
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          Leases
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+          Maintenance
+        </a>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Financial</p>
+        <!-- Active item: Dashboard -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-brand/10 text-brand font-medium text-sm">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          Accounts Payable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="credit-card" class="w-4 h-4"></i>
+          Accounts Receivable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          General Ledger
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          Job Costing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="landmark" class="w-4 h-4"></i>
+          Banking
+        </a>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Documents</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          Library
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-signature" class="w-4 h-4"></i>
+          Contracts
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          Plan Room
+        </a>
+      </div>
+
+      <!-- PEOPLE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">People</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Directory
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          Time & Attendance
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="truck" class="w-4 h-4"></i>
+          Equipment
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="store" class="w-4 h-4"></i>
+          Vendors
+        </a>
+      </div>
+
+      <!-- BUSINESS DEVELOPMENT -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Business Development</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="git-branch" class="w-4 h-4"></i>
+          Pipeline
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>
+          Opportunities
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-plus" class="w-4 h-4"></i>
+          Bids & Proposals
+        </a>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Reports</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="pie-chart" class="w-4 h-4"></i>
+          Report Center
+        </a>
+      </div>
+
+      <!-- AI INTELLIGENCE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">AI Intelligence</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          Automation
+        </a>
+      </div>
+
+      <!-- ADMINISTRATION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Administration</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          Users & Roles
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Company Settings
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="plug" class="w-4 h-4"></i>
+          Integrations
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+          Security
+        </a>
+      </div>
+
+    </nav>
+  </aside>
+
+  <!-- ============================================================ -->
+  <!-- MAIN WRAPPER (offset by sidebar)                             -->
+  <!-- ============================================================ -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- ========================================================== -->
+    <!-- TOP BAR                                                    -->
+    <!-- ========================================================== -->
+    <header class="sticky top-0 z-30 h-16 dark:bg-[#0a0a0a]/80 bg-white/80 backdrop-blur-md border-b dark:border-[#262626] border-[#e5e7eb] flex items-center justify-between px-6 shrink-0">
+
+      <!-- Left: Breadcrumb -->
+      <div class="flex items-center gap-2 text-sm">
+        <span class="dark:text-gray-500 text-gray-400">Financial</span>
+        <span class="dark:text-gray-600 text-gray-300">/</span>
+        <span class="font-medium dark:text-gray-100 text-gray-900">Dashboard</span>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-4">
+
+        <!-- Search -->
+        <div class="relative">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg dark:bg-white/5 bg-gray-100 border dark:border-[#262626] border-[#e5e7eb] text-sm dark:text-gray-400 text-gray-500 cursor-pointer hover:dark:border-gray-600 hover:border-gray-300 transition-colors min-w-[220px]">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Search...</span>
+            <kbd class="ml-auto text-[10px] font-medium dark:bg-white/10 bg-gray-200 px-1.5 py-0.5 rounded dark:text-gray-500 text-gray-400">Cmd+K</kbd>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+          <i data-lucide="bell" class="w-5 h-5 dark:text-gray-400 text-gray-500"></i>
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">4</span>
+        </button>
+
+        <!-- Theme toggle (in topbar) -->
+        <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+          <i data-lucide="sun" class="w-5 h-5 dark:text-gray-400 text-gray-500 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-5 h-5 dark:text-gray-400 text-gray-500 block dark:hidden"></i>
+        </button>
+
+        <!-- Divider -->
+        <div class="w-px h-8 dark:bg-[#262626] bg-[#e5e7eb]"></div>
+
+        <!-- User -->
+        <button class="flex items-center gap-3 hover:dark:bg-white/5 hover:bg-gray-100 rounded-lg px-2 py-1.5 transition-colors">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+          <div class="text-left hidden lg:block">
+            <p class="text-sm font-medium leading-tight">John Mitchell</p>
+            <p class="text-[11px] dark:text-gray-500 text-gray-400 leading-tight">CFO</p>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 dark:text-gray-500 text-gray-400 hidden lg:block"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ========================================================== -->
+    <!-- MAIN CONTENT                                               -->
+    <!-- ========================================================== -->
+    <main class="flex-1 p-6">
+
+      <!-- Page heading -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold">Finance Dashboard</h1>
+        <p class="text-sm dark:text-gray-400 text-gray-500 mt-1">Financial overview for fiscal year 2026. Data as of February 11, 2026.</p>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ROW 1: KPI Cards                                         -->
+      <!-- ======================================================== -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+
+        <!-- KPI: Revenue (YTD) -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Revenue (YTD)</span>
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <i data-lucide="trending-up" class="w-4 h-4 text-emerald-500"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">$12,400,000</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="inline-flex items-center gap-0.5 text-xs font-medium text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+              <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+              8.2%
+            </span>
+            <span class="text-xs dark:text-gray-500 text-gray-400">vs last year</span>
+          </div>
+        </div>
+
+        <!-- KPI: Expenses (YTD) -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Expenses (YTD)</span>
+            <div class="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center">
+              <i data-lucide="receipt" class="w-4 h-4 text-red-400"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">$10,633,200</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="text-xs dark:text-gray-500 text-gray-400">85.7% of revenue</span>
+          </div>
+        </div>
+
+        <!-- KPI: Net Income -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Net Income</span>
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-500"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">$1,766,800</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="inline-flex items-center gap-0.5 text-xs font-medium text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+              <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+              12.4%
+            </span>
+            <span class="text-xs dark:text-gray-500 text-gray-400">vs last year</span>
+          </div>
+        </div>
+
+        <!-- KPI: Cash Balance -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Cash Balance</span>
+            <div class="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+              <i data-lucide="wallet" class="w-4 h-4 text-brand"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">$3,218,500</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="text-xs dark:text-gray-500 text-gray-400">Across 3 accounts</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ROW 2: Revenue vs Expenses Chart + Bank Accounts          -->
+      <!-- ======================================================== -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+
+        <!-- Revenue vs Expenses Chart (2/3 width) -->
+        <div class="lg:col-span-2 dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-sm font-semibold">Revenue vs Expenses - 2026</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Monthly breakdown with projections</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="flex items-center gap-1.5 text-xs dark:text-gray-400 text-gray-500">
+                <span class="w-2.5 h-2.5 rounded-sm bg-brand"></span>
+                Revenue
+              </span>
+              <span class="flex items-center gap-1.5 text-xs dark:text-gray-400 text-gray-500">
+                <span class="w-2.5 h-2.5 rounded-sm dark:bg-gray-600 bg-gray-400"></span>
+                Expenses
+              </span>
+              <span class="flex items-center gap-1.5 text-xs dark:text-gray-400 text-gray-500">
+                <span class="w-2.5 h-2.5 rounded-sm border border-dashed dark:border-gray-500 border-gray-400"></span>
+                Projected
+              </span>
+            </div>
+          </div>
+
+          <!-- Y-axis + Chart area -->
+          <div class="flex gap-2">
+            <!-- Y-axis labels -->
+            <div class="flex flex-col justify-between text-[10px] dark:text-gray-500 text-gray-400 pr-1 h-48 py-0.5">
+              <span>$1.5M</span>
+              <span>$1M</span>
+              <span>$500K</span>
+              <span>$0</span>
+            </div>
+
+            <!-- Bars area -->
+            <div class="flex-1 flex items-end gap-1.5 h-48 border-b dark:border-[#262626] border-[#e5e7eb] border-l dark:border-[#262626] border-[#e5e7eb] pl-2 pb-0.5">
+
+              <!-- Jan - Actual -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bg-brand/80 hover:bg-brand rounded-t-sm bar-chart-bar transition-colors cursor-pointer" style="height: 85%;" title="Revenue: $1.28M"></div>
+                  <div class="flex-1 dark:bg-gray-600 bg-gray-400 hover:dark:bg-gray-500 hover:bg-gray-500 rounded-t-sm bar-chart-bar transition-colors cursor-pointer" style="height: 72%;" title="Expenses: $1.08M"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Jan</span>
+              </div>
+
+              <!-- Feb - Actual (partial) -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bg-brand/80 hover:bg-brand rounded-t-sm bar-chart-bar transition-colors cursor-pointer" style="height: 78%;" title="Revenue: $1.18M"></div>
+                  <div class="flex-1 dark:bg-gray-600 bg-gray-400 hover:dark:bg-gray-500 hover:bg-gray-500 rounded-t-sm bar-chart-bar transition-colors cursor-pointer" style="height: 68%;" title="Expenses: $1.02M"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Feb</span>
+              </div>
+
+              <!-- Mar - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 82%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 70%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Mar</span>
+              </div>
+
+              <!-- Apr - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 88%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 74%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Apr</span>
+              </div>
+
+              <!-- May - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 92%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 78%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">May</span>
+              </div>
+
+              <!-- Jun - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 95%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 80%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Jun</span>
+              </div>
+
+              <!-- Jul - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 100%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 84%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Jul</span>
+              </div>
+
+              <!-- Aug - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 97%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 82%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Aug</span>
+              </div>
+
+              <!-- Sep - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 90%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 76%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Sep</span>
+              </div>
+
+              <!-- Oct - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 86%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 73%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Oct</span>
+              </div>
+
+              <!-- Nov - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 80%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 68%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Nov</span>
+              </div>
+
+              <!-- Dec - Projected -->
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full flex gap-0.5 items-end" style="height: 192px;">
+                  <div class="flex-1 bar-projected rounded-t-sm" style="height: 75%;"></div>
+                  <div class="flex-1 bar-projected-expense rounded-t-sm" style="height: 65%;"></div>
+                </div>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Dec</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Bank Account Balances (1/3 width) -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="text-sm font-semibold">Bank Accounts</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Current balances</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 mb-5">
+
+            <!-- Operating Account -->
+            <div class="flex items-start gap-3 p-3 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#262626] border-[#e5e7eb]">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold">Operating Account</p>
+                <p class="text-[11px] dark:text-gray-500 text-gray-400">First National Bank</p>
+              </div>
+              <span class="text-sm font-bold text-emerald-500">$2,145,200</span>
+            </div>
+
+            <!-- Payroll Account -->
+            <div class="flex items-start gap-3 p-3 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#262626] border-[#e5e7eb]">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold">Payroll Account</p>
+                <p class="text-[11px] dark:text-gray-500 text-gray-400">First National Bank</p>
+              </div>
+              <span class="text-sm font-bold">$423,300</span>
+            </div>
+
+            <!-- Reserve Account -->
+            <div class="flex items-start gap-3 p-3 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#262626] border-[#e5e7eb]">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold">Reserve Account</p>
+                <p class="text-[11px] dark:text-gray-500 text-gray-400">Capital One</p>
+              </div>
+              <span class="text-sm font-bold">$650,000</span>
+            </div>
+
+          </div>
+
+          <!-- Total -->
+          <div class="flex items-center justify-between py-3 border-t dark:border-[#262626] border-[#e5e7eb] mb-4">
+            <span class="text-sm font-semibold dark:text-gray-300 text-gray-600">Total</span>
+            <span class="text-lg font-bold">$3,218,500</span>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-3">
+            <button class="flex-1 px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg transition-colors">
+              Reconcile
+            </button>
+            <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View All</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ROW 3: AR Aging + AP Aging                                -->
+      <!-- ======================================================== -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+
+        <!-- AR Aging -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="text-sm font-semibold">Accounts Receivable Aging</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Total AR: $2,120,000</p>
+            </div>
+            <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View Details</a>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <!-- Donut Chart -->
+            <div class="relative w-40 h-40 shrink-0">
+              <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                <circle cx="21" cy="21" r="16" class="donut-ring dark:stroke-white/5 stroke-gray-200"></circle>
+                <!-- Current: 40% (green) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-emerald-500" stroke-dasharray="40 60" stroke-dashoffset="0"></circle>
+                <!-- 1-30 days: 29% (blue) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-blue-500" stroke-dasharray="29 71" stroke-dashoffset="-40"></circle>
+                <!-- 31-60 days: 16% (yellow) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-amber-400" stroke-dasharray="16 84" stroke-dashoffset="-69"></circle>
+                <!-- 61-90 days: 9% (orange) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-orange-500" stroke-dasharray="9 91" stroke-dashoffset="-85"></circle>
+                <!-- 90+ days: 6% (red) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-red-500" stroke-dasharray="6 94" stroke-dashoffset="-94"></circle>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-lg font-bold">$2.12M</span>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Total AR</span>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex-1 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Current</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$850,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">40%</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">1-30 days</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$620,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">29%</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">31-60 days</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$340,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">16%</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">61-90 days</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$180,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">9%</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">90+ days</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$130,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">6%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AP Aging -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="text-sm font-semibold">Accounts Payable Aging</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Total AP: $1,400,000</p>
+            </div>
+            <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View Details</a>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <!-- Donut Chart -->
+            <div class="relative w-40 h-40 shrink-0">
+              <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                <circle cx="21" cy="21" r="16" class="donut-ring dark:stroke-white/5 stroke-gray-200"></circle>
+                <!-- Current: 41% (green) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-emerald-500" stroke-dasharray="41 59" stroke-dashoffset="0"></circle>
+                <!-- 1-30 days: 30% (blue) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-blue-500" stroke-dasharray="30 70" stroke-dashoffset="-41"></circle>
+                <!-- 31-60 days: 18% (yellow) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-amber-400" stroke-dasharray="18 82" stroke-dashoffset="-71"></circle>
+                <!-- 61-90 days: 8% (orange) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-orange-500" stroke-dasharray="8 92" stroke-dashoffset="-89"></circle>
+                <!-- 90+ days: 3% (red) -->
+                <circle cx="21" cy="21" r="16" class="donut-segment stroke-red-500" stroke-dasharray="3 97" stroke-dashoffset="-97"></circle>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-lg font-bold">$1.40M</span>
+                <span class="text-[10px] dark:text-gray-500 text-gray-400">Total AP</span>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex-1 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Current</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$580,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">41%</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">1-30 days</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$420,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">30%</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">31-60 days</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$250,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">18%</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">61-90 days</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$110,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">8%</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">90+ days</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-semibold">$40,000</span>
+                  <span class="text-[10px] dark:text-gray-500 text-gray-400 ml-1">3%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ROW 4: Recent Transactions + Budget Alerts                -->
+      <!-- ======================================================== -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        <!-- Recent Transactions (2/3 width) -->
+        <div class="lg:col-span-2 dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold">Recent Transactions</h3>
+            <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View All Transactions</a>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b dark:border-[#262626] border-[#e5e7eb]">
+                  <th class="text-left py-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Date</th>
+                  <th class="text-left py-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Description</th>
+                  <th class="text-left py-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Project / Property</th>
+                  <th class="text-left py-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Type</th>
+                  <th class="text-right py-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Amount</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y dark:divide-[#262626] divide-[#e5e7eb]">
+
+                <!-- Row 1 -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Feb 11</td>
+                  <td class="py-2.5 text-xs font-medium">Invoice from Volt Electric</td>
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500">Riverside Commons</td>
+                  <td class="py-2.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400">AP</span>
+                  </td>
+                  <td class="py-2.5 text-xs font-semibold text-right text-red-400">-$24,500</td>
+                </tr>
+
+                <!-- Row 2 -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Feb 11</td>
+                  <td class="py-2.5 text-xs font-medium">Rent Collection - Riverside Apts</td>
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500">Riverside Apts</td>
+                  <td class="py-2.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">AR</span>
+                  </td>
+                  <td class="py-2.5 text-xs font-semibold text-right text-emerald-500">+$72,000</td>
+                </tr>
+
+                <!-- Row 3 -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Feb 10</td>
+                  <td class="py-2.5 text-xs font-medium">Payroll Run - Week 6</td>
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500">Company-wide</td>
+                  <td class="py-2.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/10 text-purple-400">Payroll</span>
+                  </td>
+                  <td class="py-2.5 text-xs font-semibold text-right text-red-400">-$145,200</td>
+                </tr>
+
+                <!-- Row 4 -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Feb 10</td>
+                  <td class="py-2.5 text-xs font-medium">Progress Payment - Heritage Tower</td>
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500">Heritage Tower</td>
+                  <td class="py-2.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">AR</span>
+                  </td>
+                  <td class="py-2.5 text-xs font-semibold text-right text-emerald-500">+$380,000</td>
+                </tr>
+
+                <!-- Row 5 -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Feb 9</td>
+                  <td class="py-2.5 text-xs font-medium">Insurance Premium - Q1</td>
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500">Company-wide</td>
+                  <td class="py-2.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-400/10 text-amber-400">Expense</span>
+                  </td>
+                  <td class="py-2.5 text-xs font-semibold text-right text-red-400">-$18,500</td>
+                </tr>
+
+                <!-- Row 6 -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Feb 9</td>
+                  <td class="py-2.5 text-xs font-medium">Material Purchase - Lakeside</td>
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500">Lakeside Condos</td>
+                  <td class="py-2.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400">AP</span>
+                  </td>
+                  <td class="py-2.5 text-xs font-semibold text-right text-red-400">-$32,800</td>
+                </tr>
+
+                <!-- Row 7 -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Feb 8</td>
+                  <td class="py-2.5 text-xs font-medium">Tenant Security Deposit</td>
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500">Oakwood #215</td>
+                  <td class="py-2.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand/10 text-brand">Deposit</span>
+                  </td>
+                  <td class="py-2.5 text-xs font-semibold text-right text-emerald-500">+$2,400</td>
+                </tr>
+
+                <!-- Row 8 -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Feb 8</td>
+                  <td class="py-2.5 text-xs font-medium">Equipment Rental - Crane</td>
+                  <td class="py-2.5 text-xs dark:text-gray-400 text-gray-500">Metro Transit Hub</td>
+                  <td class="py-2.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400">AP</span>
+                  </td>
+                  <td class="py-2.5 text-xs font-semibold text-right text-red-400">-$8,500</td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Budget Alerts (1/3 width) -->
+        <div class="dark:bg-[#141414] bg-[#f8f9fa] border dark:border-[#262626] border-[#e5e7eb] rounded-xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold">Budget Alerts</h3>
+            <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View All Alerts</a>
+          </div>
+          <div class="space-y-3">
+
+            <!-- Alert 1: Red / Critical -->
+            <div class="flex gap-3 p-3 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#262626] border-[#e5e7eb]">
+              <div class="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium leading-snug">Heritage Tower - Steel costs 12% over budget</p>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-500">Over Budget</span>
+                </div>
+              </div>
+              <div class="shrink-0">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i>
+              </div>
+            </div>
+
+            <!-- Alert 2: Amber / Warning -->
+            <div class="flex gap-3 p-3 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#262626] border-[#e5e7eb]">
+              <div class="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium leading-snug">Q1 Marketing spend at 85% of annual budget</p>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-400/10 text-amber-400">Warning</span>
+                </div>
+              </div>
+              <div class="shrink-0">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+              </div>
+            </div>
+
+            <!-- Alert 3: Green / Positive -->
+            <div class="flex gap-3 p-3 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#262626] border-[#e5e7eb]">
+              <div class="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium leading-snug">Riverside Apts - Maintenance under budget by 20%</p>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Under Budget</span>
+                </div>
+              </div>
+              <div class="shrink-0">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
+              </div>
+            </div>
+
+            <!-- Alert 4: Amber / Warning -->
+            <div class="flex gap-3 p-3 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#262626] border-[#e5e7eb]">
+              <div class="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium leading-snug">Company fuel costs trending 15% above forecast</p>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-400/10 text-amber-400">Warning</span>
+                </div>
+              </div>
+              <div class="shrink-0">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- FIXED THEME TOGGLE (bottom-right corner)                     -->
+  <!-- ============================================================ -->
+  <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

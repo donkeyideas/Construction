@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstructionERP - Gantt Schedule</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #ffffff; --surface: #f5f0eb; --topbar-bg: #fffcf9;
+  --blue: #1d4ed8; --blue-light: #eff6ff; --amber: #b45309; --amber-light: #fef3c7;
+  --text: #292524; --muted: #78716c; --border: #d6d3d1;
+  --green: #16a34a; --red: #dc2626; --sidebar-w: 240px;
+  --card-bg: #ffffff; --scrollbar: #ccc;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
+  --phase1: #1d4ed8; --phase2: #b45309; --phase3: #16a34a; --phase4: #7c3aed; --phase5: #dc2626;
+  --phase1-light: rgba(29,78,216,.15); --phase2-light: rgba(180,83,9,.15);
+  --phase3-light: rgba(22,163,74,.15); --phase4-light: rgba(124,58,237,.15); --phase5-light: rgba(220,38,38,.15);
+}
+[data-theme="dark"] {
+  --bg: #1c1917; --surface: #292524; --topbar-bg: #1c1917;
+  --blue-light: rgba(29,78,216,.15); --amber-light: rgba(180,83,9,.15);
+  --text: #f5f0eb; --muted: #a8a29e; --border: #44403c;
+  --card-bg: #292524; --scrollbar: #57534e;
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.5; }
+
+/* Sidebar */
+.sidebar {
+  position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+  background: var(--bg); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100; transition: transform .25s ease;
+}
+.sidebar-brand { padding: 20px 22px 14px; }
+.sidebar-brand h1 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+.sidebar-brand .accent-line { width: 40px; height: 3px; background: var(--amber); border-radius: 2px; margin-top: 10px; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.nav-item { position: relative; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 9px 18px 9px 20px;
+  font-size: .835rem; font-weight: 500; color: var(--muted); text-decoration: none;
+  border-left: 3px solid transparent; cursor: pointer; transition: all .15s;
+}
+.nav-link svg { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-link .label { position: relative; }
+.nav-link .label::after {
+  content: ''; position: absolute; left: 0; bottom: -2px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .25s ease;
+}
+.nav-link:hover .label::after { width: 100%; }
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--blue); border-left-color: var(--blue); background: var(--blue-light); font-weight: 600; }
+.nav-link .chevron { margin-left: auto; width: 14px; height: 14px; transition: transform .2s; }
+.nav-item.open > .nav-link .chevron { transform: rotate(90deg); }
+.nav-children { display: none; padding: 2px 0 4px 0; }
+.nav-item.open > .nav-children { display: block; }
+.nav-child {
+  display: block; padding: 6px 18px 6px 51px; font-size: .8rem; color: var(--muted);
+  text-decoration: none; transition: color .15s; position: relative;
+}
+.nav-child::after {
+  content: ''; position: absolute; left: 51px; bottom: 4px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .2s;
+}
+.nav-child:hover { color: var(--text); }
+.nav-child:hover::after { width: calc(100% - 69px); }
+.nav-child.active { color: var(--blue); font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid var(--border); padding: 6px 0; }
+
+/* Topbar */
+.topbar {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 52px;
+  background: var(--topbar-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; z-index: 90; transition: left .25s ease;
+}
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .875rem; font-weight: 500; }
+.breadcrumb .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.search-btn {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border: 1px solid var(--border); border-radius: 7px; background: var(--bg);
+  font-size: .8rem; color: var(--muted); cursor: pointer; font-family: var(--font-sans);
+}
+.search-btn kbd { font-size: .7rem; background: var(--surface); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); font-family: var(--font-sans); }
+.notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--muted); }
+.notif-btn svg { width: 20px; height: 20px; }
+.notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); color: #fff; font-size: .6rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 600; }
+.sidebar-toggle {
+  display: none; position: fixed; top: 10px; left: 12px; z-index: 110;
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; align-items: center; justify-content: center;
+}
+.sidebar-toggle svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 95; }
+
+/* Main */
+.main { margin-left: var(--sidebar-w); margin-top: 52px; padding: 28px; min-height: calc(100vh - 52px); transition: margin-left .25s; }
+
+/* Page Header */
+.page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-header h2 { font-family: var(--font-serif); font-size: 2rem; font-weight: 700; }
+.page-header p { color: var(--muted); font-size: .9rem; margin-top: 2px; }
+.header-controls { display: flex; align-items: center; gap: 12px; }
+.select-control {
+  padding: 7px 12px; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--bg); color: var(--text); font-size: .82rem; font-family: var(--font-sans);
+  cursor: pointer; appearance: auto;
+}
+.date-input {
+  padding: 7px 12px; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--bg); color: var(--text); font-size: .82rem; font-family: var(--font-sans);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+  padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+}
+.btn-primary {
+  background: var(--blue); color: #fff; padding: 7px 16px; border: none; border-radius: 6px;
+  font-size: .82rem; font-weight: 600; font-family: var(--font-sans); cursor: pointer;
+  transition: background .2s, transform .2s;
+}
+.btn-primary:hover { background: #1e40af; transform: translateY(-1px); }
+.toolbar-sep { width: 1px; height: 28px; background: var(--border); }
+.filter-group { display: flex; align-items: center; gap: 8px; }
+.filter-label { font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.zoom-controls { display: flex; gap: 4px; margin-left: auto; }
+.zoom-btn {
+  padding: 5px 12px; border: 1px solid var(--border); background: var(--bg);
+  color: var(--muted); font-size: .75rem; font-weight: 500; cursor: pointer;
+  font-family: var(--font-sans); transition: all .15s;
+}
+.zoom-btn:first-child { border-radius: 6px 0 0 6px; }
+.zoom-btn:last-child { border-radius: 0 6px 6px 0; }
+.zoom-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.zoom-btn:hover:not(.active) { color: var(--text); background: var(--surface); }
+
+/* Gantt Container */
+.gantt-container {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; margin-bottom: 20px;
+}
+.gantt-wrapper { display: flex; overflow: hidden; }
+
+/* Task Panel (left) */
+.task-panel { width: 320px; min-width: 320px; border-right: 1px solid var(--border); }
+.task-panel-header {
+  display: grid; grid-template-columns: 1fr 60px 80px;
+  padding: 10px 16px; border-bottom: 2px solid var(--border);
+  font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+  background: var(--surface);
+}
+.task-row {
+  display: grid; grid-template-columns: 1fr 60px 80px; align-items: center;
+  padding: 0 16px; height: 38px; border-bottom: 1px solid var(--border);
+  font-size: .8rem; transition: background .1s;
+}
+.task-row:hover { background: var(--surface); }
+.task-row.phase {
+  font-weight: 600; font-family: var(--font-serif); font-size: .85rem;
+  background: var(--surface);
+}
+.task-name { display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.task-name .indent { display: inline-block; }
+.task-name .collapse-btn {
+  width: 16px; height: 16px; border: none; background: none; cursor: pointer;
+  color: var(--muted); font-size: .7rem; display: flex; align-items: center; justify-content: center;
+}
+.task-days { text-align: center; font-size: .75rem; color: var(--muted); }
+.task-progress { text-align: center; }
+.progress-bar-sm {
+  width: 56px; height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; display: inline-block;
+}
+.progress-bar-sm .fill { height: 100%; border-radius: 3px; }
+
+/* Timeline Panel (right) */
+.timeline-panel { flex: 1; overflow-x: auto; position: relative; }
+.timeline-panel::-webkit-scrollbar { height: 8px; }
+.timeline-panel::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
+.timeline-header {
+  display: flex; border-bottom: 2px solid var(--border); background: var(--surface);
+  position: sticky; top: 0; z-index: 5;
+}
+.month-header {
+  font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); padding: 10px 0; text-align: center; border-right: 1px solid var(--border);
+}
+.timeline-body { position: relative; }
+.timeline-row {
+  height: 38px; border-bottom: 1px solid var(--border); position: relative;
+  display: flex; align-items: center;
+}
+.timeline-row:hover { background: var(--surface); }
+
+/* Grid lines */
+.grid-line {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: var(--border); opacity: .4; z-index: 1;
+}
+
+/* Today marker */
+.today-marker {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  border-left: 2px dashed var(--red); z-index: 10;
+}
+.today-label {
+  position: absolute; top: -22px; transform: translateX(-50%);
+  font-size: .65rem; font-weight: 600; color: var(--red);
+  background: var(--bg); padding: 1px 6px; border-radius: 3px;
+  border: 1px solid var(--red); white-space: nowrap;
+}
+
+/* Gantt bars */
+.gantt-bar {
+  position: absolute; height: 22px; border-radius: 4px; top: 8px;
+  display: flex; align-items: center; z-index: 5; cursor: pointer;
+  transition: filter .2s;
+}
+.gantt-bar:hover { filter: brightness(1.1); }
+.gantt-bar .bar-progress {
+  height: 100%; border-radius: 4px 0 0 4px; opacity: .85;
+  position: absolute; left: 0; top: 0;
+}
+.gantt-bar .bar-label {
+  font-size: .65rem; font-weight: 500; color: #fff; padding: 0 8px;
+  position: relative; z-index: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gantt-bar.critical { border: 2px solid #fbbf24; box-shadow: 0 0 0 1px rgba(251,191,36,.3); }
+
+/* Phase colors */
+.bar-phase1 { background: var(--phase1); }
+.bar-phase1 .bar-progress { background: #1e40af; }
+.bar-phase2 { background: var(--phase2); }
+.bar-phase2 .bar-progress { background: #92400e; }
+.bar-phase3 { background: var(--phase3); }
+.bar-phase3 .bar-progress { background: #15803d; }
+.bar-phase4 { background: var(--phase4); }
+.bar-phase4 .bar-progress { background: #6d28d9; }
+.bar-phase5 { background: var(--phase5); }
+.bar-phase5 .bar-progress { background: #b91c1c; }
+
+/* Dependency arrows */
+.dependency-line {
+  position: absolute; z-index: 4; pointer-events: none;
+}
+.dependency-line svg { overflow: visible; }
+.dependency-line svg path {
+  fill: none; stroke: var(--muted); stroke-width: 1.5;
+  marker-end: url(#arrowhead);
+}
+
+/* Milestone */
+.milestone {
+  position: absolute; width: 14px; height: 14px; top: 12px;
+  background: var(--amber); transform: rotate(45deg); z-index: 6;
+  border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+
+/* Legend & Summary */
+.legend-bar {
+  display: flex; align-items: center; gap: 24px; padding: 14px 20px;
+  border-top: 1px solid var(--border); background: var(--surface); flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--muted); }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+.legend-diamond { width: 10px; height: 10px; background: var(--amber); transform: rotate(45deg); }
+.legend-critical { width: 12px; height: 12px; border-radius: 3px; border: 2px solid #fbbf24; background: var(--blue); }
+
+.summary-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+}
+.summary-card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 20px; transition: box-shadow .2s, transform .2s;
+}
+.summary-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); transform: translateY(-2px); }
+.summary-value { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; }
+.summary-label { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+
+/* Badge */
+.badge { padding: 2px 9px; border-radius: 10px; font-size: .7rem; font-weight: 600; }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-green { background: rgba(22,163,74,.08); color: var(--green); }
+.badge-red { background: rgba(220,38,38,.08); color: var(--red); }
+
+/* Responsive */
+@media (max-width: 1280px) {
+  .summary-bar { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 1023px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .overlay.active { display: block; }
+  .topbar { left: 0; padding-left: 56px; }
+  .main { margin-left: 0; }
+}
+@media (max-width: 768px) {
+  .task-panel { width: 200px; min-width: 200px; }
+  .task-panel-header { grid-template-columns: 1fr 50px; }
+  .task-row { grid-template-columns: 1fr 50px; }
+  .task-progress { display: none; }
+  .toolbar { gap: 8px; }
+  .filter-group { display: none; }
+  .page-header h2 { font-size: 1.5rem; }
+  .summary-bar { grid-template-columns: 1fr; }
+  .main { padding: 16px; }
+}
+@media (max-width: 640px) {
+  .task-panel { width: 160px; min-width: 160px; }
+  .header-controls { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar Toggle -->
+<button class="sidebar-toggle" onclick="toggleSidebar()">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h1>ConstructionERP</h1>
+    <div class="accent-line"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="label">Dashboard</span>
+      </a>
+    </div>
+    <div class="nav-item open" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/></svg>
+        <span class="label">Projects</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Active Projects</a>
+        <a class="nav-child active" href="#">Gantt Schedule</a>
+        <a class="nav-child" href="#">Budgets</a>
+        <a class="nav-child" href="#">Daily Logs</a>
+      </div>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="label">Properties</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Portfolio</a>
+        <a class="nav-child" href="#">Leases</a>
+        <a class="nav-child" href="#">Tenants</a>
+        <a class="nav-child" href="#">Maintenance</a>
+      </div>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span class="label">Financial</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Accounts Payable</a>
+        <a class="nav-child" href="#">Accounts Receivable</a>
+        <a class="nav-child" href="#">General Ledger</a>
+        <a class="nav-child" href="#">Job Costing</a>
+      </div>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="label">Documents</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Plan Room</a>
+        <a class="nav-child" href="#">Submittals</a>
+        <a class="nav-child" href="#">RFIs</a>
+        <a class="nav-child" href="#">Contracts</a>
+      </div>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="label">People</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Employees</a>
+        <a class="nav-child" href="#">Subcontractors</a>
+        <a class="nav-child" href="#">Time Tracking</a>
+        <a class="nav-child" href="#">Payroll</a>
+      </div>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+        <span class="label">CRM &amp; Bids</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Leads</a>
+        <a class="nav-child" href="#">Bid Management</a>
+        <a class="nav-child" href="#">Proposals</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4c-4.42 0-8 1.34-8 6 0-8 3.58-14 8-14z" stroke-width="1.5"/></svg>
+        <span class="label">AI Assistant</span>
+      </a>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="label">Reports</span>
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- Top Bar -->
+<header class="topbar" id="topbar">
+  <div class="breadcrumb">
+    <span>Projects</span>
+    <span class="dot"></span>
+    <span>Gantt Schedule</span>
+  </div>
+  <div class="topbar-right">
+    <button onclick="toggleTheme()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Toggle theme">
+      <svg id="sunIcon" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="search-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search <kbd>Ctrl+K</kbd>
+    </button>
+    <button class="notif-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-badge">5</span>
+    </button>
+    <div class="avatar">JD</div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main" id="main">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2>Project Schedule</h2>
+      <p>Riverside Tower &mdash; Commercial Mixed-Use Development</p>
+    </div>
+    <div class="header-controls">
+      <select class="select-control">
+        <option>Riverside Tower</option>
+        <option>Harbor District Phase 2</option>
+        <option>Oakwood Residences</option>
+        <option>Metro Center Office</option>
+      </select>
+      <input type="date" class="date-input" value="2026-01-05">
+      <span style="font-size:.8rem;color:var(--muted)">to</span>
+      <input type="date" class="date-input" value="2026-07-15">
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn-primary">+ Add Task</button>
+    <div class="toolbar-sep"></div>
+    <div class="filter-group">
+      <span class="filter-label">Phase</span>
+      <select class="select-control">
+        <option>All Phases</option>
+        <option>Pre-Construction</option>
+        <option>Foundation</option>
+        <option>Structural</option>
+        <option>MEP</option>
+        <option>Finishes</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Assignee</span>
+      <select class="select-control">
+        <option>All Assignees</option>
+        <option>Sarah Chen</option>
+        <option>Mike Torres</option>
+        <option>Lisa Park</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Status</span>
+      <select class="select-control">
+        <option>All Statuses</option>
+        <option>Not Started</option>
+        <option>In Progress</option>
+        <option>Complete</option>
+        <option>Delayed</option>
+      </select>
+    </div>
+    <div class="zoom-controls">
+      <button class="zoom-btn">Day</button>
+      <button class="zoom-btn active">Week</button>
+      <button class="zoom-btn">Month</button>
+    </div>
+  </div>
+
+  <!-- Gantt Chart -->
+  <div class="gantt-container">
+    <div class="gantt-wrapper">
+      <!-- Task Panel -->
+      <div class="task-panel">
+        <div class="task-panel-header">
+          <span>Task Name</span>
+          <span style="text-align:center">Days</span>
+          <span style="text-align:center">Progress</span>
+        </div>
+        <!-- Phase 1 -->
+        <div class="task-row phase" style="border-left: 3px solid var(--phase1);">
+          <div class="task-name">
+            <button class="collapse-btn" onclick="togglePhase('p1')">&#9660;</button>
+            Phase 1: Pre-Construction
+          </div>
+          <div class="task-days">26</div>
+          <div class="task-progress"><span class="badge badge-green">100%</span></div>
+        </div>
+        <div class="phase-children" id="p1">
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Permits &amp; Approvals</div>
+            <div class="task-days">14</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:100%;background:var(--phase1)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Site Survey</div>
+            <div class="task-days">5</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:100%;background:var(--phase1)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Soil Testing</div>
+            <div class="task-days">7</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:100%;background:var(--phase1)"></div></div></div>
+          </div>
+        </div>
+        <!-- Phase 2 -->
+        <div class="task-row phase" style="border-left: 3px solid var(--phase2);">
+          <div class="task-name">
+            <button class="collapse-btn" onclick="togglePhase('p2')">&#9660;</button>
+            Phase 2: Foundation
+          </div>
+          <div class="task-days">29</div>
+          <div class="task-progress"><span class="badge badge-amber">72%</span></div>
+        </div>
+        <div class="phase-children" id="p2">
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Excavation</div>
+            <div class="task-days">10</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:100%;background:var(--phase2)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Concrete Pour</div>
+            <div class="task-days">5</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:80%;background:var(--phase2)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Foundation Cure</div>
+            <div class="task-days">14</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:35%;background:var(--phase2)"></div></div></div>
+          </div>
+        </div>
+        <!-- Phase 3 -->
+        <div class="task-row phase" style="border-left: 3px solid var(--phase3);">
+          <div class="task-name">
+            <button class="collapse-btn" onclick="togglePhase('p3')">&#9660;</button>
+            Phase 3: Structural
+          </div>
+          <div class="task-days">53</div>
+          <div class="task-progress"><span class="badge badge-blue">5%</span></div>
+        </div>
+        <div class="phase-children" id="p3">
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Steel Erection</div>
+            <div class="task-days">21</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:10%;background:var(--phase3)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Concrete Decks</div>
+            <div class="task-days">14</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:0%;background:var(--phase3)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Framing</div>
+            <div class="task-days">18</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:0%;background:var(--phase3)"></div></div></div>
+          </div>
+        </div>
+        <!-- Phase 4 -->
+        <div class="task-row phase" style="border-left: 3px solid var(--phase4);">
+          <div class="task-name">
+            <button class="collapse-btn" onclick="togglePhase('p4')">&#9660;</button>
+            Phase 4: MEP
+          </div>
+          <div class="task-days">42</div>
+          <div class="task-progress"><span class="badge badge-blue">0%</span></div>
+        </div>
+        <div class="phase-children" id="p4">
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Electrical Rough-In</div>
+            <div class="task-days">14</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:0%;background:var(--phase4)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Plumbing Rough-In</div>
+            <div class="task-days">12</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:0%;background:var(--phase4)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>HVAC Installation</div>
+            <div class="task-days">16</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:0%;background:var(--phase4)"></div></div></div>
+          </div>
+        </div>
+        <!-- Phase 5 -->
+        <div class="task-row phase" style="border-left: 3px solid var(--phase5);">
+          <div class="task-name">
+            <button class="collapse-btn" onclick="togglePhase('p5')">&#9660;</button>
+            Phase 5: Finishes
+          </div>
+          <div class="task-days">25</div>
+          <div class="task-progress"><span class="badge badge-blue">0%</span></div>
+        </div>
+        <div class="phase-children" id="p5">
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Drywall</div>
+            <div class="task-days">10</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:0%;background:var(--phase5)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Painting</div>
+            <div class="task-days">7</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:0%;background:var(--phase5)"></div></div></div>
+          </div>
+          <div class="task-row">
+            <div class="task-name"><span class="indent" style="width:28px"></span>Flooring</div>
+            <div class="task-days">8</div>
+            <div class="task-progress"><div class="progress-bar-sm"><div class="fill" style="width:0%;background:var(--phase5)"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Panel -->
+      <div class="timeline-panel" id="timelinePanel">
+        <!-- SVG defs for arrowheads -->
+        <svg style="position:absolute;width:0;height:0">
+          <defs>
+            <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/>
+            </marker>
+          </defs>
+        </svg>
+
+        <!-- Month Headers -->
+        <div class="timeline-header" id="timelineHeader">
+          <div class="month-header" style="width:155px">Jan 2026</div>
+          <div class="month-header" style="width:140px">Feb 2026</div>
+          <div class="month-header" style="width:155px">Mar 2026</div>
+          <div class="month-header" style="width:150px">Apr 2026</div>
+          <div class="month-header" style="width:155px">May 2026</div>
+          <div class="month-header" style="width:150px">Jun 2026</div>
+          <div class="month-header" style="width:155px">Jul 2026</div>
+        </div>
+
+        <!-- Timeline Body -->
+        <div class="timeline-body" id="timelineBody" style="width:1060px;position:relative;">
+          <!-- Grid lines (weekly) -->
+          <div class="grid-line" style="left:37px"></div>
+          <div class="grid-line" style="left:72px"></div>
+          <div class="grid-line" style="left:107px"></div>
+          <div class="grid-line" style="left:142px"></div>
+          <div class="grid-line" style="left:177px"></div>
+          <div class="grid-line" style="left:212px"></div>
+          <div class="grid-line" style="left:247px"></div>
+          <div class="grid-line" style="left:282px"></div>
+          <div class="grid-line" style="left:317px"></div>
+          <div class="grid-line" style="left:352px"></div>
+          <div class="grid-line" style="left:387px"></div>
+          <div class="grid-line" style="left:422px"></div>
+          <div class="grid-line" style="left:457px"></div>
+          <div class="grid-line" style="left:492px"></div>
+          <div class="grid-line" style="left:527px"></div>
+          <div class="grid-line" style="left:562px"></div>
+          <div class="grid-line" style="left:597px"></div>
+          <div class="grid-line" style="left:632px"></div>
+          <div class="grid-line" style="left:667px"></div>
+          <div class="grid-line" style="left:702px"></div>
+          <div class="grid-line" style="left:737px"></div>
+          <div class="grid-line" style="left:772px"></div>
+          <div class="grid-line" style="left:807px"></div>
+          <div class="grid-line" style="left:842px"></div>
+          <div class="grid-line" style="left:877px"></div>
+          <div class="grid-line" style="left:912px"></div>
+          <div class="grid-line" style="left:947px"></div>
+          <div class="grid-line" style="left:982px"></div>
+          <div class="grid-line" style="left:1017px"></div>
+
+          <!-- Today marker (Feb 12 2026 ~ day 43 from Jan 1 -> ~215px) -->
+          <div class="today-marker" style="left:215px;">
+            <div class="today-label">Today Feb 12</div>
+          </div>
+
+          <!-- Phase 1 summary row -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase1" style="left:5px;width:130px;opacity:.4;height:14px;top:12px;border-radius:3px;"></div>
+          </div>
+          <!-- Permits & Approvals: Jan 5 - Jan 18 (14d) = 100% -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase1 critical" style="left:5px;width:70px;">
+              <div class="bar-progress" style="width:100%;background:#1e40af;border-radius:4px;"></div>
+              <span class="bar-label">Permits</span>
+            </div>
+          </div>
+          <!-- Site Survey: Jan 12 - Jan 16 (5d) = 100% -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase1" style="left:40px;width:25px;">
+              <div class="bar-progress" style="width:100%;background:#1e40af;border-radius:4px;"></div>
+              <span class="bar-label">Survey</span>
+            </div>
+          </div>
+          <!-- Soil Testing: Jan 14 - Jan 20 (7d) = 100% -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase1" style="left:50px;width:35px;">
+              <div class="bar-progress" style="width:100%;background:#1e40af;border-radius:4px;"></div>
+              <span class="bar-label">Soil Test</span>
+            </div>
+          </div>
+
+          <!-- Phase 2 summary row -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase2" style="left:90px;width:145px;opacity:.4;height:14px;top:12px;border-radius:3px;"></div>
+          </div>
+          <!-- Excavation: Jan 21 - Jan 30 (10d) = 100% -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase2 critical" style="left:90px;width:50px;">
+              <div class="bar-progress" style="width:100%;background:#92400e;border-radius:4px;"></div>
+              <span class="bar-label">Excavation</span>
+            </div>
+          </div>
+          <!-- Concrete Pour: Feb 1 - Feb 5 (5d) = 80% -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase2 critical" style="left:145px;width:25px;">
+              <div class="bar-progress" style="width:80%;background:#92400e;"></div>
+              <span class="bar-label">Pour</span>
+            </div>
+          </div>
+          <!-- Foundation Cure: Feb 6 - Feb 19 (14d) = 35% -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase2" style="left:175px;width:70px;">
+              <div class="bar-progress" style="width:35%;background:#92400e;"></div>
+              <span class="bar-label">Foundation Cure</span>
+            </div>
+          </div>
+
+          <!-- Phase 3 summary row -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase3" style="left:250px;width:265px;opacity:.4;height:14px;top:12px;border-radius:3px;"></div>
+          </div>
+          <!-- Steel Erection: Feb 24 - Mar 16 (21d) = 10% -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase3 critical" style="left:250px;width:105px;">
+              <div class="bar-progress" style="width:10%;background:#15803d;"></div>
+              <span class="bar-label">Steel Erection</span>
+            </div>
+          </div>
+          <!-- Concrete Decks: Mar 17 - Mar 30 (14d) = 0% -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase3" style="left:360px;width:70px;">
+              <span class="bar-label">Concrete Decks</span>
+            </div>
+          </div>
+          <!-- Framing: Mar 24 - Apr 10 (18d) = 0% -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase3" style="left:395px;width:90px;">
+              <span class="bar-label">Framing</span>
+            </div>
+          </div>
+
+          <!-- Phase 4 summary row -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase4" style="left:500px;width:210px;opacity:.4;height:14px;top:12px;border-radius:3px;"></div>
+          </div>
+          <!-- Electrical Rough-In: Apr 14 - Apr 27 (14d) -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase4 critical" style="left:500px;width:70px;">
+              <span class="bar-label">Electrical Rough-In</span>
+            </div>
+          </div>
+          <!-- Plumbing Rough-In: Apr 21 - May 2 (12d) -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase4" style="left:535px;width:60px;">
+              <span class="bar-label">Plumbing Rough-In</span>
+            </div>
+          </div>
+          <!-- HVAC Installation: May 1 - May 16 (16d) -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase4" style="left:590px;width:80px;">
+              <span class="bar-label">HVAC Installation</span>
+            </div>
+          </div>
+
+          <!-- Phase 5 summary row -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase5" style="left:690px;width:180px;opacity:.4;height:14px;top:12px;border-radius:3px;"></div>
+          </div>
+          <!-- Drywall: May 25 - Jun 3 (10d) -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase5" style="left:690px;width:50px;">
+              <span class="bar-label">Drywall</span>
+            </div>
+          </div>
+          <!-- Painting: Jun 4 - Jun 10 (7d) -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase5" style="left:745px;width:35px;">
+              <span class="bar-label">Painting</span>
+            </div>
+          </div>
+          <!-- Flooring: Jun 9 - Jun 16 (8d) -->
+          <div class="timeline-row">
+            <div class="gantt-bar bar-phase5 critical" style="left:770px;width:40px;">
+              <span class="bar-label">Flooring</span>
+            </div>
+          </div>
+
+          <!-- Milestones -->
+          <div class="milestone" style="left:82px;top:0;position:absolute;" title="Pre-Construction Complete"></div>
+          <div class="milestone" style="left:240px;top:0;position:absolute;" title="Foundation Complete"></div>
+          <div class="milestone" style="left:483px;top:0;position:absolute;" title="Structure Topped Out"></div>
+          <div class="milestone" style="left:808px;top:0;position:absolute;" title="Substantial Completion"></div>
+
+          <!-- Dependency arrows (simplified CSS lines) -->
+          <div class="dependency-line" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
+            <svg style="position:absolute;top:0;left:0;width:100%;height:100%;">
+              <!-- Permits -> Excavation -->
+              <path d="M 75 57 L 85 57 L 85 219 L 90 219" stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+              <!-- Excavation -> Concrete Pour -->
+              <path d="M 140 219 L 142 219 L 142 257 L 145 257" stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+              <!-- Concrete Pour -> Foundation Cure -->
+              <path d="M 170 257 L 172 257 L 172 295 L 175 295" stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+              <!-- Foundation Cure -> Steel Erection -->
+              <path d="M 245 295 L 247 295 L 247 371 L 250 371" stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+              <!-- Steel -> Electrical -->
+              <path d="M 355 371 L 490 371 L 490 523 L 500 523" stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-bar">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--phase1)"></div>Pre-Construction</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--phase2)"></div>Foundation</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--phase3)"></div>Structural</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--phase4)"></div>MEP</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--phase5)"></div>Finishes</div>
+      <div class="legend-item"><div class="legend-critical"></div>Critical Path</div>
+      <div class="legend-item"><div class="legend-diamond"></div>Milestone</div>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="summary-bar">
+    <div class="summary-card">
+      <div class="summary-value">142 days</div>
+      <div class="summary-label">Total Duration</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value" style="color:var(--amber)">38%</div>
+      <div class="summary-label">Overall Completion</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value" style="color:var(--red)">6</div>
+      <div class="summary-label">Critical Tasks</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-value" style="color:var(--blue)">4</div>
+      <div class="summary-label">Milestones</div>
+    </div>
+  </div>
+</main>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.querySelector('.overlay').classList.toggle('active');
+}
+function toggleNav(item) {
+  var wasOpen = item.classList.contains('open');
+  var siblings = item.parentElement.querySelectorAll(':scope > .nav-item.open');
+  siblings.forEach(function(el) { if (el !== item) el.classList.remove('open'); });
+  if (wasOpen) item.classList.remove('open');
+  else item.classList.add('open');
+}
+function togglePhase(id) {
+  var el = document.getElementById(id);
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+document.querySelectorAll('.zoom-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    btn.parentElement.querySelectorAll('.zoom-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+  });
+});
+window.addEventListener('resize', function() {
+  if (window.innerWidth >= 1024) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.querySelector('.overlay').classList.remove('active');
+  }
+});
+function toggleTheme(){
+  var html=document.documentElement;
+  var isDark=html.getAttribute("data-theme")==="dark";
+  if(isDark){html.removeAttribute("data-theme");document.getElementById("sunIcon").style.display="none";document.getElementById("moonIcon").style.display="block";localStorage.setItem("theme-08","light")}
+  else{html.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none";localStorage.setItem("theme-08","dark")}
+}
+(function(){var t=localStorage.getItem("theme-08");if(t==="dark"){document.documentElement.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none"}})();
+</script>
+</body>
+</html>

@@ -1,0 +1,730 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Projects</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#2c5282', light: '#3b6ba5', dark: '#1e3a5f' },
+            accent: { DEFAULT: '#c9a84c', light: '#d4b96a', dark: '#b08f3a' },
+            surface: { dark: '#243447', light: '#ffffff' },
+            border: { dark: '#344258', light: '#d1d9e6' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #2c5282, #c9a84c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #344258; border-radius: 4px; }
+    .circular-progress { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+    .circular-progress svg { transform: rotate(-90deg); }
+    .circular-progress .track { stroke: currentColor; opacity: 0.15; }
+    .circular-progress .fill { stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+  </style>
+</head>
+<body class="dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark')" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Sidebar -->
+  <aside class="fixed top-0 left-0 h-screen w-[260px] dark:bg-[#1e2d3f] bg-[#f0f2f5] border-r dark:border-[#344258] border-[#d1d9e6] z-40 flex flex-col">
+
+    <!-- Sidebar Header / Logo -->
+    <div class="h-16 px-5 flex items-center gap-3 border-b dark:border-[#344258] border-[#d1d9e6] flex-shrink-0">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-base font-bold">ConstructionERP</span>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll px-3 py-4 space-y-6">
+
+      <!-- OVERVIEW -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Overview</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+      </div>
+
+      <!-- CONSTRUCTION -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Construction</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-brand/10 text-brand font-medium">
+          <i data-lucide="folder-kanban" class="w-4 h-4"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+          Safety
+        </a>
+      </div>
+
+      <!-- REAL ESTATE -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Real Estate</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Properties
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          Leases
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+          Maintenance
+        </a>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Financial</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          AP
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="credit-card" class="w-4 h-4"></i>
+          AR
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          GL
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          Job Costing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="landmark" class="w-4 h-4"></i>
+          Banking
+        </a>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Documents</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="library" class="w-4 h-4"></i>
+          Library
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="file-signature" class="w-4 h-4"></i>
+          Contracts
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          Plan Room
+        </a>
+      </div>
+
+      <!-- PEOPLE -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">People</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="contact" class="w-4 h-4"></i>
+          Directory
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          Time & Attendance
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="truck" class="w-4 h-4"></i>
+          Equipment
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Vendors
+        </a>
+      </div>
+
+      <!-- BUSINESS DEVELOPMENT -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Business Development</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="git-branch" class="w-4 h-4"></i>
+          Pipeline
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>
+          Opportunities
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="gavel" class="w-4 h-4"></i>
+          Bids & Proposals
+        </a>
+      </div>
+
+      <!-- REPORTS -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Reports</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="file-bar-chart" class="w-4 h-4"></i>
+          Report Center
+        </a>
+      </div>
+
+      <!-- AI INTELLIGENCE -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">AI Intelligence</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          Automation
+        </a>
+      </div>
+
+      <!-- ADMINISTRATION -->
+      <div>
+        <div class="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Administration</div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="user-cog" class="w-4 h-4"></i>
+          Users & Roles
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Company Settings
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="plug" class="w-4 h-4"></i>
+          Integrations
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-200/60 transition-colors">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          Security
+        </a>
+      </div>
+
+    </nav>
+  </aside>
+
+  <!-- Main Content Area (offset by sidebar) -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- Top Bar -->
+    <header class="h-16 border-b dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-30">
+
+      <!-- Left: Breadcrumb -->
+      <div class="flex items-center gap-2 text-sm">
+        <span class="dark:text-gray-500 text-gray-400">Construction</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 dark:text-gray-600 text-gray-300"></i>
+        <span class="font-medium dark:text-gray-100 text-gray-900">Projects</span>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-4">
+        <!-- Search -->
+        <div class="relative hidden lg:block">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i data-lucide="search" class="w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+          </div>
+          <input
+            type="text"
+            placeholder="Search..."
+            class="w-56 pl-9 pr-4 py-1.5 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-100 text-gray-900 placeholder:dark:text-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors"
+          >
+        </div>
+
+        <!-- Notifications -->
+        <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors" title="Notifications">
+          <i data-lucide="bell" class="w-5 h-5 dark:text-gray-400 text-gray-500"></i>
+          <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">5</span>
+        </button>
+
+        <!-- Theme Toggle (topbar) -->
+        <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors" title="Toggle theme">
+          <i data-lucide="sun" class="w-5 h-5 hidden dark:block dark:text-gray-400"></i>
+          <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-gray-500"></i>
+        </button>
+
+        <!-- User Avatar -->
+        <button class="flex items-center gap-2" title="Account menu">
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand text-sm font-semibold">JM</div>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 p-6">
+
+      <!-- Header Row -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold">Projects <span class="dark:text-gray-500 text-gray-400 font-normal text-lg">(24)</span></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- View Toggle -->
+          <div class="flex items-center dark:bg-[#243447] bg-[#f8f9fb] rounded-lg border dark:border-[#344258] border-[#d1d9e6] p-0.5">
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-brand text-white transition-colors">
+              <i data-lucide="layout-grid" class="w-4 h-4"></i>
+              Card View
+            </button>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600 dark:hover:text-gray-200 hover:text-gray-900 transition-colors">
+              <i data-lucide="list" class="w-4 h-4"></i>
+              List View
+            </button>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600 dark:hover:text-gray-200 hover:text-gray-900 transition-colors">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+              Map View
+            </button>
+          </div>
+          <!-- New Project Button -->
+          <button class="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            New Project
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="flex items-center gap-3 mb-6 flex-wrap">
+        <!-- Status -->
+        <select class="px-3 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors appearance-none pr-8 bg-no-repeat bg-[length:16px] bg-[center_right_8px]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;)">
+          <option>All Statuses</option>
+          <option>Planning</option>
+          <option>Active</option>
+          <option>On Hold</option>
+          <option>Completed</option>
+        </select>
+        <!-- Type -->
+        <select class="px-3 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors appearance-none pr-8 bg-no-repeat bg-[length:16px] bg-[center_right_8px]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;)">
+          <option>All Types</option>
+          <option>New Construction</option>
+          <option>Renovation</option>
+          <option>Tenant Improvement</option>
+        </select>
+        <!-- Manager -->
+        <select class="px-3 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors appearance-none pr-8 bg-no-repeat bg-[length:16px] bg-[center_right_8px]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;)">
+          <option>All Managers</option>
+          <option>John M.</option>
+          <option>Sarah K.</option>
+          <option>David L.</option>
+          <option>Maria R.</option>
+          <option>James T.</option>
+        </select>
+        <!-- Date Range -->
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="calendar" class="w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+            </div>
+            <input type="text" placeholder="Start date" class="w-32 pl-9 pr-3 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 placeholder:dark:text-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors">
+          </div>
+          <span class="dark:text-gray-600 text-gray-400 text-sm">to</span>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="calendar" class="w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+            </div>
+            <input type="text" placeholder="End date" class="w-32 pl-9 pr-3 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 placeholder:dark:text-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors">
+          </div>
+        </div>
+        <!-- Search -->
+        <div class="relative ml-auto">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i data-lucide="search" class="w-4 h-4 dark:text-gray-500 text-gray-400"></i>
+          </div>
+          <input type="text" placeholder="Search projects..." class="w-52 pl-9 pr-4 py-2 rounded-lg text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 placeholder:dark:text-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand/50 focus:border-brand transition-colors">
+        </div>
+      </div>
+
+      <!-- Project Cards Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 mb-8">
+
+        <!-- Card 1: Riverside Commons Phase II -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden hover:border-brand/40 transition-colors group cursor-pointer">
+          <!-- Photo placeholder -->
+          <div class="h-[180px] bg-gradient-to-br from-blue-900/40 via-blue-800/20 to-gray-900/60 dark:from-blue-900/40 dark:via-blue-800/20 dark:to-gray-900/60 relative flex items-end p-4">
+            <div class="absolute inset-0 flex items-center justify-center opacity-20">
+              <i data-lucide="building-2" class="w-16 h-16 dark:text-gray-500 text-gray-400"></i>
+            </div>
+            <span class="relative z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+              Active
+            </span>
+          </div>
+          <!-- Card body -->
+          <div class="p-4 space-y-4">
+            <!-- Title + address -->
+            <div>
+              <h3 class="font-semibold text-base group-hover:text-brand transition-colors">Riverside Commons Phase II</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">1250 River Rd, Austin, TX 78701</p>
+            </div>
+            <!-- Budget bar -->
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="dark:text-gray-400 text-gray-500">Budget</span>
+                <span class="font-medium dark:text-gray-300 text-gray-700">$2.4M <span class="dark:text-gray-500 text-gray-400 font-normal">/ $3.5M</span></span>
+              </div>
+              <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200">
+                <div class="h-full rounded-full bg-brand" style="width: 68.6%"></div>
+              </div>
+              <div class="text-[10px] dark:text-gray-500 text-gray-400 mt-1 text-right">68.6% spent</div>
+            </div>
+            <!-- Completion + PM -->
+            <div class="flex items-center justify-between">
+              <!-- Circular progress -->
+              <div class="flex items-center gap-3">
+                <div class="circular-progress" title="68% complete">
+                  <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle class="track" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#2c5282"></circle>
+                    <circle class="fill" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#2c5282" stroke-dasharray="100.53" stroke-dashoffset="32.17"></circle>
+                  </svg>
+                  <span class="absolute text-[10px] font-bold text-brand">68%</span>
+                </div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">Complete</span>
+              </div>
+              <!-- PM -->
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-[10px] font-semibold text-blue-400">JM</div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">John M.</span>
+              </div>
+            </div>
+            <!-- Key dates -->
+            <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Start:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Mar 15, 2025</span>
+              </div>
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Est.:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Nov 30, 2025</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Heritage Office Tower -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="h-[180px] bg-gradient-to-br from-emerald-900/40 via-teal-800/20 to-gray-900/60 relative flex items-end p-4">
+            <div class="absolute inset-0 flex items-center justify-center opacity-20">
+              <i data-lucide="building" class="w-16 h-16 dark:text-gray-500 text-gray-400"></i>
+            </div>
+            <span class="relative z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+              Active
+            </span>
+          </div>
+          <div class="p-4 space-y-4">
+            <div>
+              <h3 class="font-semibold text-base group-hover:text-brand transition-colors">Heritage Office Tower</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">800 Heritage Blvd, Dallas, TX 75201</p>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="dark:text-gray-400 text-gray-500">Budget</span>
+                <span class="font-medium dark:text-gray-300 text-gray-700">$5.4M <span class="dark:text-gray-500 text-gray-400 font-normal">/ $12.8M</span></span>
+              </div>
+              <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200">
+                <div class="h-full rounded-full bg-brand" style="width: 42.2%"></div>
+              </div>
+              <div class="text-[10px] dark:text-gray-500 text-gray-400 mt-1 text-right">42.2% spent</div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="circular-progress" title="42% complete">
+                  <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle class="track" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#2c5282"></circle>
+                    <circle class="fill" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#2c5282" stroke-dasharray="100.53" stroke-dashoffset="58.31"></circle>
+                  </svg>
+                  <span class="absolute text-[10px] font-bold text-brand">42%</span>
+                </div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">Complete</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-[10px] font-semibold text-purple-400">SK</div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">Sarah K.</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Start:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Jan 10, 2025</span>
+              </div>
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Est.:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Jun 15, 2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Oakwood Residential -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="h-[180px] bg-gradient-to-br from-amber-900/40 via-yellow-800/20 to-gray-900/60 relative flex items-end p-4">
+            <div class="absolute inset-0 flex items-center justify-center opacity-20">
+              <i data-lucide="home" class="w-16 h-16 dark:text-gray-500 text-gray-400"></i>
+            </div>
+            <span class="relative z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              Planning
+            </span>
+          </div>
+          <div class="p-4 space-y-4">
+            <div>
+              <h3 class="font-semibold text-base group-hover:text-brand transition-colors">Oakwood Residential</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">420 Oakwood Dr, San Antonio, TX 78205</p>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="dark:text-gray-400 text-gray-500">Budget</span>
+                <span class="font-medium dark:text-gray-300 text-gray-700">$0 <span class="dark:text-gray-500 text-gray-400 font-normal">/ $5.2M</span></span>
+              </div>
+              <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200">
+                <div class="h-full rounded-full bg-amber-500" style="width: 0%"></div>
+              </div>
+              <div class="text-[10px] dark:text-gray-500 text-gray-400 mt-1 text-right">0% spent</div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="circular-progress" title="0% complete">
+                  <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle class="track" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#c9a84c"></circle>
+                    <circle class="fill" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#c9a84c" stroke-dasharray="100.53" stroke-dashoffset="100.53"></circle>
+                  </svg>
+                  <span class="absolute text-[10px] font-bold text-amber-500">0%</span>
+                </div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">Complete</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-[10px] font-semibold text-green-400">DL</div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">David L.</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Start:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Apr 1, 2026</span>
+              </div>
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Est.:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Feb 28, 2027</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Metro Transit Hub -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="h-[180px] bg-gradient-to-br from-violet-900/40 via-purple-800/20 to-gray-900/60 relative flex items-end p-4">
+            <div class="absolute inset-0 flex items-center justify-center opacity-20">
+              <i data-lucide="train-front" class="w-16 h-16 dark:text-gray-500 text-gray-400"></i>
+            </div>
+            <span class="relative z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+              Active
+            </span>
+          </div>
+          <div class="p-4 space-y-4">
+            <div>
+              <h3 class="font-semibold text-base group-hover:text-brand transition-colors">Metro Transit Hub</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">3200 Metro Center Blvd, Houston, TX 77002</p>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="dark:text-gray-400 text-gray-500">Budget</span>
+                <span class="font-medium dark:text-gray-300 text-gray-700">$6.9M <span class="dark:text-gray-500 text-gray-400 font-normal">/ $8.1M</span></span>
+              </div>
+              <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200">
+                <div class="h-full rounded-full bg-brand" style="width: 85.2%"></div>
+              </div>
+              <div class="text-[10px] dark:text-gray-500 text-gray-400 mt-1 text-right">85.2% spent</div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="circular-progress" title="85% complete">
+                  <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle class="track" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#2c5282"></circle>
+                    <circle class="fill" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#2c5282" stroke-dasharray="100.53" stroke-dashoffset="15.08"></circle>
+                  </svg>
+                  <span class="absolute text-[10px] font-bold text-brand">85%</span>
+                </div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">Complete</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-[10px] font-semibold text-amber-400">MR</div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">Maria R.</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Start:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Sep 1, 2024</span>
+              </div>
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Est.:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Apr 15, 2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Lakeside Condos -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden hover:border-brand/40 transition-colors group cursor-pointer">
+          <div class="h-[180px] bg-gradient-to-br from-cyan-900/40 via-sky-800/20 to-gray-900/60 relative flex items-end p-4">
+            <div class="absolute inset-0 flex items-center justify-center opacity-20">
+              <i data-lucide="waves" class="w-16 h-16 dark:text-gray-500 text-gray-400"></i>
+            </div>
+            <span class="relative z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+              Pre-Construction
+            </span>
+          </div>
+          <div class="p-4 space-y-4">
+            <div>
+              <h3 class="font-semibold text-base group-hover:text-brand transition-colors">Lakeside Condos</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">55 Lakeshore Way, Fort Worth, TX 76102</p>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="dark:text-gray-400 text-gray-500">Budget</span>
+                <span class="font-medium dark:text-gray-300 text-gray-700">$768K <span class="dark:text-gray-500 text-gray-400 font-normal">/ $6.4M</span></span>
+              </div>
+              <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200">
+                <div class="h-full rounded-full bg-blue-400" style="width: 12%"></div>
+              </div>
+              <div class="text-[10px] dark:text-gray-500 text-gray-400 mt-1 text-right">12% spent</div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="circular-progress" title="12% complete">
+                  <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle class="track" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#3b6ba5"></circle>
+                    <circle class="fill" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#3b6ba5" stroke-dasharray="100.53" stroke-dashoffset="88.47"></circle>
+                  </svg>
+                  <span class="absolute text-[10px] font-bold text-blue-400">12%</span>
+                </div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">Complete</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-[10px] font-semibold text-blue-400">JM</div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">John M.</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Start:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Feb 1, 2026</span>
+              </div>
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Est.:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Dec 31, 2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6: Downtown Retail Center (On Hold - muted) -->
+        <div class="dark:bg-[#243447] bg-white rounded-md border dark:border-[#344258] border-[#d1d9e6] overflow-hidden hover:border-brand/40 transition-colors group cursor-pointer opacity-70">
+          <div class="h-[180px] bg-gradient-to-br from-gray-800/40 via-gray-700/20 to-gray-900/60 relative flex items-end p-4">
+            <div class="absolute inset-0 flex items-center justify-center opacity-20">
+              <i data-lucide="store" class="w-16 h-16 dark:text-gray-500 text-gray-400"></i>
+            </div>
+            <span class="relative z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-500/20 text-gray-400 border border-gray-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+              On Hold
+            </span>
+          </div>
+          <div class="p-4 space-y-4">
+            <div>
+              <h3 class="font-semibold text-base group-hover:text-brand transition-colors">Downtown Retail Center</h3>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">100 Main St, El Paso, TX 79901</p>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="dark:text-gray-400 text-gray-500">Budget</span>
+                <span class="font-medium dark:text-gray-300 text-gray-700">$1.6M <span class="dark:text-gray-500 text-gray-400 font-normal">/ $4.7M</span></span>
+              </div>
+              <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200">
+                <div class="h-full rounded-full bg-gray-500" style="width: 34%"></div>
+              </div>
+              <div class="text-[10px] dark:text-gray-500 text-gray-400 mt-1 text-right">34% spent</div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="circular-progress" title="35% complete">
+                  <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle class="track" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#6b7280"></circle>
+                    <circle class="fill" cx="20" cy="20" r="16" fill="none" stroke-width="3" stroke="#6b7280" stroke-dasharray="100.53" stroke-dashoffset="65.34"></circle>
+                  </svg>
+                  <span class="absolute text-[10px] font-bold text-gray-500">35%</span>
+                </div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">Complete</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-rose-500/20 flex items-center justify-center text-[10px] font-semibold text-rose-400">JT</div>
+                <span class="text-xs dark:text-gray-400 text-gray-500">James T.</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Start:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">Jun 20, 2025</span>
+              </div>
+              <div class="text-xs">
+                <span class="dark:text-gray-500 text-gray-400">Est.:</span>
+                <span class="dark:text-gray-300 text-gray-600 ml-1">TBD</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between pt-4 border-t dark:border-[#344258] border-[#d1d9e6]">
+        <span class="text-sm dark:text-gray-400 text-gray-500">Showing 1-6 of 24 projects</span>
+        <div class="flex items-center gap-1">
+          <button class="w-8 h-8 flex items-center justify-center rounded-lg dark:text-gray-500 text-gray-400 dark:hover:bg-white/5 hover:bg-gray-100 transition-colors" title="Previous page" disabled>
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <button class="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium bg-brand text-white">1</button>
+          <button class="w-8 h-8 flex items-center justify-center rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">2</button>
+          <button class="w-8 h-8 flex items-center justify-center rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">3</button>
+          <button class="w-8 h-8 flex items-center justify-center rounded-lg text-sm dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">4</button>
+          <button class="w-8 h-8 flex items-center justify-center rounded-lg dark:text-gray-400 text-gray-600 dark:hover:bg-white/5 hover:bg-gray-100 transition-colors" title="Next page">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Initialize Lucide Icons -->
+  <script>lucide.createIcons();</script>
+
+</body>
+</html>

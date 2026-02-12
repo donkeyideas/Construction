@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Tenant & Vendor Portals</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed' },
+            accent: { DEFAULT: '#ec4899', light: '#f472b6', dark: '#db2777' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .portal-nav-scroll::-webkit-scrollbar { height: 0; }
+    .progress-bar { transition: width 0.6s ease-in-out; }
+
+    /* Glass card styles */
+    .glass-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+    }
+    .light .glass-card {
+      background: rgba(255,255,255,0.65);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    /* Glass nav bar */
+    .glass-nav {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+    }
+    .light .glass-nav {
+      background: rgba(255,255,255,0.65);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    /* Glass inner card (nested cards) */
+    .glass-inner {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+    }
+    .light .glass-inner {
+      background: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.4);
+    }
+
+    /* Glass divider pill */
+    .glass-divider-pill {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .light .glass-divider-pill {
+      background: rgba(255,255,255,0.65);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+  </style>
+</head>
+<body class="text-gray-100 transition-colors duration-300" style="background: linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%); min-height: 100vh;">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="toggleTheme()" class="fixed bottom-6 right-6 z-50 p-3 rounded-full backdrop-blur-sm hover:scale-110 transition-transform" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- ============================================================= -->
+  <!-- SECTION 1: TENANT PORTAL                                      -->
+  <!-- ============================================================= -->
+
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
+
+    <!-- Section Label -->
+    <div class="mb-6">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider" style="background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25);">
+        <i data-lucide="home" class="w-3.5 h-3.5"></i>
+        Tenant Portal
+      </span>
+    </div>
+
+    <!-- Tenant Top Nav -->
+    <nav class="glass-nav mb-8">
+      <div class="flex items-center justify-between px-6 py-3">
+        <!-- Left: Logo + Nav -->
+        <div class="flex items-center gap-8">
+          <!-- Logo -->
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 bg-brand rounded-lg flex items-center justify-center">
+              <i data-lucide="building-2" class="w-4 h-4 text-white"></i>
+            </div>
+            <span class="text-sm font-bold" style="color: #f8fafc;">ConstructionERP</span>
+          </div>
+          <!-- Nav Links -->
+          <div class="hidden md:flex items-center gap-1">
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm font-medium" style="background: rgba(139,92,246,0.2); color: #a78bfa;">Dashboard</a>
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm hover:bg-white/5 transition-colors" style="color: rgba(255,255,255,0.5);">Payments</a>
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm hover:bg-white/5 transition-colors" style="color: rgba(255,255,255,0.5);">Maintenance</a>
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm hover:bg-white/5 transition-colors" style="color: rgba(255,255,255,0.5);">Documents</a>
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm hover:bg-white/5 transition-colors" style="color: rgba(255,255,255,0.5);">Settings</a>
+          </div>
+        </div>
+        <!-- Right: User + Logout -->
+        <div class="flex items-center gap-4">
+          <div class="hidden sm:flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-xs font-semibold">SC</div>
+            <div class="text-right">
+              <div class="text-sm font-medium" style="color: #f8fafc;">Sarah Chen</div>
+              <div class="text-xs" style="color: rgba(255,255,255,0.4);">Unit 204, Riverside Apartments</div>
+            </div>
+          </div>
+          <a href="#" class="text-xs hover:text-red-400 transition-colors flex items-center gap-1" style="color: rgba(255,255,255,0.4);">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            Logout
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- LEFT COLUMN (2/3 width) -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Lease Info Card -->
+        <div class="glass-card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold flex items-center gap-2" style="color: #f8fafc;">
+              <i data-lucide="file-text" class="w-5 h-5 text-brand"></i>
+              Lease Information
+            </h3>
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2);">Active</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <div class="text-xs mb-1" style="color: rgba(255,255,255,0.4);">Property</div>
+              <div class="text-sm font-medium" style="color: #f8fafc;">Riverside Apartments - Unit 204</div>
+            </div>
+            <div>
+              <div class="text-xs mb-1" style="color: rgba(255,255,255,0.4);">Lease Term</div>
+              <div class="text-sm font-medium" style="color: #f8fafc;">Jan 1, 2026 - Dec 31, 2026</div>
+            </div>
+            <div>
+              <div class="text-xs mb-1" style="color: rgba(255,255,255,0.4);">Monthly Rent</div>
+              <div class="text-sm font-semibold text-brand">$1,500.00</div>
+            </div>
+            <div>
+              <div class="text-xs mb-1" style="color: rgba(255,255,255,0.4);">Next Payment Due</div>
+              <div class="text-sm font-medium" style="color: #f8fafc;">Mar 1, 2026</div>
+            </div>
+          </div>
+          <div class="mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <a href="#" class="text-sm text-brand hover:text-brand-light transition-colors flex items-center gap-1">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              View Lease Document
+            </a>
+          </div>
+        </div>
+
+        <!-- Payment Section -->
+        <div class="glass-card p-6">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-semibold flex items-center gap-2" style="color: #f8fafc;">
+              <i data-lucide="credit-card" class="w-5 h-5 text-brand"></i>
+              Payments
+            </h3>
+            <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+              <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+              Make a Payment
+            </button>
+          </div>
+
+          <!-- Payment History Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.4); border-bottom: 1px solid rgba(255,255,255,0.08);">
+                  <th class="text-left py-3 pr-4 font-medium">Date</th>
+                  <th class="text-left py-3 pr-4 font-medium">Amount</th>
+                  <th class="text-left py-3 pr-4 font-medium">Description</th>
+                  <th class="text-left py-3 pr-4 font-medium">Method</th>
+                  <th class="text-left py-3 pr-4 font-medium">Status</th>
+                  <th class="text-right py-3 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody style="color: rgba(255,255,255,0.7);">
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td class="py-3 pr-4">Feb 1, 2026</td>
+                  <td class="py-3 pr-4 font-medium" style="color: #f8fafc;">$1,500.00</td>
+                  <td class="py-3 pr-4">Rent - February</td>
+                  <td class="py-3 pr-4">ACH</td>
+                  <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(16,185,129,0.1); color: #34d399;">Paid</span></td>
+                  <td class="py-3 text-right"><a href="#" class="text-brand hover:text-brand-light text-xs">Receipt</a></td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td class="py-3 pr-4">Jan 1, 2026</td>
+                  <td class="py-3 pr-4 font-medium" style="color: #f8fafc;">$1,500.00</td>
+                  <td class="py-3 pr-4">Rent - January</td>
+                  <td class="py-3 pr-4">ACH</td>
+                  <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(16,185,129,0.1); color: #34d399;">Paid</span></td>
+                  <td class="py-3 text-right"><a href="#" class="text-brand hover:text-brand-light text-xs">Receipt</a></td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td class="py-3 pr-4">Dec 1, 2025</td>
+                  <td class="py-3 pr-4 font-medium" style="color: #f8fafc;">$1,500.00</td>
+                  <td class="py-3 pr-4">Rent - December</td>
+                  <td class="py-3 pr-4">Credit Card</td>
+                  <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(16,185,129,0.1); color: #34d399;">Paid</span></td>
+                  <td class="py-3 text-right"><a href="#" class="text-brand hover:text-brand-light text-xs">Receipt</a></td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td class="py-3 pr-4">Nov 1, 2025</td>
+                  <td class="py-3 pr-4 font-medium" style="color: #f8fafc;">$1,500.00</td>
+                  <td class="py-3 pr-4">Rent - November</td>
+                  <td class="py-3 pr-4">ACH</td>
+                  <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(16,185,129,0.1); color: #34d399;">Paid</span></td>
+                  <td class="py-3 text-right"><a href="#" class="text-brand hover:text-brand-light text-xs">Receipt</a></td>
+                </tr>
+                <tr>
+                  <td class="py-3 pr-4">Oct 1, 2025</td>
+                  <td class="py-3 pr-4 font-medium" style="color: #f8fafc;">$1,525.00</td>
+                  <td class="py-3 pr-4">Rent + Late Fee</td>
+                  <td class="py-3 pr-4">ACH</td>
+                  <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(16,185,129,0.1); color: #34d399;">Paid</span></td>
+                  <td class="py-3 text-right"><a href="#" class="text-brand hover:text-brand-light text-xs">Receipt</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <a href="#" class="text-sm text-brand hover:text-brand-light transition-colors flex items-center gap-1">
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              View All Payments
+            </a>
+          </div>
+        </div>
+
+        <!-- Maintenance Requests -->
+        <div class="glass-card p-6">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-semibold flex items-center gap-2" style="color: #f8fafc;">
+              <i data-lucide="wrench" class="w-5 h-5 text-brand"></i>
+              Maintenance Requests
+            </h3>
+            <button class="px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              New Request
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Request 1 -->
+            <div class="glass-inner p-4">
+              <div class="flex items-start justify-between mb-2">
+                <div>
+                  <h4 class="text-sm font-semibold" style="color: #f8fafc;">Kitchen faucet dripping</h4>
+                  <p class="text-xs mt-0.5" style="color: rgba(255,255,255,0.4);">Submitted Feb 8, 2026</p>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2);">Medium</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs" style="color: rgba(255,255,255,0.5);">
+                <span class="flex items-center gap-1">
+                  <i data-lucide="user" class="w-3 h-3"></i>
+                  Assigned to Dave Miller
+                </span>
+                <span class="flex items-center gap-1">
+                  <i data-lucide="clock" class="w-3 h-3"></i>
+                  In Progress
+                </span>
+              </div>
+            </div>
+
+            <!-- Request 2 -->
+            <div class="glass-inner p-4">
+              <div class="flex items-start justify-between mb-2">
+                <div>
+                  <h4 class="text-sm font-semibold" style="color: #f8fafc;">Hallway light flickering</h4>
+                  <p class="text-xs mt-0.5" style="color: rgba(255,255,255,0.4);">Submitted Jan 28, 2026</p>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2);">Completed</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs" style="color: rgba(255,255,255,0.5);">
+                <span class="flex items-center gap-1">
+                  <i data-lucide="check-circle" class="w-3 h-3 text-emerald-400"></i>
+                  Completed Jan 30, 2026
+                </span>
+                <span class="flex items-center gap-1">
+                  <i data-lucide="star" class="w-3 h-3 text-amber-400"></i>
+                  Satisfaction: 5/5
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <a href="#" class="text-sm text-brand hover:text-brand-light transition-colors flex items-center gap-1">
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              View All Requests
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN (1/3 width) -->
+      <div class="space-y-6">
+
+        <!-- Announcements -->
+        <div class="glass-card p-6">
+          <h3 class="text-lg font-semibold flex items-center gap-2 mb-5" style="color: #f8fafc;">
+            <i data-lucide="megaphone" class="w-5 h-5 text-accent"></i>
+            Building Announcements
+          </h3>
+
+          <div class="space-y-4">
+            <!-- Announcement 1 -->
+            <div class="glass-inner p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-accent"></i>
+                <h4 class="text-sm font-semibold" style="color: #f8fafc;">Parking Lot Resurfacing - Feb 15-17</h4>
+              </div>
+              <p class="text-xs mb-2" style="color: rgba(255,255,255,0.5);">North lot will be closed. Use south lot.</p>
+              <p class="text-xs" style="color: rgba(255,255,255,0.3);">Posted Feb 5, 2026</p>
+            </div>
+
+            <!-- Announcement 2 -->
+            <div class="glass-inner p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="bell" class="w-4 h-4 text-accent"></i>
+                <h4 class="text-sm font-semibold" style="color: #f8fafc;">Fire Alarm Testing - Feb 20</h4>
+              </div>
+              <p class="text-xs mb-2" style="color: rgba(255,255,255,0.5);">Quarterly testing between 10am-2pm.</p>
+              <p class="text-xs" style="color: rgba(255,255,255,0.3);">Posted Feb 3, 2026</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Documents -->
+        <div class="glass-card p-6">
+          <h3 class="text-lg font-semibold flex items-center gap-2 mb-5" style="color: #f8fafc;">
+            <i data-lucide="folder-open" class="w-5 h-5 text-brand"></i>
+            Documents
+          </h3>
+
+          <div class="space-y-2">
+            <a href="#" class="flex items-center gap-3 p-3 rounded-lg glass-inner hover:border-brand/30 transition-colors group">
+              <i data-lucide="file-text" class="w-4 h-4 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+              <span class="text-sm" style="color: #f8fafc;">Lease Agreement</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 rounded-lg glass-inner hover:border-brand/30 transition-colors group">
+              <i data-lucide="file-text" class="w-4 h-4 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+              <span class="text-sm" style="color: #f8fafc;">Building Rules</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 rounded-lg glass-inner hover:border-brand/30 transition-colors group">
+              <i data-lucide="file-text" class="w-4 h-4 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+              <span class="text-sm" style="color: #f8fafc;">Move-Out Checklist</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 rounded-lg glass-inner hover:border-brand/30 transition-colors group">
+              <i data-lucide="file-text" class="w-4 h-4 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+              <span class="text-sm" style="color: #f8fafc;">Insurance Requirements</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- DIVIDER: Portal Comparison                                     -->
+  <!-- ============================================================= -->
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="relative flex items-center py-4">
+      <div class="flex-grow" style="border-top: 1px solid rgba(255,255,255,0.08);"></div>
+      <div class="mx-6 flex items-center gap-3 px-6 py-3 rounded-full glass-divider-pill">
+        <i data-lucide="separator-horizontal" class="w-5 h-5" style="color: rgba(255,255,255,0.4);"></i>
+        <span class="text-sm font-semibold gradient-text">Portal Comparison</span>
+        <i data-lucide="separator-horizontal" class="w-5 h-5" style="color: rgba(255,255,255,0.4);"></i>
+      </div>
+      <div class="flex-grow" style="border-top: 1px solid rgba(255,255,255,0.08);"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- SECTION 2: VENDOR PORTAL                                      -->
+  <!-- ============================================================= -->
+
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
+
+    <!-- Section Label -->
+    <div class="mb-6">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider" style="background: rgba(236,72,153,0.15); color: #f472b6; border: 1px solid rgba(236,72,153,0.25);">
+        <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i>
+        Vendor Portal
+      </span>
+    </div>
+
+    <!-- Vendor Top Nav -->
+    <nav class="glass-nav mb-8">
+      <div class="flex items-center justify-between px-6 py-3">
+        <!-- Left: Logo + Nav -->
+        <div class="flex items-center gap-8">
+          <!-- Logo -->
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 bg-brand rounded-lg flex items-center justify-center">
+              <i data-lucide="building-2" class="w-4 h-4 text-white"></i>
+            </div>
+            <span class="text-sm font-bold" style="color: #f8fafc;">ConstructionERP</span>
+          </div>
+          <!-- Nav Links -->
+          <div class="hidden md:flex items-center gap-1">
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm font-medium" style="background: rgba(139,92,246,0.2); color: #a78bfa;">Dashboard</a>
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm hover:bg-white/5 transition-colors" style="color: rgba(255,255,255,0.5);">Projects</a>
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm hover:bg-white/5 transition-colors" style="color: rgba(255,255,255,0.5);">Invoices</a>
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm hover:bg-white/5 transition-colors" style="color: rgba(255,255,255,0.5);">Documents</a>
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm hover:bg-white/5 transition-colors" style="color: rgba(255,255,255,0.5);">Compliance</a>
+            <a href="#" class="px-3 py-1.5 rounded-lg text-sm hover:bg-white/5 transition-colors" style="color: rgba(255,255,255,0.5);">Profile</a>
+          </div>
+        </div>
+        <!-- Right: User + Logout -->
+        <div class="flex items-center gap-4">
+          <div class="hidden sm:flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white text-xs font-semibold">TG</div>
+            <div class="text-right">
+              <div class="text-sm font-medium" style="color: #f8fafc;">Tom Garcia</div>
+              <div class="text-xs" style="color: rgba(255,255,255,0.4);">Volt Electric</div>
+            </div>
+          </div>
+          <a href="#" class="text-xs hover:text-red-400 transition-colors flex items-center gap-1" style="color: rgba(255,255,255,0.4);">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            Logout
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- LEFT COLUMN (2/3 width) -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Company Info Card -->
+        <div class="glass-card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold flex items-center gap-2" style="color: #f8fafc;">
+              <i data-lucide="zap" class="w-5 h-5 text-accent"></i>
+              Volt Electric LLC
+            </h3>
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2);">Current</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <div class="text-xs mb-1" style="color: rgba(255,255,255,0.4);">Trade</div>
+              <div class="text-sm font-medium" style="color: #f8fafc;">Electrical</div>
+            </div>
+            <div>
+              <div class="text-xs mb-1" style="color: rgba(255,255,255,0.4);">Contact</div>
+              <div class="text-sm font-medium" style="color: #f8fafc;">Tom Garcia</div>
+            </div>
+            <div>
+              <div class="text-xs mb-1" style="color: rgba(255,255,255,0.4);">Active Projects</div>
+              <div class="text-sm font-semibold text-brand">2</div>
+            </div>
+          </div>
+          <div class="mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.08);">
+            <div class="flex items-center gap-2 text-amber-400 text-xs">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+              <span>Insurance expires Mar 5, 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Projects -->
+        <div class="glass-card p-6">
+          <h3 class="text-lg font-semibold flex items-center gap-2 mb-5" style="color: #f8fafc;">
+            <i data-lucide="folder-kanban" class="w-5 h-5 text-brand"></i>
+            Active Projects
+          </h3>
+
+          <div class="space-y-4">
+            <!-- Project 1 -->
+            <div class="glass-inner p-5">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <h4 class="text-sm font-semibold" style="color: #f8fafc;">Riverside Commons Phase II</h4>
+                  <p class="text-xs mt-0.5" style="color: rgba(255,255,255,0.4);">Role: Electrical Subcontractor</p>
+                </div>
+                <span class="text-xs" style="color: rgba(255,255,255,0.4);">55% Billed</span>
+              </div>
+              <div class="grid grid-cols-3 gap-4 mb-3">
+                <div>
+                  <div class="text-xs" style="color: rgba(255,255,255,0.4);">Contract</div>
+                  <div class="text-sm font-semibold" style="color: #f8fafc;">$354,000</div>
+                </div>
+                <div>
+                  <div class="text-xs" style="color: rgba(255,255,255,0.4);">Billed</div>
+                  <div class="text-sm font-semibold text-emerald-400">$196,000</div>
+                </div>
+                <div>
+                  <div class="text-xs" style="color: rgba(255,255,255,0.4);">Remaining</div>
+                  <div class="text-sm font-semibold text-amber-400">$158,000</div>
+                </div>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-full h-2 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.08);">
+                <div class="progress-bar h-full bg-gradient-to-r from-brand to-brand-light rounded-full" style="width: 55%"></div>
+              </div>
+            </div>
+
+            <!-- Project 2 -->
+            <div class="glass-inner p-5">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <h4 class="text-sm font-semibold" style="color: #f8fafc;">Metro Transit Hub</h4>
+                  <p class="text-xs mt-0.5" style="color: rgba(255,255,255,0.4);">Role: Electrical Subcontractor</p>
+                </div>
+                <span class="text-xs" style="color: rgba(255,255,255,0.4);">25% Billed</span>
+              </div>
+              <div class="grid grid-cols-3 gap-4 mb-3">
+                <div>
+                  <div class="text-xs" style="color: rgba(255,255,255,0.4);">Contract</div>
+                  <div class="text-sm font-semibold" style="color: #f8fafc;">$180,000</div>
+                </div>
+                <div>
+                  <div class="text-xs" style="color: rgba(255,255,255,0.4);">Billed</div>
+                  <div class="text-sm font-semibold text-emerald-400">$45,000</div>
+                </div>
+                <div>
+                  <div class="text-xs" style="color: rgba(255,255,255,0.4);">Remaining</div>
+                  <div class="text-sm font-semibold text-amber-400">$135,000</div>
+                </div>
+              </div>
+              <!-- Progress Bar -->
+              <div class="w-full h-2 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.08);">
+                <div class="progress-bar h-full bg-gradient-to-r from-brand to-brand-light rounded-full" style="width: 25%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice Section -->
+        <div class="glass-card p-6">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-semibold flex items-center gap-2" style="color: #f8fafc;">
+              <i data-lucide="receipt" class="w-5 h-5 text-brand"></i>
+              Invoices
+            </h3>
+            <button class="px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              Submit Invoice
+            </button>
+          </div>
+
+          <!-- Invoice Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-xs uppercase tracking-wider" style="color: rgba(255,255,255,0.4); border-bottom: 1px solid rgba(255,255,255,0.08);">
+                  <th class="text-left py-3 pr-4 font-medium">Invoice #</th>
+                  <th class="text-left py-3 pr-4 font-medium">Project</th>
+                  <th class="text-left py-3 pr-4 font-medium">Amount</th>
+                  <th class="text-left py-3 pr-4 font-medium">Date</th>
+                  <th class="text-left py-3 pr-4 font-medium">Status</th>
+                  <th class="text-right py-3 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody style="color: rgba(255,255,255,0.7);">
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td class="py-3 pr-4 font-mono text-xs">INV-VE-2026-015</td>
+                  <td class="py-3 pr-4">Riverside Commons</td>
+                  <td class="py-3 pr-4 font-medium" style="color: #f8fafc;">$24,500</td>
+                  <td class="py-3 pr-4">Feb 8</td>
+                  <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(245,158,11,0.1); color: #fbbf24;">Pending Approval</span></td>
+                  <td class="py-3 text-right"><a href="#" class="text-brand hover:text-brand-light text-xs">View</a></td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td class="py-3 pr-4 font-mono text-xs">INV-VE-2026-014</td>
+                  <td class="py-3 pr-4">Metro Transit</td>
+                  <td class="py-3 pr-4 font-medium" style="color: #f8fafc;">$18,000</td>
+                  <td class="py-3 pr-4">Feb 1</td>
+                  <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(16,185,129,0.1); color: #34d399;">Approved</span></td>
+                  <td class="py-3 text-right"><a href="#" class="text-brand hover:text-brand-light text-xs">View</a></td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <td class="py-3 pr-4 font-mono text-xs">INV-VE-2026-013</td>
+                  <td class="py-3 pr-4">Riverside Commons</td>
+                  <td class="py-3 pr-4 font-medium" style="color: #f8fafc;">$32,000</td>
+                  <td class="py-3 pr-4">Jan 25</td>
+                  <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(59,130,246,0.1); color: #60a5fa;">Paid</span></td>
+                  <td class="py-3 text-right"><a href="#" class="text-brand hover:text-brand-light text-xs">Receipt</a></td>
+                </tr>
+                <tr>
+                  <td class="py-3 pr-4 font-mono text-xs">INV-VE-2026-012</td>
+                  <td class="py-3 pr-4">Riverside Commons</td>
+                  <td class="py-3 pr-4 font-medium" style="color: #f8fafc;">$28,500</td>
+                  <td class="py-3 pr-4">Jan 15</td>
+                  <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded-full text-xs font-medium" style="background: rgba(59,130,246,0.1); color: #60a5fa;">Paid</span></td>
+                  <td class="py-3 text-right"><a href="#" class="text-brand hover:text-brand-light text-xs">Receipt</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN (1/3 width) -->
+      <div class="space-y-6">
+
+        <!-- Compliance Status -->
+        <div class="glass-card p-6">
+          <h3 class="text-lg font-semibold flex items-center gap-2 mb-5" style="color: #f8fafc;">
+            <i data-lucide="shield-check" class="w-5 h-5 text-brand"></i>
+            Compliance Status
+          </h3>
+
+          <div class="space-y-3">
+            <!-- General Liability Insurance -->
+            <div class="glass-inner p-3">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+                  <span class="text-sm font-medium" style="color: #f8fafc;">General Liability Insurance</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-amber-400">Valid until Mar 5, 2026 - Expiring soon</span>
+                <button class="px-2 py-1 text-xs rounded hover:bg-amber-500/20 transition-colors" style="background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2);">Upload New</button>
+              </div>
+            </div>
+
+            <!-- Workers Comp -->
+            <div class="glass-inner p-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                  <span class="text-sm font-medium" style="color: #f8fafc;">Workers Comp Insurance</span>
+                </div>
+              </div>
+              <p class="text-xs mt-1 ml-6" style="color: rgba(255,255,255,0.4);">Valid until Aug 15, 2026</p>
+            </div>
+
+            <!-- Electrical License -->
+            <div class="glass-inner p-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                  <span class="text-sm font-medium" style="color: #f8fafc;">Electrical License</span>
+                </div>
+              </div>
+              <p class="text-xs mt-1 ml-6" style="color: rgba(255,255,255,0.4);">Valid until Dec 31, 2026</p>
+            </div>
+
+            <!-- W-9 -->
+            <div class="glass-inner p-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                <span class="text-sm font-medium" style="color: #f8fafc;">W-9 on File</span>
+                <span class="text-xs" style="color: rgba(255,255,255,0.4);">Yes</span>
+              </div>
+            </div>
+
+            <!-- Safety Certification -->
+            <div class="glass-inner p-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                <span class="text-sm font-medium" style="color: #f8fafc;">Safety Certification</span>
+              </div>
+              <p class="text-xs mt-1 ml-6" style="color: rgba(255,255,255,0.4);">OSHA 30 - Valid</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="glass-card p-6">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-semibold flex items-center gap-2" style="color: #f8fafc;">
+              <i data-lucide="folder-open" class="w-5 h-5 text-brand"></i>
+              Documents
+            </h3>
+            <button class="px-3 py-1.5 text-xs rounded-lg hover:bg-brand/20 transition-colors flex items-center gap-1" style="background: rgba(139,92,246,0.1); color: #a78bfa; border: 1px solid rgba(139,92,246,0.2);">
+              <i data-lucide="upload" class="w-3 h-3"></i>
+              Upload Document
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            <a href="#" class="flex items-center gap-3 p-3 rounded-lg glass-inner hover:border-brand/30 transition-colors group">
+              <i data-lucide="file-text" class="w-4 h-4 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+              <span class="text-sm" style="color: #f8fafc;">Subcontract - Riverside Commons</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 rounded-lg glass-inner hover:border-brand/30 transition-colors group">
+              <i data-lucide="file-text" class="w-4 h-4 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+              <span class="text-sm" style="color: #f8fafc;">Insurance Certificate</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 rounded-lg glass-inner hover:border-brand/30 transition-colors group">
+              <i data-lucide="file-text" class="w-4 h-4 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+              <span class="text-sm" style="color: #f8fafc;">W-9 Form</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Communication -->
+        <div class="glass-card p-6">
+          <h3 class="text-lg font-semibold flex items-center gap-2 mb-5" style="color: #f8fafc;">
+            <i data-lucide="message-square" class="w-5 h-5 text-brand"></i>
+            Communication
+          </h3>
+
+          <button class="w-full px-4 py-2.5 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 mb-4">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            Message Project Manager
+          </button>
+
+          <div class="glass-inner p-3">
+            <div class="flex items-center gap-2 mb-1">
+              <i data-lucide="mail" class="w-3.5 h-3.5" style="color: rgba(255,255,255,0.4);"></i>
+              <span class="text-xs font-medium" style="color: #f8fafc;">RE: Floor 3 conduit routing</span>
+            </div>
+            <p class="text-xs ml-5.5" style="color: rgba(255,255,255,0.4);">Sarah Kim replied 2 hrs ago</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.classList.toggle('dark');
+      html.classList.toggle('light');
+      const body = document.body;
+      if (html.classList.contains('light')) {
+        body.style.background = 'linear-gradient(135deg, #fdf2f8 0%, #ede9fe 25%, #e0f2fe 50%, #ede9fe 75%, #fce7f3 100%)';
+      } else {
+        body.style.background = 'linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%)';
+      }
+      setTimeout(() => lucide.createIcons(), 50);
+    }
+  </script>
+
+</body>
+</html>

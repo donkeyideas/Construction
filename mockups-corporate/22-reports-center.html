@@ -1,0 +1,810 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Report Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#2c5282', light: '#3b6ba5', dark: '#1e3a5f' },
+            accent: { DEFAULT: '#c9a84c', light: '#d4b96a', dark: '#b08f3a' },
+            surface: { dark: '#243447', light: '#ffffff' },
+            border: { dark: '#344258', light: '#d1d9e6' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #2c5282, #c9a84c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Scrollbar styling */
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #344258; border-radius: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #4a5d73; }
+  </style>
+</head>
+<body class="dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- ============================================================ -->
+  <!-- SIDEBAR (fixed, 260px)                                       -->
+  <!-- ============================================================ -->
+  <aside class="fixed top-0 left-0 bottom-0 w-[260px] dark:bg-[#1e2d3f] bg-[#f0f2f5] border-r dark:border-[#344258] border-[#d1d9e6] z-40 flex flex-col">
+
+    <!-- Logo -->
+    <div class="px-5 h-16 flex items-center gap-3 border-b dark:border-[#344258] border-[#d1d9e6] shrink-0">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-lg font-bold tracking-tight">ConstructionERP</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll py-4 px-3">
+
+      <!-- OVERVIEW -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Overview</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+      </div>
+
+      <!-- CONSTRUCTION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Construction</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          Safety
+        </a>
+      </div>
+
+      <!-- REAL ESTATE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Real Estate</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Properties
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          Leases
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+          Maintenance
+        </a>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Financial</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          Accounts Payable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="credit-card" class="w-4 h-4"></i>
+          Accounts Receivable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          General Ledger
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          Job Costing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="landmark" class="w-4 h-4"></i>
+          Banking
+        </a>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Documents</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          Library
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-signature" class="w-4 h-4"></i>
+          Contracts
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          Plan Room
+        </a>
+      </div>
+
+      <!-- PEOPLE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">People</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Directory
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          Time & Attendance
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="truck" class="w-4 h-4"></i>
+          Equipment
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="store" class="w-4 h-4"></i>
+          Vendors
+        </a>
+      </div>
+
+      <!-- BUSINESS DEVELOPMENT -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Business Development</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="git-branch" class="w-4 h-4"></i>
+          Pipeline
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>
+          Opportunities
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-plus" class="w-4 h-4"></i>
+          Bids & Proposals
+        </a>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Reports</p>
+        <!-- Active item -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-brand/10 text-brand font-medium text-sm">
+          <i data-lucide="pie-chart" class="w-4 h-4"></i>
+          Report Center
+        </a>
+      </div>
+
+      <!-- AI INTELLIGENCE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">AI Intelligence</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          Automation
+        </a>
+      </div>
+
+      <!-- ADMINISTRATION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Administration</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          Users & Roles
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Company Settings
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="plug" class="w-4 h-4"></i>
+          Integrations
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+          Security
+        </a>
+      </div>
+
+    </nav>
+  </aside>
+
+  <!-- ============================================================ -->
+  <!-- MAIN WRAPPER (offset by sidebar)                             -->
+  <!-- ============================================================ -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- ========================================================== -->
+    <!-- TOP BAR                                                    -->
+    <!-- ========================================================== -->
+    <header class="sticky top-0 z-30 h-16 dark:bg-[#1a2332]/80 bg-white/80 backdrop-blur-md border-b dark:border-[#344258] border-[#d1d9e6] flex items-center justify-between px-6 shrink-0">
+
+      <!-- Left: Breadcrumb -->
+      <div class="flex items-center gap-2 text-sm">
+        <span class="dark:text-gray-500 text-gray-400">Reports</span>
+        <span class="dark:text-gray-600 text-gray-300">/</span>
+        <span class="font-medium dark:text-gray-100 text-gray-900">Report Center</span>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-4">
+
+        <!-- Search -->
+        <div class="relative">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg dark:bg-white/5 bg-gray-100 border dark:border-[#344258] border-[#d1d9e6] text-sm dark:text-gray-400 text-gray-500 cursor-pointer hover:dark:border-gray-600 hover:border-gray-300 transition-colors min-w-[220px]">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Search...</span>
+            <kbd class="ml-auto text-[10px] font-medium dark:bg-white/10 bg-gray-200 px-1.5 py-0.5 rounded dark:text-gray-500 text-gray-400">Cmd+K</kbd>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+          <i data-lucide="bell" class="w-5 h-5 dark:text-gray-400 text-gray-500"></i>
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">5</span>
+        </button>
+
+        <!-- Theme toggle (in topbar) -->
+        <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+          <i data-lucide="sun" class="w-5 h-5 dark:text-gray-400 text-gray-500 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-5 h-5 dark:text-gray-400 text-gray-500 block dark:hidden"></i>
+        </button>
+
+        <!-- Divider -->
+        <div class="w-px h-8 dark:bg-[#344258] bg-[#d1d9e6]"></div>
+
+        <!-- User -->
+        <button class="flex items-center gap-3 hover:dark:bg-white/5 hover:bg-gray-100 rounded-lg px-2 py-1.5 transition-colors">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+          <div class="text-left hidden lg:block">
+            <p class="text-sm font-medium leading-tight">John Mitchell</p>
+            <p class="text-[11px] dark:text-gray-500 text-gray-400 leading-tight">Executive</p>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 dark:text-gray-500 text-gray-400 hidden lg:block"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ========================================================== -->
+    <!-- MAIN CONTENT                                               -->
+    <!-- ========================================================== -->
+    <main class="flex-1 p-6">
+
+      <!-- Page Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold">Report Center</h1>
+          <p class="text-sm dark:text-gray-400 text-gray-500 mt-1">Generate, schedule, and manage reports across all business areas.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Search reports -->
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 dark:text-gray-500 text-gray-400"></i>
+            <input type="text" placeholder="Search reports..." class="pl-9 pr-4 py-2 rounded-lg dark:bg-white/5 bg-gray-100 border dark:border-[#344258] border-[#d1d9e6] text-sm dark:text-gray-200 text-gray-700 placeholder:dark:text-gray-500 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors w-64">
+          </div>
+          <!-- Build Custom Report button -->
+          <button class="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Build Custom Report
+          </button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- REPORT CATEGORIES GRID                                    -->
+      <!-- ======================================================== -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+
+        <!-- Category 1: Financial Reports -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5 hover:dark:border-[#3d4f64] hover:border-gray-300 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-md bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="dollar-sign" class="w-5 h-5 text-emerald-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Financial Reports</h3>
+              <p class="text-xs dark:text-gray-400 text-gray-500 leading-relaxed">Profit & loss, balance sheets, cash flow, budgets, aging reports, and tax summaries.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">P&L Statement</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Balance Sheet</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Cash Flow Statement</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Budget vs Actual</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">AR Aging</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">AP Aging</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Tax Summary</span>
+          </div>
+          <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+            <span class="text-xs dark:text-gray-500 text-gray-400">7 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">
+              View Reports
+              <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Category 2: Project Reports -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5 hover:dark:border-[#3d4f64] hover:border-gray-300 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-md bg-brand/10 flex items-center justify-center shrink-0">
+              <i data-lucide="hard-hat" class="w-5 h-5 text-brand"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Project Reports</h3>
+              <p class="text-xs dark:text-gray-400 text-gray-500 leading-relaxed">Project status, budgets, schedules, change orders, RFIs, daily logs, and safety.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Project Status Summary</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Budget Report</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Schedule Report</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Change Order Log</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">RFI Log</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Daily Log Summary</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Safety Report</span>
+          </div>
+          <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+            <span class="text-xs dark:text-gray-500 text-gray-400">7 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">
+              View Reports
+              <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Category 3: Property Reports -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5 hover:dark:border-[#3d4f64] hover:border-gray-300 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-md bg-accent/10 flex items-center justify-center shrink-0">
+              <i data-lucide="building" class="w-5 h-5 text-accent"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Property Reports</h3>
+              <p class="text-xs dark:text-gray-400 text-gray-500 leading-relaxed">Rent rolls, occupancy, lease expirations, NOI, maintenance, tenant ledgers, and cap rates.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Rent Roll</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Occupancy Report</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Lease Expiration</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">NOI Report</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Maintenance Summary</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Tenant Ledger</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Cap Rate Analysis</span>
+          </div>
+          <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+            <span class="text-xs dark:text-gray-500 text-gray-400">7 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">
+              View Reports
+              <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Category 4: People Reports -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5 hover:dark:border-[#3d4f64] hover:border-gray-300 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-md bg-purple-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="users" class="w-5 h-5 text-purple-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">People Reports</h3>
+              <p class="text-xs dark:text-gray-400 text-gray-500 leading-relaxed">Timesheets, payroll prep, overtime, certifications, vendor performance, and equipment utilization.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Timesheet Summary</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Payroll Prep</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Overtime Report</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Certification Status</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Vendor Performance</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Equipment Utilization</span>
+          </div>
+          <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+            <span class="text-xs dark:text-gray-500 text-gray-400">6 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">
+              View Reports
+              <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Category 5: Compliance Reports -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5 hover:dark:border-[#3d4f64] hover:border-gray-300 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-md bg-red-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="shield-check" class="w-5 h-5 text-red-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Compliance Reports</h3>
+              <p class="text-xs dark:text-gray-400 text-gray-500 leading-relaxed">Insurance certificates, licenses, safety compliance, OSHA logs, lien waivers, and permits.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Insurance Certificate Status</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">License Verification</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Safety Compliance</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">OSHA Log</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Lien Waiver Status</span>
+            <span class="text-[10px] dark:bg-white/5 bg-gray-200/80 dark:text-gray-400 text-gray-500 px-2 py-0.5 rounded-full">Permit Tracker</span>
+          </div>
+          <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+            <span class="text-xs dark:text-gray-500 text-gray-400">6 reports available</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">
+              View Reports
+              <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Category 6: Custom Reports -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5 hover:dark:border-[#3d4f64] hover:border-gray-300 transition-colors group">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-11 h-11 rounded-md bg-cyan-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="sliders" class="w-5 h-5 text-cyan-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold mb-1">Custom Reports</h3>
+              <p class="text-xs dark:text-gray-400 text-gray-500 leading-relaxed">Build reports with custom fields, filters, and visualizations. Combine data from any module.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span class="text-[10px] dark:bg-cyan-500/10 bg-cyan-100 dark:text-cyan-400 text-cyan-700 px-2 py-0.5 rounded-full">Custom Fields</span>
+            <span class="text-[10px] dark:bg-cyan-500/10 bg-cyan-100 dark:text-cyan-400 text-cyan-700 px-2 py-0.5 rounded-full">Advanced Filters</span>
+            <span class="text-[10px] dark:bg-cyan-500/10 bg-cyan-100 dark:text-cyan-400 text-cyan-700 px-2 py-0.5 rounded-full">Charts & Graphs</span>
+            <span class="text-[10px] dark:bg-cyan-500/10 bg-cyan-100 dark:text-cyan-400 text-cyan-700 px-2 py-0.5 rounded-full">Cross-Module Data</span>
+            <span class="text-[10px] dark:bg-cyan-500/10 bg-cyan-100 dark:text-cyan-400 text-cyan-700 px-2 py-0.5 rounded-full">Export to PDF/Excel</span>
+          </div>
+          <div class="flex items-center justify-between pt-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+            <span class="text-xs dark:text-gray-500 text-gray-400">3 saved custom reports</span>
+            <a href="#" class="inline-flex items-center gap-1 text-xs text-brand font-medium hover:text-brand-light transition-colors group-hover:gap-1.5">
+              View Reports
+              <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- RECENT REPORTS TABLE                                      -->
+      <!-- ======================================================== -->
+      <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold">Recent Reports</h3>
+          <a href="#" class="text-xs text-brand hover:text-brand-light transition-colors font-medium">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b dark:border-[#344258] border-[#d1d9e6]">
+                <th class="text-left py-2.5 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Report Name</th>
+                <th class="text-left py-2.5 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Category</th>
+                <th class="text-left py-2.5 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Generated By</th>
+                <th class="text-left py-2.5 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Date</th>
+                <th class="text-left py-2.5 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Format</th>
+                <th class="text-right py-2.5 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y dark:divide-[#344258] divide-[#d1d9e6]">
+
+              <!-- Row 1 -->
+              <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
+                      <i data-lucide="hard-hat" class="w-4 h-4 text-brand"></i>
+                    </div>
+                    <span class="font-medium text-sm">Project Status Summary - Feb 2026</span>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand/10 text-brand">Project</span>
+                </td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">System (Scheduled)</td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">Feb 10, 2026</td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium dark:bg-red-500/10 bg-red-100 dark:text-red-400 text-red-600">PDF</span>
+                </td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="Download">
+                      <i data-lucide="download" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="View">
+                      <i data-lucide="eye" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 2 -->
+              <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                      <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-500"></i>
+                    </div>
+                    <span class="font-medium text-sm">P&L Statement - January 2026</span>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Financial</span>
+                </td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">Lisa Park</td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">Feb 5, 2026</td>
+                <td class="py-3">
+                  <div class="flex items-center gap-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium dark:bg-red-500/10 bg-red-100 dark:text-red-400 text-red-600">PDF</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium dark:bg-emerald-500/10 bg-emerald-100 dark:text-emerald-400 text-emerald-600">Excel</span>
+                  </div>
+                </td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="Download">
+                      <i data-lucide="download" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="View">
+                      <i data-lucide="eye" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 3 -->
+              <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+                      <i data-lucide="users" class="w-4 h-4 text-purple-500"></i>
+                    </div>
+                    <span class="font-medium text-sm">Weekly Timesheet Summary</span>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/10 text-purple-500">People</span>
+                </td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">System (Scheduled)</td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">Feb 9, 2026</td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium dark:bg-emerald-500/10 bg-emerald-100 dark:text-emerald-400 text-emerald-600">Excel</span>
+                </td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="Download">
+                      <i data-lucide="download" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="View">
+                      <i data-lucide="eye" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 4 -->
+              <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                      <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-500"></i>
+                    </div>
+                    <span class="font-medium text-sm">AR Aging Report</span>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Financial</span>
+                </td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">Lisa Park</td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">Feb 8, 2026</td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium dark:bg-red-500/10 bg-red-100 dark:text-red-400 text-red-600">PDF</span>
+                </td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="Download">
+                      <i data-lucide="download" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="View">
+                      <i data-lucide="eye" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 5 -->
+              <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+                      <i data-lucide="shield-check" class="w-4 h-4 text-red-500"></i>
+                    </div>
+                    <span class="font-medium text-sm">Safety Compliance - All Projects</span>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-500">Compliance</span>
+                </td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">Mike Torres</td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">Feb 7, 2026</td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium dark:bg-red-500/10 bg-red-100 dark:text-red-400 text-red-600">PDF</span>
+                </td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="Download">
+                      <i data-lucide="download" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="View">
+                      <i data-lucide="eye" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 6 -->
+              <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                <td class="py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                      <i data-lucide="building" class="w-4 h-4 text-accent"></i>
+                    </div>
+                    <span class="font-medium text-sm">Rent Roll - February 2026</span>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-accent/10 text-accent">Property</span>
+                </td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">John Mitchell</td>
+                <td class="py-3 text-sm dark:text-gray-400 text-gray-500">Feb 1, 2026</td>
+                <td class="py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium dark:bg-emerald-500/10 bg-emerald-100 dark:text-emerald-400 text-emerald-600">Excel</span>
+                </td>
+                <td class="py-3 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="Download">
+                      <i data-lucide="download" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                    <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors" title="View">
+                      <i data-lucide="eye" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SCHEDULED REPORTS                                         -->
+      <!-- ======================================================== -->
+      <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h3 class="text-sm font-semibold">Automated Reports</h3>
+            <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Reports generated and distributed on a recurring schedule.</p>
+          </div>
+          <button class="flex items-center gap-2 px-3 py-1.5 bg-brand/10 hover:bg-brand/20 text-brand text-xs font-medium rounded-lg transition-colors">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            Schedule Report
+          </button>
+        </div>
+
+        <div class="space-y-3">
+
+          <!-- Scheduled Report 1 -->
+          <div class="flex items-center gap-4 p-4 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+            <div class="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
+              <i data-lucide="calendar-clock" class="w-5 h-5 text-brand"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium">Weekly Project Status</p>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Every Monday at 8:00 AM</p>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
+              <span class="text-xs dark:text-gray-500 text-gray-400">Recipients:</span>
+              <div class="flex items-center gap-1">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium dark:bg-white/5 bg-gray-200 dark:text-gray-300 text-gray-600">John M.</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium dark:bg-white/5 bg-gray-200 dark:text-gray-300 text-gray-600">Sarah K.</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-xs dark:text-gray-500 text-gray-400">Next run</p>
+              <p class="text-sm font-medium">Feb 17</p>
+            </div>
+            <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors shrink-0" title="More options">
+              <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+            </button>
+          </div>
+
+          <!-- Scheduled Report 2 -->
+          <div class="flex items-center gap-4 p-4 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="calendar-clock" class="w-5 h-5 text-emerald-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium">Monthly Financial Package</p>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">1st of every month</p>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
+              <span class="text-xs dark:text-gray-500 text-gray-400">Recipients:</span>
+              <div class="flex items-center gap-1">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium dark:bg-white/5 bg-gray-200 dark:text-gray-300 text-gray-600">John M.</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium dark:bg-white/5 bg-gray-200 dark:text-gray-300 text-gray-600">Lisa P.</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-xs dark:text-gray-500 text-gray-400">Next run</p>
+              <p class="text-sm font-medium">Mar 1</p>
+            </div>
+            <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors shrink-0" title="More options">
+              <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+            </button>
+          </div>
+
+          <!-- Scheduled Report 3 -->
+          <div class="flex items-center gap-4 p-4 rounded-lg dark:bg-white/[0.02] bg-white border dark:border-[#344258] border-[#d1d9e6]">
+            <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+              <i data-lucide="calendar-clock" class="w-5 h-5 text-purple-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium">Weekly Timesheet Summary</p>
+              <p class="text-xs dark:text-gray-500 text-gray-400 mt-0.5">Every Sunday at 6:00 PM</p>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
+              <span class="text-xs dark:text-gray-500 text-gray-400">Recipients:</span>
+              <div class="flex items-center gap-1">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium dark:bg-white/5 bg-gray-200 dark:text-gray-300 text-gray-600">Lisa P.</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-xs dark:text-gray-500 text-gray-400">Next run</p>
+              <p class="text-sm font-medium">Feb 16</p>
+            </div>
+            <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-gray-200 transition-colors shrink-0" title="More options">
+              <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- FIXED THEME TOGGLE (bottom-right corner)                     -->
+  <!-- ============================================================ -->
+  <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

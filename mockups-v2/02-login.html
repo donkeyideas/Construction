@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstructionERP -- Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { height: 100%; }
+
+  :root {
+    --bg: #ffffff; --surface: #f5f0eb; --topbar-bg: #fffcf9;
+    --blue: #1d4ed8; --blue-light: #eff6ff; --amber: #b45309; --amber-light: #fef3c7;
+    --text: #292524; --muted: #78716c; --border: #d6d3d1;
+    --green: #16a34a; --red: #dc2626;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'Inter', -apple-system, sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #1c1917; --surface: #292524; --topbar-bg: #1c1917;
+    --blue-light: rgba(29,78,216,.15); --amber-light: rgba(180,83,9,.15);
+    --text: #f5f0eb; --muted: #a8a29e; --border: #44403c;
+  }
+
+  body {
+    font-family: var(--font-sans); color: var(--text); background: var(--bg);
+    line-height: 1.6; height: 100%; transition: background 0.3s, color 0.3s;
+  }
+
+  /* THEME TOGGLE */
+  .theme-toggle {
+    position: fixed; bottom: 24px; right: 24px; z-index: 200;
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg); cursor: pointer; display: flex; align-items: center;
+    justify-content: center; box-shadow: 0 2px 12px rgba(0,0,0,0.1); transition: background 0.3s;
+  }
+  .theme-toggle svg { width: 20px; height: 20px; stroke: var(--amber); fill: none; stroke-width: 2; }
+
+  /* SPLIT LAYOUT */
+  .login-layout { display: flex; min-height: 100vh; }
+
+  /* LEFT IMAGE PANEL */
+  .login-image {
+    flex: 1; position: relative; overflow: hidden; background: var(--surface);
+  }
+  .login-image img {
+    width: 100%; height: 100%; object-fit: cover; transition: transform 8s ease;
+  }
+  .login-image:hover img { transform: scale(1.04); }
+  .login-image-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.75));
+    padding: 60px 48px 48px;
+    color: #fff;
+  }
+  .login-image-overlay h2 {
+    font-family: var(--font-serif); font-size: 2rem; font-weight: 800;
+    color: #fff; margin-bottom: 16px; letter-spacing: -0.02em;
+  }
+  .login-image-overlay p {
+    font-size: 0.95rem; color: rgba(255,255,255,0.8); line-height: 1.6;
+    max-width: 400px; margin-bottom: 28px;
+  }
+  .overlay-stats { display: flex; gap: 40px; }
+  .overlay-stat-number {
+    font-family: var(--font-serif); font-size: 1.8rem; font-weight: 800;
+    color: #fff; line-height: 1.1;
+  }
+  .overlay-stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.65); margin-top: 4px; }
+
+  /* RIGHT FORM PANEL */
+  .login-form-panel {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 60px 48px; position: relative;
+  }
+  .login-form-wrap { width: 100%; max-width: 400px; }
+  .login-brand { margin-bottom: 40px; }
+  .login-brand-name {
+    font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700;
+    color: var(--text); letter-spacing: -0.02em;
+  }
+  .login-accent { width: 40px; height: 3px; background: var(--amber); border-radius: 2px; margin-top: 10px; }
+
+  .login-heading {
+    font-family: var(--font-serif); font-size: 2rem; font-weight: 800;
+    color: var(--text); margin-bottom: 8px;
+  }
+  .login-subtext { font-size: 0.95rem; color: var(--muted); margin-bottom: 32px; }
+
+  /* FORM FIELDS */
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block; font-size: 0.82rem; font-weight: 600; color: var(--text);
+    margin-bottom: 6px;
+  }
+  .form-input-wrap { position: relative; }
+  .form-input {
+    width: 100%; padding: 12px 16px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.9rem; font-family: var(--font-sans);
+    background: var(--bg); color: var(--text); outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-input::placeholder { color: var(--muted); }
+  .form-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(29,78,216,0.1);
+  }
+  .password-toggle {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 0.8rem; font-weight: 500; font-family: var(--font-sans);
+    transition: color 0.2s;
+  }
+  .password-toggle:hover { color: var(--text); }
+
+  /* REMEMBER + FORGOT */
+  .form-options {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .checkbox-wrap {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+  }
+  .checkbox-wrap input[type="checkbox"] {
+    width: 16px; height: 16px; accent-color: var(--blue); cursor: pointer;
+  }
+  .checkbox-wrap span { font-size: 0.85rem; color: var(--muted); }
+  .forgot-link {
+    font-size: 0.85rem; color: var(--amber); text-decoration: none;
+    font-weight: 500; position: relative; transition: color 0.3s;
+  }
+  .forgot-link::after {
+    content: ''; position: absolute; bottom: -2px; left: 0; width: 0;
+    height: 1.5px; background: var(--amber); transition: width 0.3s;
+  }
+  .forgot-link:hover::after { width: 100%; }
+  .forgot-link:hover { color: #92400e; }
+
+  /* SIGN IN BUTTON */
+  .btn-signin {
+    width: 100%; padding: 14px; background: var(--blue); color: #fff;
+    border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
+    font-family: var(--font-sans); cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+  }
+  .btn-signin:hover { background: #1e40af; transform: translateY(-1px); }
+
+  /* DIVIDER */
+  .divider {
+    display: flex; align-items: center; gap: 16px; margin: 28px 0;
+  }
+  .divider-line { flex: 1; height: 1px; background: var(--border); }
+  .divider-text { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+
+  /* SSO BUTTONS */
+  .sso-buttons { display: flex; gap: 12px; margin-bottom: 32px; }
+  .btn-sso {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 11px 16px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text); font-size: 0.88rem; font-weight: 500;
+    font-family: var(--font-sans); cursor: pointer; text-decoration: none;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  }
+  .btn-sso:hover {
+    border-color: var(--amber); background: var(--surface);
+    transform: translateY(-1px);
+  }
+  .btn-sso svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  /* FOOTER LINK */
+  .login-footer {
+    text-align: center; font-size: 0.88rem; color: var(--muted);
+  }
+  .login-footer a {
+    color: var(--amber); text-decoration: none; font-weight: 600;
+    position: relative; transition: color 0.3s;
+  }
+  .login-footer a::after {
+    content: ''; position: absolute; bottom: -2px; left: 0; width: 0;
+    height: 1.5px; background: var(--amber); transition: width 0.3s;
+  }
+  .login-footer a:hover::after { width: 100%; }
+  .login-footer a:hover { color: #92400e; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    .login-form-panel { padding: 48px 32px; }
+    .login-image-overlay { padding: 40px 32px 32px; }
+    .login-image-overlay h2 { font-size: 1.6rem; }
+    .overlay-stats { gap: 28px; }
+    .overlay-stat-number { font-size: 1.4rem; }
+  }
+  @media (max-width: 768px) {
+    .login-layout { flex-direction: column; }
+    .login-image { display: none; }
+    .login-form-panel { padding: 48px 24px; min-height: 100vh; }
+    .login-heading { font-size: 1.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- THEME TOGGLE -->
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light theme">
+  <svg id="sunIcon" style="display:none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  <svg id="moonIcon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+
+<!-- SPLIT LAYOUT -->
+<div class="login-layout">
+
+  <!-- LEFT: IMAGE PANEL -->
+  <div class="login-image">
+    <img src="https://placehold.co/960x1080/292524/ffffff?text=Construction+Site+Aerial" alt="Aerial view of active construction site">
+    <div class="login-image-overlay">
+      <h2>Build with Confidence, Manage with Clarity</h2>
+      <p>Join the platform trusted by general contractors, developers, and property managers to deliver projects on time and under budget.</p>
+      <div class="overlay-stats">
+        <div>
+          <div class="overlay-stat-number">1,200+</div>
+          <div class="overlay-stat-label">Active Contractors</div>
+        </div>
+        <div>
+          <div class="overlay-stat-number">$4.8B</div>
+          <div class="overlay-stat-label">Projects Managed</div>
+        </div>
+        <div>
+          <div class="overlay-stat-number">35%</div>
+          <div class="overlay-stat-label">Cost Savings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: FORM PANEL -->
+  <div class="login-form-panel">
+    <div class="login-form-wrap">
+
+      <!-- BRAND -->
+      <div class="login-brand">
+        <div class="login-brand-name">ConstructionERP</div>
+        <div class="login-accent"></div>
+      </div>
+
+      <!-- HEADING -->
+      <h1 class="login-heading">Welcome Back</h1>
+      <p class="login-subtext">Sign in to your account</p>
+
+      <!-- FORM -->
+      <form onsubmit="return false;">
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <div class="form-input-wrap">
+            <input class="form-input" type="email" id="email" placeholder="you@company.com" autocomplete="email">
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="form-input-wrap">
+            <input class="form-input" type="password" id="password" placeholder="Enter your password" autocomplete="current-password" style="padding-right: 60px;">
+            <button type="button" class="password-toggle" onclick="togglePassword()">Show</button>
+          </div>
+        </div>
+
+        <!-- Remember + Forgot -->
+        <div class="form-options">
+          <label class="checkbox-wrap">
+            <input type="checkbox" checked>
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </div>
+
+        <!-- Sign In -->
+        <button type="submit" class="btn-signin">Sign In</button>
+      </form>
+
+      <!-- Divider -->
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text">or continue with</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- SSO Buttons -->
+      <div class="sso-buttons">
+        <button class="btn-sso">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Google
+        </button>
+        <button class="btn-sso">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.4 24H0V12.6L4.8 7.8H11.4V0H24V11.4H16.2L11.4 16.2V24Z" fill="#F25022" opacity="0"/>
+            <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+            <rect x="13" y="1" width="10" height="10" fill="#7FBA00"/>
+            <rect x="1" y="13" width="10" height="10" fill="#00A4EF"/>
+            <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+          </svg>
+          Microsoft
+        </button>
+      </div>
+
+      <!-- Footer -->
+      <div class="login-footer">
+        Don't have an account? <a href="#">Start free trial</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePassword() {
+    var pwd = document.getElementById("password");
+    var btn = pwd.parentElement.querySelector(".password-toggle");
+    if (pwd.type === "password") {
+      pwd.type = "text";
+      btn.textContent = "Hide";
+    } else {
+      pwd.type = "password";
+      btn.textContent = "Show";
+    }
+  }
+
+  function toggleTheme() {
+    var html = document.documentElement;
+    var isDark = html.getAttribute("data-theme") === "dark";
+    if (isDark) {
+      html.removeAttribute("data-theme");
+      document.getElementById("sunIcon").style.display = "none";
+      document.getElementById("moonIcon").style.display = "block";
+      localStorage.setItem("construction-erp-theme", "light");
+    } else {
+      html.setAttribute("data-theme", "dark");
+      document.getElementById("sunIcon").style.display = "block";
+      document.getElementById("moonIcon").style.display = "none";
+      localStorage.setItem("construction-erp-theme", "dark");
+    }
+  }
+
+  (function() {
+    var t = localStorage.getItem("construction-erp-theme");
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.getElementById("sunIcon").style.display = "block";
+      document.getElementById("moonIcon").style.display = "none";
+    }
+  })();
+</script>
+</body>
+</html>

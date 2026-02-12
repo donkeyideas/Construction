@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Mobile Executive Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#059669', light: '#34d399', dark: '#047857' },
+            accent: { DEFAULT: '#d97706', light: '#f59e0b', dark: '#b45309' },
+            surface: { dark: '#252017', light: '#ffffff' },
+            border: { dark: '#3d3528', light: '#d6cfc2' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+
+    /* Hide scrollbar for horizontal scroll */
+    .kpi-scroll::-webkit-scrollbar { display: none; }
+    .kpi-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Main content scrollbar */
+    .main-scroll::-webkit-scrollbar { width: 3px; }
+    .main-scroll::-webkit-scrollbar-track { background: transparent; }
+    .main-scroll::-webkit-scrollbar-thumb { background: #4a3f30; border-radius: 3px; }
+
+    /* Device frame */
+    .device-frame {
+      width: 375px;
+      height: 812px;
+      border-radius: 40px;
+      border: 6px solid #4a3f30;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.4), inset 0 0 0 2px #2a2419;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .light .device-frame {
+      border-color: #c4b8a8;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.15), inset 0 0 0 2px #d6cfc2;
+    }
+
+    /* Notch */
+    .notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 28px;
+      background: #000;
+      border-radius: 0 0 18px 18px;
+      z-index: 50;
+    }
+
+    .light .notch { background: #1a1814; }
+
+    /* Swipe hint animation */
+    @keyframes swipeHint {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(-4px); }
+    }
+    .swipe-hint { animation: swipeHint 2s ease-in-out infinite; }
+
+    /* Tap effect */
+    .tappable { transition: transform 0.1s ease, opacity 0.1s ease; }
+    .tappable:active { transform: scale(0.97); opacity: 0.8; }
+
+    /* Pulse for notification badge */
+    @keyframes pulse-soft {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .pulse-badge { animation: pulse-soft 2s ease-in-out infinite; }
+  </style>
+</head>
+<body class="dark:bg-[#2a2419] bg-[#e8e0d0] min-h-screen flex items-center justify-center p-8 transition-colors duration-300">
+
+  <!-- ============================================================ -->
+  <!-- THEME TOGGLE (fixed top-right of page)                       -->
+  <!-- ============================================================ -->
+  <button onclick="toggleTheme()" class="fixed top-4 right-4 z-[100] w-9 h-9 rounded-full dark:bg-[#3d3528] bg-white border dark:border-[#5d5040] border-[#c4b8a8] flex items-center justify-center shadow-lg hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-4 h-4 dark:text-amber-400 text-[#8a7e6b] hidden dark:block"></i>
+    <i data-lucide="moon" class="w-4 h-4 dark:text-[#a89b8c] text-[#6b5e4f] block dark:hidden"></i>
+  </button>
+
+  <!-- ============================================================ -->
+  <!-- DEVICE FRAME                                                  -->
+  <!-- ============================================================ -->
+  <div class="device-frame dark:bg-[#1a1814] bg-[#faf7f2] flex flex-col">
+
+    <!-- ========================================================== -->
+    <!-- STATUS BAR                                                  -->
+    <!-- ========================================================== -->
+    <div class="relative h-[44px] flex items-end justify-between px-6 pb-1 shrink-0 z-40">
+      <span class="text-xs font-semibold dark:text-white text-black">9:41 AM</span>
+      <div class="flex items-center gap-1.5">
+        <svg width="16" height="12" viewBox="0 0 16 12" class="dark:fill-white fill-black">
+          <rect x="0" y="7" width="3" height="5" rx="0.5"/>
+          <rect x="4.5" y="4" width="3" height="8" rx="0.5"/>
+          <rect x="9" y="1" width="3" height="11" rx="0.5"/>
+          <rect x="13" y="0" width="3" height="12" rx="0.5" opacity="0.3"/>
+        </svg>
+        <svg width="15" height="11" viewBox="0 0 15 11" class="dark:fill-white fill-black">
+          <path d="M7.5 3.5C9.2 3.5 10.7 4.2 11.8 5.3L13.2 3.9C11.7 2.4 9.7 1.5 7.5 1.5C5.3 1.5 3.3 2.4 1.8 3.9L3.2 5.3C4.3 4.2 5.8 3.5 7.5 3.5Z"/>
+          <path d="M7.5 6.5C8.6 6.5 9.6 6.9 10.4 7.6L11.8 6.2C10.6 5.1 9.1 4.5 7.5 4.5C5.9 4.5 4.4 5.1 3.2 6.2L4.6 7.6C5.4 6.9 6.4 6.5 7.5 6.5Z"/>
+          <circle cx="7.5" cy="10" r="1.5"/>
+        </svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" class="dark:text-white text-black">
+          <rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" fill="none" stroke-width="1"/>
+          <rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/>
+          <rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="#34d399"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- TOP BAR                                                     -->
+    <!-- ========================================================== -->
+    <div class="px-4 pt-2 pb-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-sm font-bold ring-2 ring-brand/20">
+          JD
+        </div>
+        <div>
+          <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] font-medium">Good morning,</p>
+          <p class="text-[15px] font-semibold dark:text-white text-[#1a1814] -mt-0.5">John</p>
+        </div>
+      </div>
+      <button class="relative w-10 h-10 rounded-full dark:bg-surface-dark bg-surface-light flex items-center justify-center tappable">
+        <i data-lucide="bell" class="w-5 h-5 dark:text-[#c4b8a8] text-[#6b5e4f]"></i>
+        <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center pulse-badge">5</span>
+      </button>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- MAIN CONTENT (scrollable)                                   -->
+    <!-- ========================================================== -->
+    <div class="flex-1 overflow-y-auto main-scroll pb-20">
+
+      <!-- ======================================================== -->
+      <!-- KPI CARDS - Horizontal Scroll                             -->
+      <!-- ======================================================== -->
+      <div class="px-4 mb-4">
+        <div class="flex gap-3 overflow-x-auto kpi-scroll pb-2 -mx-4 px-4">
+
+          <!-- KPI 1: Total Revenue -->
+          <div class="min-w-[260px] dark:bg-surface-dark bg-surface-light rounded-2xl p-4 border dark:border-border-dark border-border-light tappable cursor-pointer relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[3px] bg-brand rounded-t-2xl"></div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-4.5 h-4.5 text-brand"></i>
+              </div>
+              <span class="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">+8.2%</span>
+            </div>
+            <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] font-medium uppercase tracking-wider mb-0.5">Total Revenue</p>
+            <p class="text-2xl font-bold dark:text-white text-[#1a1814]">$12.4M</p>
+            <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] mt-1">vs. $11.5M last quarter</p>
+          </div>
+
+          <!-- KPI 2: Active Projects -->
+          <div class="min-w-[260px] dark:bg-surface-dark bg-surface-light rounded-2xl p-4 border dark:border-border-dark border-border-light tappable cursor-pointer relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[3px] bg-emerald-500 rounded-t-2xl"></div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <i data-lucide="hard-hat" class="w-4.5 h-4.5 text-emerald-500"></i>
+              </div>
+              <span class="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">3 new</span>
+            </div>
+            <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] font-medium uppercase tracking-wider mb-0.5">Active Projects</p>
+            <p class="text-2xl font-bold dark:text-white text-[#1a1814]">24</p>
+            <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] mt-1">Across 4 divisions</p>
+          </div>
+
+          <!-- KPI 3: Cash Position -->
+          <div class="min-w-[260px] dark:bg-surface-dark bg-surface-light rounded-2xl p-4 border dark:border-border-dark border-border-light tappable cursor-pointer relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[3px] bg-emerald-500 rounded-t-2xl"></div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <i data-lucide="wallet" class="w-4.5 h-4.5 text-emerald-500"></i>
+              </div>
+              <span class="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">Healthy</span>
+            </div>
+            <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] font-medium uppercase tracking-wider mb-0.5">Cash Position</p>
+            <p class="text-2xl font-bold dark:text-white text-[#1a1814]">$3.2M</p>
+            <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] mt-1">30-day runway secured</p>
+          </div>
+
+          <!-- KPI 4: Portfolio -->
+          <div class="min-w-[260px] dark:bg-surface-dark bg-surface-light rounded-2xl p-4 border dark:border-border-dark border-border-light tappable cursor-pointer relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[3px] bg-accent rounded-t-2xl"></div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
+                <i data-lucide="building" class="w-4.5 h-4.5 text-accent"></i>
+              </div>
+              <span class="text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-full">94% occupied</span>
+            </div>
+            <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] font-medium uppercase tracking-wider mb-0.5">Portfolio</p>
+            <p class="text-2xl font-bold dark:text-white text-[#1a1814]">$48.2M</p>
+            <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] mt-1">18 properties managed</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- CRITICAL ALERTS                                           -->
+      <!-- ======================================================== -->
+      <div class="px-4 mb-5">
+        <div class="flex items-center gap-2 mb-3">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-red-400"></i>
+          <h2 class="text-[13px] font-semibold dark:text-white text-[#1a1814]">Requires Your Attention</h2>
+          <span class="w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+        </div>
+
+        <div class="space-y-2.5">
+          <!-- Alert 1: Budget overrun -->
+          <div class="dark:bg-surface-dark bg-surface-light rounded-xl p-3.5 border dark:border-border-dark border-border-light tappable cursor-pointer flex gap-3 border-l-[3px] !border-l-red-500">
+            <div class="flex-1 min-w-0">
+              <p class="text-[13px] font-medium dark:text-white text-[#1a1814] leading-snug">Heritage Tower - Steel costs 12% over budget. Review required.</p>
+              <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] mt-1">2h ago</p>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 dark:text-[#5c5347] text-[#c4b8a8] shrink-0 mt-1"></i>
+          </div>
+
+          <!-- Alert 2: Expiring certificates -->
+          <div class="dark:bg-surface-dark bg-surface-light rounded-xl p-3.5 border dark:border-border-dark border-border-light tappable cursor-pointer flex gap-3 border-l-[3px] !border-l-amber-500">
+            <div class="flex-1 min-w-0">
+              <p class="text-[13px] font-medium dark:text-white text-[#1a1814] leading-snug">2 subcontractor insurance certificates expiring within 30 days</p>
+              <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] mt-1">4h ago</p>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 dark:text-[#5c5347] text-[#c4b8a8] shrink-0 mt-1"></i>
+          </div>
+
+          <!-- Alert 3: Payment approval -->
+          <div class="dark:bg-surface-dark bg-surface-light rounded-xl p-3.5 border dark:border-border-dark border-border-light tappable cursor-pointer flex gap-3 border-l-[3px] !border-l-brand">
+            <div class="flex-1 min-w-0">
+              <p class="text-[13px] font-medium dark:text-white text-[#1a1814] leading-snug">Progress payment ready for approval: Heritage Tower $380,000</p>
+              <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] mt-1">Today</p>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 dark:text-[#5c5347] text-[#c4b8a8] shrink-0 mt-1"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- APPROVAL QUEUE                                            -->
+      <!-- ======================================================== -->
+      <div class="px-4 mb-5">
+        <div class="flex items-center gap-2 mb-3">
+          <i data-lucide="check-circle" class="w-4 h-4 text-brand"></i>
+          <h2 class="text-[13px] font-semibold dark:text-white text-[#1a1814]">Pending Approvals (7)</h2>
+        </div>
+
+        <div class="space-y-2">
+          <!-- Approval 1: Volt Electric Invoice -->
+          <div class="dark:bg-surface-dark bg-surface-light rounded-xl p-3.5 border dark:border-border-dark border-border-light tappable">
+            <div class="flex items-start justify-between gap-2 mb-2.5">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 mb-0.5">
+                  <span class="text-[10px] font-semibold uppercase tracking-wider text-brand bg-brand/10 px-1.5 py-0.5 rounded">Invoice</span>
+                </div>
+                <p class="text-[13px] font-medium dark:text-white text-[#1a1814]">Volt Electric - $24,500</p>
+                <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b]">Riverside Commons</p>
+              </div>
+              <i data-lucide="chevrons-left" class="w-3.5 h-3.5 dark:text-[#5c5347] text-[#c4b8a8] shrink-0 mt-2 swipe-hint"></i>
+            </div>
+            <div class="flex gap-2">
+              <button class="flex-1 h-8 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors tappable">Approve</button>
+              <button class="flex-1 h-8 bg-red-500/10 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/20 transition-colors tappable">Reject</button>
+            </div>
+          </div>
+
+          <!-- Approval 2: AquaPipe Invoice -->
+          <div class="dark:bg-surface-dark bg-surface-light rounded-xl p-3.5 border dark:border-border-dark border-border-light tappable">
+            <div class="flex items-start justify-between gap-2 mb-2.5">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 mb-0.5">
+                  <span class="text-[10px] font-semibold uppercase tracking-wider text-brand bg-brand/10 px-1.5 py-0.5 rounded">Invoice</span>
+                </div>
+                <p class="text-[13px] font-medium dark:text-white text-[#1a1814]">AquaPipe - $18,200</p>
+                <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b]">Riverside Commons</p>
+              </div>
+              <i data-lucide="chevrons-left" class="w-3.5 h-3.5 dark:text-[#5c5347] text-[#c4b8a8] shrink-0 mt-2 swipe-hint"></i>
+            </div>
+            <div class="flex gap-2">
+              <button class="flex-1 h-8 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors tappable">Approve</button>
+              <button class="flex-1 h-8 bg-red-500/10 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/20 transition-colors tappable">Reject</button>
+            </div>
+          </div>
+
+          <!-- Approval 3: Change Order -->
+          <div class="dark:bg-surface-dark bg-surface-light rounded-xl p-3.5 border dark:border-border-dark border-border-light tappable">
+            <div class="flex items-start justify-between gap-2 mb-2.5">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 mb-0.5">
+                  <span class="text-[10px] font-semibold uppercase tracking-wider text-accent bg-accent/10 px-1.5 py-0.5 rounded">Change Order</span>
+                </div>
+                <p class="text-[13px] font-medium dark:text-white text-[#1a1814]">Change Order #6 - $45,000</p>
+                <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b]">Heritage Tower</p>
+              </div>
+              <i data-lucide="chevrons-left" class="w-3.5 h-3.5 dark:text-[#5c5347] text-[#c4b8a8] shrink-0 mt-2 swipe-hint"></i>
+            </div>
+            <div class="flex gap-2">
+              <button class="w-full h-8 bg-brand/10 text-brand text-xs font-semibold rounded-lg hover:bg-brand/20 transition-colors tappable">Review</button>
+            </div>
+          </div>
+
+          <!-- Approval 4: Timesheet -->
+          <div class="dark:bg-surface-dark bg-surface-light rounded-xl p-3.5 border dark:border-border-dark border-border-light tappable">
+            <div class="flex items-start justify-between gap-2 mb-2.5">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 mb-0.5">
+                  <span class="text-[10px] font-semibold uppercase tracking-wider text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">Timesheet</span>
+                </div>
+                <p class="text-[13px] font-medium dark:text-white text-[#1a1814]">Mark Johnson - 48 hrs (8 OT)</p>
+                <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b]">Metro Transit Hub</p>
+              </div>
+              <i data-lucide="chevrons-left" class="w-3.5 h-3.5 dark:text-[#5c5347] text-[#c4b8a8] shrink-0 mt-2 swipe-hint"></i>
+            </div>
+            <div class="flex gap-2">
+              <button class="flex-1 h-8 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors tappable">Approve</button>
+            </div>
+          </div>
+
+          <!-- View All Link -->
+          <button class="w-full py-2.5 text-center text-[13px] font-semibold text-brand hover:text-brand-light transition-colors tappable">
+            View all 7 approvals
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline-block ml-1 -mt-0.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- PROJECT SNAPSHOT                                          -->
+      <!-- ======================================================== -->
+      <div class="px-4 mb-5">
+        <div class="flex items-center gap-2 mb-3">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i>
+          <h2 class="text-[13px] font-semibold dark:text-white text-[#1a1814]">Projects At Risk</h2>
+        </div>
+
+        <div class="space-y-2.5">
+          <!-- Project 1: Heritage Tower -->
+          <div class="dark:bg-surface-dark bg-surface-light rounded-xl p-3.5 border dark:border-border-dark border-border-light tappable cursor-pointer">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center">
+                  <i data-lucide="building-2" class="w-4 h-4 text-brand"></i>
+                </div>
+                <div>
+                  <p class="text-[13px] font-semibold dark:text-white text-[#1a1814]">Heritage Tower</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-semibold text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">Budget overrun</span>
+            </div>
+            <div class="mb-1.5">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b]">Progress</span>
+                <span class="text-[11px] font-semibold dark:text-white text-[#1a1814]">42%</span>
+              </div>
+              <div class="h-1.5 dark:bg-[#2a2419] bg-[#e8e0d0] rounded-full overflow-hidden">
+                <div class="h-full bg-red-400 rounded-full" style="width: 42%"></div>
+              </div>
+            </div>
+            <div class="flex items-center justify-between mt-2">
+              <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b]">Steel costs 12% over budget</p>
+              <span class="text-[11px] font-medium text-brand">Details</span>
+            </div>
+          </div>
+
+          <!-- Project 2: Metro Transit -->
+          <div class="dark:bg-surface-dark bg-surface-light rounded-xl p-3.5 border dark:border-border-dark border-border-light tappable cursor-pointer">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <i data-lucide="train-front" class="w-4 h-4 text-emerald-500"></i>
+                </div>
+                <div>
+                  <p class="text-[13px] font-semibold dark:text-white text-[#1a1814]">Metro Transit Hub</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-semibold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">2 overdue RFIs</span>
+            </div>
+            <div class="mb-1.5">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b]">Progress</span>
+                <span class="text-[11px] font-semibold dark:text-white text-[#1a1814]">85%</span>
+              </div>
+              <div class="h-1.5 dark:bg-[#2a2419] bg-[#e8e0d0] rounded-full overflow-hidden">
+                <div class="h-full bg-amber-400 rounded-full" style="width: 85%"></div>
+              </div>
+            </div>
+            <div class="flex items-center justify-between mt-2">
+              <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b]">Structural RFIs past due 5 days</p>
+              <span class="text-[11px] font-medium text-brand">Details</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- AI QUICK QUERY                                            -->
+      <!-- ======================================================== -->
+      <div class="px-4 mb-6">
+        <div class="dark:bg-surface-dark bg-surface-light rounded-2xl p-4 border dark:border-border-dark border-border-light">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand to-purple-500 flex items-center justify-center">
+              <i data-lucide="brain" class="w-3.5 h-3.5 text-white"></i>
+            </div>
+            <h2 class="text-[13px] font-semibold dark:text-white text-[#1a1814]">Ask AI</h2>
+          </div>
+
+          <!-- Input -->
+          <div class="flex items-center gap-2 mb-3">
+            <div class="flex-1 h-10 dark:bg-[#1a1814] bg-[#faf7f2] rounded-xl border dark:border-border-dark border-border-light flex items-center px-3">
+              <i data-lucide="search" class="w-3.5 h-3.5 dark:text-[#5c5347] text-[#c4b8a8] mr-2 shrink-0"></i>
+              <span class="text-[12px] dark:text-[#5c5347] text-[#8a7e6b]">Ask anything about your projects...</span>
+            </div>
+            <button class="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center tappable shrink-0">
+              <i data-lucide="mic" class="w-4 h-4 text-brand"></i>
+            </button>
+          </div>
+
+          <!-- Suggestions -->
+          <div class="flex flex-wrap gap-1.5">
+            <button class="px-3 py-1.5 rounded-full text-[11px] font-medium dark:bg-[#1a1814] bg-[#faf7f2] dark:text-[#a89b8c] text-[#8a7e6b] border dark:border-border-dark border-border-light tappable hover:border-brand/40 hover:text-brand transition-colors">
+              Cash flow next 4 weeks
+            </button>
+            <button class="px-3 py-1.5 rounded-full text-[11px] font-medium dark:bg-[#1a1814] bg-[#faf7f2] dark:text-[#a89b8c] text-[#8a7e6b] border dark:border-border-dark border-border-light tappable hover:border-brand/40 hover:text-brand transition-colors">
+              Today's reports
+            </button>
+            <button class="px-3 py-1.5 rounded-full text-[11px] font-medium dark:bg-[#1a1814] bg-[#faf7f2] dark:text-[#a89b8c] text-[#8a7e6b] border dark:border-border-dark border-border-light tappable hover:border-brand/40 hover:text-brand transition-colors">
+              Overdue items
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom spacer for nav bar -->
+      <div class="h-4"></div>
+
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- BOTTOM NAVIGATION (fixed)                                   -->
+    <!-- ========================================================== -->
+    <div class="absolute bottom-0 left-0 right-0 dark:bg-[#1a1814]/95 bg-[#faf7f2]/95 backdrop-blur-xl border-t dark:border-border-dark border-border-light z-30">
+      <div class="flex items-center justify-around h-[72px] pb-4 pt-2">
+        <!-- Dashboard (active) -->
+        <button class="flex flex-col items-center gap-0.5 tappable min-w-[52px]">
+          <div class="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center">
+            <i data-lucide="layout-dashboard" class="w-[18px] h-[18px] text-brand"></i>
+          </div>
+          <span class="text-[10px] font-semibold text-brand">Dashboard</span>
+        </button>
+
+        <!-- Projects -->
+        <button class="flex flex-col items-center gap-0.5 tappable min-w-[52px]">
+          <div class="w-7 h-7 flex items-center justify-center">
+            <i data-lucide="hard-hat" class="w-[18px] h-[18px] dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+          </div>
+          <span class="text-[10px] font-medium dark:text-[#a89b8c] text-[#8a7e6b]">Projects</span>
+        </button>
+
+        <!-- Finance -->
+        <button class="flex flex-col items-center gap-0.5 tappable min-w-[52px]">
+          <div class="w-7 h-7 flex items-center justify-center">
+            <i data-lucide="dollar-sign" class="w-[18px] h-[18px] dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+          </div>
+          <span class="text-[10px] font-medium dark:text-[#a89b8c] text-[#8a7e6b]">Finance</span>
+        </button>
+
+        <!-- AI -->
+        <button class="flex flex-col items-center gap-0.5 tappable min-w-[52px]">
+          <div class="w-7 h-7 flex items-center justify-center">
+            <i data-lucide="brain" class="w-[18px] h-[18px] dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+          </div>
+          <span class="text-[10px] font-medium dark:text-[#a89b8c] text-[#8a7e6b]">AI</span>
+        </button>
+
+        <!-- More -->
+        <button class="flex flex-col items-center gap-0.5 tappable min-w-[52px]">
+          <div class="w-7 h-7 flex items-center justify-center">
+            <i data-lucide="menu" class="w-[18px] h-[18px] dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+          </div>
+          <span class="text-[10px] font-medium dark:text-[#a89b8c] text-[#8a7e6b]">More</span>
+        </button>
+      </div>
+
+      <!-- Home indicator -->
+      <div class="flex justify-center pb-1">
+        <div class="w-32 h-1 rounded-full dark:bg-[#5c5347] bg-[#c4b8a8]"></div>
+      </div>
+    </div>
+
+    <!-- NOTCH -->
+    <div class="notch"></div>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCRIPTS                                                       -->
+  <!-- ============================================================ -->
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.classList.toggle('dark');
+      html.classList.toggle('light');
+      // Re-initialize icons after DOM changes
+      lucide.createIcons();
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1143 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Riverside Commons Phase II - Schedule</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#2c5282', light: '#3b6ba5', dark: '#1e3a5f' },
+            accent: { DEFAULT: '#c9a84c', light: '#d4b96a', dark: '#b08f3a' },
+            surface: { dark: '#243447', light: '#ffffff' },
+            border: { dark: '#344258', light: '#d1d9e6' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #2c5282, #c9a84c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Scrollbar styling */
+    .gantt-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .gantt-scroll::-webkit-scrollbar-track { background: transparent; }
+    .dark .gantt-scroll::-webkit-scrollbar-thumb { background: #3d4f64; border-radius: 4px; }
+    .gantt-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+    /* Today line animation */
+    .today-line { animation: pulse-line 2s ease-in-out infinite; }
+    @keyframes pulse-line { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+    /* Dependency arrow */
+    .dep-arrow { stroke-dasharray: 4 2; }
+
+    /* Milestone diamond */
+    .milestone { width: 14px; height: 14px; transform: rotate(45deg); }
+
+    /* Gantt bar hover */
+    .gantt-bar { transition: filter 0.15s ease, transform 0.15s ease; }
+    .gantt-bar:hover { filter: brightness(1.15); transform: scaleY(1.15); }
+
+    /* Active nav highlight */
+    .nav-active { position: relative; }
+    .nav-active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #2c5282;
+      border-radius: 0 3px 3px 0;
+    }
+
+    /* Phase row highlight */
+    .phase-current { border-left: 3px solid #2c5282; }
+
+    /* Resource bar animation */
+    .resource-bar { transition: height 0.3s ease; }
+  </style>
+</head>
+<body class="dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300 h-screen overflow-hidden">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark')" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <div class="flex h-screen">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="w-60 flex-shrink-0 dark:bg-[#1e2d3f] bg-[#f0f2f5] border-r dark:border-[#344258] border-[#d1d9e6] flex flex-col h-full">
+      <!-- Logo -->
+      <div class="px-4 h-14 flex items-center gap-2 border-b dark:border-[#344258] border-[#d1d9e6]">
+        <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center flex-shrink-0">
+          <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="text-sm font-bold truncate">ConstructionERP</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        <!-- Dashboard -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+
+        <!-- Construction Section -->
+        <div class="pt-4 pb-1 px-3">
+          <span class="text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Construction</span>
+        </div>
+        <a href="#" class="nav-active flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:bg-brand/10 bg-brand/5 text-brand font-medium">
+          <i data-lucide="folder-kanban" class="w-4 h-4"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          Contracts
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="truck" class="w-4 h-4"></i>
+          Vendors
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          Bid Management
+        </a>
+
+        <!-- Property Section -->
+        <div class="pt-4 pb-1 px-3">
+          <span class="text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Properties</span>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Portfolio
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Tenants
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+          Maintenance
+        </a>
+
+        <!-- Finance Section -->
+        <div class="pt-4 pb-1 px-3">
+          <span class="text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Finance</span>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+          Accounting
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          Invoices
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Reports
+        </a>
+
+        <!-- Tools Section -->
+        <div class="pt-4 pb-1 px-3">
+          <span class="text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Tools</span>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          Documents
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Settings
+        </a>
+      </nav>
+
+      <!-- User Section -->
+      <div class="p-3 border-t dark:border-[#344258] border-[#d1d9e6]">
+        <div class="flex items-center gap-3 px-2 py-1.5">
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand font-semibold text-xs flex-shrink-0">JD</div>
+          <div class="min-w-0">
+            <div class="text-sm font-medium truncate">John Davis</div>
+            <div class="text-xs dark:text-gray-500 text-gray-400 truncate">Project Manager</div>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 dark:text-gray-500 text-gray-400 flex-shrink-0 ml-auto"></i>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== MAIN AREA ===== -->
+    <div class="flex-1 flex flex-col min-w-0 h-full">
+
+      <!-- TOP BAR -->
+      <header class="h-14 flex items-center justify-between px-6 border-b dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white flex-shrink-0">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-sm">
+          <span class="dark:text-gray-500 text-gray-400">Construction</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <a href="#" class="dark:text-gray-400 text-gray-500 hover:text-brand transition-colors">Projects</a>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <a href="#" class="dark:text-gray-400 text-gray-500 hover:text-brand transition-colors">Riverside Commons Phase II</a>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <span class="dark:text-gray-100 text-gray-900 font-medium">Schedule</span>
+        </div>
+        <!-- Right actions -->
+        <div class="flex items-center gap-3">
+          <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+            <i data-lucide="bell" class="w-4.5 h-4.5 dark:text-gray-400 text-gray-500"></i>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <button class="p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+            <i data-lucide="help-circle" class="w-4.5 h-4.5 dark:text-gray-400 text-gray-500"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- SUB-NAVIGATION TABS -->
+      <div class="border-b dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white flex-shrink-0">
+        <div class="px-6 flex items-center gap-0 overflow-x-auto">
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">Overview</a>
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">Budget</a>
+          <a href="#" class="px-4 py-3 text-sm text-brand font-medium border-b-2 border-brand whitespace-nowrap">Schedule</a>
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">Documents</a>
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">Quality</a>
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">Safety</a>
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">Daily Logs</a>
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">Team</a>
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">RFIs</a>
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">Change Orders</a>
+          <a href="#" class="px-4 py-3 text-sm dark:text-gray-400 text-gray-500 hover:text-brand border-b-2 border-transparent hover:border-brand/30 transition-colors whitespace-nowrap">Submittals</a>
+        </div>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="px-6 py-3 border-b dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1a2332] bg-white flex-shrink-0">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <!-- Left controls -->
+          <div class="flex items-center gap-3 flex-wrap">
+            <!-- Zoom controls -->
+            <div class="flex items-center rounded-lg border dark:border-[#344258] border-[#d1d9e6] overflow-hidden">
+              <button class="px-3 py-1.5 text-xs font-medium dark:text-gray-400 text-gray-500 dark:hover:bg-white/5 hover:bg-gray-100 transition-colors border-r dark:border-[#344258] border-[#d1d9e6]">Day</button>
+              <button class="px-3 py-1.5 text-xs font-medium text-white bg-brand">Week</button>
+              <button class="px-3 py-1.5 text-xs font-medium dark:text-gray-400 text-gray-500 dark:hover:bg-white/5 hover:bg-gray-100 transition-colors border-l dark:border-[#344258] border-[#d1d9e6]">Month</button>
+            </div>
+
+            <!-- Separator -->
+            <div class="w-px h-6 dark:bg-[#344258] bg-[#d1d9e6]"></div>
+
+            <!-- Filters -->
+            <select class="text-xs dark:bg-[#243447] bg-white border dark:border-[#344258] border-[#d1d9e6] rounded-lg px-3 py-1.5 dark:text-gray-300 text-gray-700 appearance-none pr-7 cursor-pointer" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%239ca3af%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>'); background-repeat: no-repeat; background-position: right 8px center;">
+              <option>All Tasks</option>
+              <option>Phase 1: Foundation</option>
+              <option>Phase 2: Structure</option>
+              <option>Phase 3: MEP Rough-In</option>
+              <option>Phase 4: Exterior</option>
+              <option>Phase 5: Interior Finishes</option>
+            </select>
+            <select class="text-xs dark:bg-[#243447] bg-white border dark:border-[#344258] border-[#d1d9e6] rounded-lg px-3 py-1.5 dark:text-gray-300 text-gray-700 appearance-none pr-7 cursor-pointer" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%239ca3af%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>'); background-repeat: no-repeat; background-position: right 8px center;">
+              <option>All Trades</option>
+              <option>Concrete</option>
+              <option>Steel</option>
+              <option>Electrical</option>
+              <option>Plumbing</option>
+              <option>HVAC</option>
+              <option>Fire Protection</option>
+              <option>Glazing</option>
+              <option>Roofing</option>
+              <option>Drywall</option>
+              <option>Painting</option>
+              <option>Flooring</option>
+            </select>
+            <label class="flex items-center gap-1.5 text-xs dark:text-gray-400 text-gray-500 cursor-pointer">
+              <input type="checkbox" class="w-3.5 h-3.5 rounded border-gray-400 text-brand focus:ring-brand/30 cursor-pointer">
+              Critical Path Only
+            </label>
+
+            <!-- Separator -->
+            <div class="w-px h-6 dark:bg-[#344258] bg-[#d1d9e6]"></div>
+
+            <!-- Navigation -->
+            <div class="flex items-center gap-1">
+              <button class="p-1.5 rounded dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+                <i data-lucide="chevron-left" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+              </button>
+              <button class="px-3 py-1.5 text-xs font-medium rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+                Today
+              </button>
+              <button class="p-1.5 rounded dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+                <i data-lucide="chevron-right" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right controls -->
+          <div class="flex items-center gap-2">
+            <label class="flex items-center gap-1.5 text-xs dark:text-gray-400 text-gray-500 cursor-pointer mr-1">
+              <div class="relative">
+                <input type="checkbox" class="sr-only peer">
+                <div class="w-8 h-4.5 bg-gray-300 dark:bg-gray-600 rounded-full peer peer-checked:bg-brand transition-colors"></div>
+                <div class="absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-white rounded-full shadow peer-checked:translate-x-3.5 transition-transform"></div>
+              </div>
+              Baseline
+            </label>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              Export
+            </button>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-brand hover:bg-brand-dark text-white transition-colors">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              Add Task
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== GANTT CHART AREA ===== -->
+      <div class="flex-1 flex flex-col min-h-0">
+        <div class="flex flex-1 min-h-0">
+
+          <!-- LEFT PANEL: Task List -->
+          <div class="flex-shrink-0 border-r dark:border-[#344258] border-[#d1d9e6] flex flex-col" style="width: 520px;">
+            <!-- Header row -->
+            <div class="flex items-center text-[10px] font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400 border-b dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1e2d3f] bg-[#f0f2f5] flex-shrink-0">
+              <div class="flex-1 px-4 py-2.5 min-w-0">Task</div>
+              <div class="w-[80px] px-2 py-2.5 text-center">Assigned</div>
+              <div class="w-[60px] px-2 py-2.5 text-center">Start</div>
+              <div class="w-[60px] px-2 py-2.5 text-center">End</div>
+              <div class="w-[36px] px-1 py-2.5 text-center">Dur</div>
+              <div class="w-[72px] px-2 py-2.5 text-center">Status</div>
+            </div>
+
+            <!-- Task rows (scrollable) -->
+            <div class="flex-1 overflow-y-auto gantt-scroll" id="taskList">
+
+              <!-- PHASE 1: Foundation (collapsed) -->
+              <div class="flex items-center border-b dark:border-[#344258]/50 border-[#d1d9e6]/50 dark:bg-[#1e2d3f] bg-[#f0f2f5] cursor-pointer hover:dark:bg-[#1e2d3f] hover:bg-gray-200 transition-colors" onclick="togglePhase('phase1')">
+                <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0">
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 transition-transform" id="phase1Arrow"></i>
+                  <span class="text-xs font-semibold dark:text-gray-200 text-gray-800 truncate">Phase 1: Foundation</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium flex-shrink-0">100%</span>
+                </div>
+                <div class="w-[80px] px-2 py-2 text-xs dark:text-gray-400 text-gray-500 text-center">--</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Oct 15</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Nov 20</div>
+                <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">27d</div>
+                <div class="w-[72px] px-2 py-2 text-center">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium">Done</span>
+                </div>
+              </div>
+              <!-- Phase 1 children (hidden by default) -->
+              <div id="phase1" class="hidden">
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Excavation</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">Mike T.</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Oct 15</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Oct 28</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">10d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium">Done</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Footings</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">Mike T.</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Oct 29</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Nov 10</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">9d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium">Done</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Foundation Walls</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">Mike T.</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Nov 11</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Nov 20</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">8d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium">Done</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PHASE 2: Structure -->
+              <div class="flex items-center border-b dark:border-[#344258]/50 border-[#d1d9e6]/50 dark:bg-[#1e2d3f] bg-[#f0f2f5] cursor-pointer hover:dark:bg-[#1e2d3f] hover:bg-gray-200 transition-colors" onclick="togglePhase('phase2')">
+                <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0">
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 transition-transform" id="phase2Arrow"></i>
+                  <span class="text-xs font-semibold dark:text-gray-200 text-gray-800 truncate">Phase 2: Structure</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium flex-shrink-0">100%</span>
+                </div>
+                <div class="w-[80px] px-2 py-2 text-xs dark:text-gray-400 text-gray-500 text-center">--</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Dec 1</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Feb 5</div>
+                <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">48d</div>
+                <div class="w-[72px] px-2 py-2 text-center">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium">Done</span>
+                </div>
+              </div>
+              <div id="phase2" class="hidden">
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Steel Erection</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">ABC Steel</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Dec 1</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jan 8</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">28d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium">Done</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Metal Decking</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">ABC Steel</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jan 9</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jan 22</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">10d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium">Done</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Concrete Deck Pour</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">RDC Concrete</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jan 23</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Feb 5</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">10d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 font-medium">Done</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PHASE 3: MEP Rough-In (current, expanded) -->
+              <div class="flex items-center border-b dark:border-[#344258]/50 border-[#d1d9e6]/50 dark:bg-[#1e2d3f] bg-[#f0f2f5] cursor-pointer hover:dark:bg-[#1e2d3f] hover:bg-gray-200 transition-colors phase-current" onclick="togglePhase('phase3')">
+                <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-brand flex-shrink-0 transition-transform" id="phase3Arrow"></i>
+                  <span class="text-xs font-semibold text-brand truncate">Phase 3: MEP Rough-In</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand/10 text-brand font-medium flex-shrink-0">Active</span>
+                </div>
+                <div class="w-[80px] px-2 py-2 text-xs dark:text-gray-400 text-gray-500 text-center">--</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Feb 6</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Mar 20</div>
+                <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">31d</div>
+                <div class="w-[72px] px-2 py-2 text-center">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand/10 text-brand font-medium">Active</span>
+                </div>
+              </div>
+              <div id="phase3">
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors dark:bg-brand/[0.03] bg-brand/[0.02]">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand flex-shrink-0 animate-pulse"></span>
+                    <span class="text-xs dark:text-gray-200 text-gray-800 truncate">Electrical Rough</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">Volt Electric</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Feb 6</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Mar 5</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">20d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand/10 text-brand font-medium">In Prog</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors dark:bg-brand/[0.03] bg-brand/[0.02]">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand flex-shrink-0 animate-pulse"></span>
+                    <span class="text-xs dark:text-gray-200 text-gray-800 truncate">Plumbing Rough</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">AquaPipe</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Feb 10</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Mar 10</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">21d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand/10 text-brand font-medium">In Prog</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors dark:bg-brand/[0.03] bg-brand/[0.02]">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand flex-shrink-0 animate-pulse"></span>
+                    <span class="text-xs dark:text-gray-200 text-gray-800 truncate">HVAC Ductwork</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">CoolAir HVAC</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Feb 15</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Mar 15</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">21d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand/10 text-brand font-medium">In Prog</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full dark:bg-gray-600 bg-gray-300 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Fire Protection</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">FireSafe Inc</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Mar 1</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Mar 20</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">14d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium">Pending</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PHASE 4: Exterior -->
+              <div class="flex items-center border-b dark:border-[#344258]/50 border-[#d1d9e6]/50 dark:bg-[#1e2d3f] bg-[#f0f2f5] cursor-pointer hover:dark:bg-[#1e2d3f] hover:bg-gray-200 transition-colors" onclick="togglePhase('phase4')">
+                <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 transition-transform" id="phase4Arrow"></i>
+                  <span class="text-xs font-semibold dark:text-gray-200 text-gray-800 truncate">Phase 4: Exterior</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium flex-shrink-0">0%</span>
+                </div>
+                <div class="w-[80px] px-2 py-2 text-xs dark:text-gray-400 text-gray-500 text-center">--</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Mar 16</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Apr 20</div>
+                <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">26d</div>
+                <div class="w-[72px] px-2 py-2 text-center">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium">Pending</span>
+                </div>
+              </div>
+              <div id="phase4">
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full dark:bg-gray-600 bg-gray-300 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Curtain Wall</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">GlassWorks</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Mar 16</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Apr 20</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">26d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium">Pending</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full dark:bg-gray-600 bg-gray-300 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Roofing</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">TopCover</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Apr 1</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Apr 15</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">11d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium">Pending</span>
+                  </div>
+                </div>
+                <!-- Milestone: Watertight -->
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <div class="milestone bg-accent flex-shrink-0"></div>
+                    <span class="text-xs font-semibold dark:text-accent-light text-accent-dark truncate ml-0.5">Watertight</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">--</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Apr 20</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Apr 20</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">0d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">MS</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PHASE 5: Interior Finishes -->
+              <div class="flex items-center border-b dark:border-[#344258]/50 border-[#d1d9e6]/50 dark:bg-[#1e2d3f] bg-[#f0f2f5] cursor-pointer hover:dark:bg-[#1e2d3f] hover:bg-gray-200 transition-colors" onclick="togglePhase('phase5')">
+                <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 transition-transform" id="phase5Arrow"></i>
+                  <span class="text-xs font-semibold dark:text-gray-200 text-gray-800 truncate">Phase 5: Interior Finishes</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium flex-shrink-0">0%</span>
+                </div>
+                <div class="w-[80px] px-2 py-2 text-xs dark:text-gray-400 text-gray-500 text-center">--</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Apr 21</div>
+                <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jul 15</div>
+                <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">61d</div>
+                <div class="w-[72px] px-2 py-2 text-center">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium">Pending</span>
+                </div>
+              </div>
+              <div id="phase5">
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full dark:bg-gray-600 bg-gray-300 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Drywall</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">InteriorPro</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Apr 21</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">May 15</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">18d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium">Pending</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full dark:bg-gray-600 bg-gray-300 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Painting</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">ColorCraft</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">May 16</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jun 1</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">12d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium">Pending</span>
+                  </div>
+                </div>
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <span class="w-1.5 h-1.5 rounded-full dark:bg-gray-600 bg-gray-300 flex-shrink-0"></span>
+                    <span class="text-xs dark:text-gray-300 text-gray-700 truncate">Flooring</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center truncate">FloorMasters</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jun 2</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jun 15</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">10d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full dark:bg-gray-700/50 bg-gray-200 dark:text-gray-400 text-gray-500 font-medium">Pending</span>
+                  </div>
+                </div>
+                <!-- Milestone: Substantial Completion -->
+                <div class="flex items-center border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 hover:dark:bg-white/[0.02] hover:bg-gray-50 transition-colors">
+                  <div class="flex-1 px-4 py-2 flex items-center gap-2 min-w-0 pl-9">
+                    <div class="milestone bg-accent flex-shrink-0"></div>
+                    <span class="text-xs font-semibold dark:text-accent-light text-accent-dark truncate ml-0.5">Substantial Completion</span>
+                  </div>
+                  <div class="w-[80px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">--</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jul 15</div>
+                  <div class="w-[60px] px-2 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">Jul 15</div>
+                  <div class="w-[36px] px-1 py-2 text-[10px] dark:text-gray-400 text-gray-500 text-center">0d</div>
+                  <div class="w-[72px] px-2 py-2 text-center">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">MS</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- RIGHT PANEL: Timeline / Gantt Bars -->
+          <div class="flex-1 flex flex-col min-w-0">
+            <!-- Timeline header -->
+            <div class="flex-shrink-0 border-b dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1e2d3f] bg-[#f0f2f5] overflow-hidden" id="timelineHeader">
+              <!-- Month row -->
+              <div class="flex" style="min-width: 1400px;">
+                <div class="text-[10px] font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500 border-b dark:border-[#344258]/50 border-[#d1d9e6]/50 flex">
+                  <div class="w-[120px] px-2 py-1 border-r dark:border-[#344258]/50 border-[#d1d9e6]/50 text-center">Feb 2026</div>
+                  <div class="w-[160px] px-2 py-1 border-r dark:border-[#344258]/50 border-[#d1d9e6]/50 text-center">Mar 2026</div>
+                  <div class="w-[200px] px-2 py-1 border-r dark:border-[#344258]/50 border-[#d1d9e6]/50 text-center">Apr 2026</div>
+                  <div class="w-[200px] px-2 py-1 border-r dark:border-[#344258]/50 border-[#d1d9e6]/50 text-center">May 2026</div>
+                  <div class="w-[200px] px-2 py-1 border-r dark:border-[#344258]/50 border-[#d1d9e6]/50 text-center">Jun 2026</div>
+                  <div class="w-[200px] px-2 py-1 text-center">Jul 2026</div>
+                </div>
+              </div>
+              <!-- Week row -->
+              <div class="flex" style="min-width: 1400px;">
+                <div class="text-[9px] dark:text-gray-500 text-gray-400 flex">
+                  <!-- Feb weeks -->
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">2</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center font-semibold dark:text-brand-light text-brand">9</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">16</div>
+                  <!-- Mar weeks -->
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">23</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">2</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">9</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">16</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">23</div>
+                  <!-- Apr weeks -->
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">30</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">6</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">13</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">20</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">27</div>
+                  <!-- May weeks -->
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">4</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">11</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">18</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">25</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">1</div>
+                  <!-- Jun weeks -->
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">8</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">15</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">22</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">29</div>
+                  <!-- Jul weeks -->
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">6</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">13</div>
+                  <div class="w-[40px] px-1 py-1 border-r dark:border-[#344258]/30 border-[#d1d9e6]/30 text-center">20</div>
+                  <div class="w-[40px] px-1 py-1 text-center">27</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gantt bars area (scrollable, synced with task list) -->
+            <div class="flex-1 overflow-auto gantt-scroll relative" id="ganttArea">
+              <div class="relative" style="min-width: 1400px; min-height: 100%;">
+
+                <!-- Vertical grid lines (week separators) -->
+                <div class="absolute inset-0 flex pointer-events-none">
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px] border-r dark:border-[#344258]/20 border-[#d1d9e6]/20 h-full"></div>
+                  <div class="w-[40px]"></div>
+                </div>
+
+                <!-- TODAY LINE - positioned at Feb 11 (column index 1, offset ~2/7 into the week) -->
+                <!-- Feb 9 is the start of the second week column. Feb 11 is 2 days into that week. -->
+                <!-- Position: 40px (first col) + ~11px offset = ~51px -->
+                <div class="absolute today-line" style="left: 51px; top: 0; bottom: 0; width: 2px; background: #ef4444; z-index: 20;">
+                  <div class="absolute -top-0 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-b whitespace-nowrap">TODAY</div>
+                </div>
+
+                <!-- Gantt bar rows -->
+                <!-- Row heights: phase header = 33px, task row = 33px -->
+                <!-- We need bars for each visible row matching the left panel -->
+
+                <!-- SVG for dependency arrows -->
+                <svg class="absolute inset-0 pointer-events-none" style="min-width: 1400px; min-height: 700px; z-index: 15;">
+                  <!-- Phase 3 dependencies: Electrical -> Fire Protection -->
+                  <line x1="155" y1="137" x2="175" y2="137" stroke="#2c5282" stroke-width="1.5" opacity="0.4" class="dep-arrow"/>
+                  <line x1="175" y1="137" x2="175" y2="165" stroke="#2c5282" stroke-width="1.5" opacity="0.4" class="dep-arrow"/>
+                  <line x1="175" y1="165" x2="155" y2="165" stroke="#2c5282" stroke-width="1.5" opacity="0.4" class="dep-arrow"/>
+                  <!-- Fire Protection -> Curtain Wall -->
+                  <line x1="232" y1="165" x2="252" y2="165" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <line x1="252" y1="165" x2="252" y2="230" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <line x1="252" y1="230" x2="262" y2="230" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <!-- Curtain Wall -> Watertight milestone -->
+                  <line x1="427" y1="230" x2="440" y2="230" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <line x1="440" y1="230" x2="440" y2="297" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <!-- Watertight -> Drywall -->
+                  <line x1="448" y1="297" x2="455" y2="297" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <line x1="455" y1="297" x2="455" y2="364" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <line x1="455" y1="364" x2="460" y2="364" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <!-- Drywall -> Painting -->
+                  <line x1="562" y1="364" x2="572" y2="364" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <line x1="572" y1="364" x2="572" y2="397" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <line x1="572" y1="397" x2="580" y2="397" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <!-- Painting -> Flooring -->
+                  <line x1="648" y1="397" x2="658" y2="397" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <line x1="658" y1="397" x2="658" y2="430" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                  <line x1="658" y1="430" x2="668" y2="430" stroke="#6b7280" stroke-width="1" opacity="0.3" class="dep-arrow"/>
+                </svg>
+
+                <!-- ===== PHASE 1 HEADER BAR ===== -->
+                <div class="h-[33px] border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 relative" id="ganttPhase1Header">
+                  <!-- Summary bar for the collapsed phase - not visible when collapsed since bars aren't shown -->
+                </div>
+                <!-- Phase 1 children (hidden by default, matched to left panel) -->
+                <div id="ganttPhase1" class="hidden">
+                  <!-- Excavation: Oct 15 - Oct 28 (before visible range, just show label) -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative flex items-center px-2">
+                    <div class="text-[9px] dark:text-gray-600 text-gray-400 italic">Completed before visible range</div>
+                  </div>
+                  <!-- Footings -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative flex items-center px-2">
+                    <div class="text-[9px] dark:text-gray-600 text-gray-400 italic">Completed before visible range</div>
+                  </div>
+                  <!-- Foundation Walls -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative flex items-center px-2">
+                    <div class="text-[9px] dark:text-gray-600 text-gray-400 italic">Completed before visible range</div>
+                  </div>
+                </div>
+
+                <!-- ===== PHASE 2 HEADER BAR ===== -->
+                <div class="h-[33px] border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 relative" id="ganttPhase2Header">
+                </div>
+                <!-- Phase 2 children (hidden) -->
+                <div id="ganttPhase2" class="hidden">
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative flex items-center px-2">
+                    <div class="text-[9px] dark:text-gray-600 text-gray-400 italic">Completed before visible range</div>
+                  </div>
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative flex items-center px-2">
+                    <div class="text-[9px] dark:text-gray-600 text-gray-400 italic">Completed before visible range</div>
+                  </div>
+                  <!-- Concrete Deck Pour: Jan 23 - Feb 5 (ends at start of visible range) -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative flex items-center">
+                    <div class="gantt-bar absolute h-[18px] rounded" style="left: 0px; width: 22px; top: 7px; background: #22c55e;" title="Concrete Deck Pour: Jan 23 - Feb 5 (Completed)">
+                      <div class="text-[8px] text-white font-medium px-1 truncate leading-[18px]"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===== PHASE 3 HEADER BAR ===== -->
+                <div class="h-[33px] border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 relative dark:bg-brand/[0.02] bg-brand/[0.01]" id="ganttPhase3Header">
+                  <!-- Phase summary bar spanning Feb 6 - Mar 20 -->
+                  <div class="gantt-bar absolute h-[6px] rounded-full" style="left: 30px; width: 230px; top: 13px; background: linear-gradient(90deg, #2c5282, #3b6ba550);" title="Phase 3: MEP Rough-In"></div>
+                </div>
+                <!-- Phase 3 children (visible) -->
+                <div id="ganttPhase3">
+                  <!-- Electrical Rough: Feb 6 - Mar 5, 20d, In Progress -->
+                  <!-- Feb 6 is ~4 days after Feb 2 (start of week col 0). Position: ~23px. Duration 20d ~= 114px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative dark:bg-brand/[0.02] bg-brand/[0.01]">
+                    <div class="gantt-bar absolute h-[18px] rounded cursor-pointer" style="left: 30px; width: 155px; top: 7px;" title="Electrical Rough: Feb 6 - Mar 5 (In Progress)">
+                      <!-- Completed portion (about 25% as of Feb 11) -->
+                      <div class="h-full rounded-l bg-brand" style="width: 25%; border-radius: 4px 0 0 4px;"></div>
+                      <!-- Remaining portion -->
+                      <div class="absolute inset-0 rounded" style="background: #2c528220; border: 1.5px solid #2c5282;"></div>
+                      <div class="absolute inset-0 flex items-center px-1.5">
+                        <span class="text-[8px] text-white font-medium truncate drop-shadow-sm">Electrical Rough</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Plumbing Rough: Feb 10 - Mar 10, 21d, In Progress -->
+                  <!-- Feb 10 is ~1 day into week 2 (col index 1). Position: 40 + ~6px = 46px. Duration 21d ~= 120px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative dark:bg-brand/[0.02] bg-brand/[0.01]">
+                    <div class="gantt-bar absolute h-[18px] rounded cursor-pointer" style="left: 46px; width: 168px; top: 7px;" title="Plumbing Rough: Feb 10 - Mar 10 (In Progress)">
+                      <div class="h-full rounded-l bg-brand" style="width: 8%; border-radius: 4px 0 0 4px;"></div>
+                      <div class="absolute inset-0 rounded" style="background: #2c528220; border: 1.5px solid #2c5282;"></div>
+                      <div class="absolute inset-0 flex items-center px-1.5">
+                        <span class="text-[8px] text-white font-medium truncate drop-shadow-sm">Plumbing Rough</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- HVAC Ductwork: Feb 15 - Mar 15, 21d, In Progress -->
+                  <!-- Feb 15 is ~2 days before Feb 16 col. Position: ~75px. Duration ~= 168px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative dark:bg-brand/[0.02] bg-brand/[0.01]">
+                    <div class="gantt-bar absolute h-[18px] rounded cursor-pointer" style="left: 72px; width: 168px; top: 7px;" title="HVAC Ductwork: Feb 15 - Mar 15 (In Progress)">
+                      <div class="h-full rounded-l bg-brand/40" style="width: 0%; border-radius: 4px 0 0 4px;"></div>
+                      <div class="absolute inset-0 rounded" style="background: #2c528215; border: 1.5px solid #2c528280;"></div>
+                      <div class="absolute inset-0 flex items-center px-1.5">
+                        <span class="text-[8px] dark:text-blue-300 text-brand font-medium truncate">HVAC Ductwork</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Fire Protection: Mar 1 - Mar 20, 14d, Not Started -->
+                  <!-- Mar 1 is ~1 day before Mar 2 col. Position: ~155px. Duration 14d ~= 80px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative">
+                    <div class="gantt-bar absolute h-[18px] rounded cursor-pointer" style="left: 155px; width: 110px; top: 7px;" title="Fire Protection: Mar 1 - Mar 20 (Not Started)">
+                      <div class="absolute inset-0 rounded" style="border: 1.5px dashed #6b728080;"></div>
+                      <div class="absolute inset-0 flex items-center px-1.5">
+                        <span class="text-[8px] dark:text-gray-500 text-gray-400 font-medium truncate">Fire Protection</span>
+                      </div>
+                    </div>
+                    <!-- Critical path marker -->
+                    <div class="absolute rounded" style="left: 153px; width: 114px; top: 5px; height: 22px; border: 1px solid #ef444440; border-radius: 6px;"></div>
+                  </div>
+                </div>
+
+                <!-- ===== PHASE 4 HEADER BAR ===== -->
+                <div class="h-[33px] border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 relative" id="ganttPhase4Header">
+                  <div class="gantt-bar absolute h-[6px] rounded-full" style="left: 262px; width: 190px; top: 13px; background: linear-gradient(90deg, #6b728040, #6b728020);" title="Phase 4: Exterior"></div>
+                </div>
+                <!-- Phase 4 children -->
+                <div id="ganttPhase4">
+                  <!-- Curtain Wall: Mar 16 - Apr 20, 26d, Not Started -->
+                  <!-- Mar 16 is at the Mar 16 col. Position: ~262px. Duration 26d ~= 148px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative">
+                    <div class="gantt-bar absolute h-[18px] rounded cursor-pointer" style="left: 262px; width: 180px; top: 7px;" title="Curtain Wall: Mar 16 - Apr 20 (Not Started)">
+                      <div class="absolute inset-0 rounded" style="border: 1.5px dashed #6b728080;"></div>
+                      <div class="absolute inset-0 flex items-center px-1.5">
+                        <span class="text-[8px] dark:text-gray-500 text-gray-400 font-medium truncate">Curtain Wall</span>
+                      </div>
+                    </div>
+                    <!-- Critical path marker -->
+                    <div class="absolute rounded" style="left: 260px; width: 184px; top: 5px; height: 22px; border: 1px solid #ef444440; border-radius: 6px;"></div>
+                  </div>
+                  <!-- Roofing: Apr 1 - Apr 15, 11d -->
+                  <!-- Apr 1 is ~2 days after Mar 30 col. Position: ~330px. Duration 11d ~= 63px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative">
+                    <div class="gantt-bar absolute h-[18px] rounded cursor-pointer" style="left: 347px; width: 80px; top: 7px;" title="Roofing: Apr 1 - Apr 15 (Not Started)">
+                      <div class="absolute inset-0 rounded" style="border: 1.5px dashed #6b728080;"></div>
+                      <div class="absolute inset-0 flex items-center px-1.5">
+                        <span class="text-[8px] dark:text-gray-500 text-gray-400 font-medium truncate">Roofing</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Milestone: Watertight Apr 20 -->
+                  <!-- Apr 20 col = ~440px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative">
+                    <div class="absolute" style="left: 440px; top: 9px;">
+                      <div class="milestone bg-accent shadow-sm shadow-accent/30" title="Milestone: Watertight - Apr 20"></div>
+                    </div>
+                    <div class="absolute text-[8px] font-semibold text-accent" style="left: 460px; top: 10px;">Watertight</div>
+                  </div>
+                </div>
+
+                <!-- ===== PHASE 5 HEADER BAR ===== -->
+                <div class="h-[33px] border-b dark:border-[#344258]/30 border-[#d1d9e6]/30 relative" id="ganttPhase5Header">
+                  <div class="gantt-bar absolute h-[6px] rounded-full" style="left: 460px; width: 450px; top: 13px; background: linear-gradient(90deg, #6b728040, #6b728020);" title="Phase 5: Interior Finishes"></div>
+                </div>
+                <!-- Phase 5 children -->
+                <div id="ganttPhase5">
+                  <!-- Drywall: Apr 21 - May 15, 18d -->
+                  <!-- Apr 21 is ~1 day after Apr 20. Position: ~447px. Duration 18d ~= 103px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative">
+                    <div class="gantt-bar absolute h-[18px] rounded cursor-pointer" style="left: 460px; width: 140px; top: 7px;" title="Drywall: Apr 21 - May 15 (Not Started)">
+                      <div class="absolute inset-0 rounded" style="border: 1.5px dashed #6b728080;"></div>
+                      <div class="absolute inset-0 flex items-center px-1.5">
+                        <span class="text-[8px] dark:text-gray-500 text-gray-400 font-medium truncate">Drywall</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Painting: May 16 - Jun 1, 12d -->
+                  <!-- Position: ~600px. Duration ~= 70px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative">
+                    <div class="gantt-bar absolute h-[18px] rounded cursor-pointer" style="left: 600px; width: 95px; top: 7px;" title="Painting: May 16 - Jun 1 (Not Started)">
+                      <div class="absolute inset-0 rounded" style="border: 1.5px dashed #6b728080;"></div>
+                      <div class="absolute inset-0 flex items-center px-1.5">
+                        <span class="text-[8px] dark:text-gray-500 text-gray-400 font-medium truncate">Painting</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Flooring: Jun 2 - Jun 15, 10d -->
+                  <!-- Position: ~695px. Duration ~= 57px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative">
+                    <div class="gantt-bar absolute h-[18px] rounded cursor-pointer" style="left: 698px; width: 80px; top: 7px;" title="Flooring: Jun 2 - Jun 15 (Not Started)">
+                      <div class="absolute inset-0 rounded" style="border: 1.5px dashed #6b728080;"></div>
+                      <div class="absolute inset-0 flex items-center px-1.5">
+                        <span class="text-[8px] dark:text-gray-500 text-gray-400 font-medium truncate">Flooring</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Milestone: Substantial Completion Jul 15 -->
+                  <!-- Jul 15 is ~2 days after Jul 13 col. Position: ~935px -->
+                  <div class="h-[33px] border-b dark:border-[#344258]/20 border-[#d1d9e6]/20 relative">
+                    <div class="absolute" style="left: 935px; top: 9px;">
+                      <div class="milestone bg-accent shadow-sm shadow-accent/30" title="Milestone: Substantial Completion - Jul 15"></div>
+                    </div>
+                    <div class="absolute text-[8px] font-semibold text-accent" style="left: 955px; top: 10px;">Substantial Completion</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== RESOURCE LOADING BAR ===== -->
+        <div class="flex-shrink-0 border-t dark:border-[#344258] border-[#d1d9e6] dark:bg-[#1e2d3f] bg-[#f0f2f5]">
+          <div class="flex">
+            <!-- Left label area matching task list width -->
+            <div class="flex-shrink-0 border-r dark:border-[#344258] border-[#d1d9e6] px-4 py-2 flex items-center" style="width: 520px;">
+              <div>
+                <div class="text-[10px] font-semibold uppercase tracking-wider dark:text-gray-400 text-gray-500">Resource Loading</div>
+                <div class="text-[9px] dark:text-gray-500 text-gray-400 mt-0.5">Workforce headcount by week</div>
+              </div>
+            </div>
+            <!-- Resource bars -->
+            <div class="flex-1 overflow-hidden">
+              <div class="flex items-end gap-[2px] px-1 py-2" style="min-width: 1400px; height: 52px;">
+                <!-- Feb weeks -->
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/60 w-[24px]" style="height: 16px;" title="8 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">8</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand w-[24px]" style="height: 22px;" title="12 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">12</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand w-[24px]" style="height: 28px;" title="16 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">16</div>
+                </div>
+                <!-- Mar weeks -->
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand w-[24px]" style="height: 30px;" title="18 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">18</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-accent w-[24px]" style="height: 36px;" title="22 workers"></div>
+                  <div class="text-[7px] text-accent font-semibold mt-0.5">22</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-accent w-[24px]" style="height: 34px;" title="20 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">20</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand w-[24px]" style="height: 28px;" title="16 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">16</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/70 w-[24px]" style="height: 22px;" title="12 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">12</div>
+                </div>
+                <!-- Apr weeks -->
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/60 w-[24px]" style="height: 18px;" title="10 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">10</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/70 w-[24px]" style="height: 24px;" title="14 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">14</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/80 w-[24px]" style="height: 28px;" title="16 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">16</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/70 w-[24px]" style="height: 22px;" title="12 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">12</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/60 w-[24px]" style="height: 18px;" title="10 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">10</div>
+                </div>
+                <!-- May weeks -->
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/70 w-[24px]" style="height: 26px;" title="15 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">15</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-accent w-[24px]" style="height: 34px;" title="20 workers"></div>
+                  <div class="text-[7px] text-accent font-semibold mt-0.5">20</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/80 w-[24px]" style="height: 30px;" title="18 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">18</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/70 w-[24px]" style="height: 24px;" title="14 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">14</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/60 w-[24px]" style="height: 20px;" title="11 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">11</div>
+                </div>
+                <!-- Jun weeks -->
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/70 w-[24px]" style="height: 24px;" title="14 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">14</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/60 w-[24px]" style="height: 18px;" title="10 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">10</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/50 w-[24px]" style="height: 14px;" title="7 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">7</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/40 w-[24px]" style="height: 10px;" title="5 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">5</div>
+                </div>
+                <!-- Jul weeks -->
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/40 w-[24px]" style="height: 10px;" title="5 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">5</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/30 w-[24px]" style="height: 6px;" title="3 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">3</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/20 w-[24px]" style="height: 4px;" title="2 workers"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">2</div>
+                </div>
+                <div class="flex flex-col items-center" style="width: 40px;">
+                  <div class="resource-bar rounded-t bg-brand/10 w-[24px]" style="height: 2px;" title="1 worker"></div>
+                  <div class="text-[7px] dark:text-gray-500 text-gray-400 mt-0.5">1</div>
+                </div>
+              </div>
+              <!-- Peak label -->
+              <div class="px-2 pb-1.5 flex items-center gap-3">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-2 h-2 rounded-sm bg-accent"></div>
+                  <span class="text-[9px] dark:text-gray-500 text-gray-400">Peak: 22 workers (Mar W1)</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <div class="w-2 h-2 rounded-sm bg-brand"></div>
+                  <span class="text-[9px] dark:text-gray-500 text-gray-400">Average: 12 workers</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Toggle phase expand/collapse
+    function togglePhase(phaseId) {
+      const taskEl = document.getElementById(phaseId);
+      const ganttEl = document.getElementById('gantt' + phaseId.charAt(0).toUpperCase() + phaseId.slice(1));
+      const arrowEl = document.getElementById(phaseId + 'Arrow');
+
+      if (taskEl && arrowEl) {
+        const isHidden = taskEl.classList.contains('hidden');
+        taskEl.classList.toggle('hidden');
+        if (ganttEl) ganttEl.classList.toggle('hidden');
+
+        // Rotate arrow
+        if (isHidden) {
+          arrowEl.setAttribute('data-lucide', 'chevron-down');
+        } else {
+          arrowEl.setAttribute('data-lucide', 'chevron-right');
+        }
+        lucide.createIcons();
+      }
+    }
+
+    // Sync scrolling between task list and gantt area
+    const taskList = document.getElementById('taskList');
+    const ganttArea = document.getElementById('ganttArea');
+
+    if (taskList && ganttArea) {
+      taskList.addEventListener('scroll', function() {
+        ganttArea.scrollTop = taskList.scrollTop;
+      });
+      ganttArea.addEventListener('scroll', function() {
+        taskList.scrollTop = ganttArea.scrollTop;
+      });
+    }
+  </script>
+
+</body>
+</html>

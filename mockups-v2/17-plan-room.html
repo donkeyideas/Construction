@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstructionERP - Plan Room</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #ffffff; --surface: #f5f0eb; --topbar-bg: #fffcf9;
+  --blue: #1d4ed8; --blue-light: #eff6ff; --amber: #b45309; --amber-light: #fef3c7;
+  --text: #292524; --muted: #78716c; --border: #d6d3d1;
+  --green: #16a34a; --red: #dc2626; --sidebar-w: 240px;
+  --card-bg: #ffffff; --scrollbar: #ccc;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
+  --viewer-bg: #e8e5e0;
+}
+[data-theme="dark"] {
+  --bg: #1c1917; --surface: #292524; --topbar-bg: #1c1917;
+  --blue-light: rgba(29,78,216,.15); --amber-light: rgba(180,83,9,.15);
+  --text: #f5f0eb; --muted: #a8a29e; --border: #44403c;
+  --card-bg: #292524; --scrollbar: #57534e;
+  --viewer-bg: #1a1816;
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.5; }
+
+/* Sidebar */
+.sidebar {
+  position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+  background: var(--bg); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100; transition: transform .25s ease;
+}
+.sidebar-brand { padding: 20px 22px 14px; }
+.sidebar-brand h1 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+.sidebar-brand .accent-line { width: 40px; height: 3px; background: var(--amber); border-radius: 2px; margin-top: 10px; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.nav-item { position: relative; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 9px 18px 9px 20px;
+  font-size: .835rem; font-weight: 500; color: var(--muted); text-decoration: none;
+  border-left: 3px solid transparent; cursor: pointer; transition: all .15s;
+}
+.nav-link svg { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-link .label { position: relative; }
+.nav-link .label::after {
+  content: ''; position: absolute; left: 0; bottom: -2px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .25s ease;
+}
+.nav-link:hover .label::after { width: 100%; }
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--blue); border-left-color: var(--blue); background: var(--blue-light); font-weight: 600; }
+.nav-link .chevron { margin-left: auto; width: 14px; height: 14px; transition: transform .2s; }
+.nav-item.open > .nav-link .chevron { transform: rotate(90deg); }
+.nav-children { display: none; padding: 2px 0 4px 0; }
+.nav-item.open > .nav-children { display: block; }
+.nav-child {
+  display: block; padding: 6px 18px 6px 51px; font-size: .8rem; color: var(--muted);
+  text-decoration: none; transition: color .15s; position: relative;
+}
+.nav-child::after {
+  content: ''; position: absolute; left: 51px; bottom: 4px; width: 0; height: 1.5px;
+  background: var(--amber); transition: width .2s;
+}
+.nav-child:hover { color: var(--text); }
+.nav-child:hover::after { width: calc(100% - 69px); }
+.nav-child.active { color: var(--blue); font-weight: 600; }
+.sidebar-bottom { border-top: 1px solid var(--border); padding: 6px 0; }
+
+/* Topbar */
+.topbar {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 52px;
+  background: var(--topbar-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; z-index: 90; transition: left .25s ease;
+}
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .875rem; font-weight: 500; }
+.breadcrumb .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.search-btn {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border: 1px solid var(--border); border-radius: 7px; background: var(--bg);
+  font-size: .8rem; color: var(--muted); cursor: pointer; font-family: var(--font-sans);
+}
+.search-btn kbd { font-size: .7rem; background: var(--surface); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); font-family: var(--font-sans); }
+.notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--muted); }
+.notif-btn svg { width: 20px; height: 20px; }
+.notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); color: #fff; font-size: .6rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 600; }
+.sidebar-toggle {
+  display: none; position: fixed; top: 10px; left: 12px; z-index: 110;
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; align-items: center; justify-content: center;
+}
+.sidebar-toggle svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 95; }
+
+/* Main */
+.main {
+  margin-left: var(--sidebar-w); margin-top: 52px;
+  display: flex; flex-direction: column; height: calc(100vh - 52px);
+  transition: margin-left .25s;
+}
+
+/* Page Header */
+.page-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px;
+}
+.page-header h2 { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; }
+.header-info { display: flex; align-items: center; gap: 16px; }
+.sheet-name { font-size: .85rem; font-weight: 600; }
+.rev-badge { padding: 3px 10px; border-radius: 10px; font-size: .72rem; font-weight: 600; background: var(--amber-light); color: var(--amber); }
+
+/* Toolbar */
+.plan-toolbar {
+  display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap;
+}
+.tool-group { display: flex; align-items: center; gap: 4px; }
+.tool-sep { width: 1px; height: 26px; background: var(--border); margin: 0 6px; }
+.tool-btn {
+  padding: 5px 10px; border: 1px solid var(--border); background: var(--bg);
+  color: var(--muted); font-size: .75rem; font-weight: 500; cursor: pointer;
+  border-radius: 5px; font-family: var(--font-sans); transition: all .15s;
+  display: flex; align-items: center; gap: 4px;
+}
+.tool-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tool-btn:hover { color: var(--text); background: var(--bg); border-color: var(--blue); }
+.tool-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.tool-btn.active svg { stroke: #fff; }
+.tool-label { font-size: .68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-right: 4px; }
+.color-swatch {
+  width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--border);
+  cursor: pointer; transition: border-color .15s;
+}
+.color-swatch:hover { border-color: var(--text); }
+.color-swatch.active { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-light); }
+.undo-redo-group { margin-left: auto; display: flex; gap: 4px; }
+
+/* Main Content Area */
+.plan-content { display: flex; flex: 1; overflow: hidden; }
+
+/* Blueprint Viewer */
+.viewer-area {
+  flex: 1; background: var(--viewer-bg); position: relative; overflow: auto;
+  display: flex; align-items: center; justify-content: center;
+}
+.blueprint {
+  width: 900px; height: 640px; background: #fff; border: 1px solid var(--border);
+  position: relative; box-shadow: 0 4px 24px rgba(0,0,0,.1);
+}
+[data-theme="dark"] .blueprint { background: #2a2826; }
+
+/* Blueprint grid lines */
+.blueprint-grid {
+  position: absolute; inset: 0; overflow: hidden;
+}
+.blueprint-grid .h-line {
+  position: absolute; left: 0; right: 0; height: 1px;
+  background: var(--border); opacity: .25;
+}
+.blueprint-grid .v-line {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: var(--border); opacity: .25;
+}
+
+/* Blueprint content */
+.bp-title-block {
+  position: absolute; bottom: 20px; right: 20px;
+  border: 2px solid var(--muted); padding: 12px 20px;
+  font-size: .7rem; color: var(--muted); text-align: right;
+  background: var(--bg); opacity: .9;
+}
+.bp-title-block .bp-main-title {
+  font-family: var(--font-serif); font-size: 1rem; font-weight: 700;
+  color: var(--text); letter-spacing: .05em;
+}
+.bp-center-label {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-family: var(--font-serif); font-size: 1.8rem; font-weight: 700;
+  color: var(--muted); opacity: .3; text-align: center; letter-spacing: .1em;
+  white-space: nowrap;
+}
+
+/* Blueprint structural elements */
+.bp-wall { position: absolute; background: var(--text); opacity: .2; }
+.bp-room-label {
+  position: absolute; font-size: .65rem; font-weight: 600; color: var(--muted);
+  opacity: .5; text-transform: uppercase; letter-spacing: .08em;
+}
+.bp-dimension {
+  position: absolute; font-size: .55rem; color: var(--muted); opacity: .4;
+  display: flex; align-items: center; gap: 4px;
+}
+.bp-dimension .dim-line { height: 1px; background: var(--muted); opacity: .4; flex: 1; }
+
+/* Markup annotations */
+.markup-circle {
+  position: absolute; border: 3px solid var(--red); border-radius: 50%;
+  pointer-events: none;
+}
+.markup-arrow {
+  position: absolute; display: flex; align-items: center; gap: 6px;
+}
+.markup-arrow .arrow-line {
+  width: 60px; height: 2px; background: var(--red); position: relative;
+}
+.markup-arrow .arrow-line::after {
+  content: ''; position: absolute; right: -1px; top: -4px;
+  border-left: 8px solid var(--red); border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+.markup-arrow .arrow-text {
+  font-size: .7rem; font-weight: 600; color: var(--red);
+  background: rgba(220,38,38,.08); padding: 3px 8px; border-radius: 4px;
+  white-space: nowrap;
+}
+.markup-callout {
+  position: absolute; background: rgba(220,38,38,.08); border: 2px solid var(--red);
+  border-radius: 6px; padding: 6px 10px; font-size: .7rem; font-weight: 600;
+  color: var(--red); white-space: nowrap;
+}
+.markup-cloud {
+  position: absolute; border: 2px dashed var(--red); border-radius: 12px;
+  padding: 4px 10px; font-size: .68rem; font-weight: 600; color: var(--red);
+}
+
+/* Scale indicator */
+.scale-indicator {
+  position: absolute; bottom: 20px; left: 20px; display: flex; align-items: center; gap: 8px;
+  font-size: .7rem; color: var(--muted); background: var(--bg); padding: 4px 10px;
+  border: 1px solid var(--border); border-radius: 4px; opacity: .9;
+}
+.scale-bar { width: 40px; height: 4px; background: var(--text); opacity: .3; }
+
+/* Right Sidebar Panel */
+.right-panel {
+  width: 280px; min-width: 280px; border-left: 1px solid var(--border);
+  background: var(--bg); display: flex; flex-direction: column; overflow-y: auto;
+}
+.right-panel::-webkit-scrollbar { width: 4px; }
+.right-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.panel-section { border-bottom: 1px solid var(--border); }
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; cursor: pointer; user-select: none;
+}
+.panel-header h3 {
+  font-family: var(--font-serif); font-size: .9rem; font-weight: 600;
+}
+.panel-header .chevron-sm {
+  width: 12px; height: 12px; stroke: var(--muted); fill: none; stroke-width: 2;
+  transition: transform .2s; stroke-linecap: round; stroke-linejoin: round;
+}
+.panel-section.open .panel-header .chevron-sm { transform: rotate(90deg); }
+.panel-body { display: none; padding: 0 16px 14px; }
+.panel-section.open .panel-body { display: block; }
+
+/* Sheet Index */
+.sheet-set { margin-bottom: 8px; }
+.sheet-set-title {
+  font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .05em; padding: 4px 0; cursor: pointer;
+}
+.sheet-item {
+  display: flex; align-items: center; gap: 8px; padding: 5px 8px; margin: 1px 0;
+  font-size: .78rem; color: var(--muted); border-radius: 5px; cursor: pointer;
+  transition: all .15s; text-decoration: none;
+}
+.sheet-item:hover { background: var(--surface); color: var(--text); }
+.sheet-item.active { background: var(--blue-light); color: var(--blue); font-weight: 600; }
+.sheet-icon {
+  width: 24px; height: 24px; background: var(--surface); border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .6rem; font-weight: 700; color: var(--muted);
+}
+.sheet-item.active .sheet-icon { background: var(--blue); color: #fff; }
+
+/* Markup List */
+.markup-list-item {
+  padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .78rem;
+}
+.markup-list-item:last-child { border-bottom: none; }
+.markup-list-item .mu-type { font-weight: 600; color: var(--red); }
+.markup-list-item .mu-desc { color: var(--text); margin-top: 2px; }
+.markup-list-item .mu-meta { font-size: .7rem; color: var(--muted); margin-top: 2px; }
+
+/* Revision List */
+.rev-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid var(--border); font-size: .78rem;
+}
+.rev-item:last-child { border-bottom: none; }
+.rev-num {
+  width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: .7rem; font-weight: 700; flex-shrink: 0;
+}
+.rev-num.current { background: var(--amber); color: #fff; }
+.rev-num.past { background: var(--surface); color: var(--muted); }
+.rev-info { flex: 1; }
+.rev-title { font-weight: 500; }
+.rev-date { font-size: .7rem; color: var(--muted); }
+
+/* Bottom Bar */
+.bottom-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 20px; border-top: 1px solid var(--border); background: var(--surface);
+  font-size: .75rem; color: var(--muted); flex-wrap: wrap; gap: 8px;
+}
+.bottom-bar-left { display: flex; align-items: center; gap: 16px; }
+.bottom-bar-right { display: flex; align-items: center; gap: 16px; }
+
+/* Badge */
+.badge { padding: 2px 9px; border-radius: 10px; font-size: .7rem; font-weight: 600; }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-green { background: rgba(22,163,74,.08); color: var(--green); }
+.badge-red { background: rgba(220,38,38,.08); color: var(--red); }
+
+/* Toggle right panel button */
+.toggle-panel-btn {
+  position: absolute; top: 50%; right: 280px; transform: translateY(-50%);
+  width: 20px; height: 48px; background: var(--bg); border: 1px solid var(--border);
+  border-right: none; border-radius: 6px 0 0 6px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; z-index: 5;
+  transition: right .25s;
+}
+.toggle-panel-btn svg { width: 12px; height: 12px; stroke: var(--muted); fill: none; stroke-width: 2; }
+
+/* Responsive */
+@media (max-width: 1023px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; }
+  .overlay.active { display: block; }
+  .topbar { left: 0; padding-left: 56px; }
+  .main { margin-left: 0; }
+}
+@media (max-width: 768px) {
+  .right-panel { display: none; }
+  .plan-toolbar { gap: 4px; padding: 6px 10px; }
+  .tool-label { display: none; }
+  .blueprint { width: 600px; height: 420px; }
+  .page-header h2 { font-size: 1.2rem; }
+  .undo-redo-group { margin-left: 0; }
+}
+@media (max-width: 640px) {
+  .blueprint { width: 400px; height: 280px; }
+  .bp-center-label { font-size: 1.1rem; }
+  .tool-group:nth-child(n+3) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar Toggle -->
+<button class="sidebar-toggle" onclick="toggleSidebar()">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h1>ConstructionERP</h1>
+    <div class="accent-line"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="label">Dashboard</span>
+      </a>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l4-4h6l4 4v12"/><path d="M9 20v-4h6v4"/></svg>
+        <span class="label">Projects</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Active Projects</a>
+        <a class="nav-child" href="#">Gantt Schedule</a>
+        <a class="nav-child" href="#">Budgets</a>
+        <a class="nav-child" href="#">Daily Logs</a>
+      </div>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="label">Properties</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Portfolio</a>
+        <a class="nav-child" href="#">Leases</a>
+        <a class="nav-child" href="#">Tenants</a>
+        <a class="nav-child" href="#">Maintenance</a>
+      </div>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span class="label">Financial</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Accounts Payable</a>
+        <a class="nav-child" href="#">Accounts Receivable</a>
+        <a class="nav-child" href="#">General Ledger</a>
+        <a class="nav-child" href="#">Job Costing</a>
+      </div>
+    </div>
+    <div class="nav-item open" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="label">Documents</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child active" href="#">Plan Room</a>
+        <a class="nav-child" href="#">Submittals</a>
+        <a class="nav-child" href="#">RFIs</a>
+        <a class="nav-child" href="#">Contracts</a>
+      </div>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="label">People</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Employees</a>
+        <a class="nav-child" href="#">Subcontractors</a>
+        <a class="nav-child" href="#">Time Tracking</a>
+        <a class="nav-child" href="#">Payroll</a>
+      </div>
+    </div>
+    <div class="nav-item" onclick="toggleNav(this)">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+        <span class="label">CRM &amp; Bids</span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+      <div class="nav-children">
+        <a class="nav-child" href="#">Leads</a>
+        <a class="nav-child" href="#">Bid Management</a>
+        <a class="nav-child" href="#">Proposals</a>
+      </div>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4c-4.42 0-8 1.34-8 6 0-8 3.58-14 8-14z" stroke-width="1.5"/></svg>
+        <span class="label">AI Assistant</span>
+      </a>
+    </div>
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="label">Reports</span>
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="nav-item">
+      <a class="nav-link" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- Top Bar -->
+<header class="topbar" id="topbar">
+  <div class="breadcrumb">
+    <span>Documents</span>
+    <span class="dot"></span>
+    <span>Plan Room</span>
+  </div>
+  <div class="topbar-right">
+    <button onclick="toggleTheme()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Toggle theme">
+      <svg id="sunIcon" style="display:none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="search-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search <kbd>Ctrl+K</kbd>
+    </button>
+    <button class="notif-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-badge">2</span>
+    </button>
+    <div class="avatar">SC</div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main" id="main">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <h2>Plan Room</h2>
+      <div class="header-info">
+        <span class="sheet-name">A-101 Floor Plan - Level 1</span>
+        <span class="rev-badge">Rev 3</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:.8rem;color:var(--muted)">Riverside Tower</span>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="plan-toolbar">
+    <!-- Navigation -->
+    <span class="tool-label">Navigate</span>
+    <div class="tool-group">
+      <button class="tool-btn" title="Previous Sheet">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Prev
+      </button>
+      <button class="tool-btn" title="Next Sheet">
+        Next
+        <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+      </button>
+    </div>
+    <div class="tool-sep"></div>
+
+    <!-- Zoom -->
+    <span class="tool-label">Zoom</span>
+    <div class="tool-group">
+      <button class="tool-btn">Fit</button>
+      <button class="tool-btn">50%</button>
+      <button class="tool-btn active">100%</button>
+      <button class="tool-btn">200%</button>
+    </div>
+    <div class="tool-sep"></div>
+
+    <!-- Tools -->
+    <span class="tool-label">Tools</span>
+    <div class="tool-group">
+      <button class="tool-btn active" title="Select">
+        <svg viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+        Select
+      </button>
+      <button class="tool-btn" title="Pan">
+        <svg viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V5a2 2 0 0 0-4 0v9"/><path d="M18 11a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 17"/></svg>
+        Pan
+      </button>
+      <button class="tool-btn" title="Measure">
+        <svg viewBox="0 0 24 24"><path d="M2 2l20 20"/><path d="M6 2v4"/><path d="M2 6h4"/><path d="M18 22v-4"/><path d="M22 18h-4"/></svg>
+        Measure
+      </button>
+      <button class="tool-btn" title="Markup">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Markup
+      </button>
+    </div>
+    <div class="tool-sep"></div>
+
+    <!-- Markup Tools -->
+    <span class="tool-label">Markup</span>
+    <div class="tool-group">
+      <button class="tool-btn" title="Line">
+        <svg viewBox="0 0 24 24"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+      </button>
+      <button class="tool-btn" title="Rectangle">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      </button>
+      <button class="tool-btn" title="Circle">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+      </button>
+      <button class="tool-btn" title="Text">
+        <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+      </button>
+      <button class="tool-btn" title="Arrow">
+        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+      <button class="tool-btn" title="Cloud / Revision">
+        <svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+      </button>
+    </div>
+    <div class="tool-sep"></div>
+
+    <!-- Color -->
+    <div class="tool-group">
+      <div class="color-swatch active" style="background:#dc2626" title="Red"></div>
+      <div class="color-swatch" style="background:#1d4ed8" title="Blue"></div>
+      <div class="color-swatch" style="background:#16a34a" title="Green"></div>
+      <div class="color-swatch" style="background:#292524" title="Black"></div>
+    </div>
+
+    <!-- Undo/Redo -->
+    <div class="undo-redo-group">
+      <button class="tool-btn" title="Undo">
+        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </button>
+      <button class="tool-btn" title="Redo">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Plan Content Area -->
+  <div class="plan-content">
+    <!-- Blueprint Viewer -->
+    <div class="viewer-area">
+      <div class="blueprint">
+        <!-- Grid Lines -->
+        <div class="blueprint-grid">
+          <div class="h-line" style="top:10%"></div>
+          <div class="h-line" style="top:20%"></div>
+          <div class="h-line" style="top:30%"></div>
+          <div class="h-line" style="top:40%"></div>
+          <div class="h-line" style="top:50%"></div>
+          <div class="h-line" style="top:60%"></div>
+          <div class="h-line" style="top:70%"></div>
+          <div class="h-line" style="top:80%"></div>
+          <div class="h-line" style="top:90%"></div>
+          <div class="v-line" style="left:10%"></div>
+          <div class="v-line" style="left:20%"></div>
+          <div class="v-line" style="left:30%"></div>
+          <div class="v-line" style="left:40%"></div>
+          <div class="v-line" style="left:50%"></div>
+          <div class="v-line" style="left:60%"></div>
+          <div class="v-line" style="left:70%"></div>
+          <div class="v-line" style="left:80%"></div>
+          <div class="v-line" style="left:90%"></div>
+        </div>
+
+        <!-- Structural walls (simplified floor plan) -->
+        <!-- Outer walls -->
+        <div class="bp-wall" style="top:8%;left:8%;width:84%;height:3px;"></div>
+        <div class="bp-wall" style="top:8%;left:8%;width:3px;height:84%;"></div>
+        <div class="bp-wall" style="bottom:8%;left:8%;width:84%;height:3px;"></div>
+        <div class="bp-wall" style="top:8%;right:8%;width:3px;height:84%;"></div>
+
+        <!-- Interior walls -->
+        <div class="bp-wall" style="top:8%;left:40%;width:3px;height:50%;"></div>
+        <div class="bp-wall" style="top:58%;left:8%;width:32%;height:3px;"></div>
+        <div class="bp-wall" style="top:40%;left:40%;width:52%;height:3px;"></div>
+        <div class="bp-wall" style="top:8%;left:65%;width:3px;height:32%;"></div>
+        <div class="bp-wall" style="top:70%;left:50%;width:3px;height:22%;"></div>
+
+        <!-- Room labels -->
+        <div class="bp-room-label" style="top:28%;left:20%;transform:translate(-50%,-50%)">LOBBY</div>
+        <div class="bp-room-label" style="top:72%;left:22%;transform:translate(-50%,-50%)">OFFICE A</div>
+        <div class="bp-room-label" style="top:22%;left:52%;transform:translate(-50%,-50%)">CONFERENCE</div>
+        <div class="bp-room-label" style="top:22%;left:78%;transform:translate(-50%,-50%)">BREAK ROOM</div>
+        <div class="bp-room-label" style="top:55%;left:62%;transform:translate(-50%,-50%)">OPEN OFFICE</div>
+        <div class="bp-room-label" style="top:80%;left:35%;transform:translate(-50%,-50%)">STORAGE</div>
+        <div class="bp-room-label" style="top:80%;left:70%;transform:translate(-50%,-50%)">MECH. ROOM</div>
+
+        <!-- Column grid markers -->
+        <div class="bp-dimension" style="top:3%;left:8%;width:32%">
+          <span>A</span><div class="dim-line"></div><span>B</span>
+        </div>
+        <div class="bp-dimension" style="top:3%;left:40%;width:25%">
+          <span>B</span><div class="dim-line"></div><span>C</span>
+        </div>
+        <div class="bp-dimension" style="top:3%;left:65%;width:27%">
+          <span>C</span><div class="dim-line"></div><span>D</span>
+        </div>
+
+        <!-- Center label -->
+        <div class="bp-center-label">A-101 FLOOR PLAN - LEVEL 1</div>
+
+        <!-- Markup: Red circle around column area -->
+        <div class="markup-circle" style="top:15%;left:35%;width:80px;height:80px;"></div>
+
+        <!-- Markup: Arrow with text -->
+        <div class="markup-arrow" style="top:20%;left:50%;">
+          <div class="arrow-line"></div>
+          <div class="arrow-text">VERIFY COLUMN SPACING</div>
+        </div>
+
+        <!-- Markup: Revision cloud callout -->
+        <div class="markup-callout" style="top:62%;left:55%;">
+          REV 3 - UPDATED EGRESS PATH
+        </div>
+
+        <!-- Scale indicator -->
+        <div class="scale-indicator">
+          <div class="scale-bar"></div>
+          Scale: 1/4" = 1'-0"
+        </div>
+
+        <!-- Title block -->
+        <div class="bp-title-block">
+          <div style="font-size:.6rem;color:var(--muted);margin-bottom:4px;">RIVERSIDE TOWER</div>
+          <div class="bp-main-title">A-101</div>
+          <div style="font-size:.65rem;margin-top:2px;">FLOOR PLAN - LEVEL 1</div>
+          <div style="font-size:.6rem;color:var(--muted);margin-top:4px;">REV 3 | Jan 28, 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar Panel -->
+    <div class="right-panel" id="rightPanel">
+      <!-- Sheet Index -->
+      <div class="panel-section open">
+        <div class="panel-header" onclick="togglePanel(this.parentElement)">
+          <h3>Sheet Index</h3>
+          <svg class="chevron-sm" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="panel-body">
+          <!-- Architectural -->
+          <div class="sheet-set">
+            <div class="sheet-set-title">Architectural</div>
+            <a class="sheet-item active" href="#">
+              <div class="sheet-icon">A</div>
+              <div>
+                <div style="font-weight:600;font-size:.78rem;">A-101</div>
+                <div style="font-size:.68rem;color:var(--muted)">Floor Plan - Level 1</div>
+              </div>
+            </a>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">A</div>
+              <div>
+                <div>A-102</div>
+                <div style="font-size:.68rem;color:var(--muted)">Floor Plan - Level 2</div>
+              </div>
+            </a>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">A</div>
+              <div>
+                <div>A-103</div>
+                <div style="font-size:.68rem;color:var(--muted)">Floor Plan - Level 3</div>
+              </div>
+            </a>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">A</div>
+              <div>
+                <div>A-104</div>
+                <div style="font-size:.68rem;color:var(--muted)">Elevations</div>
+              </div>
+            </a>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">A</div>
+              <div>
+                <div>A-105</div>
+                <div style="font-size:.68rem;color:var(--muted)">Building Sections</div>
+              </div>
+            </a>
+          </div>
+          <!-- Structural -->
+          <div class="sheet-set">
+            <div class="sheet-set-title">Structural</div>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">S</div>
+              <div>
+                <div>S-101</div>
+                <div style="font-size:.68rem;color:var(--muted)">Foundation Plan</div>
+              </div>
+            </a>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">S</div>
+              <div>
+                <div>S-102</div>
+                <div style="font-size:.68rem;color:var(--muted)">Framing Plan</div>
+              </div>
+            </a>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">S</div>
+              <div>
+                <div>S-103</div>
+                <div style="font-size:.68rem;color:var(--muted)">Details</div>
+              </div>
+            </a>
+          </div>
+          <!-- Mechanical -->
+          <div class="sheet-set">
+            <div class="sheet-set-title">Mechanical</div>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">M</div>
+              <div>
+                <div>M-101</div>
+                <div style="font-size:.68rem;color:var(--muted)">HVAC Layout</div>
+              </div>
+            </a>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">M</div>
+              <div>
+                <div>M-102</div>
+                <div style="font-size:.68rem;color:var(--muted)">Equipment Schedule</div>
+              </div>
+            </a>
+          </div>
+          <!-- Electrical -->
+          <div class="sheet-set">
+            <div class="sheet-set-title">Electrical</div>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">E</div>
+              <div>
+                <div>E-101</div>
+                <div style="font-size:.68rem;color:var(--muted)">Power Plan</div>
+              </div>
+            </a>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">E</div>
+              <div>
+                <div>E-102</div>
+                <div style="font-size:.68rem;color:var(--muted)">Lighting Plan</div>
+              </div>
+            </a>
+          </div>
+          <!-- Plumbing -->
+          <div class="sheet-set">
+            <div class="sheet-set-title">Plumbing</div>
+            <a class="sheet-item" href="#">
+              <div class="sheet-icon">P</div>
+              <div>
+                <div>P-101</div>
+                <div style="font-size:.68rem;color:var(--muted)">Plumbing Plan</div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Markups -->
+      <div class="panel-section open">
+        <div class="panel-header" onclick="togglePanel(this.parentElement)">
+          <h3>Markups <span class="badge badge-red" style="margin-left:6px">3</span></h3>
+          <svg class="chevron-sm" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="panel-body">
+          <div class="markup-list-item">
+            <div class="mu-type">Circle Markup</div>
+            <div class="mu-desc">Column grid alignment concern at B-2</div>
+            <div class="mu-meta">Sarah Chen -- Feb 5, 2026</div>
+          </div>
+          <div class="markup-list-item">
+            <div class="mu-type">Arrow Annotation</div>
+            <div class="mu-desc">Verify column spacing between grid lines B and C</div>
+            <div class="mu-meta">Mike Torres -- Feb 8, 2026</div>
+          </div>
+          <div class="markup-list-item">
+            <div class="mu-type">Callout Note</div>
+            <div class="mu-desc">Updated egress path per fire marshal comments</div>
+            <div class="mu-meta">Sarah Chen -- Feb 10, 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revisions -->
+      <div class="panel-section open">
+        <div class="panel-header" onclick="togglePanel(this.parentElement)">
+          <h3>Revisions</h3>
+          <svg class="chevron-sm" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="panel-body">
+          <div class="rev-item">
+            <div class="rev-num current">3</div>
+            <div class="rev-info">
+              <div class="rev-title">Updated egress path, column grid</div>
+              <div class="rev-date">Jan 28, 2026 -- Current</div>
+            </div>
+          </div>
+          <div class="rev-item">
+            <div class="rev-num past">2</div>
+            <div class="rev-info">
+              <div class="rev-title">Revised MEP coordination</div>
+              <div class="rev-date">Jan 15, 2026</div>
+            </div>
+          </div>
+          <div class="rev-item">
+            <div class="rev-num past">1</div>
+            <div class="rev-info">
+              <div class="rev-title">Initial issue for construction</div>
+              <div class="rev-date">Dec 20, 2025</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="bottom-bar">
+    <div class="bottom-bar-left">
+      <span><strong>A-101</strong> Floor Plan - Level 1</span>
+      <span>Page 1 of 15</span>
+    </div>
+    <div class="bottom-bar-right">
+      <span>Last uploaded: Jan 28, 2026</span>
+      <span>Uploaded by: Sarah Chen</span>
+    </div>
+  </div>
+</main>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.querySelector('.overlay').classList.toggle('active');
+}
+function toggleNav(item) {
+  var wasOpen = item.classList.contains('open');
+  var siblings = item.parentElement.querySelectorAll(':scope > .nav-item.open');
+  siblings.forEach(function(el) { if (el !== item) el.classList.remove('open'); });
+  if (wasOpen) item.classList.remove('open');
+  else item.classList.add('open');
+}
+function togglePanel(section) {
+  section.classList.toggle('open');
+}
+// Tool button selection
+document.querySelectorAll('.tool-group').forEach(function(group) {
+  group.querySelectorAll('.tool-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var siblings = group.querySelectorAll('.tool-btn');
+      siblings.forEach(function(s) { s.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+  });
+});
+// Color swatch selection
+document.querySelectorAll('.color-swatch').forEach(function(swatch) {
+  swatch.addEventListener('click', function() {
+    document.querySelectorAll('.color-swatch').forEach(function(s) { s.classList.remove('active'); });
+    swatch.classList.add('active');
+  });
+});
+window.addEventListener('resize', function() {
+  if (window.innerWidth >= 1024) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.querySelector('.overlay').classList.remove('active');
+  }
+});
+function toggleTheme(){
+  var html=document.documentElement;
+  var isDark=html.getAttribute("data-theme")==="dark";
+  if(isDark){html.removeAttribute("data-theme");document.getElementById("sunIcon").style.display="none";document.getElementById("moonIcon").style.display="block";localStorage.setItem("theme-08","light")}
+  else{html.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none";localStorage.setItem("theme-08","dark")}
+}
+(function(){var t=localStorage.getItem("theme-08");if(t==="dark"){document.documentElement.setAttribute("data-theme","dark");document.getElementById("sunIcon").style.display="block";document.getElementById("moonIcon").style.display="none"}})();
+</script>
+</body>
+</html>

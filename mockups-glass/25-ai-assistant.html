@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - AI Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed' },
+            accent: { DEFAULT: '#ec4899', light: '#f472b6', dark: '#db2777' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .glass-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
+    .light .glass-card { background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.5); }
+    .glass-sidebar { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.06); }
+    .light .glass-sidebar { background: rgba(255,255,255,0.5); border-right: 1px solid rgba(255,255,255,0.4); }
+    .glass-topbar { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .light .glass-topbar { background: rgba(255,255,255,0.5); border-bottom: 1px solid rgba(255,255,255,0.4); }
+    .glass-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+    .light .glass-input { background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.4); }
+
+    /* Scrollbar styling */
+    .sidebar-scroll::-webkit-scrollbar,
+    .chat-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track,
+    .chat-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb,
+    .chat-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover,
+    .chat-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    /* Sparkline bars */
+    .sparkline-bar { transition: height 0.3s ease; }
+  </style>
+</head>
+<body class="dark:text-gray-100 text-gray-900 transition-colors duration-300" style="background: linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%);">
+
+  <!-- ============================================================ -->
+  <!-- SIDEBAR (fixed, 260px)                                       -->
+  <!-- ============================================================ -->
+  <aside class="fixed top-0 left-0 h-screen w-[260px] glass-sidebar z-40 flex flex-col">
+
+    <!-- Logo -->
+    <div class="px-5 h-16 flex items-center gap-3 shrink-0" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-lg font-bold tracking-tight">ConstructionERP</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll py-4 px-3">
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">Overview</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+      </div>
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">Construction</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="hard-hat" class="w-4 h-4"></i> Projects</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="clipboard-list" class="w-4 h-4"></i> Daily Logs</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="shield-check" class="w-4 h-4"></i> Safety</a>
+      </div>
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">Real Estate</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="building" class="w-4 h-4"></i> Properties</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="file-text" class="w-4 h-4"></i> Leases</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="wrench" class="w-4 h-4"></i> Maintenance</a>
+      </div>
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">Financial</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Dashboard</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="receipt" class="w-4 h-4"></i> Accounts Payable</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="credit-card" class="w-4 h-4"></i> Accounts Receivable</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="book-open" class="w-4 h-4"></i> General Ledger</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="calculator" class="w-4 h-4"></i> Job Costing</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="landmark" class="w-4 h-4"></i> Banking</a>
+      </div>
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">Documents</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="folder-open" class="w-4 h-4"></i> Library</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="file-signature" class="w-4 h-4"></i> Contracts</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="map" class="w-4 h-4"></i> Plan Room</a>
+      </div>
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">People</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="users" class="w-4 h-4"></i> Directory</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="clock" class="w-4 h-4"></i> Time & Attendance</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="truck" class="w-4 h-4"></i> Equipment</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="store" class="w-4 h-4"></i> Vendors</a>
+      </div>
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">Business Development</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="git-branch" class="w-4 h-4"></i> Pipeline</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="target" class="w-4 h-4"></i> Opportunities</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="file-plus" class="w-4 h-4"></i> Bids & Proposals</a>
+      </div>
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">Reports</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="pie-chart" class="w-4 h-4"></i> Report Center</a>
+      </div>
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">AI Intelligence</p>
+        <!-- Active item -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-brand/10 text-brand font-medium text-sm">
+          <i data-lucide="brain" class="w-4 h-4"></i> AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="zap" class="w-4 h-4"></i> Automation</a>
+      </div>
+
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest" style="color: rgba(255,255,255,0.35);">Administration</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="shield" class="w-4 h-4"></i> Users & Roles</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="settings" class="w-4 h-4"></i> Company Settings</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="plug" class="w-4 h-4"></i> Integrations</a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/[0.04]" style="color: rgba(255,255,255,0.6);"><i data-lucide="lock" class="w-4 h-4"></i> Security</a>
+      </div>
+
+    </nav>
+
+    <!-- User footer -->
+    <div class="px-4 py-3 shrink-0" style="border-top: 1px solid rgba(255,255,255,0.06);">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium leading-tight truncate">John Mitchell</p>
+          <p class="text-[11px] leading-tight truncate" style="color: rgba(255,255,255,0.4);">Executive</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================ -->
+  <!-- MAIN WRAPPER                                                 -->
+  <!-- ============================================================ -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- TOP BAR -->
+    <header class="h-16 glass-topbar sticky top-0 z-30 flex items-center justify-between px-6 shrink-0">
+      <div class="flex items-center gap-2 text-sm">
+        <span style="color: rgba(255,255,255,0.4);">AI Intelligence</span>
+        <span style="color: rgba(255,255,255,0.2);">/</span>
+        <span class="font-medium" style="color: #f8fafc;">AI Assistant</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-input text-sm cursor-pointer min-w-[220px]" style="color: rgba(255,255,255,0.4);">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Search...</span>
+            <kbd class="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded" style="background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4);">Cmd+K</kbd>
+          </div>
+        </div>
+        <button class="relative p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
+          <i data-lucide="bell" class="w-5 h-5" style="color: rgba(255,255,255,0.5);"></i>
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">5</span>
+        </button>
+        <button onclick="toggleTheme()" class="p-2 rounded-lg hover:bg-white/[0.04] transition-colors" title="Toggle theme">
+          <i data-lucide="sun" class="w-5 h-5 hidden dark:block" style="color: rgba(255,255,255,0.5);"></i>
+          <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-gray-500"></i>
+        </button>
+        <div class="w-px h-8" style="background: rgba(255,255,255,0.08);"></div>
+        <button class="flex items-center gap-3 hover:bg-white/[0.04] rounded-lg px-2 py-1.5 transition-colors">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+          <div class="text-left hidden lg:block">
+            <p class="text-sm font-medium leading-tight">John Mitchell</p>
+            <p class="text-[11px] leading-tight" style="color: rgba(255,255,255,0.4);">Executive</p>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 hidden lg:block" style="color: rgba(255,255,255,0.4);"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col">
+
+      <!-- Page heading + Tabs -->
+      <div class="px-6 pt-6 pb-0">
+        <div class="mb-4">
+          <h1 class="text-2xl font-bold">AI Assistant</h1>
+          <p class="text-sm mt-1" style="color: rgba(255,255,255,0.5);">Chat with AI, analyze data, and automate workflows.</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex items-center gap-1" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+          <button onclick="switchTab('chat')" id="tab-chat" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-brand text-brand -mb-px transition-colors">
+            <span class="flex items-center gap-2">
+              <i data-lucide="message-square" class="w-4 h-4"></i>
+              Chat
+            </span>
+          </button>
+          <button onclick="switchTab('automation')" id="tab-automation" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent -mb-px transition-colors" style="color: rgba(255,255,255,0.5);">
+            <span class="flex items-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              Automation Center
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- CHAT TAB                                                  -->
+      <!-- ======================================================== -->
+      <div id="panel-chat" class="flex-1 flex flex-col">
+        <div class="flex-1 flex gap-0 min-h-0">
+
+          <!-- LEFT: Chat Interface (65%) -->
+          <div class="w-[65%] flex flex-col" style="border-right: 1px solid rgba(255,255,255,0.06);">
+
+            <!-- Chat Messages -->
+            <div class="flex-1 overflow-y-auto chat-scroll p-6 space-y-4" style="max-height: calc(100vh - 300px);">
+
+              <!-- Message 1: AI -->
+              <div class="flex gap-3 max-w-[90%]">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-purple-600 flex items-center justify-center shrink-0">
+                  <i data-lucide="brain" class="w-4 h-4 text-white"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-semibold">AI Assistant</span>
+                    <span class="text-[10px]" style="color: rgba(255,255,255,0.4);">10:24 AM</span>
+                  </div>
+                  <div class="glass-card px-4 py-3 text-sm leading-relaxed" style="border-radius: 16px 16px 16px 4px; color: rgba(255,255,255,0.85);">
+                    Hello, I'm your AI assistant. I can help you with project analysis, financial queries, document processing, and more. What would you like to know?
+                  </div>
+                </div>
+              </div>
+
+              <!-- Message 2: User -->
+              <div class="flex gap-3 max-w-[90%] ml-auto flex-row-reverse">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center shrink-0 text-white text-xs font-bold">JM</div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1 justify-end">
+                    <span class="text-[10px]" style="color: rgba(255,255,255,0.4);">10:25 AM</span>
+                    <span class="text-xs font-semibold">You</span>
+                  </div>
+                  <div class="bg-brand text-white rounded-2xl rounded-tr-md px-4 py-3 text-sm leading-relaxed">
+                    What projects are currently over budget?
+                  </div>
+                </div>
+              </div>
+
+              <!-- Message 3: AI (detailed response) -->
+              <div class="flex gap-3 max-w-[90%]">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-purple-600 flex items-center justify-center shrink-0">
+                  <i data-lucide="brain" class="w-4 h-4 text-white"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-semibold">AI Assistant</span>
+                    <span class="text-[10px]" style="color: rgba(255,255,255,0.4);">10:25 AM</span>
+                  </div>
+                  <div class="glass-card px-4 py-3 text-sm leading-relaxed space-y-3" style="border-radius: 16px 16px 16px 4px; color: rgba(255,255,255,0.85);">
+                    <p>Based on current data, I found 2 projects with cost overruns:</p>
+
+                    <div class="rounded-lg p-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                      <p class="font-semibold text-sm mb-1">1. Heritage Office Tower</p>
+                      <div class="space-y-0.5 text-xs" style="color: rgba(255,255,255,0.5);">
+                        <p>Budget: $12,800,000</p>
+                        <p>Committed: $13,240,000 (<span class="text-red-400 font-medium">+$440,000 / 3.4% over</span>)</p>
+                        <p class="mt-1.5">Primary driver: Steel costs (Division 05) exceeded estimate by $180,000 due to material price increases</p>
+                      </div>
+                    </div>
+
+                    <div class="rounded-lg p-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                      <p class="font-semibold text-sm mb-1">2. Metro Transit Hub - Electrical (Division 16)</p>
+                      <div class="space-y-0.5 text-xs" style="color: rgba(255,255,255,0.5);">
+                        <p>Budget: $340,000</p>
+                        <p>Estimated at Completion: $361,000 (<span class="text-red-400 font-medium">+$21,000 / 6.2% over</span>)</p>
+                        <p class="mt-1.5">Primary driver: Additional conduit runs required per RFI #18</p>
+                      </div>
+                    </div>
+
+                    <div class="rounded-lg p-3" style="background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.15);">
+                      <p class="text-xs text-amber-300 font-medium">Recommendation:</p>
+                      <p class="text-xs mt-0.5" style="color: rgba(251,191,36,0.7);">Review Heritage Tower steel subcontract for potential change order recovery. Metro Transit electrical overrun is within contingency limits.</p>
+                    </div>
+
+                    <p class="text-xs" style="color: rgba(255,255,255,0.5);">Would you like me to generate a detailed cost variance report for either project?</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Message 4: User -->
+              <div class="flex gap-3 max-w-[90%] ml-auto flex-row-reverse">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center shrink-0 text-white text-xs font-bold">JM</div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1 justify-end">
+                    <span class="text-[10px]" style="color: rgba(255,255,255,0.4);">10:27 AM</span>
+                    <span class="text-xs font-semibold">You</span>
+                  </div>
+                  <div class="bg-brand text-white rounded-2xl rounded-tr-md px-4 py-3 text-sm leading-relaxed">
+                    Generate a cash flow forecast for the next 13 weeks
+                  </div>
+                </div>
+              </div>
+
+              <!-- Message 5: AI (cash flow response) -->
+              <div class="flex gap-3 max-w-[90%]">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-purple-600 flex items-center justify-center shrink-0">
+                  <i data-lucide="brain" class="w-4 h-4 text-white"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-semibold">AI Assistant</span>
+                    <span class="text-[10px]" style="color: rgba(255,255,255,0.4);">10:28 AM</span>
+                  </div>
+                  <div class="glass-card px-4 py-3 text-sm leading-relaxed space-y-3" style="border-radius: 16px 16px 16px 4px; color: rgba(255,255,255,0.85);">
+                    <p>Here's your 13-week cash flow forecast:</p>
+
+                    <div class="rounded-lg p-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                      <p class="text-xs font-semibold mb-1" style="color: rgba(255,255,255,0.6);">Current Cash Position</p>
+                      <p class="text-xl font-bold text-emerald-500">$3,218,500</p>
+                    </div>
+
+                    <p class="font-medium text-sm">Key highlights:</p>
+                    <div class="space-y-2">
+                      <div class="flex items-start gap-2 text-xs" style="color: rgba(255,255,255,0.5);">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0"></span>
+                        <p><span class="font-medium" style="color: rgba(255,255,255,0.7);">Week 3 (Feb 24):</span> Large outflow expected - $380K payroll + $245K vendor payments</p>
+                      </div>
+                      <div class="flex items-start gap-2 text-xs" style="color: rgba(255,255,255,0.5);">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0"></span>
+                        <p><span class="font-medium" style="color: rgba(255,255,255,0.7);">Week 5 (Mar 10):</span> Progress payment expected from Heritage Tower: +$420K</p>
+                      </div>
+                      <div class="flex items-start gap-2 text-xs" style="color: rgba(255,255,255,0.5);">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                        <p><span class="font-medium" style="color: rgba(255,255,255,0.7);">Week 8 (Mar 31):</span> Quarterly insurance premium due: -$54K</p>
+                      </div>
+                      <div class="flex items-start gap-2 text-xs" style="color: rgba(255,255,255,0.5);">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0"></span>
+                        <p><span class="font-medium" style="color: rgba(255,255,255,0.7);">Week 10 (Apr 14):</span> Lowest projected balance: $1,840,000</p>
+                      </div>
+                    </div>
+
+                    <div class="rounded-lg p-3" style="background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15);">
+                      <p class="text-xs text-emerald-300 font-medium">Overall trend: Cash position remains healthy. No action required.</p>
+                    </div>
+
+                    <p class="text-xs" style="color: rgba(255,255,255,0.5);">I've generated a detailed report. <a href="#" class="text-brand hover:text-brand-light font-medium transition-colors">View Full Forecast</a></p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Suggested Queries -->
+            <div class="px-6 py-3 flex items-center gap-2 flex-wrap" style="border-top: 1px solid rgba(255,255,255,0.05);">
+              <span class="text-[10px] font-medium uppercase tracking-wide mr-1" style="color: rgba(255,255,255,0.4);">Suggested:</span>
+              <button class="px-3 py-1.5 rounded-full text-xs glass-input hover:bg-white/[0.08] transition-colors" style="color: rgba(255,255,255,0.6);">Summarize today's field reports</button>
+              <button class="px-3 py-1.5 rounded-full text-xs glass-input hover:bg-white/[0.08] transition-colors" style="color: rgba(255,255,255,0.6);">Which leases expire this quarter?</button>
+              <button class="px-3 py-1.5 rounded-full text-xs glass-input hover:bg-white/[0.08] transition-colors" style="color: rgba(255,255,255,0.6);">Show safety inspection scores</button>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-4" style="border-top: 1px solid rgba(255,255,255,0.06);">
+              <div class="flex items-center gap-2 glass-card px-4 py-2.5" style="border-radius: 12px;">
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);" title="Attach file">
+                  <i data-lucide="paperclip" class="w-4 h-4"></i>
+                </button>
+                <input type="text" placeholder="Ask me anything about your projects, finances, or documents..." class="flex-1 bg-transparent text-sm focus:outline-none" style="color: #f8fafc;" placeholder-style="color: rgba(255,255,255,0.3);">
+                <div class="relative shrink-0">
+                  <select class="appearance-none text-[10px] font-medium pl-2 pr-5 py-1 rounded cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand glass-input" style="color: rgba(255,255,255,0.5);">
+                    <option>OpenAI GPT-4o</option>
+                    <option>Claude 3.5 Sonnet</option>
+                    <option>Gemini Pro</option>
+                    <option>Local LLM</option>
+                  </select>
+                  <i data-lucide="chevron-down" class="w-3 h-3 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" style="color: rgba(255,255,255,0.4);"></i>
+                </div>
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);" title="Voice input">
+                  <i data-lucide="mic" class="w-4 h-4"></i>
+                </button>
+                <button class="p-2 rounded-lg bg-brand hover:bg-brand-dark text-white transition-colors" title="Send message">
+                  <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Context Panel (35%) -->
+          <div class="w-[35%] flex flex-col overflow-y-auto chat-scroll" style="max-height: calc(100vh - 180px);">
+            <div class="p-5 space-y-4">
+
+              <div class="flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4" style="color: rgba(255,255,255,0.5);"></i>
+                <h3 class="text-sm font-semibold">Related Data</h3>
+              </div>
+
+              <!-- Context Card 1: Over Budget Projects -->
+              <div class="glass-card p-4">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-400"></i>
+                  </div>
+                  <h4 class="text-xs font-semibold">Over Budget Projects</h4>
+                  <span class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-brand/10 text-brand">Auto</span>
+                </div>
+                <table class="w-full text-xs">
+                  <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                      <th class="text-left py-1.5 font-medium uppercase tracking-wide text-[10px]" style="color: rgba(255,255,255,0.4);">Project</th>
+                      <th class="text-right py-1.5 font-medium uppercase tracking-wide text-[10px]" style="color: rgba(255,255,255,0.4);">Variance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                      <td class="py-2 font-medium" style="color: rgba(255,255,255,0.7);">Heritage Tower</td>
+                      <td class="py-2 text-right text-red-400 font-semibold">+$440K</td>
+                    </tr>
+                    <tr>
+                      <td class="py-2 font-medium" style="color: rgba(255,255,255,0.7);">Metro Transit (Elec)</td>
+                      <td class="py-2 text-right text-red-400 font-semibold">+$21K</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Context Card 2: Cash Position -->
+              <div class="glass-card p-4">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <i data-lucide="wallet" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  </div>
+                  <h4 class="text-xs font-semibold">Cash Position</h4>
+                </div>
+                <div class="space-y-2 mb-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs" style="color: rgba(255,255,255,0.5);">Current</span>
+                    <span class="text-sm font-bold text-emerald-500">$3,218,500</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs" style="color: rgba(255,255,255,0.5);">Projected Low (Week 10)</span>
+                    <span class="text-sm font-bold text-amber-400">$1,840,000</span>
+                  </div>
+                </div>
+                <div class="flex items-end gap-[3px] h-12 mt-2">
+                  <div class="flex-1 bg-emerald-500/60 rounded-t-sm sparkline-bar" style="height: 100%;" title="Week 1: $3,218K"></div>
+                  <div class="flex-1 bg-emerald-500/60 rounded-t-sm sparkline-bar" style="height: 92%;" title="Week 2: $3,050K"></div>
+                  <div class="flex-1 bg-amber-400/60 rounded-t-sm sparkline-bar" style="height: 72%;" title="Week 3: $2,425K"></div>
+                  <div class="flex-1 bg-amber-400/60 rounded-t-sm sparkline-bar" style="height: 68%;" title="Week 4: $2,310K"></div>
+                  <div class="flex-1 bg-emerald-500/60 rounded-t-sm sparkline-bar" style="height: 78%;" title="Week 5: $2,730K"></div>
+                  <div class="flex-1 bg-emerald-500/60 rounded-t-sm sparkline-bar" style="height: 74%;" title="Week 6: $2,580K"></div>
+                  <div class="flex-1 bg-amber-400/60 rounded-t-sm sparkline-bar" style="height: 66%;" title="Week 7: $2,220K"></div>
+                  <div class="flex-1 bg-amber-400/60 rounded-t-sm sparkline-bar" style="height: 62%;" title="Week 8: $2,166K"></div>
+                  <div class="flex-1 bg-amber-400/60 rounded-t-sm sparkline-bar" style="height: 58%;" title="Week 9: $1,980K"></div>
+                  <div class="flex-1 bg-amber-400/60 rounded-t-sm sparkline-bar" style="height: 52%;" title="Week 10: $1,840K"></div>
+                  <div class="flex-1 bg-amber-400/60 rounded-t-sm sparkline-bar" style="height: 58%;" title="Week 11: $1,960K"></div>
+                  <div class="flex-1 bg-emerald-500/60 rounded-t-sm sparkline-bar" style="height: 65%;" title="Week 12: $2,180K"></div>
+                  <div class="flex-1 bg-emerald-500/60 rounded-t-sm sparkline-bar" style="height: 72%;" title="Week 13: $2,400K"></div>
+                </div>
+                <div class="flex items-center justify-between mt-1.5">
+                  <span class="text-[9px]" style="color: rgba(255,255,255,0.4);">Week 1</span>
+                  <span class="text-[9px]" style="color: rgba(255,255,255,0.4);">Week 13</span>
+                </div>
+              </div>
+
+              <!-- Context Card 3: Quick Actions -->
+              <div class="glass-card p-4">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center">
+                    <i data-lucide="zap" class="w-3.5 h-3.5 text-brand"></i>
+                  </div>
+                  <h4 class="text-xs font-semibold">Quick Actions</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button class="flex items-center gap-2 px-3 py-2 rounded-lg glass-input hover:bg-white/[0.08] transition-colors text-xs font-medium" style="color: rgba(255,255,255,0.6);">
+                    <i data-lucide="file-search" class="w-3.5 h-3.5 text-brand"></i>
+                    Analyze Document
+                  </button>
+                  <button class="flex items-center gap-2 px-3 py-2 rounded-lg glass-input hover:bg-white/[0.08] transition-colors text-xs font-medium" style="color: rgba(255,255,255,0.6);">
+                    <i data-lucide="file-bar-chart" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    Generate Report
+                  </button>
+                  <button class="flex items-center gap-2 px-3 py-2 rounded-lg glass-input hover:bg-white/[0.08] transition-colors text-xs font-medium" style="color: rgba(255,255,255,0.6);">
+                    <i data-lucide="trending-up" class="w-3.5 h-3.5 text-accent"></i>
+                    Create Forecast
+                  </button>
+                  <button class="flex items-center gap-2 px-3 py-2 rounded-lg glass-input hover:bg-white/[0.08] transition-colors text-xs font-medium" style="color: rgba(255,255,255,0.6);">
+                    <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-red-400"></i>
+                    Risk Assessment
+                  </button>
+                </div>
+              </div>
+
+              <!-- Conversation History -->
+              <div class="glass-card p-4">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                    <i data-lucide="history" class="w-3.5 h-3.5 text-purple-400"></i>
+                  </div>
+                  <h4 class="text-xs font-semibold">Previous Conversations</h4>
+                </div>
+                <div class="space-y-1.5">
+                  <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/[0.04] transition-colors group" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium truncate" style="color: rgba(255,255,255,0.7);">Project budget analysis</p>
+                      <p class="text-[10px]" style="color: rgba(255,255,255,0.4);">Today</p>
+                    </div>
+                  </a>
+                  <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/[0.04] transition-colors group" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium truncate" style="color: rgba(255,255,255,0.7);">Vendor performance review</p>
+                      <p class="text-[10px]" style="color: rgba(255,255,255,0.4);">Feb 10</p>
+                    </div>
+                  </a>
+                  <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/[0.04] transition-colors group" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5 group-hover:text-brand transition-colors" style="color: rgba(255,255,255,0.4);"></i>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium truncate" style="color: rgba(255,255,255,0.7);">Q1 forecast</p>
+                      <p class="text-[10px]" style="color: rgba(255,255,255,0.4);">Feb 8</p>
+                    </div>
+                  </a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- AUTOMATION CENTER TAB                                     -->
+      <!-- ======================================================== -->
+      <div id="panel-automation" class="flex-1 p-6 hidden">
+
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-lg font-bold">Automation Rules</h2>
+            <p class="text-xs mt-0.5" style="color: rgba(255,255,255,0.5);">Configure AI-powered automations that run in the background.</p>
+          </div>
+          <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand hover:bg-brand-dark text-white text-sm font-medium transition-colors">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Create Rule
+          </button>
+        </div>
+
+        <div class="space-y-4">
+
+          <!-- Automation 1: Auto-Process Invoices -->
+          <div class="glass-card p-5">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center">
+                  <i data-lucide="file-scan" class="w-5 h-5 text-brand"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold">Auto-Process Invoices</h3>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                      ACTIVE
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);" title="More"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mb-3">
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Trigger</p>
+                <p class="text-xs" style="color: rgba(255,255,255,0.7);">Document uploaded to AP folder</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Condition</p>
+                <p class="text-xs" style="color: rgba(255,255,255,0.7);">File type is PDF or image</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Action</p>
+                <p class="text-xs" style="color: rgba(255,255,255,0.7);">Extract data via AI, create draft AP invoice, notify accountant</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Runs: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">34 times</span> this month</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.3);">|</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Last: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">2 hours ago</span></span>
+            </div>
+          </div>
+
+          <!-- Automation 2: Safety Score Alert -->
+          <div class="glass-card p-5">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <i data-lucide="shield-alert" class="w-5 h-5 text-amber-400"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold">Safety Score Alert</h3>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ACTIVE</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mb-3">
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Trigger</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Safety inspection submitted</p></div>
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Condition</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Score below 80</p></div>
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Action</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Send alert to Project Manager and Executive, flag project</p></div>
+            </div>
+            <div class="flex items-center gap-4 pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Runs: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">2 times</span> this month</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.3);">|</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Last: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">Feb 8</span></span>
+            </div>
+          </div>
+
+          <!-- Automation 3: Lease Expiration Reminder -->
+          <div class="glass-card p-5">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <i data-lucide="calendar-clock" class="w-5 h-5 text-purple-400"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold">Lease Expiration Reminder</h3>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ACTIVE</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mb-3">
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Trigger</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Daily check at 8:00 AM</p></div>
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Condition</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Lease expires within 60 days AND renewal not started</p></div>
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Action</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Notify property manager, create renewal task</p></div>
+            </div>
+            <div class="flex items-center gap-4 pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Runs: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">5 times</span> this month</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.3);">|</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Last: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">Today</span></span>
+            </div>
+          </div>
+
+          <!-- Automation 4: Budget Threshold Alert -->
+          <div class="glass-card p-5">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+                  <i data-lucide="badge-alert" class="w-5 h-5 text-red-400"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold">Budget Threshold Alert</h3>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ACTIVE</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mb-3">
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Trigger</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Cost recorded against project</p></div>
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Condition</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Cost code spending exceeds 90% of budget</p></div>
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Action</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Notify PM and Controller, add to executive dashboard alerts</p></div>
+            </div>
+            <div class="flex items-center gap-4 pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Runs: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">8 times</span> this month</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.3);">|</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Last: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">Yesterday</span></span>
+            </div>
+          </div>
+
+          <!-- Automation 5: Certification Expiry Monitor -->
+          <div class="glass-card p-5">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <i data-lucide="award" class="w-5 h-5 text-emerald-400"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold">Certification Expiry Monitor</h3>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ACTIVE</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                <button class="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors" style="color: rgba(255,255,255,0.4);"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mb-3">
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Trigger</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Daily check at 7:00 AM</p></div>
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Condition</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Certification expires within 30 days</p></div>
+              <div><p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: rgba(255,255,255,0.4);">Action</p><p class="text-xs" style="color: rgba(255,255,255,0.7);">Send reminder to person and their manager, block project assignment if expired</p></div>
+            </div>
+            <div class="flex items-center gap-4 pt-3" style="border-top: 1px solid rgba(255,255,255,0.08);">
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Runs: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">3 times</span> this month</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.3);">|</span>
+              <span class="text-[11px]" style="color: rgba(255,255,255,0.5);">Last: <span class="font-semibold" style="color: rgba(255,255,255,0.7);">Today</span></span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script>
+    lucide.createIcons();
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.classList.toggle('dark');
+      html.classList.toggle('light');
+      const body = document.body;
+      if (html.classList.contains('light')) {
+        body.style.background = 'linear-gradient(135deg, #fdf2f8 0%, #ede9fe 25%, #e0f2fe 50%, #ede9fe 75%, #fce7f3 100%)';
+      } else {
+        body.style.background = 'linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%)';
+      }
+      setTimeout(() => lucide.createIcons(), 50);
+    }
+
+    function switchTab(tab) {
+      const chatPanel = document.getElementById('panel-chat');
+      const automationPanel = document.getElementById('panel-automation');
+      const chatTab = document.getElementById('tab-chat');
+      const automationTab = document.getElementById('tab-automation');
+
+      if (tab === 'chat') {
+        chatPanel.classList.remove('hidden');
+        automationPanel.classList.add('hidden');
+        chatTab.classList.add('border-brand', 'text-brand');
+        chatTab.classList.remove('border-transparent');
+        chatTab.style.color = '';
+        automationTab.classList.remove('border-brand', 'text-brand');
+        automationTab.classList.add('border-transparent');
+        automationTab.style.color = 'rgba(255,255,255,0.5)';
+      } else {
+        chatPanel.classList.add('hidden');
+        automationPanel.classList.remove('hidden');
+        automationTab.classList.add('border-brand', 'text-brand');
+        automationTab.classList.remove('border-transparent');
+        automationTab.style.color = '';
+        chatTab.classList.remove('border-brand', 'text-brand');
+        chatTab.classList.add('border-transparent');
+        chatTab.style.color = 'rgba(255,255,255,0.5)';
+      }
+      lucide.createIcons();
+    }
+  </script>
+
+</body>
+</html>

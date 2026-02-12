@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Users & Roles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#059669', light: '#34d399', dark: '#047857' },
+            accent: { DEFAULT: '#d97706', light: '#f59e0b', dark: '#b45309' },
+            surface: { dark: '#252017', light: '#ffffff' },
+            border: { dark: '#3d3528', light: '#d6cfc2' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #059669, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Scrollbar styling */
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #3d3528; border-radius: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #5d5040; }
+
+    /* Tab underline animation */
+    .tab-active { border-bottom: 2px solid #059669; color: #059669; }
+  </style>
+</head>
+<body class="dark:bg-[#1a1814] bg-[#faf7f2] dark:text-[#f5f0e8] text-[#1a1814] transition-colors duration-300">
+
+  <!-- ============================================================ -->
+  <!-- SIDEBAR (fixed, 260px)                                       -->
+  <!-- ============================================================ -->
+  <aside class="fixed top-0 left-0 bottom-0 w-[260px] dark:bg-[#1e1a14] bg-[#f0ebe0] border-r dark:border-[#3d3528] border-[#d6cfc2] z-40 flex flex-col">
+
+    <!-- Logo -->
+    <div class="px-5 h-16 flex items-center gap-3 border-b dark:border-[#3d3528] border-[#d6cfc2] shrink-0">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-lg font-bold tracking-tight">ConstructionERP</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll py-4 px-3">
+
+      <!-- OVERVIEW -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">Overview</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+      </div>
+
+      <!-- CONSTRUCTION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">Construction</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          Safety
+        </a>
+      </div>
+
+      <!-- REAL ESTATE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">Real Estate</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Properties
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          Leases
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+          Maintenance
+        </a>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">Financial</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          Accounts Payable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="credit-card" class="w-4 h-4"></i>
+          Accounts Receivable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          General Ledger
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          Job Costing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="landmark" class="w-4 h-4"></i>
+          Banking
+        </a>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">Documents</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          Library
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="file-signature" class="w-4 h-4"></i>
+          Contracts
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          Plan Room
+        </a>
+      </div>
+
+      <!-- PEOPLE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">People</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Directory
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          Time & Attendance
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="truck" class="w-4 h-4"></i>
+          Equipment
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="store" class="w-4 h-4"></i>
+          Vendors
+        </a>
+      </div>
+
+      <!-- BUSINESS DEVELOPMENT -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">Business Development</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="git-branch" class="w-4 h-4"></i>
+          Pipeline
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>
+          Opportunities
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="file-plus" class="w-4 h-4"></i>
+          Bids & Proposals
+        </a>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">Reports</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="pie-chart" class="w-4 h-4"></i>
+          Report Center
+        </a>
+      </div>
+
+      <!-- AI INTELLIGENCE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">AI Intelligence</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          Automation
+        </a>
+      </div>
+
+      <!-- ADMINISTRATION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-[#a89b8c] text-[#8a7e6b]">Administration</p>
+        <!-- Active item -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-brand/10 text-brand font-medium text-sm">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          Users & Roles
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Company Settings
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="plug" class="w-4 h-4"></i>
+          Integrations
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-[#a89b8c] text-[#6b5e4f] hover:dark:bg-white/5 hover:bg-[#e8e0d0]/60 hover:dark:text-[#f5f0e8] hover:text-[#1a1814] text-sm transition-colors">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+          Security
+        </a>
+      </div>
+
+    </nav>
+  </aside>
+
+  <!-- ============================================================ -->
+  <!-- MAIN WRAPPER (offset by sidebar)                             -->
+  <!-- ============================================================ -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- ========================================================== -->
+    <!-- TOP BAR                                                    -->
+    <!-- ========================================================== -->
+    <header class="sticky top-0 z-30 h-16 dark:bg-[#1a1814]/80 bg-[#faf7f2]/80 backdrop-blur-md border-b dark:border-[#3d3528] border-[#d6cfc2] flex items-center justify-between px-6 shrink-0">
+
+      <!-- Left: Breadcrumb -->
+      <div class="flex items-center gap-2 text-sm">
+        <span class="dark:text-[#a89b8c] text-[#8a7e6b]">Administration</span>
+        <span class="dark:text-[#5c5347] text-[#c4b8a8]">/</span>
+        <span class="font-medium dark:text-[#f5f0e8] text-[#1a1814]">Users & Roles</span>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-4">
+
+        <!-- Search -->
+        <div class="relative">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg dark:bg-white/5 bg-[#f0ebe0] border dark:border-[#3d3528] border-[#d6cfc2] text-sm dark:text-[#a89b8c] text-[#8a7e6b] cursor-pointer hover:dark:border-[#5d5040] hover:border-[#c4b8a8] transition-colors min-w-[220px]">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Search...</span>
+            <kbd class="ml-auto text-[10px] font-medium dark:bg-white/10 bg-[#e8e0d0] px-1.5 py-0.5 rounded dark:text-[#a89b8c] text-[#8a7e6b]">Cmd+K</kbd>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-[#f0ebe0] transition-colors">
+          <i data-lucide="bell" class="w-5 h-5 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+        </button>
+
+        <!-- Theme toggle (in topbar) -->
+        <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="p-2 rounded-lg dark:hover:bg-white/5 hover:bg-[#f0ebe0] transition-colors">
+          <i data-lucide="sun" class="w-5 h-5 dark:text-[#a89b8c] text-[#8a7e6b] hidden dark:block"></i>
+          <i data-lucide="moon" class="w-5 h-5 dark:text-[#a89b8c] text-[#8a7e6b] block dark:hidden"></i>
+        </button>
+
+        <!-- Divider -->
+        <div class="w-px h-8 dark:bg-[#3d3528] bg-[#d6cfc2]"></div>
+
+        <!-- User -->
+        <button class="flex items-center gap-3 hover:dark:bg-white/5 hover:bg-[#f0ebe0] rounded-lg px-2 py-1.5 transition-colors">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+          <div class="text-left hidden lg:block">
+            <p class="text-sm font-medium leading-tight">John Mitchell</p>
+            <p class="text-[11px] dark:text-[#a89b8c] text-[#8a7e6b] leading-tight">Executive</p>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b] hidden lg:block"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ========================================================== -->
+    <!-- MAIN CONTENT                                               -->
+    <!-- ========================================================== -->
+    <main class="flex-1 p-6">
+
+      <!-- TABS -->
+      <div class="flex items-center gap-6 border-b dark:border-[#3d3528] border-[#d6cfc2] mb-6">
+        <button onclick="switchTab('users')" id="tab-users" class="pb-3 text-sm font-medium tab-active transition-colors">
+          <span class="flex items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            Users
+          </span>
+        </button>
+        <button onclick="switchTab('roles')" id="tab-roles" class="pb-3 text-sm font-medium dark:text-[#a89b8c] text-[#8a7e6b] hover:dark:text-[#f5f0e8] hover:text-[#1a1814] transition-colors border-b-2 border-transparent">
+          <span class="flex items-center gap-2">
+            <i data-lucide="key" class="w-4 h-4"></i>
+            Roles & Permissions
+          </span>
+        </button>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- USERS TAB CONTENT                                        -->
+      <!-- ======================================================== -->
+      <div id="content-users">
+
+        <!-- Header Row -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 class="text-2xl font-bold dark:text-white text-[#1a1814]">User Management</h1>
+            <p class="text-sm dark:text-[#a89b8c] text-[#8a7e6b] mt-1">15 active users across your organization</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="flex items-center gap-2 px-4 py-2 rounded-lg border dark:border-[#3d3528] border-[#d6cfc2] dark:text-[#c4b8a8] text-[#6b5e4f] text-sm font-medium hover:dark:bg-white/5 hover:bg-[#f0ebe0] transition-colors">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              Export
+            </button>
+            <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand hover:bg-brand-dark text-white text-sm font-medium transition-colors">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              Invite User
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters Row -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
+          <!-- Search Input -->
+          <div class="relative flex-1 max-w-sm">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+            <input type="text" placeholder="Search users..." class="w-full pl-10 pr-4 py-2 rounded-lg border dark:border-[#3d3528] border-[#d6cfc2] dark:bg-[#252017] bg-white text-sm dark:text-[#f5f0e8] text-[#1a1814] placeholder:dark:text-[#a89b8c] placeholder:text-[#8a7e6b] focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+          </div>
+          <!-- Role Filter -->
+          <select class="px-3 py-2 rounded-lg border dark:border-[#3d3528] border-[#d6cfc2] dark:bg-[#252017] bg-white text-sm dark:text-[#c4b8a8] text-[#6b5e4f] focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+            <option>All Roles</option>
+            <option>System Admin</option>
+            <option>Company Admin</option>
+            <option>Executive</option>
+            <option>Project Manager</option>
+            <option>Property Manager</option>
+            <option>Superintendent</option>
+            <option>Accountant</option>
+            <option>Field Worker</option>
+            <option>Vendor</option>
+          </select>
+          <!-- Status Filter -->
+          <select class="px-3 py-2 rounded-lg border dark:border-[#3d3528] border-[#d6cfc2] dark:bg-[#252017] bg-white text-sm dark:text-[#c4b8a8] text-[#6b5e4f] focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+            <option>All Statuses</option>
+            <option>Active</option>
+            <option>Inactive</option>
+            <option>Pending Invite</option>
+          </select>
+        </div>
+
+        <!-- Users Table -->
+        <div class="dark:bg-[#252017] bg-white rounded-xl border dark:border-[#3d3528] border-[#d6cfc2] overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b dark:border-[#3d3528] border-[#d6cfc2]">
+                  <th class="text-left px-5 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] text-xs uppercase tracking-wider">User</th>
+                  <th class="text-left px-5 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] text-xs uppercase tracking-wider">Email</th>
+                  <th class="text-left px-5 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] text-xs uppercase tracking-wider">Role</th>
+                  <th class="text-left px-5 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] text-xs uppercase tracking-wider">Status</th>
+                  <th class="text-left px-5 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] text-xs uppercase tracking-wider">Last Active</th>
+                  <th class="text-left px-5 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] text-xs uppercase tracking-wider">Projects</th>
+                  <th class="text-right px-5 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] text-xs uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y dark:divide-[#3d3528] divide-[#d6cfc2]">
+
+                <!-- Row 1: John Mitchell -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold shrink-0">JM</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">John Mitchell</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">john@company.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-500">
+                      <i data-lucide="crown" class="w-3 h-3"></i>
+                      Executive
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span class="dark:text-[#c4b8a8] text-[#6b5e4f]">Active</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Now</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">All</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Edit user">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Deactivate user">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 2: Sarah Kim -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">SK</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">Sarah Kim</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">sarah@company.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand/10 text-brand">
+                      <i data-lucide="folder-kanban" class="w-3 h-3"></i>
+                      Project Manager
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span class="dark:text-[#c4b8a8] text-[#6b5e4f]">Active</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">5 min ago</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Riverside, Heritage</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Edit user">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Deactivate user">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 3: Mike Torres -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shrink-0">MT</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">Mike Torres</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">mike@company.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-500/10 text-orange-500">
+                      <i data-lucide="hard-hat" class="w-3 h-3"></i>
+                      Superintendent
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span class="dark:text-[#c4b8a8] text-[#6b5e4f]">Active</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">1 hr ago</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Riverside</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Edit user">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Deactivate user">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 4: Lisa Park -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0">LP</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">Lisa Park</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">lisa@company.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500">
+                      <i data-lucide="calculator" class="w-3 h-3"></i>
+                      Accountant
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span class="dark:text-[#c4b8a8] text-[#6b5e4f]">Active</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">30 min ago</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">All (Finance)</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Edit user">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Deactivate user">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 5: Dave Miller -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-lime-500 to-green-500 flex items-center justify-center text-white text-xs font-bold shrink-0">DM</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">Dave Miller</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">dave@company.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 dark:text-[#a89b8c] text-[#8a7e6b]">
+                      <i data-lucide="hammer" class="w-3 h-3"></i>
+                      Field Worker
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span class="dark:text-[#c4b8a8] text-[#6b5e4f]">Active</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">2 hrs ago</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Properties</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Edit user">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Deactivate user">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 6: Chris Brooks -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">CB</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">Chris Brooks</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">chris@company.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 dark:text-[#a89b8c] text-[#8a7e6b]">
+                      <i data-lucide="hammer" class="w-3 h-3"></i>
+                      Field Worker
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span class="dark:text-[#c4b8a8] text-[#6b5e4f]">Active</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">3 hrs ago</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Riverside</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Edit user">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Deactivate user">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 7: Tom Garcia (Vendor) -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-xs font-bold shrink-0">TG</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">Tom Garcia</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">tom@voltelectric.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-500">
+                      <i data-lucide="store" class="w-3 h-3"></i>
+                      Vendor
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span class="dark:text-[#c4b8a8] text-[#6b5e4f]">Active</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Yesterday</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Riverside, Metro</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Edit user">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Deactivate user">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 8: Rachel Kim (Vendor) -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold shrink-0">RK</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">Rachel Kim</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">rachel@aquapipe.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-500">
+                      <i data-lucide="store" class="w-3 h-3"></i>
+                      Vendor
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span class="dark:text-[#c4b8a8] text-[#6b5e4f]">Active</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">2 days ago</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Riverside</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Edit user">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Deactivate user">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 9: James Wu -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white text-xs font-bold shrink-0">JW</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">James Wu</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">james@company.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand/10 text-brand">
+                      <i data-lucide="folder-kanban" class="w-3 h-3"></i>
+                      Project Manager
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span class="dark:text-[#c4b8a8] text-[#6b5e4f]">Active</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">1 hr ago</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Heritage, Metro</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Edit user">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button class="p-1.5 rounded-lg dark:hover:bg-white/5 hover:bg-[#e8e0d0] transition-colors dark:text-[#a89b8c] text-[#8a7e6b]" title="Deactivate user">
+                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Row 10: Ana Rivera (Inactive) -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors opacity-60">
+                  <td class="px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-xs font-bold shrink-0">AR</div>
+                      <span class="font-medium dark:text-white text-[#1a1814]">Ana Rivera</span>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">ana@company.com</td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 dark:text-[#a89b8c] text-[#8a7e6b]">
+                      <i data-lucide="hammer" class="w-3 h-3"></i>
+                      Field Worker
+                    </span>
+                  </td>
+                  <td class="px-5 py-4">
+                    <span class="inline-flex items-center gap-1.5 text-xs">
+                      <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                      <span class="dark:text-[#a89b8c] text-[#8a7e6b]">Inactive</span>
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">Jan 15, 2026</td>
+                  <td class="px-5 py-4 dark:text-[#a89b8c] text-[#8a7e6b]">--</td>
+                  <td class="px-5 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-brand/10 text-brand hover:bg-brand/20 transition-colors">
+                        Reactivate
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Invite User Dialog Preview -->
+        <div class="mt-8">
+          <h2 class="text-lg font-semibold dark:text-white text-[#1a1814] mb-4">Invite New User</h2>
+          <div class="dark:bg-[#252017] bg-white rounded-xl border dark:border-[#3d3528] border-[#d6cfc2] p-6 max-w-lg">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center">
+                <i data-lucide="user-plus" class="w-5 h-5 text-brand"></i>
+              </div>
+              <div>
+                <h3 class="font-semibold dark:text-white text-[#1a1814]">Invite New User</h3>
+                <p class="text-xs dark:text-[#a89b8c] text-[#8a7e6b]">Send an invitation to join your organization</p>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-4">
+              <label class="block text-xs font-medium dark:text-[#c4b8a8] text-[#6b5e4f] mb-1.5">Email Address</label>
+              <input type="email" placeholder="user@example.com" class="w-full px-3 py-2 rounded-lg border dark:border-[#3d3528] border-[#d6cfc2] dark:bg-[#1a1814] bg-[#faf7f2] text-sm dark:text-[#f5f0e8] text-[#1a1814] placeholder:dark:text-[#a89b8c] placeholder:text-[#8a7e6b] focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+            </div>
+
+            <!-- Role Selector -->
+            <div class="mb-4">
+              <label class="block text-xs font-medium dark:text-[#c4b8a8] text-[#6b5e4f] mb-1.5">Role</label>
+              <select class="w-full px-3 py-2 rounded-lg border dark:border-[#3d3528] border-[#d6cfc2] dark:bg-[#1a1814] bg-[#faf7f2] text-sm dark:text-[#c4b8a8] text-[#6b5e4f] focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+                <option value="">Select a role...</option>
+                <option>System Admin</option>
+                <option>Company Admin</option>
+                <option>Executive</option>
+                <option>Project Manager</option>
+                <option>Property Manager</option>
+                <option>Accountant</option>
+                <option>Field Worker</option>
+              </select>
+            </div>
+
+            <!-- Project Assignment -->
+            <div class="mb-6">
+              <label class="block text-xs font-medium dark:text-[#c4b8a8] text-[#6b5e4f] mb-1.5">Project Assignment</label>
+              <div class="w-full px-3 py-2 rounded-lg border dark:border-[#3d3528] border-[#d6cfc2] dark:bg-[#1a1814] bg-[#faf7f2] text-sm">
+                <div class="flex flex-wrap gap-2 mb-2">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-brand/10 text-brand text-xs font-medium">
+                    Riverside Plaza
+                    <button class="hover:text-brand-dark"><i data-lucide="x" class="w-3 h-3"></i></button>
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-brand/10 text-brand text-xs font-medium">
+                    Heritage Tower
+                    <button class="hover:text-brand-dark"><i data-lucide="x" class="w-3 h-3"></i></button>
+                  </span>
+                </div>
+                <input type="text" placeholder="Add more projects..." class="w-full bg-transparent dark:text-[#f5f0e8] text-[#1a1814] placeholder:dark:text-[#a89b8c] placeholder:text-[#8a7e6b] focus:outline-none text-xs">
+              </div>
+            </div>
+
+            <!-- Send Button -->
+            <button class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-brand hover:bg-brand-dark text-white text-sm font-medium transition-colors">
+              <i data-lucide="send" class="w-4 h-4"></i>
+              Send Invitation
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <!-- END USERS TAB CONTENT -->
+
+      <!-- ======================================================== -->
+      <!-- ROLES & PERMISSIONS TAB CONTENT                          -->
+      <!-- ======================================================== -->
+      <div id="content-roles" class="hidden">
+
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 class="text-2xl font-bold dark:text-white text-[#1a1814]">Roles & Permissions</h1>
+            <p class="text-sm dark:text-[#a89b8c] text-[#8a7e6b] mt-1">Define what each role can access across modules</p>
+          </div>
+          <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand hover:bg-brand-dark text-white text-sm font-medium transition-colors self-start">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Create Custom Role
+          </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex flex-wrap items-center gap-4 mb-6 text-xs">
+          <span class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500/30"></span>
+            <span class="dark:text-[#a89b8c] text-[#8a7e6b]">Full Access</span>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-blue-500/20 border border-blue-500/30"></span>
+            <span class="dark:text-[#a89b8c] text-[#8a7e6b]">View Only</span>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-amber-500/20 border border-amber-500/30"></span>
+            <span class="dark:text-[#a89b8c] text-[#8a7e6b]">Limited</span>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-cyan-500/20 border border-cyan-500/30"></span>
+            <span class="dark:text-[#a89b8c] text-[#8a7e6b]">Upload</span>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-purple-500/20 border border-purple-500/30"></span>
+            <span class="dark:text-[#a89b8c] text-[#8a7e6b]">Self Only</span>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded dark:bg-white/5 bg-[#f0ebe0] border dark:border-[#3d3528] border-[#d6cfc2]"></span>
+            <span class="dark:text-[#a89b8c] text-[#8a7e6b]">No Access</span>
+          </span>
+        </div>
+
+        <!-- Permission Matrix Table -->
+        <div class="dark:bg-[#252017] bg-white rounded-xl border dark:border-[#3d3528] border-[#d6cfc2] overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="border-b dark:border-[#3d3528] border-[#d6cfc2]">
+                  <th class="text-left px-4 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px] min-w-[140px]">Module</th>
+                  <th class="text-center px-3 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px]">System Admin</th>
+                  <th class="text-center px-3 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px]">Company Admin</th>
+                  <th class="text-center px-3 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px]">Executive</th>
+                  <th class="text-center px-3 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px]">Project Mgr</th>
+                  <th class="text-center px-3 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px]">Property Mgr</th>
+                  <th class="text-center px-3 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px]">Accountant</th>
+                  <th class="text-center px-3 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px]">Field Worker</th>
+                  <th class="text-center px-3 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px]">Vendor</th>
+                  <th class="text-center px-3 py-3.5 font-semibold dark:text-[#a89b8c] text-[#8a7e6b] uppercase tracking-wider text-[10px]">Tenant</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y dark:divide-[#3d3528] divide-[#d6cfc2]">
+
+                <!-- Projects -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-4 py-3 font-medium dark:text-[#c4b8a8] text-[#4a3f30] text-sm">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="hard-hat" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+                      Projects
+                    </div>
+                  </td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-400 dark:text-amber-400 font-medium border border-amber-500/20">Limited</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-400 dark:text-amber-400 font-medium border border-amber-500/20">Limited</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                </tr>
+
+                <!-- Properties -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-4 py-3 font-medium dark:text-[#c4b8a8] text-[#4a3f30] text-sm">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="building" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+                      Properties
+                    </div>
+                  </td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-400 dark:text-amber-400 font-medium border border-amber-500/20">Limited</span></td>
+                </tr>
+
+                <!-- Finance -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-4 py-3 font-medium dark:text-[#c4b8a8] text-[#4a3f30] text-sm">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="dollar-sign" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+                      Finance
+                    </div>
+                  </td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                </tr>
+
+                <!-- Documents -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-4 py-3 font-medium dark:text-[#c4b8a8] text-[#4a3f30] text-sm">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="folder-open" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+                      Documents
+                    </div>
+                  </td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-cyan-500/15 text-cyan-400 dark:text-cyan-400 font-medium border border-cyan-500/20">Upload</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-cyan-500/15 text-cyan-400 dark:text-cyan-400 font-medium border border-cyan-500/20">Upload</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                </tr>
+
+                <!-- People -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-4 py-3 font-medium dark:text-[#c4b8a8] text-[#4a3f30] text-sm">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="users" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+                      People
+                    </div>
+                  </td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-purple-500/15 text-purple-400 dark:text-purple-400 font-medium border border-purple-500/20">Self</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                </tr>
+
+                <!-- CRM -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-4 py-3 font-medium dark:text-[#c4b8a8] text-[#4a3f30] text-sm">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="contact" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+                      CRM
+                    </div>
+                  </td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 dark:text-blue-400 font-medium border border-blue-500/20">View</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                </tr>
+
+                <!-- Reports -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-4 py-3 font-medium dark:text-[#c4b8a8] text-[#4a3f30] text-sm">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="pie-chart" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+                      Reports
+                    </div>
+                  </td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-400 dark:text-amber-400 font-medium border border-amber-500/20">Limited</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-400 dark:text-amber-400 font-medium border border-amber-500/20">Limited</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                </tr>
+
+                <!-- AI Assistant -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-4 py-3 font-medium dark:text-[#c4b8a8] text-[#4a3f30] text-sm">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="brain" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+                      AI Assistant
+                    </div>
+                  </td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-400 dark:text-amber-400 font-medium border border-amber-500/20">Limited</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                </tr>
+
+                <!-- Admin -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-[#f0ebe0] transition-colors">
+                  <td class="px-4 py-3 font-medium dark:text-[#c4b8a8] text-[#4a3f30] text-sm">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="settings" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e6b]"></i>
+                      Admin
+                    </div>
+                  </td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 dark:text-emerald-400 font-medium border border-emerald-500/20">Full</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                  <td class="px-3 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-md dark:bg-white/5 bg-[#f0ebe0] dark:text-[#5c5347] text-[#8a7e6b] font-medium border dark:border-[#3d3528] border-[#d6cfc2]">--</span></td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <!-- END ROLES & PERMISSIONS TAB CONTENT -->
+
+    </main>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- FIXED THEME TOGGLE (bottom-right corner)                     -->
+  <!-- ============================================================ -->
+  <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Initialize Lucide Icons & Tab Switching -->
+  <script>
+    lucide.createIcons();
+
+    function switchTab(tab) {
+      // Hide all tab content
+      document.getElementById('content-users').classList.add('hidden');
+      document.getElementById('content-roles').classList.add('hidden');
+
+      // Reset all tab styles
+      document.getElementById('tab-users').classList.remove('tab-active');
+      document.getElementById('tab-users').classList.add('dark:text-[#a89b8c]', 'text-[#8a7e6b]', 'border-b-2', 'border-transparent');
+      document.getElementById('tab-roles').classList.remove('tab-active');
+      document.getElementById('tab-roles').classList.add('dark:text-[#a89b8c]', 'text-[#8a7e6b]', 'border-b-2', 'border-transparent');
+
+      // Activate selected tab
+      if (tab === 'users') {
+        document.getElementById('content-users').classList.remove('hidden');
+        document.getElementById('tab-users').classList.add('tab-active');
+        document.getElementById('tab-users').classList.remove('dark:text-[#a89b8c]', 'text-[#8a7e6b]', 'border-b-2', 'border-transparent');
+      } else {
+        document.getElementById('content-roles').classList.remove('hidden');
+        document.getElementById('tab-roles').classList.add('tab-active');
+        document.getElementById('tab-roles').classList.remove('dark:text-[#a89b8c]', 'text-[#8a7e6b]', 'border-b-2', 'border-transparent');
+      }
+
+      // Re-render icons for newly visible content
+      lucide.createIcons();
+    }
+  </script>
+
+</body>
+</html>

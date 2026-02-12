@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Build Smarter. Manage Better. Profit More.</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed' },
+            accent: { DEFAULT: '#ec4899', light: '#f472b6', dark: '#db2777' },
+            surface: { dark: 'rgba(255,255,255,0.06)', light: 'rgba(255,255,255,0.65)' },
+            border: { dark: 'rgba(255,255,255,0.1)', light: 'rgba(255,255,255,0.5)' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .glass-card-dark {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+    }
+    .glass-card-light {
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.5);
+      border-radius: 16px;
+    }
+    .dark .glass-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+    :not(.dark) .glass-card { background: rgba(255,255,255,0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); }
+    .dark body, .dark .body-bg { background: linear-gradient(135deg, #1a0533 0%, #0f172a 25%, #1e1b4b 50%, #0f172a 75%, #2d1b69 100%); }
+    :not(.dark) body, :not(.dark) .body-bg { background: linear-gradient(135deg, #fdf2f8 0%, #ede9fe 25%, #e0f2fe 50%, #ede9fe 75%, #fce7f3 100%); }
+    .animated-mesh {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .animated-mesh::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at 20% 50%, rgba(139,92,246,0.15) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 20%, rgba(236,72,153,0.1) 0%, transparent 50%),
+                  radial-gradient(ellipse at 40% 80%, rgba(6,182,212,0.08) 0%, transparent 50%);
+      animation: meshMove 20s ease-in-out infinite alternate;
+    }
+    @keyframes meshMove {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(-5%, -5%) rotate(3deg); }
+    }
+  </style>
+</head>
+<body class="dark:text-gray-100 text-gray-900 transition-colors duration-300" style="min-height:100vh;">
+
+  <!-- Animated Mesh Background -->
+  <div class="animated-mesh"></div>
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark')" class="fixed bottom-6 right-6 z-50 p-3 rounded-full backdrop-blur-sm hover:scale-110 transition-transform" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 w-full z-40" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.1);">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <a href="#" class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+            <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+          </div>
+          <span class="text-lg font-bold">ConstructionERP</span>
+        </a>
+        <div class="hidden md:flex items-center gap-6 text-sm">
+          <a href="#features" class="dark:text-gray-400 text-gray-600 hover:text-brand transition-colors">Features</a>
+          <a href="#pricing" class="dark:text-gray-400 text-gray-600 hover:text-brand transition-colors">Pricing</a>
+          <a href="#" class="dark:text-gray-400 text-gray-600 hover:text-brand transition-colors">Case Studies</a>
+          <a href="#" class="dark:text-gray-400 text-gray-600 hover:text-brand transition-colors">Resources</a>
+          <a href="#" class="dark:text-gray-400 text-gray-600 hover:text-brand transition-colors">Contact</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="02-login.html" class="text-sm dark:text-gray-300 text-gray-700 hover:text-brand transition-colors">Log In</a>
+        <a href="03-registration.html" class="text-sm bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded-lg transition-colors font-medium">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="pt-32 pb-20 px-6 relative z-10">
+    <div class="max-w-7xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-brand text-sm font-medium mb-6" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        AI-Native Construction & Real Estate ERP
+      </div>
+      <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-6">
+        Build Smarter.<br>
+        <span class="gradient-text">Manage Better.</span><br>
+        Profit More.
+      </h1>
+      <p class="text-lg md:text-xl dark:text-gray-400 text-gray-600 max-w-2xl mx-auto mb-10">
+        The all-in-one platform for construction project management, property operations, and financial control. Powered by AI that works the way you do.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="03-registration.html" class="w-full sm:w-auto bg-brand hover:bg-brand-dark text-white px-8 py-3.5 rounded-lg text-base font-semibold transition-colors">
+          Start Free Trial
+        </a>
+        <a href="#" class="w-full sm:w-auto px-8 py-3.5 rounded-lg text-base font-medium transition-colors flex items-center justify-center gap-2" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(10px);">
+          <i data-lucide="play-circle" class="w-5 h-5"></i>
+          Watch Demo
+        </a>
+      </div>
+      <!-- Dashboard Preview -->
+      <div class="mt-16 relative">
+        <div class="absolute inset-0 bg-gradient-to-t dark:from-[#1a0533] from-[#fdf2f8] via-transparent to-transparent z-10 pointer-events-none h-full"></div>
+        <div class="rounded-xl overflow-hidden shadow-2xl" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);">
+          <div class="p-1" style="background:rgba(255,255,255,0.04);">
+            <div class="flex items-center gap-1.5 px-3 py-2">
+              <div class="w-3 h-3 rounded-full bg-red-500/60"></div>
+              <div class="w-3 h-3 rounded-full bg-yellow-500/60"></div>
+              <div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+              <span class="text-xs dark:text-gray-500 text-gray-400 ml-3">app.constructionerp.com/dashboard</span>
+            </div>
+          </div>
+          <div class="p-8" style="background:rgba(255,255,255,0.03);">
+            <div class="grid grid-cols-4 gap-4 mb-6">
+              <div class="rounded-lg p-4" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+                <div class="text-sm dark:text-gray-400 text-gray-500">Total Revenue</div>
+                <div class="text-2xl font-bold mt-1">$12.4M</div>
+                <div class="text-sm text-green-500 mt-1">+8.2% vs last month</div>
+              </div>
+              <div class="rounded-lg p-4" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+                <div class="text-sm dark:text-gray-400 text-gray-500">Active Projects</div>
+                <div class="text-2xl font-bold mt-1">24</div>
+                <div class="text-sm text-brand mt-1">3 new this month</div>
+              </div>
+              <div class="rounded-lg p-4" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+                <div class="text-sm dark:text-gray-400 text-gray-500">Properties</div>
+                <div class="text-2xl font-bold mt-1">18</div>
+                <div class="text-sm text-accent mt-1">94.2% occupancy</div>
+              </div>
+              <div class="rounded-lg p-4" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+                <div class="text-sm dark:text-gray-400 text-gray-500">Cash Position</div>
+                <div class="text-2xl font-bold mt-1">$3.2M</div>
+                <div class="text-sm text-green-500 mt-1">Healthy</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="col-span-2 rounded-lg p-4 h-48 flex items-end gap-2" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+                <div class="flex-1 bg-brand/30 rounded-t" style="height:40%"></div>
+                <div class="flex-1 bg-brand/40 rounded-t" style="height:55%"></div>
+                <div class="flex-1 bg-brand/50 rounded-t" style="height:45%"></div>
+                <div class="flex-1 bg-brand/60 rounded-t" style="height:70%"></div>
+                <div class="flex-1 bg-brand/70 rounded-t" style="height:60%"></div>
+                <div class="flex-1 bg-brand/80 rounded-t" style="height:85%"></div>
+                <div class="flex-1 bg-brand rounded-t" style="height:75%"></div>
+                <div class="flex-1 bg-brand/60 rounded-t" style="height:50%"></div>
+                <div class="flex-1 bg-brand/40 rounded-t" style="height:35%"></div>
+                <div class="flex-1 bg-brand/30 rounded-t" style="height:25%"></div>
+                <div class="flex-1 bg-brand/20 rounded-t" style="height:15%"></div>
+                <div class="flex-1 bg-brand/10 rounded-t" style="height:10%"></div>
+              </div>
+              <div class="rounded-lg p-4" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+                <div class="text-sm font-medium mb-3">Project Health</div>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500"></span>On Track</span>
+                    <span class="font-medium">18</span>
+                  </div>
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-500"></span>At Risk</span>
+                    <span class="font-medium">4</span>
+                  </div>
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span>Behind</span>
+                    <span class="font-medium">2</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trusted By -->
+  <section class="py-12 relative z-10" style="border-top:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);">
+    <div class="max-w-7xl mx-auto px-6">
+      <p class="text-center text-sm dark:text-gray-500 text-gray-400 mb-8">TRUSTED BY LEADING CONSTRUCTION AND REAL ESTATE FIRMS</p>
+      <div class="flex items-center justify-center gap-12 flex-wrap opacity-50">
+        <span class="text-xl font-bold dark:text-gray-400 text-gray-500">Turner&Co</span>
+        <span class="text-xl font-bold dark:text-gray-400 text-gray-500">Meridian Build</span>
+        <span class="text-xl font-bold dark:text-gray-400 text-gray-500">Apex Developers</span>
+        <span class="text-xl font-bold dark:text-gray-400 text-gray-500">Keystone RE</span>
+        <span class="text-xl font-bold dark:text-gray-400 text-gray-500">BlueLine GC</span>
+        <span class="text-xl font-bold dark:text-gray-400 text-gray-500">Summit Properties</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features / Module Showcase -->
+  <section id="features" class="py-24 px-6 relative z-10">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Everything You Need, One Platform</h2>
+        <p class="text-lg dark:text-gray-400 text-gray-600 max-w-2xl mx-auto">
+          From pre-construction to property management, every tool your team needs to build, manage, and profit.
+        </p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Project Management -->
+        <div class="rounded-xl p-6 hover:border-brand/50 transition-colors group" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="w-12 h-12 rounded-lg bg-brand/10 flex items-center justify-center mb-4 group-hover:bg-brand/20 transition-colors">
+            <i data-lucide="hard-hat" class="w-6 h-6 text-brand"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Project Management</h3>
+          <p class="text-sm dark:text-gray-400 text-gray-600 mb-4">Gantt charts, daily logs, RFIs, change orders, safety inspections, and budget tracking in one unified view.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Gantt Charts</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Daily Logs</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">RFIs</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Safety</span>
+          </div>
+        </div>
+        <!-- Property Management -->
+        <div class="rounded-xl p-6 hover:border-accent/50 transition-colors group" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+            <i data-lucide="building" class="w-6 h-6 text-accent"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Property Management</h3>
+          <p class="text-sm dark:text-gray-400 text-gray-600 mb-4">Lease tracking, tenant portals, maintenance workflows, rent collection, and portfolio analytics at your fingertips.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Leases</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Maintenance</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Tenant Portal</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Rent Roll</span>
+          </div>
+        </div>
+        <!-- Financial Management -->
+        <div class="rounded-xl p-6 hover:border-green-500/50 transition-colors group" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center mb-4 group-hover:bg-green-500/20 transition-colors">
+            <i data-lucide="dollar-sign" class="w-6 h-6 text-green-500"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Financial Management</h3>
+          <p class="text-sm dark:text-gray-400 text-gray-600 mb-4">Full GL, AP/AR, job costing, budgeting, bank reconciliation, and real-time cash flow forecasting.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Job Costing</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">AP/AR</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Budgets</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Forecasting</span>
+          </div>
+        </div>
+        <!-- Document Management -->
+        <div class="rounded-xl p-6 hover:border-purple-500/50 transition-colors group" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
+            <i data-lucide="folder-open" class="w-6 h-6 text-purple-500"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Document Management</h3>
+          <p class="text-sm dark:text-gray-400 text-gray-600 mb-4">Plan room, contract management, version control, compliance tracking, and AI-powered document search.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Plan Room</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Contracts</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Compliance</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">AI Search</span>
+          </div>
+        </div>
+        <!-- AI Intelligence -->
+        <div class="rounded-xl p-6 hover:border-cyan-500/50 transition-colors group" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition-colors">
+            <i data-lucide="brain" class="w-6 h-6 text-cyan-500"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">AI Intelligence</h3>
+          <p class="text-sm dark:text-gray-400 text-gray-600 mb-4">10+ AI providers. Natural language queries, automated document processing, predictive analytics, and smart automation rules.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Multi-Provider</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Predictions</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Automation</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">NLP Search</span>
+          </div>
+        </div>
+        <!-- CRM & Business Development -->
+        <div class="rounded-xl p-6 hover:border-rose-500/50 transition-colors group" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="w-12 h-12 rounded-lg bg-rose-500/10 flex items-center justify-center mb-4 group-hover:bg-rose-500/20 transition-colors">
+            <i data-lucide="handshake" class="w-6 h-6 text-rose-500"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">CRM & Business Dev</h3>
+          <p class="text-sm dark:text-gray-400 text-gray-600 mb-4">Pipeline management, bid tracking, proposal generation, client relationships, and win rate analytics.</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Pipeline</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Bids</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Proposals</span>
+            <span class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.06);">Analytics</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <section class="py-16 relative z-10" style="background:rgba(255,255,255,0.04);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1);border-bottom:1px solid rgba(255,255,255,0.1);">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div>
+          <div class="text-3xl md:text-4xl font-bold text-brand">500+</div>
+          <div class="text-sm dark:text-gray-400 text-gray-600 mt-1">Projects Tracked</div>
+        </div>
+        <div>
+          <div class="text-3xl md:text-4xl font-bold text-accent">$2B+</div>
+          <div class="text-sm dark:text-gray-400 text-gray-600 mt-1">Portfolio Managed</div>
+        </div>
+        <div>
+          <div class="text-3xl md:text-4xl font-bold text-green-500">50,000+</div>
+          <div class="text-sm dark:text-gray-400 text-gray-600 mt-1">Documents Processed</div>
+        </div>
+        <div>
+          <div class="text-3xl md:text-4xl font-bold text-purple-500">99.9%</div>
+          <div class="text-sm dark:text-gray-400 text-gray-600 mt-1">Uptime</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="py-24 px-6 relative z-10">
+    <div class="max-w-7xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-16">What Industry Leaders Say</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="rounded-xl p-6" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="flex items-center gap-1 mb-4">
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+          </div>
+          <p class="dark:text-gray-300 text-gray-700 mb-6">"Replaced Procore, QuickBooks, and Yardi with one platform. Our team saved 15 hours per week on reporting alone. The AI document processing is a game-changer for our invoice workflow."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center text-brand font-semibold text-sm">MR</div>
+            <div>
+              <div class="font-medium text-sm">Michael Rodriguez</div>
+              <div class="text-xs dark:text-gray-400 text-gray-500">CEO, Meridian Build Group</div>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-xl p-6" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="flex items-center gap-1 mb-4">
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+          </div>
+          <p class="dark:text-gray-300 text-gray-700 mb-6">"The real-time field reporting changed how we run job sites. Supers submit daily logs from their phones, and I see everything in my dashboard instantly. Cash flow forecasting keeps us ahead."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent font-semibold text-sm">SK</div>
+            <div>
+              <div class="font-medium text-sm">Sarah Kim</div>
+              <div class="text-xs dark:text-gray-400 text-gray-500">VP Operations, Apex Developers</div>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-xl p-6" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="flex items-center gap-1 mb-4">
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+            <i data-lucide="star" class="w-4 h-4 text-accent fill-accent"></i>
+          </div>
+          <p class="dark:text-gray-300 text-gray-700 mb-6">"Managing 200+ units across 12 properties was chaos before ConstructionERP. Now tenants submit maintenance requests, pay rent online, and we track everything in one place."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 font-semibold text-sm">JT</div>
+            <div>
+              <div class="font-medium text-sm">James Thompson</div>
+              <div class="text-xs dark:text-gray-400 text-gray-500">Director, Keystone Real Estate</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-24 px-6 relative z-10">
+    <div class="max-w-4xl mx-auto text-center rounded-2xl p-12 relative overflow-hidden" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-brand/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+      <div class="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+      <div class="relative">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your Construction Business?</h2>
+        <p class="text-lg dark:text-gray-400 text-gray-600 mb-8">Join hundreds of construction and real estate firms already building smarter.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="03-registration.html" class="bg-brand hover:bg-brand-dark text-white px-8 py-3.5 rounded-lg font-semibold transition-colors">
+            Start Your Free Trial
+          </a>
+          <a href="#" class="dark:text-gray-300 text-gray-700 flex items-center gap-2 hover:text-brand transition-colors font-medium">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            Schedule a Demo
+          </a>
+        </div>
+        <p class="text-sm dark:text-gray-500 text-gray-400 mt-4">No credit card required. 14-day free trial.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" class="py-24 px-6 relative z-10" style="background:rgba(255,255,255,0.04);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1);">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+        <p class="text-lg dark:text-gray-400 text-gray-600">Choose the plan that fits your business. Scale as you grow.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <!-- Starter -->
+        <div class="rounded-xl p-8" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="text-sm font-medium dark:text-gray-400 text-gray-500 mb-2">STARTER</div>
+          <div class="flex items-baseline gap-1 mb-1">
+            <span class="text-4xl font-bold">$99</span>
+            <span class="dark:text-gray-400 text-gray-500">/user/mo</span>
+          </div>
+          <p class="text-sm dark:text-gray-400 text-gray-500 mb-6">For small teams getting started</p>
+          <a href="#" class="block text-center py-2.5 rounded-lg dark:text-gray-300 text-gray-700 font-medium hover:border-brand hover:text-brand transition-colors" style="border:1px solid rgba(255,255,255,0.15);">Get Started</a>
+          <div class="mt-6 space-y-3">
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Up to 10 projects</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> 5 users included</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Project management</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Basic financials</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Document storage (10GB)</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> AI Assistant (basic)</div>
+          </div>
+        </div>
+        <!-- Professional -->
+        <div class="rounded-xl p-8 relative" style="background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:2px solid #8b5cf6;border-radius:16px;">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white text-xs font-semibold px-3 py-1 rounded-full">MOST POPULAR</div>
+          <div class="text-sm font-medium text-brand mb-2">PROFESSIONAL</div>
+          <div class="flex items-baseline gap-1 mb-1">
+            <span class="text-4xl font-bold">$199</span>
+            <span class="dark:text-gray-400 text-gray-500">/user/mo</span>
+          </div>
+          <p class="text-sm dark:text-gray-400 text-gray-500 mb-6">For growing construction firms</p>
+          <a href="#" class="block text-center py-2.5 rounded-lg bg-brand text-white font-medium hover:bg-brand-dark transition-colors">Get Started</a>
+          <div class="mt-6 space-y-3">
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Unlimited projects</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> 25 users included</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Everything in Starter</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Property management</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Full financials + job costing</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> CRM & pipeline</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Document storage (100GB)</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> AI Assistant (advanced)</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Vendor & tenant portals</div>
+          </div>
+        </div>
+        <!-- Enterprise -->
+        <div class="rounded-xl p-8" style="background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;">
+          <div class="text-sm font-medium dark:text-gray-400 text-gray-500 mb-2">ENTERPRISE</div>
+          <div class="flex items-baseline gap-1 mb-1">
+            <span class="text-4xl font-bold">Custom</span>
+          </div>
+          <p class="text-sm dark:text-gray-400 text-gray-500 mb-6">For large organizations</p>
+          <a href="#" class="block text-center py-2.5 rounded-lg dark:text-gray-300 text-gray-700 font-medium hover:border-brand hover:text-brand transition-colors" style="border:1px solid rgba(255,255,255,0.15);">Contact Sales</a>
+          <div class="mt-6 space-y-3">
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Everything in Professional</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Unlimited users</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> SSO / SAML</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Custom integrations</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Unlimited storage</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Dedicated support</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> Custom AI training</div>
+            <div class="flex items-center gap-2 text-sm"><i data-lucide="check" class="w-4 h-4 text-green-500"></i> SLA guarantee</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-16 px-6 relative z-10" style="border-top:1px solid rgba(255,255,255,0.1);">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+        <div class="col-span-2 md:col-span-1">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+              <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="text-lg font-bold">ConstructionERP</span>
+          </div>
+          <p class="text-sm dark:text-gray-400 text-gray-600">AI-native ERP for construction and real estate professionals.</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-sm mb-4">Product</h4>
+          <div class="space-y-2 text-sm dark:text-gray-400 text-gray-600">
+            <a href="#" class="block hover:text-brand transition-colors">Features</a>
+            <a href="#" class="block hover:text-brand transition-colors">Pricing</a>
+            <a href="#" class="block hover:text-brand transition-colors">Integrations</a>
+            <a href="#" class="block hover:text-brand transition-colors">API Docs</a>
+            <a href="#" class="block hover:text-brand transition-colors">Changelog</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-semibold text-sm mb-4">Solutions</h4>
+          <div class="space-y-2 text-sm dark:text-gray-400 text-gray-600">
+            <a href="#" class="block hover:text-brand transition-colors">General Contractors</a>
+            <a href="#" class="block hover:text-brand transition-colors">Developers</a>
+            <a href="#" class="block hover:text-brand transition-colors">Property Managers</a>
+            <a href="#" class="block hover:text-brand transition-colors">Owner-Builders</a>
+            <a href="#" class="block hover:text-brand transition-colors">Subcontractors</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-semibold text-sm mb-4">Resources</h4>
+          <div class="space-y-2 text-sm dark:text-gray-400 text-gray-600">
+            <a href="#" class="block hover:text-brand transition-colors">Blog</a>
+            <a href="#" class="block hover:text-brand transition-colors">Case Studies</a>
+            <a href="#" class="block hover:text-brand transition-colors">Help Center</a>
+            <a href="#" class="block hover:text-brand transition-colors">Webinars</a>
+            <a href="#" class="block hover:text-brand transition-colors">Community</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-semibold text-sm mb-4">Company</h4>
+          <div class="space-y-2 text-sm dark:text-gray-400 text-gray-600">
+            <a href="#" class="block hover:text-brand transition-colors">About Us</a>
+            <a href="#" class="block hover:text-brand transition-colors">Careers</a>
+            <a href="#" class="block hover:text-brand transition-colors">Contact</a>
+            <a href="#" class="block hover:text-brand transition-colors">Security</a>
+            <a href="#" class="block hover:text-brand transition-colors">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4" style="border-top:1px solid rgba(255,255,255,0.1);">
+        <p class="text-sm dark:text-gray-500 text-gray-400">2026 ConstructionERP. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <a href="#" class="dark:text-gray-400 text-gray-500 hover:text-brand transition-colors"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+          <a href="#" class="dark:text-gray-400 text-gray-500 hover:text-brand transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+          <a href="#" class="dark:text-gray-400 text-gray-500 hover:text-brand transition-colors"><i data-lucide="youtube" class="w-5 h-5"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

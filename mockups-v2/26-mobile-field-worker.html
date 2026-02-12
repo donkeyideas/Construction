@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ConstructionERP -- Field Worker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #ffffff; --surface: #f5f0eb; --topbar-bg: #fffcf9;
+    --blue: #1d4ed8; --blue-light: #eff6ff; --amber: #b45309; --amber-light: #fef3c7;
+    --text: #292524; --muted: #78716c; --border: #d6d3d1;
+    --green: #16a34a; --red: #dc2626;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'Inter', -apple-system, sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #1c1917; --surface: #292524; --topbar-bg: #1c1917;
+    --blue-light: rgba(29,78,216,.15); --amber-light: rgba(180,83,9,.15);
+    --text: #f5f0eb; --muted: #a8a29e; --border: #44403c;
+  }
+
+  html { height: 100%; }
+  body {
+    font-family: var(--font-sans); color: var(--text); background: var(--surface);
+    line-height: 1.5; max-width: 375px; margin: 0 auto; min-height: 100%;
+    position: relative; transition: background 0.3s, color 0.3s;
+    padding-bottom: 72px;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--topbar-bg); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; height: 56px;
+  }
+  .topbar-brand {
+    font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700;
+    color: var(--text); letter-spacing: -0.02em;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+  .topbar-btn {
+    position: relative; background: none; border: none; cursor: pointer;
+    color: var(--muted); display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+  }
+  .topbar-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .notif-badge {
+    position: absolute; top: 2px; right: 2px; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--red); color: #fff; font-size: 0.58rem;
+    font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--blue);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 600;
+  }
+
+  /* SCROLLABLE CONTENT */
+  .content { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; transition: box-shadow 0.2s;
+  }
+  .card-title {
+    font-family: var(--font-serif); font-size: 0.95rem; font-weight: 600;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* CLOCK IN/OUT */
+  .clock-card { text-align: center; padding: 24px 16px; }
+  .clock-status {
+    font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 8px;
+  }
+  .clock-status.clocked-in { color: var(--green); }
+  .clock-status.clocked-out { color: var(--muted); }
+  .clock-time {
+    font-family: var(--font-serif); font-size: 2.4rem; font-weight: 800;
+    color: var(--text); margin-bottom: 4px; line-height: 1.1;
+  }
+  .clock-duration {
+    font-size: 0.82rem; color: var(--muted); margin-bottom: 12px;
+  }
+  .clock-location {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 0.78rem; color: var(--muted); margin-bottom: 18px;
+  }
+  .clock-location svg { width: 14px; height: 14px; stroke: var(--amber); fill: none; stroke-width: 2; }
+  .btn-clock {
+    width: 100%; padding: 14px; border: none; border-radius: 8px;
+    font-size: 0.9rem; font-weight: 600; font-family: var(--font-sans);
+    cursor: pointer; transition: background 0.3s, transform 0.2s;
+  }
+  .btn-clock-out { background: var(--red); color: #fff; }
+  .btn-clock-out:hover { background: #b91c1c; }
+  .btn-clock-in { background: var(--green); color: #fff; }
+  .btn-clock-in:hover { background: #15803d; }
+
+  /* ASSIGNMENTS */
+  .assignment-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .assignment-item:last-child { border-bottom: none; }
+  .assignment-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .assignment-info { flex: 1; min-width: 0; }
+  .assignment-task {
+    font-size: 0.85rem; font-weight: 500; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .assignment-project { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .badge {
+    padding: 2px 9px; border-radius: 10px; font-size: 0.68rem;
+    font-weight: 600; white-space: nowrap; flex-shrink: 0;
+  }
+  .badge-green { background: rgba(22,163,74,0.08); color: var(--green); }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+
+  /* QUICK ACTIONS */
+  .quick-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .quick-action {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 18px 12px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; cursor: pointer; text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .quick-action:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+  .quick-icon {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .quick-icon svg { width: 20px; height: 20px; stroke: var(--amber); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .quick-label { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+
+  /* WEATHER WIDGET */
+  .weather-row {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .weather-temp {
+    font-family: var(--font-serif); font-size: 2rem; font-weight: 800;
+    color: var(--text); line-height: 1;
+  }
+  .weather-details { flex: 1; }
+  .weather-condition { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+  .weather-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .weather-icon {
+    width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+  }
+  .weather-icon svg { width: 36px; height: 36px; stroke: var(--amber); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ACTIVITY FEED */
+  .activity-item {
+    display: flex; gap: 10px; padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-icon {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--surface);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .activity-icon svg { width: 14px; height: 14px; stroke: var(--amber); fill: none; stroke-width: 2; }
+  .activity-text { font-size: 0.8rem; line-height: 1.5; }
+  .activity-text strong { font-weight: 600; }
+  .activity-time { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  /* THEME TOGGLE (inside content) */
+  .theme-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+  }
+  .theme-card-label { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+  .theme-switch {
+    position: relative; width: 48px; height: 26px; cursor: pointer;
+  }
+  .theme-switch input { opacity: 0; width: 0; height: 0; }
+  .theme-slider {
+    position: absolute; inset: 0; background: var(--border); border-radius: 13px;
+    transition: background 0.3s;
+  }
+  .theme-slider::before {
+    content: ''; position: absolute; width: 20px; height: 20px;
+    border-radius: 50%; background: #fff; left: 3px; top: 3px;
+    transition: transform 0.3s;
+  }
+  .theme-switch input:checked + .theme-slider { background: var(--amber); }
+  .theme-switch input:checked + .theme-slider::before { transform: translateX(22px); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 375px; height: 64px;
+    background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-around;
+    z-index: 100; padding-bottom: 4px;
+  }
+  .nav-tab {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    text-decoration: none; color: var(--muted); cursor: pointer;
+    background: none; border: none; font-family: var(--font-sans);
+    transition: color 0.2s; padding: 6px 8px; position: relative;
+  }
+  .nav-tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-tab span { font-size: 0.65rem; font-weight: 500; }
+  .nav-tab.active { color: var(--blue); }
+  .nav-tab.active::after {
+    content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 2px; background: var(--blue); border-radius: 1px;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-brand">ConstructionERP</div>
+  <div class="topbar-right">
+    <button class="topbar-btn">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-badge">3</span>
+    </button>
+    <div class="avatar">MR</div>
+  </div>
+</header>
+
+<!-- SCROLLABLE CONTENT -->
+<div class="content">
+
+  <!-- CLOCK IN/OUT -->
+  <div class="card clock-card">
+    <div class="clock-status clocked-in">Clocked In</div>
+    <div class="clock-time">4h 23m</div>
+    <div class="clock-duration">Started at 6:30 AM</div>
+    <div class="clock-location">
+      <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Riverstone Crossing -- Site A (GPS Verified)
+    </div>
+    <button class="btn-clock btn-clock-out">Clock Out</button>
+  </div>
+
+  <!-- TODAY'S ASSIGNMENTS -->
+  <div class="card">
+    <div class="card-title">Today's Assignments</div>
+    <div class="assignment-item">
+      <div class="assignment-dot" style="background: var(--green);"></div>
+      <div class="assignment-info">
+        <div class="assignment-task">Pour Foundation -- Section B3</div>
+        <div class="assignment-project">Riverstone Crossing Phase II</div>
+      </div>
+      <span class="badge badge-green">Active</span>
+    </div>
+    <div class="assignment-item">
+      <div class="assignment-dot" style="background: var(--amber);"></div>
+      <div class="assignment-info">
+        <div class="assignment-task">Install Rebar Grid -- Section B4</div>
+        <div class="assignment-project">Riverstone Crossing Phase II</div>
+      </div>
+      <span class="badge badge-amber">Up Next</span>
+    </div>
+    <div class="assignment-item">
+      <div class="assignment-dot" style="background: var(--blue);"></div>
+      <div class="assignment-info">
+        <div class="assignment-task">Safety Walkthrough -- Zone C</div>
+        <div class="assignment-project">Harbor Ridge Condos</div>
+      </div>
+      <span class="badge badge-blue">Scheduled</span>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="card" style="padding: 16px 12px;">
+    <div class="card-title" style="padding: 0 4px;">Quick Actions</div>
+    <div class="quick-grid">
+      <a class="quick-action" href="#">
+        <div class="quick-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <span class="quick-label">Daily Log</span>
+      </a>
+      <a class="quick-action" href="#">
+        <div class="quick-icon">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <span class="quick-label">Safety Check</span>
+      </a>
+      <a class="quick-action" href="#">
+        <div class="quick-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <span class="quick-label">Photo Upload</span>
+      </a>
+      <a class="quick-action" href="#">
+        <div class="quick-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        </div>
+        <span class="quick-label">RFI</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- WEATHER -->
+  <div class="card">
+    <div class="card-title">Site Weather</div>
+    <div class="weather-row">
+      <div class="weather-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </div>
+      <div class="weather-details">
+        <div class="weather-condition">Clear Skies</div>
+        <div class="weather-meta">Wind: 8 mph NW -- Humidity: 42%</div>
+      </div>
+      <div class="weather-temp">54F</div>
+    </div>
+  </div>
+
+  <!-- RECENT ACTIVITY -->
+  <div class="card">
+    <div class="card-title">Recent Activity</div>
+    <div class="activity-item">
+      <div class="activity-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div class="activity-text"><strong>Carlos M.</strong> submitted daily log for Section B2</div>
+        <div class="activity-time">25 minutes ago</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <div>
+        <div class="activity-text"><strong>Dana L.</strong> uploaded 12 photos to Harbor Ridge inspection</div>
+        <div class="activity-time">1 hour ago</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-icon">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div>
+        <div class="activity-text"><strong>Safety Alert:</strong> Wet conditions reported at Zone C</div>
+        <div class="activity-time">2 hours ago</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THEME TOGGLE -->
+  <div class="card theme-card">
+    <span class="theme-card-label">Dark Mode</span>
+    <label class="theme-switch">
+      <input type="checkbox" id="themeCheckbox" onchange="toggleTheme()">
+      <span class="theme-slider"></span>
+    </label>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-tab active">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    <span>Dashboard</span>
+  </button>
+  <button class="nav-tab">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span>Daily Log</span>
+  </button>
+  <button class="nav-tab">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    <span>Photos</span>
+  </button>
+  <button class="nav-tab">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span>Time</span>
+  </button>
+  <button class="nav-tab">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+    <span>More</span>
+  </button>
+</nav>
+
+<script>
+  function toggleTheme() {
+    var html = document.documentElement;
+    var checkbox = document.getElementById("themeCheckbox");
+    if (checkbox.checked) {
+      html.setAttribute("data-theme", "dark");
+      localStorage.setItem("construction-erp-theme", "dark");
+    } else {
+      html.removeAttribute("data-theme");
+      localStorage.setItem("construction-erp-theme", "light");
+    }
+  }
+
+  (function() {
+    var t = localStorage.getItem("construction-erp-theme");
+    if (t === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      var cb = document.getElementById("themeCheckbox");
+      if (cb) cb.checked = true;
+    }
+  })();
+
+  /* Bottom nav tab switching */
+  document.querySelectorAll(".nav-tab").forEach(function(tab) {
+    tab.addEventListener("click", function() {
+      document.querySelectorAll(".nav-tab").forEach(function(t) { t.classList.remove("active"); });
+      tab.classList.add("active");
+    });
+  });
+</script>
+</body>
+</html>

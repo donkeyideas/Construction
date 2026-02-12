@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Sign In</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#059669', light: '#34d399', dark: '#047857' },
+            accent: { DEFAULT: '#d97706', light: '#f59e0b', dark: '#b45309' },
+            surface: { dark: '#252017', light: '#ffffff' },
+            border: { dark: '#3d3528', light: '#d6cfc2' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #059669, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .left-gradient {
+      background: linear-gradient(135deg, #1a1814 0%, #2a2318 50%, #1a1814 100%);
+    }
+    .left-gradient::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(5, 150, 105, 0.15) 0%, transparent 70%),
+                  radial-gradient(ellipse at 70% 80%, rgba(217, 119, 6, 0.1) 0%, transparent 60%);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="dark:bg-[#1a1814] bg-[#faf7f2] dark:text-[#f5f0e8] text-[#1a1814] transition-colors duration-300">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark')" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-[#1a1814]/10 backdrop-blur-sm border dark:border-white/20 border-[#1a1814]/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Split Layout -->
+  <div class="min-h-screen flex">
+
+    <!-- Left Side: Branding / Value Prop -->
+    <div class="hidden lg:flex lg:w-1/2 relative left-gradient overflow-hidden">
+      <div class="relative z-10 flex flex-col justify-center px-16 xl:px-24 w-full">
+
+        <!-- Logo -->
+        <a href="01-homepage.html" class="flex items-center gap-3 mb-16">
+          <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center">
+            <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+          </div>
+          <span class="text-xl font-bold text-white">ConstructionERP</span>
+        </a>
+
+        <!-- Headline -->
+        <h1 class="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
+          Manage Your<br>
+          <span class="gradient-text">Empire</span>
+        </h1>
+        <p class="text-[#a89b8c] text-lg mb-12 max-w-md">
+          Everything you need to run your construction business, from project planning to profit tracking.
+        </p>
+
+        <!-- Value Props -->
+        <div class="space-y-5 mb-16">
+          <div class="flex items-center gap-4">
+            <div class="w-8 h-8 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="check-circle" class="w-4 h-4 text-brand-light"></i>
+            </div>
+            <span class="text-[#c4b8a9] text-base">Real-time project tracking</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-8 h-8 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="check-circle" class="w-4 h-4 text-brand-light"></i>
+            </div>
+            <span class="text-[#c4b8a9] text-base">AI-powered document processing</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-8 h-8 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="check-circle" class="w-4 h-4 text-brand-light"></i>
+            </div>
+            <span class="text-[#c4b8a9] text-base">Unified financial management</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-8 h-8 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="check-circle" class="w-4 h-4 text-brand-light"></i>
+            </div>
+            <span class="text-[#c4b8a9] text-base">Multi-property oversight</span>
+          </div>
+        </div>
+
+        <!-- Trust Indicator -->
+        <div class="flex items-center gap-3 text-sm text-[#a89b8c]">
+          <i data-lucide="shield-check" class="w-4 h-4 text-brand/60"></i>
+          <span>Trusted by 500+ construction firms</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Side: Login Form -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+      <div class="w-full max-w-md">
+
+        <!-- Mobile Logo (hidden on lg) -->
+        <div class="flex items-center gap-3 mb-10 lg:hidden">
+          <div class="w-9 h-9 bg-brand rounded-xl flex items-center justify-center">
+            <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+          </div>
+          <span class="text-lg font-bold">ConstructionERP</span>
+        </div>
+
+        <!-- Heading -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold mb-2">Welcome back</h2>
+          <p class="dark:text-[#a89b8c] text-[#5c5347] text-sm">Sign in to your account</p>
+        </div>
+
+        <!-- Login Form -->
+        <form onsubmit="event.preventDefault();" class="space-y-5">
+
+          <!-- Email -->
+          <div>
+            <label for="email" class="block text-sm font-medium dark:text-[#c4b8a9] text-[#3d3528] mb-1.5">Email address</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <i data-lucide="mail" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e70]"></i>
+              </div>
+              <input
+                type="email"
+                id="email"
+                placeholder="you@company.com"
+                class="w-full pl-10 pr-4 py-2.5 rounded-lg dark:bg-surface-dark bg-surface-light border dark:border-border-dark border-border-light dark:text-[#f5f0e8] text-[#1a1814] placeholder:dark:text-[#6b6054] placeholder:text-[#a89b8c] text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors"
+              >
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label for="password" class="block text-sm font-medium dark:text-[#c4b8a9] text-[#3d3528] mb-1.5">Password</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <i data-lucide="lock" class="w-4 h-4 dark:text-[#a89b8c] text-[#8a7e70]"></i>
+              </div>
+              <input
+                type="password"
+                id="password"
+                placeholder="Enter your password"
+                class="w-full pl-10 pr-11 py-2.5 rounded-lg dark:bg-surface-dark bg-surface-light border dark:border-border-dark border-border-light dark:text-[#f5f0e8] text-[#1a1814] placeholder:dark:text-[#6b6054] placeholder:text-[#a89b8c] text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors"
+              >
+              <button
+                type="button"
+                onclick="togglePassword()"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center dark:text-[#a89b8c] text-[#8a7e70] hover:text-brand transition-colors"
+                title="Show password"
+              >
+                <i data-lucide="eye" id="eye-icon" class="w-4 h-4"></i>
+                <i data-lucide="eye-off" id="eye-off-icon" class="w-4 h-4 hidden"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember me / Forgot password -->
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" class="w-4 h-4 rounded border dark:border-border-dark border-border-light dark:bg-surface-dark bg-surface-light text-brand focus:ring-brand/50 focus:ring-offset-0 cursor-pointer">
+              <span class="text-sm dark:text-[#a89b8c] text-[#5c5347]">Remember me</span>
+            </label>
+            <a href="#" class="text-sm text-brand hover:text-brand-light transition-colors font-medium">Forgot password?</a>
+          </div>
+
+          <!-- Sign In Button -->
+          <button
+            type="submit"
+            class="w-full py-2.5 px-4 bg-brand hover:bg-brand-dark text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand/50 focus:ring-offset-2 dark:focus:ring-offset-[#1a1814] focus:ring-offset-[#faf7f2]"
+          >
+            Sign In
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-7">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t dark:border-border-dark border-border-light"></div>
+          </div>
+          <div class="relative flex justify-center text-xs">
+            <span class="dark:bg-[#1a1814] bg-[#faf7f2] px-3 dark:text-[#a89b8c] text-[#8a7e70] uppercase tracking-wider">or continue with</span>
+          </div>
+        </div>
+
+        <!-- SSO Buttons -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Google -->
+          <button
+            type="button"
+            class="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-lg border dark:border-border-dark border-border-light dark:bg-surface-dark bg-surface-light dark:hover:bg-white/5 hover:bg-[#f0ebe3] transition-colors text-sm font-medium"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Google
+          </button>
+
+          <!-- Microsoft -->
+          <button
+            type="button"
+            class="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-lg border dark:border-border-dark border-border-light dark:bg-surface-dark bg-surface-light dark:hover:bg-white/5 hover:bg-[#f0ebe3] transition-colors text-sm font-medium"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+              <rect x="13" y="1" width="10" height="10" fill="#7FBA00"/>
+              <rect x="1" y="13" width="10" height="10" fill="#00A4EF"/>
+              <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+            </svg>
+            Microsoft
+          </button>
+        </div>
+
+        <!-- Sign Up Link -->
+        <p class="mt-8 text-center text-sm dark:text-[#a89b8c] text-[#8a7e70]">
+          Don't have an account?
+          <a href="03-registration.html" class="text-brand hover:text-brand-light font-medium transition-colors">Sign up</a>
+        </p>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Password Toggle Script -->
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eye-icon');
+      const eyeOffIcon = document.getElementById('eye-off-icon');
+
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.classList.add('hidden');
+        eyeOffIcon.classList.remove('hidden');
+      } else {
+        passwordInput.type = 'password';
+        eyeIcon.classList.remove('hidden');
+        eyeOffIcon.classList.add('hidden');
+      }
+    }
+  </script>
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>

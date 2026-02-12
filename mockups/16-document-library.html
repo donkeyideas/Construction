@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Document Library</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#3b82f6', light: '#60a5fa', dark: '#2563eb' },
+            accent: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
+            surface: { dark: '#141414', light: '#f8f9fa' },
+            border: { dark: '#262626', light: '#e5e7eb' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #3b82f6, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .dark ::-webkit-scrollbar-thumb { background: #262626; border-radius: 3px; }
+    html:not(.dark) ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    /* Folder tree indentation */
+    .tree-item { cursor: pointer; user-select: none; }
+    .tree-item:hover { background: rgba(255,255,255,0.03); }
+    html:not(.dark) .tree-item:hover { background: rgba(0,0,0,0.03); }
+    .tree-children { display: none; }
+    .tree-children.open { display: block; }
+    /* Upload zone dashed border */
+    .upload-zone {
+      border: 2px dashed #262626;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+    html:not(.dark) .upload-zone {
+      border-color: #e5e7eb;
+    }
+    .upload-zone:hover {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.03);
+    }
+    /* Document card hover */
+    .doc-card { transition: transform 0.15s, box-shadow 0.15s; }
+    .doc-card:hover { transform: translateY(-2px); }
+    .dark .doc-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+    html:not(.dark) .doc-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  </style>
+</head>
+<body class="dark:bg-[#0a0a0a] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- Theme Toggle (Fixed) -->
+  <button onclick="document.documentElement.classList.toggle('dark')" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- App Shell -->
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 flex-shrink-0 dark:bg-[#0f0f0f] bg-[#f3f4f6] border-r dark:border-[#262626] border-[#e5e7eb] flex flex-col">
+      <!-- Sidebar Header / Logo -->
+      <div class="h-16 flex items-center px-5 border-b dark:border-[#262626] border-[#e5e7eb]">
+        <a href="01-homepage.html" class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+            <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+          </div>
+          <span class="text-lg font-bold">ConstructionERP</span>
+        </a>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <!-- Dashboard -->
+        <a href="04-executive-dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+
+        <!-- Construction Section -->
+        <div class="pt-4 pb-1">
+          <p class="px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Construction</p>
+        </div>
+        <a href="06-project-list.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="calendar-range" class="w-4 h-4"></i>
+          Schedule
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="message-square" class="w-4 h-4"></i>
+          RFIs
+          <span class="ml-auto text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded">7</span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="replace" class="w-4 h-4"></i>
+          Change Orders
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          Safety
+        </a>
+
+        <!-- Property Section -->
+        <div class="pt-4 pb-1">
+          <p class="px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Property</p>
+        </div>
+        <a href="10-property-list.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Properties
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Tenants
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+          Maintenance
+        </a>
+
+        <!-- Finance Section -->
+        <div class="pt-4 pb-1">
+          <p class="px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Finance</p>
+        </div>
+        <a href="05-financial-command-center.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+          Accounting
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          Invoices
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Reports
+        </a>
+
+        <!-- Tools Section -->
+        <div class="pt-4 pb-1">
+          <p class="px-3 text-xs font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Tools</p>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-brand/10 text-brand font-medium">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          Documents
+          <span class="ml-auto text-xs dark:text-gray-500 text-gray-400">Library</span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Settings
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer / User -->
+      <div class="border-t dark:border-[#262626] border-[#e5e7eb] p-3">
+        <div class="flex items-center gap-3 px-3 py-2">
+          <div class="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-brand text-xs font-semibold">JM</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium truncate">Jake Morrison</p>
+            <p class="text-xs dark:text-gray-500 text-gray-400 truncate">Project Manager</p>
+          </div>
+          <button class="dark:text-gray-500 text-gray-400 hover:dark:text-gray-300 hover:text-gray-600">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+      <!-- Top Bar -->
+      <header class="h-16 flex-shrink-0 flex items-center justify-between px-6 border-b dark:border-[#262626] border-[#e5e7eb] dark:bg-[#0a0a0a] bg-white">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-sm">
+          <span class="dark:text-gray-500 text-gray-400">Documents</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-600 text-gray-300"></i>
+          <span class="dark:text-gray-100 text-gray-900 font-medium">Library</span>
+        </div>
+        <!-- Top Bar Actions -->
+        <div class="flex items-center gap-3">
+          <button class="relative p-2 dark:text-gray-400 text-gray-500 hover:dark:text-gray-200 hover:text-gray-700 transition-colors">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <button class="p-2 dark:text-gray-400 text-gray-500 hover:dark:text-gray-200 hover:text-gray-700 transition-colors">
+            <i data-lucide="search" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Split Layout: Folder Tree + Document Area -->
+      <div class="flex-1 flex overflow-hidden">
+
+        <!-- LEFT PANEL: Folder Tree -->
+        <div class="w-[250px] flex-shrink-0 border-r dark:border-[#262626] border-[#e5e7eb] dark:bg-[#0f0f0f]/50 bg-[#f9fafb] overflow-y-auto py-3 px-2">
+          <div class="px-2 mb-3">
+            <p class="text-xs font-semibold uppercase tracking-wider dark:text-gray-500 text-gray-400">Folders</p>
+          </div>
+
+          <!-- All Documents (root) -->
+          <div class="space-y-0.5">
+            <!-- Root -->
+            <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-300 text-gray-700" onclick="toggleTree(this)">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 tree-chevron"></i>
+              <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+              <span class="font-medium">All Documents</span>
+            </div>
+            <div class="tree-children open pl-3">
+
+              <!-- By Project -->
+              <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600" onclick="toggleTree(this)">
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 tree-chevron"></i>
+                <i data-lucide="folder" class="w-4 h-4 text-brand flex-shrink-0"></i>
+                <span>By Project</span>
+              </div>
+              <div class="tree-children open pl-3">
+
+                <!-- Riverside Commons (expanded) -->
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-300 text-gray-700" onclick="toggleTree(this)">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 tree-chevron"></i>
+                  <i data-lucide="folder-open" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span class="font-medium">Riverside Commons</span>
+                </div>
+                <div class="tree-children open pl-3">
+                  <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm bg-brand/10 text-brand font-medium" id="active-folder">
+                    <span class="w-3.5 flex-shrink-0"></span>
+                    <i data-lucide="file-stack" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>Plans & Drawings</span>
+                  </div>
+                  <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                    <span class="w-3.5 flex-shrink-0"></span>
+                    <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>Specifications</span>
+                  </div>
+                  <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                    <span class="w-3.5 flex-shrink-0"></span>
+                    <i data-lucide="file-signature" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>Contracts</span>
+                  </div>
+                  <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                    <span class="w-3.5 flex-shrink-0"></span>
+                    <i data-lucide="stamp" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>Permits</span>
+                  </div>
+                  <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                    <span class="w-3.5 flex-shrink-0"></span>
+                    <i data-lucide="camera" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>Photos</span>
+                  </div>
+                  <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                    <span class="w-3.5 flex-shrink-0"></span>
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>Reports</span>
+                  </div>
+                </div>
+
+                <!-- Heritage Tower (collapsed) -->
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600" onclick="toggleTree(this)">
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 tree-chevron"></i>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Heritage Tower</span>
+                </div>
+                <div class="tree-children pl-3"></div>
+
+                <!-- Metro Transit Hub (collapsed) -->
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600" onclick="toggleTree(this)">
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 tree-chevron"></i>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Metro Transit Hub</span>
+                </div>
+                <div class="tree-children pl-3"></div>
+
+                <!-- Lakeside Condos (collapsed) -->
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600" onclick="toggleTree(this)">
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 tree-chevron"></i>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Lakeside Condos</span>
+                </div>
+                <div class="tree-children pl-3"></div>
+              </div>
+
+              <!-- By Property -->
+              <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600" onclick="toggleTree(this)">
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 tree-chevron"></i>
+                <i data-lucide="folder" class="w-4 h-4 text-brand flex-shrink-0"></i>
+                <span>By Property</span>
+              </div>
+              <div class="tree-children pl-3">
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                  <span class="w-3.5 flex-shrink-0"></span>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Riverside Apartments</span>
+                </div>
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                  <span class="w-3.5 flex-shrink-0"></span>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Heritage Business Park</span>
+                </div>
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                  <span class="w-3.5 flex-shrink-0"></span>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Oakwood Townhomes</span>
+                </div>
+              </div>
+
+              <!-- By Type -->
+              <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600" onclick="toggleTree(this)">
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 dark:text-gray-500 text-gray-400 flex-shrink-0 tree-chevron"></i>
+                <i data-lucide="folder" class="w-4 h-4 text-brand flex-shrink-0"></i>
+                <span>By Type</span>
+              </div>
+              <div class="tree-children pl-3">
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                  <span class="w-3.5 flex-shrink-0"></span>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Contracts & Agreements</span>
+                </div>
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                  <span class="w-3.5 flex-shrink-0"></span>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Insurance Certificates</span>
+                </div>
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                  <span class="w-3.5 flex-shrink-0"></span>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Lien Waivers</span>
+                </div>
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                  <span class="w-3.5 flex-shrink-0"></span>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Invoices</span>
+                </div>
+                <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                  <span class="w-3.5 flex-shrink-0"></span>
+                  <i data-lucide="folder" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                  <span>Safety Reports</span>
+                </div>
+              </div>
+
+              <!-- Templates -->
+              <div class="tree-item flex items-center gap-2 px-2 py-1.5 rounded-md text-sm dark:text-gray-400 text-gray-600">
+                <span class="w-3.5 flex-shrink-0"></span>
+                <i data-lucide="folder" class="w-4 h-4 text-purple-400 flex-shrink-0"></i>
+                <span>Templates</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: Document Area -->
+        <div class="flex-1 overflow-y-auto">
+          <div class="p-6 space-y-5">
+
+            <!-- Header Row -->
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <!-- Current Path -->
+              <div>
+                <div class="flex items-center gap-2 text-sm dark:text-gray-400 text-gray-500 mb-1">
+                  <i data-lucide="folder-open" class="w-4 h-4 text-accent"></i>
+                  <span>Riverside Commons</span>
+                  <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                  <span class="dark:text-gray-100 text-gray-900 font-medium">Plans & Drawings</span>
+                </div>
+                <p class="text-xs dark:text-gray-500 text-gray-400">8 documents -- Last updated Feb 11, 2026</p>
+              </div>
+              <!-- Action Buttons -->
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-brand hover:bg-brand-dark text-white transition-colors">
+                  <i data-lucide="upload" class="w-4 h-4"></i>
+                  Upload Files
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border dark:border-[#262626] border-[#e5e7eb] dark:text-gray-300 text-gray-700 hover:dark:bg-white/5 hover:bg-gray-100 transition-colors">
+                  <i data-lucide="folder-plus" class="w-4 h-4"></i>
+                  New Folder
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 transition-colors">
+                  <i data-lucide="brain" class="w-4 h-4"></i>
+                  AI Search
+                </button>
+              </div>
+            </div>
+
+            <!-- Search & Filters Row -->
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
+              <!-- Search Input -->
+              <div class="relative flex-1 w-full">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 dark:text-gray-500 text-gray-400"></i>
+                <input type="text" placeholder="Search documents..." class="w-full pl-10 pr-4 py-2 text-sm rounded-lg border dark:border-[#262626] border-[#e5e7eb] dark:bg-[#141414] bg-white dark:text-gray-100 text-gray-900 placeholder:dark:text-gray-500 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-colors">
+              </div>
+              <!-- Filter: Type -->
+              <select class="px-3 py-2 text-sm rounded-lg border dark:border-[#262626] border-[#e5e7eb] dark:bg-[#141414] bg-white dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand/50">
+                <option>All Types</option>
+                <option>PDF</option>
+                <option>DWG / DXF</option>
+                <option>Images</option>
+                <option>Spreadsheets</option>
+                <option>Archives</option>
+              </select>
+              <!-- Filter: Date Range -->
+              <select class="px-3 py-2 text-sm rounded-lg border dark:border-[#262626] border-[#e5e7eb] dark:bg-[#141414] bg-white dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand/50">
+                <option>Any Date</option>
+                <option>Last 7 days</option>
+                <option>Last 30 days</option>
+                <option>Last 90 days</option>
+                <option>This year</option>
+              </select>
+              <!-- Filter: Uploaded By -->
+              <select class="px-3 py-2 text-sm rounded-lg border dark:border-[#262626] border-[#e5e7eb] dark:bg-[#141414] bg-white dark:text-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand/50">
+                <option>All Users</option>
+                <option>John M.</option>
+                <option>Sarah K.</option>
+                <option>Mike T.</option>
+                <option>Field Team</option>
+              </select>
+              <!-- View Toggle -->
+              <div class="flex items-center rounded-lg border dark:border-[#262626] border-[#e5e7eb] overflow-hidden">
+                <button class="px-3 py-2 text-sm bg-brand/10 text-brand" title="Grid view">
+                  <i data-lucide="grid-3x3" class="w-4 h-4"></i>
+                </button>
+                <button class="px-3 py-2 text-sm dark:text-gray-400 text-gray-500 hover:dark:bg-white/5 hover:bg-gray-100 transition-colors" title="List view">
+                  <i data-lucide="list" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Zone (collapsible) -->
+            <div id="upload-zone" class="upload-zone rounded-xl p-6 text-center cursor-pointer" onclick="this.classList.toggle('hidden')">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-12 h-12 rounded-full dark:bg-white/5 bg-gray-100 flex items-center justify-center">
+                  <i data-lucide="cloud-upload" class="w-6 h-6 dark:text-gray-400 text-gray-500"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-medium dark:text-gray-300 text-gray-700">Drag and drop files here or click to browse</p>
+                  <p class="text-xs dark:text-gray-500 text-gray-400 mt-1">Supported formats: PDF, DWG, DXF, JPG, PNG, DOCX, XLSX</p>
+                </div>
+                <div class="flex items-center gap-2 mt-1 px-3 py-1.5 rounded-full dark:bg-purple-500/10 bg-purple-50 border dark:border-purple-500/20 border-purple-200">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i>
+                  <span class="text-xs text-purple-400 font-medium">Files are automatically tagged by AI</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Document Grid (4 columns) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+
+              <!-- Document 1: A1.0 - Site Plan.pdf -->
+              <div class="doc-card dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb] p-4 relative group">
+                <!-- 3-dot menu -->
+                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onclick="toggleMenu(event, 'menu-1')" class="p-1 rounded-md dark:hover:bg-white/10 hover:bg-gray-200 transition-colors">
+                    <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                  </button>
+                  <div id="menu-1" class="hidden absolute right-0 top-8 w-44 dark:bg-[#1a1a1a] bg-white rounded-lg border dark:border-[#262626] border-[#e5e7eb] shadow-lg z-20 py-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="history" class="w-3.5 h-3.5"></i> Version History</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="folder-input" class="w-3.5 h-3.5"></i> Move</a>
+                    <hr class="dark:border-[#262626] border-[#e5e7eb] my-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm text-red-400 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</a>
+                  </div>
+                </div>
+                <!-- File Icon -->
+                <div class="flex items-center justify-center w-full h-24 rounded-lg dark:bg-red-500/10 bg-red-50 mb-3">
+                  <div class="text-center">
+                    <i data-lucide="file-text" class="w-10 h-10 text-red-500 mx-auto"></i>
+                    <span class="text-xs font-bold text-red-500 mt-1">PDF</span>
+                  </div>
+                </div>
+                <!-- File Info -->
+                <div class="space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-sm font-medium leading-tight line-clamp-2">A1.0 - Site Plan.pdf</h3>
+                    <span class="flex-shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded bg-brand/10 text-brand">v3</span>
+                  </div>
+                  <p class="text-xs dark:text-gray-500 text-gray-400">4.2 MB</p>
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-brand/20 flex items-center justify-center text-brand text-[9px] font-semibold flex-shrink-0">JM</div>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">John M.</span>
+                    <span class="text-xs dark:text-gray-600 text-gray-300 ml-auto">Feb 8</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">Current Set</span>
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-brand/10 text-brand border border-brand/20">Approved</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Document 2: A2.1 - Floor Plan Level 1.pdf -->
+              <div class="doc-card dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb] p-4 relative group">
+                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onclick="toggleMenu(event, 'menu-2')" class="p-1 rounded-md dark:hover:bg-white/10 hover:bg-gray-200 transition-colors">
+                    <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                  </button>
+                  <div id="menu-2" class="hidden absolute right-0 top-8 w-44 dark:bg-[#1a1a1a] bg-white rounded-lg border dark:border-[#262626] border-[#e5e7eb] shadow-lg z-20 py-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="history" class="w-3.5 h-3.5"></i> Version History</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="folder-input" class="w-3.5 h-3.5"></i> Move</a>
+                    <hr class="dark:border-[#262626] border-[#e5e7eb] my-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm text-red-400 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</a>
+                  </div>
+                </div>
+                <div class="flex items-center justify-center w-full h-24 rounded-lg dark:bg-red-500/10 bg-red-50 mb-3">
+                  <div class="text-center">
+                    <i data-lucide="file-text" class="w-10 h-10 text-red-500 mx-auto"></i>
+                    <span class="text-xs font-bold text-red-500 mt-1">PDF</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-sm font-medium leading-tight line-clamp-2">A2.1 - Floor Plan Level 1.pdf</h3>
+                    <span class="flex-shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded bg-brand/10 text-brand">v2</span>
+                  </div>
+                  <p class="text-xs dark:text-gray-500 text-gray-400">8.1 MB</p>
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[9px] font-semibold flex-shrink-0">SK</div>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Sarah K.</span>
+                    <span class="text-xs dark:text-gray-600 text-gray-300 ml-auto">Feb 5</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">Current Set</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Document 3: A2.2 - Floor Plan Level 2.pdf -->
+              <div class="doc-card dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb] p-4 relative group">
+                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onclick="toggleMenu(event, 'menu-3')" class="p-1 rounded-md dark:hover:bg-white/10 hover:bg-gray-200 transition-colors">
+                    <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                  </button>
+                  <div id="menu-3" class="hidden absolute right-0 top-8 w-44 dark:bg-[#1a1a1a] bg-white rounded-lg border dark:border-[#262626] border-[#e5e7eb] shadow-lg z-20 py-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="history" class="w-3.5 h-3.5"></i> Version History</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="folder-input" class="w-3.5 h-3.5"></i> Move</a>
+                    <hr class="dark:border-[#262626] border-[#e5e7eb] my-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm text-red-400 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</a>
+                  </div>
+                </div>
+                <div class="flex items-center justify-center w-full h-24 rounded-lg dark:bg-red-500/10 bg-red-50 mb-3">
+                  <div class="text-center">
+                    <i data-lucide="file-text" class="w-10 h-10 text-red-500 mx-auto"></i>
+                    <span class="text-xs font-bold text-red-500 mt-1">PDF</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-sm font-medium leading-tight line-clamp-2">A2.2 - Floor Plan Level 2.pdf</h3>
+                    <span class="flex-shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded bg-brand/10 text-brand">v2</span>
+                  </div>
+                  <p class="text-xs dark:text-gray-500 text-gray-400">7.8 MB</p>
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-[9px] font-semibold flex-shrink-0">SK</div>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Sarah K.</span>
+                    <span class="text-xs dark:text-gray-600 text-gray-300 ml-auto">Feb 5</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">Current Set</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Document 4: S1.0 - Structural Foundation.dwg -->
+              <div class="doc-card dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb] p-4 relative group">
+                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onclick="toggleMenu(event, 'menu-4')" class="p-1 rounded-md dark:hover:bg-white/10 hover:bg-gray-200 transition-colors">
+                    <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                  </button>
+                  <div id="menu-4" class="hidden absolute right-0 top-8 w-44 dark:bg-[#1a1a1a] bg-white rounded-lg border dark:border-[#262626] border-[#e5e7eb] shadow-lg z-20 py-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="history" class="w-3.5 h-3.5"></i> Version History</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="folder-input" class="w-3.5 h-3.5"></i> Move</a>
+                    <hr class="dark:border-[#262626] border-[#e5e7eb] my-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm text-red-400 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</a>
+                  </div>
+                </div>
+                <div class="flex items-center justify-center w-full h-24 rounded-lg dark:bg-blue-500/10 bg-blue-50 mb-3">
+                  <div class="text-center">
+                    <i data-lucide="ruler" class="w-10 h-10 text-blue-500 mx-auto"></i>
+                    <span class="text-xs font-bold text-blue-500 mt-1">DWG</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-sm font-medium leading-tight line-clamp-2">S1.0 - Structural Foundation.dwg</h3>
+                    <span class="flex-shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded bg-brand/10 text-brand">v4</span>
+                  </div>
+                  <p class="text-xs dark:text-gray-500 text-gray-400">12.3 MB</p>
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center text-accent text-[9px] font-semibold flex-shrink-0">MT</div>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Mike T.</span>
+                    <span class="text-xs dark:text-gray-600 text-gray-300 ml-auto">Jan 28</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">Current Set</span>
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">Revision</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Document 5: M1.0 - Mechanical Plan.pdf -->
+              <div class="doc-card dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb] p-4 relative group">
+                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onclick="toggleMenu(event, 'menu-5')" class="p-1 rounded-md dark:hover:bg-white/10 hover:bg-gray-200 transition-colors">
+                    <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                  </button>
+                  <div id="menu-5" class="hidden absolute right-0 top-8 w-44 dark:bg-[#1a1a1a] bg-white rounded-lg border dark:border-[#262626] border-[#e5e7eb] shadow-lg z-20 py-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="history" class="w-3.5 h-3.5"></i> Version History</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="folder-input" class="w-3.5 h-3.5"></i> Move</a>
+                    <hr class="dark:border-[#262626] border-[#e5e7eb] my-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm text-red-400 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</a>
+                  </div>
+                </div>
+                <div class="flex items-center justify-center w-full h-24 rounded-lg dark:bg-red-500/10 bg-red-50 mb-3">
+                  <div class="text-center">
+                    <i data-lucide="file-text" class="w-10 h-10 text-red-500 mx-auto"></i>
+                    <span class="text-xs font-bold text-red-500 mt-1">PDF</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-sm font-medium leading-tight line-clamp-2">M1.0 - Mechanical Plan.pdf</h3>
+                    <span class="flex-shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded bg-brand/10 text-brand">v1</span>
+                  </div>
+                  <p class="text-xs dark:text-gray-500 text-gray-400">5.6 MB</p>
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-[9px] font-semibold flex-shrink-0">HE</div>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">HVAC Eng.</span>
+                    <span class="text-xs dark:text-gray-600 text-gray-300 ml-auto">Feb 10</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">Under Review</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Document 6: E1.0 - Electrical Plan.pdf -->
+              <div class="doc-card dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb] p-4 relative group">
+                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onclick="toggleMenu(event, 'menu-6')" class="p-1 rounded-md dark:hover:bg-white/10 hover:bg-gray-200 transition-colors">
+                    <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                  </button>
+                  <div id="menu-6" class="hidden absolute right-0 top-8 w-44 dark:bg-[#1a1a1a] bg-white rounded-lg border dark:border-[#262626] border-[#e5e7eb] shadow-lg z-20 py-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="history" class="w-3.5 h-3.5"></i> Version History</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="folder-input" class="w-3.5 h-3.5"></i> Move</a>
+                    <hr class="dark:border-[#262626] border-[#e5e7eb] my-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm text-red-400 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</a>
+                  </div>
+                </div>
+                <div class="flex items-center justify-center w-full h-24 rounded-lg dark:bg-red-500/10 bg-red-50 mb-3">
+                  <div class="text-center">
+                    <i data-lucide="file-text" class="w-10 h-10 text-red-500 mx-auto"></i>
+                    <span class="text-xs font-bold text-red-500 mt-1">PDF</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-sm font-medium leading-tight line-clamp-2">E1.0 - Electrical Plan.pdf</h3>
+                    <span class="flex-shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded bg-brand/10 text-brand">v2</span>
+                  </div>
+                  <p class="text-xs dark:text-gray-500 text-gray-400">6.2 MB</p>
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-[9px] font-semibold flex-shrink-0">EE</div>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Elect. Eng.</span>
+                    <span class="text-xs dark:text-gray-600 text-gray-300 ml-auto">Feb 9</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">Current Set</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Document 7: Progress Photos - Feb 2026.zip -->
+              <div class="doc-card dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb] p-4 relative group">
+                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onclick="toggleMenu(event, 'menu-7')" class="p-1 rounded-md dark:hover:bg-white/10 hover:bg-gray-200 transition-colors">
+                    <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                  </button>
+                  <div id="menu-7" class="hidden absolute right-0 top-8 w-44 dark:bg-[#1a1a1a] bg-white rounded-lg border dark:border-[#262626] border-[#e5e7eb] shadow-lg z-20 py-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="history" class="w-3.5 h-3.5"></i> Version History</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="folder-input" class="w-3.5 h-3.5"></i> Move</a>
+                    <hr class="dark:border-[#262626] border-[#e5e7eb] my-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm text-red-400 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</a>
+                  </div>
+                </div>
+                <div class="flex items-center justify-center w-full h-24 rounded-lg dark:bg-green-500/10 bg-green-50 mb-3">
+                  <div class="text-center">
+                    <i data-lucide="image" class="w-10 h-10 text-green-500 mx-auto"></i>
+                    <span class="text-xs font-bold text-green-500 mt-1">ZIP</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-sm font-medium leading-tight line-clamp-2">Progress Photos - Feb 2026.zip</h3>
+                    <span class="flex-shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded bg-brand/10 text-brand">v1</span>
+                  </div>
+                  <p class="text-xs dark:text-gray-500 text-gray-400">145 MB</p>
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 text-[9px] font-semibold flex-shrink-0">FT</div>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Field Team</span>
+                    <span class="text-xs dark:text-gray-600 text-gray-300 ml-auto">Feb 11</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">Photos</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Document 8: Spec Section 03300 - Concrete.pdf -->
+              <div class="doc-card dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb] p-4 relative group">
+                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onclick="toggleMenu(event, 'menu-8')" class="p-1 rounded-md dark:hover:bg-white/10 hover:bg-gray-200 transition-colors">
+                    <i data-lucide="more-vertical" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                  </button>
+                  <div id="menu-8" class="hidden absolute right-0 top-8 w-44 dark:bg-[#1a1a1a] bg-white rounded-lg border dark:border-[#262626] border-[#e5e7eb] shadow-lg z-20 py-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Share</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="history" class="w-3.5 h-3.5"></i> Version History</a>
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm dark:text-gray-300 text-gray-700 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="folder-input" class="w-3.5 h-3.5"></i> Move</a>
+                    <hr class="dark:border-[#262626] border-[#e5e7eb] my-1">
+                    <a href="#" class="flex items-center gap-2 px-3 py-2 text-sm text-red-400 dark:hover:bg-white/5 hover:bg-gray-100"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</a>
+                  </div>
+                </div>
+                <div class="flex items-center justify-center w-full h-24 rounded-lg dark:bg-red-500/10 bg-red-50 mb-3">
+                  <div class="text-center">
+                    <i data-lucide="file-text" class="w-10 h-10 text-red-500 mx-auto"></i>
+                    <span class="text-xs font-bold text-red-500 mt-1">PDF</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-sm font-medium leading-tight line-clamp-2">Spec Section 03300 - Concrete.pdf</h3>
+                    <span class="flex-shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded bg-brand/10 text-brand">v1</span>
+                  </div>
+                  <p class="text-xs dark:text-gray-500 text-gray-400">2.1 MB</p>
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-[9px] font-semibold flex-shrink-0">AR</div>
+                    <span class="text-xs dark:text-gray-400 text-gray-500">Architect</span>
+                    <span class="text-xs dark:text-gray-600 text-gray-300 ml-auto">Dec 15</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Specifications</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Storage Usage Bar -->
+            <div class="dark:bg-[#141414] bg-[#f8f9fa] rounded-xl border dark:border-[#262626] border-[#e5e7eb] p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="hard-drive" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+                  <span class="text-sm font-medium">Storage</span>
+                </div>
+                <span class="text-sm dark:text-gray-400 text-gray-500">Using <span class="dark:text-gray-100 text-gray-900 font-semibold">2.4 GB</span> of <span class="dark:text-gray-100 text-gray-900 font-semibold">100 GB</span></span>
+              </div>
+              <div class="w-full h-2.5 rounded-full dark:bg-[#262626] bg-gray-200">
+                <div class="h-2.5 rounded-full bg-brand" style="width: 2.4%"></div>
+              </div>
+              <div class="flex items-center justify-between mt-2 text-xs dark:text-gray-500 text-gray-400">
+                <span>2.4% used</span>
+                <span>97.6 GB available</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Toggle folder tree
+    function toggleTree(el) {
+      const children = el.nextElementSibling;
+      if (children && children.classList.contains('tree-children')) {
+        children.classList.toggle('open');
+        // Toggle chevron direction
+        const chevron = el.querySelector('.tree-chevron');
+        if (chevron) {
+          const icon = chevron.getAttribute('data-lucide');
+          if (icon === 'chevron-down') {
+            chevron.setAttribute('data-lucide', 'chevron-right');
+          } else {
+            chevron.setAttribute('data-lucide', 'chevron-down');
+          }
+          lucide.createIcons();
+        }
+      }
+    }
+
+    // Toggle 3-dot menu
+    function toggleMenu(event, menuId) {
+      event.stopPropagation();
+      // Close all other menus first
+      document.querySelectorAll('[id^="menu-"]').forEach(function(m) {
+        if (m.id !== menuId) m.classList.add('hidden');
+      });
+      document.getElementById(menuId).classList.toggle('hidden');
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener('click', function() {
+      document.querySelectorAll('[id^="menu-"]').forEach(function(m) {
+        m.classList.add('hidden');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,916 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConstructionERP - Time & Attendance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: { DEFAULT: '#2c5282', light: '#3b6ba5', dark: '#1e3a5f' },
+            accent: { DEFAULT: '#c9a84c', light: '#d4b96a', dark: '#b08f3a' },
+            surface: { dark: '#243447', light: '#ffffff' },
+            border: { dark: '#344258', light: '#d1d9e6' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+
+    /* Scrollbar styling */
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #344258; border-radius: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #4a5d73; }
+
+    /* Table scrollbar */
+    .table-scroll::-webkit-scrollbar { height: 6px; }
+    .table-scroll::-webkit-scrollbar-track { background: transparent; }
+    .table-scroll::-webkit-scrollbar-thumb { background: #344258; border-radius: 4px; }
+    .table-scroll::-webkit-scrollbar-thumb:hover { background: #4a5d73; }
+
+    /* Bar chart animation */
+    .bar-fill { transition: width 0.6s ease-out; }
+  </style>
+</head>
+<body class="dark:bg-[#1a2332] bg-white dark:text-gray-100 text-gray-900 transition-colors duration-300">
+
+  <!-- ============================================================ -->
+  <!-- SIDEBAR (fixed, 260px)                                       -->
+  <!-- ============================================================ -->
+  <aside class="fixed top-0 left-0 bottom-0 w-[260px] dark:bg-[#1e2d3f] bg-[#f0f2f5] border-r dark:border-[#344258] border-[#d1d9e6] z-40 flex flex-col">
+
+    <!-- Logo -->
+    <div class="px-5 h-16 flex items-center gap-3 border-b dark:border-[#344258] border-[#d1d9e6] shrink-0">
+      <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
+        <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+      </div>
+      <span class="text-lg font-bold tracking-tight">ConstructionERP</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto sidebar-scroll py-4 px-3">
+
+      <!-- OVERVIEW -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Overview</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+      </div>
+
+      <!-- CONSTRUCTION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Construction</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="hard-hat" class="w-4 h-4"></i>
+          Projects
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          Daily Logs
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          Safety
+        </a>
+      </div>
+
+      <!-- REAL ESTATE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Real Estate</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="building" class="w-4 h-4"></i>
+          Properties
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          Leases
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="wrench" class="w-4 h-4"></i>
+          Maintenance
+        </a>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Financial</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          Accounts Payable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="credit-card" class="w-4 h-4"></i>
+          Accounts Receivable
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          General Ledger
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          Job Costing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="landmark" class="w-4 h-4"></i>
+          Banking
+        </a>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Documents</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="folder-open" class="w-4 h-4"></i>
+          Library
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-signature" class="w-4 h-4"></i>
+          Contracts
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          Plan Room
+        </a>
+      </div>
+
+      <!-- PEOPLE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">People</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Directory
+        </a>
+        <!-- Active item -->
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-brand/10 text-brand font-medium text-sm">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          Time & Attendance
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="truck" class="w-4 h-4"></i>
+          Equipment
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="store" class="w-4 h-4"></i>
+          Vendors
+        </a>
+      </div>
+
+      <!-- BUSINESS DEVELOPMENT -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Business Development</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="git-branch" class="w-4 h-4"></i>
+          Pipeline
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>
+          Opportunities
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="file-plus" class="w-4 h-4"></i>
+          Bids & Proposals
+        </a>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Reports</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="pie-chart" class="w-4 h-4"></i>
+          Report Center
+        </a>
+      </div>
+
+      <!-- AI INTELLIGENCE -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">AI Intelligence</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="brain" class="w-4 h-4"></i>
+          AI Assistant
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          Automation
+        </a>
+      </div>
+
+      <!-- ADMINISTRATION -->
+      <div class="mb-4">
+        <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest dark:text-gray-500 text-gray-400">Administration</p>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          Users & Roles
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Company Settings
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="plug" class="w-4 h-4"></i>
+          Integrations
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg dark:text-gray-400 text-gray-600 hover:dark:bg-white/5 hover:bg-gray-200/60 hover:dark:text-gray-200 hover:text-gray-900 text-sm transition-colors">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+          Security
+        </a>
+      </div>
+
+    </nav>
+  </aside>
+
+  <!-- ============================================================ -->
+  <!-- MAIN WRAPPER (offset by sidebar)                             -->
+  <!-- ============================================================ -->
+  <div class="ml-[260px] min-h-screen flex flex-col">
+
+    <!-- ========================================================== -->
+    <!-- TOP BAR                                                    -->
+    <!-- ========================================================== -->
+    <header class="sticky top-0 z-30 h-16 dark:bg-[#1a2332]/80 bg-white/80 backdrop-blur-md border-b dark:border-[#344258] border-[#d1d9e6] flex items-center justify-between px-6 shrink-0">
+
+      <!-- Left: Breadcrumb -->
+      <div class="flex items-center gap-2 text-sm">
+        <span class="dark:text-gray-500 text-gray-400">People</span>
+        <span class="dark:text-gray-600 text-gray-300">/</span>
+        <span class="font-medium dark:text-gray-100 text-gray-900">Time & Attendance</span>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-4">
+
+        <!-- Search -->
+        <div class="relative">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg dark:bg-white/5 bg-gray-100 border dark:border-[#344258] border-[#d1d9e6] text-sm dark:text-gray-400 text-gray-500 cursor-pointer hover:dark:border-gray-600 hover:border-gray-300 transition-colors min-w-[220px]">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>Search...</span>
+            <kbd class="ml-auto text-[10px] font-medium dark:bg-white/10 bg-gray-200 px-1.5 py-0.5 rounded dark:text-gray-500 text-gray-400">Cmd+K</kbd>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <button class="relative p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+          <i data-lucide="bell" class="w-5 h-5 dark:text-gray-400 text-gray-500"></i>
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+        </button>
+
+        <!-- Theme toggle (in topbar) -->
+        <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="p-2 rounded-lg dark:hover:bg-white/5 hover:bg-gray-100 transition-colors">
+          <i data-lucide="sun" class="w-5 h-5 dark:text-gray-400 text-gray-500 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-5 h-5 dark:text-gray-400 text-gray-500 block dark:hidden"></i>
+        </button>
+
+        <!-- Divider -->
+        <div class="w-px h-8 dark:bg-[#344258] bg-[#d1d9e6]"></div>
+
+        <!-- User -->
+        <button class="flex items-center gap-3 hover:dark:bg-white/5 hover:bg-gray-100 rounded-lg px-2 py-1.5 transition-colors">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-accent flex items-center justify-center text-white text-xs font-bold">JM</div>
+          <div class="text-left hidden lg:block">
+            <p class="text-sm font-medium leading-tight">John Mitchell</p>
+            <p class="text-[11px] dark:text-gray-500 text-gray-400 leading-tight">Executive</p>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 dark:text-gray-500 text-gray-400 hidden lg:block"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ========================================================== -->
+    <!-- MAIN CONTENT                                               -->
+    <!-- ========================================================== -->
+    <main class="flex-1 p-6">
+
+      <!-- ======================================================== -->
+      <!-- PAGE HEADER                                              -->
+      <!-- ======================================================== -->
+      <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-2xl font-bold">Time & Attendance</h1>
+          <p class="text-sm dark:text-gray-400 text-gray-500 mt-1">Track hours, approve timesheets, and manage payroll exports.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Week Selector -->
+          <div class="flex items-center gap-1 dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-lg px-1 py-1">
+            <button class="p-1.5 rounded hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+              <i data-lucide="chevron-left" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+            </button>
+            <div class="flex items-center gap-2 px-2">
+              <i data-lucide="calendar" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+              <span class="text-sm font-medium whitespace-nowrap">Week of Feb 10 - Feb 14, 2026</span>
+            </div>
+            <button class="p-1.5 rounded hover:dark:bg-white/5 hover:bg-gray-200 transition-colors">
+              <i data-lucide="chevron-right" class="w-4 h-4 dark:text-gray-400 text-gray-500"></i>
+            </button>
+          </div>
+
+          <!-- Project Filter -->
+          <select class="text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-lg px-3 py-2 dark:text-gray-300 text-gray-700 appearance-none cursor-pointer pr-8" style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22%3E%3Cpath d=%22m6 9 6 6 6-6%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 8px center;">
+            <option>All Projects</option>
+            <option>Riverside Commons</option>
+            <option>Heritage Tower</option>
+            <option>Metro Transit</option>
+            <option>Lakeside Condos</option>
+            <option>Properties</option>
+            <option>Oakwood Residential</option>
+          </select>
+
+          <!-- Department Filter -->
+          <select class="text-sm dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-lg px-3 py-2 dark:text-gray-300 text-gray-700 appearance-none cursor-pointer pr-8" style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22%3E%3Cpath d=%22m6 9 6 6 6-6%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 8px center;">
+            <option>All Departments</option>
+            <option>General Labor</option>
+            <option>Electrical</option>
+            <option>Plumbing</option>
+            <option>Fire Protection</option>
+          </select>
+
+          <!-- Clock In/Out Button -->
+          <button class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <i data-lucide="log-in" class="w-4 h-4"></i>
+            Clock In/Out
+          </button>
+
+          <!-- Export Payroll -->
+          <button class="flex items-center gap-2 px-4 py-2 dark:bg-white/5 bg-gray-100 border dark:border-[#344258] border-[#d1d9e6] dark:text-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:dark:bg-white/10 hover:bg-gray-200 transition-colors">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Export Payroll
+          </button>
+
+          <!-- Approve All -->
+          <button class="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dark text-white text-sm font-medium rounded-lg transition-colors">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            Approve All
+          </button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SUMMARY BAR (4 KPIs)                                     -->
+      <!-- ======================================================== -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+
+        <!-- KPI: Total Hours This Week -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Total Hours This Week</span>
+            <div class="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+              <i data-lucide="clock" class="w-4 h-4 text-brand"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">1,284</p>
+          <p class="text-xs dark:text-gray-500 text-gray-400 mt-1">hrs logged across all projects</p>
+        </div>
+
+        <!-- KPI: Overtime Hours -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Overtime Hours</span>
+            <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-accent"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight text-accent">86</p>
+          <p class="text-xs dark:text-gray-500 text-gray-400 mt-1">hrs over standard 40-hr week</p>
+        </div>
+
+        <!-- KPI: Pending Approval -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Pending Approval</span>
+            <div class="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+              <i data-lucide="file-check" class="w-4 h-4 text-brand"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight text-brand">12</p>
+          <p class="text-xs dark:text-gray-500 text-gray-400 mt-1">timesheets awaiting review</p>
+        </div>
+
+        <!-- KPI: Avg Hours/Worker -->
+        <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium dark:text-gray-400 text-gray-500">Avg Hours/Worker</span>
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <i data-lucide="user" class="w-4 h-4 text-emerald-500"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold tracking-tight">42.8</p>
+          <p class="text-xs dark:text-gray-500 text-gray-400 mt-1">hrs average per worker this week</p>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- MAIN AREA: Table + Summary Sidebar                       -->
+      <!-- ======================================================== -->
+      <div class="flex gap-6">
+
+        <!-- ====================================================== -->
+        <!-- TIMESHEET GRID (Main Table)                            -->
+        <!-- ====================================================== -->
+        <div class="flex-1 min-w-0 dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md overflow-hidden">
+          <div class="px-5 py-4 border-b dark:border-[#344258] border-[#d1d9e6] flex items-center justify-between">
+            <h3 class="text-sm font-semibold">Weekly Timesheets</h3>
+            <span class="text-xs dark:text-gray-500 text-gray-400">15 workers</span>
+          </div>
+          <div class="overflow-x-auto table-scroll">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b dark:border-[#344258] border-[#d1d9e6]">
+                  <th class="text-left py-3 px-4 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Worker</th>
+                  <th class="text-left py-3 px-3 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap">Project</th>
+                  <th class="text-center py-3 px-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap min-w-[52px]">Mon<br><span class="font-normal normal-case">2/10</span></th>
+                  <th class="text-center py-3 px-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap min-w-[52px]">Tue<br><span class="font-normal normal-case">2/11</span></th>
+                  <th class="text-center py-3 px-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap min-w-[52px]">Wed<br><span class="font-normal normal-case">2/12</span></th>
+                  <th class="text-center py-3 px-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap min-w-[52px]">Thu<br><span class="font-normal normal-case">2/13</span></th>
+                  <th class="text-center py-3 px-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap min-w-[52px]">Fri<br><span class="font-normal normal-case">2/14</span></th>
+                  <th class="text-center py-3 px-2 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap min-w-[52px]">Sat<br><span class="font-normal normal-case">2/15</span></th>
+                  <th class="text-center py-3 px-2 text-xs font-semibold dark:text-gray-400 text-gray-500 uppercase tracking-wide whitespace-nowrap">Total</th>
+                  <th class="text-center py-3 px-2 text-xs font-semibold dark:text-gray-400 text-gray-500 uppercase tracking-wide whitespace-nowrap">OT</th>
+                  <th class="text-center py-3 px-3 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap">Status</th>
+                  <th class="text-center py-3 px-3 text-xs font-medium dark:text-gray-500 text-gray-400 uppercase tracking-wide whitespace-nowrap">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y dark:divide-[#1e1e1e] divide-[#f0f0f0]">
+
+                <!-- Row 1: Mike Torres -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Mike Torres</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Riverside Commons</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs text-accent font-medium">4</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold text-accent">44</td>
+                  <td class="py-3 px-2 text-center text-xs font-medium text-accent">4</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Approved</span></td>
+                  <td class="py-3 px-3 text-center">
+                    <button class="text-xs text-brand hover:text-brand-light font-medium transition-colors">View</button>
+                  </td>
+                </tr>
+
+                <!-- Row 2: Chris Brooks -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Chris Brooks</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Riverside Commons</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">40</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Approved</span></td>
+                  <td class="py-3 px-3 text-center">
+                    <button class="text-xs text-brand hover:text-brand-light font-medium transition-colors">View</button>
+                  </td>
+                </tr>
+
+                <!-- Row 3: Dave Miller -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Dave Miller</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Properties</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">6</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">38</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Approved</span></td>
+                  <td class="py-3 px-3 text-center">
+                    <button class="text-xs text-brand hover:text-brand-light font-medium transition-colors">View</button>
+                  </td>
+                </tr>
+
+                <!-- Row 4: Tom Garcia (Volt Electric) -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">
+                    Tom Garcia
+                    <span class="ml-1 text-[10px] dark:text-gray-500 text-gray-400 font-normal">(Volt Electric)</span>
+                  </td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Riverside Commons</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs text-accent font-medium">10</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs text-accent font-medium">10</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold text-accent">44</td>
+                  <td class="py-3 px-2 text-center text-xs font-medium text-accent">4</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-400/10 text-amber-400">Pending</span></td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <button class="text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors mr-2">Approve</button>
+                    <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Reject</button>
+                  </td>
+                </tr>
+
+                <!-- Row 5: Rachel Kim (AquaPipe) -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">
+                    Rachel Kim
+                    <span class="ml-1 text-[10px] dark:text-gray-500 text-gray-400 font-normal">(AquaPipe)</span>
+                  </td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Riverside Commons</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">40</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-400/10 text-amber-400">Pending</span></td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <button class="text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors mr-2">Approve</button>
+                    <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Reject</button>
+                  </td>
+                </tr>
+
+                <!-- Row 6: James Wu -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">James Wu</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Heritage Tower</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs text-accent font-medium">6</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold text-accent">46</td>
+                  <td class="py-3 px-2 text-center text-xs font-medium text-accent">6</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-400/10 text-amber-400">Pending</span></td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <button class="text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors mr-2">Approve</button>
+                    <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Reject</button>
+                  </td>
+                </tr>
+
+                <!-- Row 7: Ana Rivera -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Ana Rivera</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Heritage Tower</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">40</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Approved</span></td>
+                  <td class="py-3 px-3 text-center">
+                    <button class="text-xs text-brand hover:text-brand-light font-medium transition-colors">View</button>
+                  </td>
+                </tr>
+
+                <!-- Row 8: Mark Johnson -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Mark Johnson</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Metro Transit</td>
+                  <td class="py-3 px-2 text-center text-xs text-accent font-medium">10</td>
+                  <td class="py-3 px-2 text-center text-xs text-accent font-medium">10</td>
+                  <td class="py-3 px-2 text-center text-xs text-accent font-medium">10</td>
+                  <td class="py-3 px-2 text-center text-xs text-accent font-medium">10</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold text-accent">48</td>
+                  <td class="py-3 px-2 text-center text-xs font-medium text-accent">8</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-400/10 text-amber-400">Pending</span></td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <button class="text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors mr-2">Approve</button>
+                    <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Reject</button>
+                  </td>
+                </tr>
+
+                <!-- Row 9: Kevin Park -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Kevin Park</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Metro Transit</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">40</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand/10 text-brand">Submitted</span></td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <button class="text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors mr-2">Approve</button>
+                    <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Reject</button>
+                  </td>
+                </tr>
+
+                <!-- Row 10: Luis Hernandez -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Luis Hernandez</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Lakeside Condos</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">4</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">36</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand/10 text-brand">Submitted</span></td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <button class="text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors mr-2">Approve</button>
+                    <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Reject</button>
+                  </td>
+                </tr>
+
+                <!-- Row 11: Tyler Brown -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Tyler Brown</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Riverside Commons</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">40</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium dark:bg-white/5 bg-gray-200 dark:text-gray-400 text-gray-500">Draft</span></td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <button class="text-xs text-brand hover:text-brand-light font-medium transition-colors mr-2">Edit</button>
+                    <button class="text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors">Submit</button>
+                  </td>
+                </tr>
+
+                <!-- Row 12: Amy Chen -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Amy Chen</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Properties</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">40</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Approved</span></td>
+                  <td class="py-3 px-3 text-center">
+                    <button class="text-xs text-brand hover:text-brand-light font-medium transition-colors">View</button>
+                  </td>
+                </tr>
+
+                <!-- Row 13: Robert Davis (Wed absent) -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Robert Davis</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Heritage Tower</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">
+                    <span class="inline-flex items-center justify-center w-6 h-5 rounded bg-red-500/10 text-red-400 font-medium">0</span>
+                  </td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">32</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand/10 text-brand">Submitted</span></td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <button class="text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors">Approve</button>
+                  </td>
+                </tr>
+
+                <!-- Row 14: Sandra Lee -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">Sandra Lee</td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Oakwood Residential</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold">40</td>
+                  <td class="py-3 px-2 text-center text-xs dark:text-gray-600 text-gray-300">0</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-500">Approved</span></td>
+                  <td class="py-3 px-3 text-center">
+                    <button class="text-xs text-brand hover:text-brand-light font-medium transition-colors">View</button>
+                  </td>
+                </tr>
+
+                <!-- Row 15: Paul Martinez (FireSafe) -->
+                <tr class="hover:dark:bg-white/[0.02] hover:bg-gray-100/50 transition-colors">
+                  <td class="py-3 px-4 font-medium text-xs whitespace-nowrap sticky left-0 dark:bg-[#243447] bg-[#f8f9fb] z-10">
+                    Paul Martinez
+                    <span class="ml-1 text-[10px] dark:text-gray-500 text-gray-400 font-normal">(FireSafe)</span>
+                  </td>
+                  <td class="py-3 px-3 text-xs dark:text-gray-400 text-gray-500 whitespace-nowrap">Metro Transit</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs">8</td>
+                  <td class="py-3 px-2 text-center text-xs text-accent font-medium">4</td>
+                  <td class="py-3 px-2 text-center text-xs font-bold text-accent">44</td>
+                  <td class="py-3 px-2 text-center text-xs font-medium text-accent">4</td>
+                  <td class="py-3 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-400/10 text-amber-400">Pending</span></td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <button class="text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors mr-2">Approve</button>
+                    <button class="text-xs text-red-400 hover:text-red-300 font-medium transition-colors">Reject</button>
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- SUMMARY SIDEBAR (right, 280px)                         -->
+        <!-- ====================================================== -->
+        <div class="w-[280px] shrink-0 space-y-4">
+
+          <!-- Week Summary Card -->
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+            <h3 class="text-sm font-semibold mb-4">Week Summary</h3>
+
+            <!-- By Project Breakdown -->
+            <p class="text-xs font-medium dark:text-gray-400 text-gray-500 mb-3">Hours by Project</p>
+            <div class="space-y-3 mb-5">
+
+              <!-- Riverside Commons: 392 hrs -->
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Riverside Commons</span>
+                  <span class="text-xs font-semibold">392</span>
+                </div>
+                <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200 overflow-hidden">
+                  <div class="h-full rounded-full bg-brand bar-fill" style="width: 100%;"></div>
+                </div>
+              </div>
+
+              <!-- Heritage Tower: 286 hrs -->
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Heritage Tower</span>
+                  <span class="text-xs font-semibold">286</span>
+                </div>
+                <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200 overflow-hidden">
+                  <div class="h-full rounded-full bg-brand-light bar-fill" style="width: 73%;"></div>
+                </div>
+              </div>
+
+              <!-- Metro Transit: 248 hrs -->
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Metro Transit</span>
+                  <span class="text-xs font-semibold">248</span>
+                </div>
+                <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200 overflow-hidden">
+                  <div class="h-full rounded-full bg-emerald-500 bar-fill" style="width: 63%;"></div>
+                </div>
+              </div>
+
+              <!-- Lakeside Condos: 168 hrs -->
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Lakeside Condos</span>
+                  <span class="text-xs font-semibold">168</span>
+                </div>
+                <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200 overflow-hidden">
+                  <div class="h-full rounded-full bg-accent bar-fill" style="width: 43%;"></div>
+                </div>
+              </div>
+
+              <!-- Properties: 148 hrs -->
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Properties</span>
+                  <span class="text-xs font-semibold">148</span>
+                </div>
+                <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200 overflow-hidden">
+                  <div class="h-full rounded-full bg-purple-500 bar-fill" style="width: 38%;"></div>
+                </div>
+              </div>
+
+              <!-- Oakwood: 42 hrs -->
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Oakwood</span>
+                  <span class="text-xs font-semibold">42</span>
+                </div>
+                <div class="w-full h-2 rounded-full dark:bg-white/5 bg-gray-200 overflow-hidden">
+                  <div class="h-full rounded-full bg-pink-500 bar-fill" style="width: 11%;"></div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Totals -->
+            <div class="border-t dark:border-[#344258] border-[#d1d9e6] pt-4 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs dark:text-gray-400 text-gray-500">Total Hours</span>
+                <span class="text-sm font-bold">1,284 hrs</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs dark:text-gray-400 text-gray-500">Overtime</span>
+                <span class="text-sm font-bold text-accent">86 hrs <span class="font-normal text-xs dark:text-gray-500 text-gray-400">(6.7%)</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Approval Progress Card -->
+          <div class="dark:bg-[#243447] bg-[#f8f9fb] border dark:border-[#344258] border-[#d1d9e6] rounded-md p-5">
+            <h3 class="text-sm font-semibold mb-4">Approval Progress</h3>
+
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs dark:text-gray-400 text-gray-500">Approved</span>
+              <span class="text-sm font-bold">8 <span class="font-normal dark:text-gray-500 text-gray-400">/ 15</span></span>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="w-full h-3 rounded-full dark:bg-white/5 bg-gray-200 overflow-hidden mb-3">
+              <div class="h-full rounded-full bg-emerald-500 bar-fill" style="width: 53.3%;"></div>
+            </div>
+
+            <!-- Breakdown -->
+            <div class="space-y-2 mt-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Approved</span>
+                </div>
+                <span class="text-xs font-semibold">8</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Pending</span>
+                </div>
+                <span class="text-xs font-semibold">5</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-brand"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Submitted</span>
+                </div>
+                <span class="text-xs font-semibold">3</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full dark:bg-gray-600 bg-gray-300"></span>
+                  <span class="text-xs dark:text-gray-300 text-gray-600">Draft</span>
+                </div>
+                <span class="text-xs font-semibold">1</span>
+              </div>
+            </div>
+
+            <!-- Stacked progress bar showing all statuses -->
+            <div class="w-full h-2 rounded-full overflow-hidden flex mt-4">
+              <div class="h-full bg-emerald-500" style="width: 53.3%;"></div>
+              <div class="h-full bg-amber-400" style="width: 33.3%;"></div>
+              <div class="h-full bg-brand" style="width: 6.7%;"></div>
+              <div class="h-full dark:bg-gray-600 bg-gray-300" style="width: 6.7%;"></div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- FIXED THEME TOGGLE (bottom-right corner)                     -->
+  <!-- ============================================================ -->
+  <button onclick="document.documentElement.classList.toggle('dark'); lucide.createIcons();" class="fixed bottom-6 right-6 z-50 p-3 rounded-full dark:bg-white/10 bg-gray-900/10 backdrop-blur-sm border dark:border-white/20 border-gray-900/20 hover:scale-110 transition-transform" title="Toggle theme">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>
