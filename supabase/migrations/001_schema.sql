@@ -32,6 +32,8 @@ create table companies (
   stripe_customer_id text,
   stripe_subscription_id text,
   trial_ends_at timestamptz,
+  industry_type text,
+  created_by uuid references auth.users(id),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

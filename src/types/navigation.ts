@@ -95,6 +95,7 @@ export const appBottomNav: NavItem[] = [
       { label: "Content Manager", href: "/admin/content" },
       { label: "SEO & GEO", href: "/admin/seo" },
       { label: "AI Providers", href: "/admin/ai-providers" },
+      { label: "Platform Admin", href: "/super-admin" },
     ],
   },
 ];
