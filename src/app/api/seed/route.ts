@@ -91,6 +91,15 @@ export async function POST(request: Request) {
     if (existingCo) {
       const cid = existingCo.id;
       // Clean up child tables that reference company_id (in case CASCADE is not set)
+      // Delete child tables first (journal_entry_lines depends on journal_entries, etc.)
+      await Promise.all([
+        supabase.from("journal_entry_lines").delete().eq("company_id", cid),
+        supabase.from("automation_logs").delete().eq("company_id", cid),
+        supabase.from("contract_milestones").delete().eq("company_id", cid),
+        supabase.from("equipment_maintenance_logs").delete().eq("company_id", cid),
+        supabase.from("equipment_assignments").delete().eq("company_id", cid),
+        supabase.from("bank_transactions").delete().eq("company_id", cid),
+      ]);
       await Promise.all([
         supabase.from("daily_logs").delete().eq("company_id", cid),
         supabase.from("time_entries").delete().eq("company_id", cid),
@@ -99,23 +108,32 @@ export async function POST(request: Request) {
         supabase.from("submittals").delete().eq("company_id", cid),
         supabase.from("punch_list_items").delete().eq("company_id", cid),
         supabase.from("safety_inspections").delete().eq("company_id", cid),
+        supabase.from("safety_incidents").delete().eq("company_id", cid),
+        supabase.from("toolbox_talks").delete().eq("company_id", cid),
         supabase.from("invoices").delete().eq("company_id", cid),
         supabase.from("payments").delete().eq("company_id", cid),
+        supabase.from("journal_entries").delete().eq("company_id", cid),
         supabase.from("bank_accounts").delete().eq("company_id", cid),
         supabase.from("chart_of_accounts").delete().eq("company_id", cid),
         supabase.from("documents").delete().eq("company_id", cid),
         supabase.from("contacts").delete().eq("company_id", cid),
         supabase.from("certifications").delete().eq("company_id", cid),
         supabase.from("equipment").delete().eq("company_id", cid),
-        supabase.from("crm_opportunities").delete().eq("company_id", cid),
+        supabase.from("contracts").delete().eq("company_id", cid),
+        supabase.from("automation_rules").delete().eq("company_id", cid),
+        supabase.from("opportunities").delete().eq("company_id", cid),
         supabase.from("bids").delete().eq("company_id", cid),
+        supabase.from("tickets").delete().eq("company_id", cid),
+        supabase.from("messages").delete().eq("company_id", cid),
         supabase.from("notifications").delete().eq("company_id", cid),
-        supabase.from("audit_logs").delete().eq("company_id", cid),
+        supabase.from("audit_log").delete().eq("company_id", cid),
+        supabase.from("subscription_events").delete().eq("company_id", cid),
       ]);
       // Delete projects, properties, units, leases, maintenance (which depend on projects/properties)
       await supabase.from("property_units").delete().eq("company_id", cid);
       await supabase.from("leases").delete().eq("company_id", cid);
       await supabase.from("maintenance_requests").delete().eq("company_id", cid);
+      await supabase.from("vendor_contracts").delete().eq("company_id", cid);
       await supabase.from("projects").delete().eq("company_id", cid);
       await supabase.from("properties").delete().eq("company_id", cid);
       await supabase.from("company_members").delete().eq("company_id", cid);
@@ -1360,7 +1378,308 @@ export async function POST(request: Request) {
     );
 
     // ============================================================
-    // 30. SUBSCRIPTION EVENTS (for Super Admin dashboard)
+    // 30. JOURNAL ENTRIES & LINES (critical for financial statements)
+    // ============================================================
+    // First, fetch chart of accounts to get account IDs by account_number
+    const { data: coaData } = await supabase
+      .from("chart_of_accounts")
+      .select("id, account_number")
+      .eq("company_id", companyId);
+
+    const acctMap: Record<string, string> = {};
+    for (const a of coaData ?? []) {
+      acctMap[a.account_number] = a.id;
+    }
+
+    // Only seed journal entries if we have accounts
+    if (Object.keys(acctMap).length > 0) {
+      const journalSeeds = [
+        // Monthly revenue recognition entries (Jul 2025 - Feb 2026)
+        { entry_number: "JE-0001", entry_date: "2025-07-31", description: "Revenue recognition - July 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-08-02T10:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0002", entry_date: "2025-08-31", description: "Revenue recognition - August 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-09-02T10:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0003", entry_date: "2025-09-30", description: "Revenue recognition - September 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-10-02T10:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0004", entry_date: "2025-10-31", description: "Revenue recognition - October 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-11-03T10:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0005", entry_date: "2025-11-30", description: "Revenue recognition - November 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-12-02T10:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0006", entry_date: "2025-12-31", description: "Revenue recognition - December 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2026-01-03T10:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0007", entry_date: "2026-01-31", description: "Revenue recognition - January 2026", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2026-02-03T10:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0008", entry_date: "2026-02-12", description: "Revenue recognition - February 2026 (partial)", reference: "MTD Accrual", status: "draft", created_by: userIds.accountant },
+        // Cost of construction entries
+        { entry_number: "JE-0009", entry_date: "2025-07-31", description: "Construction costs - July 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-08-02T10:30:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0010", entry_date: "2025-08-31", description: "Construction costs - August 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-09-02T10:30:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0011", entry_date: "2025-09-30", description: "Construction costs - September 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-10-02T10:30:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0012", entry_date: "2025-10-31", description: "Construction costs - October 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-11-03T10:30:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0013", entry_date: "2025-11-30", description: "Construction costs - November 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2025-12-02T10:30:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0014", entry_date: "2025-12-31", description: "Construction costs - December 2025", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2026-01-03T10:30:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0015", entry_date: "2026-01-31", description: "Construction costs - January 2026", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2026-02-03T10:30:00Z", created_by: userIds.accountant },
+        // Operating expense entries
+        { entry_number: "JE-0016", entry_date: "2025-12-31", description: "Office rent & utilities - Q4 2025", reference: "Quarterly", status: "posted", posted_by: userIds.accountant, posted_at: "2026-01-05T09:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0017", entry_date: "2026-01-31", description: "Office rent & utilities - January 2026", reference: "Monthly Close", status: "posted", posted_by: userIds.accountant, posted_at: "2026-02-03T11:00:00Z", created_by: userIds.accountant },
+        // Payroll entries
+        { entry_number: "JE-0018", entry_date: "2025-12-31", description: "Payroll accrual - December 2025", reference: "PR-DEC-2025", status: "posted", posted_by: userIds.accountant, posted_at: "2026-01-05T10:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0019", entry_date: "2026-01-31", description: "Payroll accrual - January 2026", reference: "PR-JAN-2026", status: "posted", posted_by: userIds.accountant, posted_at: "2026-02-03T10:00:00Z", created_by: userIds.accountant },
+        // Insurance & bonding
+        { entry_number: "JE-0020", entry_date: "2025-12-31", description: "Annual insurance premium amortization", reference: "INS-2025", status: "posted", posted_by: userIds.accountant, posted_at: "2026-01-05T11:00:00Z", created_by: userIds.accountant },
+        // Cash receipts
+        { entry_number: "JE-0021", entry_date: "2026-01-15", description: "Cash receipt - Riverside Health Systems", reference: "INV-0019", status: "posted", posted_by: userIds.accountant, posted_at: "2026-01-16T09:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0022", entry_date: "2026-01-20", description: "Cash receipt - Thomas Sterling", reference: "INV-0021", status: "posted", posted_by: userIds.accountant, posted_at: "2026-01-21T09:00:00Z", created_by: userIds.accountant },
+        // AP payment entries
+        { entry_number: "JE-0023", entry_date: "2026-01-10", description: "AP payment - Miller Steel Erectors", reference: "AP-0033", status: "posted", posted_by: userIds.accountant, posted_at: "2026-01-11T09:00:00Z", created_by: userIds.accountant },
+        { entry_number: "JE-0024", entry_date: "2026-01-25", description: "AP payment - Hernandez Concrete Works", reference: "AP-0034", status: "posted", posted_by: userIds.accountant, posted_at: "2026-01-26T09:00:00Z", created_by: userIds.accountant },
+        // Depreciation
+        { entry_number: "JE-0025", entry_date: "2026-01-31", description: "Monthly depreciation - equipment & vehicles", reference: "DEP-JAN-2026", status: "posted", posted_by: userIds.accountant, posted_at: "2026-02-03T11:30:00Z", created_by: userIds.accountant },
+      ];
+
+      const { data: journalData } = await supabase
+        .from("journal_entries")
+        .insert(journalSeeds.map((j) => ({ company_id: companyId, project_id: rmcId, ...j })))
+        .select("id, entry_number");
+
+      const jeMap: Record<string, string> = {};
+      for (const je of journalData ?? []) {
+        jeMap[je.entry_number] = je.id;
+      }
+
+      // Account numbers: 1000=Cash, 1100=AR, 1200=Inventory, 1300=Prepaid, 1400=Fixed Assets, 1500=Accum Depreciation
+      // 2000=AP, 2100=Accrued Expenses, 2200=Current Portion Debt, 2300=Long-Term Debt, 2400=Retention Payable
+      // 3000=Owner Equity, 3100=Retained Earnings, 3200=Current Year Earnings
+      // 4000=Contract Revenue, 4100=Service Revenue, 4200=Change Order Revenue, 4300=Rental Income
+      // 5000-5900=CSI Construction Costs, 6000-6900=Operating Expenses
+      const jeLines = [
+        // Revenue entries (monthly) - Dr: AR, Cr: Contract Revenue
+        ...[["JE-0001", 850000], ["JE-0002", 920000], ["JE-0003", 1050000], ["JE-0004", 980000], ["JE-0005", 1100000], ["JE-0006", 1250000], ["JE-0007", 1150000], ["JE-0008", 480000]].flatMap(([je, amt]) => [
+          { journal_entry_id: jeMap[je as string], account_id: acctMap["1100"], debit: amt as number, credit: 0, description: "Accounts Receivable" },
+          { journal_entry_id: jeMap[je as string], account_id: acctMap["4000"], debit: 0, credit: amt as number, description: "Contract Revenue" },
+        ]),
+        // Construction costs (monthly) - Dr: Construction Costs, Cr: AP
+        ...[["JE-0009", 620000], ["JE-0010", 680000], ["JE-0011", 750000], ["JE-0012", 710000], ["JE-0013", 820000], ["JE-0014", 900000], ["JE-0015", 850000]].flatMap(([je, amt]) => [
+          { journal_entry_id: jeMap[je as string], account_id: acctMap["5000"], debit: amt as number, credit: 0, description: "Direct Construction Costs" },
+          { journal_entry_id: jeMap[je as string], account_id: acctMap["2000"], debit: 0, credit: amt as number, description: "Accounts Payable" },
+        ]),
+        // Operating expenses - Dr: Rent/Utilities, Cr: Cash
+        { journal_entry_id: jeMap["JE-0016"], account_id: acctMap["6100"], debit: 45000, credit: 0, description: "Office Rent - Q4" },
+        { journal_entry_id: jeMap["JE-0016"], account_id: acctMap["6200"], debit: 12000, credit: 0, description: "Utilities - Q4" },
+        { journal_entry_id: jeMap["JE-0016"], account_id: acctMap["1000"], debit: 0, credit: 57000, description: "Cash" },
+        { journal_entry_id: jeMap["JE-0017"], account_id: acctMap["6100"], debit: 15000, credit: 0, description: "Office Rent - Jan" },
+        { journal_entry_id: jeMap["JE-0017"], account_id: acctMap["6200"], debit: 4200, credit: 0, description: "Utilities - Jan" },
+        { journal_entry_id: jeMap["JE-0017"], account_id: acctMap["1000"], debit: 0, credit: 19200, description: "Cash" },
+        // Payroll - Dr: Salaries, Cr: Cash
+        { journal_entry_id: jeMap["JE-0018"], account_id: acctMap["6000"], debit: 185000, credit: 0, description: "Salaries & Wages - Dec" },
+        { journal_entry_id: jeMap["JE-0018"], account_id: acctMap["2100"], debit: 0, credit: 185000, description: "Accrued Payroll" },
+        { journal_entry_id: jeMap["JE-0019"], account_id: acctMap["6000"], debit: 185000, credit: 0, description: "Salaries & Wages - Jan" },
+        { journal_entry_id: jeMap["JE-0019"], account_id: acctMap["2100"], debit: 0, credit: 185000, description: "Accrued Payroll" },
+        // Insurance - Dr: Insurance Expense, Cr: Prepaid Insurance
+        { journal_entry_id: jeMap["JE-0020"], account_id: acctMap["6300"], debit: 96000, credit: 0, description: "Annual Insurance Expense" },
+        { journal_entry_id: jeMap["JE-0020"], account_id: acctMap["1300"], debit: 0, credit: 96000, description: "Prepaid Insurance" },
+        // Cash receipts - Dr: Cash, Cr: AR
+        { journal_entry_id: jeMap["JE-0021"], account_id: acctMap["1000"], debit: 425000, credit: 0, description: "Cash Received" },
+        { journal_entry_id: jeMap["JE-0021"], account_id: acctMap["1100"], debit: 0, credit: 425000, description: "AR - Riverside" },
+        { journal_entry_id: jeMap["JE-0022"], account_id: acctMap["1000"], debit: 310000, credit: 0, description: "Cash Received" },
+        { journal_entry_id: jeMap["JE-0022"], account_id: acctMap["1100"], debit: 0, credit: 310000, description: "AR - Sterling" },
+        // AP payments - Dr: AP, Cr: Cash
+        { journal_entry_id: jeMap["JE-0023"], account_id: acctMap["2000"], debit: 195000, credit: 0, description: "AP - Miller Steel" },
+        { journal_entry_id: jeMap["JE-0023"], account_id: acctMap["1000"], debit: 0, credit: 195000, description: "Cash" },
+        { journal_entry_id: jeMap["JE-0024"], account_id: acctMap["2000"], debit: 168000, credit: 0, description: "AP - Hernandez Concrete" },
+        { journal_entry_id: jeMap["JE-0024"], account_id: acctMap["1000"], debit: 0, credit: 168000, description: "Cash" },
+        // Depreciation - Dr: Depreciation Expense, Cr: Accumulated Depreciation
+        { journal_entry_id: jeMap["JE-0025"], account_id: acctMap["6400"], debit: 18500, credit: 0, description: "Depreciation Expense" },
+        { journal_entry_id: jeMap["JE-0025"], account_id: acctMap["1500"], debit: 0, credit: 18500, description: "Accumulated Depreciation" },
+      ].filter((line) => line.journal_entry_id && line.account_id);
+
+      if (jeLines.length > 0) {
+        await supabase.from("journal_entry_lines").insert(
+          jeLines.map((l) => ({ company_id: companyId, ...l }))
+        );
+      }
+    }
+
+    // ============================================================
+    // 31. SAFETY INCIDENTS
+    // ============================================================
+    await supabase.from("safety_incidents").insert([
+      { company_id: companyId, project_id: rmcId, incident_number: "INC-001", title: "Near-miss: Falling Object from Level 3", description: "A loose bolt fell from Level 3 steel erection area, landing within the barricaded zone. No injuries. Barricade area expanded immediately.", incident_type: "near_miss", severity: "medium", status: "closed", incident_date: "2026-01-28T14:30:00Z", location: "Level 3 - East Side", reported_by: userIds.superintendent, assigned_to: userIds.superintendent, root_cause: "Inadequate bolt storage on elevated work platform", corrective_actions: "Installed tool lanyards on all elevated platforms. Added bolt storage containers at each work station.", preventive_actions: "Updated elevated work procedures. Toolbox talk conducted on falling object prevention.", osha_recordable: false, closed_at: "2026-01-30T16:00:00Z", closed_by: userIds.owner },
+      { company_id: companyId, project_id: rmcId, incident_number: "INC-002", title: "First Aid: Minor Laceration from Sheet Metal", description: "Worker received a small cut on left forearm while handling sheet metal ductwork. First aid administered on-site. Worker returned to duty after treatment.", incident_type: "first_aid", severity: "low", status: "closed", incident_date: "2026-02-03T10:15:00Z", location: "Level 2 - Mechanical Room", reported_by: userIds.field_worker, assigned_to: userIds.superintendent, injured_party_name: "Carlos Mendez", injured_party_type: "subcontractor", body_part_affected: "Left forearm", treatment_provided: "Cleaned wound, applied antiseptic and bandage", root_cause: "Worker removed gloves to handle small fittings", corrective_actions: "Reminded all workers of mandatory cut-resistant glove policy when handling sheet metal.", osha_recordable: false, closed_at: "2026-02-04T09:00:00Z", closed_by: userIds.superintendent },
+      { company_id: companyId, project_id: rmcId, incident_number: "INC-003", title: "Recordable: Sprained Ankle on Uneven Surface", description: "Worker stepped on unstable debris pile near south stairwell, resulting in a twisted right ankle. Worker was sent for medical evaluation.", incident_type: "recordable", severity: "high", status: "investigating", incident_date: "2026-02-07T08:45:00Z", location: "Level 1 - South Stairwell Area", reported_by: userIds.superintendent, assigned_to: userIds.superintendent, injured_party_name: "Mike Torres", injured_party_type: "employee", body_part_affected: "Right ankle", treatment_provided: "Ice pack applied, sent to urgent care", witness_names: ["David Kim", "Robert Miller"], root_cause: "Housekeeping deficiency - debris accumulation near walkway", osha_recordable: true, days_away: 3, days_restricted: 5 },
+      { company_id: companyId, project_id: rmcId, incident_number: "INC-004", title: "Near-miss: Crane Load Swing in High Wind", description: "During steel beam lift, unexpected wind gust caused load to swing. Crane operator safely set load down. No injuries or damage.", incident_type: "near_miss", severity: "high", status: "closed", incident_date: "2026-02-10T11:30:00Z", location: "Tower Crane Radius - Level 4", reported_by: userIds.superintendent, assigned_to: userIds.owner, root_cause: "Wind speed exceeded safe operating threshold for load configuration", corrective_actions: "Lowered wind speed threshold for Level 4 lifts from 25mph to 20mph. Added real-time anemometer at boom tip.", preventive_actions: "Updated lift plan with revised wind criteria. Required pre-lift weather check.", osha_recordable: false, closed_at: "2026-02-11T15:00:00Z", closed_by: userIds.owner },
+      { company_id: companyId, project_id: projectMap["MTC-002"], incident_number: "INC-005", title: "Near-miss: Excavation Wall Slump", description: "Minor soil slump observed on east excavation wall during morning inspection. Area cleared and shoring reinforced same day.", incident_type: "near_miss", severity: "medium", status: "closed", incident_date: "2026-02-05T07:30:00Z", location: "East Excavation - Grid A1-A4", reported_by: userIds.superintendent, assigned_to: userIds.superintendent, root_cause: "Heavy overnight rain saturated soil behind shoring", corrective_actions: "Reinforced shoring with additional steel beams. Installed dewatering pumps.", preventive_actions: "Added daily soil monitoring protocol during wet weather.", osha_recordable: false, closed_at: "2026-02-06T17:00:00Z", closed_by: userIds.superintendent },
+      { company_id: companyId, project_id: projectMap["WHR-003"], incident_number: "INC-006", title: "First Aid: Eye Irritation from Dust", description: "Tile cutter generated excess dust that caused eye irritation for nearby painter. Eyes flushed with water. Worker returned to work after 15 minutes.", incident_type: "first_aid", severity: "low", status: "closed", incident_date: "2026-02-09T13:00:00Z", location: "Master Bathroom", reported_by: userIds.field_worker, assigned_to: userIds.superintendent, injured_party_name: "Luis Sanchez", injured_party_type: "subcontractor", body_part_affected: "Eyes", treatment_provided: "Eye wash station flush - 15 minutes", root_cause: "Tile saw dust extraction hose disconnected", corrective_actions: "Reconnected dust extraction. Verified all cutting tools have functional dust collection.", osha_recordable: false, closed_at: "2026-02-09T16:00:00Z", closed_by: userIds.superintendent },
+    ]);
+
+    // ============================================================
+    // 32. TOOLBOX TALKS
+    // ============================================================
+    await supabase.from("toolbox_talks").insert([
+      { company_id: companyId, project_id: rmcId, talk_number: "TBT-001", title: "Fall Protection at Elevated Work Areas", topic: "fall_protection", description: "Review of fall protection requirements for work above 6 feet. Covered harness inspection, anchor points, and rescue procedures.", conducted_by: userIds.superintendent, conducted_date: "2026-02-03", duration_minutes: 20, attendee_count: 18, attendees: [{ name: "All iron workers", trade: "Iron Workers" }, { name: "All laborers", trade: "Laborers" }], notes: "Emphasized 100% tie-off policy. Demonstrated proper harness inspection procedure.", status: "completed" },
+      { company_id: companyId, project_id: rmcId, talk_number: "TBT-002", title: "Falling Object Prevention", topic: "falling_objects", description: "Following recent near-miss incident, reviewed procedures for securing tools and materials at elevation.", conducted_by: userIds.superintendent, conducted_date: "2026-01-29", duration_minutes: 15, attendee_count: 22, attendees: [{ name: "All trades", trade: "General" }], notes: "Distributed tool lanyards to all elevated workers. New bolt storage bins installed.", status: "completed" },
+      { company_id: companyId, project_id: rmcId, talk_number: "TBT-003", title: "Crane Safety & Signal Communication", topic: "crane_safety", description: "Updated crane safety protocols including revised wind speed thresholds and signal person procedures.", conducted_by: userIds.superintendent, conducted_date: "2026-02-11", duration_minutes: 25, attendee_count: 15, attendees: [{ name: "Crane operators", trade: "Operating Engineers" }, { name: "Iron workers", trade: "Iron Workers" }, { name: "Signal persons", trade: "Laborers" }], notes: "New anemometer readings required before each lift. Updated hand signal chart distributed.", status: "completed" },
+      { company_id: companyId, project_id: rmcId, talk_number: "TBT-004", title: "Housekeeping & Slip/Trip Hazards", topic: "housekeeping", description: "Emphasis on maintaining clean work areas to prevent slips, trips, and falls. Related to recent sprained ankle incident.", conducted_by: userIds.superintendent, conducted_date: "2026-02-10", duration_minutes: 15, attendee_count: 28, attendees: [{ name: "All site personnel", trade: "General" }], notes: "Assigned housekeeping monitors for each floor. End-of-shift cleanup now mandatory.", status: "completed" },
+      { company_id: companyId, project_id: projectMap["MTC-002"], talk_number: "TBT-005", title: "Excavation & Trenching Safety", topic: "excavation", description: "Reviewed OSHA excavation requirements, soil classification, and protective system requirements for deep excavation work.", conducted_by: userIds.superintendent, conducted_date: "2026-02-06", duration_minutes: 20, attendee_count: 14, attendees: [{ name: "Operating engineers", trade: "Operating Engineers" }, { name: "Laborers", trade: "Laborers" }], notes: "Reviewed shoring inspection checklist. Daily soil monitoring added to morning routine.", status: "completed" },
+      { company_id: companyId, project_id: projectMap["WHR-003"], talk_number: "TBT-006", title: "Silica Dust Exposure Prevention", topic: "dust_control", description: "Reviewed silica dust hazards from tile cutting and concrete grinding. Proper dust control measures and respiratory protection.", conducted_by: userIds.field_worker, conducted_date: "2026-02-12", duration_minutes: 15, attendee_count: 8, attendees: [{ name: "Tile setters", trade: "Tile" }, { name: "Painters", trade: "Painters" }], notes: "Verified all cutting tools have functional dust extraction. N95 masks distributed.", status: "completed" },
+    ]);
+
+    // ============================================================
+    // 33. TICKETS
+    // ============================================================
+    let ticketNum = 1;
+    await supabase.from("tickets").insert([
+      { company_id: companyId, ticket_number: `TK-${String(ticketNum++).padStart(4, "0")}`, title: "Printer not working in main office", description: "HP LaserJet on 2nd floor is showing paper jam error but no paper is jammed. Tried power cycling.", status: "resolved", priority: "medium", category: "IT", created_by: userIds.accountant, assigned_to: userIds.field_worker, resolved_by: userIds.field_worker, resolved_at: "2026-02-04T14:00:00Z", tags: ["hardware", "printer"] },
+      { company_id: companyId, ticket_number: `TK-${String(ticketNum++).padStart(4, "0")}`, title: "Request new safety vests - RMC site", description: "Need 15 new high-visibility safety vests for new subcontractor crew arriving next week at Riverside Medical Center.", status: "closed", priority: "high", category: "Safety", created_by: userIds.superintendent, assigned_to: userIds.project_manager, resolved_by: userIds.project_manager, resolved_at: "2026-02-06T16:00:00Z", closed_at: "2026-02-07T09:00:00Z", tags: ["ppe", "procurement"] },
+      { company_id: companyId, ticket_number: `TK-${String(ticketNum++).padStart(4, "0")}`, title: "QuickBooks integration sync error", description: "Invoice sync between ConstructionERP and QuickBooks failed last night. 5 invoices from Feb 10 not showing in QB.", status: "open", priority: "high", category: "IT", created_by: userIds.accountant, assigned_to: userIds.owner, tags: ["integration", "quickbooks", "invoices"] },
+      { company_id: companyId, ticket_number: `TK-${String(ticketNum++).padStart(4, "0")}`, title: "Update company insurance certificate", description: "Annual insurance renewal completed. Need to update the certificate on file and distribute to all active project owners.", status: "in_progress", priority: "medium", category: "Operations", created_by: userIds.owner, assigned_to: userIds.project_manager, tags: ["insurance", "compliance"] },
+      { company_id: companyId, ticket_number: `TK-${String(ticketNum++).padStart(4, "0")}`, title: "Ford F-350 #2 check engine light", description: "Check engine light came on during drive to WHR-003 site. Vehicle still running but should be inspected.", status: "in_progress", priority: "high", category: "Equipment", created_by: userIds.field_worker, assigned_to: userIds.superintendent, tags: ["vehicle", "maintenance"] },
+      { company_id: companyId, ticket_number: `TK-${String(ticketNum++).padStart(4, "0")}`, title: "New employee onboarding - Jake Sullivan", description: "New project engineer starting Feb 24. Need account setup, safety orientation, PPE issue, and project access.", status: "open", priority: "medium", category: "HR", created_by: userIds.project_manager, assigned_to: userIds.owner, tags: ["onboarding", "new-hire"] },
+      { company_id: companyId, ticket_number: `TK-${String(ticketNum++).padStart(4, "0")}`, title: "Monthly billing discrepancy - MTC project", description: "Client reports $12,500 discrepancy between our progress billing and their approved pay application for January.", status: "open", priority: "urgent", category: "Finance", created_by: userIds.accountant, assigned_to: userIds.project_manager, tags: ["billing", "client"] },
+      { company_id: companyId, ticket_number: `TK-${String(ticketNum++).padStart(4, "0")}`, title: "Subcontractor certificate of insurance expired", description: "Thompson Electric COI expired Jan 31. Need updated certificate before they can continue work on RMC.", status: "in_progress", priority: "urgent", category: "Operations", created_by: userIds.project_manager, assigned_to: userIds.project_manager, tags: ["compliance", "subcontractor"] },
+    ]);
+
+    // ============================================================
+    // 34. EQUIPMENT MAINTENANCE LOGS
+    // ============================================================
+    const { data: equipData } = await supabase
+      .from("equipment")
+      .select("id, name")
+      .eq("company_id", companyId);
+
+    const equipMap: Record<string, string> = {};
+    for (const eq of equipData ?? []) {
+      equipMap[eq.name.split(" - ")[0].split(" #")[0]] = eq.id;
+    }
+
+    const eqTowerCrane = equipMap["Tower Crane"] || (equipData ?? [])[0]?.id;
+    const eqPump = equipMap["Concrete Pump"] || (equipData ?? [])[1]?.id;
+    const eqExcavator = equipMap["CAT 320 Excavator"] || (equipData ?? [])[2]?.id;
+    const eqTruck1 = (equipData ?? [])[3]?.id;
+    const eqSkidSteer = equipMap["Skid Steer"] || (equipData ?? [])[5]?.id;
+
+    if (equipData && equipData.length > 0) {
+      await supabase.from("equipment_maintenance_logs").insert([
+        { company_id: companyId, equipment_id: eqTowerCrane, maintenance_type: "preventive", description: "Quarterly crane inspection - structural, wire rope, sheaves, brakes, and electrical systems", performed_by: userIds.superintendent, performed_date: "2026-01-15", cost: 4500, hours_at_service: 4100, parts_replaced: "Wire rope lubricant, brake pads", next_maintenance_date: "2026-04-15", notes: "All systems within spec. Wire rope at 85% capacity - plan replacement by July.", status: "completed" },
+        { company_id: companyId, equipment_id: eqPump, maintenance_type: "preventive", description: "Monthly pump maintenance - hydraulic system check, boom inspection, pipe wear measurement", performed_by: userIds.field_worker, performed_date: "2026-02-01", cost: 1200, hours_at_service: 2750, parts_replaced: "Hydraulic filters, O-rings", next_maintenance_date: "2026-03-01", notes: "Pipe wear at 60% on boom section 3 - monitor closely.", status: "completed" },
+        { company_id: companyId, equipment_id: eqExcavator, maintenance_type: "preventive", description: "500-hour service - engine oil, filters, hydraulic fluid top-off, track tension", performed_by: userIds.field_worker, performed_date: "2025-12-01", cost: 850, hours_at_service: 6500, parts_replaced: "Engine oil, oil filter, fuel filter, air filter", next_maintenance_date: "2026-03-01", notes: "Track shoes at 40% remaining. Plan replacement at next major service.", status: "completed" },
+        { company_id: companyId, equipment_id: eqTruck1, maintenance_type: "preventive", description: "Regular service - oil change, tire rotation, brake inspection", performed_by: userIds.field_worker, performed_date: "2026-01-20", cost: 380, hours_at_service: 8100, parts_replaced: "Engine oil, oil filter", next_maintenance_date: "2026-04-20", notes: "Brake pads at 50% - replace at next service.", status: "completed" },
+        { company_id: companyId, equipment_id: eqSkidSteer, maintenance_type: "repair", description: "Hydraulic leak repair - left tilt cylinder seal failure. Replaced seal kit and recharged hydraulic system.", performed_by: userIds.field_worker, performed_date: "2026-02-05", cost: 1800, hours_at_service: 5600, parts_replaced: "Tilt cylinder seal kit, hydraulic fluid (5 gal)", next_maintenance_date: "2026-02-20", notes: "Machine back in service pending final test under load.", status: "in_progress" },
+      ]);
+
+      // ============================================================
+      // 35. EQUIPMENT ASSIGNMENTS
+      // ============================================================
+      await supabase.from("equipment_assignments").insert([
+        { company_id: companyId, equipment_id: eqTowerCrane, project_id: rmcId, assigned_to: userIds.superintendent, assigned_date: "2025-06-15", expected_return_date: "2026-11-30", daily_rate: 2800, notes: "Tower crane dedicated to RMC project for duration", status: "active" },
+        { company_id: companyId, equipment_id: eqPump, project_id: rmcId, assigned_to: userIds.field_worker, assigned_date: "2025-08-01", expected_return_date: "2026-06-30", daily_rate: 1800, notes: "Concrete pump for deck pours", status: "active" },
+        { company_id: companyId, equipment_id: eqExcavator, project_id: projectMap["MTC-002"], assigned_to: userIds.superintendent, assigned_date: "2026-01-15", expected_return_date: "2026-06-30", daily_rate: 1400, notes: "Excavation work - Mueller Town Center", status: "active" },
+        { company_id: companyId, equipment_id: eqTruck1, assigned_to: userIds.superintendent, assigned_date: "2023-08-01", notes: "Permanent assignment - superintendent vehicle", status: "active" },
+        { company_id: companyId, equipment_id: eqSkidSteer, project_id: rmcId, assigned_to: userIds.field_worker, assigned_date: "2025-09-01", expected_return_date: "2026-02-20", daily_rate: 680, notes: "Material handling on-site. Currently in maintenance.", status: "active" },
+      ]);
+    }
+
+    // ============================================================
+    // 36. BANK TRANSACTIONS
+    // ============================================================
+    const operatingAcctId = bankAccounts?.[0]?.id;
+    const payrollAcctId = bankAccounts?.[1]?.id;
+
+    if (operatingAcctId) {
+      const bankTxns = [];
+      let runningBal = 847250;
+
+      // Last 30 days of transactions for operating account
+      const txnTemplates = [
+        { days: 28, desc: "Client Payment - Riverside Health Systems", ref: "INV-0019", type: "credit", amount: 425000, cat: "client_payment" },
+        { days: 27, desc: "AP - Miller Steel Erectors", ref: "AP-0033", type: "debit", amount: 195000, cat: "vendor_payment" },
+        { days: 25, desc: "Client Payment - Sterling Investments", ref: "INV-0021", type: "credit", amount: 310000, cat: "client_payment" },
+        { days: 24, desc: "AP - Hernandez Concrete Works", ref: "AP-0034", type: "debit", amount: 168000, cat: "vendor_payment" },
+        { days: 22, desc: "Office Rent - January", ref: "RENT-JAN", type: "debit", amount: 15000, cat: "operating_expense" },
+        { days: 20, desc: "Insurance Premium - Monthly", ref: "INS-JAN", type: "debit", amount: 8000, cat: "insurance" },
+        { days: 18, desc: "Client Payment - Catellus Development", ref: "INV-0020", type: "credit", amount: 287450, cat: "client_payment" },
+        { days: 16, desc: "Fuel Cards - Fleet", ref: "FUEL-0126", type: "debit", amount: 3200, cat: "operating_expense" },
+        { days: 14, desc: "AP - Thompson Electric", ref: "AP-0035", type: "debit", amount: 85000, cat: "vendor_payment" },
+        { days: 12, desc: "AP - Texas Building Supply", ref: "PO-4521", type: "debit", amount: 42000, cat: "materials" },
+        { days: 10, desc: "Client Payment - City of Pflugerville (Retention)", ref: "RET-PCP", type: "credit", amount: 155000, cat: "client_payment" },
+        { days: 8, desc: "Utilities - Office & Yard", ref: "UTIL-JAN", type: "debit", amount: 4200, cat: "operating_expense" },
+        { days: 6, desc: "Equipment Repair - Bobcat S650", ref: "WO-5600", type: "debit", amount: 1800, cat: "equipment" },
+        { days: 5, desc: "AP - Davis Mechanical Systems", ref: "AP-0036", type: "debit", amount: 125000, cat: "vendor_payment" },
+        { days: 4, desc: "Client Payment - Riverside Health Systems", ref: "INV-0022", type: "credit", amount: 475000, cat: "client_payment" },
+        { days: 3, desc: "AP - Atlas Equipment Rental", ref: "RENT-0226", type: "debit", amount: 18500, cat: "equipment_rental" },
+        { days: 2, desc: "Office Supplies & IT", ref: "MISC-0212", type: "debit", amount: 2850, cat: "operating_expense" },
+        { days: 1, desc: "Transfer to Payroll Account", ref: "XFER-PR", type: "debit", amount: 215000, cat: "transfer" },
+      ];
+
+      for (const txn of txnTemplates) {
+        const txnDate = new Date(2026, 1, 12 - txn.days);
+        if (txn.type === "credit") runningBal += txn.amount;
+        else runningBal -= txn.amount;
+        bankTxns.push({
+          company_id: companyId,
+          bank_account_id: operatingAcctId,
+          transaction_date: txnDate.toISOString().slice(0, 10),
+          posted_date: txnDate.toISOString().slice(0, 10),
+          description: txn.desc,
+          reference: txn.ref,
+          transaction_type: txn.type,
+          amount: txn.amount,
+          running_balance: runningBal,
+          category: txn.cat,
+          is_reconciled: txn.days > 15,
+        });
+      }
+
+      await supabase.from("bank_transactions").insert(bankTxns);
+    }
+
+    // Payroll account transactions
+    if (payrollAcctId) {
+      await supabase.from("bank_transactions").insert([
+        { company_id: companyId, bank_account_id: payrollAcctId, transaction_date: "2026-01-15", posted_date: "2026-01-15", description: "Payroll Run - Jan 1-15", reference: "PR-0115", transaction_type: "debit", amount: 92500, running_balance: 122500, category: "payroll", is_reconciled: true },
+        { company_id: companyId, bank_account_id: payrollAcctId, transaction_date: "2026-01-31", posted_date: "2026-01-31", description: "Payroll Run - Jan 16-31", reference: "PR-0131", transaction_type: "debit", amount: 92500, running_balance: 30000, category: "payroll", is_reconciled: true },
+        { company_id: companyId, bank_account_id: payrollAcctId, transaction_date: "2026-02-01", posted_date: "2026-02-01", description: "Transfer from Operating Account", reference: "XFER-PR", transaction_type: "credit", amount: 215000, running_balance: 245000, category: "transfer", is_reconciled: false },
+        { company_id: companyId, bank_account_id: payrollAcctId, transaction_date: "2026-02-14", posted_date: "2026-02-14", description: "Payroll Run - Feb 1-14", reference: "PR-0214", transaction_type: "debit", amount: 95000, running_balance: 150000, category: "payroll", is_reconciled: false },
+      ]);
+    }
+
+    // ============================================================
+    // 37. CONTRACTS (from migration 008 contracts table)
+    // ============================================================
+    const { data: contractsData } = await supabase.from("contracts").insert([
+      { company_id: companyId, contract_number: "GC-2025-001", title: "Riverside Medical Center - General Contract", description: "General construction contract for new 120,000 SF medical office building", contract_type: "prime", status: "active", party_name: "Riverside Health Systems", party_email: "pholmes@riversidehealth.com", party_phone: "(512) 555-2001", contract_amount: 28500000, retention_pct: 10, payment_terms: "Net 30 from approved pay application", start_date: "2025-06-15", end_date: "2026-11-30", signed_date: "2025-06-01", project_id: rmcId, scope_of_work: "Complete general construction including site work, structural, envelope, MEP, and interior finishes.", insurance_required: true, insurance_expiry: "2026-12-31", bond_required: true, bond_amount: 28500000, created_by: userIds.owner, approved_by: userIds.owner, approved_at: "2025-06-01T10:00:00Z", tags: ["medical", "commercial", "prime-contract"] },
+      { company_id: companyId, contract_number: "GC-2025-002", title: "Mueller Town Center Phase II - General Contract", description: "Mixed-use development - 45,000 SF retail + 180 residential units", contract_type: "prime", status: "active", party_name: "Catellus Development", party_email: "rlangford@catellus.com", contract_amount: 42000000, retention_pct: 10, payment_terms: "Net 30", start_date: "2025-11-01", end_date: "2027-06-30", signed_date: "2025-10-15", project_id: projectMap["MTC-002"], scope_of_work: "Full GC scope for mixed-use development.", insurance_required: true, insurance_expiry: "2027-06-30", bond_required: true, bond_amount: 42000000, created_by: userIds.owner, approved_by: userIds.owner, approved_at: "2025-10-15T10:00:00Z", tags: ["mixed-use", "prime-contract"] },
+      { company_id: companyId, contract_number: "SC-2025-005", title: "Premier Plumbing - MEP Rough-In", description: "Plumbing rough-in and fixtures for Riverside Medical Center", contract_type: "subcontractor", status: "active", party_name: "Premier Plumbing", party_email: "kobrien@premierplumb.com", party_phone: "(512) 555-4005", contract_amount: 1450000, retention_pct: 10, payment_terms: "Net 30 from approved pay app", start_date: "2026-01-15", end_date: "2026-07-31", signed_date: "2025-12-20", project_id: rmcId, insurance_required: true, insurance_expiry: "2027-01-31", created_by: userIds.project_manager, tags: ["plumbing", "subcontract"] },
+      { company_id: companyId, contract_number: "PO-2026-001", title: "Texas Building Supply - Structural Materials", description: "Supply contract for structural steel and concrete materials", contract_type: "purchase_order", status: "active", party_name: "Texas Building Supply", party_email: "jcarpenter@txbuild.com", party_phone: "(512) 555-4007", contract_amount: 2800000, payment_terms: "Net 45", start_date: "2025-07-01", end_date: "2026-06-30", project_id: rmcId, created_by: userIds.project_manager, tags: ["materials", "supply"] },
+      { company_id: companyId, contract_number: "GC-2024-003", title: "Pflugerville Community Park - General Contract", description: "15-acre community park construction - COMPLETED", contract_type: "prime", status: "completed", party_name: "City of Pflugerville", party_email: "mnguyen@pflugervilletx.gov", contract_amount: 6200000, retention_pct: 5, start_date: "2024-09-01", end_date: "2026-01-15", signed_date: "2024-08-15", project_id: projectMap["PCP-005"], created_by: userIds.owner, approved_by: userIds.owner, approved_at: "2024-08-15T10:00:00Z", tags: ["infrastructure", "completed"] },
+    ]).select("id, contract_number");
+
+    // Contract milestones
+    const contractMap: Record<string, string> = {};
+    for (const c of contractsData ?? []) {
+      contractMap[c.contract_number] = c.id;
+    }
+
+    const gcRmcId = contractMap["GC-2025-001"];
+    if (gcRmcId) {
+      await supabase.from("contract_milestones").insert([
+        { company_id: companyId, contract_id: gcRmcId, title: "Foundation Complete", description: "All foundation work including piers and grade beams", due_date: "2025-10-30", amount: 4275000, status: "completed", completed_at: "2025-10-28T16:00:00Z", completed_by: userIds.superintendent, sort_order: 1 },
+        { company_id: companyId, contract_id: gcRmcId, title: "Structure Topped Out", description: "Structural steel and concrete decks complete for all 4 levels", due_date: "2026-02-28", amount: 8550000, status: "in_progress", sort_order: 2 },
+        { company_id: companyId, contract_id: gcRmcId, title: "Building Enclosed", description: "Curtain wall and roofing complete - building weathertight", due_date: "2026-05-31", amount: 5700000, status: "pending", sort_order: 3 },
+        { company_id: companyId, contract_id: gcRmcId, title: "MEP Rough-In Complete", description: "All mechanical, electrical, and plumbing rough-in inspected and approved", due_date: "2026-07-31", amount: 4275000, status: "pending", sort_order: 4 },
+        { company_id: companyId, contract_id: gcRmcId, title: "Substantial Completion", description: "Certificate of occupancy received, punch list issued", due_date: "2026-11-15", amount: 4275000, status: "pending", sort_order: 5 },
+        { company_id: companyId, contract_id: gcRmcId, title: "Final Completion & Closeout", description: "Punch list complete, all closeout documents submitted, final retention release", due_date: "2026-11-30", amount: 1425000, status: "pending", sort_order: 6 },
+      ]);
+    }
+
+    // ============================================================
+    // 38. MESSAGES (Inbox)
+    // ============================================================
+    await supabase.from("messages").insert([
+      { company_id: companyId, sender_id: userIds.project_manager, recipient_id: userIds.owner, subject: "RMC - Change Order CO-003 Review", body: "Marcus, I've submitted CO-003 for the upgraded HVAC controls system. The total is $245K but will significantly improve building performance and reduce long-term operating costs. The client is pushing for it. Can you review and approve when you get a chance?", is_read: false, entity_type: "change_order" },
+      { company_id: companyId, sender_id: userIds.superintendent, recipient_id: userIds.project_manager, subject: "Steel delivery delay - Level 4", body: "Sarah, just got word from Miller Steel that the Level 4 column pieces are delayed 3 days due to shop fabrication backup. New ETA is Feb 18. I've adjusted the crane schedule but we may need to pull the Level 3 deck pour forward to keep the crew productive.", is_read: true, read_at: "2026-02-11T08:30:00Z" },
+      { company_id: companyId, sender_id: userIds.owner, recipient_id: userIds.project_manager, subject: "SCH-006 Hold Status Update", body: "Sarah, I spoke with Jennifer Wells from SoCo Hospitality this morning. They expect financing to be resolved by mid-March. Let's prepare a remobilization plan so we're ready to restart quickly. Please draft a revised schedule assuming April 1 restart.", is_read: true, read_at: "2026-02-10T14:00:00Z" },
+      { company_id: companyId, sender_id: userIds.accountant, recipient_id: userIds.project_manager, subject: "MTC Billing Discrepancy - Urgent", body: "Sarah, Catellus is disputing $12,500 on the January progress billing. It appears to be a duplicate line item for temporary fencing. Can you verify against the pay application? I need to resolve this before the Feb billing cycle.", is_read: false, entity_type: "invoice" },
+      { company_id: companyId, sender_id: userIds.project_manager, recipient_id: userIds.superintendent, subject: "Weekly Safety Meeting - Agenda Items", body: "James, for this week's safety meeting, let's cover: 1) Follow-up on the crane near-miss investigation, 2) Excavation safety review for MTC, 3) New silica dust monitoring results. Can you prepare the near-miss review presentation?", is_read: true, read_at: "2026-02-12T07:00:00Z" },
+      { company_id: companyId, sender_id: userIds.field_worker, recipient_id: userIds.superintendent, subject: "Bobcat S650 - Repair Status", body: "James, the hydraulic seal replacement is done. I'm running it through load tests this afternoon. Should be cleared for return to service by end of day tomorrow if everything checks out.", is_read: true, read_at: "2026-02-12T11:30:00Z" },
+      { company_id: companyId, sender_id: userIds.owner, recipient_id: userIds.accountant, subject: "Q4 Financial Review", body: "Emily, let's schedule the Q4 2025 financial review for next week. Please have the income statement, balance sheet, and project profitability reports ready. Also want to discuss cash flow projections for the next 6 months given the new MTC project.", is_read: false },
+      { company_id: companyId, sender_id: userIds.project_manager, recipient_id: userIds.owner, subject: "New Opportunity - Lakeway Condos", body: "Marcus, great news on the Lakeway Luxury Condos opportunity. Jennifer Adams from Lakeway Development is very interested. Contract terms look favorable - $18M for 24 units. I think we should push for a signed LOI by end of March. Want to discuss our approach?", is_read: true, read_at: "2026-02-09T16:00:00Z", entity_type: "opportunity" },
+    ]);
+
+    // ============================================================
+    // 39. SUBSCRIPTION EVENTS (for Super Admin dashboard)
     // ============================================================
     await supabase.from("subscription_events").insert([
       { company_id: companyId, event_type: "created", plan_to: "starter", amount: 0, created_at: "2025-05-01T10:00:00Z" },

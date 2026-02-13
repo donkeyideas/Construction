@@ -2,10 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   FolderOpen,
-  FileText,
-  Image,
-  FileSpreadsheet,
-  File,
   Upload,
   Search,
   ChevronRight,
@@ -13,71 +9,14 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getDocuments, getFolderTree, type DocumentRow, type FolderNode } from "@/lib/queries/documents";
+import { getDocuments, getFolderTree, type FolderNode } from "@/lib/queries/documents";
 import { getProjects } from "@/lib/queries/projects";
 import { getProperties } from "@/lib/queries/properties";
+import DocumentsClient from "./DocumentsClient";
 
 export const metadata = {
   title: "Document Library - ConstructionERP",
 };
-
-/* ------------------------------------------------------------------
-   File Type Icon Helpers
-   ------------------------------------------------------------------ */
-
-function getFileIcon(fileType: string) {
-  const ext = fileType.toLowerCase();
-  if (ext.includes("pdf")) return <FileText size={20} />;
-  if (ext.includes("image") || ext.includes("jpg") || ext.includes("jpeg") || ext.includes("png") || ext.includes("gif"))
-    return <Image size={20} />;
-  if (ext.includes("spreadsheet") || ext.includes("xlsx") || ext.includes("xls") || ext.includes("csv"))
-    return <FileSpreadsheet size={20} />;
-  if (ext.includes("dwg") || ext.includes("cad") || ext.includes("dxf"))
-    return <FileText size={20} />;
-  return <File size={20} />;
-}
-
-function getFileIconClass(fileType: string): string {
-  const ext = fileType.toLowerCase();
-  if (ext.includes("pdf")) return "file-icon file-icon-pdf";
-  if (ext.includes("image") || ext.includes("jpg") || ext.includes("jpeg") || ext.includes("png") || ext.includes("gif"))
-    return "file-icon file-icon-img";
-  if (ext.includes("spreadsheet") || ext.includes("xlsx") || ext.includes("xls") || ext.includes("csv"))
-    return "file-icon file-icon-xls";
-  if (ext.includes("dwg") || ext.includes("cad") || ext.includes("dxf"))
-    return "file-icon file-icon-dwg";
-  if (ext.includes("doc") || ext.includes("word")) return "file-icon file-icon-doc";
-  return "file-icon file-icon-default";
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-}
-
-const categoryLabels: Record<string, string> = {
-  plan: "Plans",
-  spec: "Specs",
-  contract: "Contracts",
-  photo: "Photos",
-  report: "Reports",
-  correspondence: "Correspondence",
-};
-
-const categoryBadgeClass: Record<string, string> = {
-  plan: "badge badge-blue",
-  spec: "badge badge-amber",
-  contract: "badge badge-green",
-  photo: "badge badge-blue",
-  report: "badge badge-amber",
-  correspondence: "badge badge-gray",
-};
-
-/* ------------------------------------------------------------------
-   Page Component
-   ------------------------------------------------------------------ */
 
 export default async function DocumentsPage({
   searchParams,
@@ -232,43 +171,11 @@ export default async function DocumentsPage({
 
         {/* Document Grid */}
         <div className="doc-content">
-          {documents.length === 0 ? (
-            <div className="doc-empty">
-              <div className="doc-empty-icon">
-                <FolderOpen size={48} />
-              </div>
-              <div className="doc-empty-title">No Documents Found</div>
-              <div className="doc-empty-desc">
-                {hasFilters
-                  ? "No documents match your current filters. Try adjusting your search criteria."
-                  : "Upload your first document to get started. Plans, specs, contracts, and photos are all supported."}
-              </div>
-              {!hasFilters && (
-                <Link
-                  href="/documents?upload=true"
-                  className="ui-btn ui-btn-primary ui-btn-md"
-                  style={{ marginTop: "12px" }}
-                >
-                  <Upload size={16} />
-                  Upload Document
-                </Link>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="doc-count">
-                {documents.length} document{documents.length !== 1 ? "s" : ""}
-                {params.folder && (
-                  <span className="doc-count-folder"> in /{params.folder}</span>
-                )}
-              </div>
-              <div className="doc-grid">
-                {documents.map((doc) => (
-                  <DocumentCard key={doc.id} doc={doc} />
-                ))}
-              </div>
-            </>
-          )}
+          <DocumentsClient
+            documents={documents}
+            hasFilters={hasFilters}
+            currentFolder={params.folder}
+          />
         </div>
       </div>
     </div>
@@ -276,7 +183,7 @@ export default async function DocumentsPage({
 }
 
 /* ------------------------------------------------------------------
-   Sub-components
+   FolderTreeNodes Component
    ------------------------------------------------------------------ */
 
 function FolderTreeNodes({
@@ -318,89 +225,5 @@ function FolderTreeNodes({
         );
       })}
     </>
-  );
-}
-
-function DocumentCard({ doc }: { doc: DocumentRow }) {
-  const uploaderName =
-    (doc.uploader as { full_name: string; email: string } | null)?.full_name ??
-    (doc.uploader as { full_name: string; email: string } | null)?.email ??
-    "Unknown";
-
-  const projectInfo = doc.project as { id: string; name: string; code: string } | null;
-  const propertyInfo = doc.property as { id: string; name: string } | null;
-
-  return (
-    <div className="doc-card">
-      <div className="doc-card-header">
-        <div className={getFileIconClass(doc.file_type)}>
-          {getFileIcon(doc.file_type)}
-        </div>
-        <div className="doc-card-info">
-          <div className="doc-card-name">{doc.name}</div>
-          <div className="doc-card-meta">
-            {formatFileSize(doc.file_size)}
-            {doc.version > 1 && <span> -- v{doc.version}</span>}
-          </div>
-        </div>
-      </div>
-
-      <div className="doc-card-details">
-        <div className="doc-card-detail">
-          <span className="doc-card-label">Uploaded by</span>
-          <span>{uploaderName}</span>
-        </div>
-        <div className="doc-card-detail">
-          <span className="doc-card-label">Date</span>
-          <span>
-            {new Date(doc.created_at).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </span>
-        </div>
-        {projectInfo && (
-          <div className="doc-card-detail">
-            <span className="doc-card-label">Project</span>
-            <Link
-              href={`/projects/${projectInfo.id}`}
-              className="doc-card-link"
-            >
-              {projectInfo.code} - {projectInfo.name}
-            </Link>
-          </div>
-        )}
-        {propertyInfo && (
-          <div className="doc-card-detail">
-            <span className="doc-card-label">Property</span>
-            <Link
-              href={`/properties/${propertyInfo.id}`}
-              className="doc-card-link"
-            >
-              {propertyInfo.name}
-            </Link>
-          </div>
-        )}
-      </div>
-
-      <div className="doc-card-footer">
-        <span className={categoryBadgeClass[doc.category] ?? "badge badge-gray"}>
-          {categoryLabels[doc.category] ?? doc.category}
-        </span>
-        {doc.tags && doc.tags.length > 0 && (
-          <div className="doc-card-tags">
-            {doc.tags.slice(0, 3).map((tag) => (
-              <span key={tag} className="doc-tag">
-                {tag}
-              </span>
-            ))}
-            {doc.tags.length > 3 && (
-              <span className="doc-tag doc-tag-more">+{doc.tags.length - 3}</span>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
   );
 }

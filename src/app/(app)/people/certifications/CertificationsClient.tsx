@@ -2,11 +2,46 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X } from "lucide-react";
+import Link from "next/link";
+import {
+  Plus,
+  X,
+  Award,
+  ShieldCheck,
+  AlertTriangle,
+  XCircle,
+  Edit3,
+  Trash2,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
+type CertStatus = "valid" | "expiring_soon" | "expired";
+
+interface CertWithStatus {
+  id: string;
+  cert_name: string | null;
+  cert_type: string;
+  issuing_authority: string | null;
+  cert_number: string | null;
+  issued_date: string | null;
+  expiry_date: string | null;
+  status: string;
+  computedStatus: CertStatus;
+  contact_id: string | null;
+  contacts: {
+    first_name: string;
+    last_name: string;
+    company_name: string;
+  } | null;
+}
+
 interface CertificationsClientProps {
-  children: React.ReactNode;
+  certs: CertWithStatus[];
+  totalCerts: number;
+  validCount: number;
+  expiringSoonCount: number;
+  expiredCount: number;
+  activeStatus: string;
 }
 
 interface ContactOption {
@@ -15,7 +50,14 @@ interface ContactOption {
   last_name: string;
 }
 
-export default function CertificationsClient({ children }: CertificationsClientProps) {
+export default function CertificationsClient({
+  certs,
+  totalCerts,
+  validCount,
+  expiringSoonCount,
+  expiredCount,
+  activeStatus,
+}: CertificationsClientProps) {
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -23,9 +65,18 @@ export default function CertificationsClient({ children }: CertificationsClientP
   const [contacts, setContacts] = useState<ContactOption[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
 
-  const [formData, setFormData] = useState({
+  // Detail/Edit/Delete modal state
+  const [selectedCert, setSelectedCert] = useState<CertWithStatus | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [modalError, setModalError] = useState("");
+
+  const [createFormData, setCreateFormData] = useState({
     contact_id: "",
     cert_name: "",
+    cert_type: "license",
     issuing_authority: "",
     cert_number: "",
     issued_date: "",
@@ -33,7 +84,17 @@ export default function CertificationsClient({ children }: CertificationsClientP
     status: "active",
   });
 
-  // Fetch contacts when modal opens
+  const [editFormData, setEditFormData] = useState({
+    cert_name: "",
+    cert_type: "license",
+    issuing_authority: "",
+    cert_number: "",
+    issued_date: "",
+    expiry_date: "",
+    status: "active",
+  });
+
+  // Fetch contacts when create modal opens
   useEffect(() => {
     if (!showCreate) return;
     setLoadingContacts(true);
@@ -55,6 +116,21 @@ export default function CertificationsClient({ children }: CertificationsClientP
       });
   }, [showCreate]);
 
+  // Populate edit form when entering edit mode
+  useEffect(() => {
+    if (isEditing && selectedCert) {
+      setEditFormData({
+        cert_name: selectedCert.cert_name || "",
+        cert_type: selectedCert.cert_type,
+        issuing_authority: selectedCert.issuing_authority || "",
+        cert_number: selectedCert.cert_number || "",
+        issued_date: selectedCert.issued_date || "",
+        expiry_date: selectedCert.expiry_date || "",
+        status: selectedCert.status,
+      });
+    }
+  }, [isEditing, selectedCert]);
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
@@ -65,13 +141,14 @@ export default function CertificationsClient({ children }: CertificationsClientP
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contact_id: formData.contact_id,
-          cert_name: formData.cert_name,
-          issuing_authority: formData.issuing_authority,
-          cert_number: formData.cert_number || undefined,
-          issued_date: formData.issued_date,
-          expiry_date: formData.expiry_date,
-          status: formData.status,
+          contact_id: createFormData.contact_id,
+          cert_name: createFormData.cert_name,
+          cert_type: createFormData.cert_type,
+          issuing_authority: createFormData.issuing_authority,
+          cert_number: createFormData.cert_number || undefined,
+          issued_date: createFormData.issued_date,
+          expiry_date: createFormData.expiry_date,
+          status: createFormData.status,
         }),
       });
 
@@ -81,9 +158,10 @@ export default function CertificationsClient({ children }: CertificationsClientP
       }
 
       // Reset form and close modal
-      setFormData({
+      setCreateFormData({
         contact_id: "",
         cert_name: "",
+        cert_type: "license",
         issuing_authority: "",
         cert_number: "",
         issued_date: "",
@@ -98,6 +176,156 @@ export default function CertificationsClient({ children }: CertificationsClientP
       setCreating(false);
     }
   }
+
+  function handleRowClick(cert: CertWithStatus) {
+    setSelectedCert(cert);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setModalError("");
+  }
+
+  function closeModal() {
+    setSelectedCert(null);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setModalError("");
+  }
+
+  async function handleSave() {
+    if (!selectedCert) return;
+    setIsSaving(true);
+    setModalError("");
+
+    try {
+      const res = await fetch(`/api/people/certifications/${selectedCert.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cert_name: editFormData.cert_name,
+          cert_type: editFormData.cert_type,
+          issuing_authority: editFormData.issuing_authority,
+          cert_number: editFormData.cert_number || undefined,
+          issued_date: editFormData.issued_date,
+          expiry_date: editFormData.expiry_date,
+          status: editFormData.status,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update certification");
+      }
+
+      closeModal();
+      router.refresh();
+    } catch (err: unknown) {
+      setModalError(err instanceof Error ? err.message : "Failed to update certification");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!selectedCert) return;
+    setIsDeleting(true);
+    setModalError("");
+
+    try {
+      const res = await fetch(`/api/people/certifications/${selectedCert.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete certification");
+      }
+
+      closeModal();
+      router.refresh();
+    } catch (err: unknown) {
+      setModalError(err instanceof Error ? err.message : "Failed to delete certification");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  function getStatusBadge(status: CertStatus): string {
+    switch (status) {
+      case "valid":
+        return "badge badge-green";
+      case "expiring_soon":
+        return "badge badge-amber";
+      case "expired":
+        return "badge badge-red";
+      default:
+        return "badge badge-green";
+    }
+  }
+
+  function getStatusLabel(status: CertStatus): string {
+    switch (status) {
+      case "valid":
+        return "Valid";
+      case "expiring_soon":
+        return "Expiring Soon";
+      case "expired":
+        return "Expired";
+      default:
+        return status;
+    }
+  }
+
+  function getTypeBadge(certType: string): string {
+    switch (certType) {
+      case "osha_10":
+      case "osha_30":
+        return "badge badge-red";
+      case "first_aid":
+      case "cpr":
+        return "badge badge-green";
+      case "license":
+        return "badge badge-blue";
+      case "insurance":
+        return "badge badge-amber";
+      default:
+        return "badge badge-blue";
+    }
+  }
+
+  function formatCertType(certType: string): string {
+    switch (certType) {
+      case "osha_10":
+        return "OSHA 10";
+      case "osha_30":
+        return "OSHA 30";
+      case "first_aid":
+        return "First Aid";
+      case "cpr":
+        return "CPR";
+      case "license":
+        return "License";
+      case "insurance":
+        return "Insurance";
+      default:
+        return certType;
+    }
+  }
+
+  function buildUrl(status: string): string {
+    if (status === "all") return "/people/certifications";
+    return `/people/certifications?status=${status}`;
+  }
+
+  const statusFilters = [
+    { label: "All", value: "all" },
+    { label: "Valid", value: "valid" },
+    { label: "Expiring Soon", value: "expiring_soon" },
+    { label: "Expired", value: "expired" },
+  ];
+
+  const personName = selectedCert?.contacts
+    ? `${selectedCert.contacts.first_name ?? ""} ${selectedCert.contacts.last_name ?? ""}`.trim()
+    : "--";
 
   return (
     <>
@@ -115,7 +343,172 @@ export default function CertificationsClient({ children }: CertificationsClientP
         </button>
       </div>
 
-      {children}
+      {/* KPI Row */}
+      <div className="financial-kpi-row">
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon blue">
+            <Award size={18} />
+          </div>
+          <span className="fin-kpi-label">Total Certifications</span>
+          <span className="fin-kpi-value">{totalCerts}</span>
+        </div>
+
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon green">
+            <ShieldCheck size={18} />
+          </div>
+          <span className="fin-kpi-label">Valid</span>
+          <span className="fin-kpi-value">{validCount}</span>
+        </div>
+
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon amber">
+            <AlertTriangle size={18} />
+          </div>
+          <span className="fin-kpi-label">Expiring Soon (30d)</span>
+          <span className="fin-kpi-value">{expiringSoonCount}</span>
+        </div>
+
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon red">
+            <XCircle size={18} />
+          </div>
+          <span className="fin-kpi-label">Expired</span>
+          <span className="fin-kpi-value">{expiredCount}</span>
+        </div>
+      </div>
+
+      {/* Status Filters */}
+      <div className="fin-filters">
+        <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>
+          Status:
+        </label>
+        {statusFilters.map((s) => (
+          <Link
+            key={s.value}
+            href={buildUrl(s.value)}
+            className={`ui-btn ui-btn-sm ${
+              activeStatus === s.value ? "ui-btn-primary" : "ui-btn-outline"
+            }`}
+          >
+            {s.label}
+          </Link>
+        ))}
+      </div>
+
+      {/* Certifications Table */}
+      {certs.length > 0 ? (
+        <div className="fin-chart-card" style={{ padding: 0 }}>
+          <div style={{ overflowX: "auto" }}>
+            <table className="invoice-table">
+              <thead>
+                <tr>
+                  <th>Person</th>
+                  <th>Cert Name</th>
+                  <th>Type</th>
+                  <th>Issuing Authority</th>
+                  <th>Cert Number</th>
+                  <th>Issued Date</th>
+                  <th>Expiry Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {certs.map((cert) => {
+                  const contact = cert.contacts;
+                  const personNameDisplay = contact
+                    ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim()
+                    : "--";
+                  const isExpired = cert.computedStatus === "expired";
+                  const isExpiringSoon = cert.computedStatus === "expiring_soon";
+
+                  return (
+                    <tr
+                      key={cert.id}
+                      className={isExpired ? "invoice-row-overdue" : ""}
+                      onClick={() => handleRowClick(cert)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td style={{ fontWeight: 600 }}>
+                        {personNameDisplay}
+                        {contact?.company_name && (
+                          <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontWeight: 400 }}>
+                            {contact.company_name}
+                          </div>
+                        )}
+                      </td>
+                      <td>{cert.cert_name ?? "--"}</td>
+                      <td>
+                        <span className={getTypeBadge(cert.cert_type)}>
+                          {formatCertType(cert.cert_type)}
+                        </span>
+                      </td>
+                      <td>{cert.issuing_authority ?? "--"}</td>
+                      <td style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "0.82rem" }}>
+                        {cert.cert_number ?? "--"}
+                      </td>
+                      <td>
+                        {cert.issued_date
+                          ? new Date(cert.issued_date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "--"}
+                      </td>
+                      <td>
+                        <span
+                          style={{
+                            color: isExpired
+                              ? "var(--color-red)"
+                              : isExpiringSoon
+                                ? "var(--color-amber)"
+                                : "var(--text)",
+                            fontWeight: isExpired || isExpiringSoon ? 600 : 400,
+                          }}
+                        >
+                          {cert.expiry_date
+                            ? new Date(cert.expiry_date).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            : "No Expiry"}
+                          {isExpiringSoon && (
+                            <AlertTriangle
+                              size={12}
+                              style={{ marginLeft: "4px", verticalAlign: "middle" }}
+                            />
+                          )}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={getStatusBadge(cert.computedStatus)}>
+                          {getStatusLabel(cert.computedStatus)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="fin-chart-card">
+          <div className="fin-empty">
+            <div className="fin-empty-icon">
+              <Award size={48} />
+            </div>
+            <div className="fin-empty-title">No Certifications Found</div>
+            <div className="fin-empty-desc">
+              {activeStatus !== "all"
+                ? "No certifications match the current filter. Try adjusting your status filter."
+                : "No certifications have been recorded yet. Add certifications to track compliance and expiration dates."}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Certification Modal */}
       {showCreate && (
@@ -140,9 +533,9 @@ export default function CertificationsClient({ children }: CertificationsClientP
                 <label className="ticket-form-label">Contact *</label>
                 <select
                   className="ticket-form-select"
-                  value={formData.contact_id}
+                  value={createFormData.contact_id}
                   onChange={(e) =>
-                    setFormData({ ...formData, contact_id: e.target.value })
+                    setCreateFormData({ ...createFormData, contact_id: e.target.value })
                   }
                   required
                 >
@@ -162,13 +555,32 @@ export default function CertificationsClient({ children }: CertificationsClientP
                 <input
                   type="text"
                   className="ticket-form-input"
-                  value={formData.cert_name}
+                  value={createFormData.cert_name}
                   onChange={(e) =>
-                    setFormData({ ...formData, cert_name: e.target.value })
+                    setCreateFormData({ ...createFormData, cert_name: e.target.value })
                   }
                   placeholder="e.g., OSHA 30, First Aid, Electrician License"
                   required
                 />
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Certification Type *</label>
+                <select
+                  className="ticket-form-select"
+                  value={createFormData.cert_type}
+                  onChange={(e) =>
+                    setCreateFormData({ ...createFormData, cert_type: e.target.value })
+                  }
+                  required
+                >
+                  <option value="osha_10">OSHA 10</option>
+                  <option value="osha_30">OSHA 30</option>
+                  <option value="first_aid">First Aid</option>
+                  <option value="cpr">CPR</option>
+                  <option value="license">License</option>
+                  <option value="insurance">Insurance</option>
+                </select>
               </div>
 
               <div className="ticket-form-row">
@@ -177,9 +589,9 @@ export default function CertificationsClient({ children }: CertificationsClientP
                   <input
                     type="text"
                     className="ticket-form-input"
-                    value={formData.issuing_authority}
+                    value={createFormData.issuing_authority}
                     onChange={(e) =>
-                      setFormData({ ...formData, issuing_authority: e.target.value })
+                      setCreateFormData({ ...createFormData, issuing_authority: e.target.value })
                     }
                     placeholder="e.g., OSHA, Red Cross, State Board"
                     required
@@ -191,9 +603,9 @@ export default function CertificationsClient({ children }: CertificationsClientP
                   <input
                     type="text"
                     className="ticket-form-input"
-                    value={formData.cert_number}
+                    value={createFormData.cert_number}
                     onChange={(e) =>
-                      setFormData({ ...formData, cert_number: e.target.value })
+                      setCreateFormData({ ...createFormData, cert_number: e.target.value })
                     }
                     placeholder="Certificate or license number"
                   />
@@ -206,9 +618,9 @@ export default function CertificationsClient({ children }: CertificationsClientP
                   <input
                     type="date"
                     className="ticket-form-input"
-                    value={formData.issued_date}
+                    value={createFormData.issued_date}
                     onChange={(e) =>
-                      setFormData({ ...formData, issued_date: e.target.value })
+                      setCreateFormData({ ...createFormData, issued_date: e.target.value })
                     }
                     required
                   />
@@ -219,9 +631,9 @@ export default function CertificationsClient({ children }: CertificationsClientP
                   <input
                     type="date"
                     className="ticket-form-input"
-                    value={formData.expiry_date}
+                    value={createFormData.expiry_date}
                     onChange={(e) =>
-                      setFormData({ ...formData, expiry_date: e.target.value })
+                      setCreateFormData({ ...createFormData, expiry_date: e.target.value })
                     }
                     required
                   />
@@ -232,9 +644,9 @@ export default function CertificationsClient({ children }: CertificationsClientP
                 <label className="ticket-form-label">Status</label>
                 <select
                   className="ticket-form-select"
-                  value={formData.status}
+                  value={createFormData.status}
                   onChange={(e) =>
-                    setFormData({ ...formData, status: e.target.value })
+                    setCreateFormData({ ...createFormData, status: e.target.value })
                   }
                 >
                   <option value="active">Active</option>
@@ -256,17 +668,277 @@ export default function CertificationsClient({ children }: CertificationsClientP
                   className="btn-primary"
                   disabled={
                     creating ||
-                    !formData.contact_id ||
-                    !formData.cert_name.trim() ||
-                    !formData.issuing_authority.trim() ||
-                    !formData.issued_date ||
-                    !formData.expiry_date
+                    !createFormData.contact_id ||
+                    !createFormData.cert_name.trim() ||
+                    !createFormData.issuing_authority.trim() ||
+                    !createFormData.issued_date ||
+                    !createFormData.expiry_date
                   }
                 >
                   {creating ? "Adding..." : "Add Certification"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Detail/Edit/Delete Modal */}
+      {selectedCert && (
+        <div className="ticket-modal-overlay" onClick={closeModal}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ticket-modal-header">
+              <h3>{isEditing ? "Edit Certification" : "Certification Details"}</h3>
+              <button className="ticket-modal-close" onClick={closeModal}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {modalError && (
+              <div className="ticket-form-error">{modalError}</div>
+            )}
+
+            {!isEditing && !showDeleteConfirm && (
+              <>
+                <div className="ticket-detail-body">
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Person:</span>
+                    <span>{personName}</span>
+                  </div>
+
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Certification Name:</span>
+                    <span>{selectedCert.cert_name || "--"}</span>
+                  </div>
+
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Type:</span>
+                    <span className={getTypeBadge(selectedCert.cert_type)}>
+                      {formatCertType(selectedCert.cert_type)}
+                    </span>
+                  </div>
+
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Issuing Authority:</span>
+                    <span>{selectedCert.issuing_authority || "--"}</span>
+                  </div>
+
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Cert Number:</span>
+                    <span style={{ fontFamily: "var(--font-mono, monospace)" }}>
+                      {selectedCert.cert_number || "--"}
+                    </span>
+                  </div>
+
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Issued Date:</span>
+                    <span>
+                      {selectedCert.issued_date
+                        ? new Date(selectedCert.issued_date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : "--"}
+                    </span>
+                  </div>
+
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Expiry Date:</span>
+                    <span>
+                      {selectedCert.expiry_date
+                        ? new Date(selectedCert.expiry_date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : "No Expiry"}
+                    </span>
+                  </div>
+
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Computed Status:</span>
+                    <span className={getStatusBadge(selectedCert.computedStatus)}>
+                      {getStatusLabel(selectedCert.computedStatus)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="ticket-form-actions">
+                  <button
+                    className="btn-danger-outline"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                  <button className="btn-primary" onClick={() => setIsEditing(true)}>
+                    <Edit3 size={16} />
+                    Edit
+                  </button>
+                </div>
+              </>
+            )}
+
+            {isEditing && !showDeleteConfirm && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSave();
+                }}
+                className="ticket-form"
+              >
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Certification Name *</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={editFormData.cert_name}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, cert_name: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Certification Type *</label>
+                  <select
+                    className="ticket-form-select"
+                    value={editFormData.cert_type}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, cert_type: e.target.value })
+                    }
+                    required
+                  >
+                    <option value="osha_10">OSHA 10</option>
+                    <option value="osha_30">OSHA 30</option>
+                    <option value="first_aid">First Aid</option>
+                    <option value="cpr">CPR</option>
+                    <option value="license">License</option>
+                    <option value="insurance">Insurance</option>
+                  </select>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Issuing Authority *</label>
+                    <input
+                      type="text"
+                      className="ticket-form-input"
+                      value={editFormData.issuing_authority}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, issuing_authority: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Certification Number</label>
+                    <input
+                      type="text"
+                      className="ticket-form-input"
+                      value={editFormData.cert_number}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, cert_number: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Issued Date *</label>
+                    <input
+                      type="date"
+                      className="ticket-form-input"
+                      value={editFormData.issued_date}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, issued_date: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Expiry Date *</label>
+                    <input
+                      type="date"
+                      className="ticket-form-input"
+                      value={editFormData.expiry_date}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, expiry_date: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Status</label>
+                  <select
+                    className="ticket-form-select"
+                    value={editFormData.status}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, status: e.target.value })
+                    }
+                  >
+                    <option value="active">Active</option>
+                    <option value="expired">Expired</option>
+                    <option value="pending_renewal">Pending Renewal</option>
+                  </select>
+                </div>
+
+                <div className="ticket-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={
+                      isSaving ||
+                      !editFormData.cert_name.trim() ||
+                      !editFormData.issuing_authority.trim() ||
+                      !editFormData.issued_date ||
+                      !editFormData.expiry_date
+                    }
+                  >
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {showDeleteConfirm && (
+              <div className="ticket-delete-confirm">
+                <p>Are you sure you want to delete this certification?</p>
+                <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginTop: "0.5rem" }}>
+                  <strong>{selectedCert.cert_name}</strong> for <strong>{personName}</strong>
+                </p>
+                <div className="ticket-delete-actions">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn-danger"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete Certification"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -1,19 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import {
-  Users,
-  Plus,
-  Mail,
-  Phone,
-  Building2,
-  Search,
-  AlertCircle,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import {
   getContactsWithCertAlerts,
-  type Contact,
   type ContactType,
 } from "@/lib/queries/people";
 import PeopleClient from "./PeopleClient";
@@ -28,14 +19,6 @@ const TYPE_LABELS: Record<ContactType, string> = {
   vendor: "Vendor",
   client: "Client",
   tenant: "Tenant",
-};
-
-const TYPE_BADGE_CLASS: Record<ContactType, string> = {
-  employee: "contact-type-employee",
-  subcontractor: "contact-type-subcontractor",
-  vendor: "contact-type-vendor",
-  client: "contact-type-client",
-  tenant: "contact-type-tenant",
 };
 
 export default async function PeopleDirectoryPage({
@@ -80,7 +63,7 @@ export default async function PeopleDirectoryPage({
           >
             Time & Attendance
           </Link>
-          <PeopleClient />
+          <PeopleClient contacts={contacts} />
         </div>
       </div>
 
@@ -139,11 +122,11 @@ export default async function PeopleDirectoryPage({
         </Link>
       </div>
 
-      {/* Contact Grid */}
-      {isEmpty ? (
+      {/* Empty State or Contact Grid (rendered by PeopleClient) */}
+      {isEmpty && (
         <div className="people-empty">
           <div className="people-empty-icon">
-            <Users size={48} />
+            <Search size={48} />
           </div>
           <div className="people-empty-title">No contacts found</div>
           <p className="people-empty-desc">
@@ -153,84 +136,6 @@ export default async function PeopleDirectoryPage({
                 ? `No ${TYPE_LABELS[typeFilter].toLowerCase()}s in your directory yet.`
                 : "Start building your directory by adding team members, subcontractors, and vendors."}
           </p>
-        </div>
-      ) : (
-        <div className="people-grid">
-          {contacts.map((contact) => (
-            <ContactCard key={contact.id} contact={contact} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-function ContactCard({ contact }: { contact: Contact }) {
-  const initials =
-    (contact.first_name?.[0] || "") + (contact.last_name?.[0] || "");
-  const fullName = `${contact.first_name} ${contact.last_name}`.trim();
-  const hasCertWarning =
-    (contact.expiring_certs_count ?? 0) > 0;
-
-  return (
-    <div className="contact-card">
-      <div className="contact-card-top">
-        <div className="contact-card-avatar">
-          {initials.toUpperCase() || "?"}
-        </div>
-        <div className="contact-card-info">
-          <div className="contact-card-name">
-            {fullName || "Unnamed Contact"}
-            {hasCertWarning && <span className="cert-warning" />}
-          </div>
-          {contact.job_title && (
-            <div className="contact-card-title">{contact.job_title}</div>
-          )}
-          {contact.company_name && (
-            <div className="contact-card-company">{contact.company_name}</div>
-          )}
-        </div>
-        <div className="contact-card-type">
-          <span
-            className={`badge ${TYPE_BADGE_CLASS[contact.contact_type] || ""}`}
-          >
-            {TYPE_LABELS[contact.contact_type] || contact.contact_type}
-          </span>
-        </div>
-      </div>
-
-      <div className="contact-card-details">
-        {contact.email && (
-          <div className="contact-card-detail">
-            <Mail size={14} />
-            <a href={`mailto:${contact.email}`}>{contact.email}</a>
-          </div>
-        )}
-        {contact.phone && (
-          <div className="contact-card-detail">
-            <Phone size={14} />
-            <a href={`tel:${contact.phone}`}>{contact.phone}</a>
-          </div>
-        )}
-        {(contact.city || contact.state) && (
-          <div className="contact-card-detail">
-            <Building2 size={14} />
-            <span>
-              {[contact.city, contact.state].filter(Boolean).join(", ")}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {hasCertWarning && (
-        <div className="cert-warning-text">
-          <AlertCircle size={12} />
-          {contact.expiring_certs_count} certification
-          {(contact.expiring_certs_count ?? 0) !== 1 ? "s" : ""} expiring soon
         </div>
       )}
     </div>

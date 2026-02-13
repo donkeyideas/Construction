@@ -20,6 +20,8 @@ import {
   Thermometer,
   Plus,
   X,
+  Edit3,
+  Trash2,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -158,6 +160,14 @@ export default function DailyLogsClient({
     delays: "",
   });
 
+  // Detail/Edit/Delete modal state
+  const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editData, setEditData] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
@@ -205,6 +215,106 @@ export default function DailyLogsClient({
       );
     } finally {
       setCreating(false);
+    }
+  }
+
+  function openDetail(log: DailyLog) {
+    setSelectedLog(log);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setSaveError("");
+  }
+
+  function closeDetail() {
+    setSelectedLog(null);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setEditData({});
+    setSaveError("");
+  }
+
+  function startEditing() {
+    if (!selectedLog) return;
+    setEditData({
+      status: selectedLog.status || "draft",
+      weather_conditions: selectedLog.weather_conditions || "",
+      weather_temp_high: selectedLog.weather_temp_high?.toString() || "",
+      work_performed: selectedLog.work_performed || "",
+      safety_incidents: selectedLog.safety_incidents || "",
+      delays: selectedLog.delays || "",
+      materials_received: selectedLog.materials_received || "",
+    });
+    setIsEditing(true);
+    setSaveError("");
+  }
+
+  async function handleSave() {
+    if (!selectedLog) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch("/api/projects/daily-logs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedLog.id,
+          status: editData.status,
+          weather_conditions: editData.weather_conditions || undefined,
+          weather_temp_high: editData.weather_temp_high
+            ? Number(editData.weather_temp_high)
+            : undefined,
+          work_performed: editData.work_performed || undefined,
+          safety_incidents: editData.safety_incidents || undefined,
+          delays: editData.delays || undefined,
+          materials_received: editData.materials_received || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update daily log");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to update daily log"
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!selectedLog) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch("/api/projects/daily-logs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedLog.id,
+          status: "deleted",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete daily log");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to delete daily log"
+      );
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -301,7 +411,8 @@ export default function DailyLogsClient({
               <div
                 key={log.id}
                 className="card"
-                style={{ padding: 0, overflow: "hidden" }}
+                style={{ padding: 0, overflow: "hidden", cursor: "pointer" }}
+                onClick={() => openDetail(log)}
               >
                 {/* Card Header */}
                 <div
@@ -664,6 +775,363 @@ export default function DailyLogsClient({
                 ? "No daily logs match the current filter. Try selecting a different status."
                 : "No daily logs have been created yet. Field reports will appear here once submitted."}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail/Edit/Delete Modal */}
+      {selectedLog && (
+        <div
+          className="ticket-modal-overlay"
+          onClick={closeDetail}
+        >
+          <div
+            className="ticket-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ticket-modal-header">
+              <h3>
+                {isEditing ? "Edit Daily Log" : "Daily Log Details"}
+              </h3>
+              <button
+                className="ticket-modal-close"
+                onClick={closeDetail}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {saveError && (
+              <div className="ticket-form-error">{saveError}</div>
+            )}
+
+            {showDeleteConfirm ? (
+              <div className="ticket-delete-confirm">
+                <p style={{ marginBottom: 16 }}>
+                  Are you sure you want to delete this daily log? This action
+                  cannot be undone.
+                </p>
+                <div className="ticket-delete-actions">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn-danger"
+                    onClick={handleDelete}
+                    disabled={saving}
+                  >
+                    {saving ? "Deleting..." : "Delete Daily Log"}
+                  </button>
+                </div>
+              </div>
+            ) : isEditing ? (
+              <form className="ticket-form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Status</label>
+                  <select
+                    className="ticket-form-select"
+                    value={editData.status || "draft"}
+                    onChange={(e) =>
+                      setEditData({ ...editData, status: e.target.value })
+                    }
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="approved">Approved</option>
+                  </select>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Weather Conditions</label>
+                    <select
+                      className="ticket-form-select"
+                      value={editData.weather_conditions || ""}
+                      onChange={(e) =>
+                        setEditData({
+                          ...editData,
+                          weather_conditions: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Select weather...</option>
+                      {WEATHER_OPTIONS.map((w) => (
+                        <option key={w.value} value={w.value}>
+                          {w.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Temp High (F)</label>
+                    <input
+                      type="number"
+                      className="ticket-form-input"
+                      value={editData.weather_temp_high || ""}
+                      onChange={(e) =>
+                        setEditData({
+                          ...editData,
+                          weather_temp_high: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. 72"
+                    />
+                  </div>
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Work Performed</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    value={editData.work_performed || ""}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        work_performed: e.target.value,
+                      })
+                    }
+                    rows={3}
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Safety Incidents</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    value={editData.safety_incidents || ""}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        safety_incidents: e.target.value,
+                      })
+                    }
+                    rows={2}
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Delays</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    value={editData.delays || ""}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        delays: e.target.value,
+                      })
+                    }
+                    rows={2}
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Materials Received</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    value={editData.materials_received || ""}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        materials_received: e.target.value,
+                      })
+                    }
+                    rows={2}
+                  />
+                </div>
+
+                <div className="ticket-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="ticket-detail-body">
+                <div className="ticket-detail-row">
+                  <span className="ticket-detail-label">Project</span>
+                  <span>
+                    {selectedLog.projects?.code && (
+                      <strong>{selectedLog.projects.code} - </strong>
+                    )}
+                    {selectedLog.projects?.name || "N/A"}
+                  </span>
+                </div>
+
+                <div className="ticket-detail-row">
+                  <span className="ticket-detail-label">Date</span>
+                  <span>
+                    {new Date(selectedLog.log_date).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
+                </div>
+
+                <div className="ticket-detail-row">
+                  <span className="ticket-detail-label">Status</span>
+                  <span
+                    className={
+                      STATUS_BADGE[selectedLog.status] ?? "inv-status"
+                    }
+                  >
+                    {selectedLog.status}
+                  </span>
+                </div>
+
+                <div className="ticket-detail-row">
+                  <span className="ticket-detail-label">Weather</span>
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    {getWeatherIcon(selectedLog.weather_conditions)}
+                    {selectedLog.weather_conditions || "N/A"}
+                  </span>
+                </div>
+
+                {(selectedLog.weather_temp_high != null ||
+                  selectedLog.weather_temp_low != null) && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Temperature</span>
+                    <span>
+                      {selectedLog.weather_temp_low != null
+                        ? `${selectedLog.weather_temp_low}`
+                        : "--"}
+                      {" / "}
+                      {selectedLog.weather_temp_high != null
+                        ? `${selectedLog.weather_temp_high}`
+                        : "--"}
+                      °F
+                    </span>
+                  </div>
+                )}
+
+                {selectedLog.weather_wind_mph != null && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Wind</span>
+                    <span>{selectedLog.weather_wind_mph} mph</span>
+                  </div>
+                )}
+
+                {selectedLog.weather_humidity_pct != null && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Humidity</span>
+                    <span>{selectedLog.weather_humidity_pct}%</span>
+                  </div>
+                )}
+
+                {selectedLog.work_performed && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Work Performed</span>
+                    <span style={{ whiteSpace: "pre-wrap" }}>
+                      {selectedLog.work_performed}
+                    </span>
+                  </div>
+                )}
+
+                {selectedLog.workforce && selectedLog.workforce.length > 0 && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Workforce</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                      }}
+                    >
+                      {(selectedLog.workforce as WorkforceEntry[]).map((w, i) => (
+                        <span key={i} style={{ fontSize: "0.9rem" }}>
+                          {w.trade ?? "General"}: {w.headcount ?? 0} workers
+                          {w.hours ? ` × ${w.hours} hrs` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedLog.safety_incidents && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label" style={{ color: "var(--color-red)" }}>
+                      Safety Incidents
+                    </span>
+                    <span style={{ whiteSpace: "pre-wrap" }}>
+                      {selectedLog.safety_incidents}
+                    </span>
+                  </div>
+                )}
+
+                {selectedLog.delays && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label" style={{ color: "var(--color-amber)" }}>
+                      Delays
+                    </span>
+                    <span style={{ whiteSpace: "pre-wrap" }}>
+                      {selectedLog.delays}
+                    </span>
+                  </div>
+                )}
+
+                {selectedLog.materials_received && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Materials Received</span>
+                    <span style={{ whiteSpace: "pre-wrap" }}>
+                      {selectedLog.materials_received}
+                    </span>
+                  </div>
+                )}
+
+                {selectedLog.created_by && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Created By</span>
+                    <span>{userMap[selectedLog.created_by] ?? "Unknown"}</span>
+                  </div>
+                )}
+
+                {selectedLog.approved_by && (
+                  <div className="ticket-detail-row">
+                    <span className="ticket-detail-label">Approved By</span>
+                    <span>{userMap[selectedLog.approved_by] ?? "Unknown"}</span>
+                  </div>
+                )}
+
+                <div className="ticket-form-actions">
+                  <button
+                    className="btn-danger-outline"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                  <button
+                    className="btn-primary"
+                    onClick={startEditing}
+                  >
+                    <Edit3 size={16} />
+                    Edit
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
