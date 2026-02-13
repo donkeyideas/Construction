@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById } from "@/lib/queries/financial";
 import { formatCurrency } from "@/lib/utils/format";
+import type { LineItem, PaymentRow } from "@/lib/queries/financial";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -17,7 +18,20 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function InvoiceDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const supabase = await createClient();
+
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return (
+      <div className="fin-empty">
+        <div className="fin-empty-icon"><FileText size={48} /></div>
+        <div className="fin-empty-title">Connection Error</div>
+        <div className="fin-empty-desc">Unable to connect. Please try again.</div>
+      </div>
+    );
+  }
+
   const userCompany = await getCurrentUserCompany(supabase);
 
   if (!userCompany) {
@@ -38,8 +52,36 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
 
   const isPayable = invoice.invoice_type === "payable";
   const statusClass = `inv-status inv-status-${invoice.status}`;
-  const lineItems = invoice.line_items ?? [];
-  const payments = invoice.payments ?? [];
+
+  // Safely parse line_items - might be string JSON from Supabase JSONB
+  let lineItems: LineItem[] = [];
+  try {
+    const raw = invoice.line_items;
+    if (Array.isArray(raw)) {
+      lineItems = raw;
+    } else if (typeof raw === "string") {
+      lineItems = JSON.parse(raw);
+    }
+  } catch {
+    lineItems = [];
+  }
+
+  const payments: PaymentRow[] = Array.isArray(invoice.payments) ? invoice.payments : [];
+
+  // Safe currency formatting
+  const safeCurrency = (val: unknown) => {
+    const num = Number(val);
+    return isNaN(num) ? "$0" : formatCurrency(num);
+  };
+
+  // Safe date formatting
+  const safeDate = (val: unknown, opts?: Intl.DateTimeFormatOptions) => {
+    try {
+      return new Date(String(val)).toLocaleDateString("en-US", opts ?? { month: "short", day: "numeric", year: "numeric" });
+    } catch {
+      return "--";
+    }
+  };
 
   return (
     <div>
@@ -62,8 +104,8 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             Back to Invoices
           </Link>
           <h2 style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {invoice.invoice_number}
-            <span className={statusClass}>{invoice.status}</span>
+            {invoice.invoice_number ?? "Invoice"}
+            <span className={statusClass}>{invoice.status ?? "unknown"}</span>
           </h2>
           <p className="fin-header-sub">
             {isPayable ? "Accounts Payable" : "Accounts Receivable"}
@@ -94,26 +136,22 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
       >
         <div className="fin-kpi">
           <span className="fin-kpi-label">Total Amount</span>
-          <span className="fin-kpi-value">{formatCurrency(invoice.total_amount)}</span>
+          <span className="fin-kpi-value">{safeCurrency(invoice.total_amount)}</span>
         </div>
         <div className="fin-kpi">
           <span className="fin-kpi-label">Amount Paid</span>
-          <span className="fin-kpi-value positive">{formatCurrency(invoice.amount_paid)}</span>
+          <span className="fin-kpi-value positive">{safeCurrency(invoice.amount_paid)}</span>
         </div>
         <div className="fin-kpi">
           <span className="fin-kpi-label">Balance Due</span>
-          <span className={`fin-kpi-value ${invoice.balance_due > 0 ? "negative" : ""}`}>
-            {formatCurrency(invoice.balance_due)}
+          <span className={`fin-kpi-value ${Number(invoice.balance_due) > 0 ? "negative" : ""}`}>
+            {safeCurrency(invoice.balance_due)}
           </span>
         </div>
         <div className="fin-kpi">
           <span className="fin-kpi-label">Due Date</span>
           <span className="fin-kpi-value" style={{ fontSize: "1.1rem" }}>
-            {new Date(invoice.due_date).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {safeDate(invoice.due_date)}
           </span>
         </div>
       </div>
@@ -128,8 +166,8 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               ["Type", isPayable ? "Accounts Payable (AP)" : "Accounts Receivable (AR)"],
               ["Invoice Number", invoice.invoice_number],
               [isPayable ? "Vendor" : "Client", isPayable ? invoice.vendor_name : invoice.client_name],
-              ["Invoice Date", new Date(invoice.invoice_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })],
-              ["Due Date", new Date(invoice.due_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })],
+              ["Invoice Date", safeDate(invoice.invoice_date, { month: "long", day: "numeric", year: "numeric" })],
+              ["Due Date", safeDate(invoice.due_date, { month: "long", day: "numeric", year: "numeric" })],
               ["Status", invoice.status],
             ].map(([label, value]) => (
               <div key={String(label)} className="info-row">
@@ -168,11 +206,11 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               <tbody>
                 {lineItems.map((item, i) => (
                   <tr key={i}>
-                    <td>{item.description}</td>
-                    <td style={{ textAlign: "center" }}>{item.quantity}</td>
-                    <td style={{ textAlign: "right" }}>{formatCurrency(item.unit_price)}</td>
+                    <td>{item.description ?? "--"}</td>
+                    <td style={{ textAlign: "center" }}>{item.quantity ?? 0}</td>
+                    <td style={{ textAlign: "right" }}>{safeCurrency(item.unit_price)}</td>
                     <td style={{ textAlign: "right", fontWeight: 600 }}>
-                      {formatCurrency(item.amount)}
+                      {safeCurrency(item.amount)}
                     </td>
                   </tr>
                 ))}
@@ -180,15 +218,15 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               <tfoot>
                 <tr style={{ borderTop: "2px solid var(--border)" }}>
                   <td colSpan={3} style={{ textAlign: "right", fontWeight: 600 }}>Subtotal</td>
-                  <td style={{ textAlign: "right", fontWeight: 600 }}>{formatCurrency(invoice.subtotal)}</td>
+                  <td style={{ textAlign: "right", fontWeight: 600 }}>{safeCurrency(invoice.subtotal)}</td>
                 </tr>
                 <tr>
                   <td colSpan={3} style={{ textAlign: "right", color: "var(--muted)" }}>Tax</td>
-                  <td style={{ textAlign: "right", color: "var(--muted)" }}>{formatCurrency(invoice.tax_amount)}</td>
+                  <td style={{ textAlign: "right", color: "var(--muted)" }}>{safeCurrency(invoice.tax_amount)}</td>
                 </tr>
                 <tr style={{ borderTop: "1px solid var(--border)" }}>
                   <td colSpan={3} style={{ textAlign: "right", fontWeight: 700, fontSize: "1rem" }}>Total</td>
-                  <td style={{ textAlign: "right", fontWeight: 700, fontSize: "1rem" }}>{formatCurrency(invoice.total_amount)}</td>
+                  <td style={{ textAlign: "right", fontWeight: 700, fontSize: "1rem" }}>{safeCurrency(invoice.total_amount)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -215,17 +253,11 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               <tbody>
                 {payments.map((p) => (
                   <tr key={p.id}>
-                    <td>
-                      {new Date(p.payment_date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td style={{ textTransform: "capitalize" }}>{p.method}</td>
+                    <td>{safeDate(p.payment_date)}</td>
+                    <td style={{ textTransform: "capitalize" }}>{p.method ?? "--"}</td>
                     <td style={{ color: "var(--muted)" }}>{p.reference_number ?? "--"}</td>
                     <td style={{ textAlign: "right", fontWeight: 600, color: "var(--color-green)" }}>
-                      {formatCurrency(p.amount)}
+                      {safeCurrency(p.amount)}
                     </td>
                   </tr>
                 ))}
