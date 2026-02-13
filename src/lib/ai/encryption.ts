@@ -3,8 +3,9 @@ import crypto from "crypto";
 // ---------------------------------------------------------------------------
 // AES-256-GCM encryption for API keys at rest
 // ---------------------------------------------------------------------------
-// The encryption secret is a 32-byte hex string stored in
-// process.env.AI_KEY_ENCRYPTION_SECRET (64 hex characters = 32 bytes).
+// The encryption key is derived from SUPABASE_SERVICE_ROLE_KEY (always
+// available) so no extra env var is needed. Each SaaS tenant deployment
+// automatically gets its own encryption key.
 //
 // Ciphertext format stored in the database:
 //   base64(iv):base64(authTag):base64(encrypted)
@@ -15,18 +16,15 @@ const IV_LENGTH = 12; // 96-bit IV recommended for GCM
 const AUTH_TAG_LENGTH = 16;
 
 function getKey(): Buffer {
-  const secret = process.env.AI_KEY_ENCRYPTION_SECRET;
-  if (!secret) {
+  // Derive a 32-byte encryption key from the service role key
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
     throw new Error(
-      "AI_KEY_ENCRYPTION_SECRET environment variable is not set."
+      "SUPABASE_SERVICE_ROLE_KEY environment variable is not set."
     );
   }
-  if (secret.length !== 64) {
-    throw new Error(
-      "AI_KEY_ENCRYPTION_SECRET must be a 64-character hex string (32 bytes)."
-    );
-  }
-  return Buffer.from(secret, "hex");
+  // SHA-256 always produces exactly 32 bytes (256 bits) — perfect for AES-256
+  return crypto.createHash("sha256").update(serviceKey).digest();
 }
 
 /**
