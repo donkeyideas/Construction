@@ -13,6 +13,7 @@ import {
 } from "@/lib/queries/financial";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
 import type { BudgetLineRow } from "@/lib/queries/financial";
+import { ProjectSelect } from "./ProjectSelect";
 
 export const metadata = {
   title: "Job Costing - ConstructionERP",
@@ -153,24 +154,10 @@ export default async function JobCostingPage({ searchParams }: PageProps) {
         <div className="job-cost-selector">
           <label>Project:</label>
           {projects.length > 0 ? (
-            <form>
-              <select
-                name="projectId"
-                className="fin-filter-select"
-                defaultValue={selectedProjectId ?? ""}
-                onChange={(e) => {
-                  // Navigate via form submission with JS
-                  const url = `/financial/job-costing?projectId=${e.target.value}`;
-                  window.location.href = url;
-                }}
-              >
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </form>
+            <ProjectSelect
+              projects={projects}
+              selectedProjectId={selectedProjectId ?? ""}
+            />
           ) : (
             <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
               No projects found
