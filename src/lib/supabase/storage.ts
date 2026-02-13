@@ -15,10 +15,9 @@ async function ensureBucket() {
   const { data, error } = await admin.storage.getBucket(BUCKET);
 
   if (error || !data) {
-    // Bucket doesn't exist — create it
+    // Bucket doesn't exist — create it (no fileSizeLimit to stay within plan defaults)
     const { error: createErr } = await admin.storage.createBucket(BUCKET, {
       public: false,
-      fileSizeLimit: 104857600, // 100 MB
     });
 
     if (createErr && !createErr.message?.includes("already exists")) {
