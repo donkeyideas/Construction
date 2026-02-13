@@ -92,6 +92,60 @@ const PROVIDER_LABELS: Record<string, string> = {
   bedrock: "Bedrock",
 };
 
+const PROVIDER_MODELS: Record<ProviderNameOption, { value: string; label: string }[]> = {
+  openai: [
+    { value: "gpt-4o", label: "GPT-4o" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+    { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
+    { value: "o3-mini", label: "O3 Mini" },
+    { value: "o1", label: "O1" },
+    { value: "o1-mini", label: "O1 Mini" },
+    { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
+  ],
+  anthropic: [
+    { value: "claude-sonnet-4-20250514", label: "Claude Sonnet 4" },
+    { value: "claude-opus-4-20250514", label: "Claude Opus 4" },
+    { value: "claude-haiku-4-20250414", label: "Claude Haiku 4" },
+  ],
+  google: [
+    { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+    { value: "gemini-2.0-flash-lite", label: "Gemini 2.0 Flash Lite" },
+    { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
+    { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
+  ],
+  deepseek: [
+    { value: "deepseek-chat", label: "DeepSeek Chat (V3)" },
+    { value: "deepseek-reasoner", label: "DeepSeek Reasoner (R1)" },
+  ],
+  groq: [
+    { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B" },
+    { value: "llama-3.1-8b-instant", label: "Llama 3.1 8B Instant" },
+    { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B" },
+    { value: "gemma2-9b-it", label: "Gemma 2 9B" },
+  ],
+  mistral: [
+    { value: "mistral-large-latest", label: "Mistral Large" },
+    { value: "mistral-small-latest", label: "Mistral Small" },
+    { value: "open-mistral-nemo", label: "Mistral Nemo" },
+    { value: "codestral-latest", label: "Codestral" },
+  ],
+  cohere: [
+    { value: "command-r-plus", label: "Command R+" },
+    { value: "command-r", label: "Command R" },
+    { value: "command", label: "Command" },
+  ],
+  xai: [
+    { value: "grok-2", label: "Grok 2" },
+    { value: "grok-2-mini", label: "Grok 2 Mini" },
+  ],
+  bedrock: [
+    { value: "anthropic.claude-3-5-sonnet-20241022-v2:0", label: "Claude 3.5 Sonnet (Bedrock)" },
+    { value: "anthropic.claude-3-haiku-20240307-v1:0", label: "Claude 3 Haiku (Bedrock)" },
+    { value: "amazon.titan-text-express-v1", label: "Titan Text Express" },
+    { value: "meta.llama3-70b-instruct-v1:0", label: "Llama 3 70B (Bedrock)" },
+  ],
+};
+
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -160,7 +214,7 @@ export default function AIProvidersClient({
     setEditingId(null);
     setFormProvider("openai");
     setFormApiKey("");
-    setFormModelId("");
+    setFormModelId(PROVIDER_MODELS["openai"][0].value);
     setFormChat(false);
     setFormDocuments(false);
     setFormPredictions(false);
@@ -175,9 +229,12 @@ export default function AIProvidersClient({
   // -----------------------------------------------------------------------
   function openEditModal(p: MaskedProvider) {
     setEditingId(p.id);
-    setFormProvider(p.provider_name as ProviderNameOption);
+    const prov = p.provider_name as ProviderNameOption;
+    setFormProvider(prov);
     setFormApiKey(""); // Don't pre-fill encrypted key
-    setFormModelId(p.model_id);
+    const models = PROVIDER_MODELS[prov] ?? [];
+    const knownModel = models.some((m) => m.value === p.model_id);
+    setFormModelId(knownModel ? p.model_id : models[0]?.value ?? "");
     setFormChat(p.use_for_chat);
     setFormDocuments(p.use_for_documents);
     setFormPredictions(p.use_for_predictions);
@@ -671,11 +728,11 @@ export default function AIProvidersClient({
                 <select
                   className="provider-form-select"
                   value={formProvider}
-                  onChange={(e) =>
-                    setFormProvider(
-                      e.target.value as ProviderNameOption
-                    )
-                  }
+                  onChange={(e) => {
+                    const next = e.target.value as ProviderNameOption;
+                    setFormProvider(next);
+                    setFormModelId(PROVIDER_MODELS[next][0].value);
+                  }}
                 >
                   {PROVIDER_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -715,21 +772,19 @@ export default function AIProvidersClient({
 
               {/* Model ID */}
               <div className="provider-form-group">
-                <label className="provider-form-label">Model ID</label>
-                <input
-                  type="text"
-                  className="provider-form-input"
-                  placeholder={
-                    formProvider === "deepseek"
-                      ? "e.g. deepseek-chat, deepseek-reasoner"
-                      : formProvider === "anthropic"
-                      ? "e.g. claude-sonnet-4-20250514"
-                      : "e.g. gpt-4o"
-                  }
+                <label className="provider-form-label">Model</label>
+                <select
+                  className="provider-form-select"
                   value={formModelId}
                   onChange={(e) => setFormModelId(e.target.value)}
                   required
-                />
+                >
+                  {PROVIDER_MODELS[formProvider].map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Task Checkboxes */}
