@@ -12,6 +12,8 @@ import {
   MessageCircle,
   Plus,
   X,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 
@@ -89,6 +91,12 @@ const PRIORITY_OPTIONS = [
   { value: "urgent", label: "Urgent" },
 ];
 
+const STATUS_OPTIONS = [
+  { value: "open", label: "Open" },
+  { value: "answered", label: "Answered" },
+  { value: "closed", label: "Closed" },
+];
+
 const statuses = [
   { label: "All", value: "all" },
   { label: "Open", value: "open" },
@@ -99,6 +107,14 @@ const statuses = [
 function buildUrl(status?: string): string {
   if (!status || status === "all") return "/projects/rfis";
   return `/projects/rfis?status=${status}`;
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -129,6 +145,14 @@ export default function RfisClient({
     assigned_to: "",
   });
 
+  // Detail / Edit / Delete modal state
+  const [selectedRfi, setSelectedRfi] = useState<Rfi | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editData, setEditData] = useState<Record<string, unknown>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
   function daysOpen(
     createdAt: string,
     status: string,
@@ -148,6 +172,7 @@ export default function RfisClient({
     return new Date(dueDate) < now;
   }
 
+  // ---- Create handler ----
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
@@ -189,6 +214,127 @@ export default function RfisClient({
       );
     } finally {
       setCreating(false);
+    }
+  }
+
+  // ---- Detail modal helpers ----
+  function openDetail(rfi: Rfi) {
+    setSelectedRfi(rfi);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setSaveError("");
+    setEditData({});
+  }
+
+  function closeDetail() {
+    setSelectedRfi(null);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setSaveError("");
+    setEditData({});
+  }
+
+  function startEditing() {
+    if (!selectedRfi) return;
+    setIsEditing(true);
+    setSaveError("");
+    setEditData({
+      subject: selectedRfi.subject,
+      question: selectedRfi.question,
+      answer: selectedRfi.answer ?? "",
+      status: selectedRfi.status,
+      priority: selectedRfi.priority ?? "medium",
+      assigned_to: selectedRfi.assigned_to ?? "",
+      due_date: selectedRfi.due_date ?? "",
+      cost_impact: selectedRfi.cost_impact ?? "",
+      schedule_impact_days: selectedRfi.schedule_impact_days ?? "",
+    });
+  }
+
+  function cancelEditing() {
+    setIsEditing(false);
+    setSaveError("");
+    setEditData({});
+  }
+
+  // ---- Save (PATCH) handler ----
+  async function handleSave() {
+    if (!selectedRfi) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const changes: Record<string, unknown> = { id: selectedRfi.id };
+
+      if (editData.subject !== selectedRfi.subject) changes.subject = editData.subject;
+      if (editData.question !== selectedRfi.question) changes.question = editData.question;
+      if ((editData.answer ?? "") !== (selectedRfi.answer ?? "")) changes.answer = editData.answer || null;
+      if (editData.status !== selectedRfi.status) changes.status = editData.status;
+      if (editData.priority !== (selectedRfi.priority ?? "medium")) changes.priority = editData.priority;
+      if ((editData.assigned_to ?? "") !== (selectedRfi.assigned_to ?? "")) changes.assigned_to = editData.assigned_to || null;
+      if ((editData.due_date ?? "") !== (selectedRfi.due_date ?? "")) changes.due_date = editData.due_date || null;
+
+      const costVal = editData.cost_impact === "" || editData.cost_impact === null ? null : Number(editData.cost_impact);
+      if (costVal !== selectedRfi.cost_impact) changes.cost_impact = costVal;
+
+      const schedVal = editData.schedule_impact_days === "" || editData.schedule_impact_days === null ? null : Number(editData.schedule_impact_days);
+      if (schedVal !== selectedRfi.schedule_impact_days) changes.schedule_impact_days = schedVal;
+
+      // Only call API if there are actual changes
+      if (Object.keys(changes).length <= 1) {
+        // No changes besides id
+        setIsEditing(false);
+        return;
+      }
+
+      const res = await fetch("/api/projects/rfis", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(changes),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update RFI");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to update RFI"
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // ---- Delete handler ----
+  async function handleDelete() {
+    if (!selectedRfi) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch("/api/projects/rfis", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedRfi.id }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete RFI");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to delete RFI"
+      );
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -300,6 +446,8 @@ export default function RfisClient({
                     <tr
                       key={rfi.id}
                       className={overdue ? "invoice-row-overdue" : ""}
+                      onClick={() => openDetail(rfi)}
+                      style={{ cursor: "pointer" }}
                     >
                       <td
                         style={{
@@ -451,7 +599,9 @@ export default function RfisClient({
         </div>
       )}
 
-      {/* Create RFI Modal */}
+      {/* ================================================================= */}
+      {/* Create RFI Modal                                                  */}
+      {/* ================================================================= */}
       {showCreate && (
         <div
           className="ticket-modal-overlay"
@@ -614,6 +764,594 @@ export default function RfisClient({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================= */}
+      {/* Detail / Edit / Delete Modal                                      */}
+      {/* ================================================================= */}
+      {selectedRfi && (
+        <div className="ticket-modal-overlay" onClick={closeDetail}>
+          <div
+            className="ticket-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 640 }}
+          >
+            {/* Modal Header */}
+            <div className="ticket-modal-header">
+              <h3>
+                {selectedRfi.rfi_number}
+                {!isEditing && (
+                  <span
+                    className={statusBadge[selectedRfi.status] ?? "inv-status"}
+                    style={{ marginLeft: 10, fontSize: "0.78rem" }}
+                  >
+                    {selectedRfi.status}
+                  </span>
+                )}
+              </h3>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {!isEditing && !showDeleteConfirm && (
+                  <>
+                    <button
+                      className="ticket-modal-close"
+                      onClick={startEditing}
+                      title="Edit"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      className="ticket-modal-close"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      title="Delete"
+                      style={{ color: "var(--color-red)" }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                )}
+                <button className="ticket-modal-close" onClick={closeDetail}>
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {saveError && (
+              <div className="ticket-form-error">{saveError}</div>
+            )}
+
+            {/* ---- Delete Confirmation ---- */}
+            {showDeleteConfirm && (
+              <div style={{ padding: "1.2rem" }}>
+                <p style={{ marginBottom: 16, fontWeight: 500 }}>
+                  Are you sure you want to delete RFI{" "}
+                  <strong>{selectedRfi.rfi_number}</strong>? This action cannot
+                  be undone.
+                </p>
+                <div className="ticket-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ backgroundColor: "var(--color-red)" }}
+                    onClick={handleDelete}
+                    disabled={saving}
+                  >
+                    {saving ? "Deleting..." : "Delete RFI"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ---- Edit Mode ---- */}
+            {isEditing && !showDeleteConfirm && (
+              <div style={{ padding: "1.2rem" }}>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Subject</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={(editData.subject as string) ?? ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, subject: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Question</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    value={(editData.question as string) ?? ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, question: e.target.value })
+                    }
+                    rows={3}
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Answer</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    value={(editData.answer as string) ?? ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, answer: e.target.value })
+                    }
+                    rows={3}
+                    placeholder="Provide an answer to this RFI..."
+                  />
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Status</label>
+                    <select
+                      className="ticket-form-select"
+                      value={(editData.status as string) ?? "open"}
+                      onChange={(e) =>
+                        setEditData({ ...editData, status: e.target.value })
+                      }
+                    >
+                      {STATUS_OPTIONS.map((s) => (
+                        <option key={s.value} value={s.value}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Priority</label>
+                    <select
+                      className="ticket-form-select"
+                      value={(editData.priority as string) ?? "medium"}
+                      onChange={(e) =>
+                        setEditData({ ...editData, priority: e.target.value })
+                      }
+                    >
+                      {PRIORITY_OPTIONS.map((p) => (
+                        <option key={p.value} value={p.value}>
+                          {p.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Assigned To</label>
+                    <select
+                      className="ticket-form-select"
+                      value={(editData.assigned_to as string) ?? ""}
+                      onChange={(e) =>
+                        setEditData({
+                          ...editData,
+                          assigned_to: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Unassigned</option>
+                      {members.map((m) => (
+                        <option key={m.user_id} value={m.user_id}>
+                          {m.user?.full_name || m.user?.email || "Unknown"} (
+                          {m.role})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Due Date</label>
+                    <input
+                      type="date"
+                      className="ticket-form-input"
+                      value={(editData.due_date as string) ?? ""}
+                      onChange={(e) =>
+                        setEditData({ ...editData, due_date: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Cost Impact ($)</label>
+                    <input
+                      type="number"
+                      className="ticket-form-input"
+                      value={editData.cost_impact as string | number ?? ""}
+                      onChange={(e) =>
+                        setEditData({
+                          ...editData,
+                          cost_impact: e.target.value,
+                        })
+                      }
+                      placeholder="0.00"
+                      step="0.01"
+                    />
+                  </div>
+
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">
+                      Schedule Impact (days)
+                    </label>
+                    <input
+                      type="number"
+                      className="ticket-form-input"
+                      value={
+                        editData.schedule_impact_days as string | number ?? ""
+                      }
+                      onChange={(e) =>
+                        setEditData({
+                          ...editData,
+                          schedule_impact_days: e.target.value,
+                        })
+                      }
+                      placeholder="0"
+                      step="1"
+                    />
+                  </div>
+                </div>
+
+                <div className="ticket-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={cancelEditing}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ---- View Mode ---- */}
+            {!isEditing && !showDeleteConfirm && (
+              <div style={{ padding: "1.2rem" }}>
+                {/* Subject */}
+                <div style={{ marginBottom: 16 }}>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "var(--muted)",
+                      fontWeight: 500,
+                      marginBottom: 4,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    Subject
+                  </div>
+                  <div style={{ fontWeight: 500 }}>{selectedRfi.subject}</div>
+                </div>
+
+                {/* Project */}
+                <div style={{ marginBottom: 16 }}>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "var(--muted)",
+                      fontWeight: 500,
+                      marginBottom: 4,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    Project
+                  </div>
+                  <div>
+                    {selectedRfi.projects
+                      ? `${selectedRfi.projects.code} - ${selectedRfi.projects.name}`
+                      : "--"}
+                  </div>
+                </div>
+
+                {/* Question */}
+                <div style={{ marginBottom: 16 }}>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "var(--muted)",
+                      fontWeight: 500,
+                      marginBottom: 4,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    Question
+                  </div>
+                  <div
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      lineHeight: 1.5,
+                      padding: "0.6rem 0.8rem",
+                      background: "var(--surface-hover, #f5f5f5)",
+                      borderRadius: 6,
+                    }}
+                  >
+                    {selectedRfi.question}
+                  </div>
+                </div>
+
+                {/* Answer */}
+                <div style={{ marginBottom: 16 }}>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "var(--muted)",
+                      fontWeight: 500,
+                      marginBottom: 4,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    Answer
+                  </div>
+                  {selectedRfi.answer ? (
+                    <div
+                      style={{
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.5,
+                        padding: "0.6rem 0.8rem",
+                        background: "var(--surface-hover, #f5f5f5)",
+                        borderRadius: 6,
+                      }}
+                    >
+                      {selectedRfi.answer}
+                    </div>
+                  ) : (
+                    <span style={{ color: "var(--muted)", fontStyle: "italic" }}>
+                      Not yet answered
+                    </span>
+                  )}
+                </div>
+
+                {/* Detail grid */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px 24px",
+                    marginBottom: 16,
+                  }}
+                >
+                  {/* Priority */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--muted)",
+                        fontWeight: 500,
+                        marginBottom: 4,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      Priority
+                    </div>
+                    <div>
+                      {selectedRfi.priority ? (
+                        <span
+                          className={`badge ${
+                            priorityBadge[selectedRfi.priority] ?? "badge-blue"
+                          }`}
+                        >
+                          {selectedRfi.priority}
+                        </span>
+                      ) : (
+                        "--"
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--muted)",
+                        fontWeight: 500,
+                        marginBottom: 4,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      Status
+                    </div>
+                    <div>
+                      <span
+                        className={
+                          statusBadge[selectedRfi.status] ?? "inv-status"
+                        }
+                      >
+                        {selectedRfi.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Submitted By */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--muted)",
+                        fontWeight: 500,
+                        marginBottom: 4,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      Submitted By
+                    </div>
+                    <div>
+                      {selectedRfi.submitted_by
+                        ? userMap[selectedRfi.submitted_by] ?? "--"
+                        : "--"}
+                    </div>
+                  </div>
+
+                  {/* Assigned To */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--muted)",
+                        fontWeight: 500,
+                        marginBottom: 4,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      Assigned To
+                    </div>
+                    <div>
+                      {selectedRfi.assigned_to
+                        ? userMap[selectedRfi.assigned_to] ?? "--"
+                        : "--"}
+                    </div>
+                  </div>
+
+                  {/* Due Date */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--muted)",
+                        fontWeight: 500,
+                        marginBottom: 4,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      Due Date
+                    </div>
+                    <div>
+                      {selectedRfi.due_date
+                        ? formatDate(selectedRfi.due_date)
+                        : "--"}
+                    </div>
+                  </div>
+
+                  {/* Cost Impact */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--muted)",
+                        fontWeight: 500,
+                        marginBottom: 4,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      Cost Impact
+                    </div>
+                    <div>
+                      {selectedRfi.cost_impact != null
+                        ? formatCurrency(selectedRfi.cost_impact)
+                        : "--"}
+                    </div>
+                  </div>
+
+                  {/* Schedule Impact */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--muted)",
+                        fontWeight: 500,
+                        marginBottom: 4,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      Schedule Impact
+                    </div>
+                    <div>
+                      {selectedRfi.schedule_impact_days != null
+                        ? `${selectedRfi.schedule_impact_days} day${
+                            selectedRfi.schedule_impact_days !== 1 ? "s" : ""
+                          }`
+                        : "--"}
+                    </div>
+                  </div>
+
+                  {/* Created */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--muted)",
+                        fontWeight: 500,
+                        marginBottom: 4,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      Created
+                    </div>
+                    <div>{formatDate(selectedRfi.created_at)}</div>
+                  </div>
+
+                  {/* Answered At */}
+                  {selectedRfi.answered_at && (
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "0.78rem",
+                          color: "var(--muted)",
+                          fontWeight: 500,
+                          marginBottom: 4,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.04em",
+                        }}
+                      >
+                        Answered At
+                      </div>
+                      <div>{formatDate(selectedRfi.answered_at)}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer actions */}
+                <div className="ticket-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={closeDetail}
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={startEditing}
+                  >
+                    <Pencil size={14} />
+                    Edit RFI
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

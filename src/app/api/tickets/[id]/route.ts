@@ -127,6 +127,54 @@ export async function PATCH(
 }
 
 // ---------------------------------------------------------------------------
+// DELETE /api/tickets/[id] — Delete a ticket
+// ---------------------------------------------------------------------------
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Verify the ticket exists and belongs to the company
+    const existing = await getTicketById(supabase, id);
+    if (!existing || existing.company_id !== userCtx.companyId) {
+      return NextResponse.json(
+        { error: "Ticket not found" },
+        { status: 404 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("tickets")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("DELETE /api/tickets/[id] error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // POST /api/tickets/[id] — Add comment to ticket
 // ---------------------------------------------------------------------------
 

@@ -91,3 +91,148 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// PATCH /api/properties/maintenance - Update a maintenance request
+// ---------------------------------------------------------------------------
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "Maintenance request id is required." },
+        { status: 400 }
+      );
+    }
+
+    // Verify ownership
+    const { data: existing } = await supabase
+      .from("maintenance_requests")
+      .select("id")
+      .eq("id", body.id)
+      .eq("company_id", userCtx.companyId)
+      .single();
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Maintenance request not found" },
+        { status: 404 }
+      );
+    }
+
+    const allowedFields = [
+      "title",
+      "description",
+      "category",
+      "priority",
+      "status",
+      "assigned_to",
+      "estimated_cost",
+      "actual_cost",
+      "scheduled_date",
+      "completed_at",
+      "notes",
+    ];
+
+    const updates: Record<string, unknown> = {};
+    for (const key of allowedFields) {
+      if (body[key] !== undefined) updates[key] = body[key];
+    }
+
+    if (body.status === "completed" && !body.completed_at) {
+      updates.completed_at = new Date().toISOString();
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: "No valid fields provided." },
+        { status: 400 }
+      );
+    }
+
+    updates.updated_at = new Date().toISOString();
+
+    const { data: updated, error } = await supabase
+      .from("maintenance_requests")
+      .update(updates)
+      .eq("id", body.id)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(updated);
+  } catch (err) {
+    console.error("PATCH /api/properties/maintenance error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /api/properties/maintenance - Delete a maintenance request
+// ---------------------------------------------------------------------------
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "Maintenance request id is required." },
+        { status: 400 }
+      );
+    }
+
+    const { data: existing } = await supabase
+      .from("maintenance_requests")
+      .select("id")
+      .eq("id", body.id)
+      .eq("company_id", userCtx.companyId)
+      .single();
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Maintenance request not found" },
+        { status: 404 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("maintenance_requests")
+      .delete()
+      .eq("id", body.id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("DELETE /api/properties/maintenance error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

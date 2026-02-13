@@ -149,3 +149,65 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// DELETE /api/projects/change-orders — Delete an existing change order
+// ---------------------------------------------------------------------------
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "Change order id is required." },
+        { status: 400 }
+      );
+    }
+
+    // Verify the change order belongs to the user's company
+    const { data: existing } = await supabase
+      .from("change_orders")
+      .select("id")
+      .eq("id", body.id)
+      .eq("company_id", userCtx.companyId)
+      .single();
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Change order not found" },
+        { status: 404 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("change_orders")
+      .delete()
+      .eq("id", body.id);
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("DELETE /api/projects/change-orders error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

@@ -117,6 +117,8 @@ export async function PATCH(request: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
+    if (body.subject !== undefined) updateData.subject = body.subject;
+    if (body.question !== undefined) updateData.question = body.question;
     if (body.status !== undefined) updateData.status = body.status;
     if (body.priority !== undefined) updateData.priority = body.priority;
     if (body.answer !== undefined) updateData.answer = body.answer;
@@ -151,6 +153,68 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(rfi);
   } catch (err) {
     console.error("PATCH /api/projects/rfis error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /api/projects/rfis — Delete an RFI
+// ---------------------------------------------------------------------------
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "RFI id is required." },
+        { status: 400 }
+      );
+    }
+
+    // Verify ownership
+    const { data: existing } = await supabase
+      .from("rfis")
+      .select("id")
+      .eq("id", body.id)
+      .eq("company_id", userCtx.companyId)
+      .single();
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "RFI not found" },
+        { status: 404 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("rfis")
+      .delete()
+      .eq("id", body.id);
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("DELETE /api/projects/rfis error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

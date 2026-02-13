@@ -137,6 +137,116 @@ export default function ChangeOrdersClient({
     schedule_impact_days: "",
   });
 
+  // Detail / Edit / Delete modal state
+  const [selectedCo, setSelectedCo] = useState<ChangeOrder | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editData, setEditData] = useState<Record<string, unknown>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  // ------- Handlers -------
+
+  function openDetail(co: ChangeOrder) {
+    setSelectedCo(co);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setSaveError("");
+  }
+
+  function closeDetail() {
+    setSelectedCo(null);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setEditData({});
+    setSaveError("");
+  }
+
+  function startEditing() {
+    if (!selectedCo) return;
+    setEditData({
+      title: selectedCo.title,
+      description: selectedCo.description || "",
+      reason: selectedCo.reason || "",
+      status: selectedCo.status,
+      amount: selectedCo.amount != null ? String(selectedCo.amount) : "",
+      schedule_impact_days:
+        selectedCo.schedule_impact_days != null
+          ? String(selectedCo.schedule_impact_days)
+          : "",
+    });
+    setIsEditing(true);
+    setSaveError("");
+  }
+
+  async function handleSave() {
+    if (!selectedCo) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const payload: Record<string, unknown> = { id: selectedCo.id };
+
+      if (editData.title !== undefined) payload.title = editData.title;
+      if (editData.description !== undefined)
+        payload.description = editData.description;
+      if (editData.reason !== undefined) payload.reason = editData.reason;
+      if (editData.status !== undefined) payload.status = editData.status;
+      if (editData.amount !== undefined && editData.amount !== "")
+        payload.amount = Number(editData.amount);
+      if (editData.schedule_impact_days !== undefined && editData.schedule_impact_days !== "")
+        payload.schedule_impact_days = Number(editData.schedule_impact_days);
+
+      const res = await fetch("/api/projects/change-orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update change order");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to update change order"
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!selectedCo) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch("/api/projects/change-orders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedCo.id }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete change order");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to delete change order"
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
@@ -287,7 +397,11 @@ export default function ChangeOrdersClient({
                   const isLarge = amount != null && amount > 100000;
 
                   return (
-                    <tr key={co.id}>
+                    <tr
+                      key={co.id}
+                      onClick={() => openDetail(co)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <td
                         style={{
                           fontWeight: 600,
@@ -569,6 +683,353 @@ export default function ChangeOrdersClient({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Detail / Edit / Delete Modal */}
+      {selectedCo && (
+        <div className="ticket-modal-overlay" onClick={closeDetail}>
+          <div
+            className="ticket-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ticket-modal-header">
+              <h3>
+                {showDeleteConfirm
+                  ? "Delete Change Order"
+                  : isEditing
+                  ? "Edit Change Order"
+                  : `Change Order ${selectedCo.co_number}`}
+              </h3>
+              <button className="ticket-modal-close" onClick={closeDetail}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {saveError && (
+              <div className="ticket-form-error">{saveError}</div>
+            )}
+
+            {/* ---------- Delete Confirmation ---------- */}
+            {showDeleteConfirm && (
+              <div style={{ padding: "1.25rem" }}>
+                <p style={{ marginBottom: "1.25rem", fontSize: "0.92rem" }}>
+                  Are you sure you want to delete change order{" "}
+                  <strong>{selectedCo.co_number}</strong>? This action cannot
+                  be undone.
+                </p>
+                <div className="ticket-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ background: "var(--color-red)", borderColor: "var(--color-red)" }}
+                    onClick={handleDelete}
+                    disabled={saving}
+                  >
+                    {saving ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ---------- Edit Mode ---------- */}
+            {isEditing && !showDeleteConfirm && (
+              <div style={{ padding: "1.25rem" }}>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Title</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={(editData.title as string) ?? ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, title: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Description</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    value={(editData.description as string) ?? ""}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        description: e.target.value,
+                      })
+                    }
+                    rows={3}
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Reason</label>
+                  <select
+                    className="ticket-form-select"
+                    value={(editData.reason as string) ?? ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, reason: e.target.value })
+                    }
+                  >
+                    <option value="">Select reason...</option>
+                    {REASON_OPTIONS.map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Status</label>
+                  <select
+                    className="ticket-form-select"
+                    value={(editData.status as string) ?? ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, status: e.target.value })
+                    }
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">
+                      Cost Impact ($)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="ticket-form-input"
+                      value={(editData.amount as string) ?? ""}
+                      onChange={(e) =>
+                        setEditData({ ...editData, amount: e.target.value })
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">
+                      Schedule Impact (days)
+                    </label>
+                    <input
+                      type="number"
+                      className="ticket-form-input"
+                      value={(editData.schedule_impact_days as string) ?? ""}
+                      onChange={(e) =>
+                        setEditData({
+                          ...editData,
+                          schedule_impact_days: e.target.value,
+                        })
+                      }
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="ticket-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setIsEditing(false)}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ---------- View Mode ---------- */}
+            {!isEditing && !showDeleteConfirm && (
+              <div style={{ padding: "1.25rem" }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <div>
+                    <label className="ticket-form-label">CO Number</label>
+                    <div style={{ fontSize: "0.92rem", fontWeight: 600 }}>
+                      {selectedCo.co_number}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="ticket-form-label">Status</label>
+                    <div>
+                      <span
+                        className={
+                          STATUS_BADGE[selectedCo.status] ?? "inv-status"
+                        }
+                      >
+                        {selectedCo.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Title</label>
+                  <div style={{ fontSize: "0.92rem" }}>
+                    {selectedCo.title}
+                  </div>
+                </div>
+
+                {selectedCo.description && (
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Description</label>
+                    <div
+                      style={{
+                        fontSize: "0.88rem",
+                        color: "var(--muted)",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {selectedCo.description}
+                    </div>
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <div>
+                    <label className="ticket-form-label">Project</label>
+                    <div style={{ fontSize: "0.88rem" }}>
+                      {selectedCo.projects
+                        ? `${selectedCo.projects.code} - ${selectedCo.projects.name}`
+                        : "--"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="ticket-form-label">Reason</label>
+                    <div>
+                      {selectedCo.reason ? (
+                        <span
+                          className={`badge ${
+                            REASON_BADGE[selectedCo.reason] ?? "badge-blue"
+                          }`}
+                        >
+                          {REASON_LABELS[selectedCo.reason] ??
+                            selectedCo.reason}
+                        </span>
+                      ) : (
+                        "--"
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <div>
+                    <label className="ticket-form-label">Amount</label>
+                    <div style={{ fontSize: "0.92rem", fontWeight: 600 }}>
+                      {selectedCo.amount != null
+                        ? formatCurrency(selectedCo.amount)
+                        : "--"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="ticket-form-label">
+                      Schedule Impact
+                    </label>
+                    <div style={{ fontSize: "0.92rem", fontWeight: 600 }}>
+                      {selectedCo.schedule_impact_days != null
+                        ? `${selectedCo.schedule_impact_days > 0 ? "+" : ""}${selectedCo.schedule_impact_days} days`
+                        : "--"}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1rem",
+                    marginBottom: "1.25rem",
+                  }}
+                >
+                  <div>
+                    <label className="ticket-form-label">Requested By</label>
+                    <div style={{ fontSize: "0.88rem" }}>
+                      {selectedCo.requested_by
+                        ? userMap[selectedCo.requested_by] ?? "--"
+                        : "--"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="ticket-form-label">Approved By</label>
+                    <div style={{ fontSize: "0.88rem" }}>
+                      {selectedCo.approved_by
+                        ? userMap[selectedCo.approved_by] ?? "--"
+                        : "--"}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="ticket-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ color: "var(--color-red)" }}
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={closeDetail}
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={startEditing}
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
