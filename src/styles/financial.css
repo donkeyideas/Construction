@@ -728,10 +728,19 @@
   font-weight: 500;
 }
 
+.account-value {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 110px;
+  text-align: right;
+}
+
 .account-sub-type {
   font-size: 0.75rem;
   color: var(--muted);
-  min-width: 120px;
+  min-width: 140px;
   text-align: right;
 }
 

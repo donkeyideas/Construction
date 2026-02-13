@@ -1,4 +1,4 @@
-import { streamText, tool, jsonSchema, convertToModelMessages, type UIMessage } from "ai";
+import { streamText, jsonSchema, convertToModelMessages, type UIMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProviderForTask } from "@/lib/ai/provider-router";
@@ -59,10 +59,10 @@ The user's role is: ${userCompany.role}`;
       system: systemPrompt,
       messages: modelMessages,
       tools: {
-        queryProjects: tool({
+        queryProjects: {
           description:
             "Search and retrieve project data including status, budget, and schedule information",
-          parameters: jsonSchema<{ status?: string; search?: string }>({
+          inputSchema: jsonSchema<{ status?: string; search?: string }>({
             type: "object",
             properties: {
               status: {
@@ -76,7 +76,7 @@ The user's role is: ${userCompany.role}`;
               },
             },
           }),
-          execute: async ({ status, search }) => {
+          execute: async ({ status, search }: { status?: string; search?: string }) => {
             let query = supabase
               .from("projects")
               .select(
@@ -96,12 +96,12 @@ The user's role is: ${userCompany.role}`;
             }
             return data ?? [];
           },
-        }),
+        },
 
-        queryFinancials: tool({
+        queryFinancials: {
           description:
             "Get financial summary including invoices, payments, and budget data",
-          parameters: jsonSchema<{ type?: string }>({
+          inputSchema: jsonSchema<{ type?: string }>({
             type: "object",
             properties: {
               type: {
@@ -111,7 +111,7 @@ The user's role is: ${userCompany.role}`;
               },
             },
           }),
-          execute: async ({ type }) => {
+          execute: async ({ type }: { type?: string }) => {
             if (type === "overdue_invoices") {
               const { data, error } = await supabase
                 .from("invoices")
@@ -176,11 +176,11 @@ The user's role is: ${userCompany.role}`;
             };
             return summary;
           },
-        }),
+        },
 
-        queryProperties: tool({
+        queryProperties: {
           description: "Search properties and get portfolio information",
-          parameters: jsonSchema<{ search?: string }>({
+          inputSchema: jsonSchema<{ search?: string }>({
             type: "object",
             properties: {
               search: {
@@ -189,7 +189,7 @@ The user's role is: ${userCompany.role}`;
               },
             },
           }),
-          execute: async ({ search }) => {
+          execute: async ({ search }: { search?: string }) => {
             let query = supabase
               .from("properties")
               .select(
@@ -208,11 +208,11 @@ The user's role is: ${userCompany.role}`;
             }
             return data ?? [];
           },
-        }),
+        },
 
-        queryMaintenanceRequests: tool({
+        queryMaintenanceRequests: {
           description: "Get open maintenance requests across properties",
-          parameters: jsonSchema<{ priority?: string }>({
+          inputSchema: jsonSchema<{ priority?: string }>({
             type: "object",
             properties: {
               priority: {
@@ -222,7 +222,7 @@ The user's role is: ${userCompany.role}`;
               },
             },
           }),
-          execute: async ({ priority }) => {
+          execute: async ({ priority }: { priority?: string }) => {
             let query = supabase
               .from("maintenance_requests")
               .select(
@@ -242,7 +242,7 @@ The user's role is: ${userCompany.role}`;
             }
             return data ?? [];
           },
-        }),
+        },
       },
     });
   } catch (err: unknown) {

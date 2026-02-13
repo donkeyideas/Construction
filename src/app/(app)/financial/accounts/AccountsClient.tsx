@@ -62,6 +62,21 @@ function flattenAccounts(nodes: AccountTreeNode[]): { id: string; label: string 
   return result;
 }
 
+function formatSubType(subType: string): string {
+  return subType
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  }).format(amount);
+}
+
 function AccountNode({
   account,
   depth,
@@ -93,11 +108,14 @@ function AccountNode({
         )}
         <span className="account-number">{account.account_number}</span>
         <span className="account-name">{account.name}</span>
+        <span className="account-value">
+          {formatCurrency(account.balance)}
+        </span>
         {account.sub_type && (
-          <span className="account-sub-type">{account.sub_type}</span>
+          <span className="account-sub-type">{formatSubType(account.sub_type)}</span>
         )}
         <span className="account-balance-type">
-          {account.normal_balance}
+          {account.normal_balance.toUpperCase()}
         </span>
       </div>
       {hasChildren &&

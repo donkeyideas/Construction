@@ -63,6 +63,7 @@ export interface AccountRow {
   is_active: boolean;
   description: string | null;
   normal_balance: string;
+  balance: number;
 }
 
 export interface AccountTreeNode extends AccountRow {
@@ -402,19 +403,45 @@ export async function getChartOfAccounts(
   supabase: SupabaseClient,
   companyId: string
 ): Promise<AccountTreeNode[]> {
-  const { data, error } = await supabase
-    .from("chart_of_accounts")
-    .select("*")
-    .eq("company_id", companyId)
-    .eq("is_active", true)
-    .order("account_number", { ascending: true });
+  // Fetch accounts and journal entry line totals in parallel
+  const [accountsResult, balancesResult] = await Promise.all([
+    supabase
+      .from("chart_of_accounts")
+      .select("*")
+      .eq("company_id", companyId)
+      .eq("is_active", true)
+      .order("account_number", { ascending: true }),
+    supabase
+      .from("journal_entry_lines")
+      .select("account_id, debit, credit")
+      .eq("company_id", companyId),
+  ]);
 
-  if (error) {
-    console.error("Error fetching chart of accounts:", error);
+  if (accountsResult.error) {
+    console.error("Error fetching chart of accounts:", accountsResult.error);
     return [];
   }
 
-  const rows = (data ?? []) as AccountRow[];
+  // Sum debits and credits per account
+  const balanceMap = new Map<string, { debit: number; credit: number }>();
+  for (const line of balancesResult.data ?? []) {
+    const existing = balanceMap.get(line.account_id) ?? { debit: 0, credit: 0 };
+    existing.debit += Number(line.debit) || 0;
+    existing.credit += Number(line.credit) || 0;
+    balanceMap.set(line.account_id, existing);
+  }
+
+  const rows = (accountsResult.data ?? []).map((row) => {
+    const totals = balanceMap.get(row.id) ?? { debit: 0, credit: 0 };
+    // Debit-normal accounts: balance = debits - credits
+    // Credit-normal accounts: balance = credits - debits
+    const balance =
+      row.normal_balance === "debit"
+        ? totals.debit - totals.credit
+        : totals.credit - totals.debit;
+    return { ...row, balance } as AccountRow;
+  });
+
   return buildAccountTree(rows);
 }
 
