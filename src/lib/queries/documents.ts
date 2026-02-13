@@ -27,10 +27,38 @@ export interface DocumentRow {
   ai_extracted_data: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  // Plan room fields
+  drawing_set_id?: string | null;
+  discipline?: string | null;
+  revision_label?: string | null;
+  is_current?: boolean;
   // Joined fields
   uploader?: { full_name: string; email: string } | null;
   project?: { id: string; name: string; code: string } | null;
   property?: { id: string; name: string } | null;
+  drawing_set?: { id: string; name: string; discipline: string | null; status: string } | null;
+}
+
+export interface DrawingSetRow {
+  id: string;
+  company_id: string;
+  project_id: string | null;
+  name: string;
+  description: string | null;
+  discipline: string | null;
+  status: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  document_count?: number;
+}
+
+export interface PlanRoomFilters {
+  projectId?: string;
+  discipline?: string;
+  drawingSetId?: string;
+  search?: string;
+  showSuperseded?: boolean;
 }
 
 export interface DocumentFilters {
@@ -260,4 +288,189 @@ export async function getFolderTree(
   }
 
   return roots;
+}
+
+/* ------------------------------------------------------------------
+   getPlanRoomDocuments - Fetch plan/spec documents with drawing set joins
+   ------------------------------------------------------------------ */
+
+export async function getPlanRoomDocuments(
+  supabase: SupabaseClient,
+  companyId: string,
+  filters?: PlanRoomFilters
+): Promise<DocumentRow[]> {
+  let query = supabase
+    .from("documents")
+    .select(
+      `
+      *,
+      uploader:user_profiles!documents_uploader_profile_fkey(full_name, email),
+      project:projects!documents_project_id_fkey(id, name, code),
+      drawing_set:drawing_sets!documents_drawing_set_id_fkey(id, name, discipline, status)
+    `
+    )
+    .eq("company_id", companyId)
+    .in("category", ["plan", "spec"])
+    .order("name", { ascending: true });
+
+  if (!filters?.showSuperseded) {
+    query = query.eq("is_current", true);
+  }
+
+  if (filters?.projectId) {
+    query = query.eq("project_id", filters.projectId);
+  }
+
+  if (filters?.discipline) {
+    query = query.eq("discipline", filters.discipline);
+  }
+
+  if (filters?.drawingSetId) {
+    query = query.eq("drawing_set_id", filters.drawingSetId);
+  }
+
+  if (filters?.search) {
+    const term = `%${filters.search}%`;
+    query = query.or(`name.ilike.${term}`);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("getPlanRoomDocuments error:", error);
+    return [];
+  }
+
+  return (data ?? []) as DocumentRow[];
+}
+
+/* ------------------------------------------------------------------
+   getDrawingSets - List drawing sets for a company
+   ------------------------------------------------------------------ */
+
+export async function getDrawingSets(
+  supabase: SupabaseClient,
+  companyId: string,
+  projectId?: string
+): Promise<DrawingSetRow[]> {
+  let query = supabase
+    .from("drawing_sets")
+    .select("*, documents(count)")
+    .eq("company_id", companyId)
+    .order("name", { ascending: true });
+
+  if (projectId) {
+    query = query.eq("project_id", projectId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("getDrawingSets error:", error);
+    return [];
+  }
+
+  return (data ?? []).map((row: Record<string, unknown>) => {
+    const docs = row.documents as { count: number }[] | undefined;
+    return {
+      ...row,
+      document_count: docs?.[0]?.count ?? 0,
+    };
+  }) as DrawingSetRow[];
+}
+
+/* ------------------------------------------------------------------
+   createDrawingSet - Insert a new drawing set
+   ------------------------------------------------------------------ */
+
+export async function createDrawingSet(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  data: { name: string; description?: string; discipline?: string; project_id?: string }
+): Promise<{ set: DrawingSetRow | null; error: string | null }> {
+  const { data: row, error } = await supabase
+    .from("drawing_sets")
+    .insert({
+      company_id: companyId,
+      name: data.name,
+      description: data.description ?? null,
+      discipline: data.discipline ?? null,
+      project_id: data.project_id ?? null,
+      created_by: userId,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("createDrawingSet error:", error);
+    return { set: null, error: error.message };
+  }
+
+  return { set: row as DrawingSetRow, error: null };
+}
+
+/* ------------------------------------------------------------------
+   getDocumentVersionHistory - Get all versions of a document
+   ------------------------------------------------------------------ */
+
+export async function getDocumentVersionHistory(
+  supabase: SupabaseClient,
+  companyId: string,
+  docName: string,
+  projectId: string | null,
+  drawingSetId: string | null
+): Promise<DocumentRow[]> {
+  let query = supabase
+    .from("documents")
+    .select(
+      `
+      *,
+      uploader:user_profiles!documents_uploader_profile_fkey(full_name, email)
+    `
+    )
+    .eq("company_id", companyId)
+    .eq("name", docName)
+    .order("version", { ascending: false });
+
+  if (projectId) {
+    query = query.eq("project_id", projectId);
+  } else {
+    query = query.is("project_id", null);
+  }
+
+  if (drawingSetId) {
+    query = query.eq("drawing_set_id", drawingSetId);
+  } else {
+    query = query.is("drawing_set_id", null);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("getDocumentVersionHistory error:", error);
+    return [];
+  }
+
+  return (data ?? []) as DocumentRow[];
+}
+
+/* ------------------------------------------------------------------
+   getDocumentSignedUrl - Create a signed URL for file download/preview
+   ------------------------------------------------------------------ */
+
+export async function getDocumentSignedUrl(
+  supabase: SupabaseClient,
+  filePath: string
+): Promise<{ url: string | null; error: string | null }> {
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(filePath, 3600);
+
+  if (error) {
+    console.error("getDocumentSignedUrl error:", error);
+    return { url: null, error: error.message };
+  }
+
+  return { url: data.signedUrl, error: null };
 }
