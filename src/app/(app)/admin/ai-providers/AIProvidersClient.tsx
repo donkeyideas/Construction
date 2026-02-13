@@ -719,7 +719,13 @@ export default function AIProvidersClient({
                 <input
                   type="text"
                   className="provider-form-input"
-                  placeholder="e.g. gpt-4o, claude-sonnet-4-20250514"
+                  placeholder={
+                    formProvider === "deepseek"
+                      ? "e.g. deepseek-chat, deepseek-reasoner"
+                      : formProvider === "anthropic"
+                      ? "e.g. claude-sonnet-4-20250514"
+                      : "e.g. gpt-4o"
+                  }
                   value={formModelId}
                   onChange={(e) => setFormModelId(e.target.value)}
                   required
