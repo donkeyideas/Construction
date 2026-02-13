@@ -37,6 +37,9 @@
   --muted: #a8a29e;
   --border: #44403c;
   --scrollbar: #57534e;
+  --color-blue: #3b82f6;
+  --color-blue-light: rgba(59, 130, 246, 0.15);
+  --color-blue-dark: #2563eb;
 }
 
 html {

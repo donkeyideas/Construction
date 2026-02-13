@@ -38,37 +38,42 @@ export async function POST(request: Request) {
     const supabase = createAdminClient();
 
     // ============================================================
-    // 1. CREATE TEST USERS
+    // 1. CREATE OR REUSE TEST USERS
     // ============================================================
     const userIds: Record<string, string> = {};
 
+    // Fetch all existing auth users once (with high page size to avoid pagination issues)
+    const { data: allExistingUsers } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    const existingUserMap = new Map(
+      (allExistingUsers?.users ?? []).map((u) => [u.email, u])
+    );
+
     for (const user of TEST_USERS) {
-      // Delete existing user if present (for re-seeding)
-      const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      const existing = existingUsers?.users?.find((u) => u.email === user.email);
+      const existing = existingUserMap.get(user.email);
+
       if (existing) {
-        // Clean up old data linked to this user
-        await supabase.from("company_members").delete().eq("user_id", existing.id);
-        await supabase.from("user_profiles").delete().eq("id", existing.id);
-        await supabase.auth.admin.deleteUser(existing.id);
+        // Reuse existing auth user - just grab their ID
+        userIds[user.role] = existing.id;
+      } else {
+        // Create new auth user
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: user.email,
+          password: DEFAULT_PASSWORD,
+          email_confirm: true,
+          user_metadata: { full_name: user.full_name },
+        });
+
+        if (authError) {
+          console.error(`Failed to create user ${user.email}:`, authError.message);
+          return NextResponse.json({ error: `Failed to create user ${user.email}: ${authError.message}` }, { status: 500 });
+        }
+
+        userIds[user.role] = authData.user.id;
       }
 
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: user.email,
-        password: DEFAULT_PASSWORD,
-        email_confirm: true,
-        user_metadata: { full_name: user.full_name },
-      });
-
-      if (authError) {
-        console.error(`Failed to create user ${user.email}:`, authError.message);
-        return NextResponse.json({ error: `Failed to create user ${user.email}: ${authError.message}` }, { status: 500 });
-      }
-
-      userIds[user.role] = authData.user.id;
-
-      await supabase.from("user_profiles").insert({
-        id: authData.user.id,
+      // Upsert profile (works for both new and existing users)
+      await supabase.from("user_profiles").upsert({
+        id: userIds[user.role],
         email: user.email,
         full_name: user.full_name,
         phone: user.phone,
@@ -81,10 +86,40 @@ export async function POST(request: Request) {
     // 2. CREATE DEMO COMPANY
     // ============================================================
 
-    // Delete existing demo company
+    // Delete existing demo company and all related data
     const { data: existingCo } = await supabase.from("companies").select("id").eq("slug", "summit-builders").single();
     if (existingCo) {
-      await supabase.from("companies").delete().eq("id", existingCo.id);
+      const cid = existingCo.id;
+      // Clean up child tables that reference company_id (in case CASCADE is not set)
+      await Promise.all([
+        supabase.from("daily_logs").delete().eq("company_id", cid),
+        supabase.from("time_entries").delete().eq("company_id", cid),
+        supabase.from("change_orders").delete().eq("company_id", cid),
+        supabase.from("rfis").delete().eq("company_id", cid),
+        supabase.from("submittals").delete().eq("company_id", cid),
+        supabase.from("punch_list_items").delete().eq("company_id", cid),
+        supabase.from("safety_inspections").delete().eq("company_id", cid),
+        supabase.from("invoices").delete().eq("company_id", cid),
+        supabase.from("payments").delete().eq("company_id", cid),
+        supabase.from("bank_accounts").delete().eq("company_id", cid),
+        supabase.from("chart_of_accounts").delete().eq("company_id", cid),
+        supabase.from("documents").delete().eq("company_id", cid),
+        supabase.from("contacts").delete().eq("company_id", cid),
+        supabase.from("certifications").delete().eq("company_id", cid),
+        supabase.from("equipment").delete().eq("company_id", cid),
+        supabase.from("crm_opportunities").delete().eq("company_id", cid),
+        supabase.from("bids").delete().eq("company_id", cid),
+        supabase.from("notifications").delete().eq("company_id", cid),
+        supabase.from("audit_logs").delete().eq("company_id", cid),
+      ]);
+      // Delete projects, properties, units, leases, maintenance (which depend on projects/properties)
+      await supabase.from("property_units").delete().eq("company_id", cid);
+      await supabase.from("leases").delete().eq("company_id", cid);
+      await supabase.from("maintenance_requests").delete().eq("company_id", cid);
+      await supabase.from("projects").delete().eq("company_id", cid);
+      await supabase.from("properties").delete().eq("company_id", cid);
+      await supabase.from("company_members").delete().eq("company_id", cid);
+      await supabase.from("companies").delete().eq("id", cid);
     }
 
     const { data: companyData, error: companyError } = await supabase
