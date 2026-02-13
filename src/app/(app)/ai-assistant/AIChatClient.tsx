@@ -108,7 +108,7 @@ export function AIChatClient({
 
           {error && (
             <div className="ai-error">
-              Something went wrong. Please try again.
+              {error.message || "Something went wrong. Please try again."}
             </div>
           )}
 

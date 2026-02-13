@@ -56,7 +56,9 @@ The user's role is: ${userCompany.role}`;
   const modelMessages = await convertToModelMessages(messages);
 
   // Stream the response with tool definitions
-  const result = streamText({
+  let result;
+  try {
+  result = streamText({
     model,
     system: systemPrompt,
     messages: modelMessages,
@@ -238,6 +240,14 @@ The user's role is: ${userCompany.role}`;
       }),
     },
   });
+  } catch (err: unknown) {
+    console.error("AI chat streamText error:", err);
+    const msg = err instanceof Error ? err.message : "Unknown AI provider error";
+    return new Response(
+      JSON.stringify({ error: msg }),
+      { status: 502, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   return result.toUIMessageStreamResponse();
 }
