@@ -11,8 +11,11 @@ import {
   Edit3,
   Trash2,
   AlertTriangle,
+  Upload,
 } from "lucide-react";
 import type { BankAccountRow, BankingStats } from "@/lib/queries/banking";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -38,6 +41,19 @@ function accountTypeBadgeClass(type: string): string {
       return "banking-type-badge type-other";
   }
 }
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "name", label: "Account Name", required: true },
+  { key: "bank_name", label: "Bank Name", required: true },
+  { key: "account_type", label: "Account Type", required: false },
+  { key: "account_number_last4", label: "Last 4 of Acct #", required: false },
+  { key: "routing_number_last4", label: "Last 4 of Routing #", required: false },
+  { key: "current_balance", label: "Current Balance ($)", required: false, type: "number" },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { name: "Operating Account", bank_name: "Chase", account_type: "checking", account_number_last4: "4567", routing_number_last4: "1234", current_balance: "125000" },
+];
 
 // ---------------------------------------------------------------------------
 // Component
@@ -69,6 +85,9 @@ export default function BankingClient({
     current_balance: "",
   });
 
+  // Import modal state
+  const [showImport, setShowImport] = useState(false);
+
   // Detail / Edit / Delete modal
   const [selectedAccount, setSelectedAccount] = useState<BankAccountRow | null>(
     null
@@ -78,6 +97,19 @@ export default function BankingClient({
   const [editData, setEditData] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  // Import handler
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "bank_accounts", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
 
   // Create account handler
   async function handleCreate(e: React.FormEvent) {
@@ -275,6 +307,10 @@ export default function BankingClient({
             }
           >
             Reconciliation
+          </button>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
           </button>
           <button
             className="btn-primary"
@@ -885,6 +921,16 @@ export default function BankingClient({
             )}
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          entityName="Bank Accounts"
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );

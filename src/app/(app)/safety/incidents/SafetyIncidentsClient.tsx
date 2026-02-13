@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Edit3,
   Trash2,
+  Upload,
 } from "lucide-react";
 import type {
   SafetyIncidentRow,
@@ -21,6 +22,8 @@ import type {
   IncidentSeverity,
   IncidentType,
 } from "@/lib/queries/safety";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -48,6 +51,20 @@ const TYPE_LABELS: Record<IncidentType, string> = {
   fatality: "Fatality",
   property_damage: "Property Damage",
 };
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "title", label: "Title", required: true },
+  { key: "description", label: "Description", required: false },
+  { key: "incident_type", label: "Incident Type", required: false },
+  { key: "severity", label: "Severity", required: false },
+  { key: "incident_date", label: "Incident Date", required: false, type: "date" },
+  { key: "location", label: "Location", required: false },
+  { key: "osha_recordable", label: "OSHA Recordable", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { title: "Slip and fall near excavation", description: "Worker slipped on wet surface near trench", incident_type: "near_miss", severity: "low", incident_date: "2026-01-20", location: "Building A excavation", osha_recordable: "false" },
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -121,6 +138,9 @@ export default function SafetyIncidentsClient({
     location: "",
     osha_recordable: false,
   });
+
+  // Import modal
+  const [showImport, setShowImport] = useState(false);
 
   // Detail / Edit / Delete modal state
   const [selectedIncident, setSelectedIncident] = useState<SafetyIncidentRow | null>(null);
@@ -342,6 +362,19 @@ export default function SafetyIncidentsClient({
     }
   }
 
+  // Import handler
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "safety_incidents", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   return (
     <div className="safety-page">
       {/* Header */}
@@ -352,10 +385,16 @@ export default function SafetyIncidentsClient({
             {stats.total} incident{stats.total !== 1 ? "s" : ""} total
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          Report Incident
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            Report Incident
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -1158,6 +1197,16 @@ export default function SafetyIncidentsClient({
             )}
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Safety Incident"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => { setShowImport(false); router.refresh(); }}
+        />
       )}
     </div>
   );

@@ -11,8 +11,11 @@ import {
   DollarSign,
   Plus,
   X,
+  Upload,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -111,6 +114,18 @@ function buildUrl(status?: string): string {
   return `/projects/change-orders?status=${status}`;
 }
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "title", label: "Title", required: true },
+  { key: "description", label: "Description", required: false },
+  { key: "reason", label: "Reason", required: false },
+  { key: "amount", label: "Amount ($)", required: false, type: "number" },
+  { key: "schedule_impact_days", label: "Schedule Impact (days)", required: false, type: "number" },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { title: "Additional electrical outlets", description: "Owner requested 12 additional outlets in suite 200", reason: "owner_request", amount: "4500", schedule_impact_days: "3" },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -137,6 +152,8 @@ export default function ChangeOrdersClient({
     schedule_impact_days: "",
   });
 
+  const [showImport, setShowImport] = useState(false);
+
   // Detail / Edit / Delete modal state
   const [selectedCo, setSelectedCo] = useState<ChangeOrder | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -144,6 +161,18 @@ export default function ChangeOrdersClient({
   const [editData, setEditData] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "change_orders", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
 
   // ------- Handlers -------
 
@@ -304,10 +333,16 @@ export default function ChangeOrdersClient({
             Track scope changes, cost impact, and schedule adjustments
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          New Change Order
-        </button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            New Change Order
+          </button>
+        </div>
       </div>
 
       {/* KPI Row */}
@@ -1032,6 +1067,16 @@ export default function ChangeOrdersClient({
             )}
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Change Orders"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );

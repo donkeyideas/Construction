@@ -12,8 +12,24 @@ import {
   XCircle,
   Edit3,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "cert_name", label: "Certification Name", required: true },
+  { key: "cert_type", label: "Type", required: false },
+  { key: "issuing_authority", label: "Issuing Authority", required: false },
+  { key: "cert_number", label: "Certificate Number", required: false },
+  { key: "issued_date", label: "Issue Date", required: false, type: "date" },
+  { key: "expiry_date", label: "Expiry Date", required: false, type: "date" },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { cert_name: "OSHA 30-Hour", cert_type: "safety", issuing_authority: "OSHA", cert_number: "OSH-2026-001", issued_date: "2025-06-15", expiry_date: "2028-06-15" },
+];
 
 type CertStatus = "valid" | "expiring_soon" | "expired";
 
@@ -64,6 +80,7 @@ export default function CertificationsClient({
   const [createError, setCreateError] = useState("");
   const [contacts, setContacts] = useState<ContactOption[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   // Detail/Edit/Delete modal state
   const [selectedCert, setSelectedCert] = useState<CertWithStatus | null>(null);
@@ -323,6 +340,18 @@ export default function CertificationsClient({
     { label: "Expired", value: "expired" },
   ];
 
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "certifications", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   const personName = selectedCert?.contacts
     ? `${selectedCert.contacts.first_name ?? ""} ${selectedCert.contacts.last_name ?? ""}`.trim()
     : "--";
@@ -337,10 +366,16 @@ export default function CertificationsClient({
             Track worker certifications, licenses, and expiration dates
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          Add Certification
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            Add Certification
+          </button>
+        </div>
       </div>
 
       {/* KPI Row */}
@@ -684,6 +719,16 @@ export default function CertificationsClient({
       )}
 
       {/* Detail/Edit/Delete Modal */}
+      {showImport && (
+        <ImportModal
+          entityName="Certifications"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => { setShowImport(false); router.refresh(); }}
+        />
+      )}
+
       {selectedCert && (
         <div className="ticket-modal-overlay" onClick={closeModal}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>

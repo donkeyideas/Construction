@@ -2,8 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "entry_date", label: "Date", required: true, type: "date" },
+  { key: "hours", label: "Hours", required: true, type: "number" },
+  { key: "overtime_hours", label: "Overtime Hours", required: false, type: "number" },
+  { key: "description", label: "Description", required: false },
+  { key: "cost_code", label: "Cost Code", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { entry_date: "2026-01-15", hours: "8", overtime_hours: "2", description: "Foundation work", cost_code: "03-100" },
+];
 
 interface ProjectOption {
   id: string;
@@ -18,6 +32,7 @@ export default function TimeClient() {
   const [createError, setCreateError] = useState("");
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -93,15 +108,36 @@ export default function TimeClient() {
     }
   }
 
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "time_entries", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   return (
     <>
-      <button
-        className="btn-primary"
-        onClick={() => setShowCreate(true)}
-      >
-        <Plus size={16} />
-        New Time Entry
-      </button>
+      <div style={{ display: "flex", gap: "0.5rem" }}>
+        <button
+          className="btn-secondary"
+          onClick={() => setShowImport(true)}
+        >
+          <Upload size={16} />
+          Import CSV
+        </button>
+        <button
+          className="btn-primary"
+          onClick={() => setShowCreate(true)}
+        >
+          <Plus size={16} />
+          New Time Entry
+        </button>
+      </div>
 
       {/* Create Time Entry Modal */}
       {showCreate && (
@@ -235,6 +271,16 @@ export default function TimeClient() {
             </form>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Time Entries"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => { setShowImport(false); router.refresh(); }}
+        />
       )}
     </>
   );

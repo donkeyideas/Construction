@@ -1,6 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Upload, Plus } from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "company_name", label: "Company Name", required: true },
+  { key: "first_name", label: "Contact First Name", required: false },
+  { key: "last_name", label: "Contact Last Name", required: false },
+  { key: "email", label: "Email", required: false, type: "email" },
+  { key: "phone", label: "Phone", required: false },
+  { key: "job_title", label: "Job Title", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { company_name: "ABC Supply Co", first_name: "Mike", last_name: "Johnson", email: "mike@abcsupply.com", phone: "555-0200", job_title: "Sales Manager" },
+];
 
 interface Contact {
   id: string;
@@ -32,7 +49,21 @@ export default function VendorsClient({
   contacts: Contact[];
   contracts: VendorContract[];
 }) {
+  const router = useRouter();
   const [tab, setTab] = useState<"directory" | "contracts">("directory");
+  const [showImport, setShowImport] = useState(false);
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "vendors", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", {
@@ -50,6 +81,12 @@ export default function VendorsClient({
             {contacts.length} vendor{contacts.length !== 1 ? "s" : ""} &middot;{" "}
             {contracts.length} contract{contracts.length !== 1 ? "s" : ""}
           </p>
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
         </div>
       </div>
 
@@ -201,6 +238,16 @@ export default function VendorsClient({
             </tbody>
           </table>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Vendors"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );

@@ -13,6 +13,7 @@ import {
   Search,
   Edit3,
   Trash2,
+  Upload,
 } from "lucide-react";
 import type {
   MaintenanceLogRow,
@@ -20,6 +21,8 @@ import type {
   MaintenanceType,
   MaintenanceStatus,
 } from "@/lib/queries/equipment";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -38,6 +41,21 @@ const MAINTENANCE_STATUS_LABELS: Record<MaintenanceStatus, string> = {
   completed: "Completed",
   cancelled: "Cancelled",
 };
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "title", label: "Title", required: true },
+  { key: "maintenance_type", label: "Type", required: false },
+  { key: "description", label: "Description", required: false },
+  { key: "maintenance_date", label: "Date", required: false, type: "date" },
+  { key: "cost", label: "Cost ($)", required: false, type: "number" },
+  { key: "performed_by", label: "Performed By", required: false },
+  { key: "vendor_name", label: "Vendor", required: false },
+  { key: "next_due_date", label: "Next Due Date", required: false, type: "date" },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { title: "Oil change - CAT 320", maintenance_type: "preventive", description: "Regular oil and filter change", maintenance_date: "2026-01-10", cost: "450", performed_by: "Fleet mechanic", vendor_name: "", next_due_date: "2026-04-10" },
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -110,6 +128,9 @@ export default function EquipmentMaintenanceClient({
     status: "scheduled",
     next_due_date: "",
   });
+
+  // Import modal state
+  const [showImport, setShowImport] = useState(false);
 
   // Detail / Edit / Delete modal state
   const [selectedLog, setSelectedLog] = useState<MaintenanceLogRow | null>(null);
@@ -193,6 +214,19 @@ export default function EquipmentMaintenanceClient({
     } finally {
       setCreating(false);
     }
+  }
+
+  // Import handler
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "equipment_maintenance", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
   }
 
   // Open detail modal
@@ -328,10 +362,16 @@ export default function EquipmentMaintenanceClient({
             {logs.length} maintenance record{logs.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          New Maintenance Log
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            New Maintenance Log
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -1156,6 +1196,16 @@ export default function EquipmentMaintenanceClient({
             )}
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          entityName="Equipment Maintenance"
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );

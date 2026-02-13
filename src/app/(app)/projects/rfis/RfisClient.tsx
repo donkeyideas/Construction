@@ -14,8 +14,11 @@ import {
   X,
   Pencil,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -117,6 +120,17 @@ function formatDate(dateStr: string): string {
   });
 }
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "subject", label: "Subject", required: true },
+  { key: "question", label: "Question", required: true },
+  { key: "priority", label: "Priority", required: false },
+  { key: "due_date", label: "Due Date", required: false, type: "date" },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { subject: "Footing depth clarification", question: "What is the required depth for the north footing?", priority: "high", due_date: "2026-02-01" },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -145,6 +159,8 @@ export default function RfisClient({
     assigned_to: "",
   });
 
+  const [showImport, setShowImport] = useState(false);
+
   // Detail / Edit / Delete modal state
   const [selectedRfi, setSelectedRfi] = useState<Rfi | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -170,6 +186,18 @@ export default function RfisClient({
   function isOverdue(dueDate: string | null): boolean {
     if (!dueDate) return false;
     return new Date(dueDate) < now;
+  }
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "rfis", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
   }
 
   // ---- Create handler ----
@@ -348,10 +376,16 @@ export default function RfisClient({
             Create, track, and respond to RFIs across all projects
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          New RFI
-        </button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            New RFI
+          </button>
+        </div>
       </div>
 
       {/* KPI Row */}
@@ -1354,6 +1388,16 @@ export default function RfisClient({
             )}
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="RFIs"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );

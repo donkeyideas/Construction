@@ -9,12 +9,15 @@ import {
   ClipboardList,
   Edit3,
   Trash2,
+  Upload,
 } from "lucide-react";
 import type {
   ToolboxTalkRow,
   CompanyMember,
   ToolboxTalkStatus,
 } from "@/lib/queries/safety";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -25,6 +28,19 @@ const STATUS_LABELS: Record<ToolboxTalkStatus, string> = {
   completed: "Completed",
   cancelled: "Cancelled",
 };
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "title", label: "Title", required: true },
+  { key: "description", label: "Description", required: false },
+  { key: "topic", label: "Topic", required: false },
+  { key: "scheduled_date", label: "Scheduled Date", required: false, type: "date" },
+  { key: "attendees_count", label: "Attendees Count", required: false, type: "number" },
+  { key: "notes", label: "Notes", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { title: "Fall Protection Training", description: "Review fall protection procedures", topic: "Fall Protection", scheduled_date: "2026-01-25", attendees_count: "15", notes: "All crew members must attend" },
+];
 
 const TOPICS = [
   "Fall Protection",
@@ -113,6 +129,9 @@ export default function ToolboxTalksClient({
     attendees: "",
     notes: "",
   });
+
+  // Import modal
+  const [showImport, setShowImport] = useState(false);
 
   // Detail / Edit / Delete modal state
   const [selectedTalk, setSelectedTalk] = useState<ToolboxTalkRow | null>(null);
@@ -331,6 +350,19 @@ export default function ToolboxTalksClient({
     }
   }
 
+  // Import handler
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "toolbox_talks", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   return (
     <div className="safety-page">
       {/* Header */}
@@ -341,10 +373,16 @@ export default function ToolboxTalksClient({
             {talks.length} talk{talks.length !== 1 ? "s" : ""} total
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          New Toolbox Talk
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            New Toolbox Talk
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -1023,6 +1061,16 @@ export default function ToolboxTalksClient({
             )}
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Toolbox Talk"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => { setShowImport(false); router.refresh(); }}
+        />
       )}
     </div>
   );

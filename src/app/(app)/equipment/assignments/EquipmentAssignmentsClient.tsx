@@ -11,6 +11,7 @@ import {
   Clock,
   RotateCcw,
   Trash2,
+  Upload,
 } from "lucide-react";
 import type {
   EquipmentAssignmentRow,
@@ -18,6 +19,8 @@ import type {
   AssignmentStatus,
 } from "@/lib/queries/equipment";
 import type { CompanyMember } from "@/lib/queries/tickets";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -27,6 +30,19 @@ const ASSIGNMENT_STATUS_LABELS: Record<string, string> = {
   active: "Active",
   returned: "Returned",
 };
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "equipment_id", label: "Equipment ID", required: false },
+  { key: "project_id", label: "Project ID", required: false },
+  { key: "assigned_to", label: "Assigned To", required: false },
+  { key: "assigned_date", label: "Assigned Date", required: false, type: "date" },
+  { key: "return_date", label: "Return Date", required: false, type: "date" },
+  { key: "notes", label: "Notes", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { equipment_id: "", project_id: "", assigned_to: "", assigned_date: "2026-01-15", return_date: "2026-03-15", notes: "Needed for excavation phase" },
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -86,6 +102,9 @@ export default function EquipmentAssignmentsClient({
     assigned_to: "",
     notes: "",
   });
+
+  // Import modal state
+  const [showImport, setShowImport] = useState(false);
 
   // Return / delete state
   const [returning, setReturning] = useState<string | null>(null);
@@ -158,6 +177,19 @@ export default function EquipmentAssignmentsClient({
     }
   }
 
+  // Import handler
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "equipment_assignments", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   // Return equipment handler
   async function handleReturn(assignmentId: string) {
     setReturning(assignmentId);
@@ -214,10 +246,16 @@ export default function EquipmentAssignmentsClient({
             {activeCount} active, {returnedCount} returned
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          Assign Equipment
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            Assign Equipment
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -509,6 +547,16 @@ export default function EquipmentAssignmentsClient({
             </form>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          entityName="Equipment Assignments"
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );

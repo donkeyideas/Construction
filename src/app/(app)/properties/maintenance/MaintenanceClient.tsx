@@ -11,8 +11,11 @@ import {
   X,
   Pencil,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -162,6 +165,19 @@ const statusOptions = [
   { label: "Closed", value: "closed" },
 ];
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "title", label: "Title", required: true },
+  { key: "description", label: "Description", required: false },
+  { key: "priority", label: "Priority", required: false },
+  { key: "category", label: "Category", required: false },
+  { key: "scheduled_date", label: "Scheduled Date", required: false, type: "date" },
+  { key: "estimated_cost", label: "Estimated Cost ($)", required: false, type: "number" },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { title: "HVAC filter replacement", description: "Replace all HVAC filters in Building A", priority: "medium", category: "HVAC", scheduled_date: "2026-02-15", estimated_cost: "350" },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -209,6 +225,9 @@ export default function MaintenanceClient({
     scheduled_date: "",
     notes: "",
   });
+
+  // Import modal
+  const [showImport, setShowImport] = useState(false);
 
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<MaintenanceRequest | null>(
@@ -397,6 +416,22 @@ export default function MaintenanceClient({
   }
 
   // ---------------------------------------------------------------------------
+  // Import handler
+  // ---------------------------------------------------------------------------
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "maintenance", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
+  // ---------------------------------------------------------------------------
   // Helper: find member display name
   // ---------------------------------------------------------------------------
 
@@ -421,10 +456,16 @@ export default function MaintenanceClient({
             Track work orders, preventive maintenance, and repair requests
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          New Request
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            New Request
+          </button>
+        </div>
       </div>
 
       {/* KPI Row */}
@@ -1282,6 +1323,16 @@ export default function MaintenanceClient({
             </div>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Maintenance Request"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => { setShowImport(false); router.refresh(); }}
+        />
       )}
     </div>
   );

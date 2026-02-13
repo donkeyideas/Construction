@@ -12,8 +12,11 @@ import {
   X,
   Pencil,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -77,12 +80,28 @@ function getStatusBadge(status: string): string {
   }
 }
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "tenant_name", label: "Tenant Name", required: true },
+  { key: "tenant_email", label: "Tenant Email", required: false, type: "email" },
+  { key: "tenant_phone", label: "Tenant Phone", required: false },
+  { key: "monthly_rent", label: "Monthly Rent ($)", required: false, type: "number" },
+  { key: "security_deposit", label: "Security Deposit ($)", required: false, type: "number" },
+  { key: "lease_start", label: "Lease Start", required: false, type: "date" },
+  { key: "lease_end", label: "Lease End", required: false, type: "date" },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { tenant_name: "John Smith", tenant_email: "john@example.com", tenant_phone: "555-0100", monthly_rent: "2500", security_deposit: "5000", lease_start: "2026-01-01", lease_end: "2027-01-01" },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export default function LeasesClient({ leases, properties, units }: LeasesClientProps) {
   const router = useRouter();
+
+  const [showImport, setShowImport] = useState(false);
 
   // ---- State ----
   const [statusFilter, setStatusFilter] = useState("all");
@@ -167,6 +186,18 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
     if (end <= in30Days) return "invoice-row-overdue";
     if (end <= in60Days) return "invoice-row-warning";
     return "";
+  }
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "leases", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
   }
 
   // ---- Create handlers ----
@@ -335,10 +366,16 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
             Track leases, renewals, rent schedules, and tenant information
           </p>
         </div>
-        <button className="btn-primary" onClick={openCreate}>
-          <Plus size={16} />
-          New Lease
-        </button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={openCreate}>
+            <Plus size={16} />
+            New Lease
+          </button>
+        </div>
       </div>
 
       {/* KPI Row */}
@@ -923,6 +960,16 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
             )}
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Leases"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );

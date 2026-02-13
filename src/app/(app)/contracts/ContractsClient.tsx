@@ -12,7 +12,10 @@ import {
   AlertCircle,
   Edit3,
   Trash2,
+  Upload,
 } from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type {
   ContractRow,
   ContractStats,
@@ -76,6 +79,21 @@ function formatCurrency(amount: number | null) {
   }).format(amount);
 }
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "title", label: "Title", required: true },
+  { key: "contract_type", label: "Type", required: false },
+  { key: "party_name", label: "Party Name", required: false },
+  { key: "party_email", label: "Party Email", required: false, type: "email" },
+  { key: "contract_amount", label: "Amount ($)", required: false, type: "number" },
+  { key: "start_date", label: "Start Date", required: false, type: "date" },
+  { key: "end_date", label: "End Date", required: false, type: "date" },
+  { key: "payment_terms", label: "Payment Terms", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { title: "Concrete subcontract", contract_type: "subcontractor", party_name: "ABC Concrete", party_email: "info@abcconcrete.com", contract_amount: "250000", start_date: "2026-01-01", end_date: "2026-06-30", payment_terms: "net_30" },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -101,6 +119,8 @@ export default function ContractsClient({
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<ContractType | "all">("all");
   const [search, setSearch] = useState("");
+
+  const [showImport, setShowImport] = useState(false);
 
   // Create modal state
   const [showCreate, setShowCreate] = useState(false);
@@ -152,6 +172,18 @@ export default function ContractsClient({
 
     return result;
   }, [contracts, statusFilter, typeFilter, search]);
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "contracts", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
 
   // Create contract handler
   async function handleCreate(e: React.FormEvent) {
@@ -356,10 +388,16 @@ export default function ContractsClient({
             {stats.total} contract{stats.total !== 1 ? "s" : ""} total
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          New Contract
-        </button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            New Contract
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -1187,6 +1225,16 @@ export default function ContractsClient({
             )}
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Contracts"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FileText, Plus, AlertTriangle, X, Edit3, Trash2 } from "lucide-react";
+import { FileText, Plus, AlertTriangle, X, Edit3, Trash2, Upload } from "lucide-react";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 export type BidStatus =
   | "in_progress"
@@ -41,6 +43,19 @@ const STATUS_LABELS: Record<BidStatus, string> = {
   no_bid: "No Bid",
 };
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "project_name", label: "Project Name", required: true },
+  { key: "client_name", label: "Client Name", required: false },
+  { key: "bid_amount", label: "Bid Amount ($)", required: false, type: "number" },
+  { key: "due_date", label: "Due Date", required: false, type: "date" },
+  { key: "bid_type", label: "Bid Type", required: false },
+  { key: "notes", label: "Notes", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { project_name: "Downtown Office Renovation", client_name: "Metro Corp", bid_amount: "1500000", due_date: "2026-02-28", bid_type: "competitive", notes: "Pre-qualified, strong relationship" },
+];
+
 export default function BidsClient({
   bids,
   statusFilter,
@@ -52,6 +67,7 @@ export default function BidsClient({
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Bid>>({});
+  const [showImport, setShowImport] = useState(false);
 
   const now = new Date();
   const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -142,6 +158,18 @@ export default function BidsClient({
     }
   }
 
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "bids", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   const isEmpty = bids.length === 0;
 
   return (
@@ -158,6 +186,10 @@ export default function BidsClient({
           <Link href="/crm" className="ui-btn ui-btn-md ui-btn-secondary">
             Pipeline
           </Link>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
           <Link
             href="/crm/bids/new"
             className="ui-btn ui-btn-md ui-btn-primary"
@@ -352,6 +384,16 @@ export default function BidsClient({
             </table>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Bids"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => { setShowImport(false); router.refresh(); }}
+        />
       )}
 
       {/* Detail/Edit Modal */}

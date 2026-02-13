@@ -1,14 +1,36 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Search,
   LayoutGrid,
   List,
   HardHat,
+  Upload,
+  Plus,
 } from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type { ProjectRow } from "@/lib/queries/projects";
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "name", label: "Project Name", required: true },
+  { key: "code", label: "Project Code", required: false },
+  { key: "status", label: "Status", required: false },
+  { key: "project_type", label: "Project Type", required: false },
+  { key: "address", label: "Address", required: false },
+  { key: "city", label: "City", required: false },
+  { key: "state", label: "State", required: false },
+  { key: "budget", label: "Budget ($)", required: false, type: "number" },
+  { key: "start_date", label: "Start Date", required: false, type: "date" },
+  { key: "end_date", label: "End Date", required: false, type: "date" },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { name: "Downtown Office Tower", code: "DOT-001", status: "active", project_type: "commercial", address: "123 Main St", city: "Dallas", state: "TX", budget: "5000000", start_date: "2026-01-01", end_date: "2027-06-30" },
+];
 
 const STATUS_LABELS: Record<string, string> = {
   all: "All",
@@ -52,9 +74,23 @@ interface ProjectListClientProps {
 }
 
 export default function ProjectListClient({ projects }: ProjectListClientProps) {
+  const router = useRouter();
   const [view, setView] = useState<"card" | "list">("card");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [showImport, setShowImport] = useState(false);
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "projects", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
 
   const filtered = useMemo(() => {
     let result = projects;
@@ -77,6 +113,26 @@ export default function ProjectListClient({ projects }: ProjectListClientProps) 
 
   return (
     <>
+      {/* Header */}
+      <div className="projects-header">
+        <div>
+          <h2>Projects</h2>
+          <p className="projects-header-sub">
+            {projects.length} project{projects.length !== 1 ? "s" : ""} in your portfolio
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <Link href="/projects/new" className="btn-primary">
+            <Plus size={16} />
+            New Project
+          </Link>
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="projects-filters">
         <div className="projects-search">
@@ -251,6 +307,16 @@ export default function ProjectListClient({ projects }: ProjectListClientProps) 
             </tbody>
           </table>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Projects"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </>
   );

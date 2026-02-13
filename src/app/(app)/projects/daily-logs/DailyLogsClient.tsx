@@ -22,7 +22,10 @@ import {
   X,
   Edit3,
   Trash2,
+  Upload,
 } from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -132,6 +135,19 @@ function getTodayString(): string {
   return d.toISOString().split("T")[0];
 }
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "log_date", label: "Log Date", required: true, type: "date" },
+  { key: "weather_conditions", label: "Weather", required: false },
+  { key: "temperature", label: "Temperature (F)", required: false, type: "number" },
+  { key: "work_performed", label: "Work Performed", required: false },
+  { key: "safety_incidents", label: "Safety Incidents", required: false },
+  { key: "delays", label: "Delays", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { log_date: "2026-01-15", weather_conditions: "sunny", temperature: "72", work_performed: "Foundation pour - Phase 1", safety_incidents: "", delays: "" },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -160,6 +176,8 @@ export default function DailyLogsClient({
     delays: "",
   });
 
+  const [showImport, setShowImport] = useState(false);
+
   // Detail/Edit/Delete modal state
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -167,6 +185,18 @@ export default function DailyLogsClient({
   const [editData, setEditData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "daily_logs", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -329,10 +359,16 @@ export default function DailyLogsClient({
             tracking
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          New Daily Log
-        </button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            New Daily Log
+          </button>
+        </div>
       </div>
 
       {/* KPI Row */}
@@ -1338,6 +1374,16 @@ export default function DailyLogsClient({
             </form>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Daily Logs"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );

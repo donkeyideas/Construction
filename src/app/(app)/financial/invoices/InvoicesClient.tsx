@@ -10,8 +10,24 @@ import {
   X,
   Edit3,
   Trash2,
+  Upload,
 } from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 import { formatCurrency } from "@/lib/utils/format";
+
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "invoice_type", label: "Type (receivable/payable)", required: false },
+  { key: "amount", label: "Amount ($)", required: true, type: "number" },
+  { key: "tax_amount", label: "Tax ($)", required: false, type: "number" },
+  { key: "due_date", label: "Due Date", required: false, type: "date" },
+  { key: "description", label: "Description", required: false },
+  { key: "status", label: "Status", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { invoice_type: "receivable", amount: "75000", tax_amount: "0", due_date: "2026-02-28", description: "Progress payment - Phase 1", status: "draft" },
+];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -97,6 +113,19 @@ export default function InvoicesClient({
   const [editData, setEditData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [showImport, setShowImport] = useState(false);
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "invoices", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
 
   function openDetail(inv: InvoiceRow) {
     setSelectedInv(inv);
@@ -202,7 +231,11 @@ export default function InvoicesClient({
             Manage your accounts payable and receivable.
           </p>
         </div>
-        <div className="fin-header-actions">
+        <div className="fin-header-actions" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
           <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
             <Plus size={16} />
             New Invoice
@@ -341,6 +374,16 @@ export default function InvoicesClient({
       )}
 
       {/* Detail / Edit / Delete Modal */}
+      {showImport && (
+        <ImportModal
+          entityName="Invoices"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
+      )}
+
       {selectedInv && (
         <div className="ticket-modal-overlay" onClick={closeDetail}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>

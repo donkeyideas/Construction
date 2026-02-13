@@ -13,6 +13,7 @@ import {
   X,
   Edit3,
   Trash2,
+  Upload,
 } from "lucide-react";
 import {
   formatCurrency,
@@ -20,6 +21,8 @@ import {
   formatPercent,
 } from "@/lib/utils/format";
 import type { OpportunityStage } from "@/lib/queries/crm";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -96,6 +99,20 @@ const SOURCES = [
   { value: "other", label: "Other" },
 ];
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "name", label: "Opportunity Name", required: true },
+  { key: "client_name", label: "Client Name", required: false },
+  { key: "stage", label: "Stage", required: false },
+  { key: "estimated_value", label: "Estimated Value ($)", required: false, type: "number" },
+  { key: "probability_pct", label: "Probability (%)", required: false, type: "number" },
+  { key: "expected_close_date", label: "Expected Close Date", required: false, type: "date" },
+  { key: "source", label: "Source", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { name: "Office Tower Renovation", client_name: "Skyline Properties", stage: "proposal", estimated_value: "2500000", probability_pct: "60", expected_close_date: "2026-03-15", source: "referral" },
+];
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -105,6 +122,8 @@ export default function CRMPipelineClient({
   summary,
 }: CRMPipelineClientProps) {
   const router = useRouter();
+
+  const [showImport, setShowImport] = useState(false);
 
   // Create modal
   const [showCreate, setShowCreate] = useState(false);
@@ -338,6 +357,22 @@ export default function CRMPipelineClient({
   }
 
   // ---------------------------------------------------------------------------
+  // Import handler
+  // ---------------------------------------------------------------------------
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "opportunities", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
+  // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
 
@@ -352,6 +387,10 @@ export default function CRMPipelineClient({
           </p>
         </div>
         <div className="crm-header-actions">
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
             New Opportunity
@@ -909,6 +948,16 @@ export default function CRMPipelineClient({
             </form>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Opportunities"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => { setShowImport(false); router.refresh(); }}
+        />
       )}
 
       {/* Delete Modal */}
