@@ -6,6 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById } from "@/lib/queries/financial";
 import { formatCurrency } from "@/lib/utils/format";
 import type { LineItem, PaymentRow } from "@/lib/queries/financial";
+import RecordPaymentButton from "./RecordPaymentButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -114,6 +115,11 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           </p>
         </div>
         <div className="fin-header-actions">
+          <RecordPaymentButton
+            invoiceId={id}
+            balanceDue={Number(invoice.balance_due) || 0}
+            invoiceType={invoice.invoice_type}
+          />
           <button className="ui-btn ui-btn-outline ui-btn-md" type="button">
             <Printer size={16} />
             Print

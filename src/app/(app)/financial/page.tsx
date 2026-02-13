@@ -9,6 +9,10 @@ import {
   Landmark,
   FileText,
   BarChart3,
+  BookOpen,
+  PieChart,
+  Scale,
+  Activity,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
@@ -17,6 +21,7 @@ import {
   getRecentInvoices,
   getAgingBuckets,
   getMonthlyIncomeExpenses,
+  getFinancialKPIs,
 } from "@/lib/queries/financial";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 
@@ -46,12 +51,41 @@ export default async function FinancialDashboardPage() {
     );
   }
 
-  const [overview, recentInvoices, aging, monthlyData] = await Promise.all([
+  const [overview, recentInvoices, aging, monthlyData, kpis] = await Promise.all([
     getFinancialOverview(supabase, userCompany.companyId),
     getRecentInvoices(supabase, userCompany.companyId, 10),
     getAgingBuckets(supabase, userCompany.companyId),
     getMonthlyIncomeExpenses(supabase, userCompany.companyId),
+    getFinancialKPIs(supabase, userCompany.companyId),
   ]);
+
+  // Calculate Financial Health Score (0-100)
+  let healthScore = 50; // baseline
+  let healthFactors: string[] = [];
+
+  if (kpis.currentRatio !== null) {
+    if (kpis.currentRatio >= 1.5) { healthScore += 10; healthFactors.push("Strong liquidity"); }
+    else if (kpis.currentRatio >= 1.0) { healthScore += 5; }
+    else { healthScore -= 10; healthFactors.push("Low liquidity"); }
+  }
+  if (kpis.grossMargin !== null) {
+    if (kpis.grossMargin >= 20) { healthScore += 10; healthFactors.push("Healthy margins"); }
+    else if (kpis.grossMargin >= 10) { healthScore += 5; }
+    else { healthScore -= 5; }
+  }
+  if (kpis.netProfitMargin !== null && kpis.netProfitMargin > 0) {
+    healthScore += 10; healthFactors.push("Profitable");
+  }
+  if (kpis.debtToEquity !== null && kpis.debtToEquity < 2) {
+    healthScore += 10; healthFactors.push("Manageable debt");
+  }
+  if (overview.cashPosition > 0) {
+    healthScore += 10; healthFactors.push("Positive cash");
+  }
+
+  healthScore = Math.max(0, Math.min(100, healthScore));
+  const healthColor = healthScore >= 70 ? "var(--color-green)" : healthScore >= 40 ? "var(--color-amber)" : "var(--color-red)";
+  const healthLabel = healthScore >= 70 ? "Good" : healthScore >= 40 ? "Fair" : "Needs Attention";
 
   const maxAgingTotal = Math.max(
     ...aging.map((b) => b.arAmount + b.apAmount),
@@ -79,6 +113,36 @@ export default async function FinancialDashboardPage() {
             New Invoice
           </Link>
         </div>
+      </div>
+
+      {/* Financial Health Score */}
+      <div className="fin-chart-card" style={{ marginBottom: "20px", padding: "16px 20px", display: "flex", alignItems: "center", gap: "20px" }}>
+        <div style={{
+          width: "56px", height: "56px", borderRadius: "50%",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: "1.2rem", fontWeight: 700, color: "#fff",
+          background: healthColor, flexShrink: 0,
+        }}>
+          {healthScore}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
+            Financial Health Score
+            <span style={{
+              fontSize: "0.72rem", padding: "2px 8px", borderRadius: "4px",
+              background: healthColor, color: "#fff", fontWeight: 600,
+            }}>
+              {healthLabel}
+            </span>
+          </div>
+          <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+            {healthFactors.length > 0 ? healthFactors.join(" · ") : "Add financial data to calculate your health score"}
+          </div>
+        </div>
+        <Link href="/financial/kpi" className="ui-btn ui-btn-outline ui-btn-sm">
+          <PieChart size={14} />
+          View All KPIs
+        </Link>
       </div>
 
       {/* KPI Row */}
@@ -383,15 +447,23 @@ export default async function FinancialDashboardPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <Link href="/financial/invoices" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
                 <FileText size={14} />
-                View All Invoices
+                Invoices
               </Link>
-              <Link href="/financial/accounts" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
-                <Landmark size={14} />
-                Chart of Accounts
+              <Link href="/financial/general-ledger" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
+                <BookOpen size={14} />
+                General Ledger
               </Link>
-              <Link href="/financial/job-costing" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
-                <BarChart3 size={14} />
-                Job Costing
+              <Link href="/financial/income-statement" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
+                <TrendingUp size={14} />
+                Income Statement
+              </Link>
+              <Link href="/financial/balance-sheet" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
+                <Scale size={14} />
+                Balance Sheet
+              </Link>
+              <Link href="/financial/kpi" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
+                <Activity size={14} />
+                KPI Dashboard
               </Link>
             </div>
           </div>

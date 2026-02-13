@@ -1,14 +1,14 @@
-import { Landmark } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getChartOfAccounts } from "@/lib/queries/financial";
-import AccountsClient from "./AccountsClient";
+import { getFinancialKPIs } from "@/lib/queries/financial";
+import KPIDashboardClient from "./KPIDashboardClient";
 
 export const metadata = {
-  title: "Chart of Accounts - ConstructionERP",
+  title: "Financial KPIs - ConstructionERP",
 };
 
-export default async function ChartOfAccountsPage() {
+export default async function KPIDashboardPage() {
   let supabase;
   try {
     supabase = await createClient();
@@ -16,7 +16,7 @@ export default async function ChartOfAccountsPage() {
     return (
       <div className="fin-empty">
         <div className="fin-empty-icon">
-          <Landmark size={48} />
+          <BarChart3 size={48} />
         </div>
         <div className="fin-empty-title">Connection Error</div>
         <div className="fin-empty-desc">
@@ -32,17 +32,17 @@ export default async function ChartOfAccountsPage() {
     return (
       <div className="fin-empty">
         <div className="fin-empty-icon">
-          <Landmark size={48} />
+          <BarChart3 size={48} />
         </div>
         <div className="fin-empty-title">No Company Found</div>
         <div className="fin-empty-desc">
-          Complete your company registration to set up your chart of accounts.
+          Complete your company registration to view financial KPIs.
         </div>
       </div>
     );
   }
 
-  const accounts = await getChartOfAccounts(supabase, userCompany.companyId);
+  const kpis = await getFinancialKPIs(supabase, userCompany.companyId);
 
-  return <AccountsClient accounts={accounts} />;
+  return <KPIDashboardClient kpis={kpis} />;
 }

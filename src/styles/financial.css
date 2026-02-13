@@ -405,6 +405,15 @@
   background: rgba(220, 38, 38, 0.15);
 }
 
+.inv-status-posted {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+[data-theme="dark"] .inv-status-posted {
+  background: rgba(22, 163, 74, 0.15);
+}
+
 .inv-status-voided {
   background: var(--surface);
   color: var(--muted);
@@ -1042,6 +1051,589 @@
   line-height: 1.5;
 }
 
+/* ===== Financial Statements ===== */
+
+/* Statement card wrapper */
+.fs-statement-card {
+  max-width: 800px;
+}
+
+/* Title block at top of each statement */
+.fs-title-block {
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border);
+}
+
+.fs-company-name {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.fs-statement-name {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.fs-date-range {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* Date range controls */
+.fs-date-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.fs-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fs-date-field label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.fs-date-field input[type="date"] {
+  height: 38px;
+  padding: 0 12px;
+  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.15s;
+}
+
+.fs-date-field input[type="date"]:focus {
+  outline: none;
+  border-color: var(--color-blue);
+}
+
+/* Accounting table */
+.fs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  font-family: var(--font-sans);
+}
+
+.fs-table thead {
+  border-bottom: 2px solid var(--border);
+}
+
+.fs-table th {
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-align: left;
+}
+
+.fs-table td {
+  padding: 8px 14px;
+}
+
+/* Section header row (Revenue, COGS, etc.) */
+.fs-section-header td {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1rem;
+  padding-top: 20px;
+  padding-bottom: 8px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Account detail rows */
+.fs-account-row td {
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.fs-account-row:hover td {
+  background: var(--surface);
+}
+
+/* Indented account name */
+.fs-indent {
+  padding-left: 36px !important;
+}
+
+/* Account number prefix */
+.fs-acct-num {
+  display: inline-block;
+  min-width: 56px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-family: var(--font-sans);
+  margin-right: 8px;
+}
+
+/* No data message within a section */
+.fs-no-data {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 0.82rem;
+}
+
+/* Section total row (Total Revenue, Total COGS, etc.) */
+.fs-section-total td {
+  border-top: 1px solid var(--text);
+  font-weight: 600;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Subtotal (legacy compat) */
+.fs-subtotal td {
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Spacer row between sections */
+.fs-spacer td {
+  height: 8px;
+  padding: 0;
+  border: none;
+}
+
+/* Grand total row (Gross Profit, Total L+E) */
+.fs-grand-total td {
+  border-top: 3px double var(--border);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* Net Income / final bottom-line row */
+.fs-net-income td {
+  border-top: 3px double var(--text);
+  border-bottom: 3px double var(--text);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+/* Summary line (non-bold, between grand totals) */
+.fs-summary-line td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+/* Amount column */
+.fs-amount {
+  text-align: right;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.fs-amount.fs-negative,
+.fs-negative {
+  color: var(--color-red);
+}
+
+.fs-amount.fs-positive,
+.fs-positive {
+  color: var(--color-green);
+}
+
+/* Legacy compat */
+.fs-amount.negative {
+  color: var(--color-red);
+}
+
+.fs-amount.positive {
+  color: var(--color-green);
+}
+
+/* Balance Sheet warning banner */
+.fs-warning-banner {
+  background: var(--color-red-light);
+  color: var(--color-red);
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .fs-warning-banner {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+/* Legacy warning class */
+.fs-balance-warning {
+  background: var(--color-red-light);
+  color: var(--color-red);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-theme="dark"] .fs-balance-warning {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+/* Balance check indicator row */
+.fs-balance-check td {
+  padding-top: 16px;
+  border: none;
+}
+
+.fs-balance-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.fs-balance-indicator.fs-balanced {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+.fs-balance-indicator.fs-unbalanced {
+  background: var(--color-red-light);
+  color: var(--color-red);
+}
+
+[data-theme="dark"] .fs-balance-indicator.fs-balanced {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+[data-theme="dark"] .fs-balance-indicator.fs-unbalanced {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+/* Print styles for financial statements */
+@media print {
+  .fs-date-controls,
+  .fin-header-actions,
+  .fin-header-sub {
+    display: none !important;
+  }
+
+  .fs-statement-card {
+    max-width: 100%;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .fs-table {
+    font-size: 10pt;
+  }
+
+  .fs-title-block {
+    margin-bottom: 20px;
+  }
+}
+
+/* ===== KPI Dashboard ===== */
+.kpi-section {
+  margin-bottom: 24px;
+}
+
+.kpi-section-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: box-shadow 0.2s;
+}
+
+.kpi-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .kpi-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.kpi-card-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+.kpi-card-value {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.kpi-card-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.kpi-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.kpi-status-dot.green { background: var(--color-green); }
+.kpi-status-dot.amber { background: var(--color-amber); }
+.kpi-status-dot.red { background: var(--color-red); }
+.kpi-status-dot.gray { background: var(--muted); }
+
+/* ===== Cash Flow Statement ===== */
+.cf-statement {
+  margin-bottom: 24px;
+}
+
+.cf-section {
+  margin-bottom: 16px;
+}
+
+.cf-section-title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.cf-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 14px 6px 28px;
+  font-size: 0.88rem;
+}
+
+.cf-line-label {
+  color: var(--text);
+}
+
+.cf-line-amount {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cf-subtotal {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-weight: 600;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.cf-grand-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 14px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+  border-top: 3px double var(--border);
+  margin-top: 8px;
+}
+
+/* ===== Modal Overlay ===== */
+.fin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+[data-theme="dark"] .fin-modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.fin-modal {
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.fin-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fin-modal-header h3 {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.fin-modal-body {
+  padding: 24px;
+}
+
+.fin-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.fin-form-group {
+  margin-bottom: 16px;
+}
+
+.fin-form-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.fin-form-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.15s;
+}
+
+.fin-form-input:focus {
+  outline: none;
+  border-color: var(--color-blue);
+}
+
+.fin-form-select {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.fin-form-select:focus {
+  outline: none;
+  border-color: var(--color-blue);
+}
+
+.fin-form-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.fin-form-textarea:focus {
+  outline: none;
+  border-color: var(--color-blue);
+}
+
+.fin-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.fin-form-error {
+  color: var(--color-red);
+  font-size: 0.78rem;
+  margin-top: 6px;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 1280px) {
   .financial-kpi-row {
@@ -1103,5 +1695,23 @@
 
   .fin-tab-bar {
     overflow-x: auto;
+  }
+
+  .fs-date-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fs-indent {
+    padding-left: 20px !important;
+  }
+
+  .fs-acct-num {
+    min-width: 44px;
+    font-size: 0.78rem;
+  }
+
+  .fs-table {
+    font-size: 0.82rem;
   }
 }

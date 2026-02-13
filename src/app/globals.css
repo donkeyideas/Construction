@@ -280,3 +280,13 @@ h1, h2, h3, h4 {
   .hp-cta-section h2 { font-size: 1.8rem; }
   .hp-footer-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ===== Utility: Spin Animation ===== */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}

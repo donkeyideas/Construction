@@ -1,6 +1,7 @@
-import { TrendingUp, Landmark, DollarSign, Building2 } from "lucide-react";
+import { TrendingUp, Landmark, DollarSign, Building2, ArrowDownUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getCashFlowStatement } from "@/lib/queries/financial";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 
 export const metadata = {
@@ -39,19 +40,27 @@ export default async function CashFlowPage() {
     );
   }
 
-  // Fetch bank accounts
-  const { data: bankAccountsData } = await supabase
-    .from("bank_accounts")
-    .select("id, name, bank_name, account_number_last4, account_type, current_balance, is_default")
-    .eq("company_id", userCompany.companyId)
-    .order("is_default", { ascending: false })
-    .order("name", { ascending: true });
+  // Date range for the cash flow statement: first day of current month to last day
+  const now = new Date();
+  const cfStartDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+  const cfEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+  const cfMonthLabel = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
-  const bankAccounts = (bankAccountsData ?? []) as BankAccount[];
+  // Fetch cash flow statement and bank accounts in parallel
+  const [cashFlowStatement, bankAccountsRes] = await Promise.all([
+    getCashFlowStatement(supabase, userCompany.companyId, cfStartDate, cfEndDate),
+    supabase
+      .from("bank_accounts")
+      .select("id, name, bank_name, account_number_last4, account_type, current_balance, is_default")
+      .eq("company_id", userCompany.companyId)
+      .order("is_default", { ascending: false })
+      .order("name", { ascending: true }),
+  ]);
+
+  const bankAccounts = (bankAccountsRes.data ?? []) as BankAccount[];
   const totalCashPosition = bankAccounts.reduce((sum, a) => sum + (a.current_balance ?? 0), 0);
 
   // Calculate monthly cash flow for the last 6 months
-  const now = new Date();
   const monthlyFlows: MonthlyFlow[] = [];
 
   for (let i = 5; i >= 0; i--) {
@@ -62,7 +71,6 @@ export default async function CashFlowPage() {
     const endISO = monthEnd.toISOString();
 
     const [inflowRes, outflowRes] = await Promise.all([
-      // Inflows: paid receivable invoices in this month
       supabase
         .from("invoices")
         .select("total_amount")
@@ -71,7 +79,6 @@ export default async function CashFlowPage() {
         .eq("status", "paid")
         .gte("invoice_date", startISO)
         .lte("invoice_date", endISO),
-      // Outflows: paid payable invoices in this month
       supabase
         .from("invoices")
         .select("total_amount")
@@ -96,13 +103,11 @@ export default async function CashFlowPage() {
       inflows,
       outflows,
       net: inflows - outflows,
-      runningBalance: 0, // will be calculated below
+      runningBalance: 0,
     });
   }
 
-  // Calculate running balance (start from current cash position and work backwards)
-  // The last month's running balance should equal the current position
-  // So we build forward: runningBalance[0] = totalCashPosition - sum(net from month 0..5) + net[0]
+  // Calculate running balance
   const totalNetAllMonths = monthlyFlows.reduce((sum, m) => sum + m.net, 0);
   let runningBal = totalCashPosition - totalNetAllMonths;
   for (const month of monthlyFlows) {
@@ -126,7 +131,128 @@ export default async function CashFlowPage() {
         </div>
       </div>
 
-      {/* Total Cash Position KPI */}
+      {/* ============================================================
+          CASH FLOW STATEMENT (formal 3-section format)
+          ============================================================ */}
+      <div className="fin-chart-card fs-statement-card" style={{ marginBottom: "24px" }}>
+        <div className="fs-title-block">
+          <div className="fs-company-name">{userCompany.companyName}</div>
+          <div className="fs-statement-name">Cash Flow Statement</div>
+          <div className="fs-date-range">{cfMonthLabel}</div>
+        </div>
+
+        <div style={{ overflowX: "auto" }}>
+          <table className="fs-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th className="fs-amount">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Operating Activities */}
+              <tr className="fs-section-header">
+                <td colSpan={2}>Operating Activities</td>
+              </tr>
+              {cashFlowStatement.operating.map((item, idx) => (
+                <tr key={`op-${idx}`} className="fs-account-row">
+                  <td className="fs-indent">{item.label}</td>
+                  <td className={`fs-amount ${item.amount < 0 ? "fs-negative" : ""}`}>
+                    {item.amount < 0 ? `(${formatCurrency(Math.abs(item.amount))})` : formatCurrency(item.amount)}
+                  </td>
+                </tr>
+              ))}
+              {cashFlowStatement.operating.length === 0 && (
+                <tr className="fs-account-row">
+                  <td className="fs-indent fs-no-data" colSpan={2}>No operating activities</td>
+                </tr>
+              )}
+              <tr className="fs-section-total">
+                <td>Net Cash from Operations</td>
+                <td className={`fs-amount ${cashFlowStatement.netOperating < 0 ? "fs-negative" : ""}`}>
+                  {cashFlowStatement.netOperating < 0
+                    ? `(${formatCurrency(Math.abs(cashFlowStatement.netOperating))})`
+                    : formatCurrency(cashFlowStatement.netOperating)}
+                </td>
+              </tr>
+
+              <tr className="fs-spacer"><td colSpan={2} /></tr>
+
+              {/* Investing Activities */}
+              <tr className="fs-section-header">
+                <td colSpan={2}>Investing Activities</td>
+              </tr>
+              {cashFlowStatement.investing.length > 0 ? (
+                cashFlowStatement.investing.map((item, idx) => (
+                  <tr key={`inv-${idx}`} className="fs-account-row">
+                    <td className="fs-indent">{item.label}</td>
+                    <td className={`fs-amount ${item.amount < 0 ? "fs-negative" : ""}`}>
+                      {item.amount < 0 ? `(${formatCurrency(Math.abs(item.amount))})` : formatCurrency(item.amount)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr className="fs-account-row">
+                  <td className="fs-indent fs-no-data" colSpan={2}>No investing activities</td>
+                </tr>
+              )}
+              <tr className="fs-section-total">
+                <td>Net Cash from Investing</td>
+                <td className="fs-amount">{formatCurrency(cashFlowStatement.netInvesting)}</td>
+              </tr>
+
+              <tr className="fs-spacer"><td colSpan={2} /></tr>
+
+              {/* Financing Activities */}
+              <tr className="fs-section-header">
+                <td colSpan={2}>Financing Activities</td>
+              </tr>
+              {cashFlowStatement.financing.length > 0 ? (
+                cashFlowStatement.financing.map((item, idx) => (
+                  <tr key={`fin-${idx}`} className="fs-account-row">
+                    <td className="fs-indent">{item.label}</td>
+                    <td className={`fs-amount ${item.amount < 0 ? "fs-negative" : ""}`}>
+                      {item.amount < 0 ? `(${formatCurrency(Math.abs(item.amount))})` : formatCurrency(item.amount)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr className="fs-account-row">
+                  <td className="fs-indent fs-no-data" colSpan={2}>No financing activities</td>
+                </tr>
+              )}
+              <tr className="fs-section-total">
+                <td>Net Cash from Financing</td>
+                <td className="fs-amount">{formatCurrency(cashFlowStatement.netFinancing)}</td>
+              </tr>
+
+              {/* Summary totals */}
+              <tr className="fs-spacer"><td colSpan={2} /></tr>
+
+              <tr className="fs-grand-total">
+                <td>Net Change in Cash</td>
+                <td className={`fs-amount ${cashFlowStatement.netChange >= 0 ? "fs-positive" : "fs-negative"}`}>
+                  {cashFlowStatement.netChange < 0
+                    ? `(${formatCurrency(Math.abs(cashFlowStatement.netChange))})`
+                    : formatCurrency(cashFlowStatement.netChange)}
+                </td>
+              </tr>
+              <tr className="fs-summary-line">
+                <td>Beginning Cash Balance</td>
+                <td className="fs-amount">{formatCurrency(cashFlowStatement.beginningCash)}</td>
+              </tr>
+              <tr className="fs-net-income">
+                <td>Ending Cash Balance</td>
+                <td className="fs-amount">{formatCurrency(cashFlowStatement.endingCash)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ============================================================
+          EXISTING CONTENT: Total Cash Position KPI
+          ============================================================ */}
       <div className="financial-kpi-row" style={{ gridTemplateColumns: "1fr", maxWidth: "320px", marginBottom: "24px" }}>
         <div className="fin-kpi">
           <div className="fin-kpi-icon green">
