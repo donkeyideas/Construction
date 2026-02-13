@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getDocumentSignedUrl } from "@/lib/queries/documents";
 
 /* ------------------------------------------------------------------
    GET /api/documents/plan-room/[id]/download — Get signed download URL
@@ -22,7 +21,7 @@ export async function GET(
 
     const { data: doc } = await supabase
       .from("documents")
-      .select("file_path, company_id")
+      .select("file_path, company_id, name")
       .eq("id", id)
       .single();
 
@@ -37,16 +36,35 @@ export async function GET(
       );
     }
 
-    const { url, error } = await getDocumentSignedUrl(supabase, doc.file_path);
+    // Try signed URL first
+    const { data: signedData, error: signedError } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(doc.file_path, 3600);
 
-    if (error || !url) {
-      return NextResponse.json(
-        { error: error || "Failed to generate download URL." },
-        { status: 500 }
-      );
+    if (!signedError && signedData?.signedUrl) {
+      return NextResponse.json({ url: signedData.signedUrl });
     }
 
-    return NextResponse.json({ url });
+    console.error(
+      `Signed URL failed for doc ${id} (path: ${doc.file_path}):`,
+      signedError?.message
+    );
+
+    // Fallback: try public URL (in case bucket is public)
+    const { data: publicData } = supabase.storage
+      .from("documents")
+      .getPublicUrl(doc.file_path);
+
+    if (publicData?.publicUrl) {
+      return NextResponse.json({ url: publicData.publicUrl });
+    }
+
+    return NextResponse.json(
+      {
+        error: `Could not generate URL. Storage error: ${signedError?.message || "Unknown"}. File path: ${doc.file_path}`,
+      },
+      { status: 500 }
+    );
   } catch (err) {
     console.error("GET /api/documents/plan-room/[id]/download error:", err);
     return NextResponse.json(

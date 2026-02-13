@@ -60,8 +60,23 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function getFileIcon(fileType: string) {
+function normalizeFileType(fileType: string): string {
   const t = (fileType || "").toLowerCase();
+  // Handle MIME types (e.g., "application/pdf" → "pdf", "image/jpeg" → "jpeg")
+  if (t.includes("/")) {
+    const sub = t.split("/").pop() || "";
+    // Handle special MIME subtypes
+    if (sub === "vnd.openxmlformats-officedocument.spreadsheetml.sheet") return "xlsx";
+    if (sub === "vnd.ms-excel") return "xls";
+    if (sub === "vnd.openxmlformats-officedocument.wordprocessingml.document") return "docx";
+    if (sub === "msword") return "doc";
+    return sub;
+  }
+  return t;
+}
+
+function getFileIcon(fileType: string) {
+  const t = normalizeFileType(fileType);
   if (t === "pdf") return { Icon: FileText, cls: "file-icon-pdf" };
   if (["jpg", "jpeg", "png", "gif", "bmp", "tiff", "svg", "webp"].includes(t))
     return { Icon: FileImage, cls: "file-icon-img" };
@@ -73,7 +88,7 @@ function getFileIcon(fileType: string) {
 }
 
 function isPreviewable(fileType: string): "pdf" | "image" | false {
-  const t = (fileType || "").toLowerCase();
+  const t = normalizeFileType(fileType);
   if (t === "pdf") return "pdf";
   if (["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp"].includes(t)) return "image";
   return false;
@@ -120,6 +135,7 @@ export default function PlanRoomClient({
   // Viewer state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [imageZoom, setImageZoom] = useState(1);
 
   // Version history
@@ -190,28 +206,40 @@ export default function PlanRoomClient({
 
   const selectedDoc = documents.find((d) => d.id === selectedId) ?? null;
 
-  // Fetch preview URL when document changes
+  // Fetch preview/download URL when document changes
   useEffect(() => {
     if (!selectedDoc) {
       setPreviewUrl(null);
+      setPreviewError(null);
       setVersionHistory([]);
       return;
     }
 
-    const previewType = isPreviewable(selectedDoc.file_type);
-    if (!previewType || !selectedDoc.file_path || selectedDoc.file_path === "pending-upload") {
+    setPreviewError(null);
+
+    if (!selectedDoc.file_path || selectedDoc.file_path === "pending-upload") {
       setPreviewUrl(null);
-    } else {
-      setPreviewLoading(true);
-      fetch(`/api/documents/plan-room/${selectedDoc.id}/download`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.url) setPreviewUrl(data.url);
-          else setPreviewUrl(null);
-        })
-        .catch(() => setPreviewUrl(null))
-        .finally(() => setPreviewLoading(false));
+      setPreviewError("This document has no file uploaded yet.");
+      return;
     }
+
+    setPreviewLoading(true);
+    fetch(`/api/documents/plan-room/${selectedDoc.id}/download`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.url) {
+          setPreviewUrl(data.url);
+          setPreviewError(null);
+        } else {
+          setPreviewUrl(null);
+          setPreviewError(data.error || "Failed to load file.");
+        }
+      })
+      .catch((err) => {
+        setPreviewUrl(null);
+        setPreviewError(`Network error: ${err.message}`);
+      })
+      .finally(() => setPreviewLoading(false));
 
     setImageZoom(1);
   }, [selectedDoc]);
@@ -637,7 +665,7 @@ export default function PlanRoomClient({
                       style={{ transform: `scale(${imageZoom})` }}
                     />
                   </div>
-                ) : (
+                ) : previewError ? (
                   <div className="plan-room-unsupported">
                     <div className={`plan-room-doc-icon ${getFileIcon(selectedDoc.file_type).cls}`}>
                       {(() => {
@@ -647,7 +675,31 @@ export default function PlanRoomClient({
                     </div>
                     <h3>{selectedDoc.name}</h3>
                     <p className="plan-room-unsupported-meta">
-                      {(selectedDoc.file_type || "").toUpperCase()} &middot;{" "}
+                      {normalizeFileType(selectedDoc.file_type).toUpperCase()} &middot;{" "}
+                      {formatBytes(selectedDoc.file_size)}
+                    </p>
+                    <div className="plan-room-form-error" style={{ maxWidth: 400, textAlign: "left" }}>
+                      {previewError}
+                    </div>
+                    <button
+                      className="plan-room-upload-btn"
+                      onClick={handleDownload}
+                    >
+                      <Download size={14} />
+                      Try Download
+                    </button>
+                  </div>
+                ) : previewUrl ? (
+                  <div className="plan-room-unsupported">
+                    <div className={`plan-room-doc-icon ${getFileIcon(selectedDoc.file_type).cls}`}>
+                      {(() => {
+                        const { Icon } = getFileIcon(selectedDoc.file_type);
+                        return <Icon size={48} />;
+                      })()}
+                    </div>
+                    <h3>{selectedDoc.name}</h3>
+                    <p className="plan-room-unsupported-meta">
+                      {normalizeFileType(selectedDoc.file_type).toUpperCase()} &middot;{" "}
                       {formatBytes(selectedDoc.file_size)}
                     </p>
                     <p className="plan-room-unsupported-hint">
@@ -660,6 +712,19 @@ export default function PlanRoomClient({
                       <Download size={14} />
                       Download File
                     </button>
+                  </div>
+                ) : (
+                  <div className="plan-room-unsupported">
+                    <div className={`plan-room-doc-icon ${getFileIcon(selectedDoc.file_type).cls}`}>
+                      {(() => {
+                        const { Icon } = getFileIcon(selectedDoc.file_type);
+                        return <Icon size={48} />;
+                      })()}
+                    </div>
+                    <h3>{selectedDoc.name}</h3>
+                    <p className="plan-room-unsupported-hint">
+                      Loading file information...
+                    </p>
                   </div>
                 )}
               </div>
