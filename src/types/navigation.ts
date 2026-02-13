@@ -146,6 +146,7 @@ export const appNavigation: NavItem[] = [
     children: [
       { label: "Users & Roles", href: "/admin/users" },
       { label: "Company Settings", href: "/admin/settings" },
+      { label: "AI Providers", href: "/admin/ai-providers" },
       { label: "Integrations", href: "/admin/integrations" },
       { label: "Security", href: "/admin/security" },
     ],

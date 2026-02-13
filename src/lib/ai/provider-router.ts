@@ -9,6 +9,7 @@ import { createMistral } from "@ai-sdk/mistral";
 import { createCohere } from "@ai-sdk/cohere";
 import { createXai } from "@ai-sdk/xai";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
+import { createDeepSeek } from "@ai-sdk/deepseek";
 
 import { decrypt } from "./encryption";
 
@@ -26,7 +27,8 @@ export type ProviderName =
   | "mistral"
   | "cohere"
   | "xai"
-  | "bedrock";
+  | "bedrock"
+  | "deepseek";
 
 export interface ProviderConfig {
   id: string;
@@ -92,6 +94,10 @@ export function getLanguageModel(config: ProviderConfig): LanguageModel {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       });
+      return provider(config.model_id);
+    }
+    case "deepseek": {
+      const provider = createDeepSeek({ apiKey: config.api_key });
       return provider(config.model_id);
     }
     default:

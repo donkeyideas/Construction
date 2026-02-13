@@ -65,12 +65,14 @@ type ProviderNameOption =
   | "mistral"
   | "cohere"
   | "xai"
-  | "bedrock";
+  | "bedrock"
+  | "deepseek";
 
 const PROVIDER_OPTIONS: { value: ProviderNameOption; label: string }[] = [
   { value: "openai", label: "OpenAI" },
   { value: "anthropic", label: "Anthropic" },
   { value: "google", label: "Google AI" },
+  { value: "deepseek", label: "DeepSeek" },
   { value: "groq", label: "Groq" },
   { value: "mistral", label: "Mistral" },
   { value: "cohere", label: "Cohere" },
@@ -82,6 +84,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   openai: "OpenAI",
   anthropic: "Anthropic",
   google: "Google AI",
+  deepseek: "DeepSeek",
   groq: "Groq",
   mistral: "Mistral",
   cohere: "Cohere",

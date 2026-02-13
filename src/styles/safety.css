@@ -752,3 +752,56 @@
     justify-content: center;
   }
 }
+
+/* ===== Inspection Score Badges ===== */
+.safety-severity-badge.score-green {
+  background: rgba(22, 163, 74, 0.08);
+  color: var(--color-green);
+}
+
+[data-theme="dark"] .safety-severity-badge.score-green {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+.safety-severity-badge.score-yellow {
+  background: var(--color-amber-light);
+  color: var(--color-amber);
+}
+
+[data-theme="dark"] .safety-severity-badge.score-yellow {
+  background: rgba(180, 83, 9, 0.15);
+}
+
+.safety-severity-badge.score-red {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--color-red);
+}
+
+[data-theme="dark"] .safety-severity-badge.score-red {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.safety-severity-badge.score-none {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* Inspection status: failed */
+.safety-status-badge.status-failed {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--color-red);
+}
+
+[data-theme="dark"] .safety-status-badge.status-failed {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+/* Inspection status: in_progress */
+.safety-status-badge.status-in_progress {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+}
+
+[data-theme="dark"] .safety-status-badge.status-in_progress {
+  background: rgba(29, 78, 216, 0.15);
+}

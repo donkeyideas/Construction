@@ -75,7 +75,7 @@ export function AIChatClient({
           An administrator needs to configure an AI provider before the
           assistant can be used.
         </p>
-        <a href="/admin/settings">Configure AI Providers</a>
+        <a href="/admin/ai-providers">Configure AI Providers</a>
       </div>
     );
   }
