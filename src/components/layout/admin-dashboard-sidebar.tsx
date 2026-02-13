@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Building2, ChevronRight,
   Sparkles, Key, Truck, ScrollText, ArrowLeft, FileText, Receipt,
+  Shield, Zap,
 } from "lucide-react";
 import { adminDashboardNavigation, adminDashboardBottomNav } from "@/types/admin-dashboard-navigation";
 import type { NavItem } from "@/types/navigation";
@@ -21,6 +22,8 @@ const iconMap: Record<string, React.ElementType> = {
   "arrow-left": ArrowLeft,
   "file-text": FileText,
   receipt: Receipt,
+  shield: Shield,
+  zap: Zap,
 };
 
 function NavItemComponent({ item }: { item: NavItem }) {

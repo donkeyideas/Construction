@@ -51,6 +51,19 @@ export const adminDashboardNavigation: NavItem[] = [
     ],
   },
   {
+    label: "Security",
+    icon: "shield",
+    href: "/admin-panel/security",
+  },
+  {
+    label: "Automation",
+    icon: "zap",
+    children: [
+      { label: "Rules", href: "/admin-panel/automation" },
+      { label: "Execution Log", href: "/admin-panel/automation/logs" },
+    ],
+  },
+  {
     label: "AI Providers",
     href: "/admin-panel/ai-providers",
     icon: "sparkles",

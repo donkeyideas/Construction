@@ -32,6 +32,11 @@ export const appNavigation: NavItem[] = [
     icon: "ticket",
   },
   {
+    label: "Contracts",
+    href: "/contracts",
+    icon: "file-text",
+  },
+  {
     label: "Projects",
     icon: "hard-hat",
     children: [
@@ -52,6 +57,26 @@ export const appNavigation: NavItem[] = [
     ],
   },
   {
+    label: "Safety",
+    icon: "shield-check",
+    children: [
+      { label: "Dashboard", href: "/safety" },
+      { label: "Incidents", href: "/safety/incidents" },
+      { label: "Inspections", href: "/safety/inspections" },
+      { label: "Toolbox Talks", href: "/safety/toolbox-talks" },
+    ],
+  },
+  {
+    label: "Equipment",
+    icon: "wrench",
+    children: [
+      { label: "Dashboard", href: "/equipment" },
+      { label: "Inventory", href: "/equipment/inventory" },
+      { label: "Assignments", href: "/equipment/assignments" },
+      { label: "Maintenance", href: "/equipment/maintenance" },
+    ],
+  },
+  {
     label: "Financial",
     icon: "dollar-sign",
     children: [
@@ -62,6 +87,7 @@ export const appNavigation: NavItem[] = [
       { label: "Income Statement", href: "/financial/income-statement" },
       { label: "Balance Sheet", href: "/financial/balance-sheet" },
       { label: "Cash Flow", href: "/financial/cash-flow" },
+      { label: "Banking", href: "/financial/banking" },
       { label: "Budget vs Actual", href: "/financial/budget" },
       { label: "Job Costing", href: "/financial/job-costing" },
       { label: "KPI Dashboard", href: "/financial/kpi" },

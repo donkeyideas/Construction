@@ -1,23 +1,34 @@
 import { Puzzle } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getIntegrations, getIntegrationStats } from "@/lib/queries/integrations";
+import IntegrationsClient from "./IntegrationsClient";
 
 export const metadata = { title: "Integrations - ConstructionERP" };
 
-export default function IntegrationsPage() {
+export default async function IntegrationsPage() {
+  const supabase = await createClient();
+  const userCompany = await getCurrentUserCompany(supabase);
+
+  if (!userCompany) {
+    return (
+      <div className="fin-empty">
+        <div className="fin-empty-icon"><Puzzle size={48} /></div>
+        <div className="fin-empty-title">No Company Found</div>
+        <div className="fin-empty-desc">Complete your company registration first.</div>
+      </div>
+    );
+  }
+
+  const [integrations, stats] = await Promise.all([
+    getIntegrations(supabase, userCompany.companyId),
+    getIntegrationStats(supabase, userCompany.companyId),
+  ]);
+
   return (
-    <div>
-      <div className="fin-header">
-        <div>
-          <h2>Integrations</h2>
-          <p className="fin-header-sub">Connect third-party services and tools to your workspace.</p>
-        </div>
-      </div>
-      <div className="fin-chart-card">
-        <div className="fin-empty">
-          <div className="fin-empty-icon"><Puzzle size={48} /></div>
-          <div className="fin-empty-title">Coming Soon</div>
-          <div className="fin-empty-desc">This feature is under development.</div>
-        </div>
-      </div>
-    </div>
+    <IntegrationsClient
+      integrations={integrations}
+      stats={stats}
+    />
   );
 }

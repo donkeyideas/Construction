@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, HardHat, Building2, DollarSign, FolderOpen,
   Users, Handshake, Sparkles, BarChart3, Settings, ChevronRight,
-  CalendarDays, Inbox, Ticket, Map,
+  CalendarDays, Inbox, Ticket, Map, ShieldCheck, Wrench, FileText,
 } from "lucide-react";
 import { appNavigation, appBottomNav, type NavItem } from "@/types/navigation";
 
@@ -25,6 +25,9 @@ const iconMap: Record<string, React.ElementType> = {
   inbox: Inbox,
   ticket: Ticket,
   map: Map,
+  "shield-check": ShieldCheck,
+  wrench: Wrench,
+  "file-text": FileText,
 };
 
 function NavItemComponent({ item }: { item: NavItem }) {

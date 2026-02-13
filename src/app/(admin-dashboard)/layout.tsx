@@ -9,6 +9,9 @@ import "@/styles/admin.css";
 import "@/styles/components.css";
 import "@/styles/financial.css";
 import "@/styles/admin-dashboard.css";
+import "@/styles/integrations.css";
+import "@/styles/security.css";
+import "@/styles/automation.css";
 
 function getBreadcrumb(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);

@@ -22,6 +22,10 @@ import "@/styles/calendar.css";
 import "@/styles/inbox.css";
 import "@/styles/tickets.css";
 import "@/styles/system-map.css";
+import "@/styles/safety.css";
+import "@/styles/equipment.css";
+import "@/styles/banking.css";
+import "@/styles/contracts.css";
 
 function getBreadcrumb(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);
