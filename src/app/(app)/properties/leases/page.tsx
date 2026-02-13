@@ -9,6 +9,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { formatCurrency } from "@/lib/utils/format";
+import LeasesClient from "./LeasesClient";
 
 export const metadata = {
   title: "Leases - ConstructionERP",
@@ -139,16 +140,7 @@ export default async function LeasesPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      {/* Header */}
-      <div className="fin-header">
-        <div>
-          <h2>Lease Management</h2>
-          <p className="fin-header-sub">
-            Track leases, renewals, rent schedules, and tenant information
-          </p>
-        </div>
-      </div>
-
+      <LeasesClient>
       {/* KPI Row */}
       <div className="financial-kpi-row">
         <div className="fin-kpi">
@@ -321,6 +313,7 @@ export default async function LeasesPage({ searchParams }: PageProps) {
           </div>
         </div>
       )}
+      </LeasesClient>
     </div>
   );
 }

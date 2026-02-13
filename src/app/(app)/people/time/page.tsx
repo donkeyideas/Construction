@@ -10,6 +10,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getTimeEntries, type TimeEntry } from "@/lib/queries/people";
+import TimeClient from "./TimeClient";
 
 export const metadata = {
   title: "Time & Attendance - ConstructionERP",
@@ -137,6 +138,7 @@ export default async function TimeAttendancePage({
           <Link href="/people" className="ui-btn ui-btn-md ui-btn-secondary">
             People Directory
           </Link>
+          <TimeClient />
         </div>
       </div>
 

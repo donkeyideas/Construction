@@ -61,3 +61,76 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// POST /api/calendar/events — Create a new project task (calendar event)
+// ---------------------------------------------------------------------------
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+
+    // Validate required fields
+    if (!body.title || typeof body.title !== "string" || !body.title.trim()) {
+      return NextResponse.json(
+        { error: "Title is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!body.project_id) {
+      return NextResponse.json(
+        { error: "Project is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!body.start_date) {
+      return NextResponse.json(
+        { error: "Start date is required." },
+        { status: 400 }
+      );
+    }
+
+    const { data: task, error } = await supabase
+      .from("project_tasks")
+      .insert({
+        company_id: userCtx.companyId,
+        project_id: body.project_id,
+        name: body.title.trim(),
+        description: body.description?.trim() || null,
+        start_date: body.start_date,
+        end_date: body.end_date || body.start_date,
+        priority: body.priority || "medium",
+        is_milestone: body.is_milestone || false,
+        assigned_to: body.assigned_to || null,
+        status: "not_started",
+        completion_pct: 0,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("POST /api/calendar/events insert error:", error);
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json(task, { status: 201 });
+  } catch (err) {
+    console.error("POST /api/calendar/events error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

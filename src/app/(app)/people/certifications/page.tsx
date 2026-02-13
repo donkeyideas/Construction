@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import CertificationsClient from "./CertificationsClient";
 
 export const metadata = {
   title: "Certifications - ConstructionERP",
@@ -154,16 +155,7 @@ export default async function CertificationsPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      {/* Header */}
-      <div className="fin-header">
-        <div>
-          <h2>Certifications & Licenses</h2>
-          <p className="fin-header-sub">
-            Track worker certifications, licenses, and expiration dates
-          </p>
-        </div>
-      </div>
-
+      <CertificationsClient>
       {/* KPI Row */}
       <div className="financial-kpi-row">
         <div className="fin-kpi">
@@ -332,6 +324,7 @@ export default async function CertificationsPage({ searchParams }: PageProps) {
           </div>
         </div>
       )}
+      </CertificationsClient>
     </div>
   );
 }

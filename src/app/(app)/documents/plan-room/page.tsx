@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import PlanRoomCreateButton from "./PlanRoomCreateButton";
 
 export const metadata = {
   title: "Plan Room - ConstructionERP",
@@ -163,6 +164,9 @@ export default async function PlanRoomPage({ searchParams }: PageProps) {
           <p className="fin-header-sub">
             View and manage construction drawings, blueprints, and specifications
           </p>
+        </div>
+        <div>
+          <PlanRoomCreateButton />
         </div>
       </div>
 

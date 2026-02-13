@@ -8,7 +8,9 @@ import {
   Calendar as CalendarIcon,
   ExternalLink,
   X,
+  Plus,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import type { CalendarEvent, CalendarModule } from "@/lib/queries/calendar";
 
 // ---------------------------------------------------------------------------
@@ -179,7 +181,144 @@ export default function CalendarClient({
     new Date(initialYear, initialMonth - 1, new Date().getDate())
   );
 
+  // Add Event modal state
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [creatingEvent, setCreatingEvent] = useState(false);
+  const [createEventError, setCreateEventError] = useState("");
+  const [eventProjects, setEventProjects] = useState<
+    { id: string; name: string }[]
+  >([]);
+  const [eventMembers, setEventMembers] = useState<
+    { user_id: string; full_name: string | null; email: string | null }[]
+  >([]);
+  const [loadingEventData, setLoadingEventData] = useState(false);
+  const [eventForm, setEventForm] = useState({
+    title: "",
+    description: "",
+    project_id: "",
+    start_date: "",
+    end_date: "",
+    priority: "medium",
+    is_milestone: false,
+    assigned_to: "",
+  });
+
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Fetch projects and members when create modal opens
+  useEffect(() => {
+    if (!showCreateEvent) return;
+
+    async function fetchFormData() {
+      setLoadingEventData(true);
+      try {
+        const supabase = createClient();
+        const [{ data: projects }, { data: members }] = await Promise.all([
+          supabase.from("projects").select("id, name").order("name"),
+          supabase
+            .from("company_members")
+            .select("user_id, user_profiles(full_name, email)")
+            .eq("is_active", true),
+        ]);
+        setEventProjects(projects ?? []);
+        setEventMembers(
+          (members ?? []).map((m: Record<string, unknown>) => {
+            const profile = m.user_profiles as {
+              full_name: string | null;
+              email: string | null;
+            } | null;
+            return {
+              user_id: m.user_id as string,
+              full_name: profile?.full_name ?? null,
+              email: profile?.email ?? null,
+            };
+          })
+        );
+      } catch (err) {
+        console.error("Failed to fetch form data:", err);
+      } finally {
+        setLoadingEventData(false);
+      }
+    }
+
+    fetchFormData();
+  }, [showCreateEvent]);
+
+  function resetEventForm() {
+    setEventForm({
+      title: "",
+      description: "",
+      project_id: "",
+      start_date: "",
+      end_date: "",
+      priority: "medium",
+      is_milestone: false,
+      assigned_to: "",
+    });
+    setCreateEventError("");
+  }
+
+  function openCreateModal() {
+    // Default start_date to the currently viewed day (in day view) or today
+    const defaultDate =
+      view === "day" ? toISODate(currentDate) : toISODate(new Date());
+    setEventForm((prev) => ({ ...prev, start_date: defaultDate }));
+    setShowCreateEvent(true);
+  }
+
+  async function handleCreateEvent(e: React.FormEvent) {
+    e.preventDefault();
+    setCreatingEvent(true);
+    setCreateEventError("");
+
+    try {
+      const res = await fetch("/api/calendar/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: eventForm.title,
+          description: eventForm.description || undefined,
+          project_id: eventForm.project_id,
+          start_date: eventForm.start_date,
+          end_date: eventForm.end_date || undefined,
+          priority: eventForm.priority,
+          is_milestone: eventForm.is_milestone,
+          assigned_to: eventForm.assigned_to || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to create event");
+      }
+
+      resetEventForm();
+      setShowCreateEvent(false);
+
+      // Re-fetch calendar events to show the new task
+      try {
+        const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+        const refetchRes = await fetch(
+          `/api/calendar/events?start=${startDate}&end=${endDate}`
+        );
+        if (refetchRes.ok) {
+          const data = await refetchRes.json();
+          setEvents(data);
+        }
+      } catch {
+        // Silently handle refetch error
+      }
+    } catch (err: unknown) {
+      setCreateEventError(
+        err instanceof Error ? err.message : "Failed to create event"
+      );
+    } finally {
+      setCreatingEvent(false);
+    }
+  }
 
   // Close popover on outside click
   useEffect(() => {
@@ -417,6 +556,11 @@ export default function CalendarClient({
               </button>
             ))}
           </div>
+
+          <button className="btn-primary" onClick={openCreateModal}>
+            <Plus size={16} />
+            Add Event
+          </button>
         </div>
       </div>
 
@@ -708,6 +852,216 @@ export default function CalendarClient({
               Go to Source <ExternalLink size={12} />
             </Link>
           )}
+        </div>
+      )}
+
+      {/* Add Event Modal */}
+      {showCreateEvent && (
+        <div
+          className="ticket-modal-overlay"
+          onClick={() => {
+            setShowCreateEvent(false);
+            resetEventForm();
+          }}
+        >
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ticket-modal-header">
+              <h3>Add Event</h3>
+              <button
+                className="ticket-modal-close"
+                onClick={() => {
+                  setShowCreateEvent(false);
+                  resetEventForm();
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {createEventError && (
+              <div className="ticket-form-error">{createEventError}</div>
+            )}
+
+            <form onSubmit={handleCreateEvent} className="ticket-form">
+              {/* Event type indicator */}
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Event Type</label>
+                <select className="ticket-form-select" defaultValue="task" disabled>
+                  <option value="task">Task</option>
+                  <option value="maintenance" disabled>
+                    Maintenance Request (coming soon)
+                  </option>
+                  <option value="meeting" disabled>
+                    Meeting Note (coming soon)
+                  </option>
+                </select>
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Project *</label>
+                <select
+                  className="ticket-form-select"
+                  value={eventForm.project_id}
+                  onChange={(e) =>
+                    setEventForm({ ...eventForm, project_id: e.target.value })
+                  }
+                  required
+                >
+                  <option value="">
+                    {loadingEventData
+                      ? "Loading projects..."
+                      : "Select a project..."}
+                  </option>
+                  {eventProjects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Title *</label>
+                <input
+                  type="text"
+                  className="ticket-form-input"
+                  value={eventForm.title}
+                  onChange={(e) =>
+                    setEventForm({ ...eventForm, title: e.target.value })
+                  }
+                  placeholder="Task title"
+                  required
+                />
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Description</label>
+                <textarea
+                  className="ticket-form-textarea"
+                  value={eventForm.description}
+                  onChange={(e) =>
+                    setEventForm({ ...eventForm, description: e.target.value })
+                  }
+                  placeholder="Describe the task..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Start Date *</label>
+                  <input
+                    type="date"
+                    className="ticket-form-input"
+                    value={eventForm.start_date}
+                    onChange={(e) =>
+                      setEventForm({ ...eventForm, start_date: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">End Date</label>
+                  <input
+                    type="date"
+                    className="ticket-form-input"
+                    value={eventForm.end_date}
+                    onChange={(e) =>
+                      setEventForm({ ...eventForm, end_date: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Priority</label>
+                  <select
+                    className="ticket-form-select"
+                    value={eventForm.priority}
+                    onChange={(e) =>
+                      setEventForm({ ...eventForm, priority: e.target.value })
+                    }
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Assigned To</label>
+                  <select
+                    className="ticket-form-select"
+                    value={eventForm.assigned_to}
+                    onChange={(e) =>
+                      setEventForm({ ...eventForm, assigned_to: e.target.value })
+                    }
+                  >
+                    <option value="">
+                      {loadingEventData ? "Loading..." : "Unassigned"}
+                    </option>
+                    {eventMembers.map((m) => (
+                      <option key={m.user_id} value={m.user_id}>
+                        {m.full_name || m.email || "Unknown"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="ticket-form-group">
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={eventForm.is_milestone}
+                    onChange={(e) =>
+                      setEventForm({
+                        ...eventForm,
+                        is_milestone: e.target.checked,
+                      })
+                    }
+                  />
+                  Mark as Milestone
+                </label>
+              </div>
+
+              <div className="ticket-form-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    setShowCreateEvent(false);
+                    resetEventForm();
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={
+                    creatingEvent ||
+                    !eventForm.title.trim() ||
+                    !eventForm.project_id ||
+                    !eventForm.start_date
+                  }
+                >
+                  {creatingEvent ? "Creating..." : "Create Event"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

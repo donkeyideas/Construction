@@ -330,7 +330,7 @@ export const systemMap: SystemDashboard[] = [
       "Self-service portal for tenants to manage leases, payments, maintenance requests, and documents.",
     icon: "home",
     color: "#22c55e",
-    loginUrl: "/tenant/login",
+    loginUrl: "/login/tenant",
     sections: [
       {
         label: "Home",
@@ -443,7 +443,7 @@ export const systemMap: SystemDashboard[] = [
       "Portal for vendors and subcontractors to manage contracts, invoices, compliance documents, and project collaboration.",
     icon: "truck",
     color: "#f59e0b",
-    loginUrl: "/vendor/login",
+    loginUrl: "/login/vendor",
     sections: [
       {
         label: "Dashboard",
@@ -597,14 +597,14 @@ export const systemMap: SystemDashboard[] = [
           },
           {
             label: "Invitations",
-            href: "/admin-panel/invitations",
+            href: "/admin-panel/users/invitations",
             status: "active",
             description: "Pending invitations and invite history",
             roles: ["owner", "admin"],
           },
           {
             label: "Permissions",
-            href: "/admin-panel/permissions",
+            href: "/admin-panel/users/permissions",
             status: "active",
             description: "Role-based access control configuration",
             roles: ["owner", "admin"],
@@ -617,21 +617,21 @@ export const systemMap: SystemDashboard[] = [
         pages: [
           {
             label: "Company Settings",
-            href: "/admin-panel/company",
+            href: "/admin-panel/company/settings",
             status: "active",
             description: "Company profile, branding, and general settings",
             roles: ["owner", "admin"],
           },
           {
             label: "Billing",
-            href: "/admin-panel/billing",
+            href: "/admin-panel/company/billing",
             status: "active",
             description: "Subscription plan, payment methods, and invoices",
             roles: ["owner", "admin"],
           },
           {
             label: "Integrations",
-            href: "/admin-panel/integrations",
+            href: "/admin-panel/company/integrations",
             status: "active",
             description: "Third-party integrations and API connections",
             roles: ["owner", "admin"],
@@ -651,14 +651,14 @@ export const systemMap: SystemDashboard[] = [
           },
           {
             label: "Tenant Invite",
-            href: "/admin-panel/tenant-invite",
+            href: "/admin-panel/tenants/invite",
             status: "active",
             description: "Invite new tenants to the portal",
             roles: ["owner", "admin"],
           },
           {
             label: "Announcements",
-            href: "/admin-panel/announcements",
+            href: "/admin-panel/tenants/announcements",
             status: "active",
             description: "Create and manage property announcements",
             roles: ["owner", "admin"],
@@ -678,14 +678,14 @@ export const systemMap: SystemDashboard[] = [
           },
           {
             label: "Vendor Invite",
-            href: "/admin-panel/vendor-invite",
+            href: "/admin-panel/vendors/invite",
             status: "active",
             description: "Invite new vendors and subcontractors",
             roles: ["owner", "admin"],
           },
           {
             label: "Compliance",
-            href: "/admin-panel/compliance",
+            href: "/admin-panel/vendors/compliance",
             status: "active",
             description: "Review vendor compliance documents and status",
             roles: ["owner", "admin"],
@@ -792,7 +792,7 @@ export const systemMap: SystemDashboard[] = [
         pages: [
           {
             label: "CMS Pages",
-            href: "/super-admin/cms",
+            href: "/super-admin/content",
             status: "active",
             description: "Manage platform-wide CMS content pages",
             roles: ["platform_admin"],
@@ -819,7 +819,7 @@ export const systemMap: SystemDashboard[] = [
           {
             label: "Subscriptions",
             href: "/super-admin/subscriptions",
-            status: "active",
+            status: "coming_soon",
             description: "Manage subscription plans and billing events",
             roles: ["platform_admin"],
           },

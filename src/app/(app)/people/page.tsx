@@ -16,6 +16,7 @@ import {
   type Contact,
   type ContactType,
 } from "@/lib/queries/people";
+import PeopleClient from "./PeopleClient";
 
 export const metadata = {
   title: "People Directory - ConstructionERP",
@@ -79,6 +80,7 @@ export default async function PeopleDirectoryPage({
           >
             Time & Attendance
           </Link>
+          <PeopleClient />
         </div>
       </div>
 

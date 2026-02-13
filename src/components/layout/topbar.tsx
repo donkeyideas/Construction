@@ -47,14 +47,14 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           name: data.user.user_metadata?.full_name ?? null,
           email: data.user.email ?? null,
         });
-        // Fetch unread messages count
+        // Fetch unread messages count (silent fail if table doesn't exist yet)
         supabase
           .from("messages")
           .select("id", { count: "exact", head: true })
           .eq("recipient_id", data.user.id)
           .eq("is_read", false)
-          .then(({ count }) => {
-            setUnreadCount(count ?? 0);
+          .then(({ count, error: msgErr }) => {
+            if (!msgErr) setUnreadCount(count ?? 0);
           });
       }
     });

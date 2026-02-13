@@ -98,9 +98,6 @@ export const appNavigation: NavItem[] = [
     href: "/reports",
     icon: "bar-chart-3",
   },
-];
-
-export const appBottomNav: NavItem[] = [
   {
     label: "System Map",
     href: "/system-map",
@@ -112,3 +109,5 @@ export const appBottomNav: NavItem[] = [
     icon: "settings",
   },
 ];
+
+export const appBottomNav: NavItem[] = [];

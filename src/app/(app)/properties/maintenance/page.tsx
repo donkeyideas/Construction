@@ -8,6 +8,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { formatCurrency } from "@/lib/utils/format";
+import MaintenanceClient from "./MaintenanceClient";
 
 export const metadata = {
   title: "Maintenance - ConstructionERP",
@@ -153,16 +154,7 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
 
   return (
     <div>
-      {/* Header */}
-      <div className="fin-header">
-        <div>
-          <h2>Maintenance Requests</h2>
-          <p className="fin-header-sub">
-            Track work orders, preventive maintenance, and repair requests
-          </p>
-        </div>
-      </div>
-
+      <MaintenanceClient>
       {/* KPI Row */}
       <div className="financial-kpi-row">
         <div className="fin-kpi">
@@ -338,6 +330,7 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
           </div>
         </div>
       )}
+      </MaintenanceClient>
     </div>
   );
 }

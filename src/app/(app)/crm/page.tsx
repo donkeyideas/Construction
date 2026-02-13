@@ -22,6 +22,7 @@ import {
   formatCurrency,
   formatPercent,
 } from "@/lib/utils/format";
+import CRMCreateButton from "./CRMCreateButton";
 
 export const metadata = {
   title: "Sales Pipeline - ConstructionERP",
@@ -94,6 +95,7 @@ export default async function CRMPipelinePage() {
           <Link href="/crm/bids" className="ui-btn ui-btn-md ui-btn-secondary">
             Bid Management
           </Link>
+          <CRMCreateButton />
         </div>
       </div>
 
