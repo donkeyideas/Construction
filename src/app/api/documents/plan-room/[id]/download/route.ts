@@ -59,8 +59,9 @@ export async function GET(
     return NextResponse.json({ url: signedData.signedUrl });
   } catch (err) {
     console.error("GET /api/documents/plan-room/[id]/download error:", err);
+    const msg = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: msg },
       { status: 500 }
     );
   }
