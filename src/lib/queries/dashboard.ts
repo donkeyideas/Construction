@@ -57,13 +57,20 @@ export async function getDashboardKPIs(
   companyId: string
 ): Promise<DashboardKPIs> {
   // Run all queries concurrently
-  const [projectsRes, changeOrdersRes, bankRes] = await Promise.all([
-    // Active projects: status is 'active' or 'pre_construction'
+  const [activeProjectsRes, allActiveRes, changeOrdersRes, bankRes] = await Promise.all([
+    // Active + pre_construction for contract value
     supabase
       .from("projects")
-      .select("contract_amount, completion_pct")
+      .select("contract_amount, completion_pct, status")
       .eq("company_id", companyId)
       .in("status", ["active", "pre_construction"]),
+
+    // Only 'active' projects for schedule performance (exclude pre_construction which hasn't started)
+    supabase
+      .from("projects")
+      .select("completion_pct")
+      .eq("company_id", companyId)
+      .eq("status", "active"),
 
     // Open change orders: status not in ('approved', 'rejected')
     supabase
@@ -79,16 +86,18 @@ export async function getDashboardKPIs(
       .eq("company_id", companyId),
   ]);
 
-  const projects = projectsRes.data ?? [];
+  const projects = activeProjectsRes.data ?? [];
   const activeProjectsValue = projects.reduce(
     (sum, p) => sum + (Number(p.contract_amount) || 0),
     0
   );
 
+  // Schedule performance: only active projects (not pre_construction which haven't started)
+  const activeOnly = allActiveRes.data ?? [];
   const schedulePerformance =
-    projects.length > 0
-      ? projects.reduce((sum, p) => sum + (Number(p.completion_pct) || 0), 0) /
-        projects.length
+    activeOnly.length > 0
+      ? activeOnly.reduce((sum, p) => sum + (Number(p.completion_pct) || 0), 0) /
+        activeOnly.length
       : 0;
 
   const openChangeOrders = changeOrdersRes.count ?? 0;
@@ -289,72 +298,172 @@ export async function getPendingApprovals(
 }
 
 // ---------------------------------------------------------------------------
-// Recent Activity (from audit_log, joined with user_profiles)
+// Recent Activity (synthesized from real table timestamps)
 // ---------------------------------------------------------------------------
 
 export async function getRecentActivity(
   supabase: SupabaseClient,
   companyId: string
 ): Promise<RecentActivityItem[]> {
-  const { data } = await supabase
-    .from("audit_log")
-    .select("action, entity_type, entity_id, details, created_at, user_id, user_profiles(full_name, email)")
-    .eq("company_id", companyId)
-    .order("created_at", { ascending: false })
-    .limit(20);
+  // Pull recent records from multiple tables in parallel and merge by timestamp
+  const [projectsRes, invoicesRes, changeOrdersRes, rfisRes, submittalsRes, paymentsRes, dailyLogsRes, documentsRes] =
+    await Promise.all([
+      supabase
+        .from("projects")
+        .select("id, name, status, created_at, updated_at")
+        .eq("company_id", companyId)
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("invoices")
+        .select("id, invoice_number, invoice_type, status, vendor_name, client_name, total_amount, created_at, updated_at")
+        .eq("company_id", companyId)
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("change_orders")
+        .select("id, co_number, title, status, amount, created_at, updated_at")
+        .eq("company_id", companyId)
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("rfis")
+        .select("id, rfi_number, subject, status, created_at, updated_at")
+        .eq("company_id", companyId)
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("submittals")
+        .select("id, submittal_number, title, status, created_at, updated_at")
+        .eq("company_id", companyId)
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("payments")
+        .select("id, amount, payment_date, created_at, invoices(invoice_number)")
+        .eq("company_id", companyId)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("daily_logs")
+        .select("id, log_date, weather, created_at, projects(name)")
+        .eq("company_id", companyId)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("documents")
+        .select("id, name, created_at")
+        .eq("company_id", companyId)
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
 
-  const entries = data ?? [];
+  const items: RecentActivityItem[] = [];
 
-  return entries.map((entry) => {
-    // Supabase foreign-key join returns the related row as an object
-    const profile = entry.user_profiles as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null;
+  // Projects
+  for (const p of projectsRes.data ?? []) {
+    const isNew = p.created_at === p.updated_at;
+    items.push({
+      user: "System",
+      action: isNew ? "created project" : `updated project (${p.status?.replace(/_/g, " ")})`,
+      ref: p.name ?? "",
+      time: p.updated_at ?? p.created_at,
+      entityType: "project",
+      entityId: p.id,
+    });
+  }
 
-    const userName = profile?.full_name || profile?.email || "System";
+  // Invoices
+  for (const inv of invoicesRes.data ?? []) {
+    const party = inv.invoice_type === "payable" ? (inv.vendor_name ?? "vendor") : (inv.client_name ?? "client");
+    const isNew = inv.created_at === inv.updated_at;
+    items.push({
+      user: party,
+      action: isNew
+        ? `submitted ${inv.invoice_type === "payable" ? "bill" : "invoice"}`
+        : `invoice ${inv.status}`,
+      ref: inv.invoice_number ?? "",
+      time: inv.updated_at ?? inv.created_at,
+      entityType: "invoice",
+      entityId: inv.id,
+    });
+  }
 
-    // Build a human-readable reference from entity_type + details
-    const details = (entry.details ?? {}) as Record<string, unknown>;
-    const refName =
-      (details.name as string) ??
-      (details.title as string) ??
-      (details.ref as string) ??
-      entry.entity_type ??
-      "";
+  // Change Orders
+  for (const co of changeOrdersRes.data ?? []) {
+    items.push({
+      user: "System",
+      action: `change order ${co.status?.replace(/_/g, " ") ?? "created"}`,
+      ref: `${co.co_number} - ${co.title}`,
+      time: co.updated_at ?? co.created_at,
+      entityType: "change_order",
+      entityId: co.id,
+    });
+  }
 
-    return {
-      user: userName,
-      action: humanizeAction(entry.action),
-      ref: refName,
-      time: entry.created_at,
-      entityType: entry.entity_type,
-      entityId: entry.entity_id,
-    };
-  });
-}
+  // RFIs
+  for (const rfi of rfisRes.data ?? []) {
+    items.push({
+      user: "System",
+      action: `RFI ${rfi.status?.replace(/_/g, " ") ?? "submitted"}`,
+      ref: `${rfi.rfi_number} - ${rfi.subject}`,
+      time: rfi.updated_at ?? rfi.created_at,
+      entityType: "rfi",
+      entityId: rfi.id,
+    });
+  }
 
-/**
- * Convert a snake_case action string into a more readable form.
- * e.g., "create_project" -> "created project"
- *       "update_invoice" -> "updated invoice"
- *       "submitted_daily_log" -> "submitted daily log"
- */
-function humanizeAction(action: string): string {
-  if (!action) return "";
+  // Submittals
+  for (const sub of submittalsRes.data ?? []) {
+    items.push({
+      user: "System",
+      action: `submittal ${sub.status?.replace(/_/g, " ") ?? "submitted"}`,
+      ref: `${sub.submittal_number} - ${sub.title}`,
+      time: sub.updated_at ?? sub.created_at,
+      entityType: "submittal",
+      entityId: sub.id,
+    });
+  }
 
-  // Common prefix transformations
-  const s = action
-    .replace(/_/g, " ")
-    .replace(/\bcreate\b/i, "created")
-    .replace(/\bupdate\b/i, "updated")
-    .replace(/\bdelete\b/i, "deleted")
-    .replace(/\bsubmit\b/i, "submitted")
-    .replace(/\bapprove\b/i, "approved")
-    .replace(/\breject\b/i, "rejected")
-    .replace(/\banswer\b/i, "answered")
-    .replace(/\bupload\b/i, "uploaded")
-    .trim();
+  // Payments
+  for (const pay of paymentsRes.data ?? []) {
+    const invoice = pay.invoices as unknown as { invoice_number: string } | null;
+    items.push({
+      user: "System",
+      action: "recorded payment",
+      ref: invoice?.invoice_number ?? "",
+      time: pay.created_at,
+      entityType: "payment",
+      entityId: pay.id,
+    });
+  }
 
-  return s;
+  // Daily Logs
+  for (const log of dailyLogsRes.data ?? []) {
+    const project = log.projects as unknown as { name: string } | null;
+    items.push({
+      user: "System",
+      action: "submitted daily log",
+      ref: project?.name ?? log.log_date ?? "",
+      time: log.created_at,
+      entityType: "daily_log",
+      entityId: log.id,
+    });
+  }
+
+  // Documents
+  for (const doc of documentsRes.data ?? []) {
+    items.push({
+      user: "System",
+      action: "uploaded document",
+      ref: doc.name ?? "",
+      time: doc.created_at,
+      entityType: "document",
+      entityId: doc.id,
+    });
+  }
+
+  // Sort by time descending, return top 20
+  items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+  return items.slice(0, 20);
 }

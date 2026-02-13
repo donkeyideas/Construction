@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validTypes = ["employee", "subcontractor", "vendor", "client", "inspector"];
+    const validTypes = ["employee", "subcontractor", "vendor", "client", "tenant", "inspector"];
     const contactType = body.contact_type || "employee";
     if (!validTypes.includes(contactType)) {
       return NextResponse.json(

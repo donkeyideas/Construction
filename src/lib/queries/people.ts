@@ -202,7 +202,7 @@ export async function getTimeEntries(
   let query = supabase
     .from("time_entries")
     .select(
-      "*, user_profiles!time_entries_user_id_fkey(full_name, email), projects!time_entries_project_id_fkey(name, code)"
+      "*, user_profiles!time_entries_user_profile_fkey(full_name, email), projects!time_entries_project_id_fkey(name, code)"
     )
     .eq("company_id", companyId)
     .order("entry_date", { ascending: false });

@@ -1287,19 +1287,42 @@ export async function getBalanceSheet(
 
   // Fallback: use live data if no journal entries
   if (trialBalance.length === 0) {
-    const [bankRes, arRes, apRes] = await Promise.all([
+    const [bankRes, arRes, apRes, allRevenueRes, allExpenseRes] = await Promise.all([
       supabase.from("bank_accounts").select("current_balance").eq("company_id", companyId),
       supabase.from("invoices").select("balance_due").eq("company_id", companyId).eq("invoice_type", "receivable").not("status", "eq", "voided").not("status", "eq", "paid"),
       supabase.from("invoices").select("balance_due").eq("company_id", companyId).eq("invoice_type", "payable").not("status", "eq", "voided").not("status", "eq", "paid"),
+      // All-time revenue and expenses for Retained Earnings
+      supabase.from("invoices").select("total_amount").eq("company_id", companyId).eq("invoice_type", "receivable").not("status", "eq", "voided"),
+      supabase.from("invoices").select("total_amount").eq("company_id", companyId).eq("invoice_type", "payable").not("status", "eq", "voided"),
     ]);
 
     const cashTotal = (bankRes.data ?? []).reduce((s, r) => s + (r.current_balance ?? 0), 0);
     const arTotal = (arRes.data ?? []).reduce((s, r) => s + (r.balance_due ?? 0), 0);
     const apTotal = (apRes.data ?? []).reduce((s, r) => s + (r.balance_due ?? 0), 0);
 
+    // Assets
     if (cashTotal > 0) assets.push({ account_number: "1000", name: "Cash & Equivalents", amount: cashTotal });
     if (arTotal > 0) assets.push({ account_number: "1100", name: "Accounts Receivable", amount: arTotal });
+
+    // Liabilities
     if (apTotal > 0) liabilities.push({ account_number: "2000", name: "Accounts Payable", amount: apTotal });
+
+    // Equity: Retained Earnings = All-time Revenue - All-time Expenses
+    const allTimeRevenue = (allRevenueRes.data ?? []).reduce((s: number, r: { total_amount: number }) => s + (r.total_amount ?? 0), 0);
+    const allTimeExpenses = (allExpenseRes.data ?? []).reduce((s: number, r: { total_amount: number }) => s + (r.total_amount ?? 0), 0);
+    const retainedEarnings = allTimeRevenue - allTimeExpenses;
+
+    if (retainedEarnings !== 0) {
+      equity.push({ account_number: "3200", name: "Retained Earnings", amount: retainedEarnings });
+    }
+
+    // Owner's Equity / Capital = Total Assets - Total Liabilities - Retained Earnings
+    // This is the balancing figure representing initial investment and capital contributions
+    const totalAssetsCalc = cashTotal + arTotal;
+    const ownersCapital = totalAssetsCalc - apTotal - retainedEarnings;
+    if (Math.abs(ownersCapital) > 0.01) {
+      equity.push({ account_number: "3000", name: "Owner's Equity / Capital", amount: ownersCapital });
+    }
   }
 
   const totalAssets = assets.reduce((sum, a) => sum + a.amount, 0);

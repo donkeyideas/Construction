@@ -1,6 +1,66 @@
 -- ============================================================
--- Migration 007: Inbox Messages & Ticket System
+-- Migration 007: Inbox Messages, Ticket System & user_profiles FKs
 -- ============================================================
+
+-- ==========================================================================
+-- STEP 1: Add direct FK constraints from existing tables to user_profiles
+-- PostgREST needs direct FKs to enable embedded joins (e.g. user_profiles(...))
+-- The existing FKs go to auth.users but PostgREST can't follow transitive paths.
+-- ==========================================================================
+
+-- company_members → user_profiles
+ALTER TABLE company_members
+  ADD CONSTRAINT company_members_user_profile_fkey
+  FOREIGN KEY (user_id) REFERENCES user_profiles(id);
+
+-- comments → user_profiles
+ALTER TABLE comments
+  ADD CONSTRAINT comments_user_profile_fkey
+  FOREIGN KEY (user_id) REFERENCES user_profiles(id);
+
+-- projects → user_profiles (project_manager, superintendent)
+ALTER TABLE projects
+  ADD CONSTRAINT projects_pm_profile_fkey
+  FOREIGN KEY (project_manager_id) REFERENCES user_profiles(id);
+
+ALTER TABLE projects
+  ADD CONSTRAINT projects_super_profile_fkey
+  FOREIGN KEY (superintendent_id) REFERENCES user_profiles(id);
+
+-- project_tasks → user_profiles
+ALTER TABLE project_tasks
+  ADD CONSTRAINT project_tasks_assignee_profile_fkey
+  FOREIGN KEY (assigned_to) REFERENCES user_profiles(id);
+
+-- daily_logs → user_profiles
+ALTER TABLE daily_logs
+  ADD CONSTRAINT daily_logs_creator_profile_fkey
+  FOREIGN KEY (created_by) REFERENCES user_profiles(id);
+
+-- rfis → user_profiles
+ALTER TABLE rfis
+  ADD CONSTRAINT rfis_assignee_profile_fkey
+  FOREIGN KEY (assigned_to) REFERENCES user_profiles(id);
+
+-- documents → user_profiles
+ALTER TABLE documents
+  ADD CONSTRAINT documents_uploader_profile_fkey
+  FOREIGN KEY (uploaded_by) REFERENCES user_profiles(id);
+
+-- time_entries → user_profiles
+ALTER TABLE time_entries
+  ADD CONSTRAINT time_entries_user_profile_fkey
+  FOREIGN KEY (user_id) REFERENCES user_profiles(id);
+
+-- audit_log → user_profiles
+ALTER TABLE audit_log
+  ADD CONSTRAINT audit_log_user_profile_fkey
+  FOREIGN KEY (user_id) REFERENCES user_profiles(id);
+
+-- opportunities → user_profiles
+ALTER TABLE opportunities
+  ADD CONSTRAINT opportunities_assignee_profile_fkey
+  FOREIGN KEY (assigned_to) REFERENCES user_profiles(id);
 
 -- ========== MESSAGES (Internal Direct Messaging) ==========
 CREATE TABLE IF NOT EXISTS messages (
@@ -24,6 +84,15 @@ CREATE INDEX idx_messages_recipient ON messages(recipient_id, is_read, created_a
 CREATE INDEX idx_messages_sender ON messages(sender_id, created_at DESC);
 CREATE INDEX idx_messages_company ON messages(company_id);
 CREATE INDEX idx_messages_thread ON messages(parent_message_id);
+
+-- Direct FK to user_profiles for PostgREST joins
+ALTER TABLE messages
+  ADD CONSTRAINT messages_sender_profile_fkey
+  FOREIGN KEY (sender_id) REFERENCES user_profiles(id);
+
+ALTER TABLE messages
+  ADD CONSTRAINT messages_recipient_profile_fkey
+  FOREIGN KEY (recipient_id) REFERENCES user_profiles(id);
 
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
@@ -71,6 +140,19 @@ CREATE INDEX idx_tickets_company ON tickets(company_id, status);
 CREATE INDEX idx_tickets_assigned ON tickets(assigned_to, status);
 CREATE INDEX idx_tickets_created_by ON tickets(created_by);
 CREATE UNIQUE INDEX idx_tickets_number ON tickets(company_id, ticket_number);
+
+-- Direct FKs to user_profiles for PostgREST joins
+ALTER TABLE tickets
+  ADD CONSTRAINT tickets_creator_profile_fkey
+  FOREIGN KEY (created_by) REFERENCES user_profiles(id);
+
+ALTER TABLE tickets
+  ADD CONSTRAINT tickets_assignee_profile_fkey
+  FOREIGN KEY (assigned_to) REFERENCES user_profiles(id);
+
+ALTER TABLE tickets
+  ADD CONSTRAINT tickets_resolver_profile_fkey
+  FOREIGN KEY (resolved_by) REFERENCES user_profiles(id);
 
 ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
 

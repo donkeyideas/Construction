@@ -56,7 +56,7 @@ export default async function RfisPage({ searchParams }: PageProps) {
         .order("name"),
       supabase
         .from("company_members")
-        .select("user_id, role, user:user_profiles(full_name, email)")
+        .select("user_id, role, user:user_profiles!company_members_user_profile_fkey(full_name, email)")
         .eq("company_id", userCompany.companyId)
         .eq("is_active", true),
     ]);

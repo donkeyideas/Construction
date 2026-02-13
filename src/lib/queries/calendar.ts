@@ -116,7 +116,7 @@ export async function getCalendarEvents(
     safeQuery(
       supabase
         .from("project_tasks")
-        .select("id, title, start_date, end_date, status, priority, project_id")
+        .select("id, name, start_date, end_date, status, priority, project_id, is_milestone")
         .eq("company_id", companyId)
         .or(
           `start_date.gte.${startDate},start_date.lte.${endDate},` +
@@ -252,7 +252,7 @@ export async function getCalendarEvents(
     safeQuery(
       supabase
         .from("certifications")
-        .select("id, name, expiry_date, status, contact_id")
+        .select("id, cert_name, expiry_date, status, contact_id")
         .eq("company_id", companyId)
         .gte("expiry_date", startDate)
         .lte("expiry_date", endDate)
@@ -395,14 +395,15 @@ export async function getCalendarEvents(
 
   // 3. Project Tasks
   for (const t of tasks) {
+    const taskLabel = t.is_milestone ? "Milestone" : "Task";
     if (t.start_date && t.start_date >= startDate && t.start_date <= endDate) {
       events.push({
         id: `task-start-${t.id}`,
-        title: `Task: ${t.title}`,
+        title: `${taskLabel}: ${t.name}`,
         date: t.start_date,
         endDate: t.end_date || undefined,
         module: "projects",
-        type: "task_start",
+        type: t.is_milestone ? "milestone" : "task_start",
         entityType: "project_tasks",
         entityId: t.id,
         color: MODULE_COLORS.projects,
@@ -413,10 +414,10 @@ export async function getCalendarEvents(
     if (t.end_date && t.end_date >= startDate && t.end_date <= endDate && t.end_date !== t.start_date) {
       events.push({
         id: `task-end-${t.id}`,
-        title: `Task: ${t.title} due`,
+        title: `${taskLabel}: ${t.name} due`,
         date: t.end_date,
         module: "projects",
-        type: "task_end",
+        type: t.is_milestone ? "milestone_end" : "task_end",
         entityType: "project_tasks",
         entityId: t.id,
         color: MODULE_COLORS.projects,
@@ -623,7 +624,7 @@ export async function getCalendarEvents(
   for (const cert of certifications) {
     events.push({
       id: `cert-${cert.id}`,
-      title: `Cert Expiring: ${cert.name}`,
+      title: `Cert Expiring: ${cert.cert_name}`,
       date: cert.expiry_date,
       module: "people",
       type: "certification_expiry",

@@ -199,7 +199,7 @@ export default function CalendarClient({
     start_date: "",
     end_date: "",
     priority: "medium",
-    is_milestone: false,
+    event_type: "task",
     assigned_to: "",
   });
 
@@ -214,10 +214,15 @@ export default function CalendarClient({
       try {
         const supabase = createClient();
         const [{ data: projects }, { data: members }] = await Promise.all([
-          supabase.from("projects").select("id, name").order("name"),
+          supabase
+            .from("projects")
+            .select("id, name")
+            .eq("company_id", companyId)
+            .order("name"),
           supabase
             .from("company_members")
-            .select("user_id, user_profiles(full_name, email)")
+            .select("user_id, user_profiles!company_members_user_profile_fkey(full_name, email)")
+            .eq("company_id", companyId)
             .eq("is_active", true),
         ]);
         setEventProjects(projects ?? []);
@@ -242,7 +247,7 @@ export default function CalendarClient({
     }
 
     fetchFormData();
-  }, [showCreateEvent]);
+  }, [showCreateEvent, companyId]);
 
   function resetEventForm() {
     setEventForm({
@@ -252,7 +257,7 @@ export default function CalendarClient({
       start_date: "",
       end_date: "",
       priority: "medium",
-      is_milestone: false,
+      event_type: "task",
       assigned_to: "",
     });
     setCreateEventError("");
@@ -282,7 +287,7 @@ export default function CalendarClient({
           start_date: eventForm.start_date,
           end_date: eventForm.end_date || undefined,
           priority: eventForm.priority,
-          is_milestone: eventForm.is_milestone,
+          is_milestone: eventForm.event_type === "milestone",
           assigned_to: eventForm.assigned_to || undefined,
         }),
       });
@@ -886,14 +891,15 @@ export default function CalendarClient({
               {/* Event type indicator */}
               <div className="ticket-form-group">
                 <label className="ticket-form-label">Event Type</label>
-                <select className="ticket-form-select" defaultValue="task" disabled>
+                <select
+                  className="ticket-form-select"
+                  value={eventForm.event_type}
+                  onChange={(e) =>
+                    setEventForm({ ...eventForm, event_type: e.target.value })
+                  }
+                >
                   <option value="task">Task</option>
-                  <option value="maintenance" disabled>
-                    Maintenance Request (coming soon)
-                  </option>
-                  <option value="meeting" disabled>
-                    Meeting Note (coming soon)
-                  </option>
+                  <option value="milestone">Milestone</option>
                 </select>
               </div>
 
@@ -1010,30 +1016,6 @@ export default function CalendarClient({
                     ))}
                   </select>
                 </div>
-              </div>
-
-              <div className="ticket-form-group">
-                <label
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    fontSize: "0.875rem",
-                    cursor: "pointer",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={eventForm.is_milestone}
-                    onChange={(e) =>
-                      setEventForm({
-                        ...eventForm,
-                        is_milestone: e.target.checked,
-                      })
-                    }
-                  />
-                  Mark as Milestone
-                </label>
               </div>
 
               <div className="ticket-form-actions">

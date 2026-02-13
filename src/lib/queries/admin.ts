@@ -88,7 +88,7 @@ export async function getCompanyMembers(
     .select(
       `
       *,
-      user_profile:user_profiles!company_members_user_id_fkey(id, full_name, email, avatar_url, phone)
+      user_profile:user_profiles!company_members_user_profile_fkey(id, full_name, email, avatar_url, phone)
     `
     )
     .eq("company_id", companyId)
@@ -265,7 +265,7 @@ export async function getAuditLog(
     .select(
       `
       *,
-      user_profile:user_profiles!audit_log_user_id_fkey(id, full_name, email)
+      user_profile:user_profiles!audit_log_user_profile_fkey(id, full_name, email)
     `
     )
     .eq("company_id", companyId)

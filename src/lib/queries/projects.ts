@@ -85,13 +85,21 @@ export interface DailyLog {
   project_id: string;
   log_date: string;
   created_by: string;
-  weather_condition: string | null;
+  weather_conditions: string | null;
   weather_temp_high: number | null;
   weather_temp_low: number | null;
+  weather_wind_mph: number | null;
+  weather_humidity_pct: number | null;
   weather_precipitation: string | null;
-  workforce: Record<string, unknown> | null;
+  workforce: Record<string, unknown>[] | null;
+  equipment: Record<string, unknown>[] | null;
   work_performed: string | null;
+  materials_received: string | null;
+  safety_incidents: string | null;
+  delays: string | null;
   status: string;
+  approved_by: string | null;
+  approved_at: string | null;
   creator?: { id: string; full_name: string } | null;
 }
 
@@ -105,7 +113,13 @@ export interface RFI {
   answer: string | null;
   status: string;
   priority: string;
+  submitted_by: string | null;
   assigned_to: string | null;
+  due_date: string | null;
+  answered_at: string | null;
+  answered_by: string | null;
+  cost_impact: number | null;
+  schedule_impact_days: number | null;
   created_at: string;
   assignee?: { id: string; full_name: string } | null;
 }
@@ -116,9 +130,15 @@ export interface ChangeOrder {
   project_id: string;
   co_number: string;
   title: string;
+  description: string | null;
   status: string;
+  reason: string | null;
   amount: number | null;
   schedule_impact_days: number | null;
+  requested_by: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  line_items: Record<string, unknown>[] | null;
   created_at: string;
 }
 
@@ -177,8 +197,8 @@ export async function getProjects(
     .select(
       `
       *,
-      project_manager:user_profiles!projects_project_manager_id_fkey(id, full_name),
-      superintendent:user_profiles!projects_superintendent_id_fkey(id, full_name)
+      project_manager:user_profiles!projects_pm_profile_fkey(id, full_name),
+      superintendent:user_profiles!projects_super_profile_fkey(id, full_name)
     `
     )
     .eq("company_id", companyId)
@@ -217,8 +237,8 @@ export async function getProjectById(
     .select(
       `
       *,
-      project_manager:user_profiles!projects_project_manager_id_fkey(id, full_name),
-      superintendent:user_profiles!projects_superintendent_id_fkey(id, full_name)
+      project_manager:user_profiles!projects_pm_profile_fkey(id, full_name),
+      superintendent:user_profiles!projects_super_profile_fkey(id, full_name)
     `
     )
     .eq("id", projectId)
@@ -242,7 +262,7 @@ export async function getProjectById(
     .select(
       `
       *,
-      assignee:user_profiles!project_tasks_assigned_to_fkey(id, full_name)
+      assignee:user_profiles!project_tasks_assignee_profile_fkey(id, full_name)
     `
     )
     .eq("project_id", projectId)
@@ -254,7 +274,7 @@ export async function getProjectById(
     .select(
       `
       *,
-      creator:user_profiles!daily_logs_created_by_fkey(id, full_name)
+      creator:user_profiles!daily_logs_creator_profile_fkey(id, full_name)
     `
     )
     .eq("project_id", projectId)
@@ -266,7 +286,7 @@ export async function getProjectById(
     .select(
       `
       *,
-      assignee:user_profiles!rfis_assigned_to_fkey(id, full_name)
+      assignee:user_profiles!rfis_assignee_profile_fkey(id, full_name)
     `
     )
     .eq("project_id", projectId)
@@ -475,7 +495,7 @@ export async function getCompanyMembers(
       `
       user_id,
       role,
-      user:user_profiles!company_members_user_id_fkey(id, full_name, email)
+      user:user_profiles!company_members_user_profile_fkey(id, full_name, email)
     `
     )
     .eq("company_id", companyId)

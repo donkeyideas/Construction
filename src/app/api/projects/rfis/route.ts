@@ -86,3 +86,74 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// PATCH /api/projects/rfis — Update an existing RFI
+// ---------------------------------------------------------------------------
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "RFI id is required." },
+        { status: 400 }
+      );
+    }
+
+    // Build update payload from allowed fields
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.priority !== undefined) updateData.priority = body.priority;
+    if (body.answer !== undefined) updateData.answer = body.answer;
+    if (body.answered_by !== undefined) updateData.answered_by = body.answered_by;
+    if (body.answered_at !== undefined) updateData.answered_at = body.answered_at;
+    if (body.assigned_to !== undefined) updateData.assigned_to = body.assigned_to;
+    if (body.due_date !== undefined) updateData.due_date = body.due_date;
+    if (body.cost_impact !== undefined) updateData.cost_impact = body.cost_impact;
+    if (body.schedule_impact_days !== undefined) updateData.schedule_impact_days = body.schedule_impact_days;
+
+    // If closing with an answer, auto-set answered_by and answered_at
+    if (body.status === "closed" && body.answer) {
+      updateData.answered_by = userCtx.userId;
+      updateData.answered_at = new Date().toISOString();
+    }
+
+    const { data: rfi, error } = await supabase
+      .from("rfis")
+      .update(updateData)
+      .eq("id", body.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("Update rfi error:", error);
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(rfi);
+  } catch (err) {
+    console.error("PATCH /api/projects/rfis error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

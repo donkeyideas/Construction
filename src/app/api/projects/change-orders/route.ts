@@ -79,3 +79,73 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// PATCH /api/projects/change-orders — Update an existing change order
+// ---------------------------------------------------------------------------
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "Change order id is required." },
+        { status: 400 }
+      );
+    }
+
+    // Build update payload from allowed fields
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (body.title !== undefined) updateData.title = body.title;
+    if (body.description !== undefined) updateData.description = body.description;
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.reason !== undefined) updateData.reason = body.reason;
+    if (body.amount !== undefined) updateData.amount = Number(body.amount);
+    if (body.schedule_impact_days !== undefined) updateData.schedule_impact_days = Number(body.schedule_impact_days);
+    if (body.assigned_to !== undefined) updateData.assigned_to = body.assigned_to;
+    if (body.line_items !== undefined) updateData.line_items = body.line_items;
+
+    // If approved or rejected, record who and when
+    if (body.status === "approved" || body.status === "rejected") {
+      updateData.approved_by = userCtx.userId;
+      updateData.approved_at = new Date().toISOString();
+    }
+
+    const { data: changeOrder, error } = await supabase
+      .from("change_orders")
+      .update(updateData)
+      .eq("id", body.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("Update change_order error:", error);
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(changeOrder);
+  } catch (err) {
+    console.error("PATCH /api/projects/change-orders error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

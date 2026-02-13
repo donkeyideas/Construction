@@ -57,7 +57,7 @@ export async function getAdminOverview(
 export async function getTeamMembers(supabase: SupabaseClient, companyId: string) {
   const { data } = await supabase
     .from("company_members")
-    .select("id, user_id, role, is_active, joined_at, user_profiles(full_name, email, avatar_url)")
+    .select("id, user_id, role, is_active, joined_at, user_profiles!company_members_user_profile_fkey(full_name, email, avatar_url)")
     .eq("company_id", companyId)
     .order("joined_at", { ascending: false });
   return data ?? [];

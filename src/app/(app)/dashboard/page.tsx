@@ -38,14 +38,35 @@ export default async function DashboardPage() {
   const { companyId, companyName } = userCompany;
 
   // Fetch all dashboard data in parallel
-  const [kpis, projectStatus, monthlyBilling, pendingApprovals, recentActivity] =
+  const [kpis, projectStatus, monthlyBilling, pendingApprovals, recentActivity, outstandingAPRes, outstandingARRes] =
     await Promise.all([
       getDashboardKPIs(supabase, companyId),
       getProjectStatusBreakdown(supabase, companyId),
       getMonthlyBilling(supabase, companyId),
       getPendingApprovals(supabase, companyId),
       getRecentActivity(supabase, companyId),
+      // Outstanding AP (what we owe)
+      supabase
+        .from("invoices")
+        .select("balance_due")
+        .eq("company_id", companyId)
+        .eq("invoice_type", "payable")
+        .not("status", "in", '("voided","paid")'),
+      // Outstanding AR (what we're owed)
+      supabase
+        .from("invoices")
+        .select("balance_due")
+        .eq("company_id", companyId)
+        .eq("invoice_type", "receivable")
+        .not("status", "in", '("voided","paid")'),
     ]);
+
+  const outstandingAP = (outstandingAPRes.data ?? []).reduce(
+    (sum, r) => sum + (Number(r.balance_due) || 0), 0
+  );
+  const outstandingAR = (outstandingARRes.data ?? []).reduce(
+    (sum, r) => sum + (Number(r.balance_due) || 0), 0
+  );
 
   const isNewCompany =
     projectStatus.total === 0 &&
@@ -287,6 +308,8 @@ export default async function DashboardPage() {
             kpis={kpis}
             projectStatus={projectStatus}
             pendingApprovals={pendingApprovals.length}
+            outstandingAP={outstandingAP}
+            outstandingAR={outstandingAR}
           />
           <a href="/ai-assistant" className="view-all">
             View Details
@@ -427,6 +450,8 @@ function AiInsights({
   kpis,
   projectStatus,
   pendingApprovals,
+  outstandingAP,
+  outstandingAR,
 }: {
   kpis: {
     activeProjectsValue: number;
@@ -436,6 +461,8 @@ function AiInsights({
   };
   projectStatus: { on_hold: number; total: number };
   pendingApprovals: number;
+  outstandingAP: number;
+  outstandingAR: number;
 }) {
   const insights: {
     severity: string;
@@ -444,33 +471,53 @@ function AiInsights({
     desc: string;
   }[] = [];
 
-  // Cash position warning
-  if (kpis.activeProjectsValue > 0 && kpis.cashPosition > 0) {
-    const cashRatio = kpis.cashPosition / kpis.activeProjectsValue;
-    if (cashRatio < 0.05) {
+  // Cash coverage: can we cover outstanding payables?
+  if (outstandingAP > 0 && kpis.cashPosition > 0) {
+    const coverageRatio = kpis.cashPosition / outstandingAP;
+    if (coverageRatio < 1) {
       insights.push({
         severity: "badge-red",
         label: "Critical",
-        title: "Low Cash Reserves",
-        desc: `Cash position is only ${formatPercent(cashRatio * 100)} of active project value. Consider accelerating receivable collections or reviewing upcoming payables.`,
+        title: "Cash Below Outstanding Payables",
+        desc: `Cash (${formatCompactCurrency(kpis.cashPosition)}) does not cover outstanding payables (${formatCompactCurrency(outstandingAP)}). Accelerate collections or arrange bridge financing.`,
+      });
+    } else if (coverageRatio < 2) {
+      insights.push({
+        severity: "badge-amber",
+        label: "Warning",
+        title: "Cash Reserves Tightening",
+        desc: `Cash covers ${coverageRatio.toFixed(1)}x of outstanding payables (${formatCompactCurrency(outstandingAP)}). Monitor closely and consider accelerating receivable collections.`,
+      });
+    }
+  }
+
+  // Outstanding receivables alert
+  if (outstandingAR > 0 && kpis.cashPosition > 0) {
+    const arRatio = outstandingAR / (outstandingAR + kpis.cashPosition);
+    if (arRatio > 0.7) {
+      insights.push({
+        severity: "badge-amber",
+        label: "Action",
+        title: "High Receivables Outstanding",
+        desc: `${formatCompactCurrency(outstandingAR)} in outstanding receivables. Follow up on aging invoices to improve cash flow.`,
       });
     }
   }
 
   // Schedule performance
-  if (kpis.schedulePerformance > 0 && kpis.schedulePerformance < 80) {
+  if (kpis.schedulePerformance > 0 && kpis.schedulePerformance < 50) {
     insights.push({
       severity: "badge-red",
       label: "Critical",
       title: "Schedule Performance Below Target",
       desc: `Average completion across active projects is ${formatPercent(kpis.schedulePerformance)}. Review project timelines and resource allocation.`,
     });
-  } else if (kpis.schedulePerformance >= 80 && kpis.schedulePerformance < 90) {
+  } else if (kpis.schedulePerformance >= 50 && kpis.schedulePerformance < 75) {
     insights.push({
       severity: "badge-amber",
-      label: "Warning",
-      title: "Schedule Performance Slipping",
-      desc: `Average completion is ${formatPercent(kpis.schedulePerformance)}, slightly below the 90% target. Monitor closely for further delays.`,
+      label: "Monitor",
+      title: "Schedule Performance Needs Attention",
+      desc: `Average completion is ${formatPercent(kpis.schedulePerformance)}. Projects are progressing -- monitor for delays on critical path items.`,
     });
   }
 
@@ -505,12 +552,22 @@ function AiInsights({
   }
 
   // Good news: high schedule performance
-  if (kpis.schedulePerformance >= 95) {
+  if (kpis.schedulePerformance >= 90) {
     insights.push({
       severity: "badge-green",
       label: "Opportunity",
       title: "Strong Schedule Performance",
-      desc: `Projects are averaging ${formatPercent(kpis.schedulePerformance)} completion. Team execution is ahead of plan -- consider pursuing new opportunities.`,
+      desc: `Projects are averaging ${formatPercent(kpis.schedulePerformance)} completion. Team execution is on track -- consider pursuing new opportunities.`,
+    });
+  }
+
+  // Good news: strong cash position
+  if (outstandingAP > 0 && kpis.cashPosition / outstandingAP >= 3) {
+    insights.push({
+      severity: "badge-green",
+      label: "Good",
+      title: "Strong Cash Position",
+      desc: `Cash reserves (${formatCompactCurrency(kpis.cashPosition)}) provide ${(kpis.cashPosition / outstandingAP).toFixed(1)}x coverage of outstanding obligations.`,
     });
   }
 

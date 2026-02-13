@@ -388,6 +388,166 @@ export async function POST(request: Request) {
     }
 
     // ============================================================
+    // 7b. PROJECT PHASES & TASKS (for MTC-002)
+    // ============================================================
+    const mtcId = projectMap["MTC-002"];
+    if (mtcId) {
+      const { data: mtcPhases } = await supabase
+        .from("project_phases")
+        .insert([
+          { company_id: companyId, project_id: mtcId, name: "Pre-Construction & Permits", sort_order: 1, color: "#f59e0b", start_date: "2025-11-01", end_date: "2026-02-28" },
+          { company_id: companyId, project_id: mtcId, name: "Foundation & Structure", sort_order: 2, color: "#ef4444", start_date: "2026-01-15", end_date: "2026-08-31" },
+          { company_id: companyId, project_id: mtcId, name: "Building Envelope & MEP", sort_order: 3, color: "#3b82f6", start_date: "2026-06-01", end_date: "2027-01-31" },
+          { company_id: companyId, project_id: mtcId, name: "Interior Build-Out & Finishes", sort_order: 4, color: "#10b981", start_date: "2026-10-01", end_date: "2027-06-30" },
+        ])
+        .select("id, name");
+
+      const mtcPhaseMap: Record<string, string> = {};
+      for (const ph of mtcPhases ?? []) {
+        mtcPhaseMap[ph.name] = ph.id;
+      }
+
+      await supabase.from("project_tasks").insert([
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Pre-Construction & Permits"], name: "Site Survey & Geotechnical", status: "completed", priority: "high", assigned_to: userIds.superintendent, start_date: "2025-11-01", end_date: "2025-12-15", completion_pct: 100, sort_order: 1 },
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Pre-Construction & Permits"], name: "Permit Applications", status: "completed", priority: "medium", assigned_to: userIds.project_manager, start_date: "2025-11-15", end_date: "2026-01-31", completion_pct: 100, sort_order: 2 },
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Pre-Construction & Permits"], name: "Demolition Plan", status: "in_progress", priority: "high", assigned_to: userIds.superintendent, start_date: "2026-01-15", end_date: "2026-02-28", completion_pct: 55, sort_order: 3 },
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Foundation & Structure"], name: "Excavation & Shoring", status: "in_progress", priority: "critical", assigned_to: userIds.superintendent, start_date: "2026-01-20", end_date: "2026-04-15", completion_pct: 30, is_critical_path: true, sort_order: 4 },
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Foundation & Structure"], name: "Foundation Piling", status: "not_started", priority: "high", assigned_to: userIds.field_worker, start_date: "2026-03-01", end_date: "2026-05-31", completion_pct: 0, sort_order: 5 },
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Foundation & Structure"], name: "Grade Beams & Slab", status: "not_started", priority: "high", assigned_to: userIds.field_worker, start_date: "2026-05-01", end_date: "2026-08-31", completion_pct: 0, sort_order: 6 },
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Building Envelope & MEP"], name: "Structural Steel Erection", status: "not_started", priority: "critical", assigned_to: userIds.superintendent, start_date: "2026-06-01", end_date: "2026-10-31", completion_pct: 0, is_critical_path: true, sort_order: 7 },
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Building Envelope & MEP"], name: "Curtain Wall & Glazing", status: "not_started", priority: "medium", assigned_to: userIds.field_worker, start_date: "2026-09-01", end_date: "2027-01-31", completion_pct: 0, sort_order: 8 },
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Interior Build-Out & Finishes"], name: "MEP Rough-In", status: "not_started", priority: "medium", assigned_to: userIds.field_worker, start_date: "2026-10-01", end_date: "2027-03-31", completion_pct: 0, sort_order: 9 },
+        { company_id: companyId, project_id: mtcId, phase_id: mtcPhaseMap["Interior Build-Out & Finishes"], name: "Tenant Improvement Spaces", status: "not_started", priority: "low", assigned_to: userIds.field_worker, start_date: "2027-02-01", end_date: "2027-06-30", completion_pct: 0, sort_order: 10 },
+      ]);
+    }
+
+    // ============================================================
+    // 7c. PROJECT PHASES & TASKS (for WHR-003)
+    // ============================================================
+    const whrId = projectMap["WHR-003"];
+    if (whrId) {
+      const { data: whrPhases } = await supabase
+        .from("project_phases")
+        .insert([
+          { company_id: companyId, project_id: whrId, name: "Site Prep & Foundation", sort_order: 1, color: "#ef4444", start_date: "2025-03-01", end_date: "2025-06-30" },
+          { company_id: companyId, project_id: whrId, name: "Framing & Roofing", sort_order: 2, color: "#f97316", start_date: "2025-05-15", end_date: "2025-09-30" },
+          { company_id: companyId, project_id: whrId, name: "MEP & Insulation", sort_order: 3, color: "#8b5cf6", start_date: "2025-08-01", end_date: "2025-12-31" },
+          { company_id: companyId, project_id: whrId, name: "Interior Finishes", sort_order: 4, color: "#10b981", start_date: "2025-11-01", end_date: "2026-03-15" },
+          { company_id: companyId, project_id: whrId, name: "Exterior & Landscaping", sort_order: 5, color: "#06b6d4", start_date: "2026-01-15", end_date: "2026-04-15" },
+        ])
+        .select("id, name");
+
+      const whrPhaseMap: Record<string, string> = {};
+      for (const ph of whrPhases ?? []) {
+        whrPhaseMap[ph.name] = ph.id;
+      }
+
+      await supabase.from("project_tasks").insert([
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["Site Prep & Foundation"], name: "Clear & Grade Lot", status: "completed", priority: "high", assigned_to: userIds.superintendent, start_date: "2025-03-01", end_date: "2025-04-15", completion_pct: 100, sort_order: 1 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["Site Prep & Foundation"], name: "Foundation Pour", status: "completed", priority: "critical", assigned_to: userIds.superintendent, start_date: "2025-04-15", end_date: "2025-06-30", completion_pct: 100, is_milestone: true, sort_order: 2 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["Framing & Roofing"], name: "Structural Framing", status: "completed", priority: "high", assigned_to: userIds.superintendent, start_date: "2025-05-15", end_date: "2025-08-15", completion_pct: 100, sort_order: 3 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["Framing & Roofing"], name: "Roof Trusses & Sheathing", status: "completed", priority: "high", assigned_to: userIds.field_worker, start_date: "2025-08-01", end_date: "2025-09-30", completion_pct: 100, sort_order: 4 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["MEP & Insulation"], name: "Electrical Rough-In", status: "completed", priority: "medium", assigned_to: userIds.field_worker, start_date: "2025-08-01", end_date: "2025-10-15", completion_pct: 100, sort_order: 5 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["MEP & Insulation"], name: "Plumbing Rough-In", status: "completed", priority: "medium", assigned_to: userIds.field_worker, start_date: "2025-08-15", end_date: "2025-10-31", completion_pct: 100, sort_order: 6 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["MEP & Insulation"], name: "HVAC Installation", status: "completed", priority: "medium", assigned_to: userIds.field_worker, start_date: "2025-09-01", end_date: "2025-12-31", completion_pct: 100, sort_order: 7 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["Interior Finishes"], name: "Drywall & Paint", status: "completed", priority: "medium", assigned_to: userIds.field_worker, start_date: "2025-11-01", end_date: "2026-01-15", completion_pct: 100, sort_order: 8 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["Interior Finishes"], name: "Flooring & Tile", status: "in_progress", priority: "medium", assigned_to: userIds.field_worker, start_date: "2026-01-01", end_date: "2026-02-28", completion_pct: 65, sort_order: 9 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["Interior Finishes"], name: "Cabinetry & Countertops", status: "in_progress", priority: "high", assigned_to: userIds.superintendent, start_date: "2026-01-15", end_date: "2026-03-15", completion_pct: 40, sort_order: 10 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["Exterior & Landscaping"], name: "Pool Construction", status: "in_progress", priority: "high", assigned_to: userIds.superintendent, start_date: "2026-01-15", end_date: "2026-03-31", completion_pct: 30, sort_order: 11 },
+        { company_id: companyId, project_id: whrId, phase_id: whrPhaseMap["Exterior & Landscaping"], name: "Landscaping & Hardscape", status: "not_started", priority: "medium", assigned_to: userIds.field_worker, start_date: "2026-03-01", end_date: "2026-04-15", completion_pct: 0, sort_order: 12 },
+      ]);
+    }
+
+    // ============================================================
+    // 7d. PROJECT PHASES & TASKS (for EAW-004)
+    // ============================================================
+    const eawId = projectMap["EAW-004"];
+    if (eawId) {
+      const { data: eawPhases } = await supabase
+        .from("project_phases")
+        .insert([
+          { company_id: companyId, project_id: eawId, name: "Design Development", sort_order: 1, color: "#8b5cf6", start_date: "2026-01-01", end_date: "2026-03-31" },
+          { company_id: companyId, project_id: eawId, name: "Permitting & Pre-Con", sort_order: 2, color: "#f59e0b", start_date: "2026-03-01", end_date: "2026-05-31" },
+          { company_id: companyId, project_id: eawId, name: "Structural Assessment", sort_order: 3, color: "#ef4444", start_date: "2026-04-01", end_date: "2026-06-30" },
+        ])
+        .select("id, name");
+
+      const eawPhaseMap: Record<string, string> = {};
+      for (const ph of eawPhases ?? []) {
+        eawPhaseMap[ph.name] = ph.id;
+      }
+
+      await supabase.from("project_tasks").insert([
+        { company_id: companyId, project_id: eawId, phase_id: eawPhaseMap["Design Development"], name: "Architectural Design Documents", status: "in_progress", priority: "high", assigned_to: userIds.project_manager, start_date: "2026-01-01", end_date: "2026-02-28", completion_pct: 45, sort_order: 1 },
+        { company_id: companyId, project_id: eawId, phase_id: eawPhaseMap["Design Development"], name: "MEP Engineering Coordination", status: "not_started", priority: "medium", assigned_to: userIds.project_manager, start_date: "2026-02-01", end_date: "2026-03-31", completion_pct: 0, sort_order: 2 },
+        { company_id: companyId, project_id: eawId, phase_id: eawPhaseMap["Permitting & Pre-Con"], name: "Historic Preservation Review", status: "not_started", priority: "high", assigned_to: userIds.project_manager, start_date: "2026-03-01", end_date: "2026-04-30", completion_pct: 0, sort_order: 3 },
+        { company_id: companyId, project_id: eawId, phase_id: eawPhaseMap["Permitting & Pre-Con"], name: "Building Permit Submission", status: "not_started", priority: "medium", assigned_to: userIds.project_manager, start_date: "2026-04-01", end_date: "2026-05-31", completion_pct: 0, sort_order: 4 },
+        { company_id: companyId, project_id: eawId, phase_id: eawPhaseMap["Structural Assessment"], name: "Load-Bearing Wall Analysis", status: "not_started", priority: "critical", assigned_to: userIds.superintendent, start_date: "2026-04-01", end_date: "2026-06-30", completion_pct: 0, sort_order: 5 },
+      ]);
+    }
+
+    // ============================================================
+    // 7e. PROJECT PHASES & TASKS (for PCP-005)
+    // ============================================================
+    const pcpIdForPhases = projectMap["PCP-005"];
+    if (pcpIdForPhases) {
+      const { data: pcpPhases } = await supabase
+        .from("project_phases")
+        .insert([
+          { company_id: companyId, project_id: pcpIdForPhases, name: "Site Work & Earthmoving", sort_order: 1, color: "#ef4444", start_date: "2024-09-01", end_date: "2025-01-31" },
+          { company_id: companyId, project_id: pcpIdForPhases, name: "Infrastructure & Utilities", sort_order: 2, color: "#f97316", start_date: "2024-12-01", end_date: "2025-05-31" },
+          { company_id: companyId, project_id: pcpIdForPhases, name: "Structures & Amenities", sort_order: 3, color: "#3b82f6", start_date: "2025-04-01", end_date: "2025-09-30" },
+          { company_id: companyId, project_id: pcpIdForPhases, name: "Final Grading & Landscaping", sort_order: 4, color: "#10b981", start_date: "2025-08-01", end_date: "2026-01-15" },
+        ])
+        .select("id, name");
+
+      const pcpPhaseMap: Record<string, string> = {};
+      for (const ph of pcpPhases ?? []) {
+        pcpPhaseMap[ph.name] = ph.id;
+      }
+
+      await supabase.from("project_tasks").insert([
+        { company_id: companyId, project_id: pcpIdForPhases, phase_id: pcpPhaseMap["Site Work & Earthmoving"], name: "Mass Grading & Excavation", status: "completed", priority: "high", assigned_to: userIds.superintendent, start_date: "2024-09-01", end_date: "2024-11-15", completion_pct: 100, sort_order: 1 },
+        { company_id: companyId, project_id: pcpIdForPhases, phase_id: pcpPhaseMap["Site Work & Earthmoving"], name: "Erosion Control & Drainage", status: "completed", priority: "medium", assigned_to: userIds.field_worker, start_date: "2024-10-01", end_date: "2025-01-31", completion_pct: 100, sort_order: 2 },
+        { company_id: companyId, project_id: pcpIdForPhases, phase_id: pcpPhaseMap["Infrastructure & Utilities"], name: "Water & Sewer Lines", status: "completed", priority: "high", assigned_to: userIds.superintendent, start_date: "2024-12-01", end_date: "2025-03-15", completion_pct: 100, sort_order: 3 },
+        { company_id: companyId, project_id: pcpIdForPhases, phase_id: pcpPhaseMap["Infrastructure & Utilities"], name: "Electrical & Lighting", status: "completed", priority: "medium", assigned_to: userIds.field_worker, start_date: "2025-01-15", end_date: "2025-05-31", completion_pct: 100, sort_order: 4 },
+        { company_id: companyId, project_id: pcpIdForPhases, phase_id: pcpPhaseMap["Structures & Amenities"], name: "Pavilion & Restroom Building", status: "completed", priority: "high", assigned_to: userIds.superintendent, start_date: "2025-04-01", end_date: "2025-07-31", completion_pct: 100, sort_order: 5 },
+        { company_id: companyId, project_id: pcpIdForPhases, phase_id: pcpPhaseMap["Structures & Amenities"], name: "Splash Pad Operational", status: "completed", priority: "critical", assigned_to: userIds.superintendent, start_date: "2025-06-01", end_date: "2025-09-30", completion_pct: 100, is_milestone: true, sort_order: 6 },
+        { company_id: companyId, project_id: pcpIdForPhases, phase_id: pcpPhaseMap["Final Grading & Landscaping"], name: "Athletic Fields & Walking Trails", status: "completed", priority: "medium", assigned_to: userIds.field_worker, start_date: "2025-08-01", end_date: "2025-11-30", completion_pct: 100, sort_order: 7 },
+        { company_id: companyId, project_id: pcpIdForPhases, phase_id: pcpPhaseMap["Final Grading & Landscaping"], name: "Final Walkthrough", status: "completed", priority: "critical", assigned_to: userIds.project_manager, start_date: "2025-12-15", end_date: "2026-01-15", completion_pct: 100, is_milestone: true, sort_order: 8 },
+      ]);
+    }
+
+    // ============================================================
+    // 7f. PROJECT PHASES & TASKS (for SCH-006)
+    // ============================================================
+    const schId = projectMap["SCH-006"];
+    if (schId) {
+      const { data: schPhases } = await supabase
+        .from("project_phases")
+        .insert([
+          { company_id: companyId, project_id: schId, name: "Demolition & Abatement", sort_order: 1, color: "#ef4444", start_date: "2025-08-01", end_date: "2025-11-30" },
+          { company_id: companyId, project_id: schId, name: "Structural Modifications", sort_order: 2, color: "#f97316", start_date: "2025-10-01", end_date: "2026-03-31" },
+          { company_id: companyId, project_id: schId, name: "Guest Room Renovation", sort_order: 3, color: "#10b981", start_date: "2026-01-01", end_date: "2026-08-31" },
+        ])
+        .select("id, name");
+
+      const schPhaseMap: Record<string, string> = {};
+      for (const ph of schPhases ?? []) {
+        schPhaseMap[ph.name] = ph.id;
+      }
+
+      await supabase.from("project_tasks").insert([
+        { company_id: companyId, project_id: schId, phase_id: schPhaseMap["Demolition & Abatement"], name: "Asbestos Abatement - Floors 1-3", status: "completed", priority: "critical", assigned_to: userIds.superintendent, start_date: "2025-08-01", end_date: "2025-09-30", completion_pct: 100, sort_order: 1 },
+        { company_id: companyId, project_id: schId, phase_id: schPhaseMap["Demolition & Abatement"], name: "Interior Demolition - Guest Rooms", status: "completed", priority: "high", assigned_to: userIds.superintendent, start_date: "2025-09-15", end_date: "2025-11-30", completion_pct: 100, sort_order: 2 },
+        { company_id: companyId, project_id: schId, phase_id: schPhaseMap["Structural Modifications"], name: "Load-Bearing Wall Reinforcement", status: "in_progress", priority: "critical", assigned_to: userIds.superintendent, start_date: "2025-10-01", end_date: "2026-01-31", completion_pct: 60, is_critical_path: true, notes: "Project on hold due to financing. Work paused mid-January 2026.", sort_order: 3 },
+        { company_id: companyId, project_id: schId, phase_id: schPhaseMap["Structural Modifications"], name: "Elevator Shaft Modifications", status: "not_started", priority: "high", assigned_to: userIds.field_worker, start_date: "2026-01-15", end_date: "2026-03-31", completion_pct: 0, notes: "On hold pending financing resolution.", sort_order: 4 },
+        { company_id: companyId, project_id: schId, phase_id: schPhaseMap["Guest Room Renovation"], name: "Guest Room Framing & MEP", status: "not_started", priority: "medium", assigned_to: userIds.field_worker, start_date: "2026-03-01", end_date: "2026-06-30", completion_pct: 0, sort_order: 5 },
+        { company_id: companyId, project_id: schId, phase_id: schPhaseMap["Guest Room Renovation"], name: "Guest Room Finishes & FF&E", status: "not_started", priority: "medium", assigned_to: userIds.field_worker, start_date: "2026-05-01", end_date: "2026-08-31", completion_pct: 0, sort_order: 6 },
+      ]);
+    }
+
+    // ============================================================
     // 8. PROPERTIES
     // ============================================================
     const { data: propertiesData } = await supabase
@@ -725,6 +885,45 @@ export async function POST(request: Request) {
       ]);
     }
 
+    // Change Orders for MTC-002
+    if (mtcId) {
+      await supabase.from("change_orders").insert([
+        {
+          company_id: companyId, project_id: mtcId, co_number: "CO-001", title: "Additional Soil Remediation",
+          description: "Unexpected contaminated soil discovered during excavation requiring environmental remediation before foundation work can proceed.", status: "approved",
+          reason: "unforeseen_condition", amount: 145000, schedule_impact_days: 10, requested_by: userIds.superintendent,
+          approved_by: userIds.owner, approved_at: "2026-02-01T11:00:00Z",
+          line_items: [{ description: "Soil remediation & disposal", quantity: 1, unit: "ls", unit_cost: 110000, total: 110000 }, { description: "Environmental testing & monitoring", quantity: 1, unit: "ls", unit_cost: 35000, total: 35000 }],
+        },
+        {
+          company_id: companyId, project_id: mtcId, co_number: "CO-002", title: "Enhanced Lobby Finishes",
+          description: "Owner requested upgraded lobby finishes including premium stone flooring, custom lighting fixtures, and architectural metalwork.", status: "submitted",
+          reason: "owner_request", amount: 78000, schedule_impact_days: 0, requested_by: userIds.project_manager,
+          line_items: [{ description: "Premium stone flooring", quantity: 1, unit: "ls", unit_cost: 42000, total: 42000 }, { description: "Custom lighting & metalwork", quantity: 1, unit: "ls", unit_cost: 36000, total: 36000 }],
+        },
+      ]);
+    }
+
+    // Change Orders for WHR-003
+    if (whrId) {
+      await supabase.from("change_orders").insert([
+        {
+          company_id: companyId, project_id: whrId, co_number: "CO-001", title: "Upgraded Kitchen Appliance Package",
+          description: "Owners upgraded from standard to professional-grade kitchen appliance suite including Sub-Zero, Wolf, and Cove.", status: "approved",
+          reason: "owner_request", amount: 42000, schedule_impact_days: 0, requested_by: userIds.project_manager,
+          approved_by: userIds.owner, approved_at: "2025-10-15T09:00:00Z",
+          line_items: [{ description: "Credit - Standard appliance package", quantity: 1, unit: "ls", unit_cost: -28000, total: -28000 }, { description: "Professional-grade appliance suite", quantity: 1, unit: "ls", unit_cost: 70000, total: 70000 }],
+        },
+        {
+          company_id: companyId, project_id: whrId, co_number: "CO-002", title: "Extended Outdoor Kitchen with Pizza Oven",
+          description: "Owner added outdoor kitchen extension with built-in pizza oven, additional counter space, and covered pergola.", status: "approved",
+          reason: "owner_request", amount: 68000, schedule_impact_days: 14, requested_by: userIds.project_manager,
+          approved_by: userIds.owner, approved_at: "2025-12-01T10:00:00Z",
+          line_items: [{ description: "Outdoor kitchen structure & countertops", quantity: 1, unit: "ls", unit_cost: 35000, total: 35000 }, { description: "Pizza oven (Mugnaini Medio)", quantity: 1, unit: "ea", unit_cost: 18000, total: 18000 }, { description: "Covered pergola", quantity: 1, unit: "ls", unit_cost: 15000, total: 15000 }],
+        },
+      ]);
+    }
+
     // ============================================================
     // 17. RFIs
     // ============================================================
@@ -735,6 +934,23 @@ export async function POST(request: Request) {
         { company_id: companyId, project_id: rmcId, rfi_number: "RFI-003", subject: "Mechanical Room Access Door Size", question: "Door schedule shows 3'-0\" x 7'-0\" but the largest equipment piece measures 38\" wide. Can we increase to 3'-6\" x 7'-0\"?", status: "open", priority: "medium", submitted_by: userIds.field_worker, assigned_to: userIds.project_manager, due_date: "2026-02-20" },
         { company_id: companyId, project_id: rmcId, rfi_number: "RFI-004", subject: "Exterior Stone Veneer Color Selection", question: "Owner to confirm final stone color selection. Three samples submitted for approval.", status: "open", priority: "low", submitted_by: userIds.project_manager, assigned_to: userIds.owner, due_date: "2026-03-01" },
         { company_id: companyId, project_id: rmcId, rfi_number: "RFI-005", subject: "Fire Sprinkler Head Layout - Level 2 Lobby", question: "Ceiling design creates decorative coffers that may obstruct sprinkler coverage. Need architect and MEP to coordinate revised layout.", status: "open", priority: "high", submitted_by: userIds.superintendent, assigned_to: userIds.project_manager, due_date: "2026-02-28", cost_impact: 8500, schedule_impact_days: 3 },
+      ]);
+    }
+
+    // RFIs for MTC-002
+    if (mtcId) {
+      await supabase.from("rfis").insert([
+        { company_id: companyId, project_id: mtcId, rfi_number: "RFI-001", subject: "Soil Bearing Capacity at Grid A-1", question: "Geotechnical report indicates soil bearing capacity of 2,500 PSF at Grid A-1 but structural design assumes 3,000 PSF. Please confirm foundation design is adequate or if additional piling is required.", answer: "Additional micro-piles required at Grid A-1 through A-4. Revised foundation plan issued as SK-MTC-003.", status: "closed", priority: "high", submitted_by: userIds.superintendent, assigned_to: userIds.project_manager, due_date: "2026-01-15", answered_at: "2026-01-12T10:00:00Z", answered_by: userIds.project_manager, cost_impact: 45000, schedule_impact_days: 5 },
+        { company_id: companyId, project_id: mtcId, rfi_number: "RFI-002", subject: "Parking Garage Ramp Slope Clarification", question: "Parking garage ramp shown at 8% slope on architectural drawings but ADA requires max 5% slope for accessible route. Confirm if separate accessible ramp is planned or if main ramp slope needs revision.", status: "open", priority: "medium", submitted_by: userIds.field_worker, assigned_to: userIds.project_manager, due_date: "2026-02-25" },
+        { company_id: companyId, project_id: mtcId, rfi_number: "RFI-003", subject: "Mixed-Use Zoning Compliance - Retail Signage", question: "Zoning overlay district has specific signage restrictions for mixed-use developments. Need clarification on maximum signage area allowed for ground-floor retail tenants.", status: "open", priority: "low", submitted_by: userIds.project_manager, assigned_to: userIds.owner, due_date: "2026-03-15" },
+      ]);
+    }
+
+    // RFIs for WHR-003
+    if (whrId) {
+      await supabase.from("rfis").insert([
+        { company_id: companyId, project_id: whrId, rfi_number: "RFI-001", subject: "Custom Wine Cellar Refrigeration Unit Specs", question: "Wine cellar design calls for dual-zone cooling but specified unit is single-zone. Please confirm if owner wants to upgrade to dual-zone unit or modify cellar layout for single zone.", answer: "Owner confirmed dual-zone unit. Upgraded to CellarPro 6200VSx. See revised MEP drawing M-12.", status: "closed", priority: "medium", submitted_by: userIds.superintendent, assigned_to: userIds.project_manager, due_date: "2025-11-15", answered_at: "2025-11-10T15:00:00Z", answered_by: userIds.project_manager, cost_impact: 3500, schedule_impact_days: 0 },
+        { company_id: companyId, project_id: whrId, rfi_number: "RFI-002", subject: "Pool Tile Selection - Owner Approval", question: "Three pool tile samples submitted for owner review: Option A (glass mosaic), Option B (porcelain), Option C (natural stone). Awaiting selection to proceed with pool interior finishing.", status: "open", priority: "low", submitted_by: userIds.superintendent, assigned_to: userIds.owner, due_date: "2026-02-28" },
       ]);
     }
 
@@ -798,6 +1014,153 @@ export async function POST(request: Request) {
         });
       }
       await supabase.from("daily_logs").insert(dailyLogInserts);
+    }
+
+    // Daily Logs for MTC-002 (last 3 working days)
+    if (mtcId) {
+      const mtcDailyLogs = [];
+      const mtcWorkPerformed = [
+        "Continued excavation at southeast quadrant. Shoring installation 80% complete on east wall.",
+        "Geotechnical engineer on-site for soil testing at Grid A-1. Demolition debris hauled off-site (12 loads).",
+        "Completed shoring on east wall. Began excavation at northeast quadrant. Survey crew verified grades.",
+      ];
+      for (let d = 2; d >= 0; d--) {
+        const logDate = new Date(2026, 1, 12 - d);
+        if (logDate.getDay() === 0 || logDate.getDay() === 6) continue;
+        mtcDailyLogs.push({
+          company_id: companyId,
+          project_id: mtcId,
+          log_date: logDate.toISOString().slice(0, 10),
+          created_by: userIds.superintendent,
+          weather_temp_high: 55 + Math.floor(Math.random() * 12),
+          weather_temp_low: 38 + Math.floor(Math.random() * 8),
+          weather_conditions: ["clear", "cloudy", "clear"][d],
+          weather_wind_mph: 8 + Math.floor(Math.random() * 10),
+          weather_humidity_pct: 45 + Math.floor(Math.random() * 25),
+          workforce: [
+            { trade: "Operating Engineers", company: "Summit Builders", headcount: 4, hours: 8 },
+            { trade: "Laborers", company: "Summit Builders", headcount: 8, hours: 8 },
+            { trade: "Pile Drivers", company: "Deep South Piling", headcount: 6, hours: 8 },
+          ],
+          equipment: [
+            { name: "CAT 320 Excavator", hours: 8, status: "active" },
+            { name: "Dump Trucks (3)", hours: 6, status: "active" },
+            { name: "Vibratory Hammer", hours: 4, status: "active" },
+          ],
+          work_performed: mtcWorkPerformed[d] ?? "General excavation and site work continued.",
+          materials_received: d === 0 ? "Steel sheet piling delivered (24 sections). Shoring timber delivered." : null,
+          safety_incidents: null,
+          delays: d === 1 ? "1-hour delay waiting for utility locate confirmation from city." : null,
+          status: d > 0 ? "approved" : "submitted",
+          approved_by: d > 0 ? userIds.project_manager : null,
+          approved_at: d > 0 ? new Date(2026, 1, 12 - d + 1).toISOString() : null,
+        });
+      }
+      if (mtcDailyLogs.length > 0) {
+        await supabase.from("daily_logs").insert(mtcDailyLogs);
+      }
+    }
+
+    // Daily Logs for WHR-003 (last 3 working days)
+    if (whrId) {
+      const whrDailyLogs = [];
+      const whrWorkPerformed = [
+        "Continued tile installation in master bath. Cabinetry installation in kitchen - upper cabinets complete.",
+        "Pool gunite shell poured. Flooring crew working on great room hardwood installation.",
+        "Kitchen countertop template completed. Tile work continues in guest bathrooms. Pool plumbing pressure test passed.",
+      ];
+      for (let d = 2; d >= 0; d--) {
+        const logDate = new Date(2026, 1, 12 - d);
+        if (logDate.getDay() === 0 || logDate.getDay() === 6) continue;
+        whrDailyLogs.push({
+          company_id: companyId,
+          project_id: whrId,
+          log_date: logDate.toISOString().slice(0, 10),
+          created_by: userIds.superintendent,
+          weather_temp_high: 58 + Math.floor(Math.random() * 10),
+          weather_temp_low: 40 + Math.floor(Math.random() * 8),
+          weather_conditions: ["clear", "clear", "cloudy"][d],
+          weather_wind_mph: 3 + Math.floor(Math.random() * 8),
+          weather_humidity_pct: 35 + Math.floor(Math.random() * 20),
+          workforce: [
+            { trade: "Tile Setters", company: "Austin Tile Works", headcount: 3, hours: 8 },
+            { trade: "Cabinet Installers", company: "Hill Country Cabinets", headcount: 2, hours: 8 },
+            { trade: "Flooring Crew", company: "Texas Floor Pro", headcount: 4, hours: 8 },
+            { trade: "Pool Contractor", company: "Aqua Blue Pools", headcount: 3, hours: 6 },
+          ],
+          equipment: [
+            { name: "Tile Saw", hours: 8, status: "active" },
+            { name: "Floor Sander", hours: 6, status: "active" },
+          ],
+          work_performed: whrWorkPerformed[d] ?? "Interior finish work continued across multiple areas.",
+          materials_received: d === 1 ? "Hardwood flooring (1,200 SF white oak). Pool tile samples delivered." : null,
+          safety_incidents: null,
+          delays: null,
+          status: d > 0 ? "approved" : "submitted",
+          approved_by: d > 0 ? userIds.project_manager : null,
+          approved_at: d > 0 ? new Date(2026, 1, 12 - d + 1).toISOString() : null,
+        });
+      }
+      if (whrDailyLogs.length > 0) {
+        await supabase.from("daily_logs").insert(whrDailyLogs);
+      }
+    }
+
+    // Daily Logs for SCH-006 (2 logs before hold date - early January)
+    if (schId) {
+      await supabase.from("daily_logs").insert([
+        {
+          company_id: companyId,
+          project_id: schId,
+          log_date: "2026-01-09",
+          created_by: userIds.superintendent,
+          weather_temp_high: 48,
+          weather_temp_low: 32,
+          weather_conditions: "cloudy",
+          weather_wind_mph: 12,
+          weather_humidity_pct: 55,
+          workforce: [
+            { trade: "Structural Workers", company: "Summit Builders", headcount: 6, hours: 8 },
+            { trade: "Laborers", company: "Summit Builders", headcount: 4, hours: 8 },
+          ],
+          equipment: [
+            { name: "Concrete Saw", hours: 4, status: "active" },
+            { name: "Scaffolding", hours: 8, status: "active" },
+          ],
+          work_performed: "Continued load-bearing wall reinforcement on floors 2-3. Steel plate installation at column connections. Structural engineer on-site for inspection.",
+          materials_received: "Steel reinforcement plates delivered (24 pieces).",
+          safety_incidents: null,
+          delays: null,
+          status: "approved",
+          approved_by: userIds.project_manager,
+          approved_at: "2026-01-10T08:30:00Z",
+        },
+        {
+          company_id: companyId,
+          project_id: schId,
+          log_date: "2026-01-12",
+          created_by: userIds.superintendent,
+          weather_temp_high: 45,
+          weather_temp_low: 30,
+          weather_conditions: "clear",
+          weather_wind_mph: 8,
+          weather_humidity_pct: 40,
+          workforce: [
+            { trade: "Structural Workers", company: "Summit Builders", headcount: 6, hours: 8 },
+            { trade: "Laborers", company: "Summit Builders", headcount: 3, hours: 8 },
+          ],
+          equipment: [
+            { name: "Scaffolding", hours: 8, status: "active" },
+          ],
+          work_performed: "Final day of active work before project hold. Completed structural reinforcement on floor 2 east wing. Secured site and equipment for standby period. Owner notified of financing hold - all work paused effective COB today.",
+          materials_received: null,
+          safety_incidents: null,
+          delays: "Project placed on hold effective end of day due to owner financing issues. All subcontractors notified.",
+          status: "approved",
+          approved_by: userIds.project_manager,
+          approved_at: "2026-01-13T09:00:00Z",
+        },
+      ]);
     }
 
     // ============================================================

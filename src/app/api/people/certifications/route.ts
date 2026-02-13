@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         company_id: userCtx.companyId,
         contact_id: body.contact_id,
         cert_name: body.cert_name.trim(),
-        cert_type: "license", // default type
+        cert_type: body.cert_type?.trim() || "license",
         issuing_authority: body.issuing_authority.trim(),
         cert_number: body.cert_number?.trim() || null,
         issued_date: body.issued_date,

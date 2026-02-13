@@ -122,7 +122,7 @@ export default async function GanttPage({ searchParams }: PageProps) {
     .from("projects")
     .select("id, name, code, status")
     .eq("company_id", userCompany.companyId)
-    .in("status", ["active", "in_progress", "planning"])
+    .in("status", ["active", "in_progress", "planning", "pre_construction", "on_hold"])
     .order("name");
 
   const projectList = (projects ?? []) as Project[];

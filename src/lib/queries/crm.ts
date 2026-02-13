@@ -98,7 +98,7 @@ export async function getOpportunities(
   let query = supabase
     .from("opportunities")
     .select(
-      "*, user_profiles!opportunities_assigned_to_fkey(full_name, email)"
+      "*, user_profiles!opportunities_assignee_profile_fkey(full_name, email)"
     )
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
@@ -140,7 +140,7 @@ export async function getOpportunityById(
   const { data, error } = await supabase
     .from("opportunities")
     .select(
-      "*, user_profiles!opportunities_assigned_to_fkey(full_name, email)"
+      "*, user_profiles!opportunities_assignee_profile_fkey(full_name, email)"
     )
     .eq("id", id)
     .single();

@@ -115,8 +115,8 @@ export async function getTickets(
     .select(
       `
       *,
-      creator:user_profiles!tickets_created_by_fkey(id, full_name, email),
-      assignee:user_profiles!tickets_assigned_to_fkey(id, full_name, email)
+      creator:user_profiles!tickets_creator_profile_fkey(id, full_name, email),
+      assignee:user_profiles!tickets_assignee_profile_fkey(id, full_name, email)
     `
     )
     .eq("company_id", companyId)
@@ -201,9 +201,9 @@ export async function getTicketById(
     .select(
       `
       *,
-      creator:user_profiles!tickets_created_by_fkey(id, full_name, email),
-      assignee:user_profiles!tickets_assigned_to_fkey(id, full_name, email),
-      resolver:user_profiles!tickets_resolved_by_fkey(id, full_name, email)
+      creator:user_profiles!tickets_creator_profile_fkey(id, full_name, email),
+      assignee:user_profiles!tickets_assignee_profile_fkey(id, full_name, email),
+      resolver:user_profiles!tickets_resolver_profile_fkey(id, full_name, email)
     `
     )
     .eq("id", ticketId)
@@ -230,7 +230,7 @@ export async function getTicketComments(
     .select(
       `
       *,
-      user:user_profiles!comments_user_id_fkey(id, full_name, email)
+      user:user_profiles!comments_user_profile_fkey(id, full_name, email)
     `
     )
     .eq("entity_type", "ticket")
@@ -373,7 +373,7 @@ export async function getCompanyMembers(
       `
       user_id,
       role,
-      user:user_profiles!company_members_user_id_fkey(id, full_name, email)
+      user:user_profiles!company_members_user_profile_fkey(id, full_name, email)
     `
     )
     .eq("company_id", companyId)

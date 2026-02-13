@@ -177,7 +177,7 @@ export async function getMessages(
   const { data, error } = await supabase
     .from("messages")
     .select(
-      "*, sender:user_profiles!messages_sender_id_fkey(full_name, email), recipient:user_profiles!messages_recipient_id_fkey(full_name, email)"
+      "*, sender:user_profiles!messages_sender_profile_fkey(full_name, email), recipient:user_profiles!messages_recipient_profile_fkey(full_name, email)"
     )
     .eq("company_id", companyId)
     .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
@@ -240,7 +240,7 @@ export async function getMessageThread(
   const { data, error } = await supabase
     .from("messages")
     .select(
-      "*, sender:user_profiles!messages_sender_id_fkey(full_name, email), recipient:user_profiles!messages_recipient_id_fkey(full_name, email)"
+      "*, sender:user_profiles!messages_sender_profile_fkey(full_name, email), recipient:user_profiles!messages_recipient_profile_fkey(full_name, email)"
     )
     .or(`id.eq.${messageId},parent_message_id.eq.${messageId}`)
     .order("created_at", { ascending: true });
@@ -363,7 +363,7 @@ export async function getCompanyMembers(
 ): Promise<CompanyMember[]> {
   const { data, error } = await supabase
     .from("company_members")
-    .select("user_id, role, user_profiles(full_name, email)")
+    .select("user_id, role, user_profiles!company_members_user_profile_fkey(full_name, email)")
     .eq("company_id", companyId)
     .eq("is_active", true)
     .order("role", { ascending: true });

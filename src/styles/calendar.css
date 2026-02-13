@@ -179,6 +179,9 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 280px);
 }
 
 /* ===== Weekday Header ===== */
@@ -203,20 +206,27 @@
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  flex: 1;
+  grid-auto-rows: 1fr;
 }
 
 .calendar-day {
-  min-height: 110px;
+  min-height: 90px;
   padding: 6px 8px;
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.1s;
   position: relative;
+  overflow: hidden;
 }
 
 .calendar-day:nth-child(7n) {
   border-right: none;
+}
+
+.calendar-grid .calendar-day:nth-last-child(-n+7) {
+  border-bottom: none;
 }
 
 .calendar-day:hover {
@@ -659,8 +669,12 @@
     gap: 10px;
   }
 
+  .calendar-month-container {
+    min-height: calc(100vh - 300px);
+  }
+
   .calendar-day {
-    min-height: 80px;
+    min-height: 70px;
     padding: 4px 4px;
   }
 
@@ -702,8 +716,12 @@
     font-size: 0.75rem;
   }
 
+  .calendar-month-container {
+    min-height: calc(100vh - 320px);
+  }
+
   .calendar-day {
-    min-height: 60px;
+    min-height: 50px;
     padding: 2px 3px;
   }
 

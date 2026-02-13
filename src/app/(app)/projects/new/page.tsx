@@ -87,7 +87,7 @@ export default function NewProjectPage() {
           `
           user_id,
           role,
-          user:user_profiles!company_members_user_id_fkey(id, full_name, email)
+          user:user_profiles!company_members_user_profile_fkey(id, full_name, email)
         `
         )
         .eq("company_id", membership.company_id)

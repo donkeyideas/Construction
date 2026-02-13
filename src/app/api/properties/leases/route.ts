@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Look up the unit to get the property_id
+    // Look up the unit to get the property_id — also verify it belongs to this company
     const { data: unit, error: unitError } = await supabase
       .from("units")
-      .select("property_id")
+      .select("property_id, company_id")
       .eq("id", body.unit_id)
       .single();
 
@@ -64,6 +64,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Invalid unit selected." },
         { status: 400 }
+      );
+    }
+
+    if (unit.company_id !== userCtx.companyId) {
+      return NextResponse.json(
+        { error: "Unit does not belong to your company." },
+        { status: 403 }
       );
     }
 
@@ -91,6 +98,142 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(lease, { status: 201 });
   } catch (err) {
     console.error("POST /api/properties/leases error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PATCH /api/properties/leases - Update an existing lease
+// ---------------------------------------------------------------------------
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "Lease id is required." },
+        { status: 400 }
+      );
+    }
+
+    // Verify the lease exists and belongs to the user's company
+    const { data: existingLease } = await supabase
+      .from("leases")
+      .select("id")
+      .eq("id", body.id)
+      .eq("company_id", userCtx.companyId)
+      .single();
+
+    if (!existingLease) {
+      return NextResponse.json({ error: "Lease not found" }, { status: 404 });
+    }
+
+    // Allow only specific updatable fields
+    const allowedFields = [
+      "tenant_name",
+      "tenant_email",
+      "tenant_phone",
+      "monthly_rent",
+      "security_deposit",
+      "lease_start",
+      "lease_end",
+      "status",
+      "auto_renew",
+    ];
+
+    const updates: Record<string, unknown> = {};
+    for (const key of allowedFields) {
+      if (body[key] !== undefined) {
+        updates[key] = body[key];
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: "No valid fields provided for update." },
+        { status: 400 }
+      );
+    }
+
+    updates.updated_at = new Date().toISOString();
+
+    const { data: updated, error } = await supabase
+      .from("leases")
+      .update(updates)
+      .eq("id", body.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Update lease error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(updated);
+  } catch (err) {
+    console.error("PATCH /api/properties/leases error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /api/properties/leases - Delete a lease
+// ---------------------------------------------------------------------------
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "Lease id is required." },
+        { status: 400 }
+      );
+    }
+
+    // Verify the lease exists and belongs to the user's company
+    const { data: existingLease } = await supabase
+      .from("leases")
+      .select("id")
+      .eq("id", body.id)
+      .eq("company_id", userCtx.companyId)
+      .single();
+
+    if (!existingLease) {
+      return NextResponse.json({ error: "Lease not found" }, { status: 404 });
+    }
+
+    const { error } = await supabase.from("leases").delete().eq("id", body.id);
+
+    if (error) {
+      console.error("Delete lease error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("DELETE /api/properties/leases error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

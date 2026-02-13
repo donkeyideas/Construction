@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         project_id: body.project_id || null,
         entry_date: body.entry_date,
         hours: Number(body.hours),
-        work_type: Number(body.overtime_hours || 0) > 0 ? "overtime" : "regular",
+        work_type: body.work_type === "overtime" || Number(body.hours) > 8 ? "overtime" : "regular",
         cost_code: body.cost_code?.trim() || null,
         notes: body.description?.trim() || null,
         status: "pending",

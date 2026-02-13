@@ -74,7 +74,7 @@ export async function getDocuments(
     .select(
       `
       *,
-      uploader:user_profiles!documents_uploaded_by_fkey(full_name, email),
+      uploader:user_profiles!documents_uploader_profile_fkey(full_name, email),
       project:projects!documents_project_id_fkey(id, name, code),
       property:properties!documents_property_id_fkey(id, name)
     `
@@ -184,7 +184,7 @@ export async function getDocumentById(
     .select(
       `
       *,
-      uploader:user_profiles!documents_uploaded_by_fkey(full_name, email),
+      uploader:user_profiles!documents_uploader_profile_fkey(full_name, email),
       project:projects!documents_project_id_fkey(id, name, code),
       property:properties!documents_property_id_fkey(id, name)
     `
