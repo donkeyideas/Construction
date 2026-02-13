@@ -225,14 +225,14 @@ export default function PlanRoomClient({
 
     setPreviewLoading(true);
     fetch(`/api/documents/plan-room/${selectedDoc.id}/download`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.url) {
+      .then(async (res) => {
+        const data = await res.json();
+        if (res.ok && data.url) {
           setPreviewUrl(data.url);
           setPreviewError(null);
         } else {
           setPreviewUrl(null);
-          setPreviewError(data.error || "Failed to load file.");
+          setPreviewError(data.error || `Failed to load file (${res.status}).`);
         }
       })
       .catch((err) => {

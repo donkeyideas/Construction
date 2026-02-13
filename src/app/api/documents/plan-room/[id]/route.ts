@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getDocumentById } from "@/lib/queries/documents";
+import { storageRemove } from "@/lib/supabase/storage";
 
 /* ------------------------------------------------------------------
    GET /api/documents/plan-room/[id] — Get a single document
@@ -117,7 +118,7 @@ export async function DELETE(
 
     // Delete from storage
     if (doc.file_path && doc.file_path !== "pending-upload") {
-      await supabase.storage.from("documents").remove([doc.file_path]);
+      await storageRemove([doc.file_path]);
     }
 
     // Delete from database

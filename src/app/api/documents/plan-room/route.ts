@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPlanRoomDocuments, type PlanRoomFilters } from "@/lib/queries/documents";
+import { storageUpload } from "@/lib/supabase/storage";
 
 /* ------------------------------------------------------------------
    GET /api/documents/plan-room — List plan room documents
@@ -88,12 +89,10 @@ export async function POST(request: NextRequest) {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const storagePath = `${userCtx.companyId}/plan-room/${timestamp}-${safeName}`;
 
-    const { error: storageError } = await supabase.storage
-      .from("documents")
-      .upload(storagePath, file, {
-        contentType: file.type,
-        upsert: false,
-      });
+    const { error: storageError } = await storageUpload(storagePath, file, {
+      contentType: file.type,
+      upsert: false,
+    });
 
     if (storageError) {
       console.error("Storage upload error:", storageError);

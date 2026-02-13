@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { storageSignedUrl } from "@/lib/supabase/storage";
 
 /* ------------------------------------------------------------------
    GET /api/documents/plan-room/[id]/download — Get signed download URL
@@ -36,35 +37,26 @@ export async function GET(
       );
     }
 
-    // Try signed URL first
-    const { data: signedData, error: signedError } = await supabase.storage
-      .from("documents")
-      .createSignedUrl(doc.file_path, 3600);
-
-    if (!signedError && signedData?.signedUrl) {
-      return NextResponse.json({ url: signedData.signedUrl });
-    }
-
-    console.error(
-      `Signed URL failed for doc ${id} (path: ${doc.file_path}):`,
-      signedError?.message
+    // Use admin client (service role) to generate signed URL — bypasses RLS
+    const { data: signedData, error: signedError } = await storageSignedUrl(
+      doc.file_path,
+      3600
     );
 
-    // Fallback: try public URL (in case bucket is public)
-    const { data: publicData } = supabase.storage
-      .from("documents")
-      .getPublicUrl(doc.file_path);
-
-    if (publicData?.publicUrl) {
-      return NextResponse.json({ url: publicData.publicUrl });
+    if (signedError || !signedData?.signedUrl) {
+      console.error(
+        `Signed URL failed for doc ${id} (path: ${doc.file_path}):`,
+        signedError?.message
+      );
+      return NextResponse.json(
+        {
+          error: `Could not generate download URL. ${signedError?.message || "Unknown storage error"}`,
+        },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json(
-      {
-        error: `Could not generate URL. Storage error: ${signedError?.message || "Unknown"}. File path: ${doc.file_path}`,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ url: signedData.signedUrl });
   } catch (err) {
     console.error("GET /api/documents/plan-room/[id]/download error:", err);
     return NextResponse.json(

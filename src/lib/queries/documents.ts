@@ -460,17 +460,17 @@ export async function getDocumentVersionHistory(
    ------------------------------------------------------------------ */
 
 export async function getDocumentSignedUrl(
-  supabase: SupabaseClient,
+  _supabase: SupabaseClient,
   filePath: string
 ): Promise<{ url: string | null; error: string | null }> {
-  const { data, error } = await supabase.storage
-    .from("documents")
-    .createSignedUrl(filePath, 3600);
+  // Use admin client via storage helper to bypass RLS
+  const { storageSignedUrl } = await import("@/lib/supabase/storage");
+  const { data, error } = await storageSignedUrl(filePath, 3600);
 
   if (error) {
     console.error("getDocumentSignedUrl error:", error);
     return { url: null, error: error.message };
   }
 
-  return { url: data.signedUrl, error: null };
+  return { url: data?.signedUrl ?? null, error: null };
 }

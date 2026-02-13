@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { storageUpload } from "@/lib/supabase/storage";
 
 /* ------------------------------------------------------------------
    POST /api/documents/plan-room/[id]/revision — Upload new revision
@@ -48,12 +49,10 @@ export async function POST(
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const storagePath = `${userCtx.companyId}/plan-room/${timestamp}-${safeName}`;
 
-    const { error: storageError } = await supabase.storage
-      .from("documents")
-      .upload(storagePath, file, {
-        contentType: file.type,
-        upsert: false,
-      });
+    const { error: storageError } = await storageUpload(storagePath, file, {
+      contentType: file.type,
+      upsert: false,
+    });
 
     if (storageError) {
       console.error("Storage upload error:", storageError);
