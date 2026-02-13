@@ -1,31 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Map,
-  MousePointer2,
-  Pencil,
-  Type,
-  ArrowUpRight,
-  Square,
-  Circle,
-  Cloud,
-  Ruler,
-  Highlighter,
-  Undo2,
-  Redo2,
-  Save,
-  Minus,
-  Plus,
-  Maximize2,
-  ChevronLeft,
-  ChevronRight,
-  MessageSquare,
-  FileCheck,
-  Eye,
-  PanelRightClose,
+  Search,
+  FileText,
+  FileSpreadsheet,
+  FileImage,
+  File,
   Download,
+  Calendar,
+  User,
+  FolderOpen,
   Layers,
+  Filter,
+  ChevronDown,
+  ChevronRight,
+  Eye,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -51,63 +42,37 @@ interface PlanRoomClientProps {
 }
 
 // ---------------------------------------------------------------------------
-// Mock sheet data (when no real documents exist)
+// Helpers
 // ---------------------------------------------------------------------------
 
-interface Sheet {
-  id: string;
-  number: string;
-  name: string;
-  discipline: string;
-  revision: number;
-  date: string;
-  isNew?: boolean;
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }
 
-const MOCK_SHEETS: Sheet[] = [
-  { id: "a10", number: "A1.0", name: "Site Plan", discipline: "Architectural", revision: 3, date: "Feb 3, 2026" },
-  { id: "a21", number: "A2.1", name: "Floor Plan L1", discipline: "Architectural", revision: 3, date: "Feb 3, 2026" },
-  { id: "a22", number: "A2.2", name: "Floor Plan L2", discipline: "Architectural", revision: 3, date: "Feb 3, 2026" },
-  { id: "a23", number: "A2.3", name: "Floor Plan L3", discipline: "Architectural", revision: 3, date: "Feb 3, 2026" },
-  { id: "a30", number: "A3.0", name: "Elevations", discipline: "Architectural", revision: 3, date: "Feb 3, 2026" },
-  { id: "a40", number: "A4.0", name: "Sections", discipline: "Architectural", revision: 3, date: "Feb 3, 2026" },
-  { id: "a50", number: "A5.0", name: "Details", discipline: "Architectural", revision: 3, date: "Feb 3, 2026" },
-  { id: "s10", number: "S1.0", name: "Foundation Plan", discipline: "Structural", revision: 4, date: "Feb 5, 2026" },
-  { id: "s20", number: "S2.0", name: "Framing Plan L1", discipline: "Structural", revision: 3, date: "Feb 3, 2026" },
-  { id: "s21", number: "S2.1", name: "Framing Plan L2", discipline: "Structural", revision: 3, date: "Feb 3, 2026" },
-  { id: "s30", number: "S3.0", name: "Structural Details", discipline: "Structural", revision: 3, date: "Feb 3, 2026" },
-  { id: "m10", number: "M1.0", name: "HVAC Plan L1", discipline: "Mechanical", revision: 3, date: "Feb 3, 2026", isNew: true },
-  { id: "m11", number: "M1.1", name: "HVAC Plan L2", discipline: "Mechanical", revision: 3, date: "Feb 3, 2026" },
-  { id: "m20", number: "M2.0", name: "Plumbing Plan", discipline: "Mechanical", revision: 3, date: "Feb 3, 2026" },
-  { id: "e10", number: "E1.0", name: "Power Plan L1", discipline: "Electrical", revision: 3, date: "Feb 3, 2026" },
-  { id: "e11", number: "E1.1", name: "Power Plan L2", discipline: "Electrical", revision: 3, date: "Feb 3, 2026" },
-  { id: "e20", number: "E2.0", name: "Lighting Plan", discipline: "Electrical", revision: 3, date: "Feb 3, 2026" },
-];
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "--";
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
-const MOCK_LINKED_ITEMS = [
-  { id: "rfi12", type: "RFI", number: "#12", title: "Foundation detail clarification" },
-  { id: "rfi18", type: "RFI", number: "#18", title: "Site grading question" },
-  { id: "sub5", type: "Submittal", number: "#5", title: "Concrete mix design" },
-];
-
-const MOCK_MARKUP_HISTORY = [
-  { initials: "JM", name: "John M.", date: "Feb 10", count: 3, color: "var(--color-blue)" },
-  { initials: "SK", name: "Sarah K.", date: "Feb 8", count: 1, color: "#a855f7" },
-];
-
-const MARKUP_TOOLS = [
-  { icon: MousePointer2, label: "Select", id: "select" },
-  { icon: Pencil, label: "Pen", id: "pen" },
-  { icon: Type, label: "Text", id: "text" },
-  { icon: ArrowUpRight, label: "Arrow", id: "arrow" },
-  { icon: Square, label: "Rectangle", id: "rect" },
-  { icon: Circle, label: "Circle", id: "circle" },
-  { icon: Cloud, label: "Cloud", id: "cloud" },
-  { icon: Ruler, label: "Dimension", id: "ruler" },
-  { icon: Highlighter, label: "Highlight", id: "highlight" },
-];
-
-const MARKUP_COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#18181b"];
+function getFileIcon(fileType: string) {
+  const t = fileType.toLowerCase();
+  if (t === "pdf") return { Icon: FileText, cls: "file-icon-pdf" };
+  if (["jpg", "jpeg", "png", "gif", "bmp", "tiff", "svg"].includes(t))
+    return { Icon: FileImage, cls: "file-icon-img" };
+  if (["xls", "xlsx", "csv"].includes(t))
+    return { Icon: FileSpreadsheet, cls: "file-icon-xls" };
+  if (["dwg", "dxf", "rvt"].includes(t))
+    return { Icon: Layers, cls: "file-icon-dwg" };
+  return { Icon: File, cls: "file-icon-default" };
+}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -117,53 +82,63 @@ export default function PlanRoomClient({
   documents,
   projectList,
 }: PlanRoomClientProps) {
-  // Build sheets from real documents or use mock data
-  const hasRealDocs = documents.length > 0;
+  const [selectedId, setSelectedId] = useState<string | null>(
+    documents[0]?.id ?? null
+  );
+  const [projectFilter, setProjectFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | "plan" | "spec">(
+    "all"
+  );
+  const [search, setSearch] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState<
+    Record<string, boolean>
+  >({ plan: true, spec: true });
 
-  const sheets: Sheet[] = hasRealDocs
-    ? documents.map((doc, i) => ({
-        id: doc.id,
-        number: `D${(i + 1).toString().padStart(2, "0")}`,
-        name: doc.name,
-        discipline: doc.category === "plan" ? "Plans" : "Specifications",
-        revision: doc.version,
-        date: doc.created_at
-          ? new Date(doc.created_at).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
-          : "--",
-      }))
-    : MOCK_SHEETS;
+  // Filter documents
+  const filtered = useMemo(() => {
+    return documents.filter((doc) => {
+      if (projectFilter !== "all" && doc.project_id !== projectFilter)
+        return false;
+      if (categoryFilter !== "all" && doc.category !== categoryFilter)
+        return false;
+      if (
+        search &&
+        !doc.name.toLowerCase().includes(search.toLowerCase())
+      )
+        return false;
+      return true;
+    });
+  }, [documents, projectFilter, categoryFilter, search]);
 
-  const [activeSheetId, setActiveSheetId] = useState(sheets[0]?.id ?? "");
-  const [activeProject, setActiveProject] = useState("all");
-  const [activeTool, setActiveTool] = useState("select");
-  const [activeColor, setActiveColor] = useState(MARKUP_COLORS[0]);
-  const [zoom, setZoom] = useState(100);
-  const [infoPanelOpen, setInfoPanelOpen] = useState(true);
+  // Group by category
+  const grouped = useMemo(() => {
+    const plans = filtered.filter((d) => d.category === "plan");
+    const specs = filtered.filter((d) => d.category === "spec");
+    return { plans, specs };
+  }, [filtered]);
 
-  const activeSheet = sheets.find((s) => s.id === activeSheetId) ?? sheets[0];
-  const sheetIndex = sheets.findIndex((s) => s.id === activeSheetId);
+  const selectedDoc = documents.find((d) => d.id === selectedId) ?? null;
 
-  // Group sheets by discipline
-  const disciplines: Record<string, Sheet[]> = {};
-  for (const s of sheets) {
-    if (!disciplines[s.discipline]) disciplines[s.discipline] = [];
-    disciplines[s.discipline].push(s);
+  function toggleCategory(cat: string) {
+    setExpandedCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));
   }
 
-  function goToPrevSheet() {
-    if (sheetIndex > 0) setActiveSheetId(sheets[sheetIndex - 1].id);
+  // Empty state
+  if (documents.length === 0) {
+    return (
+      <div className="doc-empty" style={{ paddingTop: 100 }}>
+        <div className="doc-empty-icon">
+          <Map size={48} />
+        </div>
+        <div className="doc-empty-title">No Plans or Specifications</div>
+        <div className="doc-empty-desc">
+          Upload construction plans and specifications to your Document Library
+          with the category set to &quot;plan&quot; or &quot;spec&quot; and they
+          will appear here.
+        </div>
+      </div>
+    );
   }
-
-  function goToNextSheet() {
-    if (sheetIndex < sheets.length - 1) setActiveSheetId(sheets[sheetIndex + 1].id);
-  }
-
-  // Filter projects
-  const filteredProjectList = projectList;
 
   return (
     <div className="plan-room-shell">
@@ -171,396 +146,280 @@ export default function PlanRoomClient({
       <div className="plan-room-header">
         <div className="plan-room-header-left">
           <Map size={20} className="plan-room-icon" />
-          {filteredProjectList.length > 0 ? (
+          <span className="plan-room-project-name">Plan Room</span>
+          {projectList.length > 0 && (
             <select
               className="plan-room-project-select"
-              value={activeProject}
-              onChange={(e) => setActiveProject(e.target.value)}
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
             >
               <option value="all">All Projects</option>
-              {filteredProjectList.map((p) => (
+              {projectList.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
                 </option>
               ))}
             </select>
-          ) : (
-            <span className="plan-room-project-name">Plan Room</span>
           )}
           <span className="plan-room-set-info">
             <Layers size={14} />
-            Current Set - Rev {activeSheet?.revision ?? 1}
+            {filtered.length} document{filtered.length !== 1 ? "s" : ""}
           </span>
         </div>
         <div className="plan-room-header-right">
-          <button className="plan-room-download-btn">
-            <Download size={14} />
-            Download Set
-          </button>
+          <div className="plan-room-filter-group">
+            <Filter size={14} />
+            <select
+              className="plan-room-project-select"
+              value={categoryFilter}
+              onChange={(e) =>
+                setCategoryFilter(e.target.value as "all" | "plan" | "spec")
+              }
+            >
+              <option value="all">All Types</option>
+              <option value="plan">Plans Only</option>
+              <option value="spec">Specs Only</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="plan-room-body">
-        {/* LEFT: Sheet Index */}
+        {/* LEFT: Document List */}
         <div className="plan-room-sidebar">
-          {Object.entries(disciplines).map(([discipline, discSheets]) => (
-            <div key={discipline} className="plan-room-discipline">
-              <div className="plan-room-discipline-title">{discipline}</div>
-              {discSheets.map((sheet) => (
-                <div
-                  key={sheet.id}
-                  className={`plan-room-sheet-item ${sheet.id === activeSheetId ? "active" : ""}`}
-                  onClick={() => setActiveSheetId(sheet.id)}
-                >
-                  <div className="plan-room-sheet-top">
-                    <span className={`plan-room-sheet-number ${sheet.id === activeSheetId ? "active" : ""}`}>
-                      {sheet.number}
-                    </span>
-                    {sheet.isNew && <span className="plan-room-sheet-badge new">New</span>}
-                    {sheet.revision > 3 && <span className="plan-room-sheet-badge rev">Rev {sheet.revision}</span>}
-                  </div>
-                  <div className={`plan-room-sheet-name ${sheet.id === activeSheetId ? "active" : ""}`}>
-                    {sheet.name}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-
-        {/* CENTER: Viewer */}
-        <div className="plan-room-viewer">
-          {/* Floating Markup Toolbar */}
-          <div className="plan-room-toolbar">
-            {MARKUP_TOOLS.map((tool) => (
-              <button
-                key={tool.id}
-                className={`plan-room-tool-btn ${activeTool === tool.id ? "active" : ""}`}
-                title={tool.label}
-                onClick={() => setActiveTool(tool.id)}
-              >
-                <tool.icon size={16} />
-              </button>
-            ))}
-
-            <div className="plan-room-toolbar-sep" />
-
-            {/* Color Picker */}
-            <div className="plan-room-colors">
-              {MARKUP_COLORS.map((color) => (
-                <button
-                  key={color}
-                  className={`plan-room-color-dot ${activeColor === color ? "active" : ""}`}
-                  style={{ background: color }}
-                  onClick={() => setActiveColor(color)}
-                />
-              ))}
-            </div>
-
-            <div className="plan-room-toolbar-sep" />
-
-            {/* Undo / Redo */}
-            <button className="plan-room-tool-btn" title="Undo">
-              <Undo2 size={16} />
-            </button>
-            <button className="plan-room-tool-btn disabled" title="Redo">
-              <Redo2 size={16} />
-            </button>
-
-            <div className="plan-room-toolbar-sep" />
-
-            <button className="plan-room-save-btn">
-              <Save size={14} />
-              Save Markups
-            </button>
+          {/* Search */}
+          <div className="plan-room-search">
+            <Search size={14} />
+            <input
+              type="text"
+              placeholder="Search documents..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          {/* Blueprint Drawing Area */}
-          <div className="plan-room-blueprint">
-            <div className="plan-room-drawing" style={{ transform: `scale(${zoom / 100})` }}>
-              {/* Simulated Site Plan */}
-              <div className="blueprint-container">
-                {/* North Arrow */}
-                <div className="blueprint-north">
-                  <span>N</span>
-                  <div className="blueprint-north-arrow" />
-                  <div className="blueprint-north-line" />
-                </div>
-
-                {/* Property Boundary */}
-                <div className="blueprint-boundary" />
-
-                {/* Building Footprint */}
-                <div className="blueprint-building">
-                  <div className="blueprint-building-label">
-                    <p className="blueprint-building-title">Building Footprint</p>
-                    <p className="blueprint-building-sub">{activeSheet.name}</p>
-                    <p className="blueprint-building-info">3 Stories - 42,000 SF</p>
-                  </div>
-                  {/* Dimension lines */}
-                  <div className="blueprint-dim-h">
-                    <div className="blueprint-dim-tick" />
-                    <div className="blueprint-dim-line">
-                      <span>180&apos;-0&quot;</span>
+          {/* Plans Section */}
+          {grouped.plans.length > 0 && (
+            <div className="plan-room-discipline">
+              <div
+                className="plan-room-discipline-title clickable"
+                onClick={() => toggleCategory("plan")}
+              >
+                {expandedCategories.plan ? (
+                  <ChevronDown size={12} />
+                ) : (
+                  <ChevronRight size={12} />
+                )}
+                Plans ({grouped.plans.length})
+              </div>
+              {expandedCategories.plan &&
+                grouped.plans.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className={`plan-room-sheet-item ${doc.id === selectedId ? "active" : ""}`}
+                    onClick={() => setSelectedId(doc.id)}
+                  >
+                    <div className="plan-room-sheet-top">
+                      <span
+                        className={`plan-room-sheet-number ${doc.id === selectedId ? "active" : ""}`}
+                      >
+                        {doc.file_type?.toUpperCase() || "FILE"}
+                      </span>
+                      {doc.version > 1 && (
+                        <span className="plan-room-sheet-badge rev">
+                          v{doc.version}
+                        </span>
+                      )}
                     </div>
-                    <div className="blueprint-dim-tick" />
-                  </div>
-                  <div className="blueprint-dim-v">
-                    <div className="blueprint-dim-tick-h" />
-                    <div className="blueprint-dim-line-v">
-                      <span>120&apos;-0&quot;</span>
-                    </div>
-                    <div className="blueprint-dim-tick-h" />
-                  </div>
-                </div>
-
-                {/* Parking Areas */}
-                <div className="blueprint-parking left">
-                  <div className="blueprint-parking-hatch" />
-                  <div className="blueprint-parking-label">
-                    <span>Parking</span>
-                    <span className="sub">42 Spaces</span>
-                  </div>
-                </div>
-                <div className="blueprint-parking right">
-                  <div className="blueprint-parking-hatch" />
-                  <div className="blueprint-parking-label">
-                    <span>Parking</span>
-                    <span className="sub">28 Spaces</span>
-                  </div>
-                </div>
-
-                {/* Road */}
-                <div className="blueprint-road">
-                  <div className="blueprint-road-surface" />
-                  <div className="blueprint-road-center" />
-                  <span className="blueprint-road-label">RIVERSIDE DRIVE</span>
-                </div>
-
-                {/* Scale Bar */}
-                <div className="blueprint-scale">
-                  <div className="blueprint-scale-bars">
-                    <div className="scale-seg dark" />
-                    <div className="scale-seg light" />
-                    <div className="scale-seg dark" />
-                    <div className="scale-seg light" />
-                  </div>
-                  <div className="blueprint-scale-labels">
-                    <span>0</span>
-                    <span>50&apos;</span>
-                    <span>100&apos;</span>
-                  </div>
-                  <div className="blueprint-scale-text">SCALE: 1&quot; = 50&apos;-0&quot;</div>
-                </div>
-
-                {/* Title Block */}
-                <div className="blueprint-title-block">
-                  <div className="title-block-row main">
-                    <p className="title-block-project">RIVERSIDE COMMONS PHASE II</p>
-                    <p className="title-block-address">4200 Riverside Dr, Austin, TX 78741</p>
-                  </div>
-                  <div className="title-block-row split">
-                    <div className="title-block-cell">
-                      <span className="title-block-label">DRAWN BY</span>
-                      <span className="title-block-value">MDA Architects</span>
-                    </div>
-                    <div className="title-block-cell">
-                      <span className="title-block-label">DATE</span>
-                      <span className="title-block-value">{activeSheet.date}</span>
+                    <div
+                      className={`plan-room-sheet-name ${doc.id === selectedId ? "active" : ""}`}
+                    >
+                      {doc.name}
                     </div>
                   </div>
-                  <div className="title-block-row split">
-                    <div className="title-block-cell">
-                      <span className="title-block-label">SHEET</span>
-                      <span className="title-block-value lg">{activeSheet.number}</span>
+                ))}
+            </div>
+          )}
+
+          {/* Specs Section */}
+          {grouped.specs.length > 0 && (
+            <div className="plan-room-discipline">
+              <div
+                className="plan-room-discipline-title clickable"
+                onClick={() => toggleCategory("spec")}
+              >
+                {expandedCategories.spec ? (
+                  <ChevronDown size={12} />
+                ) : (
+                  <ChevronRight size={12} />
+                )}
+                Specifications ({grouped.specs.length})
+              </div>
+              {expandedCategories.spec &&
+                grouped.specs.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className={`plan-room-sheet-item ${doc.id === selectedId ? "active" : ""}`}
+                    onClick={() => setSelectedId(doc.id)}
+                  >
+                    <div className="plan-room-sheet-top">
+                      <span
+                        className={`plan-room-sheet-number ${doc.id === selectedId ? "active" : ""}`}
+                      >
+                        {doc.file_type?.toUpperCase() || "FILE"}
+                      </span>
+                      {doc.version > 1 && (
+                        <span className="plan-room-sheet-badge rev">
+                          v{doc.version}
+                        </span>
+                      )}
                     </div>
-                    <div className="title-block-cell">
-                      <span className="title-block-label">REVISION</span>
-                      <span className="title-block-value lg">{activeSheet.revision}</span>
+                    <div
+                      className={`plan-room-sheet-name ${doc.id === selectedId ? "active" : ""}`}
+                    >
+                      {doc.name}
                     </div>
                   </div>
-                  <div className="title-block-row footer">
-                    <span>{activeSheet.name.toUpperCase()}</span>
-                  </div>
+                ))}
+            </div>
+          )}
+
+          {filtered.length === 0 && (
+            <div className="plan-room-sidebar-empty">
+              No documents match your filters.
+            </div>
+          )}
+        </div>
+
+        {/* CENTER: Document Viewer */}
+        <div className="plan-room-viewer">
+          {selectedDoc ? (
+            <div className="plan-room-doc-view">
+              <div className="plan-room-doc-card">
+                <div
+                  className={`plan-room-doc-icon ${getFileIcon(selectedDoc.file_type).cls}`}
+                >
+                  {(() => {
+                    const { Icon } = getFileIcon(selectedDoc.file_type);
+                    return <Icon size={48} />;
+                  })()}
+                </div>
+                <h3 className="plan-room-doc-name">{selectedDoc.name}</h3>
+                <p className="plan-room-doc-meta">
+                  {selectedDoc.file_type?.toUpperCase()} &middot;{" "}
+                  {formatBytes(selectedDoc.file_size)} &middot; Version{" "}
+                  {selectedDoc.version}
+                </p>
+                {selectedDoc.projects && (
+                  <p className="plan-room-doc-project">
+                    {selectedDoc.projects.name}
+                  </p>
+                )}
+                <div className="plan-room-doc-actions">
+                  <button className="btn-primary">
+                    <Eye size={14} />
+                    Preview
+                  </button>
+                  <button className="btn-secondary">
+                    <Download size={14} />
+                    Download
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Bottom Toolbar */}
-          <div className="plan-room-bottom-bar">
-            <div className="plan-room-zoom">
-              <button
-                className="plan-room-tool-btn sm"
-                onClick={() => setZoom((z) => Math.max(25, z - 25))}
-                title="Zoom Out"
-              >
-                <Minus size={14} />
-              </button>
-              <span className="plan-room-zoom-label">{zoom}%</span>
-              <button
-                className="plan-room-tool-btn sm"
-                onClick={() => setZoom((z) => Math.min(200, z + 25))}
-                title="Zoom In"
-              >
-                <Plus size={14} />
-              </button>
-              <button
-                className="plan-room-tool-btn sm text"
-                onClick={() => setZoom(100)}
-                title="Fit to Screen"
-              >
-                <Maximize2 size={14} />
-                Fit
-              </button>
+          ) : (
+            <div className="plan-room-doc-view">
+              <div className="plan-room-doc-empty">
+                <FolderOpen size={40} />
+                <p>Select a document from the sidebar to view details</p>
+              </div>
             </div>
-
-            <div className="plan-room-page-nav">
-              <button
-                className="plan-room-tool-btn sm"
-                onClick={goToPrevSheet}
-                disabled={sheetIndex <= 0}
-                title="Previous Sheet"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <span className="plan-room-page-label">
-                Sheet {sheetIndex + 1} of {sheets.length}
-              </span>
-              <button
-                className="plan-room-tool-btn sm"
-                onClick={goToNextSheet}
-                disabled={sheetIndex >= sheets.length - 1}
-                title="Next Sheet"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-
-            <div className="plan-room-bottom-actions">
-              <button className="plan-room-action-btn">
-                <MessageSquare size={12} />
-                Link RFI
-              </button>
-              <button className="plan-room-action-btn">
-                <FileCheck size={12} />
-                Link Submittal
-              </button>
-              <button className="plan-room-action-btn">
-                <Eye size={12} />
-                View History
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* RIGHT: Info Panel */}
-        {infoPanelOpen && (
+        {selectedDoc && (
           <div className="plan-room-info">
-            {/* Panel Header */}
             <div className="plan-room-info-header">
-              <span>Sheet Info</span>
-              <button
-                className="plan-room-tool-btn sm"
-                onClick={() => setInfoPanelOpen(false)}
-                title="Collapse Panel"
-              >
-                <PanelRightClose size={16} />
-              </button>
+              <span>Document Info</span>
             </div>
 
-            {/* Sheet Details */}
+            {/* Document Details */}
             <div className="plan-room-info-section">
               <div className="plan-room-info-field">
-                <span className="plan-room-info-label">Sheet Name</span>
+                <span className="plan-room-info-label">File Name</span>
                 <span className="plan-room-info-value">
-                  {activeSheet.number} - {activeSheet.name}
+                  {selectedDoc.name}
                 </span>
               </div>
               <div className="plan-room-info-row">
                 <div className="plan-room-info-field">
-                  <span className="plan-room-info-label">Revision</span>
-                  <span className="plan-room-info-value sm">Rev {activeSheet.revision}</span>
-                </div>
-                <div className="plan-room-info-field">
-                  <span className="plan-room-info-label">Date</span>
-                  <span className="plan-room-info-value sm">{activeSheet.date}</span>
-                </div>
-              </div>
-              {hasRealDocs && (
-                <div className="plan-room-info-field">
-                  <span className="plan-room-info-label">Uploaded By</span>
+                  <span className="plan-room-info-label">Type</span>
                   <span className="plan-room-info-value sm">
-                    {documents.find((d) => d.id === activeSheetId)?.uploader?.full_name ?? "--"}
+                    {selectedDoc.file_type?.toUpperCase() || "--"}
                   </span>
                 </div>
-              )}
+                <div className="plan-room-info-field">
+                  <span className="plan-room-info-label">Size</span>
+                  <span className="plan-room-info-value sm">
+                    {formatBytes(selectedDoc.file_size)}
+                  </span>
+                </div>
+              </div>
+              <div className="plan-room-info-row">
+                <div className="plan-room-info-field">
+                  <span className="plan-room-info-label">Category</span>
+                  <span className="plan-room-info-value sm">
+                    {selectedDoc.category === "plan"
+                      ? "Plan"
+                      : "Specification"}
+                  </span>
+                </div>
+                <div className="plan-room-info-field">
+                  <span className="plan-room-info-label">Version</span>
+                  <span className="plan-room-info-value sm">
+                    v{selectedDoc.version}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Linked Items */}
+            {/* Upload Info */}
             <div className="plan-room-info-section">
-              <div className="plan-room-info-section-title">Linked Items</div>
-              <div className="plan-room-linked-items">
-                {MOCK_LINKED_ITEMS.map((item) => (
-                  <div key={item.id} className="plan-room-linked-item">
-                    <div
-                      className={`plan-room-linked-icon ${item.type === "RFI" ? "amber" : "green"}`}
-                    >
-                      {item.type === "RFI" ? (
-                        <MessageSquare size={12} />
-                      ) : (
-                        <FileCheck size={12} />
-                      )}
-                    </div>
-                    <div className="plan-room-linked-content">
-                      <span className="plan-room-linked-title">
-                        {item.type} {item.number}
-                      </span>
-                      <span className="plan-room-linked-desc">{item.title}</span>
-                    </div>
-                  </div>
-                ))}
+              <div className="plan-room-info-section-title">Upload Info</div>
+              <div className="plan-room-info-field">
+                <span className="plan-room-info-label">
+                  <Calendar size={10} style={{ marginRight: 4 }} />
+                  Uploaded
+                </span>
+                <span className="plan-room-info-value sm">
+                  {formatDate(selectedDoc.created_at)}
+                </span>
+              </div>
+              <div className="plan-room-info-field">
+                <span className="plan-room-info-label">
+                  <User size={10} style={{ marginRight: 4 }} />
+                  Uploaded By
+                </span>
+                <span className="plan-room-info-value sm">
+                  {selectedDoc.uploader?.full_name || "--"}
+                </span>
               </div>
             </div>
 
-            {/* Markup History */}
-            <div className="plan-room-info-section no-border">
-              <div className="plan-room-info-section-title">Markup History</div>
-              <div className="plan-room-markup-history">
-                {MOCK_MARKUP_HISTORY.map((entry) => (
-                  <div key={entry.initials} className="plan-room-markup-entry">
-                    <div
-                      className="plan-room-markup-avatar"
-                      style={{ background: `${entry.color}20`, color: entry.color }}
-                    >
-                      {entry.initials}
-                    </div>
-                    <div className="plan-room-markup-info">
-                      <div className="plan-room-markup-top">
-                        <span className="plan-room-markup-name">{entry.name}</span>
-                        <span className="plan-room-markup-date">{entry.date}</span>
-                      </div>
-                      <span className="plan-room-markup-count">
-                        {entry.count} markup{entry.count !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+            {/* Project Info */}
+            {selectedDoc.projects && (
+              <div className="plan-room-info-section no-border">
+                <div className="plan-room-info-section-title">Project</div>
+                <div className="plan-room-info-field">
+                  <span className="plan-room-info-value sm">
+                    {selectedDoc.projects.name}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        )}
-
-        {/* Toggle info panel when closed */}
-        {!infoPanelOpen && (
-          <button
-            className="plan-room-info-toggle"
-            onClick={() => setInfoPanelOpen(true)}
-            title="Open Info Panel"
-          >
-            <PanelRightClose size={16} style={{ transform: "scaleX(-1)" }} />
-          </button>
         )}
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Pencil,
@@ -279,11 +280,17 @@ export default function ProjectDetailClient({
         />
       )}
 
-      {/* Task Detail Modal (view only) */}
+      {/* Task Detail / Edit Modal */}
       {selectedTask && (
         <TaskModal
           task={selectedTask}
-          onClose={() => setSelectedTask(null)}
+          projectId={project.id}
+          editMode={editMode}
+          saving={saving}
+          setSaving={setSaving}
+          onClose={() => { setSelectedTask(null); setEditMode(false); }}
+          onEdit={() => setEditMode(true)}
+          onCancelEdit={() => setEditMode(false)}
         />
       )}
     </div>
@@ -1130,16 +1137,170 @@ function DailyLogModal({
 }
 
 // ===========================================================================
-// Task Modal (Detail only)
+// Task Modal (Detail + Edit)
 // ===========================================================================
 
 function TaskModal({
   task,
+  projectId,
+  editMode,
+  saving,
+  setSaving,
   onClose,
+  onEdit,
+  onCancelEdit,
 }: {
   task: ProjectTask;
+  projectId: string;
+  editMode: boolean;
+  saving: boolean;
+  setSaving: (v: boolean) => void;
   onClose: () => void;
+  onEdit: () => void;
+  onCancelEdit: () => void;
 }) {
+  const router = useRouter();
+  const [formStatus, setFormStatus] = useState(task.status);
+  const [formPriority, setFormPriority] = useState(task.priority);
+  const [formCompletion, setFormCompletion] = useState(String(task.completion_pct));
+  const [formMilestone, setFormMilestone] = useState(task.is_milestone);
+  const [formCriticalPath, setFormCriticalPath] = useState(task.is_critical_path);
+  const [formStartDate, setFormStartDate] = useState(toInputDate(task.start_date));
+  const [formEndDate, setFormEndDate] = useState(toInputDate(task.end_date));
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSave() {
+    setError(null);
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: formStatus,
+          priority: formPriority,
+          completion_pct: Number(formCompletion),
+          is_milestone: formMilestone,
+          is_critical_path: formCriticalPath,
+          start_date: formStartDate || null,
+          end_date: formEndDate || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update task.");
+        return;
+      }
+      router.refresh();
+      onClose();
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (editMode) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>Edit Task</h3>
+            <button className="modal-close" onClick={onClose}><X size={20} /></button>
+          </div>
+          <div className="modal-body">
+            {error && (
+              <div style={{ color: "var(--color-red)", fontSize: "0.82rem", marginBottom: 12 }}>
+                {error}
+              </div>
+            )}
+            <div className="modal-detail-row">
+              <span className="modal-detail-label">Name</span>
+              <span className="modal-detail-value" style={{ fontWeight: 600 }}>{task.name}</span>
+            </div>
+            <div className="modal-detail-row">
+              <span className="modal-detail-label">Status</span>
+              <span className="modal-detail-value">
+                <select className="modal-select" value={formStatus} onChange={(e) => {
+                  setFormStatus(e.target.value);
+                  if (e.target.value === "completed") setFormCompletion("100");
+                  if (e.target.value === "not_started") setFormCompletion("0");
+                }}>
+                  <option value="not_started">Not Started</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="blocked">Blocked</option>
+                </select>
+              </span>
+            </div>
+            <div className="modal-detail-row">
+              <span className="modal-detail-label">Priority</span>
+              <span className="modal-detail-value">
+                <select className="modal-select" value={formPriority} onChange={(e) => setFormPriority(e.target.value)}>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </span>
+            </div>
+            <div className="modal-detail-row">
+              <span className="modal-detail-label">Completion %</span>
+              <span className="modal-detail-value" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={formCompletion}
+                  onChange={(e) => setFormCompletion(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <span style={{ minWidth: 36, textAlign: "right", fontSize: "0.85rem" }}>{formCompletion}%</span>
+              </span>
+            </div>
+            <div className="modal-detail-row">
+              <span className="modal-detail-label">Start Date</span>
+              <span className="modal-detail-value">
+                <input type="date" className="modal-input" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} />
+              </span>
+            </div>
+            <div className="modal-detail-row">
+              <span className="modal-detail-label">End Date</span>
+              <span className="modal-detail-value">
+                <input type="date" className="modal-input" value={formEndDate} onChange={(e) => setFormEndDate(e.target.value)} />
+              </span>
+            </div>
+            <div className="modal-detail-row">
+              <span className="modal-detail-label">Milestone</span>
+              <span className="modal-detail-value">
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                  <input type="checkbox" checked={formMilestone} onChange={(e) => setFormMilestone(e.target.checked)} />
+                  Mark as milestone
+                </label>
+              </span>
+            </div>
+            <div className="modal-detail-row">
+              <span className="modal-detail-label">Critical Path</span>
+              <span className="modal-detail-value">
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                  <input type="checkbox" checked={formCriticalPath} onChange={(e) => setFormCriticalPath(e.target.checked)} />
+                  On critical path
+                </label>
+              </span>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="btn-secondary" onClick={onCancelEdit} disabled={saving}>Cancel</button>
+            <button className="btn-primary" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -1178,12 +1339,29 @@ function TaskModal({
           </div>
           <div className="modal-detail-row">
             <span className="modal-detail-label">Milestone</span>
-            <span className="modal-detail-value">{task.is_milestone ? "Yes" : "No"}</span>
+            <span className="modal-detail-value">
+              {task.is_milestone ? (
+                <span className="badge badge-amber">Yes</span>
+              ) : "No"}
+            </span>
           </div>
           <div className="modal-detail-row">
             <span className="modal-detail-label">Critical Path</span>
             <span className="modal-detail-value">{task.is_critical_path ? "Yes" : "No"}</span>
           </div>
+          {task.description && (
+            <div className="modal-detail-row">
+              <span className="modal-detail-label">Description</span>
+              <span className="modal-detail-value">{task.description}</span>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn-secondary" onClick={onClose}>Close</button>
+          <button className="btn-primary" onClick={onEdit}>
+            <Pencil size={14} />
+            Edit Task
+          </button>
         </div>
       </div>
     </div>

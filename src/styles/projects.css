@@ -1284,6 +1284,37 @@
   }
 }
 
+/* ===== Modal Form Controls ===== */
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.modal-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  color: var(--text);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.modal-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
 /* Clickable rows */
 .detail-table tbody tr.clickable-row {
   cursor: pointer;
