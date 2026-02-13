@@ -44,7 +44,7 @@ export async function POST(
     // Decrypt the API key
     let decryptedKey: string;
     try {
-      decryptedKey = decrypt(provider.api_key);
+      decryptedKey = decrypt(provider.api_key_encrypted);
     } catch {
       return NextResponse.json(
         { error: "Failed to decrypt API key. The encryption key may have changed." },

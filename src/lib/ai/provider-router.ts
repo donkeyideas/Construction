@@ -175,7 +175,7 @@ function buildProviderConfig(row: any): ProviderConfig {
   return {
     id: row.id,
     provider_name: row.provider_name as ProviderName,
-    api_key: decrypt(row.api_key),
+    api_key: decrypt(row.api_key_encrypted),
     model_id: row.model_id,
     is_active: row.is_active,
     use_for_chat: row.use_for_chat,

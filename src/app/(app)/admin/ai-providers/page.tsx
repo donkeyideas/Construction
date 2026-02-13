@@ -37,7 +37,7 @@ export default async function AIProvidersPage() {
   const maskedProviders = providers.map((p) => ({
     id: p.id,
     provider_name: p.provider_name,
-    api_key_masked: maskApiKey(p.api_key),
+    api_key_masked: maskApiKey(p.api_key_encrypted),
     model_id: p.model_id,
     is_active: p.is_active,
     use_for_chat: p.use_for_chat,

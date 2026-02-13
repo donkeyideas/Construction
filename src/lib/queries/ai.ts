@@ -10,7 +10,7 @@ export interface AIProviderRow {
   id: string;
   company_id: string;
   provider_name: ProviderName;
-  api_key: string; // encrypted in database
+  api_key_encrypted: string; // encrypted in database
   model_id: string;
   is_active: boolean;
   use_for_chat: boolean;
@@ -152,7 +152,7 @@ export async function createAIProvider(
     .insert({
       company_id: companyId,
       provider_name: input.provider_name,
-      api_key: encryptedKey,
+      api_key_encrypted: encryptedKey,
       model_id: input.model_id,
       is_active: input.is_active ?? true,
       use_for_chat: input.use_for_chat ?? false,
@@ -191,7 +191,7 @@ export async function updateAIProvider(
     updatePayload.provider_name = input.provider_name;
   }
   if (input.api_key !== undefined) {
-    updatePayload.api_key = encrypt(input.api_key);
+    updatePayload.api_key_encrypted = encrypt(input.api_key);
   }
   if (input.model_id !== undefined) {
     updatePayload.model_id = input.model_id;
