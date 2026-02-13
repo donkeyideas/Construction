@@ -82,6 +82,8 @@ export const appNavigation: NavItem[] = [
     children: [
       { label: "Overview", href: "/financial" },
       { label: "Invoices", href: "/financial/invoices" },
+      { label: "Accounts Receivable", href: "/financial/ar" },
+      { label: "Accounts Payable", href: "/financial/ap" },
       { label: "General Ledger", href: "/financial/general-ledger" },
       { label: "Chart of Accounts", href: "/financial/accounts" },
       { label: "Income Statement", href: "/financial/income-statement" },
@@ -99,6 +101,7 @@ export const appNavigation: NavItem[] = [
     children: [
       { label: "Library", href: "/documents" },
       { label: "Plan Room", href: "/documents/plan-room" },
+      { label: "Contracts", href: "/contracts" },
     ],
   },
   {
@@ -108,6 +111,7 @@ export const appNavigation: NavItem[] = [
       { label: "Directory", href: "/people" },
       { label: "Time & Attendance", href: "/people/time" },
       { label: "Certifications", href: "/people/certifications" },
+      { label: "Vendors", href: "/people/vendors" },
     ],
   },
   {
@@ -120,8 +124,11 @@ export const appNavigation: NavItem[] = [
   },
   {
     label: "AI Assistant",
-    href: "/ai-assistant",
     icon: "sparkles",
+    children: [
+      { label: "Chat", href: "/ai-assistant" },
+      { label: "Automation", href: "/automation" },
+    ],
   },
   {
     label: "Reports",
@@ -134,9 +141,14 @@ export const appNavigation: NavItem[] = [
     icon: "map",
   },
   {
-    label: "Admin Panel",
-    href: "/admin-panel",
+    label: "Administration",
     icon: "settings",
+    children: [
+      { label: "Users & Roles", href: "/admin/users" },
+      { label: "Company Settings", href: "/admin/settings" },
+      { label: "Integrations", href: "/admin/integrations" },
+      { label: "Security", href: "/admin/security" },
+    ],
   },
 ];
 
