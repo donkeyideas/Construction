@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,13 +12,21 @@ import {
   Upload,
   X,
   Trash2,
+  Plus,
 } from "lucide-react";
 import type { DocumentRow } from "@/lib/queries/documents";
+
+interface Project {
+  id: string;
+  name: string;
+}
 
 interface DocumentsClientProps {
   documents: DocumentRow[];
   hasFilters: boolean;
   currentFolder?: string;
+  projects?: Project[];
+  showUpload?: boolean;
 }
 
 /* ------------------------------------------------------------------
@@ -83,12 +91,27 @@ export default function DocumentsClient({
   documents,
   hasFilters,
   currentFolder,
+  projects = [],
+  showUpload = false,
 }: DocumentsClientProps) {
   const router = useRouter();
   const [selectedDoc, setSelectedDoc] = useState<DocumentRow | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Upload modal state
+  const [showUploadModal, setShowUploadModal] = useState(showUpload);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadName, setUploadName] = useState("");
+  const [uploadCategory, setUploadCategory] = useState("plan");
+  const [uploadProjectId, setUploadProjectId] = useState("");
+  const [uploadFolderPath, setUploadFolderPath] = useState(currentFolder || "");
+  const [uploadTags, setUploadTags] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleCardClick = (doc: DocumentRow) => {
     setSelectedDoc(doc);
@@ -132,6 +155,254 @@ export default function DocumentsClient({
     }
   };
 
+  const handleFileSelect = (file: File) => {
+    setUploadFile(file);
+    if (!uploadName) setUploadName(file.name.replace(/\.[^/.]+$/, ""));
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFileSelect(file);
+  };
+
+  const handleUploadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadFile) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+      formData.append("name", uploadName || uploadFile.name);
+      formData.append("category", uploadCategory);
+      if (uploadProjectId) formData.append("project_id", uploadProjectId);
+      if (uploadFolderPath) formData.append("folder_path", uploadFolderPath);
+      if (uploadTags) {
+        formData.append(
+          "tags",
+          JSON.stringify(
+            uploadTags
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
+          )
+        );
+      }
+
+      const res = await fetch("/api/documents", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to upload document");
+      }
+
+      // Reset and close
+      setShowUploadModal(false);
+      setUploadFile(null);
+      setUploadName("");
+      setUploadCategory("plan");
+      setUploadProjectId("");
+      setUploadFolderPath("");
+      setUploadTags("");
+      router.refresh();
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? err.message : "Failed to upload document"
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const openUploadModal = () => {
+    setUploadFile(null);
+    setUploadName("");
+    setUploadCategory("plan");
+    setUploadProjectId("");
+    setUploadFolderPath(currentFolder || "");
+    setUploadTags("");
+    setUploadError(null);
+    setShowUploadModal(true);
+  };
+
+  /* Upload Modal JSX (rendered at end) */
+  const uploadModal = showUploadModal ? (
+    <div
+      className="ticket-modal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setShowUploadModal(false);
+      }}
+    >
+      <div className="ticket-modal" style={{ maxWidth: "560px" }}>
+        <div className="ticket-modal-header">
+          <h3>Upload Document</h3>
+          <button
+            className="ticket-modal-close"
+            onClick={() => setShowUploadModal(false)}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <form className="ticket-form" onSubmit={handleUploadSubmit}>
+          {uploadError && (
+            <div className="ticket-form-error">{uploadError}</div>
+          )}
+
+          {/* Drop Zone */}
+          <div
+            className={`doc-upload-dropzone ${isDragOver ? "doc-upload-dropzone-active" : ""} ${uploadFile ? "doc-upload-dropzone-has-file" : ""}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFileSelect(file);
+              }}
+            />
+            {uploadFile ? (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontWeight: 600 }}>{uploadFile.name}</div>
+                <div
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "var(--muted)",
+                    marginTop: "4px",
+                  }}
+                >
+                  {formatFileSize(uploadFile.size)} — Click to change
+                </div>
+              </div>
+            ) : (
+              <div style={{ textAlign: "center" }}>
+                <Upload
+                  size={32}
+                  style={{ color: "var(--muted)", marginBottom: "8px" }}
+                />
+                <div style={{ fontWeight: 500 }}>
+                  Drop file here or click to browse
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "var(--muted)",
+                    marginTop: "4px",
+                  }}
+                >
+                  PDF, DWG, XLSX, DOCX, JPG, PNG up to 50MB
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Name */}
+          <div className="ticket-form-group">
+            <label className="ticket-form-label">Document Name</label>
+            <input
+              className="ticket-form-input"
+              value={uploadName}
+              onChange={(e) => setUploadName(e.target.value)}
+              placeholder="e.g. Floor Plan - Level 3"
+            />
+          </div>
+
+          <div className="ticket-form-row">
+            {/* Category */}
+            <div className="ticket-form-group">
+              <label className="ticket-form-label">Category *</label>
+              <select
+                className="ticket-form-select"
+                value={uploadCategory}
+                onChange={(e) => setUploadCategory(e.target.value)}
+              >
+                <option value="plan">Plans</option>
+                <option value="spec">Specifications</option>
+                <option value="contract">Contracts</option>
+                <option value="photo">Photos</option>
+                <option value="report">Reports</option>
+                <option value="correspondence">Correspondence</option>
+              </select>
+            </div>
+
+            {/* Project */}
+            <div className="ticket-form-group">
+              <label className="ticket-form-label">Project</label>
+              <select
+                className="ticket-form-select"
+                value={uploadProjectId}
+                onChange={(e) => setUploadProjectId(e.target.value)}
+              >
+                <option value="">None</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="ticket-form-row">
+            {/* Folder */}
+            <div className="ticket-form-group">
+              <label className="ticket-form-label">Folder Path</label>
+              <input
+                className="ticket-form-input"
+                value={uploadFolderPath}
+                onChange={(e) => setUploadFolderPath(e.target.value)}
+                placeholder="/Project/Drawings"
+              />
+            </div>
+
+            {/* Tags */}
+            <div className="ticket-form-group">
+              <label className="ticket-form-label">Tags</label>
+              <input
+                className="ticket-form-input"
+                value={uploadTags}
+                onChange={(e) => setUploadTags(e.target.value)}
+                placeholder="structural, rev-c, current"
+              />
+            </div>
+          </div>
+
+          <div className="ticket-form-actions">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => setShowUploadModal(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={!uploadFile || isUploading}
+            >
+              {isUploading ? "Uploading..." : "Upload Document"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  ) : null;
+
   if (documents.length === 0) {
     return (
       <div className="doc-empty">
@@ -145,15 +416,16 @@ export default function DocumentsClient({
             : "Upload your first document to get started. Plans, specs, contracts, and photos are all supported."}
         </div>
         {!hasFilters && (
-          <Link
-            href="/documents?upload=true"
+          <button
             className="ui-btn ui-btn-primary ui-btn-md"
             style={{ marginTop: "12px" }}
+            onClick={openUploadModal}
           >
             <Upload size={16} />
             Upload Document
-          </Link>
+          </button>
         )}
+        {uploadModal}
       </div>
     );
   }
@@ -348,6 +620,9 @@ export default function DocumentsClient({
           </div>
         </div>
       )}
+
+      {/* Upload Modal */}
+      {uploadModal}
     </>
   );
 }

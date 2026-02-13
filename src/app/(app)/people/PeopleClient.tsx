@@ -12,7 +12,10 @@ import {
   Edit3,
   Trash2,
   AlertCircle,
+  Upload,
 } from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 export interface Contact {
   id: string;
@@ -52,8 +55,26 @@ interface PeopleClientProps {
   contacts: Contact[];
 }
 
+const contactImportColumns: ImportColumn[] = [
+  { key: "first_name", label: "First Name", required: true },
+  { key: "last_name", label: "Last Name", required: true },
+  { key: "contact_type", label: "Type", required: false },
+  { key: "email", label: "Email", required: false, type: "email" },
+  { key: "phone", label: "Phone", required: false },
+  { key: "company_name", label: "Company", required: false },
+  { key: "job_title", label: "Job Title", required: false },
+];
+
+const contactSampleData = [
+  { first_name: "Carlos", last_name: "Ramirez", contact_type: "subcontractor", email: "carlos@ramirezelectric.com", phone: "(512) 555-0101", company_name: "Ramirez Electric", job_title: "Owner" },
+  { first_name: "Sarah", last_name: "Chen", contact_type: "vendor", email: "sarah@supplydepot.com", phone: "(512) 555-0202", company_name: "Supply Depot", job_title: "Sales Rep" },
+];
+
 export default function PeopleClient({ contacts }: PeopleClientProps) {
   const router = useRouter();
+
+  // Import modal state
+  const [showImport, setShowImport] = useState(false);
 
   // Create modal state
   const [showCreate, setShowCreate] = useState(false);
@@ -235,16 +256,37 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
     setEditError("");
   }
 
+  async function handleContactsImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "contacts", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   return (
     <>
-      {/* Add Contact Button */}
-      <button
-        className="btn-primary"
-        onClick={() => setShowCreate(true)}
-      >
-        <Plus size={16} />
-        Add Contact
-      </button>
+      {/* Action Buttons */}
+      <div style={{ display: "flex", gap: "8px" }}>
+        <button
+          className="btn-secondary"
+          onClick={() => setShowImport(true)}
+        >
+          <Upload size={16} />
+          Import CSV
+        </button>
+        <button
+          className="btn-primary"
+          onClick={() => setShowCreate(true)}
+        >
+          <Plus size={16} />
+          Add Contact
+        </button>
+      </div>
 
       {/* Contact Cards Grid */}
       {contacts.length === 0 ? (
@@ -423,6 +465,17 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Import CSV Modal */}
+      {showImport && (
+        <ImportModal
+          entityName="Contacts"
+          columns={contactImportColumns}
+          sampleData={contactSampleData}
+          onImport={handleContactsImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
 
       {/* Detail/Edit Modal */}

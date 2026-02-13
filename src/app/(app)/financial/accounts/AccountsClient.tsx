@@ -13,7 +13,10 @@ import {
   X,
   Loader2,
   Landmark,
+  Upload,
 } from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type { AccountTreeNode } from "@/lib/queries/financial";
 
 interface AccountsClientProps {
@@ -105,8 +108,23 @@ function AccountNode({
   );
 }
 
+const accountImportColumns: ImportColumn[] = [
+  { key: "account_number", label: "Account Number", required: true },
+  { key: "name", label: "Account Name", required: true },
+  { key: "account_type", label: "Account Type", required: true },
+  { key: "sub_type", label: "Sub Type", required: false },
+  { key: "description", label: "Description", required: false },
+];
+
+const accountSampleData = [
+  { account_number: "1000", name: "Cash & Equivalents", account_type: "asset", sub_type: "Current Asset", description: "Cash on hand and in banks" },
+  { account_number: "2000", name: "Accounts Payable", account_type: "liability", sub_type: "Current Liability", description: "Amounts owed to vendors" },
+  { account_number: "4000", name: "Construction Revenue", account_type: "revenue", sub_type: "", description: "Revenue from construction projects" },
+];
+
 export default function AccountsClient({ accounts }: AccountsClientProps) {
   const router = useRouter();
+  const [showImport, setShowImport] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -251,7 +269,15 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
             Manage your general ledger account structure.
           </p>
         </div>
-        <div className="fin-header-actions">
+        <div className="fin-header-actions" style={{ display: "flex", gap: "8px" }}>
+          <button
+            type="button"
+            className="ui-btn ui-btn-outline ui-btn-md"
+            onClick={() => setShowImport(true)}
+          >
+            <Upload size={16} />
+            Import CSV
+          </button>
           <button
             type="button"
             className="ui-btn ui-btn-primary ui-btn-md"
@@ -318,6 +344,27 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Import CSV Modal */}
+      {showImport && (
+        <ImportModal
+          entityName="Accounts"
+          columns={accountImportColumns}
+          sampleData={accountSampleData}
+          onImport={async (rows) => {
+            const res = await fetch("/api/import", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ entity: "chart_of_accounts", rows }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Import failed");
+            router.refresh();
+            return { success: data.success, errors: data.errors };
+          }}
+          onClose={() => setShowImport(false)}
+        />
       )}
 
       {/* Add Account Modal */}

@@ -1,0 +1,1015 @@
+/* ===================================================
+   Plan Room - Interactive Blueprint Viewer
+   Construction ERP
+   =================================================== */
+
+/* ===== Shell Layout ===== */
+.plan-room-shell {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px);
+  margin: -24px;
+  overflow: hidden;
+}
+
+/* ===== Header Bar ===== */
+.plan-room-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.plan-room-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.plan-room-icon {
+  color: var(--color-blue);
+  flex-shrink: 0;
+}
+
+.plan-room-project-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.plan-room-project-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.plan-room-set-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.plan-room-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.plan-room-download-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: var(--color-blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.plan-room-download-btn:hover {
+  background: var(--color-blue-dark);
+}
+
+/* ===== Three-Panel Body ===== */
+.plan-room-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ===== Left Sidebar: Sheet Index ===== */
+.plan-room-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.plan-room-discipline {
+  margin-bottom: 12px;
+}
+
+.plan-room-discipline-title {
+  padding: 4px 12px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.plan-room-sheet-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 0.12s;
+}
+
+.plan-room-sheet-item:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.plan-room-sheet-item.active {
+  background: rgba(59, 130, 246, 0.08);
+  border-left-color: var(--color-blue);
+}
+
+[data-theme="dark"] .plan-room-sheet-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .plan-room-sheet-item.active {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.plan-room-sheet-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.plan-room-sheet-number {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.plan-room-sheet-number.active {
+  color: var(--color-blue);
+}
+
+.plan-room-sheet-name {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.plan-room-sheet-name.active {
+  color: var(--color-blue);
+  font-weight: 500;
+}
+
+.plan-room-sheet-badge {
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.plan-room-sheet-badge.new {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--color-green);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.plan-room-sheet-badge.rev {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-amber);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* ===== Center: Viewer ===== */
+.plan-room-viewer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ===== Floating Markup Toolbar ===== */
+.plan-room-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+[data-theme="dark"] .plan-room-toolbar {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  background: rgba(36, 52, 71, 0.95);
+}
+
+.plan-room-tool-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  font-family: var(--font-sans);
+}
+
+.plan-room-tool-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-blue);
+}
+
+.plan-room-tool-btn.active {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-blue);
+}
+
+.plan-room-tool-btn.disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.plan-room-tool-btn.sm {
+  width: 28px;
+  height: 28px;
+}
+
+.plan-room-tool-btn.sm.text {
+  width: auto;
+  padding: 0 8px;
+  font-size: 0.72rem;
+  gap: 4px;
+}
+
+.plan-room-toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.plan-room-colors {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+.plan-room-color-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.plan-room-color-dot:hover {
+  transform: scale(1.2);
+}
+
+.plan-room-color-dot.active {
+  box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 4px currentColor;
+}
+
+.plan-room-save-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--color-blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.plan-room-save-btn:hover {
+  background: var(--color-blue-dark);
+}
+
+/* ===== Blueprint Drawing Area ===== */
+.plan-room-blueprint {
+  flex: 1;
+  overflow: auto;
+  background: var(--surface);
+  position: relative;
+}
+
+/* Blueprint grid pattern */
+.plan-room-blueprint {
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+[data-theme="dark"] .plan-room-blueprint {
+  background-color: #0d1117;
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+}
+
+.plan-room-drawing {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 40px 40px;
+  transition: transform 0.2s ease;
+  transform-origin: center center;
+}
+
+/* ===== Blueprint Container ===== */
+.blueprint-container {
+  position: relative;
+  width: 700px;
+  height: 500px;
+}
+
+/* North Arrow */
+.blueprint-north {
+  position: absolute;
+  top: 0;
+  right: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.blueprint-north span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.blueprint-north-arrow {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 16px solid var(--muted);
+}
+
+.blueprint-north-line {
+  width: 2px;
+  height: 24px;
+  background: var(--muted);
+}
+
+/* Property Boundary */
+.blueprint-boundary {
+  position: absolute;
+  inset: 16px;
+  border: 2px dashed var(--border);
+  border-radius: 2px;
+}
+
+/* Building Footprint */
+.blueprint-building {
+  position: absolute;
+  top: 64px;
+  left: 160px;
+  width: 320px;
+  height: 200px;
+  border: 2px solid var(--color-blue);
+  background: rgba(59, 130, 246, 0.04);
+  border-radius: 2px;
+}
+
+.blueprint-building-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.blueprint-building-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-blue);
+}
+
+.blueprint-building-sub {
+  font-size: 0.62rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.blueprint-building-info {
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+
+/* Dimension lines */
+.blueprint-dim-h {
+  position: absolute;
+  top: -32px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+}
+
+.blueprint-dim-tick {
+  width: 1px;
+  height: 12px;
+  background: var(--muted);
+}
+
+.blueprint-dim-line {
+  flex: 1;
+  border-top: 1px solid var(--muted);
+  position: relative;
+}
+
+.blueprint-dim-line span {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -12px;
+  font-size: 0.55rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.blueprint-dim-v {
+  position: absolute;
+  right: -40px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.blueprint-dim-tick-h {
+  height: 1px;
+  width: 12px;
+  background: var(--muted);
+}
+
+.blueprint-dim-line-v {
+  flex: 1;
+  border-left: 1px solid var(--muted);
+  position: relative;
+}
+
+.blueprint-dim-line-v span {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 8px;
+  font-size: 0.55rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Parking Areas */
+.blueprint-parking {
+  position: absolute;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.blueprint-parking.left {
+  top: 80px;
+  left: 8px;
+  width: 130px;
+  height: 170px;
+}
+
+.blueprint-parking.right {
+  top: 80px;
+  right: 8px;
+  width: 130px;
+  height: 120px;
+}
+
+.blueprint-parking-hatch {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(59, 130, 246, 0.08) 4px,
+    rgba(59, 130, 246, 0.08) 5px
+  );
+}
+
+.blueprint-parking-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.blueprint-parking-label .sub {
+  font-weight: 400;
+  font-size: 0.55rem;
+}
+
+/* Road */
+.blueprint-road {
+  position: absolute;
+  bottom: 32px;
+  left: 16px;
+  right: 16px;
+  height: 48px;
+}
+
+.blueprint-road-surface {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  opacity: 0.3;
+  border-radius: 2px;
+}
+
+.blueprint-road-center {
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  right: 24px;
+  border-top: 2px dashed rgba(245, 158, 11, 0.3);
+}
+
+.blueprint-road-label {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Scale Bar */
+.blueprint-scale {
+  position: absolute;
+  bottom: 56px;
+  left: 8px;
+}
+
+.blueprint-scale-bars {
+  display: flex;
+}
+
+.scale-seg {
+  width: 32px;
+  height: 6px;
+}
+
+.scale-seg.dark {
+  background: var(--muted);
+}
+
+.scale-seg.light {
+  background: var(--border);
+}
+
+.blueprint-scale-labels {
+  display: flex;
+  gap: 18px;
+  margin-top: 2px;
+}
+
+.blueprint-scale-labels span {
+  font-size: 0.5rem;
+  color: var(--muted);
+}
+
+.blueprint-scale-text {
+  font-size: 0.5rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Title Block */
+.blueprint-title-block {
+  position: absolute;
+  bottom: 32px;
+  right: 8px;
+  width: 200px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+.title-block-row {
+  padding: 4px 8px;
+}
+
+.title-block-row.main {
+  border-bottom: 1px solid var(--border);
+}
+
+.title-block-row.split {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.title-block-row.footer {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.title-block-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.title-block-cell:first-child {
+  border-right: 1px solid var(--border);
+  padding-right: 8px;
+}
+
+.title-block-project {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.title-block-address {
+  font-size: 0.5rem;
+  color: var(--muted);
+}
+
+.title-block-label {
+  font-size: 0.5rem;
+  color: var(--muted);
+}
+
+.title-block-value {
+  font-size: 0.55rem;
+  color: var(--text);
+}
+
+.title-block-value.lg {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* ===== Bottom Toolbar ===== */
+.plan-room-bottom-bar {
+  flex-shrink: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-top: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+.plan-room-zoom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-room-zoom-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text);
+  min-width: 40px;
+  text-align: center;
+}
+
+.plan-room-page-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.plan-room-page-label {
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.plan-room-bottom-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-room-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.plan-room-action-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* ===== Right: Info Panel ===== */
+.plan-room-info {
+  width: 250px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  overflow-y: auto;
+}
+
+.plan-room-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.plan-room-info-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.plan-room-info-section.no-border {
+  border-bottom: none;
+}
+
+.plan-room-info-section-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.plan-room-info-field {
+  margin-bottom: 10px;
+}
+
+.plan-room-info-field:last-child {
+  margin-bottom: 0;
+}
+
+.plan-room-info-label {
+  display: block;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.plan-room-info-value {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.plan-room-info-value.sm {
+  font-size: 0.8rem;
+}
+
+.plan-room-info-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+/* Linked Items */
+.plan-room-linked-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plan-room-linked-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.plan-room-linked-item:hover {
+  background: var(--border);
+}
+
+[data-theme="dark"] .plan-room-linked-item {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .plan-room-linked-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.plan-room-linked-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.plan-room-linked-icon.amber {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-amber);
+}
+
+.plan-room-linked-icon.green {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--color-green);
+}
+
+.plan-room-linked-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.plan-room-linked-title {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.plan-room-linked-desc {
+  font-size: 0.62rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+/* Markup History */
+.plan-room-markup-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plan-room-markup-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--card-bg);
+}
+
+[data-theme="dark"] .plan-room-markup-entry {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.plan-room-markup-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.plan-room-markup-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.plan-room-markup-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.plan-room-markup-name {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.plan-room-markup-date {
+  font-size: 0.55rem;
+  color: var(--muted);
+}
+
+.plan-room-markup-count {
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+
+/* Info panel toggle */
+.plan-room-info-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  background: var(--card-bg);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.plan-room-info-toggle:hover {
+  color: var(--text);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1023px) {
+  .plan-room-sidebar {
+    width: 180px;
+  }
+
+  .plan-room-info {
+    width: 200px;
+  }
+
+  .plan-room-bottom-actions {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .plan-room-sidebar {
+    display: none;
+  }
+
+  .plan-room-info {
+    display: none;
+  }
+
+  .plan-room-toolbar {
+    flex-wrap: wrap;
+    max-width: 90%;
+  }
+}

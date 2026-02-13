@@ -27,6 +27,7 @@ export default async function DocumentsPage({
     property?: string;
     search?: string;
     folder?: string;
+    upload?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -175,6 +176,8 @@ export default async function DocumentsPage({
             documents={documents}
             hasFilters={hasFilters}
             currentFolder={params.folder}
+            projects={projects}
+            showUpload={params.upload === "true"}
           />
         </div>
       </div>

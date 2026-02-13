@@ -212,7 +212,7 @@ export default function ProjectDetailClient({
       {/* Tab Panels */}
       <div className="project-tab-panel">
         {activeTab === "overview" && (
-          <OverviewTab project={project} stats={stats} />
+          <OverviewTab project={project} stats={stats} tasks={tasks} />
         )}
         {activeTab === "tasks" && (
           <TasksTab phases={phases} tasks={tasks} onSelect={setSelectedTask} />
@@ -1197,10 +1197,19 @@ function TaskModal({
 function OverviewTab({
   project,
   stats,
+  tasks,
 }: {
   project: ProjectRow;
   stats: ProjectStats;
+  tasks: ProjectTask[];
 }) {
+  const milestones = tasks
+    .filter((t) => t.is_milestone)
+    .sort((a, b) => {
+      const dateA = a.start_date ?? a.end_date ?? "";
+      const dateB = b.start_date ?? b.end_date ?? "";
+      return dateA.localeCompare(dateB);
+    });
   const budgetPct =
     project.contract_amount && project.actual_cost
       ? Math.round((project.actual_cost / project.contract_amount) * 100)
@@ -1363,6 +1372,101 @@ function OverviewTab({
           </span>
         </div>
       </div>
+
+      {/* Milestone Timeline */}
+      {milestones.length > 0 && (
+        <div className="project-info-card" style={{ marginBottom: 24 }}>
+          <div className="card-title">
+            <Milestone size={18} style={{ color: "var(--color-amber)" }} />
+            Milestone Timeline
+          </div>
+          <div className="milestone-timeline">
+            {milestones.map((ms, idx) => {
+              const isCompleted = ms.status === "completed";
+              const isInProgress = ms.status === "in_progress";
+              const isLast = idx === milestones.length - 1;
+              const msDate = ms.end_date ?? ms.start_date;
+
+              return (
+                <div key={ms.id} className="milestone-item">
+                  {/* Vertical line (except for last item) */}
+                  {!isLast && (
+                    <div
+                      className="milestone-line"
+                      style={{
+                        background: isCompleted
+                          ? "var(--color-green)"
+                          : "var(--border)",
+                      }}
+                    />
+                  )}
+                  {/* Dot */}
+                  <div
+                    className={`milestone-dot ${
+                      isCompleted
+                        ? "completed"
+                        : isInProgress
+                          ? "in-progress"
+                          : "upcoming"
+                    }`}
+                  >
+                    {isCompleted && (
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    {isInProgress && <div className="milestone-dot-inner" />}
+                    {!isCompleted && !isInProgress && (
+                      <div className="milestone-dot-inner upcoming" />
+                    )}
+                  </div>
+                  {/* Content */}
+                  <div className="milestone-content">
+                    <div className="milestone-header">
+                      <span
+                        className={`milestone-name ${
+                          !isCompleted && !isInProgress ? "upcoming" : ""
+                        }`}
+                      >
+                        {ms.name}
+                      </span>
+                      <span className="milestone-date">
+                        {msDate
+                          ? (isCompleted ? "" : "Est. ") + formatDate(msDate)
+                          : "--"}
+                      </span>
+                    </div>
+                    <span
+                      className={`milestone-status ${
+                        isCompleted
+                          ? "completed"
+                          : isInProgress
+                            ? "in-progress"
+                            : "upcoming"
+                      }`}
+                    >
+                      {isCompleted
+                        ? "Completed"
+                        : isInProgress
+                          ? "In Progress"
+                          : "Upcoming"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </>
   );
 }

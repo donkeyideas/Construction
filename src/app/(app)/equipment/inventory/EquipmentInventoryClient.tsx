@@ -13,7 +13,10 @@ import {
   Archive,
   Edit3,
   Trash2,
+  Upload,
 } from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type {
   EquipmentRow,
   EquipmentStats,
@@ -96,6 +99,22 @@ interface EquipmentInventoryClientProps {
   companyId: string;
 }
 
+const equipmentImportColumns: ImportColumn[] = [
+  { key: "name", label: "Name", required: true },
+  { key: "equipment_type", label: "Type", required: true },
+  { key: "make", label: "Make", required: false },
+  { key: "model", label: "Model", required: false },
+  { key: "serial_number", label: "Serial Number", required: false },
+  { key: "purchase_cost", label: "Purchase Cost", required: false, type: "number" },
+  { key: "hourly_rate", label: "Hourly Rate", required: false, type: "number" },
+  { key: "purchase_date", label: "Purchase Date", required: false, type: "date" },
+];
+
+const equipmentSampleData = [
+  { name: "CAT 320 Excavator", equipment_type: "excavator", make: "Caterpillar", model: "320", serial_number: "CAT320-001", purchase_cost: "185000", hourly_rate: "125", purchase_date: "2024-01-15" },
+  { name: "Genie GS-2632", equipment_type: "scaffold", make: "Genie", model: "GS-2632", serial_number: "GEN-2632-005", purchase_cost: "32000", hourly_rate: "45", purchase_date: "2024-06-01" },
+];
+
 export default function EquipmentInventoryClient({
   equipment,
   stats,
@@ -105,6 +124,9 @@ export default function EquipmentInventoryClient({
   companyId,
 }: EquipmentInventoryClientProps) {
   const router = useRouter();
+
+  // Import modal state
+  const [showImport, setShowImport] = useState(false);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<EquipmentStatus | "all">("all");
@@ -335,10 +357,16 @@ export default function EquipmentInventoryClient({
             {stats.total} item{stats.total !== 1 ? "s" : ""} total
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          Add Equipment
-        </button>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            Add Equipment
+          </button>
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -494,6 +522,27 @@ export default function EquipmentInventoryClient({
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Import CSV Modal */}
+      {showImport && (
+        <ImportModal
+          entityName="Equipment"
+          columns={equipmentImportColumns}
+          sampleData={equipmentSampleData}
+          onImport={async (rows) => {
+            const res = await fetch("/api/import", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ entity: "equipment", rows }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Import failed");
+            router.refresh();
+            return { success: data.success, errors: data.errors };
+          }}
+          onClose={() => setShowImport(false)}
+        />
       )}
 
       {/* Create Equipment Modal */}
