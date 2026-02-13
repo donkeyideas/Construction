@@ -1299,6 +1299,8 @@ export async function getBalanceSheet(
   const assets: IncomeStatementLine[] = [];
   const liabilities: IncomeStatementLine[] = [];
   const equity: IncomeStatementLine[] = [];
+  let totalRevenue = 0;
+  let totalExpenses = 0;
 
   for (const row of trialBalance) {
     if (row.account_type === "asset") {
@@ -1309,6 +1311,21 @@ export async function getBalanceSheet(
       liabilities.push({ account_number: row.account_number, name: row.account_name, amount: row.total_credit - row.total_debit });
     } else if (row.account_type === "equity") {
       equity.push({ account_number: row.account_number, name: row.account_name, amount: row.total_credit - row.total_debit });
+    } else if (row.account_type === "revenue") {
+      // Revenue has credit normal balance
+      totalRevenue += row.total_credit - row.total_debit;
+    } else if (row.account_type === "expense") {
+      // Expenses have debit normal balance
+      totalExpenses += row.total_debit - row.total_credit;
+    }
+  }
+
+  // Net Income (Revenue - Expenses) flows into Equity as Retained Earnings
+  // This is essential for the accounting equation: Assets = Liabilities + Equity
+  if (trialBalance.length > 0) {
+    const retainedEarnings = totalRevenue - totalExpenses;
+    if (Math.abs(retainedEarnings) > 0.01) {
+      equity.push({ account_number: "3200", name: "Retained Earnings", amount: retainedEarnings });
     }
   }
 
