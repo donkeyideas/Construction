@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, Plus } from "lucide-react";
+import {
+  Upload,
+  Mail,
+  Phone,
+  Building2,
+  X,
+  Edit3,
+  Trash2,
+  Truck,
+} from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -28,6 +37,9 @@ interface Contact {
   email: string;
   phone: string;
   job_title: string;
+  city?: string | null;
+  state?: string | null;
+  notes?: string | null;
 }
 
 interface VendorContract {
@@ -42,6 +54,11 @@ interface VendorContract {
   contacts?: { first_name: string; last_name: string; company_name: string };
 }
 
+const TYPE_BADGE_CLASS: Record<string, string> = {
+  vendor: "contact-type-vendor",
+  subcontractor: "contact-type-subcontractor",
+};
+
 export default function VendorsClient({
   contacts,
   contracts,
@@ -52,6 +69,22 @@ export default function VendorsClient({
   const router = useRouter();
   const [tab, setTab] = useState<"directory" | "contracts">("directory");
   const [showImport, setShowImport] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState<Contact | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    company_name: "",
+    job_title: "",
+    contact_type: "vendor",
+    notes: "",
+  });
 
   async function handleImport(rows: Record<string, string>[]) {
     const res = await fetch("/api/import", {
@@ -65,6 +98,85 @@ export default function VendorsClient({
     return { success: data.success, errors: data.errors };
   }
 
+  function handleCardClick(vendor: Contact) {
+    setSelectedVendor(vendor);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setEditError("");
+    setEditFormData({
+      first_name: vendor.first_name,
+      last_name: vendor.last_name,
+      email: vendor.email || "",
+      phone: vendor.phone || "",
+      company_name: vendor.company_name || "",
+      job_title: vendor.job_title || "",
+      contact_type: vendor.contact_type,
+      notes: vendor.notes || "",
+    });
+  }
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedVendor) return;
+    setUpdating(true);
+    setEditError("");
+
+    try {
+      const res = await fetch(`/api/people/contacts/${selectedVendor.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: editFormData.first_name,
+          last_name: editFormData.last_name,
+          email: editFormData.email || undefined,
+          phone: editFormData.phone || undefined,
+          company_name: editFormData.company_name || undefined,
+          job_title: editFormData.job_title || undefined,
+          contact_type: editFormData.contact_type,
+          notes: editFormData.notes || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update");
+      }
+      setSelectedVendor(null);
+      setIsEditing(false);
+      router.refresh();
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : "Failed to update");
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!selectedVendor) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/people/contacts/${selectedVendor.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete");
+      }
+      setSelectedVendor(null);
+      setShowDeleteConfirm(false);
+      router.refresh();
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : "Failed to delete");
+      setShowDeleteConfirm(false);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  function closeModal() {
+    setSelectedVendor(null);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setEditError("");
+  }
+
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -73,16 +185,17 @@ export default function VendorsClient({
     }).format(n);
 
   return (
-    <div className="page-container">
-      <div className="page-header">
+    <div>
+      {/* Header */}
+      <div className="people-header">
         <div>
-          <h1>Vendors &amp; Subcontractors</h1>
-          <p className="page-subtitle">
+          <h2>Vendors &amp; Subcontractors</h2>
+          <p className="people-header-sub">
             {contacts.length} vendor{contacts.length !== 1 ? "s" : ""} &middot;{" "}
             {contracts.length} contract{contracts.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+        <div className="people-header-actions">
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
             Import CSV
@@ -90,94 +203,85 @@ export default function VendorsClient({
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+      {/* Tabs */}
+      <div className="people-tab-bar">
         <button
-          className={`tab-btn ${tab === "directory" ? "tab-btn-active" : ""}`}
+          className={`people-tab ${tab === "directory" ? "active" : ""}`}
           onClick={() => setTab("directory")}
         >
           Directory ({contacts.length})
         </button>
         <button
-          className={`tab-btn ${tab === "contracts" ? "tab-btn-active" : ""}`}
+          className={`people-tab ${tab === "contracts" ? "active" : ""}`}
           onClick={() => setTab("contracts")}
         >
           Contracts ({contracts.length})
         </button>
       </div>
 
+      {/* Directory Tab */}
       {tab === "directory" && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: "1rem",
-          }}
-        >
-          {contacts.length === 0 ? (
-            <p
-              style={{
-                color: "var(--text-secondary)",
-                gridColumn: "1 / -1",
-                textAlign: "center",
-                padding: "2rem",
-              }}
-            >
-              No vendors found
+        contacts.length === 0 ? (
+          <div className="people-empty">
+            <div className="people-empty-icon"><Truck size={48} /></div>
+            <div className="people-empty-title">No vendors found</div>
+            <p className="people-empty-desc">
+              Add vendors and subcontractors to your directory to manage them here.
             </p>
-          ) : (
-            contacts.map((v) => (
+          </div>
+        ) : (
+          <div className="people-grid">
+            {contacts.map((v) => (
               <div
                 key={v.id}
-                className="card"
-                style={{
-                  padding: "1.25rem",
-                  border: "1px solid var(--border)",
-                  borderRadius: 8,
-                  background: "var(--card-bg)",
-                }}
+                className="contact-card"
+                onClick={() => handleCardClick(v)}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    marginBottom: "0.75rem",
-                  }}
-                >
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: "1rem" }}>
-                      {v.company_name || `${v.first_name} ${v.last_name}`}
-                    </h3>
-                    <p
-                      style={{
-                        margin: "0.25rem 0 0",
-                        fontSize: "0.85rem",
-                        color: "var(--text-secondary)",
-                      }}
-                    >
-                      {v.first_name} {v.last_name}
-                      {v.job_title ? ` · ${v.job_title}` : ""}
-                    </p>
+                <div className="contact-card-top">
+                  <div className="contact-card-avatar">
+                    {(v.company_name?.[0] || v.first_name?.[0] || "?").toUpperCase()}
                   </div>
-                  <span
-                    className={`status-badge status-${v.contact_type}`}
-                    style={{ textTransform: "capitalize", fontSize: "0.75rem" }}
-                  >
-                    {v.contact_type}
-                  </span>
+                  <div className="contact-card-info">
+                    <div className="contact-card-name">
+                      {v.company_name || `${v.first_name} ${v.last_name}`}
+                    </div>
+                    <div className="contact-card-title">
+                      {v.first_name} {v.last_name}
+                      {v.job_title ? ` \u00b7 ${v.job_title}` : ""}
+                    </div>
+                  </div>
+                  <div className="contact-card-type">
+                    <span className={`badge ${TYPE_BADGE_CLASS[v.contact_type] || ""}`}>
+                      {v.contact_type === "subcontractor" ? "Subcontractor" : "Vendor"}
+                    </span>
+                  </div>
                 </div>
-                <div
-                  style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}
-                >
-                  {v.email && <div>{v.email}</div>}
-                  {v.phone && <div>{v.phone}</div>}
+
+                <div className="contact-card-details">
+                  {v.email && (
+                    <div className="contact-card-detail">
+                      <Mail size={14} />
+                      <a href={`mailto:${v.email}`} onClick={(e) => e.stopPropagation()}>
+                        {v.email}
+                      </a>
+                    </div>
+                  )}
+                  {v.phone && (
+                    <div className="contact-card-detail">
+                      <Phone size={14} />
+                      <a href={`tel:${v.phone}`} onClick={(e) => e.stopPropagation()}>
+                        {v.phone}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )
       )}
 
+      {/* Contracts Tab */}
       {tab === "contracts" && (
         <div className="table-container">
           <table className="data-table">
@@ -196,14 +300,7 @@ export default function VendorsClient({
             <tbody>
               {contracts.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    style={{
-                      textAlign: "center",
-                      padding: "2rem",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
+                  <td colSpan={8} className="table-empty-cell">
                     No contracts found
                   </td>
                 </tr>
@@ -212,7 +309,7 @@ export default function VendorsClient({
                   <tr key={c.id}>
                     <td style={{ fontWeight: 600 }}>{c.contract_number}</td>
                     <td>{c.title}</td>
-                    <td>{c.contacts?.company_name ?? "—"}</td>
+                    <td>{c.contacts?.company_name ?? "\u2014"}</td>
                     <td style={{ textTransform: "capitalize" }}>
                       {c.contract_type?.replace(/_/g, " ")}
                     </td>
@@ -222,16 +319,8 @@ export default function VendorsClient({
                         {c.status}
                       </span>
                     </td>
-                    <td>
-                      {c.start_date
-                        ? new Date(c.start_date).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    <td>
-                      {c.end_date
-                        ? new Date(c.end_date).toLocaleDateString()
-                        : "—"}
-                    </td>
+                    <td>{c.start_date ? new Date(c.start_date).toLocaleDateString() : "\u2014"}</td>
+                    <td>{c.end_date ? new Date(c.end_date).toLocaleDateString() : "\u2014"}</td>
                   </tr>
                 ))
               )}
@@ -240,6 +329,7 @@ export default function VendorsClient({
         </div>
       )}
 
+      {/* Import Modal */}
       {showImport && (
         <ImportModal
           entityName="Vendors"
@@ -248,6 +338,163 @@ export default function VendorsClient({
           onImport={handleImport}
           onClose={() => setShowImport(false)}
         />
+      )}
+
+      {/* Vendor Detail Modal */}
+      {selectedVendor && (
+        <div className="ticket-modal-overlay" onClick={closeModal}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ticket-modal-header">
+              <h3>
+                {isEditing
+                  ? "Edit Vendor"
+                  : selectedVendor.company_name || `${selectedVendor.first_name} ${selectedVendor.last_name}`}
+              </h3>
+              <button className="ticket-modal-close" onClick={closeModal}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {editError && <div className="ticket-form-error">{editError}</div>}
+
+            {showDeleteConfirm ? (
+              <div className="ticket-delete-confirm">
+                <p>
+                  Are you sure you want to delete{" "}
+                  <strong>{selectedVendor.company_name || `${selectedVendor.first_name} ${selectedVendor.last_name}`}</strong>?
+                  This action cannot be undone.
+                </p>
+                <div className="ticket-delete-actions">
+                  <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>Cancel</button>
+                  <button className="btn-danger" onClick={handleDelete} disabled={deleting}>
+                    {deleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            ) : isEditing ? (
+              <form onSubmit={handleUpdate} className="ticket-form">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Type</label>
+                  <select className="ticket-form-select" value={editFormData.contact_type} onChange={(e) => setEditFormData({ ...editFormData, contact_type: e.target.value })}>
+                    <option value="vendor">Vendor</option>
+                    <option value="subcontractor">Subcontractor</option>
+                  </select>
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Company Name</label>
+                  <input type="text" className="ticket-form-input" value={editFormData.company_name} onChange={(e) => setEditFormData({ ...editFormData, company_name: e.target.value })} />
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Contact First Name</label>
+                    <input type="text" className="ticket-form-input" value={editFormData.first_name} onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })} />
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Contact Last Name</label>
+                    <input type="text" className="ticket-form-input" value={editFormData.last_name} onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Email</label>
+                    <input type="email" className="ticket-form-input" value={editFormData.email} onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })} />
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Phone</label>
+                    <input type="text" className="ticket-form-input" value={editFormData.phone} onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Job Title</label>
+                  <input type="text" className="ticket-form-input" value={editFormData.job_title} onChange={(e) => setEditFormData({ ...editFormData, job_title: e.target.value })} />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Notes</label>
+                  <textarea className="ticket-form-textarea" value={editFormData.notes} onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })} rows={3} />
+                </div>
+
+                <div className="ticket-form-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
+                  <button type="submit" className="btn-primary" disabled={updating}>
+                    {updating ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="ticket-detail-body">
+                  <div className="people-detail-header">
+                    <div className="people-detail-avatar">
+                      {(selectedVendor.company_name?.[0] || selectedVendor.first_name?.[0] || "?").toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="people-detail-name">
+                        {selectedVendor.company_name || `${selectedVendor.first_name} ${selectedVendor.last_name}`}
+                      </div>
+                      <div className="people-detail-title">
+                        {selectedVendor.first_name} {selectedVendor.last_name}
+                        {selectedVendor.job_title ? ` \u00b7 ${selectedVendor.job_title}` : ""}
+                      </div>
+                    </div>
+                    <span className={`badge ${TYPE_BADGE_CLASS[selectedVendor.contact_type] || ""}`}>
+                      {selectedVendor.contact_type === "subcontractor" ? "Subcontractor" : "Vendor"}
+                    </span>
+                  </div>
+
+                  <div className="people-detail-section">
+                    {selectedVendor.email && (
+                      <div className="people-detail-row">
+                        <Mail size={16} />
+                        <a href={`mailto:${selectedVendor.email}`}>{selectedVendor.email}</a>
+                      </div>
+                    )}
+                    {selectedVendor.phone && (
+                      <div className="people-detail-row">
+                        <Phone size={16} />
+                        <a href={`tel:${selectedVendor.phone}`}>{selectedVendor.phone}</a>
+                      </div>
+                    )}
+                    {selectedVendor.company_name && (
+                      <div className="people-detail-row">
+                        <Building2 size={16} />
+                        <span>{selectedVendor.company_name}</span>
+                      </div>
+                    )}
+                    {(selectedVendor.city || selectedVendor.state) && (
+                      <div className="people-detail-row">
+                        <Building2 size={16} />
+                        <span>{[selectedVendor.city, selectedVendor.state].filter(Boolean).join(", ")}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedVendor.notes && (
+                    <div className="people-detail-notes">
+                      <label>Notes</label>
+                      <p>{selectedVendor.notes}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="ticket-form-actions">
+                  <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                  <button className="btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>
+                    <Edit3 size={16} />
+                    Edit
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

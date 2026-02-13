@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Users,
   Plus,
@@ -13,6 +14,7 @@ import {
   Trash2,
   AlertCircle,
   Upload,
+  Search,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -35,14 +37,6 @@ export interface Contact {
 
 export type ContactType = "employee" | "subcontractor" | "vendor" | "client" | "tenant";
 
-const TYPE_LABELS: Record<ContactType, string> = {
-  employee: "Employee",
-  subcontractor: "Subcontractor",
-  vendor: "Vendor",
-  client: "Client",
-  tenant: "Tenant",
-};
-
 const TYPE_BADGE_CLASS: Record<ContactType, string> = {
   employee: "contact-type-employee",
   subcontractor: "contact-type-subcontractor",
@@ -51,8 +45,19 @@ const TYPE_BADGE_CLASS: Record<ContactType, string> = {
   tenant: "contact-type-tenant",
 };
 
+const TYPE_LABELS_LOCAL: Record<ContactType, string> = {
+  employee: "Employee",
+  subcontractor: "Subcontractor",
+  vendor: "Vendor",
+  client: "Client",
+  tenant: "Tenant",
+};
+
 interface PeopleClientProps {
   contacts: Contact[];
+  typeFilter?: string;
+  searchFilter?: string;
+  typeLabels: Record<string, string>;
 }
 
 const contactImportColumns: ImportColumn[] = [
@@ -70,18 +75,22 @@ const contactSampleData = [
   { first_name: "Sarah", last_name: "Chen", contact_type: "vendor", email: "sarah@supplydepot.com", phone: "(512) 555-0202", company_name: "Supply Depot", job_title: "Sales Rep" },
 ];
 
-export default function PeopleClient({ contacts }: PeopleClientProps) {
+const FILTER_TABS: { key: string | undefined; label: string; href: string }[] = [
+  { key: undefined, label: "All", href: "/people" },
+  { key: "employee", label: "Employees", href: "/people?type=employee" },
+  { key: "subcontractor", label: "Subcontractors", href: "/people?type=subcontractor" },
+  { key: "vendor", label: "Vendors", href: "/people?type=vendor" },
+  { key: "client", label: "Clients", href: "/people?type=client" },
+];
+
+export default function PeopleClient({ contacts, typeFilter, searchFilter, typeLabels }: PeopleClientProps) {
   const router = useRouter();
 
-  // Import modal state
   const [showImport, setShowImport] = useState(false);
-
-  // Create modal state
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
 
-  // Detail/Edit/Delete modal state
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -111,7 +120,6 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
     notes: "",
   });
 
-  // Handle create contact
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setCreating(true);
@@ -138,7 +146,6 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
         throw new Error(data.error || "Failed to add contact");
       }
 
-      // Reset form and close modal
       setCreateFormData({
         contact_type: "employee",
         first_name: "",
@@ -158,7 +165,6 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
     }
   }
 
-  // Handle card click - open detail modal
   function handleCardClick(contact: Contact) {
     setSelectedContact(contact);
     setIsEditing(false);
@@ -176,13 +182,6 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
     });
   }
 
-  // Handle edit button - switch to edit mode
-  function handleEditClick() {
-    setIsEditing(true);
-    setEditError("");
-  }
-
-  // Handle update contact
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedContact) return;
@@ -221,7 +220,6 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
     }
   }
 
-  // Handle delete contact
   async function handleDelete() {
     if (!selectedContact) return;
 
@@ -248,7 +246,6 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
     }
   }
 
-  // Close modal
   function closeModal() {
     setSelectedContact(null);
     setIsEditing(false);
@@ -269,23 +266,59 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
   }
 
   return (
-    <>
-      {/* Action Buttons */}
-      <div style={{ display: "flex", gap: "8px" }}>
-        <button
-          className="btn-secondary"
-          onClick={() => setShowImport(true)}
-        >
-          <Upload size={16} />
-          Import CSV
-        </button>
-        <button
-          className="btn-primary"
-          onClick={() => setShowCreate(true)}
-        >
-          <Plus size={16} />
-          Add Contact
-        </button>
+    <div>
+      {/* Header */}
+      <div className="people-header">
+        <div>
+          <h2>People Directory</h2>
+          <p className="people-header-sub">
+            Manage employees, subcontractors, vendors, and contacts.
+          </p>
+        </div>
+        <div className="people-header-actions">
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            Add Contact
+          </button>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="people-search-bar">
+        <div className="people-search-wrap">
+          <div className="people-search-icon">
+            <Search size={16} />
+          </div>
+          <form method="GET">
+            {typeFilter && (
+              <input type="hidden" name="type" value={typeFilter} />
+            )}
+            <input
+              type="text"
+              name="search"
+              className="people-search-input"
+              placeholder="Search by name, email, or company..."
+              defaultValue={searchFilter || ""}
+            />
+          </form>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="people-tab-bar">
+        {FILTER_TABS.map((tab) => (
+          <Link
+            key={tab.label}
+            href={tab.href}
+            className={`people-tab ${typeFilter === tab.key ? "active" : !typeFilter && !tab.key ? "active" : ""}`}
+          >
+            {tab.label}
+          </Link>
+        ))}
       </div>
 
       {/* Contact Cards Grid */}
@@ -296,7 +329,11 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
           </div>
           <div className="people-empty-title">No contacts found</div>
           <p className="people-empty-desc">
-            Start building your directory by adding team members, subcontractors, and vendors.
+            {searchFilter
+              ? `No results for "${searchFilter}". Try a different search term.`
+              : typeFilter
+                ? `No ${typeLabels[typeFilter]?.toLowerCase() || typeFilter}s in your directory yet.`
+                : "Start building your directory by adding team members, subcontractors, and vendors."}
           </p>
         </div>
       ) : (
@@ -317,17 +354,12 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
               <h3>Add New Contact</h3>
-              <button
-                className="ticket-modal-close"
-                onClick={() => setShowCreate(false)}
-              >
+              <button className="ticket-modal-close" onClick={() => setShowCreate(false)}>
                 <X size={18} />
               </button>
             </div>
 
-            {createError && (
-              <div className="ticket-form-error">{createError}</div>
-            )}
+            {createError && <div className="ticket-form-error">{createError}</div>}
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
@@ -335,9 +367,7 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
                 <select
                   className="ticket-form-select"
                   value={createFormData.contact_type}
-                  onChange={(e) =>
-                    setCreateFormData({ ...createFormData, contact_type: e.target.value })
-                  }
+                  onChange={(e) => setCreateFormData({ ...createFormData, contact_type: e.target.value })}
                 >
                   <option value="employee">Employee</option>
                   <option value="subcontractor">Subcontractor</option>
@@ -350,115 +380,44 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">First Name *</label>
-                  <input
-                    type="text"
-                    className="ticket-form-input"
-                    value={createFormData.first_name}
-                    onChange={(e) =>
-                      setCreateFormData({ ...createFormData, first_name: e.target.value })
-                    }
-                    placeholder="First name"
-                    required
-                  />
+                  <input type="text" className="ticket-form-input" value={createFormData.first_name} onChange={(e) => setCreateFormData({ ...createFormData, first_name: e.target.value })} placeholder="First name" required />
                 </div>
-
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">Last Name *</label>
-                  <input
-                    type="text"
-                    className="ticket-form-input"
-                    value={createFormData.last_name}
-                    onChange={(e) =>
-                      setCreateFormData({ ...createFormData, last_name: e.target.value })
-                    }
-                    placeholder="Last name"
-                    required
-                  />
+                  <input type="text" className="ticket-form-input" value={createFormData.last_name} onChange={(e) => setCreateFormData({ ...createFormData, last_name: e.target.value })} placeholder="Last name" required />
                 </div>
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">Email</label>
-                  <input
-                    type="email"
-                    className="ticket-form-input"
-                    value={createFormData.email}
-                    onChange={(e) =>
-                      setCreateFormData({ ...createFormData, email: e.target.value })
-                    }
-                    placeholder="email@example.com"
-                  />
+                  <input type="email" className="ticket-form-input" value={createFormData.email} onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })} placeholder="email@example.com" />
                 </div>
-
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">Phone</label>
-                  <input
-                    type="text"
-                    className="ticket-form-input"
-                    value={createFormData.phone}
-                    onChange={(e) =>
-                      setCreateFormData({ ...createFormData, phone: e.target.value })
-                    }
-                    placeholder="(555) 123-4567"
-                  />
+                  <input type="text" className="ticket-form-input" value={createFormData.phone} onChange={(e) => setCreateFormData({ ...createFormData, phone: e.target.value })} placeholder="(555) 123-4567" />
                 </div>
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">Company Name</label>
-                  <input
-                    type="text"
-                    className="ticket-form-input"
-                    value={createFormData.company_name}
-                    onChange={(e) =>
-                      setCreateFormData({ ...createFormData, company_name: e.target.value })
-                    }
-                    placeholder="Company or organization"
-                  />
+                  <input type="text" className="ticket-form-input" value={createFormData.company_name} onChange={(e) => setCreateFormData({ ...createFormData, company_name: e.target.value })} placeholder="Company or organization" />
                 </div>
-
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">Title / Position</label>
-                  <input
-                    type="text"
-                    className="ticket-form-input"
-                    value={createFormData.job_title}
-                    onChange={(e) =>
-                      setCreateFormData({ ...createFormData, job_title: e.target.value })
-                    }
-                    placeholder="Job title or role"
-                  />
+                  <input type="text" className="ticket-form-input" value={createFormData.job_title} onChange={(e) => setCreateFormData({ ...createFormData, job_title: e.target.value })} placeholder="Job title or role" />
                 </div>
               </div>
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">Notes</label>
-                <textarea
-                  className="ticket-form-textarea"
-                  value={createFormData.notes}
-                  onChange={(e) =>
-                    setCreateFormData({ ...createFormData, notes: e.target.value })
-                  }
-                  placeholder="Optional notes about this contact..."
-                  rows={3}
-                />
+                <textarea className="ticket-form-textarea" value={createFormData.notes} onChange={(e) => setCreateFormData({ ...createFormData, notes: e.target.value })} placeholder="Optional notes about this contact..." rows={3} />
               </div>
 
               <div className="ticket-form-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setShowCreate(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={creating || !createFormData.first_name.trim() || !createFormData.last_name.trim()}
-                >
+                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={creating || !createFormData.first_name.trim() || !createFormData.last_name.trim()}>
                   {creating ? "Adding..." : "Add Contact"}
                 </button>
               </div>
@@ -478,7 +437,7 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
         />
       )}
 
-      {/* Detail/Edit Modal */}
+      {/* Detail/Edit/Delete Modal */}
       {selectedContact && (
         <div className="ticket-modal-overlay" onClick={closeModal}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
@@ -488,57 +447,32 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
                   ? "Edit Contact"
                   : `${selectedContact.first_name} ${selectedContact.last_name}`}
               </h3>
-              <button
-                className="ticket-modal-close"
-                onClick={closeModal}
-              >
+              <button className="ticket-modal-close" onClick={closeModal}>
                 <X size={18} />
               </button>
             </div>
 
-            {editError && (
-              <div className="ticket-form-error">{editError}</div>
-            )}
+            {editError && <div className="ticket-form-error">{editError}</div>}
 
             {showDeleteConfirm ? (
-              // Delete Confirmation
               <div className="ticket-delete-confirm">
                 <p>
                   Are you sure you want to delete{" "}
-                  <strong>
-                    {selectedContact.first_name} {selectedContact.last_name}
-                  </strong>
-                  ? This action cannot be undone.
+                  <strong>{selectedContact.first_name} {selectedContact.last_name}</strong>?
+                  This action cannot be undone.
                 </p>
                 <div className="ticket-delete-actions">
-                  <button
-                    className="btn-secondary"
-                    onClick={() => setShowDeleteConfirm(false)}
-                    disabled={deleting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="btn-danger"
-                    onClick={handleDelete}
-                    disabled={deleting}
-                  >
+                  <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>Cancel</button>
+                  <button className="btn-danger" onClick={handleDelete} disabled={deleting}>
                     {deleting ? "Deleting..." : "Delete Contact"}
                   </button>
                 </div>
               </div>
             ) : isEditing ? (
-              // Edit Form
               <form onSubmit={handleUpdate} className="ticket-form">
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">Type *</label>
-                  <select
-                    className="ticket-form-select"
-                    value={editFormData.contact_type}
-                    onChange={(e) =>
-                      setEditFormData({ ...editFormData, contact_type: e.target.value })
-                    }
-                  >
+                  <select className="ticket-form-select" value={editFormData.contact_type} onChange={(e) => setEditFormData({ ...editFormData, contact_type: e.target.value })}>
                     <option value="employee">Employee</option>
                     <option value="subcontractor">Subcontractor</option>
                     <option value="vendor">Vendor</option>
@@ -550,207 +484,120 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">First Name *</label>
-                    <input
-                      type="text"
-                      className="ticket-form-input"
-                      value={editFormData.first_name}
-                      onChange={(e) =>
-                        setEditFormData({ ...editFormData, first_name: e.target.value })
-                      }
-                      required
-                    />
+                    <input type="text" className="ticket-form-input" value={editFormData.first_name} onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })} required />
                   </div>
-
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Last Name *</label>
-                    <input
-                      type="text"
-                      className="ticket-form-input"
-                      value={editFormData.last_name}
-                      onChange={(e) =>
-                        setEditFormData({ ...editFormData, last_name: e.target.value })
-                      }
-                      required
-                    />
+                    <input type="text" className="ticket-form-input" value={editFormData.last_name} onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })} required />
                   </div>
                 </div>
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Email</label>
-                    <input
-                      type="email"
-                      className="ticket-form-input"
-                      value={editFormData.email}
-                      onChange={(e) =>
-                        setEditFormData({ ...editFormData, email: e.target.value })
-                      }
-                    />
+                    <input type="email" className="ticket-form-input" value={editFormData.email} onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })} />
                   </div>
-
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Phone</label>
-                    <input
-                      type="text"
-                      className="ticket-form-input"
-                      value={editFormData.phone}
-                      onChange={(e) =>
-                        setEditFormData({ ...editFormData, phone: e.target.value })
-                      }
-                    />
+                    <input type="text" className="ticket-form-input" value={editFormData.phone} onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Company Name</label>
-                    <input
-                      type="text"
-                      className="ticket-form-input"
-                      value={editFormData.company_name}
-                      onChange={(e) =>
-                        setEditFormData({ ...editFormData, company_name: e.target.value })
-                      }
-                    />
+                    <input type="text" className="ticket-form-input" value={editFormData.company_name} onChange={(e) => setEditFormData({ ...editFormData, company_name: e.target.value })} />
                   </div>
-
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Title / Position</label>
-                    <input
-                      type="text"
-                      className="ticket-form-input"
-                      value={editFormData.job_title}
-                      onChange={(e) =>
-                        setEditFormData({ ...editFormData, job_title: e.target.value })
-                      }
-                    />
+                    <input type="text" className="ticket-form-input" value={editFormData.job_title} onChange={(e) => setEditFormData({ ...editFormData, job_title: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">Notes</label>
-                  <textarea
-                    className="ticket-form-textarea"
-                    value={editFormData.notes}
-                    onChange={(e) =>
-                      setEditFormData({ ...editFormData, notes: e.target.value })
-                    }
-                    rows={3}
-                  />
+                  <textarea className="ticket-form-textarea" value={editFormData.notes} onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })} rows={3} />
                 </div>
 
                 <div className="ticket-form-actions">
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setIsEditing(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                    disabled={updating || !editFormData.first_name.trim() || !editFormData.last_name.trim()}
-                  >
+                  <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
+                  <button type="submit" className="btn-primary" disabled={updating || !editFormData.first_name.trim() || !editFormData.last_name.trim()}>
                     {updating ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
               </form>
             ) : (
-              // Detail View
               <>
                 <div className="ticket-detail-body">
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Type</span>
-                    <span
-                      className={`badge ${TYPE_BADGE_CLASS[selectedContact.contact_type]}`}
-                    >
-                      {TYPE_LABELS[selectedContact.contact_type]}
+                  <div className="people-detail-header">
+                    <div className="people-detail-avatar">
+                      {(selectedContact.first_name?.[0] || "").toUpperCase()}
+                      {(selectedContact.last_name?.[0] || "").toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="people-detail-name">
+                        {selectedContact.first_name} {selectedContact.last_name}
+                      </div>
+                      {selectedContact.job_title && (
+                        <div className="people-detail-title">{selectedContact.job_title}</div>
+                      )}
+                      {selectedContact.company_name && (
+                        <div className="people-detail-company">{selectedContact.company_name}</div>
+                      )}
+                    </div>
+                    <span className={`badge ${TYPE_BADGE_CLASS[selectedContact.contact_type]}`}>
+                      {TYPE_LABELS_LOCAL[selectedContact.contact_type]}
                     </span>
                   </div>
 
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Name</span>
-                    <span>
-                      {selectedContact.first_name} {selectedContact.last_name}
-                    </span>
+                  <div className="people-detail-section">
+                    {selectedContact.email && (
+                      <div className="people-detail-row">
+                        <Mail size={16} />
+                        <a href={`mailto:${selectedContact.email}`}>{selectedContact.email}</a>
+                      </div>
+                    )}
+                    {selectedContact.phone && (
+                      <div className="people-detail-row">
+                        <Phone size={16} />
+                        <a href={`tel:${selectedContact.phone}`}>{selectedContact.phone}</a>
+                      </div>
+                    )}
+                    {selectedContact.company_name && (
+                      <div className="people-detail-row">
+                        <Building2 size={16} />
+                        <span>{selectedContact.company_name}</span>
+                      </div>
+                    )}
+                    {(selectedContact.city || selectedContact.state) && (
+                      <div className="people-detail-row">
+                        <Building2 size={16} />
+                        <span>{[selectedContact.city, selectedContact.state].filter(Boolean).join(", ")}</span>
+                      </div>
+                    )}
                   </div>
-
-                  {selectedContact.email && (
-                    <div className="ticket-detail-row">
-                      <span className="ticket-detail-label">Email</span>
-                      <a href={`mailto:${selectedContact.email}`}>
-                        {selectedContact.email}
-                      </a>
-                    </div>
-                  )}
-
-                  {selectedContact.phone && (
-                    <div className="ticket-detail-row">
-                      <span className="ticket-detail-label">Phone</span>
-                      <a href={`tel:${selectedContact.phone}`}>
-                        {selectedContact.phone}
-                      </a>
-                    </div>
-                  )}
-
-                  {selectedContact.company_name && (
-                    <div className="ticket-detail-row">
-                      <span className="ticket-detail-label">Company</span>
-                      <span>{selectedContact.company_name}</span>
-                    </div>
-                  )}
-
-                  {selectedContact.job_title && (
-                    <div className="ticket-detail-row">
-                      <span className="ticket-detail-label">Job Title</span>
-                      <span>{selectedContact.job_title}</span>
-                    </div>
-                  )}
-
-                  {(selectedContact.city || selectedContact.state) && (
-                    <div className="ticket-detail-row">
-                      <span className="ticket-detail-label">Location</span>
-                      <span>
-                        {[selectedContact.city, selectedContact.state]
-                          .filter(Boolean)
-                          .join(", ")}
-                      </span>
-                    </div>
-                  )}
 
                   {selectedContact.notes && (
-                    <div className="ticket-detail-row">
-                      <span className="ticket-detail-label">Notes</span>
-                      <span>{selectedContact.notes}</span>
+                    <div className="people-detail-notes">
+                      <label>Notes</label>
+                      <p>{selectedContact.notes}</p>
                     </div>
                   )}
 
                   {(selectedContact.expiring_certs_count ?? 0) > 0 && (
-                    <div className="ticket-detail-row">
-                      <span className="ticket-detail-label">Certifications</span>
-                      <span className="cert-warning-text">
-                        <AlertCircle size={14} />
-                        {selectedContact.expiring_certs_count} certification
-                        {selectedContact.expiring_certs_count !== 1 ? "s" : ""} expiring
-                        soon
-                      </span>
+                    <div className="cert-warning-text" style={{ marginTop: 16 }}>
+                      <AlertCircle size={14} />
+                      {selectedContact.expiring_certs_count} certification{selectedContact.expiring_certs_count !== 1 ? "s" : ""} expiring soon
                     </div>
                   )}
                 </div>
 
                 <div className="ticket-form-actions">
-                  <button
-                    className="btn-danger-outline"
-                    onClick={() => setShowDeleteConfirm(true)}
-                  >
+                  <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
                     <Trash2 size={16} />
                     Delete
                   </button>
-                  <button
-                    className="btn-primary"
-                    onClick={handleEditClick}
-                  >
+                  <button className="btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>
                     <Edit3 size={16} />
                     Edit
                   </button>
@@ -760,20 +607,13 @@ export default function PeopleClient({ contacts }: PeopleClientProps) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
 // Contact Card Component
-function ContactCard({
-  contact,
-  onClick,
-}: {
-  contact: Contact;
-  onClick: () => void;
-}) {
-  const initials =
-    (contact.first_name?.[0] || "") + (contact.last_name?.[0] || "");
+function ContactCard({ contact, onClick }: { contact: Contact; onClick: () => void }) {
+  const initials = (contact.first_name?.[0] || "") + (contact.last_name?.[0] || "");
   const fullName = `${contact.first_name} ${contact.last_name}`.trim();
   const hasCertWarning = (contact.expiring_certs_count ?? 0) > 0;
 
@@ -788,18 +628,12 @@ function ContactCard({
             {fullName || "Unnamed Contact"}
             {hasCertWarning && <span className="cert-warning" />}
           </div>
-          {contact.job_title && (
-            <div className="contact-card-title">{contact.job_title}</div>
-          )}
-          {contact.company_name && (
-            <div className="contact-card-company">{contact.company_name}</div>
-          )}
+          {contact.job_title && <div className="contact-card-title">{contact.job_title}</div>}
+          {contact.company_name && <div className="contact-card-company">{contact.company_name}</div>}
         </div>
         <div className="contact-card-type">
-          <span
-            className={`badge ${TYPE_BADGE_CLASS[contact.contact_type] || ""}`}
-          >
-            {TYPE_LABELS[contact.contact_type] || contact.contact_type}
+          <span className={`badge ${TYPE_BADGE_CLASS[contact.contact_type] || ""}`}>
+            {TYPE_LABELS_LOCAL[contact.contact_type] || contact.contact_type}
           </span>
         </div>
       </div>
@@ -821,21 +655,12 @@ function ContactCard({
             </a>
           </div>
         )}
-        {(contact.city || contact.state) && (
-          <div className="contact-card-detail">
-            <Building2 size={14} />
-            <span>
-              {[contact.city, contact.state].filter(Boolean).join(", ")}
-            </span>
-          </div>
-        )}
       </div>
 
       {hasCertWarning && (
         <div className="cert-warning-text">
           <AlertCircle size={12} />
-          {contact.expiring_certs_count} certification
-          {(contact.expiring_certs_count ?? 0) !== 1 ? "s" : ""} expiring soon
+          {contact.expiring_certs_count} cert{(contact.expiring_certs_count ?? 0) !== 1 ? "s" : ""} expiring
         </div>
       )}
     </div>
