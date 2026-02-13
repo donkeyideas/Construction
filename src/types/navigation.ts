@@ -17,6 +17,21 @@ export const appNavigation: NavItem[] = [
     icon: "layout-dashboard",
   },
   {
+    label: "Calendar",
+    href: "/calendar",
+    icon: "calendar-days",
+  },
+  {
+    label: "Inbox",
+    href: "/inbox",
+    icon: "inbox",
+  },
+  {
+    label: "Tickets",
+    href: "/tickets",
+    icon: "ticket",
+  },
+  {
     label: "Projects",
     icon: "hard-hat",
     children: [
@@ -87,14 +102,13 @@ export const appNavigation: NavItem[] = [
 
 export const appBottomNav: NavItem[] = [
   {
-    label: "Administration",
+    label: "System Map",
+    href: "/system-map",
+    icon: "map",
+  },
+  {
+    label: "Admin Panel",
+    href: "/admin-panel",
     icon: "settings",
-    children: [
-      { label: "Users & Roles", href: "/admin/users" },
-      { label: "Company Settings", href: "/admin/settings" },
-      { label: "Content Manager", href: "/admin/content" },
-      { label: "SEO & GEO", href: "/admin/seo" },
-      { label: "AI Providers", href: "/admin/ai-providers" },
-    ],
   },
 ];

@@ -37,6 +37,8 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
     email: null,
   });
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
@@ -45,6 +47,15 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           name: data.user.user_metadata?.full_name ?? null,
           email: data.user.email ?? null,
         });
+        // Fetch unread messages count
+        supabase
+          .from("messages")
+          .select("id", { count: "exact", head: true })
+          .eq("recipient_id", data.user.id)
+          .eq("is_read", false)
+          .then(({ count }) => {
+            setUnreadCount(count ?? 0);
+          });
       }
     });
   }, []);
@@ -79,9 +90,9 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             <Search size={14} />
             Search <kbd>Ctrl+K</kbd>
           </button>
-          <button className="notif-btn">
+          <button className="notif-btn" onClick={() => router.push("/inbox")} title="Inbox">
             <Bell size={20} />
-            <span className="notif-badge">3</span>
+            {unreadCount > 0 && <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>}
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

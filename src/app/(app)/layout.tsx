@@ -18,6 +18,10 @@ import "@/styles/admin.css";
 import "@/styles/content.css";
 import "@/styles/ai-chat.css";
 import "@/styles/ai.css";
+import "@/styles/calendar.css";
+import "@/styles/inbox.css";
+import "@/styles/tickets.css";
+import "@/styles/system-map.css";
 
 function getBreadcrumb(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);

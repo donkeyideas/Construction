@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, HardHat, Building2, DollarSign, FolderOpen,
   Users, Handshake, Sparkles, BarChart3, Settings, ChevronRight,
+  CalendarDays, Inbox, Ticket, Map,
 } from "lucide-react";
 import { appNavigation, appBottomNav, type NavItem } from "@/types/navigation";
 
@@ -20,6 +21,10 @@ const iconMap: Record<string, React.ElementType> = {
   sparkles: Sparkles,
   "bar-chart-3": BarChart3,
   settings: Settings,
+  "calendar-days": CalendarDays,
+  inbox: Inbox,
+  ticket: Ticket,
+  map: Map,
 };
 
 function NavItemComponent({ item }: { item: NavItem }) {
