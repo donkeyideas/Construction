@@ -32,10 +32,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require auth
-  const publicRoutes = ["/", "/login", "/register", "/api/auth"];
-  const isPublicRoute = publicRoutes.some(
-    (route) => pathname === route || pathname.startsWith("/api/auth")
-  );
+  const publicRoutes = ["/", "/login", "/register"];
+  const isPublicRoute =
+    publicRoutes.some((route) => pathname === route) ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/seed");
 
   // If no user and trying to access protected route, redirect to login
   if (!user && !isPublicRoute) {
