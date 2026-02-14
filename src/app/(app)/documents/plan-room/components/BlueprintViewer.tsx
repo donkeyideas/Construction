@@ -11,6 +11,7 @@ interface BlueprintViewerProps {
   document: DocumentRow | null;
   fileUrl: string | null;
   isLoading: boolean;
+  error?: string | null;
   // PDF state
   currentPage: number;
   zoomLevel: number;
@@ -49,6 +50,7 @@ export default function BlueprintViewer({
   document: doc,
   fileUrl,
   isLoading,
+  error,
   currentPage,
   zoomLevel,
   onLoadSuccess,
@@ -115,7 +117,11 @@ export default function BlueprintViewer({
               {normalizeFileType(doc.file_type).toUpperCase()} file
             </p>
             <p className="plan-room-unsupported-hint">
-              Preview not available for this file type. Use download to view.
+              {error
+                ? `Error loading preview: ${error}`
+                : !previewType
+                ? "Preview not available for this file type. Use download to view."
+                : "Could not load file preview. Try downloading instead."}
             </p>
           </div>
         </div>

@@ -845,34 +845,15 @@ export default function EquipmentMaintenanceClient({
 
             {/* Read-only detail */}
             {!isEditing && (
-              <div
-                className="equipment-form"
-                style={{
-                  pointerEvents: showDeleteConfirm ? "none" : "auto",
-                }}
-              >
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Equipment</label>
-                    <div
-                      className="equipment-form-input"
-                      style={{
-                        background: "var(--surface)",
-                        cursor: "default",
-                      }}
-                    >
-                      {selectedLog.equipment?.name || "--"}
-                    </div>
+              <div style={{ padding: "1.25rem", pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Equipment</label>
+                    <div className="detail-value">{selectedLog.equipment?.name || "--"}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Type</label>
-                    <div
-                      className="equipment-form-input"
-                      style={{
-                        background: "var(--surface)",
-                        cursor: "default",
-                      }}
-                    >
+                  <div className="detail-group">
+                    <label className="detail-label">Type</label>
+                    <div className="detail-value">
                       {MAINTENANCE_TYPE_LABELS[
                         selectedLog.maintenance_type as MaintenanceType
                       ] ?? selectedLog.maintenance_type}
@@ -880,56 +861,26 @@ export default function EquipmentMaintenanceClient({
                   </div>
                 </div>
 
-                <div className="equipment-form-group">
-                  <label className="equipment-form-label">Title</label>
-                  <div
-                    className="equipment-form-input"
-                    style={{
-                      background: "var(--surface)",
-                      cursor: "default",
-                    }}
-                  >
-                    {selectedLog.title}
-                  </div>
+                <div className="detail-group">
+                  <label className="detail-label">Title</label>
+                  <div className="detail-value">{selectedLog.title}</div>
                 </div>
 
-                <div className="equipment-form-group">
-                  <label className="equipment-form-label">Description</label>
-                  <div
-                    className="equipment-form-textarea"
-                    style={{
-                      background: "var(--surface)",
-                      cursor: "default",
-                      minHeight: 60,
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {selectedLog.description || "--"}
+                {selectedLog.description && (
+                  <div className="detail-group">
+                    <label className="detail-label">Description</label>
+                    <div className="detail-value--multiline">{selectedLog.description}</div>
                   </div>
-                </div>
+                )}
 
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Date</label>
-                    <div
-                      className="equipment-form-input"
-                      style={{
-                        background: "var(--surface)",
-                        cursor: "default",
-                      }}
-                    >
-                      {formatDate(selectedLog.maintenance_date)}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Date</label>
+                    <div className="detail-value">{formatDate(selectedLog.maintenance_date)}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Status</label>
-                    <div
-                      className="equipment-form-input"
-                      style={{
-                        background: "var(--surface)",
-                        cursor: "default",
-                      }}
-                    >
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
                       {MAINTENANCE_STATUS_LABELS[
                         selectedLog.status as MaintenanceStatus
                       ] ?? selectedLog.status}
@@ -937,61 +888,29 @@ export default function EquipmentMaintenanceClient({
                   </div>
                 </div>
 
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Cost</label>
-                    <div
-                      className="equipment-form-input"
-                      style={{
-                        background: "var(--surface)",
-                        cursor: "default",
-                      }}
-                    >
-                      {formatCurrency(selectedLog.cost)}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Cost</label>
+                    <div className="detail-value">{formatCurrency(selectedLog.cost)}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Performed By</label>
-                    <div
-                      className="equipment-form-input"
-                      style={{
-                        background: "var(--surface)",
-                        cursor: "default",
-                      }}
-                    >
-                      {selectedLog.performed_by || "--"}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Performed By</label>
+                    <div className="detail-value">{selectedLog.performed_by || "--"}</div>
                   </div>
                 </div>
 
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Vendor</label>
-                    <div
-                      className="equipment-form-input"
-                      style={{
-                        background: "var(--surface)",
-                        cursor: "default",
-                      }}
-                    >
-                      {selectedLog.vendor_name || "--"}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Vendor</label>
+                    <div className="detail-value">{selectedLog.vendor_name || "--"}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Next Due</label>
-                    <div
-                      className="equipment-form-input"
-                      style={{
-                        background: "var(--surface)",
-                        cursor: "default",
-                      }}
-                    >
-                      {formatDate(selectedLog.next_due_date)}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Next Due</label>
+                    <div className="detail-value">{formatDate(selectedLog.next_due_date)}</div>
                   </div>
                 </div>
 
-                <div className="equipment-form-actions">
+                <div className="ticket-form-actions">
                   <button
                     type="button"
                     className="btn-secondary"

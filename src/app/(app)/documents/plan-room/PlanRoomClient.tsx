@@ -100,6 +100,7 @@ export default function PlanRoomClient({
   // ------- Viewer state -------
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // ------- Tools & Markup -------
   const [activeTool, setActiveTool] = useState<AnnotationTool>("select");
@@ -156,6 +157,7 @@ export default function PlanRoomClient({
     }
 
     setPreviewLoading(true);
+    setPreviewError(null);
     pdfViewer.resetForNewDoc();
 
     fetch(`/api/documents/plan-room/${selectedDoc.id}/download`)
@@ -164,10 +166,16 @@ export default function PlanRoomClient({
         if (res.ok && data.url) {
           setPreviewUrl(data.url);
         } else {
+          console.error("Download API error:", data);
           setPreviewUrl(null);
+          setPreviewError(data.error || `HTTP ${res.status}`);
         }
       })
-      .catch(() => setPreviewUrl(null))
+      .catch((err) => {
+        console.error("Download fetch error:", err);
+        setPreviewUrl(null);
+        setPreviewError(err.message || "Network error");
+      })
       .finally(() => setPreviewLoading(false));
 
     // Fetch annotations
@@ -394,6 +402,7 @@ export default function PlanRoomClient({
           document={selectedDoc}
           fileUrl={previewUrl}
           isLoading={previewLoading}
+          error={previewError}
           currentPage={pdfViewer.currentPage}
           zoomLevel={pdfViewer.zoomLevel}
           onLoadSuccess={pdfViewer.setTotalPages}

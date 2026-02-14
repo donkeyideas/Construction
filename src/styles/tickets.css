@@ -493,34 +493,52 @@
   letter-spacing: 0.04em;
 }
 
-/* ===== Detail Modal Grid ===== */
-.detail-grid {
+/* ===== Universal Detail Modal ===== */
+/* Use these classes in ALL detail modals for consistent layout.
+   Pattern: detail-row (2-col grid) > detail-group (label + value)
+   Also: detail-section (full-width block with title + text)          */
+
+.detail-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
+  gap: 16px;
 }
 
-.detail-grid:last-of-type {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.detail-field {
+.detail-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
-.detail-field .ticket-form-label {
+.detail-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin: 0;
 }
 
-.detail-field-value {
-  font-size: 0.92rem;
+.detail-value {
+  font-size: 0.875rem;
+  color: var(--text);
   font-weight: 500;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+.detail-value--empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.detail-value--multiline {
+  white-space: pre-wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.6;
 }
 
 .detail-section {
@@ -557,6 +575,19 @@
   padding: 0.6rem 0.8rem;
   background: var(--surface);
   border-radius: 6px;
+}
+
+/* Legacy aliases — keep for backward compat until all modals migrate */
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.detail-field { display: flex; flex-direction: column; gap: 6px; }
+.detail-field .ticket-form-label { display: block; margin: 0; }
+.detail-field-value {
+  font-size: 0.875rem;
+  color: var(--text);
+  font-weight: 500;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.5;
 }
 
 /* Line items table inside modals */
@@ -597,6 +628,7 @@
 }
 
 @media (max-width: 640px) {
+  .detail-row,
   .detail-grid {
     grid-template-columns: 1fr;
   }
@@ -663,7 +695,48 @@
   margin-bottom: 12px;
 }
 
-/* ===== Detail Value (read-only modal) ===== */
+/* ===== Detail Body / Row / Label (read-only modals) ===== */
+/* Used by Invoices, Bids, CRM Pipeline, and other modals that display
+   label-value pairs in a vertical stack with divider lines.           */
+
+.ticket-detail-body {
+  padding: 1.25rem;
+}
+
+.ticket-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ticket-detail-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+/* The value element inside a ticket-detail-row (the non-label child) */
+.ticket-detail-row > :last-child:not(.ticket-detail-label) {
+  font-size: 0.875rem;
+  color: var(--text);
+  font-weight: 500;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+.ticket-detail-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+/* ===== Detail Value (explicit class for modals) ===== */
 .ticket-detail-value {
   font-size: 0.875rem;
   color: var(--text);

@@ -776,48 +776,40 @@ export default function EquipmentInventoryClient({
 
             {/* Read-only detail */}
             {!isEditing && (
-              <div className="equipment-form" style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Name</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {selectedItem.name}
-                    </div>
+              <div style={{ padding: "1.25rem", pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Name</label>
+                    <div className="detail-value">{selectedItem.name}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Type</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Type</label>
+                    <div className="detail-value">
                       {EQUIPMENT_TYPES.find((t) => t.value === selectedItem.equipment_type)?.label ??
                         selectedItem.equipment_type}
                     </div>
                   </div>
                 </div>
 
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Make</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {selectedItem.make || "--"}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Make</label>
+                    <div className="detail-value">{selectedItem.make || "--"}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Model</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {selectedItem.model || "--"}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Model</label>
+                    <div className="detail-value">{selectedItem.model || "--"}</div>
                   </div>
                 </div>
 
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Serial Number</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {selectedItem.serial_number || "--"}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Serial Number</label>
+                    <div className="detail-value">{selectedItem.serial_number || "--"}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Status</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
                       <span className={`equipment-status-badge status-${selectedItem.status}`}>
                         {STATUS_LABELS[selectedItem.status] ?? selectedItem.status}
                       </span>
@@ -825,67 +817,53 @@ export default function EquipmentInventoryClient({
                   </div>
                 </div>
 
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Current Project</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {selectedItem.project?.name || "--"}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Current Project</label>
+                    <div className="detail-value">{selectedItem.project?.name || "--"}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Assigned To</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {getUserName(selectedItem.assignee)}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Assigned To</label>
+                    <div className="detail-value">{getUserName(selectedItem.assignee)}</div>
                   </div>
                 </div>
 
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Purchase Date</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {formatDate(selectedItem.purchase_date)}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Purchase Date</label>
+                    <div className="detail-value">{formatDate(selectedItem.purchase_date)}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Purchase Cost</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {formatCurrency(selectedItem.purchase_cost)}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Purchase Cost</label>
+                    <div className="detail-value">{formatCurrency(selectedItem.purchase_cost)}</div>
                   </div>
                 </div>
 
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Hourly Rate</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Hourly Rate</label>
+                    <div className="detail-value">
                       {selectedItem.hourly_rate ? `${formatCurrency(selectedItem.hourly_rate)}/hr` : "--"}
                     </div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Total Hours</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {selectedItem.total_hours ?? "--"}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Total Hours</label>
+                    <div className="detail-value">{selectedItem.total_hours ?? "--"}</div>
                   </div>
                 </div>
 
-                <div className="equipment-form-row">
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Last Maintenance</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {formatDate(selectedItem.last_maintenance_date)}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Last Maintenance</label>
+                    <div className="detail-value">{formatDate(selectedItem.last_maintenance_date)}</div>
                   </div>
-                  <div className="equipment-form-group">
-                    <label className="equipment-form-label">Next Maintenance</label>
-                    <div className="equipment-form-input" style={{ background: "var(--surface)", cursor: "default" }}>
-                      {formatDate(selectedItem.next_maintenance_date)}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Next Maintenance</label>
+                    <div className="detail-value">{formatDate(selectedItem.next_maintenance_date)}</div>
                   </div>
                 </div>
 
-                <div className="equipment-form-actions">
+                <div className="ticket-form-actions">
                   <button
                     type="button"
                     className="btn-secondary"

@@ -1062,18 +1062,16 @@ export default function RfisClient({
             {!isEditing && !showDeleteConfirm && (
               <div style={{ padding: "1.25rem" }}>
                 {/* Subject & Project */}
-                <div className="detail-section">
-                  <div className="detail-field" style={{ marginBottom: 12 }}>
-                    <label className="ticket-form-label">Subject</label>
-                    <div className="detail-field-value">{selectedRfi.subject}</div>
-                  </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Project</label>
-                    <div className="detail-field-value">
-                      {selectedRfi.projects
-                        ? `${selectedRfi.projects.code} - ${selectedRfi.projects.name}`
-                        : "--"}
-                    </div>
+                <div className="detail-group" style={{ marginBottom: 4 }}>
+                  <label className="detail-label">Subject</label>
+                  <div className="detail-value">{selectedRfi.subject}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Project</label>
+                  <div className="detail-value">
+                    {selectedRfi.projects
+                      ? `${selectedRfi.projects.code} - ${selectedRfi.projects.name}`
+                      : "--"}
                   </div>
                 </div>
 
@@ -1096,10 +1094,10 @@ export default function RfisClient({
                 </div>
 
                 {/* Priority & Status */}
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Priority</label>
-                    <div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Priority</label>
+                    <div className="detail-value">
                       {selectedRfi.priority ? (
                         <span className={`badge ${priorityBadge[selectedRfi.priority] ?? "badge-blue"}`}>
                           {selectedRfi.priority}
@@ -1107,9 +1105,9 @@ export default function RfisClient({
                       ) : "--"}
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Status</label>
-                    <div>
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
                       <span className={statusBadge[selectedRfi.status] ?? "inv-status"}>
                         {selectedRfi.status}
                       </span>
@@ -1118,58 +1116,58 @@ export default function RfisClient({
                 </div>
 
                 {/* Submitted By & Assigned To */}
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Submitted By</label>
-                    <div className="detail-field-value">
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Submitted By</label>
+                    <div className="detail-value">
                       {selectedRfi.submitted_by ? userMap[selectedRfi.submitted_by] ?? "--" : "--"}
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Assigned To</label>
-                    <div className="detail-field-value">
+                  <div className="detail-group">
+                    <label className="detail-label">Assigned To</label>
+                    <div className="detail-value">
                       {selectedRfi.assigned_to ? userMap[selectedRfi.assigned_to] ?? "--" : "--"}
                     </div>
                   </div>
                 </div>
 
                 {/* Due Date & Cost Impact */}
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Due Date</label>
-                    <div className="detail-field-value">
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Due Date</label>
+                    <div className="detail-value">
                       {selectedRfi.due_date ? formatDate(selectedRfi.due_date) : "--"}
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Cost Impact</label>
-                    <div className="detail-field-value">
+                  <div className="detail-group">
+                    <label className="detail-label">Cost Impact</label>
+                    <div className="detail-value">
                       {selectedRfi.cost_impact != null ? formatCurrency(selectedRfi.cost_impact) : "--"}
                     </div>
                   </div>
                 </div>
 
                 {/* Schedule Impact & Created */}
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Schedule Impact</label>
-                    <div className="detail-field-value">
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Schedule Impact</label>
+                    <div className="detail-value">
                       {selectedRfi.schedule_impact_days != null
                         ? `${selectedRfi.schedule_impact_days} day${selectedRfi.schedule_impact_days !== 1 ? "s" : ""}`
                         : "--"}
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Created</label>
-                    <div className="detail-field-value">{formatDate(selectedRfi.created_at)}</div>
+                  <div className="detail-group">
+                    <label className="detail-label">Created</label>
+                    <div className="detail-value">{formatDate(selectedRfi.created_at)}</div>
                   </div>
                 </div>
 
                 {selectedRfi.answered_at && (
-                  <div className="detail-grid">
-                    <div className="detail-field">
-                      <label className="ticket-form-label">Answered At</label>
-                      <div className="detail-field-value">{formatDate(selectedRfi.answered_at)}</div>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label className="detail-label">Answered At</label>
+                      <div className="detail-value">{formatDate(selectedRfi.answered_at)}</div>
                     </div>
                   </div>
                 )}

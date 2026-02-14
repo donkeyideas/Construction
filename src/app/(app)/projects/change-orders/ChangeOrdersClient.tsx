@@ -900,16 +900,16 @@ export default function ChangeOrdersClient({
             {/* ---------- View Mode ---------- */}
             {!isEditing && !showDeleteConfirm && (
               <div style={{ padding: "1.25rem" }}>
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">CO Number</label>
-                    <div className="detail-field-value">
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">CO Number</label>
+                    <div className="detail-value">
                       {selectedCo.co_number}
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Status</label>
-                    <div className="detail-field-value">
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
                       <span
                         className={
                           STATUS_BADGE[selectedCo.status] ?? "inv-status"
@@ -921,34 +921,34 @@ export default function ChangeOrdersClient({
                   </div>
                 </div>
 
-                <div className="detail-section">
-                  <label className="ticket-form-label">Title</label>
-                  <div className="detail-field-value">
+                <div className="detail-group">
+                  <label className="detail-label">Title</label>
+                  <div className="detail-value">
                     {selectedCo.title}
                   </div>
                 </div>
 
                 {selectedCo.description && (
-                  <div className="detail-section">
-                    <div className="detail-section-title">Description</div>
-                    <div className="detail-section-text">
+                  <div className="detail-group">
+                    <label className="detail-label">Description</label>
+                    <div className="detail-value--multiline">
                       {selectedCo.description}
                     </div>
                   </div>
                 )}
 
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Project</label>
-                    <div className="detail-field-value">
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Project</label>
+                    <div className="detail-value">
                       {selectedCo.projects
                         ? `${selectedCo.projects.code} - ${selectedCo.projects.name}`
                         : "--"}
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Reason</label>
-                    <div className="detail-field-value">
+                  <div className="detail-group">
+                    <label className="detail-label">Reason</label>
+                    <div className="detail-value">
                       {selectedCo.reason ? (
                         <span
                           className={`badge ${
@@ -965,20 +965,20 @@ export default function ChangeOrdersClient({
                   </div>
                 </div>
 
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Amount</label>
-                    <div className="detail-field-value">
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Amount</label>
+                    <div className="detail-value">
                       {selectedCo.amount != null
                         ? formatCurrency(selectedCo.amount)
                         : "--"}
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">
+                  <div className="detail-group">
+                    <label className="detail-label">
                       Schedule Impact
                     </label>
-                    <div className="detail-field-value">
+                    <div className="detail-value">
                       {selectedCo.schedule_impact_days != null
                         ? `${selectedCo.schedule_impact_days > 0 ? "+" : ""}${selectedCo.schedule_impact_days} days`
                         : "--"}
@@ -986,18 +986,18 @@ export default function ChangeOrdersClient({
                   </div>
                 </div>
 
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Requested By</label>
-                    <div className="detail-field-value">
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Requested By</label>
+                    <div className="detail-value">
                       {selectedCo.requested_by
                         ? userMap[selectedCo.requested_by] ?? "--"
                         : "--"}
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Approved By</label>
-                    <div className="detail-field-value">
+                  <div className="detail-group">
+                    <label className="detail-label">Approved By</label>
+                    <div className="detail-value">
                       {selectedCo.approved_by
                         ? userMap[selectedCo.approved_by] ?? "--"
                         : "--"}

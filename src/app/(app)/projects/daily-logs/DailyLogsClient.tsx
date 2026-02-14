@@ -999,19 +999,19 @@ export default function DailyLogsClient({
             ) : (
               <div style={{ padding: "1.25rem" }}>
                 {/* Project & Date */}
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Project</label>
-                    <div className="detail-field-value">
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Project</label>
+                    <div className="detail-value">
                       {selectedLog.projects?.code && (
                         <strong>{selectedLog.projects.code} - </strong>
                       )}
                       {selectedLog.projects?.name || "N/A"}
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Date</label>
-                    <div className="detail-field-value">
+                  <div className="detail-group">
+                    <label className="detail-label">Date</label>
+                    <div className="detail-value">
                       {new Date(selectedLog.log_date).toLocaleDateString("en-US", {
                         weekday: "long",
                         year: "numeric",
@@ -1023,18 +1023,18 @@ export default function DailyLogsClient({
                 </div>
 
                 {/* Status & Weather */}
-                <div className="detail-grid">
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Status</label>
-                    <div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
                       <span className={STATUS_BADGE[selectedLog.status] ?? "inv-status"}>
                         {selectedLog.status}
                       </span>
                     </div>
                   </div>
-                  <div className="detail-field">
-                    <label className="ticket-form-label">Weather</label>
-                    <div className="detail-field-value" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Weather</label>
+                    <div className="detail-value" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       {getWeatherIcon(selectedLog.weather_conditions)}
                       {selectedLog.weather_conditions || "N/A"}
                     </div>
@@ -1046,11 +1046,11 @@ export default function DailyLogsClient({
                   selectedLog.weather_temp_low != null ||
                   selectedLog.weather_wind_mph != null ||
                   selectedLog.weather_humidity_pct != null) && (
-                  <div className="detail-grid">
+                  <div className="detail-row">
                     {(selectedLog.weather_temp_high != null || selectedLog.weather_temp_low != null) && (
-                      <div className="detail-field">
-                        <label className="ticket-form-label">Temperature</label>
-                        <div className="detail-field-value">
+                      <div className="detail-group">
+                        <label className="detail-label">Temperature</label>
+                        <div className="detail-value">
                           {selectedLog.weather_temp_low != null ? `${selectedLog.weather_temp_low}` : "--"}
                           {" / "}
                           {selectedLog.weather_temp_high != null ? `${selectedLog.weather_temp_high}` : "--"}
@@ -1059,15 +1059,15 @@ export default function DailyLogsClient({
                       </div>
                     )}
                     {selectedLog.weather_wind_mph != null && (
-                      <div className="detail-field">
-                        <label className="ticket-form-label">Wind</label>
-                        <div className="detail-field-value">{selectedLog.weather_wind_mph} mph</div>
+                      <div className="detail-group">
+                        <label className="detail-label">Wind</label>
+                        <div className="detail-value">{selectedLog.weather_wind_mph} mph</div>
                       </div>
                     )}
                     {selectedLog.weather_humidity_pct != null && (
-                      <div className="detail-field">
-                        <label className="ticket-form-label">Humidity</label>
-                        <div className="detail-field-value">{selectedLog.weather_humidity_pct}%</div>
+                      <div className="detail-group">
+                        <label className="detail-label">Humidity</label>
+                        <div className="detail-value">{selectedLog.weather_humidity_pct}%</div>
                       </div>
                     )}
                   </div>
@@ -1075,22 +1075,22 @@ export default function DailyLogsClient({
 
                 {/* Work Performed */}
                 {selectedLog.work_performed && (
-                  <div className="detail-section">
-                    <div className="detail-section-title">Work Performed</div>
-                    <div className="detail-section-text">{selectedLog.work_performed}</div>
+                  <div className="detail-group">
+                    <label className="detail-label">Work Performed</label>
+                    <div className="detail-value--multiline">{selectedLog.work_performed}</div>
                   </div>
                 )}
 
                 {/* Workforce */}
                 {selectedLog.workforce && selectedLog.workforce.length > 0 && (
-                  <div className="detail-section">
-                    <div className="detail-section-title">Workforce</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Workforce</label>
+                    <div className="detail-value--multiline">
                       {(selectedLog.workforce as WorkforceEntry[]).map((w, i) => (
-                        <span key={i} style={{ fontSize: "0.88rem" }}>
+                        <div key={i}>
                           {w.trade ?? "General"}: {w.headcount ?? 0} workers
                           {w.hours ? ` × ${w.hours} hrs` : ""}
-                        </span>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -1098,44 +1098,44 @@ export default function DailyLogsClient({
 
                 {/* Materials Received */}
                 {selectedLog.materials_received && (
-                  <div className="detail-section">
-                    <div className="detail-section-title">Materials Received</div>
-                    <div className="detail-section-text">{selectedLog.materials_received}</div>
+                  <div className="detail-group">
+                    <label className="detail-label">Materials Received</label>
+                    <div className="detail-value--multiline">{selectedLog.materials_received}</div>
                   </div>
                 )}
 
                 {/* Safety Incidents */}
                 {selectedLog.safety_incidents && (
-                  <div className="detail-section">
-                    <div className="detail-section-title" style={{ color: "var(--color-red)" }}>
+                  <div className="detail-group">
+                    <label className="detail-label" style={{ color: "var(--color-red)" }}>
                       Safety Incidents
-                    </div>
-                    <div className="detail-section-text">{selectedLog.safety_incidents}</div>
+                    </label>
+                    <div className="detail-value--multiline">{selectedLog.safety_incidents}</div>
                   </div>
                 )}
 
                 {/* Delays */}
                 {selectedLog.delays && (
-                  <div className="detail-section">
-                    <div className="detail-section-title" style={{ color: "var(--color-amber)" }}>
+                  <div className="detail-group">
+                    <label className="detail-label" style={{ color: "var(--color-amber)" }}>
                       Delays
-                    </div>
-                    <div className="detail-section-text">{selectedLog.delays}</div>
+                    </label>
+                    <div className="detail-value--multiline">{selectedLog.delays}</div>
                   </div>
                 )}
 
                 {/* Created / Approved By */}
-                <div className="detail-grid">
+                <div className="detail-row">
                   {selectedLog.created_by && (
-                    <div className="detail-field">
-                      <label className="ticket-form-label">Created By</label>
-                      <div className="detail-field-value">{userMap[selectedLog.created_by] ?? "Unknown"}</div>
+                    <div className="detail-group">
+                      <label className="detail-label">Created By</label>
+                      <div className="detail-value">{userMap[selectedLog.created_by] ?? "Unknown"}</div>
                     </div>
                   )}
                   {selectedLog.approved_by && (
-                    <div className="detail-field">
-                      <label className="ticket-form-label">Approved By</label>
-                      <div className="detail-field-value">{userMap[selectedLog.approved_by] ?? "Unknown"}</div>
+                    <div className="detail-group">
+                      <label className="detail-label">Approved By</label>
+                      <div className="detail-value">{userMap[selectedLog.approved_by] ?? "Unknown"}</div>
                     </div>
                   )}
                 </div>
