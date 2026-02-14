@@ -34,7 +34,7 @@ export async function getVendorDashboard(
   const [contractsRes, invoicesRes, certsRes] = await Promise.all([
     supabase
       .from("vendor_contracts")
-      .select("contract_amount")
+      .select("amount")
       .eq("vendor_id", contact.id)
       .eq("status", "active"),
     supabase
@@ -56,7 +56,7 @@ export async function getVendorDashboard(
 
   return {
     contactId: contact.id,
-    totalContractValue: contracts.reduce((sum: number, c: { contract_amount: number }) => sum + (c.contract_amount || 0), 0),
+    totalContractValue: contracts.reduce((sum: number, c: { amount: number }) => sum + (c.amount || 0), 0),
     outstandingInvoices: invoices.length,
     outstandingAmount: invoices.reduce((sum: number, i: { balance_due: number }) => sum + (i.balance_due || 0), 0),
     expiringCertifications: certsRes.data?.length ?? 0,
@@ -110,10 +110,20 @@ export async function getVendorPayments(supabase: SupabaseClient, userId: string
 
   if (!contact) return [];
 
+  // Two-step: get vendor invoice IDs first, then filter payments
+  const { data: vendorInvoices } = await supabase
+    .from("invoices")
+    .select("id")
+    .eq("vendor_id", contact.id)
+    .eq("invoice_type", "payable");
+
+  if (!vendorInvoices || vendorInvoices.length === 0) return [];
+
+  const invoiceIds = vendorInvoices.map((i) => i.id);
   const { data } = await supabase
     .from("payments")
     .select("*, invoices(invoice_number)")
-    .eq("invoices.vendor_id", contact.id)
+    .in("invoice_id", invoiceIds)
     .order("payment_date", { ascending: false });
   return data ?? [];
 }
@@ -166,7 +176,7 @@ export async function getVendorDocuments(supabase: SupabaseClient, userId: strin
 
   const { data } = await supabase
     .from("vendor_documents")
-    .select("*, documents(name, file_url, file_type, file_size, created_at)")
+    .select("*, documents(name, file_path, file_type, file_size, created_at)")
     .eq("vendor_contact_id", contact.id)
     .order("shared_at", { ascending: false });
   return data ?? [];

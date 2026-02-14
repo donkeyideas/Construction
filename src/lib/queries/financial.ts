@@ -20,6 +20,7 @@ export interface InvoiceRow {
   vendor_name: string | null;
   client_name: string | null;
   project_id: string | null;
+  project_name: string | null;
   invoice_date: string;
   due_date: string;
   subtotal: number;
@@ -247,7 +248,7 @@ export async function getInvoices(
 ): Promise<InvoiceRow[]> {
   let query = supabase
     .from("invoices")
-    .select("*")
+    .select("*, projects(name)")
     .eq("company_id", companyId)
     .order("invoice_date", { ascending: false });
 
@@ -270,7 +271,13 @@ export async function getInvoices(
     return [];
   }
 
-  return (data ?? []) as InvoiceRow[];
+  return (data ?? []).map((row: Record<string, unknown>) => {
+    const project = row.projects as { name: string } | null;
+    return {
+      ...row,
+      project_name: project?.name ?? null,
+    };
+  }) as InvoiceRow[];
 }
 
 export async function getRecentInvoices(
@@ -280,7 +287,7 @@ export async function getRecentInvoices(
 ): Promise<InvoiceRow[]> {
   const { data, error } = await supabase
     .from("invoices")
-    .select("*")
+    .select("*, projects(name)")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -290,7 +297,13 @@ export async function getRecentInvoices(
     return [];
   }
 
-  return (data ?? []) as InvoiceRow[];
+  return (data ?? []).map((row: Record<string, unknown>) => {
+    const project = row.projects as { name: string } | null;
+    return {
+      ...row,
+      project_name: project?.name ?? null,
+    };
+  }) as InvoiceRow[];
 }
 
 export async function getInvoiceById(

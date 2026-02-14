@@ -45,6 +45,7 @@ interface InvoiceRow {
   vendor_name: string | null;
   client_name: string | null;
   project_id: string | null;
+  project_name: string | null;
   invoice_date: string;
   due_date: string;
   subtotal: number;
@@ -323,7 +324,7 @@ export default function InvoicesClient({
                           : inv.client_name ?? "--"}
                       </td>
                       <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
-                        {inv.project_id ? inv.project_id.substring(0, 8) + "..." : "--"}
+                        {inv.project_name ?? "--"}
                       </td>
                       <td>{formatDate(inv.invoice_date)}</td>
                       <td>

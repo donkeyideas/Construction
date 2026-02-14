@@ -56,10 +56,10 @@ export default async function VendorCompliancePage() {
                   return (
                     <tr key={cert.id as string}>
                       <td style={{ fontWeight: 600 }}>
-                        {(cert.name as string) ?? (cert.certification_name as string) ?? "Unnamed"}
+                        {(cert.cert_name as string) ?? "Unnamed"}
                       </td>
                       <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
-                        {(cert.type as string) ?? (cert.certification_type as string) ?? "--"}
+                        {(cert.cert_type as string) ?? "--"}
                       </td>
                       <td>
                         {cert.expiry_date

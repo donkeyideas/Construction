@@ -36,7 +36,7 @@ export default async function VendorDocumentsPage() {
                 {vendorDocs.map((doc: Record<string, unknown>) => {
                   const document = doc.documents as {
                     name: string;
-                    file_url: string | null;
+                    file_path: string | null;
                     file_type: string | null;
                     file_size: number | null;
                     created_at: string | null;
@@ -45,9 +45,9 @@ export default async function VendorDocumentsPage() {
                   return (
                     <tr key={doc.id as string}>
                       <td style={{ fontWeight: 600 }}>
-                        {document?.file_url ? (
+                        {document?.file_path ? (
                           <a
-                            href={document.file_url}
+                            href={document.file_path}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{ color: "var(--color-blue)", textDecoration: "none" }}

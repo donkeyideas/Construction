@@ -49,7 +49,7 @@ export default async function VendorContractsPage() {
                         </Link>
                       </td>
                       <td className="amount-col">
-                        {formatCurrency((contract.contract_amount as number) ?? 0)}
+                        {formatCurrency((contract.amount as number) ?? 0)}
                       </td>
                       <td>
                         <span className={`inv-status inv-status-${contract.status}`}>

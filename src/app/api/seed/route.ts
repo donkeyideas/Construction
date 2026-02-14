@@ -39,6 +39,19 @@ const TENANT_USERS: TenantUserSeed[] = [
   { email: "tenant2@demo.com", full_name: "Chris Anderson", phone: "(512) 555-3006", tenant_name: "Chris Anderson" },
 ];
 
+// Vendor portal users (linked to contacts — they access the vendor portal)
+interface VendorUserSeed {
+  email: string;
+  full_name: string;
+  phone: string;
+  contact_email: string; // matches contacts email to link user_id
+}
+
+const VENDOR_USERS: VendorUserSeed[] = [
+  { email: "vendor@demo.com", full_name: "Robert Miller", phone: "(512) 555-4001", contact_email: "rmiller@millersteel.com" },
+  { email: "vendor2@demo.com", full_name: "Carlos Hernandez", phone: "(512) 555-4002", contact_email: "carlos@hernandezconc.com" },
+];
+
 export async function POST(request: Request) {
   try {
     const url = new URL(request.url);
@@ -129,6 +142,7 @@ export async function POST(request: Request) {
         supabase.from("bank_accounts").delete().eq("company_id", cid),
         supabase.from("chart_of_accounts").delete().eq("company_id", cid),
         supabase.from("tenant_documents").delete().eq("company_id", cid),
+        supabase.from("vendor_documents").delete().eq("company_id", cid),
         supabase.from("tenant_announcements").delete().eq("company_id", cid),
         supabase.from("documents").delete().eq("company_id", cid),
         supabase.from("contacts").delete().eq("company_id", cid),
@@ -229,6 +243,42 @@ export async function POST(request: Request) {
         full_name: tenant.full_name,
         phone: tenant.phone,
         portal_type: "tenant",
+      });
+    }
+
+    // ============================================================
+    // 3c. CREATE VENDOR PORTAL USERS
+    // ============================================================
+    const vendorUserIds: Record<string, string> = {};
+
+    for (const vendor of VENDOR_USERS) {
+      const existing = existingUserMap.get(vendor.email);
+
+      if (existing) {
+        vendorUserIds[vendor.contact_email] = existing.id;
+      } else {
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: vendor.email,
+          password: DEFAULT_PASSWORD,
+          email_confirm: true,
+          user_metadata: { full_name: vendor.full_name },
+        });
+
+        if (authError) {
+          console.error(`Failed to create vendor user ${vendor.email}:`, authError.message);
+          return NextResponse.json({ error: `Failed to create vendor user ${vendor.email}: ${authError.message}` }, { status: 500 });
+        }
+
+        vendorUserIds[vendor.contact_email] = authData.user.id;
+      }
+
+      // Upsert vendor profile with portal_type='vendor'
+      await supabase.from("user_profiles").upsert({
+        id: vendorUserIds[vendor.contact_email],
+        email: vendor.email,
+        full_name: vendor.full_name,
+        phone: vendor.phone,
+        portal_type: "vendor",
       });
     }
 
@@ -822,8 +872,8 @@ export async function POST(request: Request) {
     // 13. CONTACTS (Subs, Vendors, Clients)
     // ============================================================
     const contactSeeds = [
-      { contact_type: "subcontractor", first_name: "Robert", last_name: "Miller", company_name: "Miller Steel Erectors", job_title: "Owner", email: "rmiller@millersteel.com", phone: "(512) 555-4001" },
-      { contact_type: "subcontractor", first_name: "Carlos", last_name: "Hernandez", company_name: "Hernandez Concrete Works", job_title: "President", email: "carlos@hernandezconc.com", phone: "(512) 555-4002" },
+      { contact_type: "subcontractor", first_name: "Robert", last_name: "Miller", company_name: "Miller Steel Erectors", job_title: "Owner", email: "rmiller@millersteel.com", phone: "(512) 555-4001", user_id: vendorUserIds["rmiller@millersteel.com"] },
+      { contact_type: "subcontractor", first_name: "Carlos", last_name: "Hernandez", company_name: "Hernandez Concrete Works", job_title: "President", email: "carlos@hernandezconc.com", phone: "(512) 555-4002", user_id: vendorUserIds["carlos@hernandezconc.com"] },
       { contact_type: "subcontractor", first_name: "Mike", last_name: "Thompson", company_name: "Thompson Electric", job_title: "Estimator", email: "mthompson@thompe.com", phone: "(512) 555-4003" },
       { contact_type: "subcontractor", first_name: "Angela", last_name: "Davis", company_name: "Davis Mechanical Systems", job_title: "VP Operations", email: "adavis@davismech.com", phone: "(512) 555-4004" },
       { contact_type: "subcontractor", first_name: "Kevin", last_name: "O'Brien", company_name: "Premier Plumbing", job_title: "Foreman", email: "kobrien@premierplumb.com", phone: "(512) 555-4005" },
@@ -845,6 +895,13 @@ export async function POST(request: Request) {
       .select("id, first_name, last_name, contact_type, company_name");
 
     const subContacts = (contactsData ?? []).filter((c) => c.contact_type === "subcontractor");
+    const vendorContacts = (contactsData ?? []).filter((c) => c.contact_type === "vendor");
+
+    // Build map from company_name to contact id for linking AP invoices
+    const contactByCompany: Record<string, string> = {};
+    for (const c of contactsData ?? []) {
+      contactByCompany[c.company_name] = c.id;
+    }
 
     // ============================================================
     // 14. VENDOR CONTRACTS
@@ -902,7 +959,7 @@ export async function POST(request: Request) {
     }
 
     // AP Invoices (from subs/vendors to us)
-    const apVendors = ["Miller Steel Erectors", "Hernandez Concrete Works", "Thompson Electric", "Davis Mechanical", "Texas Building Supply", "Atlas Equipment Rental"];
+    const apVendors = ["Miller Steel Erectors", "Hernandez Concrete Works", "Thompson Electric", "Davis Mechanical Systems", "Texas Building Supply", "Atlas Equipment Rental"];
 
     for (let monthBack = 11; monthBack >= 0; monthBack--) {
       const invDate = new Date(2025, 2 + (11 - monthBack), 15);
@@ -921,6 +978,7 @@ export async function POST(request: Request) {
           invoice_number: `AP-${String(invNum++).padStart(4, "0")}`,
           invoice_type: "payable",
           vendor_name: apVendors[vendorIdx],
+          vendor_id: contactByCompany[apVendors[vendorIdx]] || null,
           project_id: rmcId,
           invoice_date: invDate.toISOString().slice(0, 10),
           due_date: dueDate.toISOString().slice(0, 10),
@@ -1873,6 +1931,64 @@ export async function POST(request: Request) {
     }
 
     // ============================================================
+    // 42. VENDOR CERTIFICATIONS (for subcontractor contacts)
+    // ============================================================
+    if (subContacts.length >= 4) {
+      await supabase.from("certifications").insert([
+        // Robert Miller - Miller Steel Erectors
+        { company_id: companyId, contact_id: subContacts[0].id, cert_type: "license", cert_name: "Texas Structural Steel Contractor License", issuing_authority: "TDLR", cert_number: "SSC-TX-2024-22014", issued_date: "2024-06-01", expiry_date: "2026-06-01", status: "valid" },
+        { company_id: companyId, contact_id: subContacts[0].id, cert_type: "insurance", cert_name: "General Liability Insurance", issuing_authority: "State Farm", cert_number: "GL-2025-MSE-44812", issued_date: "2025-01-01", expiry_date: "2026-01-01", status: "expired" },
+        { company_id: companyId, contact_id: subContacts[0].id, cert_type: "osha_30", cert_name: "OSHA 30-Hour Construction", issuing_authority: "OSHA", cert_number: "30H-2024-11234", issued_date: "2024-04-15", expiry_date: "2029-04-15", status: "valid" },
+        // Carlos Hernandez - Hernandez Concrete Works
+        { company_id: companyId, contact_id: subContacts[1].id, cert_type: "license", cert_name: "Texas Concrete Contractor License", issuing_authority: "TDLR", cert_number: "CC-TX-2023-18702", issued_date: "2023-08-01", expiry_date: "2025-08-01", status: "expired" },
+        { company_id: companyId, contact_id: subContacts[1].id, cert_type: "insurance", cert_name: "Workers Compensation Insurance", issuing_authority: "Travelers", cert_number: "WC-2025-HCW-91023", issued_date: "2025-03-01", expiry_date: "2026-03-01", status: "valid" },
+        // Mike Thompson - Thompson Electric
+        { company_id: companyId, contact_id: subContacts[2].id, cert_type: "license", cert_name: "Texas Master Electrician License", issuing_authority: "TDLR", cert_number: "ME-TX-2022-33401", issued_date: "2022-11-01", expiry_date: "2026-11-01", status: "valid" },
+        { company_id: companyId, contact_id: subContacts[2].id, cert_type: "osha_10", cert_name: "OSHA 10-Hour Construction", issuing_authority: "OSHA", cert_number: "10H-2025-67891", issued_date: "2025-01-15", expiry_date: "2030-01-15", status: "valid" },
+        // Angela Davis - Davis Mechanical Systems
+        { company_id: companyId, contact_id: subContacts[3].id, cert_type: "license", cert_name: "Texas Mechanical Contractor License", issuing_authority: "TDLR", cert_number: "MC-TX-2024-55102", issued_date: "2024-02-01", expiry_date: "2026-02-01", status: "expired" },
+        { company_id: companyId, contact_id: subContacts[3].id, cert_type: "insurance", cert_name: "General Liability Insurance", issuing_authority: "Liberty Mutual", cert_number: "GL-2025-DMS-78341", issued_date: "2025-06-01", expiry_date: "2026-06-01", status: "valid" },
+        { company_id: companyId, contact_id: subContacts[3].id, cert_type: "first_aid", cert_name: "First Aid / CPR / AED", issuing_authority: "American Red Cross", cert_number: "FA-2025-DMS-12345", issued_date: "2025-09-01", expiry_date: "2027-09-01", status: "valid" },
+      ]);
+    }
+
+    // ============================================================
+    // 43. VENDOR DOCUMENTS (share project docs with vendor contacts)
+    // ============================================================
+    if (subContacts.length >= 2) {
+      // Get documents to share with vendors
+      const { data: docsForVendors } = await supabase
+        .from("documents")
+        .select("id, name")
+        .eq("company_id", companyId)
+        .in("name", [
+          "RMC Structural Drawings - Rev C",
+          "RMC Project Specifications",
+          "Miller Steel Subcontract",
+          "Safety Manual 2026",
+        ]);
+
+      const vendorDocInserts = [];
+      const structuralDoc = (docsForVendors ?? []).find((d) => d.name.includes("Structural Drawings"));
+      const specDoc = (docsForVendors ?? []).find((d) => d.name.includes("Specifications"));
+      const contractDoc = (docsForVendors ?? []).find((d) => d.name.includes("Miller Steel"));
+      const safetyDoc = (docsForVendors ?? []).find((d) => d.name.includes("Safety Manual"));
+
+      // Share structural drawings + contract with Miller Steel (subContacts[0])
+      if (structuralDoc) vendorDocInserts.push({ company_id: companyId, project_id: rmcId, vendor_contact_id: subContacts[0].id, document_id: structuralDoc.id });
+      if (contractDoc) vendorDocInserts.push({ company_id: companyId, project_id: rmcId, vendor_contact_id: subContacts[0].id, document_id: contractDoc.id });
+      if (safetyDoc) vendorDocInserts.push({ company_id: companyId, project_id: rmcId, vendor_contact_id: subContacts[0].id, document_id: safetyDoc.id });
+
+      // Share specs + safety manual with Hernandez Concrete (subContacts[1])
+      if (specDoc) vendorDocInserts.push({ company_id: companyId, project_id: rmcId, vendor_contact_id: subContacts[1].id, document_id: specDoc.id });
+      if (safetyDoc) vendorDocInserts.push({ company_id: companyId, project_id: rmcId, vendor_contact_id: subContacts[1].id, document_id: safetyDoc.id });
+
+      if (vendorDocInserts.length > 0) {
+        await supabase.from("vendor_documents").insert(vendorDocInserts);
+      }
+    }
+
+    // ============================================================
     // DONE
     // ============================================================
     return NextResponse.json({
@@ -1895,12 +2011,20 @@ export async function POST(request: Request) {
           role: "tenant",
           name: t.full_name,
         })),
+        ...VENDOR_USERS.map((v) => ({
+          email: v.email,
+          password: DEFAULT_PASSWORD,
+          role: "vendor",
+          name: v.full_name,
+        })),
       ],
       super_admin_note: "The owner account (owner@demo.com) has been granted platform admin access. Use it to access /super-admin.",
       tenant_note: "Tenant accounts (tenant@demo.com, tenant2@demo.com) access the tenant portal at /login/tenant.",
+      vendor_note: "Vendor accounts (vendor@demo.com, vendor2@demo.com) access the vendor portal at /login/vendor.",
       stats: {
         users: TEST_USERS.length,
         tenant_users: TENANT_USERS.length,
+        vendor_users: VENDOR_USERS.length,
         projects: projectSeeds.length,
         properties: 4,
         invoices: invoiceInserts.length,
