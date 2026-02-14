@@ -167,6 +167,7 @@ const statusOptions = [
 
 const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "title", label: "Title", required: true },
+  { key: "property_name", label: "Property Name", required: false },
   { key: "description", label: "Description", required: false },
   { key: "priority", label: "Priority", required: false },
   { key: "category", label: "Category", required: false },
@@ -175,9 +176,9 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
-  { title: "HVAC filter replacement", description: "Replace all HVAC filters in Building A", priority: "medium", category: "HVAC", scheduled_date: "2026-02-15", estimated_cost: "350" },
-  { title: "Roof leak repair - Unit 204", description: "Water intrusion at northeast corner near skylight", priority: "high", category: "Roofing", scheduled_date: "2026-02-10", estimated_cost: "1200" },
-  { title: "Parking lot striping", description: "Re-stripe all parking spaces and handicap zones", priority: "low", category: "Exterior", scheduled_date: "2026-03-01", estimated_cost: "800" },
+  { title: "HVAC filter replacement", property_name: "Sunset Ridge Apartments", description: "Replace all HVAC filters in Building A", priority: "medium", category: "HVAC", scheduled_date: "2026-02-15", estimated_cost: "350" },
+  { title: "Roof leak repair - Unit 204", property_name: "Sunset Ridge Apartments", description: "Water intrusion at northeast corner near skylight", priority: "high", category: "Roofing", scheduled_date: "2026-02-10", estimated_cost: "1200" },
+  { title: "Parking lot striping", property_name: "Congress Avenue Office Park", description: "Re-stripe all parking spaces and handicap zones", priority: "low", category: "Exterior", scheduled_date: "2026-03-01", estimated_cost: "800" },
 ];
 
 // ---------------------------------------------------------------------------

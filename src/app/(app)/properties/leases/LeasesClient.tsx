@@ -82,6 +82,7 @@ function getStatusBadge(status: string): string {
 
 const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "tenant_name", label: "Tenant Name", required: true },
+  { key: "property_name", label: "Property Name", required: false },
   { key: "tenant_email", label: "Tenant Email", required: false, type: "email" },
   { key: "tenant_phone", label: "Tenant Phone", required: false },
   { key: "monthly_rent", label: "Monthly Rent ($)", required: false, type: "number" },
@@ -91,9 +92,9 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
-  { tenant_name: "John Smith", tenant_email: "john@example.com", tenant_phone: "555-0100", monthly_rent: "2500", security_deposit: "5000", lease_start: "2026-01-01", lease_end: "2027-01-01" },
-  { tenant_name: "Acme Corp", tenant_email: "leasing@acmecorp.com", tenant_phone: "555-0200", monthly_rent: "4500", security_deposit: "9000", lease_start: "2026-03-01", lease_end: "2029-03-01" },
-  { tenant_name: "Maria Garcia", tenant_email: "maria@example.com", tenant_phone: "555-0300", monthly_rent: "1800", security_deposit: "3600", lease_start: "2026-02-15", lease_end: "2027-02-15" },
+  { tenant_name: "John Smith", property_name: "Sunset Ridge Apartments", tenant_email: "john@example.com", tenant_phone: "555-0100", monthly_rent: "2500", security_deposit: "5000", lease_start: "2026-01-01", lease_end: "2027-01-01" },
+  { tenant_name: "Acme Corp", property_name: "Congress Avenue Office Park", tenant_email: "leasing@acmecorp.com", tenant_phone: "555-0200", monthly_rent: "4500", security_deposit: "9000", lease_start: "2026-03-01", lease_end: "2029-03-01" },
+  { tenant_name: "Maria Garcia", property_name: "Sunset Ridge Apartments", tenant_email: "maria@example.com", tenant_phone: "555-0300", monthly_rent: "1800", security_deposit: "3600", lease_start: "2026-02-15", lease_end: "2027-02-15" },
 ];
 
 // ---------------------------------------------------------------------------

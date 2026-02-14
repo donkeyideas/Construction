@@ -291,10 +291,33 @@ export async function POST(request: NextRequest) {
       }
 
       case "leases": {
+        // Pre-fetch properties to resolve property_name to property_id
+        const { data: leaseProps } = await supabase
+          .from("properties")
+          .select("id, name")
+          .eq("company_id", companyId);
+        const leasePropLookup = (leaseProps || []).reduce((acc, p) => {
+          acc[p.name.trim().toLowerCase()] = p.id;
+          return acc;
+        }, {} as Record<string, string>);
+
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          let propertyId = r.property_id || null;
+          if (!propertyId && r.property_name) {
+            propertyId = leasePropLookup[r.property_name.trim().toLowerCase()] || null;
+          }
+          // Assign to first property as fallback
+          if (!propertyId && leaseProps && leaseProps.length > 0) {
+            propertyId = leaseProps[0].id;
+          }
+          if (!propertyId) {
+            errors.push(`Row ${i + 2}: No property found. Create a property first.`);
+            continue;
+          }
           const { error } = await supabase.from("leases").insert({
             company_id: companyId,
+            property_id: propertyId,
             unit_id: r.unit_id || null,
             tenant_name: r.tenant_name || "",
             tenant_email: r.tenant_email || null,
@@ -315,11 +338,29 @@ export async function POST(request: NextRequest) {
       }
 
       case "maintenance": {
+        // Pre-fetch properties to resolve property_name to property_id
+        const { data: maintProps } = await supabase
+          .from("properties")
+          .select("id, name")
+          .eq("company_id", companyId);
+        const maintPropLookup = (maintProps || []).reduce((acc, p) => {
+          acc[p.name.trim().toLowerCase()] = p.id;
+          return acc;
+        }, {} as Record<string, string>);
+
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          let propertyId = r.property_id || null;
+          if (!propertyId && r.property_name) {
+            propertyId = maintPropLookup[r.property_name.trim().toLowerCase()] || null;
+          }
+          // Assign to first property as fallback
+          if (!propertyId && maintProps && maintProps.length > 0) {
+            propertyId = maintProps[0].id;
+          }
           const { error } = await supabase.from("maintenance_requests").insert({
             company_id: companyId,
-            property_id: r.property_id || null,
+            property_id: propertyId,
             title: r.title || "",
             description: r.description || null,
             priority: r.priority || "medium",

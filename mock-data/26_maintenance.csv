@@ -1,11 +1,11 @@
-title,description,priority,category,scheduled_date,estimated_cost
-HVAC Filter Replacement - Building A,Replace all HVAC filters in Building A units 101-112,medium,HVAC,2026-02-20,350
-Roof Leak Repair - Unit 204,Water intrusion at northeast corner near skylight after heavy rain,high,Roofing,2026-02-15,1200
-Parking Lot Striping,Re-stripe all parking spaces and handicap zones in main lot,low,Exterior,2026-03-01,800
-Water Heater Replacement - Unit 308,50-gallon water heater failed. Needs full replacement,high,Plumbing,2026-02-18,1500
-Elevator Annual Inspection,Annual safety inspection and maintenance for passenger elevator,medium,General,2026-03-10,2200
-Broken Window - Unit 115,Tenant reported cracked window pane in bedroom,medium,Structural,2026-02-22,450
-Fire Alarm System Test,Quarterly fire alarm and sprinkler system testing,high,General,2026-02-25,650
-Exterior Paint Touch-Up,Touch up peeling paint on north-facing exterior wall,low,Exterior,2026-04-01,1800
-Garbage Disposal Repair - Unit 201,Disposal unit jammed and making grinding noise,medium,Plumbing,2026-02-19,175
-Landscape Maintenance,Monthly landscaping including mowing trimming and irrigation check,low,Exterior,2026-03-05,400
+title,property_name,description,priority,category,scheduled_date,estimated_cost
+HVAC Filter Replacement - Building A,Sunset Ridge Apartments,Replace all HVAC filters in Building A units 101-112,medium,HVAC,2026-02-20,350
+Roof Leak Repair - Unit 204,Sunset Ridge Apartments,Water intrusion at northeast corner near skylight after heavy rain,high,Roofing,2026-02-15,1200
+Parking Lot Striping,Congress Avenue Office Park,Re-stripe all parking spaces and handicap zones in main lot,low,Exterior,2026-03-01,800
+Water Heater Replacement - Unit 308,Cedar Park Family Homes,50-gallon water heater failed. Needs full replacement,high,Plumbing,2026-02-18,1500
+Elevator Annual Inspection,Lamar Mixed-Use Development,Annual safety inspection and maintenance for passenger elevator,medium,General,2026-03-10,2200
+Broken Window - Unit 115,Sunset Ridge Apartments,Tenant reported cracked window pane in bedroom,medium,Structural,2026-02-22,450
+Fire Alarm System Test,Congress Avenue Office Park,Quarterly fire alarm and sprinkler system testing,high,General,2026-02-25,650
+Exterior Paint Touch-Up,Eastside Industrial Complex,Touch up peeling paint on north-facing exterior wall,low,Exterior,2026-04-01,1800
+Garbage Disposal Repair - Unit 201,Cedar Park Family Homes,Disposal unit jammed and making grinding noise,medium,Plumbing,2026-02-19,175
+Landscape Maintenance,Lamar Mixed-Use Development,Monthly landscaping including mowing trimming and irrigation check,low,Exterior,2026-03-05,400
