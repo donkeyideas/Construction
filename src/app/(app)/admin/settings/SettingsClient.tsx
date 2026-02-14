@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Settings,
@@ -8,6 +8,15 @@ import {
   Plug,
   ScrollText,
   Save,
+  Upload,
+  Loader2,
+  ImageIcon,
+  X,
+  ExternalLink,
+  Check,
+  Crown,
+  Zap,
+  Rocket,
 } from "lucide-react";
 import type { CompanyDetails, AuditLogEntry } from "@/lib/queries/admin";
 
@@ -43,42 +52,38 @@ const TIMEZONES = [
 ];
 
 const FISCAL_MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 
 const INTEGRATIONS = [
-  {
-    name: "QuickBooks Online",
-    desc: "Sync invoices, payments, and chart of accounts",
-  },
-  {
-    name: "Procore",
-    desc: "Connect project management and field data",
-  },
-  {
-    name: "Planview",
-    desc: "Import schedules and resource plans",
-  },
-  {
-    name: "DocuSign",
-    desc: "E-signatures for contracts and change orders",
-  },
-  {
-    name: "Dropbox Business",
-    desc: "Cloud document storage and plan room sync",
-  },
+  { name: "QuickBooks Online", desc: "Sync invoices, payments, and chart of accounts" },
+  { name: "Procore", desc: "Connect project management and field data" },
+  { name: "Planview", desc: "Import schedules and resource plans" },
+  { name: "DocuSign", desc: "E-signatures for contracts and change orders" },
+  { name: "Dropbox Business", desc: "Cloud document storage and plan room sync" },
 ];
+
+const PLAN_INFO: Record<string, { label: string; icon: typeof Zap; color: string; features: string[] }> = {
+  starter: {
+    label: "Starter",
+    icon: Zap,
+    color: "var(--color-blue)",
+    features: ["Up to 5 users", "3 active projects", "Basic reporting", "Email support"],
+  },
+  professional: {
+    label: "Professional",
+    icon: Rocket,
+    color: "var(--color-amber)",
+    features: ["Up to 25 users", "Unlimited projects", "Advanced reporting", "Priority support", "API access"],
+  },
+  enterprise: {
+    label: "Enterprise",
+    icon: Crown,
+    color: "var(--color-green)",
+    features: ["Unlimited users", "Unlimited projects", "Custom reporting", "Dedicated support", "SSO & SAML", "Custom integrations"],
+  },
+};
 
 function formatDateTime(dateStr: string | null) {
   if (!dateStr) return "--";
@@ -94,6 +99,14 @@ function formatDateTime(dateStr: string | null) {
 
 function formatAction(action: string): string {
   return action
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function formatEntity(entityType: string | null): string {
+  if (!entityType) return "--";
+  return entityType
     .split("_")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
@@ -125,6 +138,8 @@ export default function SettingsClient({
   const [phone, setPhone] = useState(company.phone || "");
   const [website, setWebsite] = useState(company.website || "");
   const [logoUrl, setLogoUrl] = useState(company.logo_url || "");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoFileRef = useRef<HTMLInputElement>(null);
 
   const companySettings = company.settings || {};
   const [fiscalYearStart, setFiscalYearStart] = useState(
@@ -138,6 +153,42 @@ export default function SettingsClient({
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const canEdit = currentUserRole === "owner" || currentUserRole === "admin";
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setMessage({ type: "error", text: "Please select an image file." });
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+
+      const res = await fetch(`/api/admin/settings/logo`, {
+        method: "POST",
+        body: fd,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setLogoUrl(data.logo_url);
+        setMessage({ type: "success", text: "Logo uploaded successfully." });
+        router.refresh();
+      } else {
+        const data = await res.json();
+        setMessage({ type: "error", text: data.error || "Logo upload failed." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Network error uploading logo." });
+    } finally {
+      setUploadingLogo(false);
+      if (logoFileRef.current) logoFileRef.current.value = "";
+    }
+  }
 
   async function handleSaveGeneral(e: React.FormEvent) {
     e.preventDefault();
@@ -180,6 +231,10 @@ export default function SettingsClient({
       setSaving(false);
     }
   }
+
+  const plan = company.subscription_plan || "starter";
+  const planInfo = PLAN_INFO[plan] || PLAN_INFO.starter;
+  const PlanIcon = planInfo.icon;
 
   return (
     <div>
@@ -241,9 +296,7 @@ export default function SettingsClient({
                   >
                     <option value="">Select industry...</option>
                     {INDUSTRIES.map((ind) => (
-                      <option key={ind} value={ind}>
-                        {ind}
-                      </option>
+                      <option key={ind} value={ind}>{ind}</option>
                     ))}
                   </select>
                 </div>
@@ -298,7 +351,7 @@ export default function SettingsClient({
             </div>
 
             <div className="settings-form-section">
-              <div className="settings-form-section-title">Contact & Branding</div>
+              <div className="settings-form-section-title">Contact &amp; Branding</div>
               <div className="settings-row">
                 <div className="settings-field">
                   <label className="settings-field-label">Phone</label>
@@ -322,16 +375,102 @@ export default function SettingsClient({
                     disabled={!canEdit}
                   />
                 </div>
-                <div className="settings-field full-width">
-                  <label className="settings-field-label">Logo URL</label>
-                  <input
-                    type="url"
-                    className="settings-field-input"
-                    placeholder="https://example.com/logo.png"
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                    disabled={!canEdit}
-                  />
+              </div>
+
+              {/* Logo Upload */}
+              <div style={{ marginTop: "16px" }}>
+                <label className="settings-field-label">Company Logo</label>
+                <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "8px" }}>
+                  {logoUrl ? (
+                    <div style={{ position: "relative" }}>
+                      <img
+                        src={logoUrl}
+                        alt="Company logo"
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          objectFit: "contain",
+                          borderRadius: "8px",
+                          border: "1px solid var(--border)",
+                          background: "var(--surface)",
+                          padding: "4px",
+                        }}
+                      />
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={() => setLogoUrl("")}
+                          style={{
+                            position: "absolute",
+                            top: "-6px",
+                            right: "-6px",
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            background: "var(--color-red)",
+                            border: "none",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            fontSize: "0",
+                          }}
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        borderRadius: "8px",
+                        border: "2px dashed var(--border)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "var(--muted)",
+                      }}
+                    >
+                      <ImageIcon size={24} />
+                    </div>
+                  )}
+
+                  {canEdit && (
+                    <div>
+                      <label
+                        className="btn-secondary"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          cursor: uploadingLogo ? "wait" : "pointer",
+                          fontSize: "0.82rem",
+                          padding: "6px 14px",
+                        }}
+                      >
+                        {uploadingLogo ? (
+                          <Loader2 size={14} className="spin-icon" />
+                        ) : (
+                          <Upload size={14} />
+                        )}
+                        {uploadingLogo ? "Uploading..." : "Upload Logo"}
+                        <input
+                          ref={logoFileRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          disabled={uploadingLogo}
+                          style={{ display: "none" }}
+                        />
+                      </label>
+                      <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: "4px" }}>
+                        PNG, JPG, or SVG. Max 2MB.
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -348,9 +487,7 @@ export default function SettingsClient({
                     disabled={!canEdit}
                   >
                     {FISCAL_MONTHS.map((month) => (
-                      <option key={month} value={month}>
-                        {month}
-                      </option>
+                      <option key={month} value={month}>{month}</option>
                     ))}
                   </select>
                 </div>
@@ -363,9 +500,7 @@ export default function SettingsClient({
                     disabled={!canEdit}
                   >
                     {TIMEZONES.map((tz) => (
-                      <option key={tz} value={tz}>
-                        {tz.replace("_", " ")}
-                      </option>
+                      <option key={tz} value={tz}>{tz.replace("_", " ")}</option>
                     ))}
                   </select>
                 </div>
@@ -374,11 +509,7 @@ export default function SettingsClient({
 
             {canEdit && (
               <div className="settings-form-actions">
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={saving}
-                >
+                <button type="submit" className="btn-primary" disabled={saving}>
                   <Save size={16} />
                   {saving ? "Saving..." : "Save Changes"}
                 </button>
@@ -389,29 +520,46 @@ export default function SettingsClient({
 
         {/* ===== Subscription Tab ===== */}
         {activeTab === "subscription" && (
-          <div>
+          <div className="settings-form">
             <div className="subscription-card">
-              <div className="subscription-plan-name">
-                {company.subscription_tier} Plan
-              </div>
-              <div
-                className={`subscription-status ${
-                  company.subscription_status === "active" ? "active" : "inactive"
-                }`}
-              >
-                {company.subscription_status === "active" ? "Active" : "Inactive"}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                <div
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    borderRadius: "10px",
+                    background: `${planInfo.color}15`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: planInfo.color,
+                  }}
+                >
+                  <PlanIcon size={22} />
+                </div>
+                <div>
+                  <div className="subscription-plan-name">{planInfo.label} Plan</div>
+                  <div
+                    className={`subscription-status ${
+                      company.subscription_status === "active" ? "active" : "inactive"
+                    }`}
+                  >
+                    {(company.subscription_status || "active").charAt(0).toUpperCase() +
+                      (company.subscription_status || "active").slice(1).replace("_", " ")}
+                  </div>
+                </div>
               </div>
 
               <div className="subscription-info-row">
-                <span className="subscription-info-label">Plan Tier</span>
+                <span className="subscription-info-label">Plan</span>
                 <span className="subscription-info-value" style={{ textTransform: "capitalize" }}>
-                  {company.subscription_tier}
+                  {planInfo.label}
                 </span>
               </div>
               <div className="subscription-info-row">
                 <span className="subscription-info-label">Status</span>
                 <span className="subscription-info-value" style={{ textTransform: "capitalize" }}>
-                  {company.subscription_status}
+                  {(company.subscription_status || "active").replace("_", " ")}
                 </span>
               </div>
               <div className="subscription-info-row">
@@ -423,6 +571,91 @@ export default function SettingsClient({
                 <span className="subscription-info-value">
                   {formatDateTime(company.created_at)}
                 </span>
+              </div>
+              {company.trial_ends_at && (
+                <div className="subscription-info-row">
+                  <span className="subscription-info-label">Trial Ends</span>
+                  <span className="subscription-info-value">
+                    {formatDateTime(company.trial_ends_at)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Plan Features */}
+            <div className="settings-form-section" style={{ marginTop: "24px" }}>
+              <div className="settings-form-section-title">Plan Features</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {planInfo.features.map((feat) => (
+                  <div
+                    key={feat}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    <Check size={16} style={{ color: "var(--color-green)", flexShrink: 0 }} />
+                    {feat}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Stripe Manage */}
+            <div className="settings-form-section" style={{ marginTop: "24px" }}>
+              <div className="settings-form-section-title">Manage Subscription</div>
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>
+                Upgrade your plan, update payment method, or view invoices through the billing portal.
+              </p>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                <button
+                  className="btn-primary"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/stripe/portal", { method: "POST" });
+                      if (res.ok) {
+                        const { url } = await res.json();
+                        window.open(url, "_blank");
+                      } else {
+                        alert("Stripe billing portal is not configured yet. Contact your platform administrator.");
+                      }
+                    } catch {
+                      alert("Stripe billing portal is not configured yet.");
+                    }
+                  }}
+                >
+                  <ExternalLink size={14} />
+                  Manage Billing
+                </button>
+                {plan !== "enterprise" && (
+                  <button
+                    className="btn-secondary"
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/stripe/checkout", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            plan: plan === "starter" ? "professional" : "enterprise",
+                          }),
+                        });
+                        if (res.ok) {
+                          const { url } = await res.json();
+                          window.open(url, "_blank");
+                        } else {
+                          alert("Stripe checkout is not configured yet. Contact your platform administrator.");
+                        }
+                      } catch {
+                        alert("Stripe checkout is not configured yet.");
+                      }
+                    }}
+                  >
+                    <Zap size={14} />
+                    Upgrade to {plan === "starter" ? "Professional" : "Enterprise"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -490,13 +723,7 @@ export default function SettingsClient({
                         </td>
                         <td>
                           <span className="audit-entity">
-                            {entry.entity_type
-                              ? `${entry.entity_type}${
-                                  entry.entity_id
-                                    ? ` (${entry.entity_id.slice(0, 8)}...)`
-                                    : ""
-                                }`
-                              : "--"}
+                            {formatEntity(entry.entity_type)}
                           </span>
                         </td>
                         <td>

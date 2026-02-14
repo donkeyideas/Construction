@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,6 +9,7 @@ import {
   CalendarDays, Inbox, Ticket, Map, ShieldCheck, Wrench, FileText,
 } from "lucide-react";
 import { appNavigation, appBottomNav, type NavItem } from "@/types/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const iconMap: Record<string, React.ElementType> = {
   "layout-dashboard": LayoutDashboard,
@@ -85,12 +86,68 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchCompany() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: member } = await supabase
+          .from("company_members")
+          .select("company_id")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .limit(1)
+          .single();
+
+        if (!member) return;
+
+        const { data: company } = await supabase
+          .from("companies")
+          .select("name, logo_url")
+          .eq("id", member.company_id)
+          .single();
+
+        if (company) {
+          setCompanyName(company.name);
+          setLogoUrl(company.logo_url);
+        }
+      } catch {
+        // silent - fall back to default brand
+      }
+    }
+
+    fetchCompany();
+  }, []);
+
   return (
     <>
       {isOpen && <div className="overlay active" onClick={onClose} />}
       <aside className={`sidebar ${isOpen ? "open" : ""}`}>
         <div className="sidebar-brand">
-          <h1>ConstructionERP</h1>
+          {logoUrl ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <img
+                src={logoUrl}
+                alt=""
+                style={{
+                  width: "28px",
+                  height: "28px",
+                  objectFit: "contain",
+                  borderRadius: "4px",
+                }}
+              />
+              <h1 style={{ fontSize: companyName && companyName.length > 18 ? "0.95rem" : undefined }}>
+                {companyName || "ConstructionERP"}
+              </h1>
+            </div>
+          ) : (
+            <h1>{companyName || "ConstructionERP"}</h1>
+          )}
           <div className="accent-line" />
         </div>
         <nav className="sidebar-nav">

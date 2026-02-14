@@ -45,8 +45,11 @@ export interface CompanyDetails {
   website: string | null;
   logo_url: string | null;
   settings: Record<string, unknown>;
-  subscription_tier: string;
+  subscription_plan: string;
   subscription_status: string;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  trial_ends_at: string | null;
   created_at: string;
   updated_at: string;
 }
