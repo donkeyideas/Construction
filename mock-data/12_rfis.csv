@@ -1,0 +1,9 @@
+subject,question,priority,due_date
+Foundation drain tile routing conflict,Structural drawings show grade beam at grid B-4 conflicting with civil storm drain pipe routing. Please clarify which takes priority and provide revised detail.,high,2026-02-01
+Window header size clarification,Architectural plans call for 4x12 headers at all window openings but structural shows LVL beams at openings wider than 6 feet. Which spec governs for the 8-foot openings on Building A east elevation?,medium,2026-02-15
+Elevator pit waterproofing specification,Spec section 07 11 00 references two different waterproofing products for below-grade applications. Which product should be used for the elevator pit specifically?,high,2026-01-30
+HVAC diffuser substitution request,Specified diffuser model TDC-400 has 16-week lead time. Requesting approval to substitute with AirTech AT-400S which has equivalent CFM rating and is available immediately.,urgent,2026-01-25
+Lobby floor finish transition detail,No detail shown for transition between marble tile in lobby and carpet tile in corridor at floor 1. Please provide transition strip detail and material specification.,low,2026-03-01
+Bridge deck rebar spacing discrepancy,Structural plan sheet S-201 shows #5 bars at 6 inch spacing but the typical section on S-001 shows #5 at 8 inch spacing for the same deck area. Please confirm correct spacing.,high,2026-03-15
+Fire rating at shaft penetrations,MEP drawings show multiple penetrations through the 2-hour fire-rated elevator shaft wall. Please confirm acceptable firestop assembly for grouped conduit penetrations.,medium,2026-02-20
+Parking structure expansion joint location,Civil drawings show expansion joints at 60-foot intervals but structural notes call for joints at 90-foot max. Parking structure spans are 65 feet. Which governs?,medium,2026-02-28

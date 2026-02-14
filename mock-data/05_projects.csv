@@ -1,0 +1,4 @@
+name,code,status,project_type,address,city,state,budget,start_date,end_date
+Riverside Luxury Apartments,RLA-2025,active,Residential,4200 Riverside Drive,Austin,TX,12500000,2025-06-15,2026-12-30
+Downtown Office Tower Renovation,DOT-2025,active,Commercial,800 Congress Avenue,Austin,TX,8750000,2025-08-01,2026-09-15
+Highway 35 Bridge Repair,H35-2026,pre_construction,Infrastructure,IH-35 & Oltorf St Overpass,Austin,TX,4200000,2026-03-15,2026-11-30

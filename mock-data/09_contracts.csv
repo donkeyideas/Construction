@@ -1,0 +1,7 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+Riverside Apartments - Concrete Foundation & Structure,subcontractor,Ramirez Concrete Inc,carlos@ramirez-concrete.com,1850000,2025-06-15,2026-04-30,net_30
+Riverside Apartments - Framing Package,subcontractor,O'Brien Framing LLC,mike@obrien-framing.com,1420000,2025-09-01,2026-06-15,net_30
+Downtown Office Tower - Electrical Rough-In & Finish,subcontractor,Vasquez Electrical Services,tony@vasquez-electric.com,980000,2025-10-01,2026-07-30,net_45
+Downtown Office Tower - HVAC System Install,subcontractor,Doyle Mechanical HVAC,frank@doyle-hvac.com,1250000,2025-09-15,2026-08-15,net_45
+Highway 35 Bridge - Structural Steel,subcontractor,Kowalski Structural Steel,steve@kowalski-steel.com,890000,2026-03-15,2026-09-30,net_30
+Lumber Supply Agreement 2025-2026,vendor,Hill Country Lumber Supply,angela@hill-country-lumber.com,650000,2025-01-01,2026-12-31,net_30

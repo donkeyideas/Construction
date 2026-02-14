@@ -1,0 +1,13 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+CAT 320 Excavator,excavator,Caterpillar,320 GC,CAT320GC-48291,285000,185.00,2023-03-15
+CAT 950 Wheel Loader,loader,Caterpillar,950 GC,CAT950GC-33012,310000,165.00,2023-06-20
+Liebherr LTM 1060 Crane,crane,Liebherr,LTM 1060-3.1,LH1060-72841,425000,350.00,2022-11-10
+Kenworth T880 Dump Truck,truck,Kenworth,T880,KW-T880-55129,165000,95.00,2024-01-08
+John Deere 310SL Backhoe,excavator,John Deere,310SL,JD310SL-44820,115000,125.00,2023-09-12
+Generac 100kW Generator,generator,Generac,MD100,GEN-MD100-9921,42000,55.00,2024-04-01
+Atlas Copco XAS 185 Compressor,compressor,Atlas Copco,XAS 185,AC-XAS185-6612,35000,45.00,2023-07-18
+Genie GS-2632 Scissor Lift,scaffold,Genie,GS-2632,GN-2632-81204,18500,35.00,2024-02-25
+CAT D6 Dozer,excavator,Caterpillar,D6 XE,CATD6XE-29104,340000,195.00,2022-08-30
+Ford F-350 Service Truck,truck,Ford,F-350 Super Duty,1FT8W3BT-90122,68000,45.00,2024-06-15
+Wacker Neuson Plate Compactor,tools,Wacker Neuson,BPU 4045A,WN-4045A-1192,8500,25.00,2024-03-10
+Hilti TE 3000 Breaker,tools,Hilti,TE 3000-AVR,HI-3000AVR-5503,6200,30.00,2024-05-22

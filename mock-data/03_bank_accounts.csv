@@ -1,0 +1,4 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+Operating Account,First National Bank,checking,4521,7890,1285000.00
+Payroll Account,First National Bank,checking,4522,7890,342000.00
+Reserve Fund,Texas Capital Bank,savings,8834,4456,750000.00

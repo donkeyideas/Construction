@@ -553,14 +553,13 @@ export async function POST(request: NextRequest) {
             code: r.code || null,
             status: r.status || "planning",
             project_type: r.project_type || null,
-            address: r.address || null,
+            address_line1: r.address || null,
             city: r.city || null,
             state: r.state || null,
-            budget: r.budget ? parseFloat(r.budget) : null,
+            contract_amount: r.budget ? parseFloat(r.budget) : null,
             start_date: r.start_date || null,
-            end_date: r.end_date || null,
+            estimated_end_date: r.end_date || null,
             description: r.description || null,
-            created_by: userId,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);

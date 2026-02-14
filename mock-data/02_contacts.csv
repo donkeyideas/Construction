@@ -1,0 +1,26 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Marcus,Thompson,employee,marcus.thompson@email.com,512-555-0101,,Project Manager
+Elena,Rodriguez,employee,elena.rodriguez@email.com,512-555-0102,,Superintendent
+James,Mitchell,employee,james.mitchell@email.com,512-555-0103,,Site Foreman
+Sarah,Chen,employee,sarah.chen@email.com,512-555-0104,,Safety Director
+David,Williams,employee,david.williams@email.com,512-555-0105,,Estimator
+Karen,Foster,employee,karen.foster@email.com,512-555-0106,,Project Coordinator
+Robert,Jackson,employee,robert.jackson@email.com,512-555-0107,,Equipment Manager
+Lisa,Nguyen,employee,lisa.nguyen@email.com,512-555-0108,,Office Manager
+Carlos,Ramirez,subcontractor,carlos@ramirez-concrete.com,512-555-0201,Ramirez Concrete Inc,Owner
+Mike,O'Brien,subcontractor,mike@obrien-framing.com,512-555-0202,O'Brien Framing LLC,President
+Tony,Vasquez,subcontractor,tony@vasquez-electric.com,512-555-0203,Vasquez Electrical Services,Owner
+Patricia,Hawkins,subcontractor,pat@hawkins-plumbing.com,512-555-0204,Hawkins Plumbing Co,Owner
+Frank,Doyle,subcontractor,frank@doyle-hvac.com,512-555-0205,Doyle Mechanical HVAC,Operations Manager
+Steve,Kowalski,subcontractor,steve@kowalski-steel.com,512-555-0206,Kowalski Structural Steel,Project Manager
+Nina,Santos,subcontractor,nina@santos-paving.com,512-555-0207,Santos Paving & Grading,Owner
+Rick,Turner,subcontractor,rick@turner-demo.com,512-555-0208,Turner Demolition Group,President
+Angela,Morrison,vendor,angela@hill-country-lumber.com,512-555-0301,Hill Country Lumber Supply,Sales Rep
+Brian,Caldwell,vendor,brian@texasreadymix.com,512-555-0302,Texas Ready Mix Concrete,Account Manager
+Diane,Fletcher,vendor,diane@lonestar-supply.com,512-555-0303,Lone Star Building Supply,Sales Manager
+Tom,Henderson,vendor,tom@safetyfirst-equip.com,512-555-0304,SafetyFirst Equipment Rental,Branch Manager
+Richard,Westbrook,client,richard@riverside-dev.com,512-555-0401,Riverside Development Group,VP of Development
+Catherine,Monroe,client,catherine@metro-commercial.com,512-555-0402,Metro Commercial Properties,Director of Construction
+Howard,Phillips,client,howard@txdot-region4.gov,512-555-0403,Texas DOT Region 4,Project Engineer
+Jennifer,Blake,client,jennifer@riverside-dev.com,512-555-0404,Riverside Development Group,Project Coordinator
+Michael,Grant,client,michael@metro-commercial.com,512-555-0405,Metro Commercial Properties,Facilities Manager

@@ -1,0 +1,7 @@
+title,description,reason,amount,schedule_impact_days
+Additional electrical outlets - Building A units,Owner requested 2 additional duplex outlets per bedroom and dedicated 20A circuit for kitchen island in all 120 units. Includes panel upgrades.,owner_request,145000,8
+Unforeseen rock removal - Building B foundation,Encountered limestone shelf at 4 feet below grade across Building B footprint requiring rock hammering and removal. Geotechnical report did not indicate rock at this depth.,unforeseen_condition,87500,12
+Upgraded lobby finishes - Office Tower,Architect revised lobby design to include full-height marble walls and custom reception desk. Replaces original drywall and paint specification.,design_change,215000,5
+HVAC system upsizing - Office Tower floors 8-10,Mechanical engineer determined original equipment undersized for floors 8-10 due to revised tenant occupancy loads. Upgrading 3 AHUs from 15-ton to 20-ton.,design_error,68000,3
+Bridge approach guardrail upgrade,TxDOT revised standard to require TL-4 rated barrier instead of original TL-3 specification. Heavier steel sections and modified anchorage required.,scope_change,42000,0
+Value engineering - substitute roofing system,Replace specified modified bitumen roof with TPO single-ply membrane on Buildings A and B. Equivalent warranty with reduced material and labor cost.,value_engineering,-95000,0
