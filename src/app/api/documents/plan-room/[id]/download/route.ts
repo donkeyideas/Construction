@@ -44,15 +44,22 @@ export async function GET(
     );
 
     if (signedError || !signedData?.signedUrl) {
-      console.error(
-        `Signed URL failed for doc ${id} (path: ${doc.file_path}):`,
-        signedError?.message
-      );
+      const isNotFound =
+        signedError?.message?.includes("Object not found") ||
+        signedError?.message?.includes("not found");
+      if (!isNotFound) {
+        console.error(
+          `Signed URL failed for doc ${id} (path: ${doc.file_path}):`,
+          signedError?.message
+        );
+      }
       return NextResponse.json(
         {
-          error: `Could not generate download URL. ${signedError?.message || "Unknown storage error"}`,
+          error: isNotFound
+            ? "File not found in storage. It may not have been uploaded yet."
+            : `Could not generate download URL. ${signedError?.message || "Unknown storage error"}`,
         },
-        { status: 500 }
+        { status: isNotFound ? 404 : 500 }
       );
     }
 

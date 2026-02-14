@@ -135,12 +135,15 @@ export default function DocumentsClient({
       const res = await fetch(`/api/documents/${docId}/download`);
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to get download URL");
+        if (res.status !== 404) {
+          console.error("fetchSignedUrl error:", data.error);
+        }
+        return null;
       }
       const data = await res.json();
       return data.url;
     } catch (err) {
-      console.error("fetchSignedUrl error:", err);
+      console.error("fetchSignedUrl network error:", err);
       return null;
     }
   }, []);

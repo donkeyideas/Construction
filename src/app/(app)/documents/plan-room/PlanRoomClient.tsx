@@ -166,13 +166,12 @@ export default function PlanRoomClient({
         if (res.ok && data.url) {
           setPreviewUrl(data.url);
         } else {
-          console.error("Download API error:", data);
           setPreviewUrl(null);
-          setPreviewError(data.error || `HTTP ${res.status}`);
+          setPreviewError(data.error || "File not available");
         }
       })
       .catch((err) => {
-        console.error("Download fetch error:", err);
+        console.error("Download network error:", err);
         setPreviewUrl(null);
         setPreviewError(err.message || "Network error");
       })
