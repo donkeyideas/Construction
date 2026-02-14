@@ -1,0 +1,16 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Geotechnical Survey Complete,Site Preparation & Demolition,high,2025-06-15,2025-07-15,100,true,true
+Building Permit Approved,Site Preparation & Demolition,critical,2025-07-01,2025-08-15,100,true,true
+Excavation & Grading,Site Preparation & Demolition,high,2025-08-16,2025-09-30,85,false,true
+Foundation Pour - Building A,Foundation & Underground,critical,2025-10-01,2025-11-15,60,false,true
+Foundation Inspection Passed,Foundation & Underground,high,2025-11-16,2025-12-15,40,true,true
+Underground Utilities Install,Foundation & Underground,medium,2025-11-01,2025-12-31,30,false,false
+Structural Steel Erection,Structural Framing,critical,2026-01-01,2026-03-15,0,false,true
+Framing Complete Milestone,Structural Framing,high,2026-03-15,2026-05-15,0,true,true
+Electrical Rough-In,MEP Rough-In,medium,2026-03-16,2026-05-30,0,false,false
+Plumbing Rough-In,MEP Rough-In,high,2026-04-01,2026-06-15,0,false,true
+HVAC Ductwork Installation,MEP Rough-In,medium,2026-05-01,2026-07-31,0,false,false
+Drywall & Painting,Interior Finishes,medium,2026-06-16,2026-09-30,0,false,false
+Flooring & Cabinetry Install,Interior Finishes,medium,2026-08-01,2026-10-31,0,false,false
+Final Landscaping & Hardscape,Punch List & Closeout,low,2026-10-01,2026-12-15,0,false,false
+Certificate of Occupancy,Punch List & Closeout,critical,2026-12-15,2026-12-30,0,true,true

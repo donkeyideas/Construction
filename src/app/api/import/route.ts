@@ -35,6 +35,8 @@ const ALLOWED_ENTITIES = [
   "journal_entries",
   "submittals",
   "properties",
+  "phases",
+  "tasks",
 ] as const;
 
 type AllowedEntity = (typeof ALLOWED_ENTITIES)[number];
@@ -936,6 +938,145 @@ export async function POST(request: NextRequest) {
             }
           }
           successCount++;
+        }
+        break;
+      }
+
+      case "phases": {
+        // Requires project_id in body
+        const projId = body.project_id;
+        if (!projId) {
+          return NextResponse.json(
+            { error: "project_id is required for phases import" },
+            { status: 400 }
+          );
+        }
+        // Verify project belongs to company
+        const { data: projCheck } = await supabase
+          .from("projects")
+          .select("id")
+          .eq("id", projId)
+          .eq("company_id", companyId)
+          .single();
+        if (!projCheck) {
+          return NextResponse.json(
+            { error: "Project not found or not in your company" },
+            { status: 404 }
+          );
+        }
+        // Get current max sort_order
+        const { data: existingPhases } = await supabase
+          .from("project_phases")
+          .select("sort_order")
+          .eq("project_id", projId)
+          .order("sort_order", { ascending: false })
+          .limit(1);
+        let nextSort = (existingPhases?.[0]?.sort_order ?? -1) + 1;
+
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r.name) {
+            errors.push(`Row ${i + 2}: name is required`);
+            continue;
+          }
+          const { error } = await supabase.from("project_phases").insert({
+            company_id: companyId,
+            project_id: projId,
+            name: r.name.trim(),
+            color: r.color || null,
+            start_date: r.start_date || null,
+            end_date: r.end_date || null,
+            sort_order: nextSort++,
+          });
+          if (error) {
+            errors.push(`Row ${i + 2}: ${error.message}`);
+          } else {
+            successCount++;
+          }
+        }
+        break;
+      }
+
+      case "tasks": {
+        // Requires project_id in body
+        const taskProjId = body.project_id;
+        if (!taskProjId) {
+          return NextResponse.json(
+            { error: "project_id is required for tasks import" },
+            { status: 400 }
+          );
+        }
+        // Verify project belongs to company
+        const { data: taskProjCheck } = await supabase
+          .from("projects")
+          .select("id")
+          .eq("id", taskProjId)
+          .eq("company_id", companyId)
+          .single();
+        if (!taskProjCheck) {
+          return NextResponse.json(
+            { error: "Project not found or not in your company" },
+            { status: 404 }
+          );
+        }
+        // Fetch phases for this project to resolve phase_name → phase_id
+        const { data: projPhases } = await supabase
+          .from("project_phases")
+          .select("id, name")
+          .eq("project_id", taskProjId)
+          .eq("company_id", companyId);
+        const phaseLookup = (projPhases || []).reduce((acc, p) => {
+          acc[p.name.trim().toLowerCase()] = p.id;
+          return acc;
+        }, {} as Record<string, string>);
+
+        // Get current max sort_order
+        const { data: existingTasks } = await supabase
+          .from("project_tasks")
+          .select("sort_order")
+          .eq("project_id", taskProjId)
+          .order("sort_order", { ascending: false })
+          .limit(1);
+        let taskNextSort = (existingTasks?.[0]?.sort_order ?? -1) + 1;
+
+        const validPriorities = ["low", "medium", "high", "critical"];
+
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r.name) {
+            errors.push(`Row ${i + 2}: name is required`);
+            continue;
+          }
+          // Resolve phase_id from phase_name if not a UUID
+          let phaseId = r.phase_id || null;
+          if (!phaseId && r.phase_name) {
+            phaseId = phaseLookup[r.phase_name.trim().toLowerCase()] || null;
+            if (!phaseId) {
+              errors.push(`Row ${i + 2}: phase "${r.phase_name}" not found (task imported without phase)`);
+            }
+          }
+          const priority = r.priority && validPriorities.includes(r.priority.toLowerCase())
+            ? r.priority.toLowerCase()
+            : "medium";
+          const { error } = await supabase.from("project_tasks").insert({
+            company_id: companyId,
+            project_id: taskProjId,
+            phase_id: phaseId,
+            name: r.name.trim(),
+            status: r.status || "not_started",
+            priority,
+            start_date: r.start_date || null,
+            end_date: r.end_date || null,
+            completion_pct: r.completion_pct ? parseFloat(r.completion_pct) : 0,
+            is_milestone: r.is_milestone === "true" || r.is_milestone === "1" || r.is_milestone === "yes",
+            is_critical_path: r.is_critical_path === "true" || r.is_critical_path === "1" || r.is_critical_path === "yes",
+            sort_order: taskNextSort++,
+          });
+          if (error) {
+            errors.push(`Row ${i + 2}: ${error.message}`);
+          } else {
+            successCount++;
+          }
         }
         break;
       }

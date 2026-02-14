@@ -1,0 +1,15 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Rough Grading & Compaction,Site Prep & Foundations,high,2026-01-05,2026-02-05,100,false,true
+Water & Sewer Tie-In,Site Prep & Foundations,high,2026-01-20,2026-02-20,80,false,false
+Foundation Pour,Site Prep & Foundations,critical,2026-02-21,2026-03-15,20,false,true
+Foundation Inspection Passed,Site Prep & Foundations,high,2026-03-15,2026-03-15,0,true,true
+Steel Erection,Structural Steel & Pre-Engineered Metal,critical,2026-03-16,2026-04-30,0,false,true
+Metal Wall Panel Installation,Structural Steel & Pre-Engineered Metal,high,2026-04-15,2026-05-15,0,false,false
+Standing Seam Roof Install,Structural Steel & Pre-Engineered Metal,critical,2026-04-20,2026-05-15,0,false,true
+Apparatus Bay Door Installation,MEP & Apparatus Bay Systems,high,2026-05-16,2026-06-15,0,false,true
+Electrical & Plumbing Rough-In,MEP & Apparatus Bay Systems,high,2026-05-01,2026-06-30,0,false,false
+Exhaust Extraction System Install,MEP & Apparatus Bay Systems,medium,2026-06-01,2026-07-15,0,false,false
+Bunk Room & Kitchen Finishes,Interior Finishes & Living Quarters,medium,2026-06-15,2026-08-15,0,false,false
+Training Room Build-Out,Interior Finishes & Living Quarters,low,2026-07-15,2026-08-31,0,false,false
+Fire Alarm & Dispatch System Test,Equipment Install & Punch List,critical,2026-08-15,2026-09-15,0,true,true
+Certificate of Occupancy,Equipment Install & Punch List,critical,2026-09-15,2026-09-30,0,true,true

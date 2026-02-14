@@ -1,0 +1,16 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Underground Utility Installation,Site Preparation & Foundations,high,2025-09-15,2025-10-31,100,false,true
+Foundation & Grade Beam Pour,Site Preparation & Foundations,critical,2025-11-01,2025-12-31,100,false,true
+Slab-on-Grade Complete,Site Preparation & Foundations,high,2025-12-15,2025-12-31,100,true,true
+Structural Steel Erection,Structural Steel & Masonry,critical,2026-01-01,2026-02-15,80,false,true
+CMU Masonry Walls,Structural Steel & Masonry,high,2026-02-01,2026-03-15,50,false,false
+Steel & Masonry Complete,Structural Steel & Masonry,high,2026-03-15,2026-03-15,40,true,true
+Roof Deck & Membrane Install,Roofing & Building Envelope,high,2026-02-15,2026-04-01,20,false,true
+Window & Door Installation,Roofing & Building Envelope,medium,2026-03-15,2026-04-30,5,false,false
+Building Dried-In,Roofing & Building Envelope,critical,2026-04-30,2026-04-30,0,true,true
+HVAC & Electrical Rough-In,MEP Systems & Low Voltage,high,2026-04-01,2026-05-31,0,false,false
+Fire Alarm & Security Install,MEP Systems & Low Voltage,medium,2026-05-01,2026-06-15,0,false,true
+Classroom & Office Finishes,Interior Finishes & Fixtures,medium,2026-05-15,2026-06-30,0,false,false
+Gymnasium & Cafeteria Build-Out,Interior Finishes & Fixtures,high,2026-06-01,2026-07-15,0,false,false
+Fire Marshal Final Inspection,Site Work & Final Inspection,critical,2026-07-01,2026-07-20,0,true,true
+Certificate of Occupancy,Site Work & Final Inspection,critical,2026-07-20,2026-08-01,0,true,true

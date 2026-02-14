@@ -1,0 +1,13 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Temporary Barriers Installed,Temporary Barriers & Demolition,high,2026-01-15,2026-01-31,100,false,false
+Selective Interior Demolition,Temporary Barriers & Demolition,high,2026-02-01,2026-02-15,100,false,true
+Demolition Complete,Temporary Barriers & Demolition,critical,2026-02-15,2026-02-28,100,true,true
+Grease Trap & Plumbing Rough-In,Structural & Plumbing Modifications,high,2026-02-15,2026-03-15,90,false,true
+Structural Modifications Complete,Structural & Plumbing Modifications,high,2026-03-01,2026-03-31,60,true,true
+Electrical Panel & Circuit Rough-In,Electrical & HVAC Upgrades,high,2026-03-15,2026-04-15,30,false,false
+HVAC & Exhaust Duct Install,Electrical & HVAC Upgrades,medium,2026-03-20,2026-04-30,15,false,false
+Vendor Stall Framing & Counters,Finishes & Tenant Build-Out,critical,2026-04-15,2026-05-31,0,false,true
+Kitchen Equipment Installation,Finishes & Tenant Build-Out,high,2026-05-15,2026-06-10,0,false,true
+Flooring & Ceiling Tile Install,Finishes & Tenant Build-Out,medium,2026-05-20,2026-06-15,0,false,false
+Health Department Inspection,Health Inspection & Opening,critical,2026-06-15,2026-06-25,0,true,true
+Grand Opening Ready,Health Inspection & Opening,high,2026-06-30,2026-06-30,0,true,true

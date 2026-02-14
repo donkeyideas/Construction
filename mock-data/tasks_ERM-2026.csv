@@ -1,0 +1,16 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Zoning Variance Approval,Site Clearing & Mass Grading,critical,2026-06-01,2026-07-31,0,true,true
+Building Permit Issued,Site Clearing & Mass Grading,critical,2026-07-15,2026-08-31,0,true,true
+Mass Grading & Excavation,Site Clearing & Mass Grading,high,2026-08-15,2026-09-30,0,false,true
+Sheet Pile & Dewatering,Foundation & Podium Structure,high,2026-09-01,2026-11-15,0,false,true
+Mat Foundation Pour,Foundation & Podium Structure,critical,2026-11-01,2027-01-15,0,false,true
+Podium Deck Concrete,Foundation & Podium Structure,high,2027-01-15,2027-02-28,0,false,true
+Tower Floors 1-9 Concrete,Vertical Construction & Core,critical,2027-02-01,2027-05-31,0,false,true
+Tower Floors 10-18 Concrete,Vertical Construction & Core,critical,2027-05-01,2027-07-31,0,false,true
+Tower Topped Out,Vertical Construction & Core,high,2027-07-31,2027-07-31,0,true,true
+Curtain Wall Installation,Building Envelope & Glazing,high,2027-06-01,2027-09-30,0,false,false
+Glazing Complete,Building Envelope & Glazing,medium,2027-09-01,2027-10-31,0,true,true
+MEP Distribution Install,MEP & Interior Fit-Out,high,2027-09-01,2027-12-15,0,false,false
+Unit Finishing & Punch List,MEP & Interior Fit-Out,medium,2027-11-01,2028-01-15,0,false,false
+Final Landscaping,Landscaping & Punch List,low,2027-12-15,2028-02-15,0,false,false
+TCO & Resident Move-In Ready,Landscaping & Punch List,critical,2028-02-15,2028-02-28,0,true,true

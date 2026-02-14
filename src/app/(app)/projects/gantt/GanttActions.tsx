@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Upload } from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import { type ImportColumn } from "@/lib/utils/csv-parser";
 
 const PHASE_COLORS = [
   { label: "Blue", value: "#3b82f6" },
@@ -14,6 +16,44 @@ const PHASE_COLORS = [
   { label: "Pink", value: "#ec4899" },
   { label: "Lime", value: "#84cc16" },
 ];
+
+// ---------------------------------------------------------------------------
+// Import column definitions
+// ---------------------------------------------------------------------------
+
+const PHASE_IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "name", label: "Phase Name", required: true },
+  { key: "color", label: "Color (hex)", required: false },
+  { key: "start_date", label: "Start Date", required: false, type: "date" },
+  { key: "end_date", label: "End Date", required: false, type: "date" },
+];
+
+const PHASE_IMPORT_SAMPLE: Record<string, string>[] = [
+  { name: "Pre-Construction", color: "#8b5cf6", start_date: "2026-01-15", end_date: "2026-02-28" },
+  { name: "Foundation", color: "#3b82f6", start_date: "2026-03-01", end_date: "2026-04-15" },
+  { name: "Structural Framing", color: "#10b981", start_date: "2026-04-16", end_date: "2026-06-30" },
+];
+
+const TASK_IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "name", label: "Task Name", required: true },
+  { key: "phase_name", label: "Phase Name", required: false },
+  { key: "priority", label: "Priority", required: false },
+  { key: "start_date", label: "Start Date", required: false, type: "date" },
+  { key: "end_date", label: "End Date", required: false, type: "date" },
+  { key: "completion_pct", label: "Completion %", required: false, type: "number" },
+  { key: "is_milestone", label: "Milestone (true/false)", required: false },
+  { key: "is_critical_path", label: "Critical Path (true/false)", required: false },
+];
+
+const TASK_IMPORT_SAMPLE: Record<string, string>[] = [
+  { name: "Site survey & staking", phase_name: "Pre-Construction", priority: "high", start_date: "2026-01-15", end_date: "2026-01-20", completion_pct: "100", is_milestone: "false", is_critical_path: "true" },
+  { name: "Permits approved", phase_name: "Pre-Construction", priority: "critical", start_date: "2026-02-01", end_date: "2026-02-01", completion_pct: "0", is_milestone: "true", is_critical_path: "true" },
+  { name: "Excavation & grading", phase_name: "Foundation", priority: "high", start_date: "2026-03-01", end_date: "2026-03-15", completion_pct: "0", is_milestone: "false", is_critical_path: "true" },
+];
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface Phase {
   id: string;
@@ -43,6 +83,15 @@ export default function GanttActions({ projectId, phases }: Props) {
   const [taskStart, setTaskStart] = useState("");
   const [taskEnd, setTaskEnd] = useState("");
   const [taskMilestone, setTaskMilestone] = useState(false);
+
+  const [showImportPhases, setShowImportPhases] = useState(false);
+  const [showImportTasks, setShowImportTasks] = useState(false);
+
+  function closeAllForms() {
+    setShowPhaseForm(false);
+    setShowTaskForm(false);
+    setError("");
+  }
 
   async function handleAddPhase(e: React.FormEvent) {
     e.preventDefault();
@@ -112,9 +161,33 @@ export default function GanttActions({ projectId, phases }: Props) {
     }
   }
 
+  async function handleImportPhases(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "phases", rows, project_id: projectId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
+  async function handleImportTasks(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "tasks", rows, project_id: projectId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button
           className="btn-secondary"
           onClick={() => { setShowPhaseForm(!showPhaseForm); setShowTaskForm(false); setError(""); }}
@@ -126,6 +199,18 @@ export default function GanttActions({ projectId, phases }: Props) {
           onClick={() => { setShowTaskForm(!showTaskForm); setShowPhaseForm(false); setError(""); }}
         >
           <Plus size={16} /> Add Task
+        </button>
+        <button
+          className="btn-secondary"
+          onClick={() => { closeAllForms(); setShowImportPhases(true); }}
+        >
+          <Upload size={16} /> Import Phases
+        </button>
+        <button
+          className="btn-secondary"
+          onClick={() => { closeAllForms(); setShowImportTasks(true); }}
+        >
+          <Upload size={16} /> Import Tasks
         </button>
       </div>
 
@@ -296,6 +381,28 @@ export default function GanttActions({ projectId, phases }: Props) {
             </div>
           </form>
         </div>
+      )}
+
+      {/* Import Phases Modal */}
+      {showImportPhases && (
+        <ImportModal
+          entityName="Phases"
+          columns={PHASE_IMPORT_COLUMNS}
+          sampleData={PHASE_IMPORT_SAMPLE}
+          onImport={handleImportPhases}
+          onClose={() => setShowImportPhases(false)}
+        />
+      )}
+
+      {/* Import Tasks Modal */}
+      {showImportTasks && (
+        <ImportModal
+          entityName="Tasks"
+          columns={TASK_IMPORT_COLUMNS}
+          sampleData={TASK_IMPORT_SAMPLE}
+          onImport={handleImportTasks}
+          onClose={() => setShowImportTasks(false)}
+        />
       )}
     </div>
   );

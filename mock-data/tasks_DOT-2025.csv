@@ -1,0 +1,14 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Tenant Relocation Complete,Pre-Construction & Tenant Relocation,high,2025-08-01,2025-09-15,100,true,true
+Hazardous Material Abatement,Pre-Construction & Tenant Relocation,critical,2025-09-01,2025-10-15,100,false,true
+Interior Demolition,Selective Demolition,high,2025-10-01,2025-11-15,100,false,true
+Demolition Complete,Selective Demolition,critical,2025-11-15,2025-12-31,80,true,true
+Steel Reinforcement Installation,Structural Modifications,critical,2025-12-15,2026-02-15,50,false,true
+Elevator Shaft Modifications,Structural Modifications,high,2026-01-15,2026-03-31,30,false,true
+New HVAC System Rough-In,MEP Systems Upgrade,high,2026-03-01,2026-04-30,10,false,false
+Electrical Panel Upgrades,MEP Systems Upgrade,critical,2026-03-15,2026-05-15,5,false,true
+Fire Suppression System Install,MEP Systems Upgrade,high,2026-04-01,2026-06-15,0,false,true
+Lobby & Common Area Finishes,Architectural Finishes,medium,2026-05-15,2026-07-15,0,false,false
+Tenant Space Build-Out,Architectural Finishes,medium,2026-06-01,2026-08-15,0,false,false
+Building Systems Commissioning,Commissioning & Turnover,high,2026-08-01,2026-09-01,0,false,true
+Final Inspection & Turnover,Commissioning & Turnover,critical,2026-09-01,2026-09-15,0,true,true

@@ -1,0 +1,13 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Temporary Piping & Pumps Installed,Bypass Pumping & Temporary Systems,critical,2025-12-01,2026-01-15,100,false,true
+Bypass System Operational,Bypass Pumping & Temporary Systems,critical,2026-01-15,2026-02-15,100,true,true
+Clarifier Basin Demolition,Concrete & Structural Modifications,high,2026-02-01,2026-03-15,80,false,true
+New Concrete Basin Pour,Concrete & Structural Modifications,critical,2026-03-01,2026-04-30,30,false,true
+New Clarifier Assembly,Process Equipment Installation,critical,2026-04-01,2026-05-31,0,false,true
+UV Disinfection System Install,Process Equipment Installation,high,2026-05-01,2026-06-15,0,false,false
+Chemical Feed System Setup,Process Equipment Installation,medium,2026-05-15,2026-07-15,0,false,false
+Process Piping Installation,Electrical & SCADA Integration,high,2026-06-15,2026-08-01,0,false,true
+MCC & VFD Electrical Install,Electrical & SCADA Integration,high,2026-07-01,2026-08-15,0,false,false
+SCADA Integration & Programming,Electrical & SCADA Integration,medium,2026-08-01,2026-08-31,0,false,false
+Performance Testing - 30 Day,Testing & Commissioning,critical,2026-08-15,2026-09-30,0,false,true
+TCEQ Approval & Handover,Testing & Commissioning,critical,2026-10-01,2026-10-15,0,true,true

@@ -1,0 +1,15 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+OSHPD Plan Review Approved,Infection Control & Phased Demolition,critical,2025-11-01,2025-12-15,100,true,true
+Infection Control Barriers Installed,Infection Control & Phased Demolition,high,2025-12-01,2026-01-15,100,false,false
+Phased Demolition Complete,Infection Control & Phased Demolition,high,2026-01-15,2026-03-15,80,true,true
+Mass Excavation,Foundation & Structural Steel,high,2026-02-01,2026-03-15,60,false,true
+Foundation Mat Pour,Foundation & Structural Steel,critical,2026-03-16,2026-05-15,30,false,true
+Steel Column Erection,Foundation & Structural Steel,critical,2026-05-16,2026-07-31,0,false,true
+Exterior Wall Panel Installation,Building Envelope & Roofing,high,2026-06-15,2026-08-31,0,false,false
+Roofing & Waterproofing,Building Envelope & Roofing,medium,2026-08-01,2026-10-31,0,false,true
+Main Electrical Service Install,MEP & Medical Gas Systems,critical,2026-09-01,2026-11-15,0,false,true
+Medical Gas System Rough-In,MEP & Medical Gas Systems,high,2026-10-01,2027-01-15,0,false,false
+Operating Room Fit-Out,Interior Build-Out & Equipment,critical,2026-12-01,2027-02-15,0,false,true
+Patient Room Finishing,Interior Build-Out & Equipment,high,2027-01-01,2027-02-28,0,false,false
+Final Commissioning,Commissioning & Regulatory Approval,critical,2027-02-01,2027-03-01,0,false,true
+Regulatory Approval & Handover,Commissioning & Regulatory Approval,critical,2027-03-01,2027-03-15,0,true,true

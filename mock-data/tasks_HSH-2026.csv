@@ -1,0 +1,15 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Historic Preservation Review,Historic Assessment & Selective Demo,critical,2026-05-01,2026-06-15,0,true,true
+Structural Assessment Report,Historic Assessment & Selective Demo,high,2026-05-15,2026-07-01,0,false,false
+Non-Historic Interior Strip-Out,Historic Assessment & Selective Demo,high,2026-06-15,2026-07-31,0,false,true
+Floor & Roof Structure Reinforcement,Structural Reinforcement,critical,2026-07-15,2026-09-30,0,false,true
+Masonry Repointing & Repair,Structural Reinforcement,high,2026-08-15,2026-10-15,0,false,false
+New Elevator & Stair Installation,MEP & Life Safety Systems,high,2026-09-15,2026-11-30,0,false,true
+Full MEP Distribution Install,MEP & Life Safety Systems,critical,2026-10-15,2026-12-31,0,false,true
+Brick Facade Restoration,Historic Facade Restoration,high,2026-11-01,2027-01-31,0,false,false
+Window Restoration & Replacement,Historic Facade Restoration,medium,2026-12-01,2027-02-15,0,false,false
+Guest Room Framing & Finishes,Guest Room & Lobby Finishes,high,2027-01-15,2027-03-15,0,false,false
+Lobby & Restaurant Build-Out,Guest Room & Lobby Finishes,medium,2027-02-15,2027-03-31,0,false,true
+Furniture & Fixture Delivery,FF&E Install & Soft Opening,medium,2027-03-15,2027-04-10,0,false,false
+Fire & Life Safety Inspection,FF&E Install & Soft Opening,critical,2027-04-10,2027-04-25,0,true,true
+Hotel Opening Ready,FF&E Install & Soft Opening,high,2027-04-30,2027-04-30,0,true,true

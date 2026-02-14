@@ -1,0 +1,13 @@
+﻿name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Traffic Control Plan Approved,Traffic Control & Mobilization,critical,2026-03-15,2026-03-31,0,true,true
+Equipment Mobilization,Traffic Control & Mobilization,high,2026-03-25,2026-04-15,0,false,false
+Lane Closures Established,Traffic Control & Mobilization,high,2026-04-01,2026-04-30,0,false,true
+Bearing Pad Replacement,Substructure Repair,critical,2026-04-15,2026-05-31,0,false,true
+Carbon Fiber Wrap Application,Substructure Repair,high,2026-05-15,2026-06-30,0,false,true
+Substructure Repairs Complete,Substructure Repair,high,2026-07-15,2026-07-15,0,true,true
+Rebar Placement & Formwork,Deck Rehabilitation,critical,2026-06-15,2026-08-15,0,false,true
+Concrete Deck Pour,Deck Rehabilitation,critical,2026-08-01,2026-09-15,0,false,true
+Guardrail Installation,Guardrail & Safety Systems,medium,2026-08-15,2026-09-30,0,false,false
+Safety Barrier Testing,Guardrail & Safety Systems,high,2026-10-01,2026-10-31,0,false,true
+Striping & Signage,Final Paving & Striping,high,2026-10-01,2026-11-15,0,false,true
+Bridge Open to Traffic,Final Paving & Striping,critical,2026-11-30,2026-11-30,0,true,true
