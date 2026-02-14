@@ -297,72 +297,66 @@ export default function SubmittalsClient({
   }
 
   return (
-    <div className="page-container">
+    <div>
       {/* Header */}
-      <div className="page-header">
+      <div className="fin-header">
         <div>
-          <h1>Submittals</h1>
-          <p className="page-subtitle">
+          <h2>Submittals</h2>
+          <p className="fin-header-sub">
             Track, review, and manage submittals across all projects
           </p>
         </div>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <button className="btn" onClick={() => setShowImport(true)}>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} /> Import CSV
           </button>
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} /> New Submittal
           </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
-        <div className="card kpi">
-          <div className="kpi-info">
-            <span className="kpi-label">TOTAL SUBMITTALS</span>
-            <span className="kpi-value">{kpi.totalCount}</span>
-          </div>
-          <div className="kpi-icon"><Hash size={22} /></div>
+      {/* KPI Row */}
+      <div className="financial-kpi-row">
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon blue"><Hash size={18} /></div>
+          <span className="fin-kpi-label">Total</span>
+          <span className="fin-kpi-value">{kpi.totalCount}</span>
         </div>
-        <div className="card kpi">
-          <div className="kpi-info">
-            <span className="kpi-label">PENDING</span>
-            <span className="kpi-value amber">{kpi.pendingCount}</span>
-          </div>
-          <div className="kpi-icon"><Clock size={22} /></div>
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon amber"><Clock size={18} /></div>
+          <span className="fin-kpi-label">Pending</span>
+          <span className="fin-kpi-value">{kpi.pendingCount}</span>
         </div>
-        <div className="card kpi">
-          <div className="kpi-info">
-            <span className="kpi-label">UNDER REVIEW</span>
-            <span className="kpi-value">{kpi.underReviewCount}</span>
-          </div>
-          <div className="kpi-icon"><ClipboardList size={22} /></div>
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon blue"><ClipboardList size={18} /></div>
+          <span className="fin-kpi-label">Under Review</span>
+          <span className="fin-kpi-value">{kpi.underReviewCount}</span>
         </div>
-        <div className="card kpi">
-          <div className="kpi-info">
-            <span className="kpi-label">APPROVED</span>
-            <span className="kpi-value">{kpi.approvedCount}</span>
-          </div>
-          <div className="kpi-icon"><CheckCircle2 size={22} /></div>
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon green"><CheckCircle2 size={18} /></div>
+          <span className="fin-kpi-label">Approved</span>
+          <span className="fin-kpi-value">{kpi.approvedCount}</span>
         </div>
-        <div className="card kpi">
-          <div className="kpi-info">
-            <span className="kpi-label">REJECTED</span>
-            <span className="kpi-value">{kpi.rejectedCount}</span>
-          </div>
-          <div className="kpi-icon"><XCircle size={22} /></div>
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon red"><XCircle size={18} /></div>
+          <span className="fin-kpi-label">Rejected</span>
+          <span className="fin-kpi-value">{kpi.rejectedCount}</span>
         </div>
       </div>
 
-      {/* Status Filter */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-        <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Status:</span>
+      {/* Status Filters */}
+      <div className="fin-filters">
+        <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>
+          Status:
+        </label>
         {statuses.map((s) => (
           <Link
             key={s.value}
             href={buildUrl(s.value)}
-            className={`tab-btn ${(activeStatus || "all") === s.value ? "tab-btn-active" : ""}`}
+            className={`ui-btn ui-btn-sm ${
+              (activeStatus || "all") === s.value ? "ui-btn-primary" : "ui-btn-outline"
+            }`}
           >
             {s.label}
           </Link>
@@ -370,8 +364,9 @@ export default function SubmittalsClient({
       </div>
 
       {/* Table */}
-      <div className="table-container">
-        <table className="data-table">
+      <div className="fin-chart-card" style={{ padding: 0 }}>
+        <div style={{ overflowX: "auto" }}>
+        <table className="invoice-table">
           <thead>
             <tr>
               <th>SUB #</th>
@@ -426,6 +421,7 @@ export default function SubmittalsClient({
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Create Modal */}

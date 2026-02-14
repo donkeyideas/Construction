@@ -3,6 +3,7 @@ import { GanttChart } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { formatPercent } from "@/lib/utils/format";
+import GanttActions from "./GanttActions";
 
 export const metadata = {
   title: "Gantt Schedule - ConstructionERP",
@@ -200,6 +201,14 @@ export default async function GanttPage({ searchParams }: PageProps) {
             </Link>
           ))}
         </div>
+      )}
+
+      {/* Add Phase / Add Task */}
+      {selectedProjectId && (
+        <GanttActions
+          projectId={selectedProjectId}
+          phases={phases.map((p) => ({ id: p.id, name: p.name }))}
+        />
       )}
 
       {/* Gantt Chart */}
