@@ -160,10 +160,349 @@
   color: var(--foreground);
 }
 
+/* ===== Dashboard: Welcome Banner ===== */
+.tenant-welcome {
+  background: linear-gradient(135deg, var(--color-blue, #1d4ed8) 0%, #1e40af 100%);
+  border-radius: 12px;
+  padding: 32px;
+  color: #fff;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tenant-welcome::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+.tenant-welcome h2 {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.tenant-welcome p {
+  font-size: 0.95rem;
+  opacity: 0.85;
+  margin: 0;
+}
+
+.tenant-welcome-details {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tenant-welcome-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  opacity: 0.9;
+}
+
+.tenant-welcome-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ===== Dashboard: Two-Column Layout ===== */
+.tenant-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* ===== Dashboard: Lease Detail Grid ===== */
+.tenant-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.tenant-detail-item-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tenant-detail-item-value {
+  font-size: 0.88rem;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.tenant-detail-item-value.highlight {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-blue, #1d4ed8);
+}
+
+/* ===== Dashboard: Data Table ===== */
+.tenant-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tenant-data-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--border);
+}
+
+.tenant-data-table td {
+  padding: 10px 10px;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tenant-data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.tenant-data-table tr:hover td {
+  background: var(--surface);
+}
+
+/* ===== Dashboard: Form Elements ===== */
+.tenant-form-input,
+.tenant-form-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--foreground);
+  font-size: 0.85rem;
+  font-family: var(--font-sans);
+}
+
+.tenant-form-select {
+  appearance: auto;
+}
+
+.tenant-form-input:focus,
+.tenant-form-select:focus {
+  outline: none;
+  border-color: var(--color-blue, #1d4ed8);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.tenant-btn-primary {
+  width: 100%;
+  background: var(--color-blue, #1d4ed8);
+  color: #fff;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.tenant-btn-primary:hover {
+  background: #1e40af;
+  transform: translateY(-1px);
+}
+
+.tenant-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== Dashboard: Maintenance Request Items ===== */
+.tenant-request-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tenant-request-item:last-child {
+  border-bottom: none;
+}
+
+.tenant-request-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-amber, #b45309);
+}
+
+.tenant-request-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tenant-request-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tenant-request-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ===== Dashboard: Document Items ===== */
+.tenant-doc-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tenant-doc-item:last-child {
+  border-bottom: none;
+}
+
+.tenant-doc-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tenant-doc-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-red, #dc2626);
+}
+
+.tenant-doc-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tenant-doc-size {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.tenant-doc-download {
+  font-size: 0.78rem;
+  color: var(--color-amber, #b45309);
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tenant-doc-download::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 0;
+  height: 1.5px;
+  background: var(--color-amber, #b45309);
+  transition: width 0.25s;
+}
+
+.tenant-doc-download:hover::after {
+  width: 100%;
+}
+
+/* ===== Dashboard: Announcement Items ===== */
+.tenant-announce-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tenant-announce-item:last-child {
+  border-bottom: none;
+}
+
+.tenant-announce-date {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-amber, #b45309);
+}
+
+.tenant-announce-text {
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
+  .tenant-two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .tenant-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tenant-welcome h2 {
+    font-size: 1.4rem;
+  }
+
   .tenant-profile-row {
     padding: 10px 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .tenant-welcome-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tenant-data-table {
+    font-size: 0.75rem;
+  }
+
+  .tenant-data-table th,
+  .tenant-data-table td {
+    padding: 6px 6px;
   }
 }
 

@@ -2,57 +2,138 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface TenantDashboard {
+  fullName: string | null;
   lease: {
     id: string;
     status: string;
     monthly_rent: number;
+    security_deposit: number | null;
     lease_start: string;
     lease_end: string;
     unit_name: string;
     property_name: string;
   } | null;
+  recentPayments: Array<{
+    id: string;
+    amount: number;
+    payment_date: string;
+    due_date: string | null;
+    status: string;
+    method: string | null;
+    late_fee: number | null;
+  }>;
+  maintenanceRequests: Array<{
+    id: string;
+    title: string;
+    status: string;
+    category: string | null;
+    created_at: string;
+  }>;
+  documents: TenantDocument[];
+  announcements: Array<{
+    id: string;
+    title: string;
+    content: string;
+    category: string | null;
+    published_at: string;
+  }>;
   openMaintenanceCount: number;
-  announcementCount: number;
 }
 
 export async function getTenantDashboard(
   supabase: SupabaseClient,
   userId: string
 ): Promise<TenantDashboard> {
-  const [leaseRes, maintenanceRes, announcementsRes] = await Promise.all([
+  // Phase 1: fetch profile + lease in parallel (lease needed for payment lookup)
+  const [profileRes, leaseRes] = await Promise.all([
+    supabase
+      .from("user_profiles")
+      .select("full_name")
+      .eq("id", userId)
+      .single(),
     supabase
       .from("leases")
-      .select("id, status, monthly_rent, lease_start, lease_end, units(unit_number, properties(name))")
+      .select("id, status, monthly_rent, security_deposit, lease_start, lease_end, units(unit_number, properties(name))")
       .eq("tenant_user_id", userId)
       .eq("status", "active")
       .limit(1)
       .single(),
-    supabase
-      .from("maintenance_requests")
-      .select("id", { count: "exact" })
-      .eq("requested_by", userId)
-      .in("status", ["submitted", "assigned", "in_progress"]),
-    supabase
-      .from("tenant_announcements")
-      .select("id", { count: "exact" })
-      .eq("is_active", true),
   ]);
 
   const leaseData = leaseRes.data;
   const unit = leaseData?.units as unknown as { unit_number: string; properties: { name: string } } | null;
+  const leaseId = leaseData?.id;
+
+  // Phase 2: fetch remaining data in parallel (payments need leaseId)
+  const [paymentsRes, maintenanceRes, maintenanceCountRes, announcementsRes, documents] =
+    await Promise.all([
+      leaseId
+        ? supabase
+            .from("rent_payments")
+            .select("id, amount, payment_date, due_date, status, method, late_fee")
+            .eq("lease_id", leaseId)
+            .order("payment_date", { ascending: false })
+            .limit(6)
+        : Promise.resolve({ data: [] as never[] }),
+      supabase
+        .from("maintenance_requests")
+        .select("id, title, status, category, created_at")
+        .eq("requested_by", userId)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("maintenance_requests")
+        .select("id", { count: "exact" })
+        .eq("requested_by", userId)
+        .in("status", ["submitted", "assigned", "in_progress"]),
+      supabase
+        .from("tenant_announcements")
+        .select("id, title, content, category, published_at")
+        .eq("is_active", true)
+        .order("published_at", { ascending: false })
+        .limit(3),
+      getTenantDocuments(supabase, userId),
+    ]);
 
   return {
-    lease: leaseData ? {
-      id: leaseData.id,
-      status: leaseData.status,
-      monthly_rent: leaseData.monthly_rent,
-      lease_start: leaseData.lease_start,
-      lease_end: leaseData.lease_end,
-      unit_name: unit?.unit_number ?? "Unknown Unit",
-      property_name: unit?.properties?.name ?? "Unknown Property",
-    } : null,
-    openMaintenanceCount: maintenanceRes.count ?? 0,
-    announcementCount: announcementsRes.count ?? 0,
+    fullName: profileRes.data?.full_name ?? null,
+    lease: leaseData
+      ? {
+          id: leaseData.id,
+          status: leaseData.status,
+          monthly_rent: leaseData.monthly_rent,
+          security_deposit: leaseData.security_deposit ?? null,
+          lease_start: leaseData.lease_start,
+          lease_end: leaseData.lease_end,
+          unit_name: unit?.unit_number ?? "Unknown Unit",
+          property_name: unit?.properties?.name ?? "Unknown Property",
+        }
+      : null,
+    recentPayments: (paymentsRes.data ?? []).map((p: Record<string, unknown>) => ({
+      id: p.id as string,
+      amount: Number(p.amount) || 0,
+      payment_date: p.payment_date as string,
+      due_date: (p.due_date as string) ?? null,
+      status: p.status as string,
+      method: (p.method as string) ?? null,
+      late_fee: p.late_fee != null ? Number(p.late_fee) : null,
+    })),
+    maintenanceRequests: (maintenanceRes.data ?? []).map((m: Record<string, unknown>) => ({
+      id: m.id as string,
+      title: m.title as string,
+      status: m.status as string,
+      category: (m.category as string) ?? null,
+      created_at: m.created_at as string,
+    })),
+    documents: documents.slice(0, 3),
+    announcements: (announcementsRes.data ?? []).map((a: Record<string, unknown>) => ({
+      id: a.id as string,
+      title: (a.title as string) ?? "",
+      content: (a.content as string) ?? "",
+      category: (a.category as string) ?? null,
+      published_at: a.published_at as string,
+    })),
+    openMaintenanceCount: maintenanceCountRes.count ?? 0,
   };
 }
 
