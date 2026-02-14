@@ -10,6 +10,9 @@ import {
   HardHat,
   Upload,
   Plus,
+  Users,
+  X,
+  CheckSquare,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -79,16 +82,77 @@ function completionClass(pct: number) {
   return "";
 }
 
-interface ProjectListClientProps {
-  projects: ProjectRow[];
+interface MemberOption {
+  id: string;
+  name: string;
+  role: string;
 }
 
-export default function ProjectListClient({ projects }: ProjectListClientProps) {
+interface ProjectListClientProps {
+  projects: ProjectRow[];
+  memberOptions: MemberOption[];
+}
+
+export default function ProjectListClient({ projects, memberOptions }: ProjectListClientProps) {
   const router = useRouter();
   const [view, setView] = useState<"card" | "list">("card");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [showImport, setShowImport] = useState(false);
+
+  // Bulk-assign state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkAssign, setShowBulkAssign] = useState(false);
+  const [bulkField, setBulkField] = useState<"project_manager_id" | "superintendent_id">("project_manager_id");
+  const [bulkUserId, setBulkUserId] = useState("");
+  const [bulkSaving, setBulkSaving] = useState(false);
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((p) => p.id)));
+    }
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  async function handleBulkAssign() {
+    if (!bulkUserId || selectedIds.size === 0) return;
+    setBulkSaving(true);
+    try {
+      const res = await fetch("/api/projects/bulk-assign", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectIds: Array.from(selectedIds),
+          field: bulkField,
+          userId: bulkUserId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Bulk assign failed");
+      setShowBulkAssign(false);
+      setSelectedIds(new Set());
+      setBulkUserId("");
+      router.refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Bulk assign failed");
+    } finally {
+      setBulkSaving(false);
+    }
+  }
 
   async function handleImport(rows: Record<string, string>[]) {
     const res = await fetch("/api/import", {
@@ -185,6 +249,26 @@ export default function ProjectListClient({ projects }: ProjectListClientProps) 
         </div>
       </div>
 
+      {/* Bulk-assign toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="bulk-toolbar">
+          <div className="bulk-toolbar-left">
+            <CheckSquare size={16} />
+            <span>{selectedIds.size} project{selectedIds.size !== 1 ? "s" : ""} selected</span>
+            <button className="bulk-toolbar-clear" onClick={clearSelection}>
+              <X size={14} /> Clear
+            </button>
+          </div>
+          <button
+            className="btn-primary"
+            onClick={() => setShowBulkAssign(true)}
+          >
+            <Users size={16} />
+            Assign PM / Superintendent
+          </button>
+        </div>
+      )}
+
       {/* Empty State */}
       {filtered.length === 0 && (
         <div className="projects-empty">
@@ -212,49 +296,57 @@ export default function ProjectListClient({ projects }: ProjectListClientProps) 
       {filtered.length > 0 && view === "card" && (
         <div className="projects-grid">
           {filtered.map((project) => (
-            <Link
-              key={project.id}
-              href={`/projects/${project.id}`}
-              className="project-card"
-            >
-              <div className="project-card-header">
+            <div key={project.id} className={`project-card-wrapper ${selectedIds.has(project.id) ? "selected" : ""}`}>
+              <label className="bulk-checkbox card-checkbox" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(project.id)}
+                  onChange={() => toggleSelect(project.id)}
+                />
+              </label>
+              <Link
+                href={`/projects/${project.id}`}
+                className="project-card"
+              >
+                <div className="project-card-header">
+                  <div>
+                    <div className="project-card-name">{project.name}</div>
+                    <div className="project-card-code">{project.code}</div>
+                  </div>
+                  <span className={`badge badge-${project.status}`}>
+                    {statusLabel(project.status)}
+                  </span>
+                </div>
+
+                {project.client_name && (
+                  <div className="project-card-client">{project.client_name}</div>
+                )}
+
+                <div className="project-card-row">
+                  <span className="project-card-amount">
+                    {formatCurrency(project.contract_amount)}
+                  </span>
+                  <span className="project-card-dates">
+                    {formatDate(project.start_date)} - {formatDate(project.estimated_end_date)}
+                  </span>
+                </div>
+
                 <div>
-                  <div className="project-card-name">{project.name}</div>
-                  <div className="project-card-code">{project.code}</div>
+                  <div className="completion-bar">
+                    <div
+                      className={`completion-bar-fill ${completionClass(project.completion_pct)}`}
+                      style={{ width: `${project.completion_pct}%` }}
+                    />
+                  </div>
+                  <div className="completion-info">
+                    <span>{project.completion_pct}% complete</span>
+                    {project.project_manager?.full_name && (
+                      <span>PM: {project.project_manager.full_name}</span>
+                    )}
+                  </div>
                 </div>
-                <span className={`badge badge-${project.status}`}>
-                  {statusLabel(project.status)}
-                </span>
-              </div>
-
-              {project.client_name && (
-                <div className="project-card-client">{project.client_name}</div>
-              )}
-
-              <div className="project-card-row">
-                <span className="project-card-amount">
-                  {formatCurrency(project.contract_amount)}
-                </span>
-                <span className="project-card-dates">
-                  {formatDate(project.start_date)} - {formatDate(project.estimated_end_date)}
-                </span>
-              </div>
-
-              <div>
-                <div className="completion-bar">
-                  <div
-                    className={`completion-bar-fill ${completionClass(project.completion_pct)}`}
-                    style={{ width: `${project.completion_pct}%` }}
-                  />
-                </div>
-                <div className="completion-info">
-                  <span>{project.completion_pct}% complete</span>
-                  {project.project_manager?.full_name && (
-                    <span>PM: {project.project_manager.full_name}</span>
-                  )}
-                </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       )}
@@ -265,6 +357,13 @@ export default function ProjectListClient({ projects }: ProjectListClientProps) 
           <table className="projects-table">
             <thead>
               <tr>
+                <th style={{ width: 36 }}>
+                  <input
+                    type="checkbox"
+                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
                 <th>Code</th>
                 <th>Name</th>
                 <th>Client</th>
@@ -277,7 +376,14 @@ export default function ProjectListClient({ projects }: ProjectListClientProps) 
             </thead>
             <tbody>
               {filtered.map((project) => (
-                <tr key={project.id}>
+                <tr key={project.id} className={selectedIds.has(project.id) ? "row-selected" : ""}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(project.id)}
+                      onChange={() => toggleSelect(project.id)}
+                    />
+                  </td>
                   <td style={{ fontWeight: 500, whiteSpace: "nowrap" }}>
                     {project.code}
                   </td>
@@ -327,6 +433,74 @@ export default function ProjectListClient({ projects }: ProjectListClientProps) 
           onImport={handleImport}
           onClose={() => setShowImport(false)}
         />
+      )}
+
+      {/* Bulk Assign Modal */}
+      {showBulkAssign && (
+        <div className="modal-overlay" onClick={() => setShowBulkAssign(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Bulk Assign - {selectedIds.size} Project{selectedIds.size !== 1 ? "s" : ""}</h3>
+              <button className="modal-close" onClick={() => setShowBulkAssign(false)}>&times;</button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div className="form-group">
+                <label className="form-label">Assignment Type</label>
+                <select
+                  className="form-select"
+                  value={bulkField}
+                  onChange={(e) => setBulkField(e.target.value as "project_manager_id" | "superintendent_id")}
+                >
+                  <option value="project_manager_id">Project Manager</option>
+                  <option value="superintendent_id">Superintendent</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  {bulkField === "project_manager_id" ? "Project Manager" : "Superintendent"}
+                </label>
+                <select
+                  className="form-select"
+                  value={bulkUserId}
+                  onChange={(e) => setBulkUserId(e.target.value)}
+                >
+                  <option value="">-- Select a team member --</option>
+                  {memberOptions.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name} ({m.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="bulk-assign-projects-list">
+                <label className="form-label">Selected Projects</label>
+                <ul className="bulk-project-names">
+                  {filtered
+                    .filter((p) => selectedIds.has(p.id))
+                    .map((p) => (
+                      <li key={p.id}>{p.name} <span className="bulk-project-code">{p.code}</span></li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setShowBulkAssign(false)}>
+                Cancel
+              </button>
+              <button
+                className="btn-primary"
+                disabled={!bulkUserId || bulkSaving}
+                onClick={handleBulkAssign}
+              >
+                {bulkSaving ? "Saving..." : `Assign to ${selectedIds.size} Project${selectedIds.size !== 1 ? "s" : ""}`}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

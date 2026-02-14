@@ -468,6 +468,131 @@
   background: rgba(29, 78, 216, 0.15);
 }
 
+/* ===== Bulk-Assign Toolbar ===== */
+.bulk-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--color-blue-light);
+  border: 1px solid var(--color-blue);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  animation: modal-fade-in 0.15s ease;
+}
+
+[data-theme="dark"] .bulk-toolbar {
+  background: rgba(29, 78, 216, 0.12);
+}
+
+.bulk-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-blue-dark, var(--color-blue));
+}
+
+.bulk-toolbar-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.bulk-toolbar-clear:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text);
+}
+
+/* Card wrapper with checkbox */
+.project-card-wrapper {
+  position: relative;
+}
+
+.project-card-wrapper .project-card {
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.15s;
+}
+
+.project-card-wrapper.selected .project-card {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.bulk-checkbox {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.bulk-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-blue);
+}
+
+.card-checkbox {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+}
+
+/* Table selected row */
+.projects-table tbody tr.row-selected {
+  background: var(--color-blue-light);
+}
+
+[data-theme="dark"] .projects-table tbody tr.row-selected {
+  background: rgba(29, 78, 216, 0.1);
+}
+
+/* Bulk-assign modal project list */
+.bulk-assign-projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bulk-project-names {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.bulk-project-names li {
+  font-size: 0.82rem;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.bulk-project-names li:last-child {
+  border-bottom: none;
+}
+
+.bulk-project-code {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-left: 6px;
+}
+
 /* ===== Empty State ===== */
 .projects-empty {
   text-align: center;
