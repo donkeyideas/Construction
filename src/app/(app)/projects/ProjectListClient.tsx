@@ -23,15 +23,21 @@ const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "address", label: "Address", required: false },
   { key: "city", label: "City", required: false },
   { key: "state", label: "State", required: false },
+  { key: "zip", label: "ZIP", required: false },
+  { key: "client_name", label: "Client Name", required: false },
+  { key: "client_email", label: "Client Email", required: false },
+  { key: "client_phone", label: "Client Phone", required: false },
   { key: "budget", label: "Budget ($)", required: false, type: "number" },
+  { key: "estimated_cost", label: "Estimated Cost ($)", required: false, type: "number" },
   { key: "start_date", label: "Start Date", required: false, type: "date" },
   { key: "end_date", label: "End Date", required: false, type: "date" },
+  { key: "description", label: "Description", required: false },
+  { key: "completion_pct", label: "Completion %", required: false, type: "number" },
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
-  { name: "Downtown Office Tower", code: "DOT-001", status: "active", project_type: "commercial", address: "123 Main St", city: "Dallas", state: "TX", budget: "5000000", start_date: "2026-01-01", end_date: "2027-06-30" },
-  { name: "Riverside Apartments", code: "RSA-002", status: "pre_construction", project_type: "residential", address: "456 River Rd", city: "Austin", state: "TX", budget: "12000000", start_date: "2026-04-01", end_date: "2028-03-31" },
-  { name: "Highway 35 Bridge Repair", code: "HBR-003", status: "planning", project_type: "infrastructure", address: "Hwy 35 Mile Marker 42", city: "San Antonio", state: "TX", budget: "3200000", start_date: "2026-06-15", end_date: "2027-01-15" },
+  { name: "Downtown Office Tower", code: "DOT-001", status: "active", project_type: "commercial", address: "123 Main St", city: "Dallas", state: "TX", zip: "75201", client_name: "Metro Properties LLC", client_email: "info@metro.com", client_phone: "214-555-0100", budget: "5000000", estimated_cost: "4800000", start_date: "2026-01-01", end_date: "2027-06-30", description: "12-story office tower renovation", completion_pct: "25" },
+  { name: "Riverside Apartments", code: "RSA-002", status: "pre_construction", project_type: "residential", address: "456 River Rd", city: "Austin", state: "TX", zip: "78741", client_name: "Riverside Dev Corp", client_email: "dev@riverside.com", client_phone: "512-555-0200", budget: "12000000", estimated_cost: "11500000", start_date: "2026-04-01", end_date: "2028-03-31", description: "200-unit luxury apartment complex", completion_pct: "0" },
 ];
 
 const STATUS_LABELS: Record<string, string> = {
