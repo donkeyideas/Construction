@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Pencil,
+  Trash2,
   CloudSun,
   Thermometer,
   Droplets,
@@ -141,6 +142,27 @@ export default function ProjectDetailClient({
   const [editMode, setEditMode] = useState(false);
   const [editProjectOpen, setEditProjectOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const router = useRouter();
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/projects");
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete project.");
+      }
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  }
 
   return (
     <div>
@@ -180,6 +202,14 @@ export default function ProjectDetailClient({
           >
             <Pencil size={14} />
             Edit Project
+          </button>
+          <button
+            className="btn-secondary"
+            style={{ color: "var(--color-red)" }}
+            onClick={() => setConfirmDelete(true)}
+          >
+            <Trash2 size={14} />
+            Delete
           </button>
         </div>
       </div>
@@ -247,6 +277,39 @@ export default function ProjectDetailClient({
           setSaving={setSaving}
           onClose={() => setEditProjectOpen(false)}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDelete && (
+        <div className="modal-overlay" onClick={() => setConfirmDelete(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h3>Delete Project</h3>
+              <button className="modal-close" onClick={() => setConfirmDelete(false)}><X size={20} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: 8 }}>
+                Are you sure you want to delete <strong>{project.name}</strong>?
+              </p>
+              <p style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
+                This will permanently remove the project and all associated tasks, daily logs, RFIs, and change orders. This action cannot be undone.
+              </p>
+              <div className="modal-actions" style={{ marginTop: 16 }}>
+                <button className="btn-secondary" onClick={() => setConfirmDelete(false)} disabled={deleting}>
+                  Cancel
+                </button>
+                <button
+                  className="btn-primary"
+                  style={{ background: "var(--color-red)" }}
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Delete Project"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* RFI Detail / Edit Modal */}
