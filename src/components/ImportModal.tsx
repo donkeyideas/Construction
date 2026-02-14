@@ -12,12 +12,21 @@ import {
   type ImportColumn,
 } from "@/lib/utils/csv-parser";
 
+interface ProjectOption {
+  id: string;
+  name: string;
+  code?: string | null;
+}
+
 interface ImportModalProps {
   entityName: string;
   columns: ImportColumn[];
   sampleData?: Record<string, string>[];
   onImport: (rows: Record<string, string>[]) => Promise<{ success: number; errors: string[] }>;
   onClose: () => void;
+  projects?: ProjectOption[];
+  selectedProjectId?: string;
+  onProjectChange?: (id: string) => void;
 }
 
 export default function ImportModal({
@@ -26,6 +35,9 @@ export default function ImportModal({
   sampleData,
   onImport,
   onClose,
+  projects,
+  selectedProjectId,
+  onProjectChange,
 }: ImportModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -133,6 +145,8 @@ export default function ImportModal({
     (c) => c.required && columnMapping[c.key] === undefined
   );
 
+  const projectRequired = projects && projects.length > 0 && onProjectChange && !selectedProjectId;
+
   return (
     <div
       className="ticket-modal-overlay"
@@ -218,6 +232,27 @@ export default function ImportModal({
             <div style={{ marginBottom: "12px", fontSize: "0.85rem", color: "var(--muted)" }}>
               File: <strong>{fileName}</strong> — {rows.length} row{rows.length !== 1 ? "s" : ""} found
             </div>
+
+            {/* Project Picker (for project-scoped imports) */}
+            {projects && projects.length > 0 && onProjectChange && (
+              <div style={{ marginBottom: "16px" }}>
+                <div style={{ fontWeight: 600, marginBottom: "8px", fontSize: "0.9rem" }}>
+                  Target Project <span style={{ color: "var(--color-red)" }}>*</span>
+                </div>
+                <select
+                  className="ticket-form-select"
+                  value={selectedProjectId || ""}
+                  onChange={(e) => onProjectChange(e.target.value)}
+                >
+                  <option value="">Select a project...</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.code ? `${p.code} - ` : ""}{p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Column Mapping */}
             <div style={{ marginBottom: "16px" }}>
@@ -313,6 +348,12 @@ export default function ImportModal({
               </div>
             )}
 
+            {projectRequired && (
+              <div className="ticket-form-error">
+                Please select a target project above
+              </div>
+            )}
+
             <div className="ticket-form-actions">
               <button
                 className="btn btn-ghost"
@@ -327,7 +368,7 @@ export default function ImportModal({
               <button
                 className="btn btn-primary"
                 onClick={handleImport}
-                disabled={requiredUnmapped.length > 0}
+                disabled={requiredUnmapped.length > 0 || !!projectRequired}
               >
                 Import {rows.length - validationErrors.length} Row{rows.length - validationErrors.length !== 1 ? "s" : ""}
               </button>

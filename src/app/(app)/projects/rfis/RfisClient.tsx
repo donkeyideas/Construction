@@ -162,6 +162,7 @@ export default function RfisClient({
   });
 
   const [showImport, setShowImport] = useState(false);
+  const [importProjectId, setImportProjectId] = useState("");
 
   // Detail / Edit / Delete modal state
   const [selectedRfi, setSelectedRfi] = useState<Rfi | null>(null);
@@ -194,7 +195,7 @@ export default function RfisClient({
     const res = await fetch("/api/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entity: "rfis", rows }),
+      body: JSON.stringify({ entity: "rfis", rows, project_id: importProjectId }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Import failed");
@@ -1196,7 +1197,10 @@ export default function RfisClient({
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
-          onClose={() => setShowImport(false)}
+          onClose={() => { setShowImport(false); setImportProjectId(""); }}
+          projects={projects}
+          selectedProjectId={importProjectId}
+          onProjectChange={setImportProjectId}
         />
       )}
     </div>

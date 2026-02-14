@@ -144,6 +144,7 @@ export default function ToolboxTalksClient({
 
   // Import modal
   const [showImport, setShowImport] = useState(false);
+  const [importProjectId, setImportProjectId] = useState("");
 
   // Detail / Edit / Delete modal state
   const [selectedTalk, setSelectedTalk] = useState<ToolboxTalkRow | null>(null);
@@ -368,7 +369,7 @@ export default function ToolboxTalksClient({
     const res = await fetch("/api/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entity: "toolbox_talks", rows }),
+      body: JSON.stringify({ entity: "toolbox_talks", rows, project_id: importProjectId }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Import failed");
@@ -1033,7 +1034,10 @@ export default function ToolboxTalksClient({
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
-          onClose={() => { setShowImport(false); router.refresh(); }}
+          onClose={() => { setShowImport(false); setImportProjectId(""); router.refresh(); }}
+          projects={projects}
+          selectedProjectId={importProjectId}
+          onProjectChange={setImportProjectId}
         />
       )}
     </div>

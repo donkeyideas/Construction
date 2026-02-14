@@ -155,6 +155,7 @@ export default function ChangeOrdersClient({
   });
 
   const [showImport, setShowImport] = useState(false);
+  const [importProjectId, setImportProjectId] = useState("");
 
   // Detail / Edit / Delete modal state
   const [selectedCo, setSelectedCo] = useState<ChangeOrder | null>(null);
@@ -168,7 +169,7 @@ export default function ChangeOrdersClient({
     const res = await fetch("/api/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entity: "change_orders", rows }),
+      body: JSON.stringify({ entity: "change_orders", rows, project_id: importProjectId }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Import failed");
@@ -1043,7 +1044,10 @@ export default function ChangeOrdersClient({
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
-          onClose={() => setShowImport(false)}
+          onClose={() => { setShowImport(false); setImportProjectId(""); }}
+          projects={projects}
+          selectedProjectId={importProjectId}
+          onProjectChange={setImportProjectId}
         />
       )}
     </div>

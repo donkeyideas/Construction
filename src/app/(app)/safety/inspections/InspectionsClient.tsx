@@ -172,6 +172,7 @@ export default function InspectionsClient({
 
   // Import modal
   const [showImport, setShowImport] = useState(false);
+  const [importProjectId, setImportProjectId] = useState("");
 
   // Detail / Edit / Delete modal state
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
@@ -408,7 +409,7 @@ export default function InspectionsClient({
     const res = await fetch("/api/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entity: "safety_inspections", rows }),
+      body: JSON.stringify({ entity: "safety_inspections", rows, project_id: importProjectId }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Import failed");
@@ -1062,7 +1063,10 @@ export default function InspectionsClient({
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
-          onClose={() => { setShowImport(false); router.refresh(); }}
+          onClose={() => { setShowImport(false); setImportProjectId(""); router.refresh(); }}
+          projects={projects}
+          selectedProjectId={importProjectId}
+          onProjectChange={setImportProjectId}
         />
       )}
     </div>

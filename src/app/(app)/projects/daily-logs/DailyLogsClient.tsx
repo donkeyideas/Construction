@@ -179,6 +179,7 @@ export default function DailyLogsClient({
   });
 
   const [showImport, setShowImport] = useState(false);
+  const [importProjectId, setImportProjectId] = useState("");
 
   // Detail/Edit/Delete modal state
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
@@ -192,7 +193,7 @@ export default function DailyLogsClient({
     const res = await fetch("/api/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entity: "daily_logs", rows }),
+      body: JSON.stringify({ entity: "daily_logs", rows, project_id: importProjectId }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Import failed");
@@ -1376,7 +1377,10 @@ export default function DailyLogsClient({
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
-          onClose={() => setShowImport(false)}
+          onClose={() => { setShowImport(false); setImportProjectId(""); }}
+          projects={projects}
+          selectedProjectId={importProjectId}
+          onProjectChange={setImportProjectId}
         />
       )}
     </div>
