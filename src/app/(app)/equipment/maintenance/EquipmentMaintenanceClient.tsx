@@ -140,6 +140,40 @@ export default function EquipmentMaintenanceClient({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
+  // Loading sample data
+  const [loadingSamples, setLoadingSamples] = useState(false);
+
+  async function loadSampleData() {
+    if (equipmentList.length === 0) return;
+    setLoadingSamples(true);
+    try {
+      const samples = [
+        { equipment_id: equipmentList[0]?.id, title: "Oil & Filter Change", maintenance_type: "preventive", description: "Regular 250-hour oil and filter service", maintenance_date: "2026-01-10", cost: 450, performed_by: "Mike Rivera", vendor_name: "", status: "completed", next_due_date: "2026-04-10" },
+        { equipment_id: equipmentList[Math.min(1, equipmentList.length - 1)]?.id, title: "Hydraulic System Inspection", maintenance_type: "inspection", description: "Check hydraulic lines, fittings, and fluid levels", maintenance_date: "2026-01-18", cost: 275, performed_by: "Fleet Team", vendor_name: "", status: "completed", next_due_date: "2026-07-18" },
+        { equipment_id: equipmentList[0]?.id, title: "Track Tension Adjustment", maintenance_type: "corrective", description: "Tracks were loose, adjusted tension and inspected for wear", maintenance_date: "2026-02-01", cost: 180, performed_by: "Mike Rivera", vendor_name: "", status: "completed", next_due_date: "" },
+        { equipment_id: equipmentList[Math.min(2, equipmentList.length - 1)]?.id, title: "Annual DOT Inspection", maintenance_type: "inspection", description: "Full Department of Transportation compliance inspection", maintenance_date: "2026-02-15", cost: 350, performed_by: "", vendor_name: "ABC Fleet Services", status: "completed", next_due_date: "2027-02-15" },
+        { equipment_id: equipmentList[Math.min(1, equipmentList.length - 1)]?.id, title: "Boom Cylinder Seal Replacement", maintenance_type: "corrective", description: "Replaced leaking boom cylinder seals", maintenance_date: "2026-02-20", cost: 1250, performed_by: "", vendor_name: "Heavy Equipment Repair Co.", status: "completed", next_due_date: "" },
+        { equipment_id: equipmentList[0]?.id, title: "Scheduled 500-Hour Service", maintenance_type: "preventive", description: "Comprehensive 500-hour service: oil, filters, belts, coolant", maintenance_date: "", cost: 850, performed_by: "Fleet Team", vendor_name: "", status: "scheduled", next_due_date: "2026-03-15" },
+        { equipment_id: equipmentList[Math.min(2, equipmentList.length - 1)]?.id, title: "Brake Pad Replacement", maintenance_type: "preventive", description: "Replace front and rear brake pads", maintenance_date: "", cost: 600, performed_by: "", vendor_name: "ABC Fleet Services", status: "scheduled", next_due_date: "2026-03-20" },
+        { equipment_id: equipmentList[Math.min(1, equipmentList.length - 1)]?.id, title: "Emergency Hydraulic Line Repair", maintenance_type: "emergency", description: "Burst hydraulic line on job site, emergency repair needed", maintenance_date: "2026-02-10", cost: 2100, performed_by: "", vendor_name: "24/7 Heavy Equipment Repair", status: "in_progress", next_due_date: "" },
+      ];
+
+      for (const sample of samples) {
+        if (!sample.equipment_id) continue;
+        await fetch("/api/equipment/maintenance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sample),
+        });
+      }
+      router.refresh();
+    } catch {
+      // silent fail
+    } finally {
+      setLoadingSamples(false);
+    }
+  }
+
   // Counts
   const scheduledCount = logs.filter((l) => l.status === "scheduled").length;
   const inProgressCount = logs.filter((l) => l.status === "in_progress").length;
@@ -468,10 +502,26 @@ export default function EquipmentMaintenanceClient({
             <>
               <h3>No maintenance records yet</h3>
               <p>Create your first maintenance log to get started.</p>
-              <button className="btn-primary" onClick={() => setShowCreate(true)}>
-                <Plus size={16} />
-                New Maintenance Log
-              </button>
+              <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
+                <button className="btn-primary" onClick={() => setShowCreate(true)}>
+                  <Plus size={16} />
+                  New Maintenance Log
+                </button>
+                {equipmentList.length > 0 && (
+                  <button
+                    className="btn-secondary"
+                    onClick={loadSampleData}
+                    disabled={loadingSamples}
+                  >
+                    {loadingSamples ? "Loading..." : "Load Sample Data"}
+                  </button>
+                )}
+              </div>
+              {equipmentList.length === 0 && (
+                <p style={{ fontSize: "0.82rem", marginTop: "8px" }}>
+                  Add equipment in Inventory first, then come back to add maintenance logs.
+                </p>
+              )}
             </>
           ) : (
             <>

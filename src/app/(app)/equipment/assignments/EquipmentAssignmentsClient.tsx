@@ -110,6 +110,45 @@ export default function EquipmentAssignmentsClient({
   const [returning, setReturning] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
 
+  // Loading sample data
+  const [loadingSamples, setLoadingSamples] = useState(false);
+
+  async function loadSampleData() {
+    const available = equipmentList.filter((e) => e.status === "available");
+    if (available.length === 0) return;
+    setLoadingSamples(true);
+    try {
+      const sampleNotes = [
+        "Needed for foundation excavation - Phase 1",
+        "Site grading and earthwork operations",
+        "Concrete pour support for Building A",
+        "Utility trench work - east side of property",
+        "Demolition and site clearing",
+        "Steel erection support",
+      ];
+
+      // Assign up to 3 available equipment items
+      const toAssign = available.slice(0, Math.min(3, available.length));
+      for (let i = 0; i < toAssign.length; i++) {
+        await fetch("/api/equipment/assignments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            equipment_id: toAssign[i].id,
+            project_id: projects.length > 0 ? projects[i % projects.length].id : undefined,
+            assigned_to: members.length > 0 ? members[i % members.length].user_id : undefined,
+            notes: sampleNotes[i % sampleNotes.length],
+          }),
+        });
+      }
+      router.refresh();
+    } catch {
+      // silent fail
+    } finally {
+      setLoadingSamples(false);
+    }
+  }
+
   // Available equipment for assignment (status = 'available')
   const availableEquipment = useMemo(
     () => equipmentList.filter((e) => e.status === "available"),
@@ -353,10 +392,26 @@ export default function EquipmentAssignmentsClient({
             <>
               <h3>No assignments yet</h3>
               <p>Assign equipment to projects and team members.</p>
-              <button className="btn-primary" onClick={() => setShowCreate(true)}>
-                <Plus size={16} />
-                Assign Equipment
-              </button>
+              <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
+                <button className="btn-primary" onClick={() => setShowCreate(true)}>
+                  <Plus size={16} />
+                  Assign Equipment
+                </button>
+                {availableEquipment.length > 0 && (
+                  <button
+                    className="btn-secondary"
+                    onClick={loadSampleData}
+                    disabled={loadingSamples}
+                  >
+                    {loadingSamples ? "Loading..." : "Load Sample Data"}
+                  </button>
+                )}
+              </div>
+              {equipmentList.length === 0 && (
+                <p style={{ fontSize: "0.82rem", marginTop: "8px" }}>
+                  Add equipment in Inventory first, then come back to create assignments.
+                </p>
+              )}
             </>
           ) : (
             <>

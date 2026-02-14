@@ -65,3 +65,48 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+    const supabase = await createClient();
+    const userCompany = await getCurrentUserCompany(supabase);
+
+    if (!userCompany) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const entry = await getJournalEntryById(supabase, id);
+    if (!entry) {
+      return NextResponse.json({ error: "Journal entry not found" }, { status: 404 });
+    }
+
+    if (entry.status === "posted") {
+      return NextResponse.json(
+        { error: "Cannot delete a posted journal entry. Void it first." },
+        { status: 400 }
+      );
+    }
+
+    // Delete line items first, then the entry
+    await supabase
+      .from("journal_entry_lines")
+      .delete()
+      .eq("journal_entry_id", id);
+
+    const { error: deleteError } = await supabase
+      .from("journal_entries")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      console.error("Delete journal entry error:", deleteError);
+      return NextResponse.json({ error: "Failed to delete journal entry" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/financial/journal-entries/[id] error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

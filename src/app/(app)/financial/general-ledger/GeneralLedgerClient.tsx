@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   BookOpen,
@@ -9,10 +10,16 @@ import {
   CheckCircle,
   Ban,
   Loader2,
+  Upload,
+  Eye,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type {
   JournalEntryRow,
+  JournalEntryDetail,
+  JournalEntryLineRow,
   AccountTreeNode,
   TrialBalanceRow,
 } from "@/lib/queries/financial";
@@ -85,6 +92,28 @@ function emptyLine(): LineItemDraft {
 }
 
 /* ------------------------------------------------------------------
+   Import columns
+   ------------------------------------------------------------------ */
+
+const jeImportColumns: ImportColumn[] = [
+  { key: "entry_number", label: "Entry Number", required: true },
+  { key: "entry_date", label: "Entry Date (YYYY-MM-DD)", required: true },
+  { key: "description", label: "Description", required: true },
+  { key: "reference", label: "Reference", required: false },
+  { key: "account_number", label: "Account Number", required: true },
+  { key: "debit", label: "Debit", required: false, type: "number" },
+  { key: "credit", label: "Credit", required: false, type: "number" },
+  { key: "line_description", label: "Line Description", required: false },
+];
+
+const jeSampleData = [
+  { entry_number: "JE-001", entry_date: "2025-01-15", description: "Monthly rent", reference: "INV-100", account_number: "6100", debit: "5000", credit: "", line_description: "Rent expense" },
+  { entry_number: "JE-001", entry_date: "2025-01-15", description: "Monthly rent", reference: "INV-100", account_number: "1000", debit: "", credit: "5000", line_description: "Cash payment" },
+  { entry_number: "JE-002", entry_date: "2025-01-20", description: "Material purchase", reference: "PO-200", account_number: "1400", debit: "12000", credit: "", line_description: "Lumber" },
+  { entry_number: "JE-002", entry_date: "2025-01-20", description: "Material purchase", reference: "PO-200", account_number: "2000", debit: "", credit: "12000", line_description: "AP" },
+];
+
+/* ------------------------------------------------------------------
    Props
    ------------------------------------------------------------------ */
 
@@ -103,6 +132,8 @@ export default function GeneralLedgerClient({
   accounts,
   trialBalance: initialTrialBalance,
 }: GeneralLedgerClientProps) {
+  const router = useRouter();
+
   /* ---- State ---- */
   const [activeTab, setActiveTab] = useState<"journal" | "trial">("journal");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -113,6 +144,15 @@ export default function GeneralLedgerClient({
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
+
+  // Import modal
+  const [showImport, setShowImport] = useState(false);
+
+  // Detail modal
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntryDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Form fields
   const [entryNumber, setEntryNumber] = useState("");
@@ -203,14 +243,50 @@ export default function GeneralLedgerClient({
         const data = await res.json();
         if (data.entries) setEntries(data.entries);
       }
-      // Also refresh trial balance by re-fetching via a simple GET
-      // Since there's no dedicated API for trial balance, we reload the page data
-      // We'll use a workaround: fetch the page which returns JSON on client navigation
-      // For simplicity, we trigger a window reload only for trial balance
     } catch {
       // silent
     }
   }, []);
+
+  const openDetail = useCallback(async (entryId: string) => {
+    setDetailLoading(true);
+    setShowDeleteConfirm(false);
+    try {
+      const res = await fetch(`/api/financial/journal-entries/${entryId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedEntry(data.entry);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDetailLoading(false);
+    }
+  }, []);
+
+  const closeDetail = useCallback(() => {
+    setSelectedEntry(null);
+    setShowDeleteConfirm(false);
+  }, []);
+
+  const handleDelete = useCallback(async () => {
+    if (!selectedEntry) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/financial/journal-entries/${selectedEntry.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        closeDetail();
+        await refreshData();
+        router.refresh();
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, [selectedEntry, closeDetail, refreshData, router]);
 
   const handleCreate = useCallback(async () => {
     setCreateError("");
@@ -294,7 +370,6 @@ export default function GeneralLedgerClient({
         });
 
         if (res.ok) {
-          // Optimistic update
           setEntries((prev) =>
             prev.map((e) => {
               if (e.id !== entryId) return e;
@@ -305,8 +380,6 @@ export default function GeneralLedgerClient({
               };
             })
           );
-          // If an entry was posted, the trial balance may change.
-          // We can do a lightweight refresh.
           if (action === "post") {
             try {
               const tbRes = await fetch("/api/financial/journal-entries?status=all");
@@ -359,7 +432,7 @@ export default function GeneralLedgerClient({
           ============================================================ */}
       {activeTab === "journal" && (
         <>
-          {/* Filter row + action */}
+          {/* Filter row + actions */}
           <div className="fin-filters">
             <label
               style={{
@@ -381,7 +454,15 @@ export default function GeneralLedgerClient({
               <option value="voided">Voided</option>
             </select>
 
-            <div style={{ marginLeft: "auto" }}>
+            <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+              <button
+                className="ui-btn ui-btn-outline ui-btn-md"
+                onClick={() => setShowImport(true)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <Upload size={16} />
+                Import CSV
+              </button>
               <button
                 className="ui-btn ui-btn-primary ui-btn-md"
                 onClick={openCreate}
@@ -413,8 +494,12 @@ export default function GeneralLedgerClient({
                     {filteredEntries.map((entry) => {
                       const loading = actionLoading[entry.id];
                       return (
-                        <tr key={entry.id}>
-                          <td style={{ fontWeight: 600 }}>
+                        <tr
+                          key={entry.id}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => openDetail(entry.id)}
+                        >
+                          <td style={{ fontWeight: 600, color: "var(--color-blue)" }}>
                             {entry.entry_number}
                           </td>
                           <td>{formatDate(entry.entry_date)}</td>
@@ -440,7 +525,10 @@ export default function GeneralLedgerClient({
                               {entry.status}
                             </span>
                           </td>
-                          <td style={{ textAlign: "center" }}>
+                          <td
+                            style={{ textAlign: "center" }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             {entry.status === "draft" && (
                               <div
                                 style={{
@@ -491,22 +579,16 @@ export default function GeneralLedgerClient({
                             {entry.status === "posted" && (
                               <button
                                 className="ui-btn ui-btn-outline ui-btn-sm"
-                                onClick={() => handleAction(entry.id, "void")}
-                                disabled={!!loading}
-                                title="Void entry"
+                                onClick={() => openDetail(entry.id)}
+                                title="View entry"
                                 style={{
                                   display: "inline-flex",
                                   alignItems: "center",
                                   gap: 4,
-                                  color: "var(--color-red)",
                                 }}
                               >
-                                {loading === "void" ? (
-                                  <Loader2 size={14} className="spin" />
-                                ) : (
-                                  <Ban size={14} />
-                                )}
-                                Void
+                                <Eye size={14} />
+                                View
                               </button>
                             )}
                             {entry.status === "voided" && (
@@ -665,6 +747,200 @@ export default function GeneralLedgerClient({
             </div>
           )}
         </>
+      )}
+
+      {/* ============================================================
+          DETAIL MODAL
+          ============================================================ */}
+      {(selectedEntry || detailLoading) && (
+        <div className="ticket-modal-overlay" onClick={closeDetail}>
+          <div
+            className="ticket-modal"
+            style={{ maxWidth: 720 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ticket-modal-header">
+              <h3>
+                {detailLoading
+                  ? "Loading..."
+                  : `Journal Entry ${selectedEntry?.entry_number}`}
+              </h3>
+              <button className="ticket-modal-close" onClick={closeDetail}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {detailLoading ? (
+              <div style={{ padding: 40, textAlign: "center" }}>
+                <Loader2 size={24} className="spin" style={{ color: "var(--muted)" }} />
+              </div>
+            ) : selectedEntry ? (
+              <div className="ticket-detail-body">
+                {/* Entry Info */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+                  <div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Entry Date</div>
+                    <div style={{ fontWeight: 500 }}>{formatDate(selectedEntry.entry_date)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Status</div>
+                    <span className={`inv-status inv-status-${selectedEntry.status}`}>
+                      {selectedEntry.status}
+                    </span>
+                  </div>
+                  <div style={{ gridColumn: "span 2" }}>
+                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Description</div>
+                    <div style={{ fontWeight: 500 }}>{selectedEntry.description}</div>
+                  </div>
+                  {selectedEntry.reference && (
+                    <div style={{ gridColumn: "span 2" }}>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Reference</div>
+                      <div>{selectedEntry.reference}</div>
+                    </div>
+                  )}
+                  {selectedEntry.posted_at && (
+                    <div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Posted Date</div>
+                      <div>{formatDate(selectedEntry.posted_at)}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Line Items Table */}
+                <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 10, color: "var(--muted)" }}>
+                  Line Items
+                </div>
+                <div style={{ overflowX: "auto", marginBottom: 20 }}>
+                  <table className="invoice-table" style={{ fontSize: "0.85rem" }}>
+                    <thead>
+                      <tr>
+                        <th>Account</th>
+                        <th>Description</th>
+                        <th style={{ textAlign: "right" }}>Debit</th>
+                        <th style={{ textAlign: "right" }}>Credit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedEntry.lines.map((line: JournalEntryLineRow) => (
+                        <tr key={line.id}>
+                          <td style={{ fontWeight: 500 }}>
+                            {line.account_number
+                              ? `${line.account_number} - ${line.account_name}`
+                              : line.account_id}
+                          </td>
+                          <td style={{ color: "var(--muted)" }}>
+                            {line.description || "--"}
+                          </td>
+                          <td className="amount-col">
+                            {line.debit > 0 ? formatCurrency(line.debit) : "--"}
+                          </td>
+                          <td className="amount-col">
+                            {line.credit > 0 ? formatCurrency(line.credit) : "--"}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border)" }}>
+                        <td colSpan={2} style={{ fontWeight: 700 }}>Totals</td>
+                        <td className="amount-col" style={{ fontWeight: 700 }}>
+                          {formatCurrency(selectedEntry.lines.reduce((s: number, l: JournalEntryLineRow) => s + l.debit, 0))}
+                        </td>
+                        <td className="amount-col" style={{ fontWeight: 700 }}>
+                          {formatCurrency(selectedEntry.lines.reduce((s: number, l: JournalEntryLineRow) => s + l.credit, 0))}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: "1px solid var(--border)" }}>
+                  <div>
+                    {(selectedEntry.status === "draft" || selectedEntry.status === "voided") && (
+                      showDeleteConfirm ? (
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <span style={{ fontSize: "0.85rem", color: "var(--color-red)" }}>
+                            Delete this entry?
+                          </span>
+                          <button
+                            className="ui-btn ui-btn-outline ui-btn-sm"
+                            onClick={() => setShowDeleteConfirm(false)}
+                            disabled={deleteLoading}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="ui-btn ui-btn-primary ui-btn-sm"
+                            style={{ background: "var(--color-red)", borderColor: "var(--color-red)" }}
+                            onClick={handleDelete}
+                            disabled={deleteLoading}
+                          >
+                            {deleteLoading ? "Deleting..." : "Confirm Delete"}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          className="ui-btn ui-btn-outline ui-btn-sm"
+                          onClick={() => setShowDeleteConfirm(true)}
+                          style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                        >
+                          <Trash2 size={14} />
+                          Delete
+                        </button>
+                      )
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {selectedEntry.status === "draft" && (
+                      <>
+                        <button
+                          className="ui-btn ui-btn-outline ui-btn-sm"
+                          onClick={() => {
+                            handleAction(selectedEntry.id, "void");
+                            closeDetail();
+                          }}
+                          style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                        >
+                          <Ban size={14} />
+                          Void
+                        </button>
+                        <button
+                          className="ui-btn ui-btn-primary ui-btn-sm"
+                          onClick={() => {
+                            handleAction(selectedEntry.id, "post");
+                            closeDetail();
+                          }}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                        >
+                          <CheckCircle size={14} />
+                          Post
+                        </button>
+                      </>
+                    )}
+                    {selectedEntry.status === "posted" && (
+                      <button
+                        className="ui-btn ui-btn-outline ui-btn-sm"
+                        onClick={() => {
+                          handleAction(selectedEntry.id, "void");
+                          closeDetail();
+                        }}
+                        style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                      >
+                        <Ban size={14} />
+                        Void
+                      </button>
+                    )}
+                    <button
+                      className="ui-btn ui-btn-outline ui-btn-sm"
+                      onClick={closeDetail}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
       )}
 
       {/* ============================================================
@@ -1020,6 +1296,33 @@ export default function GeneralLedgerClient({
             </div>
           </div>
         </div>
+      )}
+
+      {/* ============================================================
+          IMPORT CSV MODAL
+          ============================================================ */}
+      {showImport && (
+        <ImportModal
+          entityName="Journal Entries"
+          columns={jeImportColumns}
+          sampleData={jeSampleData}
+          onImport={async (rows) => {
+            const res = await fetch("/api/import", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                entity: "journal_entries",
+                rows,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Import failed");
+            await refreshData();
+            router.refresh();
+            return { success: data.success, errors: data.errors };
+          }}
+          onClose={() => setShowImport(false)}
+        />
       )}
 
       {/* Inline keyframes for spinner */}

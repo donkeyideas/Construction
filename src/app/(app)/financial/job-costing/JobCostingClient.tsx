@@ -431,6 +431,52 @@ export default function JobCostingClient({
 
   /* ---- Render ---- */
 
+  // Sample data loader
+  const [loadingSample, setLoadingSample] = useState(false);
+
+  async function loadSampleData() {
+    if (!selectedProjectId) return;
+    setLoadingSample(true);
+    setError(null);
+
+    const sampleLines = [
+      { csi_code: "01", description: "General Requirements", budgeted_amount: 320000, committed_amount: 310000, actual_amount: 285000 },
+      { csi_code: "03", description: "Concrete Foundation", budgeted_amount: 450000, committed_amount: 425000, actual_amount: 380000 },
+      { csi_code: "05", description: "Structural Steel", budgeted_amount: 680000, committed_amount: 675000, actual_amount: 520000 },
+      { csi_code: "06", description: "Rough Carpentry", budgeted_amount: 195000, committed_amount: 190000, actual_amount: 165000 },
+      { csi_code: "07", description: "Roofing & Waterproofing", budgeted_amount: 275000, committed_amount: 260000, actual_amount: 0 },
+      { csi_code: "08", description: "Doors & Windows", budgeted_amount: 180000, committed_amount: 175000, actual_amount: 0 },
+      { csi_code: "09", description: "Drywall & Finishes", budgeted_amount: 310000, committed_amount: 0, actual_amount: 0 },
+      { csi_code: "22", description: "Plumbing", budgeted_amount: 225000, committed_amount: 220000, actual_amount: 95000 },
+      { csi_code: "23", description: "HVAC", budgeted_amount: 385000, committed_amount: 380000, actual_amount: 140000 },
+      { csi_code: "26", description: "Electrical", budgeted_amount: 420000, committed_amount: 410000, actual_amount: 175000 },
+      { csi_code: "31", description: "Site Earthwork", budgeted_amount: 150000, committed_amount: 148000, actual_amount: 148000 },
+      { csi_code: "32", description: "Exterior Improvements", budgeted_amount: 120000, committed_amount: 0, actual_amount: 0 },
+    ];
+
+    try {
+      for (const line of sampleLines) {
+        const res = await fetch("/api/financial/budget-lines", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            project_id: selectedProjectId,
+            ...line,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to create sample data");
+        }
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load sample data");
+    } finally {
+      setLoadingSample(false);
+    }
+  }
+
   return (
     <div>
       {/* Header */}
@@ -639,7 +685,21 @@ export default function JobCostingClient({
             <div className="fin-empty-title">No Budget Lines</div>
             <div className="fin-empty-desc">
               Click &ldquo;Add Budget Line&rdquo; above to start tracking job
-              costs by CSI division.
+              costs by CSI division, or load sample data to see how it works.
+            </div>
+            {error && <div className="ticket-form-error" style={{ marginBottom: 12 }}>{error}</div>}
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <button className="btn btn-primary" onClick={openCreate}>
+                <Plus size={16} />
+                Add Budget Line
+              </button>
+              <button
+                className="btn btn-ghost"
+                onClick={loadSampleData}
+                disabled={loadingSample}
+              >
+                {loadingSample ? "Loading..." : "Load Sample Data"}
+              </button>
             </div>
           </div>
         </div>

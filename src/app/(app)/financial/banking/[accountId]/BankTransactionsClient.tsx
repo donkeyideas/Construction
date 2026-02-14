@@ -828,7 +828,7 @@ export default function BankTransactionsClient({
                     <div
                       className="banking-form-input"
                       style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
+                        background: "var(--surface)",
                         cursor: "default",
                       }}
                     >
@@ -840,7 +840,7 @@ export default function BankTransactionsClient({
                     <div
                       className="banking-form-input"
                       style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
+                        background: "var(--surface)",
                         cursor: "default",
                       }}
                     >
@@ -864,7 +864,7 @@ export default function BankTransactionsClient({
                   <div
                     className="banking-form-input"
                     style={{
-                      background: "var(--color-bg-tertiary, #f3f4f6)",
+                      background: "var(--surface)",
                       cursor: "default",
                     }}
                   >
@@ -878,7 +878,7 @@ export default function BankTransactionsClient({
                     <div
                       className="banking-form-input"
                       style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
+                        background: "var(--surface)",
                         cursor: "default",
                         fontWeight: 600,
                       }}
@@ -891,7 +891,7 @@ export default function BankTransactionsClient({
                     <div
                       className="banking-form-input"
                       style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
+                        background: "var(--surface)",
                         cursor: "default",
                       }}
                     >
@@ -906,7 +906,7 @@ export default function BankTransactionsClient({
                     <div
                       className="banking-form-input"
                       style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
+                        background: "var(--surface)",
                         cursor: "default",
                       }}
                     >
@@ -918,7 +918,7 @@ export default function BankTransactionsClient({
                     <div
                       className="banking-form-input"
                       style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
+                        background: "var(--surface)",
                         cursor: "default",
                       }}
                     >
@@ -933,7 +933,7 @@ export default function BankTransactionsClient({
                     <div
                       className="banking-form-input"
                       style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
+                        background: "var(--surface)",
                         cursor: "default",
                         whiteSpace: "pre-wrap",
                       }}

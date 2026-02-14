@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   Package,
@@ -10,6 +11,7 @@ import {
   Truck,
   ClipboardList,
   Settings,
+  X,
 } from "lucide-react";
 import type { EquipmentRow, EquipmentStats } from "@/lib/queries/equipment";
 
@@ -22,6 +24,18 @@ const STATUS_LABELS: Record<string, string> = {
   in_use: "In Use",
   maintenance: "Maintenance",
   retired: "Retired",
+};
+
+const EQUIPMENT_TYPES: Record<string, string> = {
+  excavator: "Excavator",
+  loader: "Loader",
+  crane: "Crane",
+  truck: "Truck",
+  generator: "Generator",
+  compressor: "Compressor",
+  scaffold: "Scaffold",
+  tools: "Tools",
+  other: "Other",
 };
 
 // ---------------------------------------------------------------------------
@@ -37,6 +51,23 @@ function formatDate(dateStr: string | null) {
   });
 }
 
+function formatCurrency(value: number | null) {
+  if (value === null || value === undefined) return "--";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function getUserName(
+  user: { id: string; full_name: string; email: string } | null | undefined
+): string {
+  if (!user) return "--";
+  return user.full_name || user.email || "Unknown";
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -50,6 +81,8 @@ export default function EquipmentDashboardClient({
   equipment,
   stats,
 }: EquipmentDashboardClientProps) {
+  const [selectedItem, setSelectedItem] = useState<EquipmentRow | null>(null);
+
   return (
     <div className="equipment-page">
       {/* Header */}
@@ -160,9 +193,15 @@ export default function EquipmentDashboardClient({
               </thead>
               <tbody>
                 {equipment.map((item) => (
-                  <tr key={item.id}>
+                  <tr
+                    key={item.id}
+                    className="equipment-table-row"
+                    onClick={() => setSelectedItem(item)}
+                  >
                     <td className="equipment-name-cell">{item.name}</td>
-                    <td className="equipment-type-cell">{item.equipment_type}</td>
+                    <td className="equipment-type-cell">
+                      {EQUIPMENT_TYPES[item.equipment_type] ?? item.equipment_type}
+                    </td>
                     <td>
                       <span className={`equipment-status-badge status-${item.status}`}>
                         {STATUS_LABELS[item.status] ?? item.status}
@@ -178,6 +217,132 @@ export default function EquipmentDashboardClient({
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Equipment Detail Modal */}
+      {selectedItem && (
+        <div className="equipment-modal-overlay" onClick={() => setSelectedItem(null)}>
+          <div className="equipment-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="equipment-modal-header">
+              <h3>{selectedItem.name}</h3>
+              <button className="equipment-modal-close" onClick={() => setSelectedItem(null)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: "0 0 0.5rem" }}>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Name</label>
+                  <div className="detail-value">{selectedItem.name}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Type</label>
+                  <div className="detail-value">
+                    {EQUIPMENT_TYPES[selectedItem.equipment_type] ?? selectedItem.equipment_type}
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Make</label>
+                  <div className="detail-value">{selectedItem.make || "--"}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Model</label>
+                  <div className="detail-value">{selectedItem.model || "--"}</div>
+                </div>
+              </div>
+
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Serial Number</label>
+                  <div className="detail-value">{selectedItem.serial_number || "--"}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Status</label>
+                  <div className="detail-value">
+                    <span className={`equipment-status-badge status-${selectedItem.status}`}>
+                      {STATUS_LABELS[selectedItem.status] ?? selectedItem.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Current Project</label>
+                  <div className="detail-value">{selectedItem.project?.name || "--"}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Assigned To</label>
+                  <div className="detail-value">{getUserName(selectedItem.assignee)}</div>
+                </div>
+              </div>
+
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Purchase Date</label>
+                  <div className="detail-value">{formatDate(selectedItem.purchase_date)}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Purchase Cost</label>
+                  <div className="detail-value">{formatCurrency(selectedItem.purchase_cost)}</div>
+                </div>
+              </div>
+
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Hourly Rate</label>
+                  <div className="detail-value">
+                    {selectedItem.hourly_rate ? `${formatCurrency(selectedItem.hourly_rate)}/hr` : "--"}
+                  </div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Total Hours</label>
+                  <div className="detail-value">{selectedItem.total_hours ?? "--"}</div>
+                </div>
+              </div>
+
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Last Maintenance</label>
+                  <div className="detail-value">{formatDate(selectedItem.last_maintenance_date)}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Next Maintenance</label>
+                  <div className="detail-value">{formatDate(selectedItem.next_maintenance_date)}</div>
+                </div>
+              </div>
+
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Added</label>
+                  <div className="detail-value">{formatDate(selectedItem.created_at)}</div>
+                </div>
+              </div>
+
+              <div className="equipment-form-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setSelectedItem(null)}
+                >
+                  Close
+                </button>
+                <Link
+                  href="/equipment/inventory"
+                  className="btn-primary"
+                  style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                >
+                  View in Inventory
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       )}
