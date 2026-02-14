@@ -32,11 +32,6 @@ export const appNavigation: NavItem[] = [
     icon: "ticket",
   },
   {
-    label: "Contracts",
-    href: "/contracts",
-    icon: "file-text",
-  },
-  {
     label: "Projects",
     icon: "hard-hat",
     children: [
@@ -45,6 +40,7 @@ export const appNavigation: NavItem[] = [
       { label: "Daily Logs", href: "/projects/daily-logs" },
       { label: "RFIs", href: "/projects/rfis" },
       { label: "Change Orders", href: "/projects/change-orders" },
+      { label: "Contracts", href: "/contracts" },
     ],
   },
   {
@@ -101,7 +97,6 @@ export const appNavigation: NavItem[] = [
     children: [
       { label: "Library", href: "/documents" },
       { label: "Plan Room", href: "/documents/plan-room" },
-      { label: "Contracts", href: "/contracts" },
     ],
   },
   {
