@@ -194,6 +194,12 @@
   gap: 10px;
   padding: 10px 0;
   border-bottom: 1px solid var(--border);
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.approval-item:hover {
+  background: var(--hover);
 }
 
 .approval-item:last-of-type {

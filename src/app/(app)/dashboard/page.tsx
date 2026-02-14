@@ -61,7 +61,7 @@ export default async function DashboardPage() {
   const greeting = ROLE_GREETING[userRole] || "Welcome back.";
 
   // Fetch all dashboard data in parallel
-  const [kpis, projectStatus, monthlyBilling, pendingApprovals, recentActivity, outstandingAPRes, outstandingARRes] =
+  const [kpis, projectStatus, monthlyBilling, pendingApprovalsResult, recentActivity, outstandingAPRes, outstandingARRes] =
     await Promise.all([
       getDashboardKPIs(supabase, companyId),
       getProjectStatusBreakdown(supabase, companyId),
@@ -90,6 +90,8 @@ export default async function DashboardPage() {
   const outstandingAR = (outstandingARRes.data ?? []).reduce(
     (sum, r) => sum + (Number(r.balance_due) || 0), 0
   );
+
+  const { items: pendingApprovals, totalCount: pendingApprovalsTotal } = pendingApprovalsResult;
 
   const isNewCompany =
     projectStatus.total === 0 &&
@@ -263,15 +265,26 @@ export default async function DashboardPage() {
           <div className="card">
             <div className="card-title">
               Pending Approvals{" "}
-              {pendingApprovals.length > 0 && (
-                <span className="badge badge-blue">{pendingApprovals.length}</span>
+              {pendingApprovalsTotal > 0 && (
+                <span className="badge badge-blue">{pendingApprovalsTotal}</span>
               )}
             </div>
             {pendingApprovals.length === 0 ? (
               <EmptyState message="No pending approvals" />
             ) : (
               pendingApprovals.map((item) => (
-                <div key={item.entityId} className="approval-item">
+                <a
+                  key={item.entityId}
+                  href={
+                    item.type === "change_order"
+                      ? "/projects/change-orders"
+                      : item.type === "invoice"
+                        ? `/financial/invoices/${item.entityId}`
+                        : "/projects/change-orders"
+                  }
+                  className="approval-item"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
                   <span
                     className="urgency-dot"
                     style={{
@@ -290,13 +303,8 @@ export default async function DashboardPage() {
                   <div className="approval-amount">
                     {item.amount != null ? formatCurrency(item.amount) : "--"}
                   </div>
-                </div>
+                </a>
               ))
-            )}
-            {pendingApprovals.length > 0 && (
-              <a href="/tickets" className="view-all">
-                View All
-              </a>
             )}
           </div>
         )}
@@ -325,11 +333,6 @@ export default async function DashboardPage() {
                 </div>
               ))
             )}
-            {recentActivity.length > 0 && (
-              <a href="/reports" className="view-all">
-                View All
-              </a>
-            )}
           </div>
         )}
 
@@ -343,13 +346,10 @@ export default async function DashboardPage() {
             <AiInsights
               kpis={kpis}
               projectStatus={projectStatus}
-              pendingApprovals={pendingApprovals.length}
+              pendingApprovals={pendingApprovalsTotal}
               outstandingAP={outstandingAP}
               outstandingAR={outstandingAR}
             />
-            <a href="/ai-assistant" className="view-all">
-              View Details
-            </a>
           </div>
         )}
       </div>

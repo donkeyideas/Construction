@@ -214,33 +214,36 @@ export async function getMonthlyBilling(
 export async function getPendingApprovals(
   supabase: SupabaseClient,
   companyId: string
-): Promise<PendingApprovalItem[]> {
+): Promise<{ items: PendingApprovalItem[]; totalCount: number }> {
   // Fetch pending change orders, invoices, and submittals in parallel
+  // Use { count: "exact" } to get real totals
   const [coRes, invRes, subRes] = await Promise.all([
     supabase
       .from("change_orders")
-      .select("id, co_number, title, amount, created_at, requested_by")
+      .select("id, co_number, title, amount, created_at, requested_by", { count: "exact" })
       .eq("company_id", companyId)
       .in("status", ["draft", "submitted"])
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(10),
 
     supabase
       .from("invoices")
-      .select("id, invoice_number, vendor_name, client_name, total_amount, created_at, invoice_type")
+      .select("id, invoice_number, vendor_name, client_name, total_amount, created_at, invoice_type", { count: "exact" })
       .eq("company_id", companyId)
       .eq("status", "pending")
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(10),
 
     supabase
       .from("submittals")
-      .select("id, submittal_number, title, created_at, submitted_by")
+      .select("id, submittal_number, title, created_at, submitted_by", { count: "exact" })
       .eq("company_id", companyId)
       .in("status", ["pending", "under_review"])
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(10),
   ]);
+
+  const totalCount = (coRes.count ?? 0) + (invRes.count ?? 0) + (subRes.count ?? 0);
 
   const items: PendingApprovalItem[] = [];
 
@@ -289,12 +292,12 @@ export async function getPendingApprovals(
     });
   }
 
-  // Sort by created_at desc and take top 5
+  // Sort by created_at desc and take top 8 for display
   items.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  return items.slice(0, 5);
+  return { items: items.slice(0, 8), totalCount };
 }
 
 // ---------------------------------------------------------------------------

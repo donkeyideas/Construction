@@ -36,11 +36,12 @@ export default async function ExecutiveMobilePage() {
   const { companyId } = userCompany;
 
   // Fetch dashboard data in parallel
-  const [kpis, projectStatus, pendingApprovals] = await Promise.all([
+  const [kpis, projectStatus, pendingApprovalsResult] = await Promise.all([
     getDashboardKPIs(supabase, companyId),
     getProjectStatusBreakdown(supabase, companyId),
     getPendingApprovals(supabase, companyId),
   ]);
+  const { items: pendingApprovals, totalCount: pendingApprovalsTotal } = pendingApprovalsResult;
 
   return (
     <div>
@@ -167,7 +168,7 @@ export default async function ExecutiveMobilePage() {
       {/* Pending Approvals */}
       <div className="mobile-card">
         <div className="mobile-card-title">
-          Pending Approvals ({pendingApprovals.length})
+          Pending Approvals ({pendingApprovalsTotal})
         </div>
         {pendingApprovals.length === 0 ? (
           <div className="mobile-empty">No pending approvals</div>
