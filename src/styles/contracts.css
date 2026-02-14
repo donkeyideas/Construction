@@ -571,6 +571,30 @@
   accent-color: var(--color-blue);
 }
 
+/* ===== Detail Value (read-only modal) ===== */
+.contracts-detail-value {
+  font-size: 0.875rem;
+  color: var(--text);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  min-height: 20px;
+  line-height: 1.5;
+}
+
+.contracts-detail-value--empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.contracts-detail-value--multiline {
+  white-space: pre-wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
 /* ===== Detail Page ===== */
 .contracts-back-btn {
   display: inline-flex;

@@ -844,7 +844,7 @@ export default function ContractsClient({
               <div className="contracts-form" style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
                 <div className="contracts-form-group">
                   <label className="contracts-form-label">Title</label>
-                  <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                  <div className="contracts-detail-value">
                     {selectedContract.title}
                   </div>
                 </div>
@@ -852,7 +852,7 @@ export default function ContractsClient({
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Status</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       <span className={`contracts-status-badge status-${selectedContract.status}`}>
                         {STATUS_LABELS[selectedContract.status] ?? selectedContract.status}
                       </span>
@@ -860,7 +860,7 @@ export default function ContractsClient({
                   </div>
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Type</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       <span className="contracts-type-badge">
                         {TYPE_LABELS[selectedContract.contract_type] ?? selectedContract.contract_type}
                       </span>
@@ -871,14 +871,14 @@ export default function ContractsClient({
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Party Name</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {selectedContract.party_name || "--"}
+                    <div className={`contracts-detail-value${!selectedContract.party_name ? " contracts-detail-value--empty" : ""}`}>
+                      {selectedContract.party_name || "Not set"}
                     </div>
                   </div>
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Party Email</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {selectedContract.party_email || "--"}
+                    <div className={`contracts-detail-value${!selectedContract.party_email ? " contracts-detail-value--empty" : ""}`}>
+                      {selectedContract.party_email || "Not set"}
                     </div>
                   </div>
                 </div>
@@ -886,16 +886,16 @@ export default function ContractsClient({
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Amount</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       {formatCurrency(selectedContract.contract_amount)}
                     </div>
                   </div>
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Payment Terms</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className={`contracts-detail-value${!selectedContract.payment_terms ? " contracts-detail-value--empty" : ""}`}>
                       {selectedContract.payment_terms
                         ? PAYMENT_TERMS_LABELS[selectedContract.payment_terms] || selectedContract.payment_terms
-                        : "--"}
+                        : "Not set"}
                     </div>
                   </div>
                 </div>
@@ -903,13 +903,13 @@ export default function ContractsClient({
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Start Date</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       {formatDate(selectedContract.start_date)}
                     </div>
                   </div>
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">End Date</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       {formatDate(selectedContract.end_date)}
                     </div>
                   </div>
@@ -918,15 +918,7 @@ export default function ContractsClient({
                 {selectedContract.scope_of_work && (
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Scope of Work</label>
-                    <div
-                      className="contracts-form-textarea"
-                      style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
-                        cursor: "default",
-                        minHeight: 60,
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
+                    <div className="contracts-detail-value--multiline">
                       {selectedContract.scope_of_work}
                     </div>
                   </div>
@@ -935,13 +927,13 @@ export default function ContractsClient({
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Insurance Required</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       {selectedContract.insurance_required ? "Yes" : "No"}
                     </div>
                   </div>
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Bond Required</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       {selectedContract.bond_required ? "Yes" : "No"}
                     </div>
                   </div>
@@ -950,7 +942,7 @@ export default function ContractsClient({
                 {selectedContract.project && (
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Project</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       {selectedContract.project.name}
                     </div>
                   </div>
@@ -959,13 +951,13 @@ export default function ContractsClient({
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Created</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       {formatDate(selectedContract.created_at)}
                     </div>
                   </div>
                   <div className="contracts-form-group">
                     <label className="contracts-form-label">Updated</label>
-                    <div className="contracts-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="contracts-detail-value">
                       {formatDate(selectedContract.updated_at)}
                     </div>
                   </div>

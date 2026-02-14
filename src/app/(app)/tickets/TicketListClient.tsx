@@ -720,30 +720,24 @@ export default function TicketListClient({
               <div className="ticket-form" style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">Title</label>
-                  <div className="ticket-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                  <div className="ticket-detail-value">
                     {selectedTicket.title}
                   </div>
                 </div>
 
-                <div className="ticket-form-group">
-                  <label className="ticket-form-label">Description</label>
-                  <div
-                    className="ticket-form-textarea"
-                    style={{
-                      background: "var(--color-bg-tertiary, #f3f4f6)",
-                      cursor: "default",
-                      minHeight: 60,
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {selectedTicket.description || "--"}
+                {selectedTicket.description && (
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Description</label>
+                    <div className="ticket-detail-value--multiline">
+                      {selectedTicket.description}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Status</label>
-                    <div className="ticket-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="ticket-detail-value">
                       <span className={`ticket-status-badge status-${selectedTicket.status}`}>
                         {STATUS_LABELS[selectedTicket.status] ?? selectedTicket.status}
                       </span>
@@ -751,7 +745,7 @@ export default function TicketListClient({
                   </div>
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Priority</label>
-                    <div className="ticket-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="ticket-detail-value">
                       <span className={`ticket-priority-badge priority-${selectedTicket.priority}`}>
                         {PRIORITY_LABELS[selectedTicket.priority] ?? selectedTicket.priority}
                       </span>
@@ -762,13 +756,13 @@ export default function TicketListClient({
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Category</label>
-                    <div className="ticket-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {selectedTicket.category || "--"}
+                    <div className={`ticket-detail-value${!selectedTicket.category ? " ticket-detail-value--empty" : ""}`}>
+                      {selectedTicket.category || "Not set"}
                     </div>
                   </div>
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Assignee</label>
-                    <div className="ticket-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="ticket-detail-value">
                       {getUserName(selectedTicket.assignee)}
                     </div>
                   </div>
@@ -777,7 +771,7 @@ export default function TicketListClient({
                 {selectedTicket.tags && selectedTicket.tags.length > 0 && (
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Tags</label>
-                    <div className="ticket-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="ticket-detail-value">
                       {selectedTicket.tags.join(", ")}
                     </div>
                   </div>
@@ -786,13 +780,13 @@ export default function TicketListClient({
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Created</label>
-                    <div className="ticket-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="ticket-detail-value">
                       {formatDate(selectedTicket.created_at)}
                     </div>
                   </div>
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Updated</label>
-                    <div className="ticket-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="ticket-detail-value">
                       {formatDate(selectedTicket.updated_at)}
                     </div>
                   </div>
@@ -801,7 +795,7 @@ export default function TicketListClient({
                 {selectedTicket.resolved_at && (
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Resolved</label>
-                    <div className="ticket-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                    <div className="ticket-detail-value">
                       {formatDate(selectedTicket.resolved_at)}
                     </div>
                   </div>
