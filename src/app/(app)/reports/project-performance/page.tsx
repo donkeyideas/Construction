@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Download, HardHat } from "lucide-react";
+import { ArrowLeft, HardHat } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProjectPerformanceReport } from "@/lib/queries/reports";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
+import ReportExportButton from "@/components/ReportExportButton";
 
 export const metadata = {
   title: "Project Performance Report - ConstructionERP",
@@ -98,10 +99,33 @@ export default async function ProjectPerformancePage() {
             </p>
           </div>
           <div className="report-page-actions">
-            <button className="export-btn" disabled title="Export coming soon">
-              <Download size={16} />
-              Export
-            </button>
+            <ReportExportButton
+              data={projects.map((p) => ({
+                name: p.name,
+                code: p.code,
+                status: p.status,
+                contract_amount: p.contract_amount,
+                estimated_cost: p.estimated_cost,
+                actual_cost: p.actual_cost,
+                budget_variance: p.budget_variance,
+                budget_variance_pct: p.budget_variance_pct,
+                completion_pct: p.completion_pct,
+                schedule_status: p.schedule_status,
+              }))}
+              columns={[
+                { key: "name", label: "Project" },
+                { key: "code", label: "Code" },
+                { key: "status", label: "Status" },
+                { key: "contract_amount", label: "Contract Value" },
+                { key: "estimated_cost", label: "Estimated Cost" },
+                { key: "actual_cost", label: "Actual Cost" },
+                { key: "budget_variance", label: "Budget Variance" },
+                { key: "budget_variance_pct", label: "Variance %" },
+                { key: "completion_pct", label: "Completion %" },
+                { key: "schedule_status", label: "Schedule Status" },
+              ]}
+              filename={`project-performance-${new Date().toISOString().slice(0, 10)}`}
+            />
           </div>
         </div>
       </div>

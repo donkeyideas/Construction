@@ -14,6 +14,12 @@ import {
   FileText,
   TrendingUp,
   ShieldAlert,
+  HardHat,
+  Building2,
+  DollarSign,
+  Wrench,
+  Users,
+  ClipboardList,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -31,6 +37,7 @@ interface RelatedDataItem {
   title: string;
   value: string;
   detail?: string;
+  type?: "positive" | "negative" | "warning" | "neutral";
 }
 
 interface AIChatClientProps {
@@ -42,6 +49,50 @@ interface AIChatClientProps {
   providerName: string | null;
   initialConversations: Conversation[];
 }
+
+// Contextual follow-up suggestions based on what tools were called
+const FOLLOW_UP_MAP: Record<string, string[]> = {
+  queryProjects: [
+    "Which projects are over budget?",
+    "Show schedule status for active projects",
+    "Compare project completion rates",
+  ],
+  queryFinancials: [
+    "Show overdue invoices",
+    "What's our AR vs AP position?",
+    "Recent payment activity",
+  ],
+  queryProperties: [
+    "Which properties have low occupancy?",
+    "What's the total monthly NOI?",
+    "Show leases expiring in 90 days",
+  ],
+  queryMaintenanceRequests: [
+    "Show emergency maintenance requests",
+    "Maintenance by property",
+    "How many requests are overdue?",
+  ],
+  querySafetyData: [
+    "Show OSHA recordable incidents",
+    "Recent toolbox talks",
+    "Safety trends this quarter",
+  ],
+  queryLeases: [
+    "Leases expiring in 30 days",
+    "Total monthly rent roll",
+    "Show auto-renew leases",
+  ],
+  queryEquipment: [
+    "Equipment needing maintenance",
+    "What equipment is available?",
+    "Total equipment asset value",
+  ],
+  queryWorkforce: [
+    "Show team by role",
+    "Expiring certifications",
+    "Who joined recently?",
+  ],
+};
 
 // ---------------------------------------------------------------------------
 // Main Component
@@ -62,6 +113,7 @@ export function AIChatClient({
     string | null
   >(null);
   const [relatedData, setRelatedData] = useState<RelatedDataItem[]>([]);
+  const [followUpSuggestions, setFollowUpSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const savingRef = useRef(false);
 
@@ -79,9 +131,11 @@ export function AIChatClient({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Extract related data from tool results in messages
+  // Extract related data and follow-up suggestions from tool results
   useEffect(() => {
     const items: RelatedDataItem[] = [];
+    const toolsUsed = new Set<string>();
+
     for (const msg of messages) {
       if (msg.role !== "assistant" || !msg.parts) continue;
       for (const part of msg.parts) {
@@ -90,89 +144,170 @@ export function AIChatClient({
           (part as ToolPart).state === "output-available"
         ) {
           const tp = part as ToolPart;
-          const output = tp.output;
-          if (tp.toolInvocation?.toolName === "queryProjects" && Array.isArray(output)) {
-            const overBudget = output.filter(
-              (p: Record<string, unknown>) =>
-                Number(p.actual_cost ?? 0) > Number(p.contract_amount ?? 0)
-            );
-            if (overBudget.length > 0) {
+          const output = tp.output as Record<string, unknown> | unknown[];
+          const toolName = tp.toolInvocation?.toolName ?? "";
+          toolsUsed.add(toolName);
+
+          if (!output || typeof output !== "object") continue;
+
+          // Extract summary data from structured tool responses
+          const summary = (output as Record<string, unknown>)
+            .summary as Record<string, unknown> | undefined;
+
+          if (toolName === "queryProjects" && summary) {
+            items.push({
+              title: "Projects Found",
+              value: String(summary.count ?? 0),
+              detail: `Avg ${summary.averageCompletion ?? 0}% complete`,
+            });
+            if (Number(summary.overBudgetCount ?? 0) > 0) {
               items.push({
-                title: "Over-Budget Projects",
-                value: String(overBudget.length),
-                detail: overBudget
-                  .map((p: Record<string, unknown>) => p.name)
-                  .join(", "),
+                title: "Over Budget",
+                value: String(summary.overBudgetCount),
+                detail: `${formatCurrency(Number(summary.totalVariance ?? 0))} total variance`,
+                type: "negative",
               });
             }
-            if (output.length > 0) {
+            if (Number(summary.totalContractValue ?? 0) > 0) {
               items.push({
-                title: "Projects Queried",
-                value: String(output.length),
-                detail: `Filtered from company data`,
+                title: "Total Contract Value",
+                value: formatCurrency(Number(summary.totalContractValue)),
               });
             }
           }
-          if (tp.toolInvocation?.toolName === "queryFinancials" && output) {
-            const o = output as Record<string, unknown>;
-            if (o.totalAmount !== undefined) {
-              items.push({
-                title: "Total Invoiced",
-                value: formatCurrency(Number(o.totalAmount)),
-                detail: `${o.overdueCount ?? 0} overdue, ${o.paidCount ?? 0} paid`,
-              });
-            }
-            if (o.totalOutstanding !== undefined) {
+
+          if (toolName === "queryFinancials" && summary) {
+            if (summary.totalOutstanding !== undefined) {
               items.push({
                 title: "Outstanding Balance",
-                value: formatCurrency(Number(o.totalOutstanding)),
+                value: formatCurrency(Number(summary.totalOutstanding)),
+                type:
+                  Number(summary.overdueCount ?? 0) > 0
+                    ? "warning"
+                    : "neutral",
               });
             }
-            if (Array.isArray(o)) {
+            if (summary.accountsReceivable !== undefined) {
               items.push({
-                title: "Financial Records",
-                value: String(o.length),
+                title: "Accounts Receivable",
+                value: formatCurrency(Number(summary.accountsReceivable)),
+              });
+            }
+            if (summary.accountsPayable !== undefined) {
+              items.push({
+                title: "Accounts Payable",
+                value: formatCurrency(Number(summary.accountsPayable)),
+              });
+            }
+            if (summary.totalOverdueAmount !== undefined) {
+              items.push({
+                title: "Overdue Amount",
+                value: formatCurrency(Number(summary.totalOverdueAmount)),
+                detail: `${summary.count ?? 0} overdue invoices`,
+                type: "negative",
               });
             }
           }
-          if (
-            tp.toolInvocation?.toolName === "queryProperties" &&
-            Array.isArray(output) &&
-            output.length > 0
-          ) {
-            const totalUnits = output.reduce(
-              (s: number, p: Record<string, unknown>) =>
-                s + Number(p.total_units ?? 0),
-              0
-            );
-            const occupied = output.reduce(
-              (s: number, p: Record<string, unknown>) =>
-                s + Number(p.occupied_units ?? 0),
-              0
-            );
-            items.push({
-              title: "Properties",
-              value: String(output.length),
-              detail:
-                totalUnits > 0
-                  ? `${occupied}/${totalUnits} units occupied`
-                  : undefined,
-            });
+
+          if (toolName === "queryProperties" && summary) {
+            if (Number(summary.count ?? 0) > 0) {
+              items.push({
+                title: "Portfolio",
+                value: `${summary.count} properties`,
+                detail: `${summary.avgOccupancy ?? 0}% occupancy`,
+                type:
+                  Number(summary.avgOccupancy ?? 0) >= 90
+                    ? "positive"
+                    : Number(summary.avgOccupancy ?? 0) >= 75
+                      ? "warning"
+                      : "negative",
+              });
+            }
+            if (Number(summary.totalMonthlyNOI ?? 0) !== 0) {
+              items.push({
+                title: "Monthly NOI",
+                value: formatCurrency(Number(summary.totalMonthlyNOI)),
+                type:
+                  Number(summary.totalMonthlyNOI ?? 0) > 0
+                    ? "positive"
+                    : "negative",
+              });
+            }
           }
-          if (
-            tp.toolInvocation?.toolName === "queryMaintenanceRequests" &&
-            Array.isArray(output)
-          ) {
+
+          if (toolName === "queryMaintenanceRequests" && summary) {
             items.push({
               title: "Open Requests",
-              value: String(output.length),
-              detail: `Active maintenance items`,
+              value: String(summary.total ?? 0),
+              detail:
+                Number(summary.urgentCount ?? 0) > 0
+                  ? `${summary.urgentCount} urgent`
+                  : "No urgent items",
+              type:
+                Number(summary.urgentCount ?? 0) > 0
+                  ? "negative"
+                  : "positive",
+            });
+          }
+
+          if (toolName === "querySafetyData" && summary) {
+            items.push({
+              title: "Safety Incidents",
+              value: String(summary.totalIncidents ?? 0),
+              detail: `${summary.openIncidents ?? 0} open, ${summary.oshaRecordable ?? 0} OSHA recordable`,
+              type:
+                Number(summary.openIncidents ?? 0) > 0
+                  ? "warning"
+                  : "positive",
+            });
+          }
+
+          if (toolName === "queryLeases" && summary) {
+            items.push({
+              title: "Leases",
+              value: String(summary.count ?? 0),
+              detail: `${formatCurrency(Number(summary.totalMonthlyRent ?? 0))}/mo rent`,
+            });
+          }
+
+          if (toolName === "queryEquipment" && summary) {
+            items.push({
+              title: "Equipment",
+              value: String(summary.count ?? 0),
+              detail: `${summary.available ?? 0} available, ${summary.inUse ?? 0} in use`,
+              type:
+                Number(summary.maintenanceOverdue ?? 0) > 0
+                  ? "warning"
+                  : "neutral",
+            });
+          }
+
+          if (toolName === "queryWorkforce" && summary) {
+            items.push({
+              title: "Team Members",
+              value: String(summary.activeMembers ?? 0),
+              detail: `${summary.inactiveMembers ?? 0} inactive`,
             });
           }
         }
       }
     }
+
     setRelatedData(items);
+
+    // Build contextual follow-up suggestions from tools used
+    const suggestions: string[] = [];
+    for (const tool of toolsUsed) {
+      const mapped = FOLLOW_UP_MAP[tool];
+      if (mapped) {
+        for (const s of mapped) {
+          if (suggestions.length < 4 && !suggestions.includes(s)) {
+            suggestions.push(s);
+          }
+        }
+      }
+    }
+    setFollowUpSuggestions(suggestions);
   }, [messages]);
 
   // Save conversation when assistant finishes responding
@@ -181,11 +316,13 @@ export function AIChatClient({
     savingRef.current = true;
 
     const serializable = messages.map((m) => {
-      // Extract text content from parts
-      const textContent = m.parts
-        ?.filter((p): p is { type: "text"; text: string } => p.type === "text")
-        .map((p) => p.text)
-        .join("") ?? "";
+      const textContent =
+        m.parts
+          ?.filter(
+            (p): p is { type: "text"; text: string } => p.type === "text"
+          )
+          .map((p) => p.text)
+          .join("") ?? "";
       return {
         id: m.id,
         role: m.role,
@@ -199,7 +336,6 @@ export function AIChatClient({
       : "Chat";
 
     if (activeConversationId) {
-      // Update existing
       fetch(`/api/ai/conversations/${activeConversationId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -210,7 +346,6 @@ export function AIChatClient({
           savingRef.current = false;
         });
     } else {
-      // Create new
       fetch("/api/ai/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -258,6 +393,7 @@ export function AIChatClient({
     setMessages([]);
     setActiveConversationId(null);
     setRelatedData([]);
+    setFollowUpSuggestions([]);
     setInput("");
   }, [setMessages]);
 
@@ -268,7 +404,6 @@ export function AIChatClient({
       if (!res.ok) return;
       const data = await res.json();
       setActiveConversationId(id);
-      // Load stored messages back into chat
       if (Array.isArray(data.messages) && data.messages.length > 0) {
         setMessages(
           data.messages.map(
@@ -284,6 +419,7 @@ export function AIChatClient({
         setMessages([]);
       }
       setRelatedData([]);
+      setFollowUpSuggestions([]);
     },
     [activeConversationId, setMessages]
   );
@@ -326,10 +462,21 @@ export function AIChatClient({
     <div className="ai-chat-layout">
       {/* Main chat area */}
       <div className="ai-chat-main">
-        {/* Header with tabs */}
+        {/* Header */}
         <div className="ai-chat-header">
           <div className="ai-chat-header-top">
-            <h2>AI Assistant</h2>
+            <div className="ai-chat-header-left">
+              <div className="ai-chat-header-icon">
+                <Sparkles size={20} />
+              </div>
+              <div>
+                <h2>AI Assistant</h2>
+                <p className="ai-chat-header-sub">
+                  Ask questions about your projects, finances, properties, and
+                  operations
+                </p>
+              </div>
+            </div>
             {providerName && (
               <span className="ai-chat-provider-badge">
                 <span className="ai-chat-provider-dot" />
@@ -337,17 +484,17 @@ export function AIChatClient({
               </span>
             )}
           </div>
-          <div className="ai-chat-tabs">
-            <button className="ai-chat-tab active">Chat</button>
-            <a href="/automation" className="ai-chat-tab">
-              Automation Center
-            </a>
-          </div>
         </div>
 
         {/* Messages */}
         <div className="ai-messages">
-          {messages.length === 0 && <WelcomeMessage userName={userName} />}
+          {messages.length === 0 && (
+            <WelcomeMessage
+              userName={userName}
+              onPrompt={handleQuickPrompt}
+              disabled={isLoading}
+            />
+          )}
 
           {messages.map((msg) => (
             <ChatMessage
@@ -369,16 +516,10 @@ export function AIChatClient({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Suggested prompts (pills) */}
-        {messages.length === 0 && (
+        {/* Contextual follow-up suggestions */}
+        {followUpSuggestions.length > 0 && !isLoading && messages.length > 0 && (
           <div className="ai-suggested-prompts">
-            {[
-              "Over-budget projects",
-              "Overdue invoices",
-              "Cash flow summary",
-              "Open maintenance",
-              "Property portfolio",
-            ].map((text) => (
+            {followUpSuggestions.map((text) => (
               <button
                 key={text}
                 className="ai-suggested-pill"
@@ -419,7 +560,10 @@ export function AIChatClient({
           {relatedData.length > 0 ? (
             <div className="ai-data-cards">
               {relatedData.map((item, i) => (
-                <div key={i} className="ai-data-card">
+                <div
+                  key={i}
+                  className={`ai-data-card ${item.type ? `ai-data-card-${item.type}` : ""}`}
+                >
                   <div className="ai-data-card-title">{item.title}</div>
                   <div className="ai-data-card-value">{item.value}</div>
                   {item.detail && (
@@ -443,7 +587,9 @@ export function AIChatClient({
               className="ai-quick-action-btn"
               disabled={isLoading}
               onClick={() =>
-                handleQuickPrompt("Analyze all active projects and flag any risks")
+                handleQuickPrompt(
+                  "Give me a complete overview of all active projects with budget and schedule status"
+                )
               }
             >
               <BarChart3 size={18} />
@@ -453,7 +599,9 @@ export function AIChatClient({
               className="ai-quick-action-btn"
               disabled={isLoading}
               onClick={() =>
-                handleQuickPrompt("Generate a financial summary report")
+                handleQuickPrompt(
+                  "Generate a financial summary with AR/AP, outstanding invoices, and cash position"
+                )
               }
             >
               <FileText size={18} />
@@ -463,23 +611,25 @@ export function AIChatClient({
               className="ai-quick-action-btn"
               disabled={isLoading}
               onClick={() =>
-                handleQuickPrompt("Forecast cash flow for the next 90 days")
+                handleQuickPrompt(
+                  "What are the top risks across all projects, properties, and financials right now?"
+                )
               }
             >
-              <TrendingUp size={18} />
-              Forecast
+              <ShieldAlert size={18} />
+              Risks
             </button>
             <button
               className="ai-quick-action-btn"
               disabled={isLoading}
               onClick={() =>
                 handleQuickPrompt(
-                  "Identify top risk areas across all projects and properties"
+                  "Show property portfolio performance with occupancy, NOI, and any leases expiring soon"
                 )
               }
             >
-              <ShieldAlert size={18} />
-              Risk
+              <TrendingUp size={18} />
+              Portfolio
             </button>
           </div>
         </div>
@@ -541,17 +691,87 @@ interface ToolPart {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function WelcomeMessage({ userName }: { userName: string }) {
+function WelcomeMessage({
+  userName,
+  onPrompt,
+  disabled,
+}: {
+  userName: string;
+  onPrompt: (text: string) => void;
+  disabled: boolean;
+}) {
+  const starters = [
+    {
+      icon: <HardHat size={18} />,
+      label: "Project Status",
+      prompt: "Show me all active projects with budget and schedule status",
+    },
+    {
+      icon: <DollarSign size={18} />,
+      label: "Financial Overview",
+      prompt:
+        "Give me a financial summary including AR/AP, overdue invoices, and cash position",
+    },
+    {
+      icon: <Building2 size={18} />,
+      label: "Property Portfolio",
+      prompt:
+        "Show the property portfolio with occupancy rates, revenue, and NOI",
+    },
+    {
+      icon: <Wrench size={18} />,
+      label: "Maintenance",
+      prompt: "What are the open maintenance requests by priority?",
+    },
+    {
+      icon: <ShieldAlert size={18} />,
+      label: "Safety Report",
+      prompt:
+        "Give me a safety overview including recent incidents and toolbox talks",
+    },
+    {
+      icon: <Users size={18} />,
+      label: "Team Overview",
+      prompt:
+        "Show team composition by role and any expiring certifications",
+    },
+    {
+      icon: <ClipboardList size={18} />,
+      label: "Lease Expiration",
+      prompt: "Show leases expiring in the next 90 days",
+    },
+    {
+      icon: <TrendingUp size={18} />,
+      label: "Risk Analysis",
+      prompt:
+        "Identify the top risks across projects, financials, and properties",
+    },
+  ];
+
   return (
     <div className="ai-welcome">
       <div className="ai-welcome-icon">
-        <Sparkles size={24} />
+        <Sparkles size={28} />
       </div>
       <h3>Welcome, {userName}</h3>
       <p>
-        Ask me anything about your projects, financials, properties, or
-        operations. I can query your real data to provide accurate answers.
+        I have access to your project, financial, property, safety, equipment,
+        and workforce data. Ask me anything — I&apos;ll query your real data
+        and give you actionable insights.
       </p>
+      <div className="ai-welcome-starters">
+        {starters.map((s) => (
+          <button
+            key={s.label}
+            className="ai-welcome-starter"
+            onClick={() => onPrompt(s.prompt)}
+            disabled={disabled}
+          >
+            <span className="ai-welcome-starter-icon">{s.icon}</span>
+            <span>{s.label}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -620,8 +840,6 @@ function ChatMessage({
                 );
               }
 
-              // Tool invocation parts — AI SDK v6 puts state/input/output
-              // directly on the part, NOT nested under part.toolInvocation
               if (part.type === "tool-invocation") {
                 const toolName = part.toolInvocation?.toolName ?? "unknown";
                 const state = part.state ?? "input-available";
@@ -678,6 +896,10 @@ function ToolCallDisplay({
     queryFinancials: "Querying financial data",
     queryProperties: "Querying properties",
     queryMaintenanceRequests: "Querying maintenance requests",
+    querySafetyData: "Querying safety data",
+    queryLeases: "Querying leases",
+    queryEquipment: "Querying equipment",
+    queryWorkforce: "Querying workforce data",
   };
 
   const label = friendlyName[toolName] ?? `Running ${toolName}`;

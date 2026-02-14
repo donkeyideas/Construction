@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Download, CreditCard } from "lucide-react";
+import { ArrowLeft, CreditCard } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAgingReport } from "@/lib/queries/reports";
 import { formatCurrency } from "@/lib/utils/format";
+import ReportExportButton from "@/components/ReportExportButton";
 
 export const metadata = {
   title: "Aging Report - ConstructionERP",
@@ -58,10 +59,29 @@ export default async function AgingReportPage({
             </p>
           </div>
           <div className="report-page-actions">
-            <button className="export-btn" disabled title="Export coming soon">
-              <Download size={16} />
-              Export
-            </button>
+            <ReportExportButton
+              data={report.invoices.map((inv) => ({
+                invoice_number: inv.invoice_number,
+                name: activeType === "receivable" ? (inv.client_name ?? "") : (inv.vendor_name ?? ""),
+                invoice_date: inv.invoice_date,
+                due_date: inv.due_date,
+                total_amount: inv.total_amount,
+                balance_due: inv.balance_due,
+                aging_days: inv.aging_days,
+                aging_bucket: inv.aging_bucket,
+              }))}
+              columns={[
+                { key: "invoice_number", label: "Invoice #" },
+                { key: "name", label: activeType === "receivable" ? "Client" : "Vendor" },
+                { key: "invoice_date", label: "Invoice Date" },
+                { key: "due_date", label: "Due Date" },
+                { key: "total_amount", label: "Total Amount" },
+                { key: "balance_due", label: "Balance Due" },
+                { key: "aging_days", label: "Days Overdue" },
+                { key: "aging_bucket", label: "Bucket" },
+              ]}
+              filename={`aging-${activeType}-${new Date().toISOString().slice(0, 10)}`}
+            />
           </div>
         </div>
       </div>

@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Download, Building2 } from "lucide-react";
+import { ArrowLeft, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPropertyPortfolioReport } from "@/lib/queries/reports";
 import { formatCurrency, formatPercent, formatCompactCurrency } from "@/lib/utils/format";
+import ReportExportButton from "@/components/ReportExportButton";
 
 export const metadata = {
   title: "Property Portfolio Report - ConstructionERP",
@@ -41,10 +42,31 @@ export default async function PortfolioReportPage() {
             </p>
           </div>
           <div className="report-page-actions">
-            <button className="export-btn" disabled title="Export coming soon">
-              <Download size={16} />
-              Export
-            </button>
+            <ReportExportButton
+              data={portfolio.properties.map((p) => ({
+                name: p.name,
+                property_type: p.property_type,
+                total_units: p.total_units,
+                occupied_units: p.occupied_units,
+                occupancy_rate: p.occupancy_rate,
+                monthly_revenue: p.monthly_revenue,
+                monthly_expenses: p.monthly_expenses,
+                noi: p.noi,
+                cap_rate: p.cap_rate,
+              }))}
+              columns={[
+                { key: "name", label: "Property" },
+                { key: "property_type", label: "Type" },
+                { key: "total_units", label: "Total Units" },
+                { key: "occupied_units", label: "Occupied Units" },
+                { key: "occupancy_rate", label: "Occupancy %" },
+                { key: "monthly_revenue", label: "Monthly Revenue" },
+                { key: "monthly_expenses", label: "Monthly Expenses" },
+                { key: "noi", label: "NOI" },
+                { key: "cap_rate", label: "Cap Rate %" },
+              ]}
+              filename={`portfolio-report-${new Date().toISOString().slice(0, 10)}`}
+            />
           </div>
         </div>
       </div>

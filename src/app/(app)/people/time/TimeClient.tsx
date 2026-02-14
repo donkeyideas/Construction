@@ -59,6 +59,7 @@ interface TimeClientProps {
   weekEndISO: string;
   prevWeekISO: string;
   nextWeekISO: string;
+  userRole: string;
 }
 
 function formatDateShort(iso: string): string {
@@ -75,6 +76,7 @@ export default function TimeClient({
   weekEndISO,
   prevWeekISO,
   nextWeekISO,
+  userRole,
 }: TimeClientProps) {
   const router = useRouter();
 
@@ -85,6 +87,9 @@ export default function TimeClient({
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [showImport, setShowImport] = useState(false);
+
+  const [approving, setApproving] = useState(false);
+  const isAdmin = ["owner", "admin"].includes(userRole);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -185,6 +190,31 @@ export default function TimeClient({
     if (!res.ok) throw new Error(data.error || "Import failed");
     router.refresh();
     return { success: data.success, errors: data.errors };
+  }
+
+  async function handleApproveAll() {
+    if (!isAdmin || approving) return;
+    const pendingIds = entries.filter((e) => e.status === "pending").map((e) => e.id);
+    if (pendingIds.length === 0) return;
+
+    setApproving(true);
+    try {
+      const res = await fetch("/api/people/time/approve-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entryIds: pendingIds }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to approve entries");
+        return;
+      }
+      router.refresh();
+    } catch {
+      alert("Failed to approve entries");
+    } finally {
+      setApproving(false);
+    }
   }
 
   // Detail modal handlers
@@ -332,10 +362,16 @@ export default function TimeClient({
             <strong>{pendingCount}</strong> time{" "}
             {pendingCount !== 1 ? "entries" : "entry"} pending approval
           </div>
-          <button className="ui-btn ui-btn-sm ui-btn-primary">
-            <CheckCircle2 size={14} />
-            Approve All
-          </button>
+          {isAdmin && (
+            <button
+              className="ui-btn ui-btn-sm ui-btn-primary"
+              onClick={handleApproveAll}
+              disabled={approving}
+            >
+              <CheckCircle2 size={14} />
+              {approving ? "Approving..." : "Approve All"}
+            </button>
+          )}
         </div>
       )}
 
@@ -734,16 +770,18 @@ export default function TimeClient({
               )}
             </div>
 
-            <div className="ticket-form-actions">
-              <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
-                <Trash2 size={16} />
-                Delete
-              </button>
-              <button className="btn-primary" onClick={() => startEdit(selectedEntry)}>
-                <Edit3 size={16} />
-                Edit
-              </button>
-            </div>
+            {isAdmin && (
+              <div className="ticket-form-actions">
+                <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
+                  <Trash2 size={16} />
+                  Delete
+                </button>
+                <button className="btn-primary" onClick={() => startEdit(selectedEntry)}>
+                  <Edit3 size={16} />
+                  Edit
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

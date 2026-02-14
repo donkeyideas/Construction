@@ -123,7 +123,10 @@ export async function getDocuments(
   }
 
   if (filters?.folderPath) {
-    query = query.eq("folder_path", filters.folderPath);
+    // Match exact folder or child folders (prefix match)
+    query = query.or(
+      `folder_path.eq.${filters.folderPath},folder_path.like.${filters.folderPath}/%`
+    );
   }
 
   if (filters?.search) {

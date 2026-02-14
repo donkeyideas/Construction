@@ -115,6 +115,7 @@ export default async function TimeAttendancePage({
       weekEndISO={formatDateISO(weekEnd)}
       prevWeekISO={formatDateISO(prevWeek)}
       nextWeekISO={formatDateISO(nextWeek)}
+      userRole={userCompany.role}
     />
   );
 }

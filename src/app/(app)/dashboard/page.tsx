@@ -27,6 +27,27 @@ export const metadata = {
   title: "Dashboard - ConstructionERP",
 };
 
+// Which dashboard sections each role can see
+const ROLE_SECTIONS: Record<string, { kpis: boolean; charts: boolean; financials: boolean; approvals: boolean; activity: boolean; insights: boolean }> = {
+  owner:           { kpis: true,  charts: true,  financials: true,  approvals: true,  activity: true,  insights: true  },
+  admin:           { kpis: true,  charts: true,  financials: true,  approvals: true,  activity: true,  insights: true  },
+  project_manager: { kpis: true,  charts: true,  financials: false, approvals: true,  activity: true,  insights: true  },
+  superintendent:  { kpis: true,  charts: true,  financials: false, approvals: true,  activity: true,  insights: false },
+  accountant:      { kpis: true,  charts: true,  financials: true,  approvals: false, activity: true,  insights: true  },
+  field_worker:    { kpis: true,  charts: false, financials: false, approvals: false, activity: true,  insights: false },
+  viewer:          { kpis: true,  charts: false, financials: false, approvals: false, activity: true,  insights: false },
+};
+
+const ROLE_GREETING: Record<string, string> = {
+  owner: "Here is your company overview.",
+  admin: "Here is your company overview.",
+  project_manager: "Here are your project updates.",
+  superintendent: "Here are your field operations.",
+  accountant: "Here is your financial overview.",
+  field_worker: "Here are your assignments for today.",
+  viewer: "Here is a snapshot of current activity.",
+};
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const userCompany = await getCurrentUserCompany(supabase);
@@ -35,7 +56,9 @@ export default async function DashboardPage() {
     redirect("/register");
   }
 
-  const { companyId, companyName } = userCompany;
+  const { companyId, companyName, role: userRole } = userCompany;
+  const sections = ROLE_SECTIONS[userRole] || ROLE_SECTIONS.viewer;
+  const greeting = ROLE_GREETING[userRole] || "Welcome back.";
 
   // Fetch all dashboard data in parallel
   const [kpis, projectStatus, monthlyBilling, pendingApprovals, recentActivity, outstandingAPRes, outstandingARRes] =
@@ -136,7 +159,7 @@ export default async function DashboardPage() {
         <div>
           <h2>Dashboard</h2>
           <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: "2px" }}>
-            Welcome back. Here is what is happening today.
+            {greeting}
           </p>
         </div>
         <div
@@ -160,161 +183,175 @@ export default async function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="kpi-grid">
-        <KpiCard
-          label="Active Projects"
-          value={formatCompactCurrency(kpis.activeProjectsValue)}
-          icon={<Briefcase size={22} />}
-        />
-        <KpiCard
-          label="Cash Position"
-          value={formatCompactCurrency(kpis.cashPosition)}
-          icon={<DollarSign size={22} />}
-        />
-        <KpiCard
-          label="Open Change Orders"
-          value={String(kpis.openChangeOrders)}
-          amber={kpis.openChangeOrders > 0}
-          icon={<FileWarning size={22} />}
-        />
-        <KpiCard
-          label="Schedule Performance"
-          value={formatPercent(kpis.schedulePerformance)}
-          icon={<Clock size={22} />}
-        />
-      </div>
+      {sections.kpis && (
+        <div className="kpi-grid">
+          <KpiCard
+            label="Active Projects"
+            value={formatCompactCurrency(kpis.activeProjectsValue)}
+            icon={<Briefcase size={22} />}
+          />
+          {sections.financials && (
+            <KpiCard
+              label="Cash Position"
+              value={formatCompactCurrency(kpis.cashPosition)}
+              icon={<DollarSign size={22} />}
+            />
+          )}
+          <KpiCard
+            label="Open Change Orders"
+            value={String(kpis.openChangeOrders)}
+            amber={kpis.openChangeOrders > 0}
+            icon={<FileWarning size={22} />}
+          />
+          <KpiCard
+            label="Schedule Performance"
+            value={formatPercent(kpis.schedulePerformance)}
+            icon={<Clock size={22} />}
+          />
+        </div>
+      )}
 
       {/* Charts Row */}
-      <div className="charts-row">
-        {/* Monthly Billing Bar Chart */}
-        <div className="card">
-          <div className="card-title">Monthly Billing</div>
-          {bars.every((b) => b.amount === 0) ? (
-            <EmptyState message="No billing data yet" />
-          ) : (
-            <div className="bar-chart">
-              {bars.map((m) => (
-                <div key={m.label} className="bar-col">
-                  <div className="bar" style={{ height: `${m.height}%` }} />
-                  <div className="bar-label">{m.label}</div>
+      {sections.charts && (
+        <div className="charts-row">
+          {/* Monthly Billing Bar Chart - only for financial roles */}
+          {sections.financials && (
+            <div className="card">
+              <div className="card-title">Monthly Billing</div>
+              {bars.every((b) => b.amount === 0) ? (
+                <EmptyState message="No billing data yet" />
+              ) : (
+                <div className="bar-chart">
+                  {bars.map((m) => (
+                    <div key={m.label} className="bar-col">
+                      <div className="bar" style={{ height: `${m.height}%` }} />
+                      <div className="bar-label">{m.label}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
-        </div>
 
-        {/* Project Status Donut */}
-        <div className="card">
-          <div className="card-title">Project Status</div>
-          <div className="donut-wrap">
-            <div className="donut" style={{ background: conicGradient }}>
-              <div className="donut-hole">
-                <strong>{projectStatus.total}</strong>
-                <span>{projectStatus.total === 1 ? "Project" : "Projects"}</span>
-              </div>
-            </div>
-            <div className="legend">
-              {donutSegments.map((seg) => (
-                <div key={seg.label} className="legend-item">
-                  <span className="legend-dot" style={{ background: seg.color }} />
-                  {seg.label} {seg.pct}%
+          {/* Project Status Donut */}
+          <div className="card">
+            <div className="card-title">Project Status</div>
+            <div className="donut-wrap">
+              <div className="donut" style={{ background: conicGradient }}>
+                <div className="donut-hole">
+                  <strong>{projectStatus.total}</strong>
+                  <span>{projectStatus.total === 1 ? "Project" : "Projects"}</span>
                 </div>
-              ))}
+              </div>
+              <div className="legend">
+                {donutSegments.map((seg) => (
+                  <div key={seg.label} className="legend-item">
+                    <span className="legend-dot" style={{ background: seg.color }} />
+                    {seg.label} {seg.pct}%
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Three Cards Row */}
       <div className="three-row">
         {/* Pending Approvals */}
-        <div className="card">
-          <div className="card-title">
-            Pending Approvals{" "}
+        {sections.approvals && (
+          <div className="card">
+            <div className="card-title">
+              Pending Approvals{" "}
+              {pendingApprovals.length > 0 && (
+                <span className="badge badge-blue">{pendingApprovals.length}</span>
+              )}
+            </div>
+            {pendingApprovals.length === 0 ? (
+              <EmptyState message="No pending approvals" />
+            ) : (
+              pendingApprovals.map((item) => (
+                <div key={item.entityId} className="approval-item">
+                  <span
+                    className="urgency-dot"
+                    style={{
+                      background:
+                        item.urgency === "high"
+                          ? "var(--color-red)"
+                          : item.urgency === "medium"
+                            ? "var(--color-amber)"
+                            : "var(--color-green)",
+                    }}
+                  />
+                  <div className="approval-info">
+                    <div className="approval-title">{item.title}</div>
+                    <div className="approval-meta">{item.by}</div>
+                  </div>
+                  <div className="approval-amount">
+                    {item.amount != null ? formatCurrency(item.amount) : "--"}
+                  </div>
+                </div>
+              ))
+            )}
             {pendingApprovals.length > 0 && (
-              <span className="badge badge-blue">{pendingApprovals.length}</span>
+              <a href="/projects/change-orders" className="view-all">
+                View All
+              </a>
             )}
           </div>
-          {pendingApprovals.length === 0 ? (
-            <EmptyState message="No pending approvals" />
-          ) : (
-            pendingApprovals.map((item) => (
-              <div key={item.entityId} className="approval-item">
-                <span
-                  className="urgency-dot"
-                  style={{
-                    background:
-                      item.urgency === "high"
-                        ? "var(--color-red)"
-                        : item.urgency === "medium"
-                          ? "var(--color-amber)"
-                          : "var(--color-green)",
-                  }}
-                />
-                <div className="approval-info">
-                  <div className="approval-title">{item.title}</div>
-                  <div className="approval-meta">{item.by}</div>
-                </div>
-                <div className="approval-amount">
-                  {item.amount != null ? formatCurrency(item.amount) : "--"}
-                </div>
-              </div>
-            ))
-          )}
-          {pendingApprovals.length > 0 && (
-            <a href="/projects/change-orders" className="view-all">
-              View All
-            </a>
-          )}
-        </div>
+        )}
 
         {/* Recent Activity */}
-        <div className="card">
-          <div className="card-title">Recent Activity</div>
-          {recentActivity.length === 0 ? (
-            <EmptyState message="No recent activity" />
-          ) : (
-            recentActivity.slice(0, 5).map((item, i) => (
-              <div key={i} className="activity-item">
-                <div className="activity-icon">
-                  <Clock size={14} />
-                </div>
-                <div>
-                  <div className="activity-text">
-                    <strong>{item.user}</strong> {item.action}{" "}
-                    {item.ref && <span>{item.ref}</span>}
+        {sections.activity && (
+          <div className="card">
+            <div className="card-title">Recent Activity</div>
+            {recentActivity.length === 0 ? (
+              <EmptyState message="No recent activity" />
+            ) : (
+              recentActivity.slice(0, 5).map((item, i) => (
+                <div key={i} className="activity-item">
+                  <div className="activity-icon">
+                    <Clock size={14} />
                   </div>
-                  <div className="activity-time">
-                    {formatRelativeTime(item.time)}
+                  <div>
+                    <div className="activity-text">
+                      <strong>{item.user}</strong> {item.action}{" "}
+                      {item.ref && <span>{item.ref}</span>}
+                    </div>
+                    <div className="activity-time">
+                      {formatRelativeTime(item.time)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-          {recentActivity.length > 0 && (
-            <a href="#" className="view-all">
-              View All
-            </a>
-          )}
-        </div>
+              ))
+            )}
+            {recentActivity.length > 0 && (
+              <a href="#" className="view-all">
+                View All
+              </a>
+            )}
+          </div>
+        )}
 
         {/* AI Insights */}
-        <div className="card">
-          <div className="card-title">
-            <Sparkles size={18} style={{ color: "var(--color-amber)" }} />
-            AI Insights
+        {sections.insights && (
+          <div className="card">
+            <div className="card-title">
+              <Sparkles size={18} style={{ color: "var(--color-amber)" }} />
+              AI Insights
+            </div>
+            <AiInsights
+              kpis={kpis}
+              projectStatus={projectStatus}
+              pendingApprovals={pendingApprovals.length}
+              outstandingAP={outstandingAP}
+              outstandingAR={outstandingAR}
+            />
+            <a href="/ai-assistant" className="view-all">
+              View Details
+            </a>
           </div>
-          <AiInsights
-            kpis={kpis}
-            projectStatus={projectStatus}
-            pendingApprovals={pendingApprovals.length}
-            outstandingAP={outstandingAP}
-            outstandingAR={outstandingAR}
-          />
-          <a href="/ai-assistant" className="view-all">
-            View Details
-          </a>
-        </div>
+        )}
       </div>
     </div>
   );

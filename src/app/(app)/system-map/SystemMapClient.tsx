@@ -160,6 +160,15 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
             <span className="system-map-stat-label">Coming Soon</span>
           </div>
         </div>
+        <div className="system-map-stat">
+          <div className="system-map-stat-icon stat-icon-inactive">
+            <XCircle size={18} />
+          </div>
+          <div className="system-map-stat-info">
+            <span className="system-map-stat-value">{inactiveCount}</span>
+            <span className="system-map-stat-label">Inactive</span>
+          </div>
+        </div>
       </div>
 
       {/* Filter Bar */}

@@ -63,7 +63,8 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute =
     publicRoutes.some((route) => pathname === route) ||
     pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/seed");
+    pathname.startsWith("/api/seed") ||
+    pathname.startsWith("/api/stripe/webhook");
 
   // If no user and trying to access protected route, redirect to correct login
   if (!user && !isPublicRoute) {
@@ -110,6 +111,23 @@ export async function middleware(request: NextRequest) {
     }
 
     return NextResponse.redirect(url);
+  }
+
+  // Admin routes guard: only owner/admin roles can access /admin/*
+  if (user && pathname.startsWith("/admin/") && !pathname.startsWith("/admin-panel")) {
+    const { data: membership } = await supabase
+      .from("company_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .limit(1)
+      .single();
+
+    if (membership && membership.role !== "owner" && membership.role !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   // Portal access guard: ensure user can access the portal they're trying to reach

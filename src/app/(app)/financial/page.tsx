@@ -108,9 +108,9 @@ export default async function FinancialDashboardPage() {
           </p>
         </div>
         <div className="fin-header-actions">
-          <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
-            <FileText size={16} />
-            New Invoice
+          <Link href="/financial/general-ledger" className="ui-btn ui-btn-outline ui-btn-sm">
+            <BookOpen size={14} />
+            General Ledger
           </Link>
         </div>
       </div>

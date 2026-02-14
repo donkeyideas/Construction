@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,7 +12,10 @@ import {
   Upload,
   X,
   Trash2,
-  Plus,
+  Download,
+  Eye,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import type { DocumentRow } from "@/lib/queries/documents";
 
@@ -65,6 +68,14 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
+function isPreviewable(fileType: string): "pdf" | "image" | false {
+  const t = fileType.toLowerCase();
+  if (t.includes("pdf")) return "pdf";
+  if (t.includes("image") || t.includes("jpg") || t.includes("jpeg") || t.includes("png") || t.includes("gif") || t.includes("webp") || t.includes("svg"))
+    return "image";
+  return false;
+}
+
 const categoryLabels: Record<string, string> = {
   plan: "Plans",
   spec: "Specs",
@@ -100,6 +111,12 @@ export default function DocumentsClient({
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Preview state
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
   // Upload modal state
   const [showUploadModal, setShowUploadModal] = useState(showUpload);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -113,16 +130,52 @@ export default function DocumentsClient({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  const handleCardClick = (doc: DocumentRow) => {
+  const fetchSignedUrl = useCallback(async (docId: string): Promise<string | null> => {
+    try {
+      const res = await fetch(`/api/documents/${docId}/download`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to get download URL");
+      }
+      const data = await res.json();
+      return data.url;
+    } catch (err) {
+      console.error("fetchSignedUrl error:", err);
+      return null;
+    }
+  }, []);
+
+  const handleCardClick = async (doc: DocumentRow) => {
     setSelectedDoc(doc);
     setShowDeleteConfirm(false);
     setError(null);
+    setPreviewUrl(null);
+    setPreviewError(null);
+    setShowPreview(false);
+
+    // Auto-fetch preview URL for previewable files
+    const previewType = isPreviewable(doc.file_type);
+    if (previewType && doc.file_path && doc.file_path !== "pending-upload") {
+      setPreviewLoading(true);
+      const url = await fetchSignedUrl(doc.id);
+      setPreviewLoading(false);
+      if (url) {
+        setPreviewUrl(url);
+        setShowPreview(true);
+      } else {
+        setPreviewError("Could not load file preview. The file may not exist in storage.");
+      }
+    }
   };
 
   const handleCloseModal = () => {
     setSelectedDoc(null);
     setShowDeleteConfirm(false);
     setError(null);
+    setPreviewUrl(null);
+    setPreviewError(null);
+    setShowPreview(false);
+    setPreviewLoading(false);
   };
 
   const handleDeleteClick = () => {
@@ -152,6 +205,15 @@ export default function DocumentsClient({
       setError(err instanceof Error ? err.message : "Failed to delete document");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleDownload = async (doc: DocumentRow) => {
+    const url = previewUrl || (await fetchSignedUrl(doc.id));
+    if (url) {
+      window.open(url, "_blank");
+    } else {
+      setError("Could not generate download URL. The file may not exist in storage.");
     }
   };
 
@@ -448,16 +510,29 @@ export default function DocumentsClient({
         ))}
       </div>
 
-      {/* Detail Modal */}
+      {/* Detail / Preview Modal */}
       {selectedDoc && (
         <div className="ticket-modal-overlay" onClick={handleCloseModal}>
           <div
-            className="ticket-modal"
+            className="ticket-modal doc-detail-modal"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "600px" }}
           >
             <div className="ticket-modal-header">
-              <h3>Document Details</h3>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: 0 }}>
+                <div className={getFileIconClass(selectedDoc.file_type)} style={{ width: 32, height: 32, borderRadius: 6 }}>
+                  {getFileIcon(selectedDoc.file_type)}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <h3 style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {selectedDoc.name}
+                  </h3>
+                  <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+                    {formatFileSize(selectedDoc.file_size)}
+                    {selectedDoc.version > 1 && <span> &bull; Version {selectedDoc.version}</span>}
+                    <span> &bull; {categoryLabels[selectedDoc.category] ?? selectedDoc.category}</span>
+                  </div>
+                </div>
+              </div>
               <button
                 onClick={handleCloseModal}
                 className="ticket-modal-close"
@@ -467,24 +542,72 @@ export default function DocumentsClient({
               </button>
             </div>
 
-            <div className="ticket-detail-body">
-              {/* File Icon & Name */}
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-                <div className={getFileIconClass(selectedDoc.file_type)}>
-                  {getFileIcon(selectedDoc.file_type)}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: "18px" }}>
-                    {selectedDoc.name}
-                  </div>
-                  <div style={{ fontSize: "14px", color: "var(--color-text-secondary)" }}>
-                    {formatFileSize(selectedDoc.file_size)}
-                    {selectedDoc.version > 1 && <span> • Version {selectedDoc.version}</span>}
-                  </div>
-                </div>
-              </div>
+            {/* Action Buttons */}
+            <div className="doc-detail-actions">
+              {isPreviewable(selectedDoc.file_type) && (
+                <button
+                  className="ui-btn ui-btn-secondary ui-btn-sm"
+                  onClick={() => setShowPreview(!showPreview)}
+                  disabled={previewLoading}
+                >
+                  <Eye size={15} />
+                  {showPreview ? "Hide Preview" : "Preview"}
+                </button>
+              )}
+              <button
+                className="ui-btn ui-btn-primary ui-btn-sm"
+                onClick={() => handleDownload(selectedDoc)}
+              >
+                <Download size={15} />
+                Download
+              </button>
+              {previewUrl && (
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ui-btn ui-btn-ghost ui-btn-sm"
+                >
+                  <ExternalLink size={15} />
+                  Open in New Tab
+                </a>
+              )}
+            </div>
 
-              {/* Category */}
+            {/* Preview Area */}
+            {previewLoading && (
+              <div className="doc-preview-loading">
+                <Loader2 size={24} className="doc-spinner" />
+                <span>Loading preview...</span>
+              </div>
+            )}
+
+            {previewError && !previewUrl && (
+              <div className="doc-preview-error">
+                {previewError}
+              </div>
+            )}
+
+            {showPreview && previewUrl && (
+              <div className="doc-preview-container">
+                {isPreviewable(selectedDoc.file_type) === "pdf" ? (
+                  <iframe
+                    src={previewUrl}
+                    className="doc-preview-iframe"
+                    title={`Preview: ${selectedDoc.name}`}
+                  />
+                ) : (
+                  <img
+                    src={previewUrl}
+                    alt={selectedDoc.name}
+                    className="doc-preview-image"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Metadata */}
+            <div className="ticket-detail-body">
               <div className="ticket-detail-row">
                 <span className="ticket-detail-label">Category</span>
                 <span className={categoryBadgeClass[selectedDoc.category] ?? "badge badge-gray"}>
@@ -492,13 +615,11 @@ export default function DocumentsClient({
                 </span>
               </div>
 
-              {/* File Type */}
               <div className="ticket-detail-row">
                 <span className="ticket-detail-label">File Type</span>
                 <span>{selectedDoc.file_type}</span>
               </div>
 
-              {/* Uploaded By */}
               <div className="ticket-detail-row">
                 <span className="ticket-detail-label">Uploaded By</span>
                 <span>
@@ -508,7 +629,6 @@ export default function DocumentsClient({
                 </span>
               </div>
 
-              {/* Upload Date */}
               <div className="ticket-detail-row">
                 <span className="ticket-detail-label">Upload Date</span>
                 <span>
@@ -522,7 +642,6 @@ export default function DocumentsClient({
                 </span>
               </div>
 
-              {/* Project */}
               {selectedDoc.project && (
                 <div className="ticket-detail-row">
                   <span className="ticket-detail-label">Project</span>
@@ -537,7 +656,6 @@ export default function DocumentsClient({
                 </div>
               )}
 
-              {/* Property */}
               {selectedDoc.property && (
                 <div className="ticket-detail-row">
                   <span className="ticket-detail-label">Property</span>
@@ -551,7 +669,13 @@ export default function DocumentsClient({
                 </div>
               )}
 
-              {/* Tags */}
+              {selectedDoc.folder_path && (
+                <div className="ticket-detail-row">
+                  <span className="ticket-detail-label">Folder</span>
+                  <span style={{ fontSize: "0.85rem" }}>/{selectedDoc.folder_path}</span>
+                </div>
+              )}
+
               {selectedDoc.tags && selectedDoc.tags.length > 0 && (
                 <div className="ticket-detail-row">
                   <span className="ticket-detail-label">Tags</span>
@@ -562,16 +686,6 @@ export default function DocumentsClient({
                       </span>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {/* File Path */}
-              {selectedDoc.file_path && (
-                <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">File Path</span>
-                  <span style={{ fontSize: "13px", color: "var(--color-text-secondary)", wordBreak: "break-all" }}>
-                    {selectedDoc.file_path}
-                  </span>
                 </div>
               )}
 

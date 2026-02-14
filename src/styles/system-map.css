@@ -63,6 +63,11 @@
   background: var(--color-amber-light);
 }
 
+.system-map-stat-icon.stat-icon-inactive {
+  color: var(--color-red);
+  background: var(--color-red-light);
+}
+
 .system-map-stat-info {
   display: flex;
   flex-direction: column;

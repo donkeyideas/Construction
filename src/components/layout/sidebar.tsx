@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -30,6 +30,41 @@ const iconMap: Record<string, React.ElementType> = {
   wrench: Wrench,
   "file-text": FileText,
 };
+
+// Role-based navigation access control
+// Maps roles to allowed top-level nav labels. '*' means all access.
+const ROLE_NAV_ACCESS: Record<string, string[]> = {
+  owner: ["*"],
+  admin: ["*"],
+  project_manager: [
+    "Dashboard", "Calendar", "Inbox", "Tickets", "Contracts",
+    "Projects", "Properties", "Safety", "Equipment", "Documents",
+    "People", "CRM & Bids", "Reports",
+  ],
+  superintendent: [
+    "Dashboard", "Calendar", "Inbox", "Tickets",
+    "Projects", "Safety", "Equipment", "Documents", "Reports",
+  ],
+  accountant: [
+    "Dashboard", "Calendar", "Inbox", "Tickets", "Contracts",
+    "Financial", "Documents", "Reports",
+  ],
+  field_worker: [
+    "Dashboard", "Calendar", "Inbox", "Tickets",
+    "Projects", "Safety", "Equipment",
+  ],
+  viewer: [
+    "Dashboard", "Calendar", "Inbox",
+    "Projects", "Documents", "Reports",
+  ],
+};
+
+function filterNavByRole(items: NavItem[], role: string | null): NavItem[] {
+  if (!role) return items; // show all while loading
+  const allowed = ROLE_NAV_ACCESS[role];
+  if (!allowed || allowed.includes("*")) return items;
+  return items.filter((item) => allowed.includes(item.label));
+}
 
 function NavItemComponent({ item }: { item: NavItem }) {
   const pathname = usePathname();
@@ -88,9 +123,10 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchCompany() {
+    async function fetchCompanyAndRole() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -98,13 +134,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         const { data: member } = await supabase
           .from("company_members")
-          .select("company_id")
+          .select("company_id, role")
           .eq("user_id", user.id)
           .eq("is_active", true)
           .limit(1)
           .single();
 
         if (!member) return;
+
+        setUserRole(member.role);
 
         const { data: company } = await supabase
           .from("companies")
@@ -121,8 +159,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       }
     }
 
-    fetchCompany();
+    fetchCompanyAndRole();
   }, []);
+
+  const filteredNav = useMemo(
+    () => filterNavByRole(appNavigation, userRole),
+    [userRole]
+  );
+
+  const filteredBottomNav = useMemo(
+    () => filterNavByRole(appBottomNav, userRole),
+    [userRole]
+  );
 
   return (
     <>
@@ -151,12 +199,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="accent-line" />
         </div>
         <nav className="sidebar-nav">
-          {appNavigation.map((item) => (
+          {filteredNav.map((item) => (
             <NavItemComponent key={item.label} item={item} />
           ))}
         </nav>
         <div className="sidebar-bottom">
-          {appBottomNav.map((item) => (
+          {filteredBottomNav.map((item) => (
             <NavItemComponent key={item.label} item={item} />
           ))}
         </div>

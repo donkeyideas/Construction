@@ -75,10 +75,10 @@ const reportCategories: ReportCategory[] = [
     iconColor: "var(--color-green)",
     reports: [
       {
-        name: "Profit & Loss",
+        name: "Financial Summary",
         description:
-          "Revenue, expenses, and net income summary for the current fiscal period.",
-        href: "/financial",
+          "Revenue, expenses, net income, AR/AP balances, and profit margin for the current fiscal period.",
+        href: "/reports/financial-summary",
         icon: <PieChart size={16} />,
       },
       {
@@ -124,10 +124,10 @@ const reportCategories: ReportCategory[] = [
         icon: <Percent size={16} />,
       },
       {
-        name: "NOI Report",
+        name: "Profit & Loss",
         description:
-          "Net operating income breakdown by property with revenue and expense details.",
-        href: "/reports/portfolio",
+          "Detailed income and expenses breakdown from the financial overview page.",
+        href: "/financial/income-statement",
         icon: <TrendingUp size={16} />,
       },
       {

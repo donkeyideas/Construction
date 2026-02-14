@@ -11,6 +11,7 @@ import {
   Edit3,
   Trash2,
   Truck,
+  Plus,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -69,6 +70,19 @@ export default function VendorsClient({
   const router = useRouter();
   const [tab, setTab] = useState<"directory" | "contracts">("directory");
   const [showImport, setShowImport] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [createFormData, setCreateFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    company_name: "",
+    job_title: "",
+    contact_type: "vendor",
+    notes: "",
+  });
   const [selectedVendor, setSelectedVendor] = useState<Contact | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -96,6 +110,51 @@ export default function VendorsClient({
     if (!res.ok) throw new Error(data.error || "Import failed");
     router.refresh();
     return { success: data.success, errors: data.errors };
+  }
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setCreating(true);
+    setCreateError("");
+
+    try {
+      const res = await fetch("/api/people/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: createFormData.first_name.trim(),
+          last_name: createFormData.last_name.trim(),
+          email: createFormData.email || undefined,
+          phone: createFormData.phone || undefined,
+          company_name: createFormData.company_name || undefined,
+          job_title: createFormData.job_title || undefined,
+          contact_type: createFormData.contact_type,
+          notes: createFormData.notes || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to create vendor");
+      }
+
+      setCreateFormData({
+        first_name: "",
+        last_name: "",
+        email: "",
+        phone: "",
+        company_name: "",
+        job_title: "",
+        contact_type: "vendor",
+        notes: "",
+      });
+      setShowCreate(false);
+      router.refresh();
+    } catch (err: unknown) {
+      setCreateError(err instanceof Error ? err.message : "Failed to create vendor");
+    } finally {
+      setCreating(false);
+    }
   }
 
   function handleCardClick(vendor: Contact) {
@@ -199,6 +258,10 @@ export default function VendorsClient({
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
             Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => { setShowCreate(true); setCreateError(""); }}>
+            <Plus size={16} />
+            Add Vendor
           </button>
         </div>
       </div>
@@ -326,6 +389,128 @@ export default function VendorsClient({
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Create Vendor Modal */}
+      {showCreate && (
+        <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ticket-modal-header">
+              <h3>Add Vendor</h3>
+              <button className="ticket-modal-close" onClick={() => setShowCreate(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {createError && <div className="ticket-form-error">{createError}</div>}
+
+            <form onSubmit={handleCreate} className="ticket-form">
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Type</label>
+                <select
+                  className="ticket-form-select"
+                  value={createFormData.contact_type}
+                  onChange={(e) => setCreateFormData({ ...createFormData, contact_type: e.target.value })}
+                >
+                  <option value="vendor">Vendor</option>
+                  <option value="subcontractor">Subcontractor</option>
+                </select>
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Company Name</label>
+                <input
+                  type="text"
+                  className="ticket-form-input"
+                  value={createFormData.company_name}
+                  onChange={(e) => setCreateFormData({ ...createFormData, company_name: e.target.value })}
+                  placeholder="e.g., ABC Supply Co"
+                />
+              </div>
+
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Contact First Name *</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={createFormData.first_name}
+                    onChange={(e) => setCreateFormData({ ...createFormData, first_name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Contact Last Name *</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={createFormData.last_name}
+                    onChange={(e) => setCreateFormData({ ...createFormData, last_name: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Email</label>
+                  <input
+                    type="email"
+                    className="ticket-form-input"
+                    value={createFormData.email}
+                    onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                    placeholder="contact@company.com"
+                  />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Phone</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={createFormData.phone}
+                    onChange={(e) => setCreateFormData({ ...createFormData, phone: e.target.value })}
+                    placeholder="(555) 555-0000"
+                  />
+                </div>
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Job Title</label>
+                <input
+                  type="text"
+                  className="ticket-form-input"
+                  value={createFormData.job_title}
+                  onChange={(e) => setCreateFormData({ ...createFormData, job_title: e.target.value })}
+                  placeholder="e.g., Sales Manager"
+                />
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Notes</label>
+                <textarea
+                  className="ticket-form-textarea"
+                  value={createFormData.notes}
+                  onChange={(e) => setCreateFormData({ ...createFormData, notes: e.target.value })}
+                  rows={3}
+                  placeholder="Any additional notes..."
+                />
+              </div>
+
+              <div className="ticket-form-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={creating || !createFormData.first_name.trim() || !createFormData.last_name.trim()}
+                >
+                  {creating ? "Creating..." : "Add Vendor"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
