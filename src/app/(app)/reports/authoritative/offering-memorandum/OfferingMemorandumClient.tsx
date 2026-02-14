@@ -168,6 +168,24 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
 
     const newData: Record<string, SectionData> = {};
 
+    // Investment highlights — show KPIs even without AI
+    if (data.properties.length > 0) {
+      const p = data.properties[0];
+      const totalUnits = data.unitMix.reduce((s, u) => s + u.count, 0);
+      const occupiedUnits = data.unitMix.reduce((s, u) => s + u.occupied, 0);
+      const occRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
+      const capRate = p.current_value && p.noi ? ((p.noi * 12) / p.current_value) * 100 : 0;
+      newData.investment_highlights = {
+        kpis: [
+          { label: "Total Units", value: String(totalUnits) },
+          { label: "Occupancy", value: pct(occRate) },
+          { label: "Monthly NOI", value: fmt(p.noi) },
+          { label: "Cap Rate", value: pct(capRate) },
+          { label: "Current Value", value: fmt(p.current_value) },
+        ],
+      };
+    }
+
     // Unit mix & rent roll
     newData.unit_mix_rent_roll = {
       tableData: data.unitMix.map((u) => ({
@@ -337,7 +355,7 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
             <thead>
               <tr>
                 {data.tableColumns.map((col) => (
-                  <th key={col.key}>{col.label}</th>
+                  <th key={col.key} className={col.format === "currency" ? "currency" : col.format === "number" ? "number" : ""}>{col.label}</th>
                 ))}
               </tr>
             </thead>
@@ -345,7 +363,7 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
               {data.tableData.map((row, i) => (
                 <tr key={i}>
                   {data.tableColumns!.map((col) => (
-                    <td key={col.key} className={col.format === "currency" ? "currency" : ""}>
+                    <td key={col.key} className={col.format === "currency" ? "currency" : col.format === "number" ? "number" : ""}>
                       {col.format === "currency" ? fmt(row[col.key] as number) : String(row[col.key] ?? "")}
                     </td>
                   ))}

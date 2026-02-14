@@ -675,8 +675,13 @@
   border-top: 2px solid var(--border);
 }
 
-.report-data-table td.currency {
-  font-family: var(--font-mono, monospace);
+.report-data-table td.currency,
+.report-data-table td.number {
+  text-align: right;
+}
+
+.report-data-table th.currency,
+.report-data-table th.number {
   text-align: right;
 }
 
@@ -704,7 +709,6 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
-  font-family: var(--font-mono, monospace);
 }
 
 .report-kpi-label {
@@ -760,7 +764,7 @@
 }
 
 .sensitivity-cell.highlight {
-  background: var(--color-blue-bg, #eff6ff);
+  background: rgba(74, 144, 217, 0.12);
   font-weight: 600;
 }
 

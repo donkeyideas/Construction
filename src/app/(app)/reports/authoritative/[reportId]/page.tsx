@@ -156,7 +156,7 @@ export default async function SavedReportPage({
                   <thead>
                     <tr>
                       {data.tableColumns.map((col) => (
-                        <th key={col.key}>{col.label}</th>
+                        <th key={col.key} className={col.format === "currency" ? "currency" : col.format === "number" ? "number" : ""}>{col.label}</th>
                       ))}
                     </tr>
                   </thead>
@@ -167,7 +167,7 @@ export default async function SavedReportPage({
                           <td
                             key={col.key}
                             className={
-                              col.format === "currency" ? "currency" : ""
+                              col.format === "currency" ? "currency" : col.format === "number" ? "number" : ""
                             }
                           >
                             {col.format === "currency"

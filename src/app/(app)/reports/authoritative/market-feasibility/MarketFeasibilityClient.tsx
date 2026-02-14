@@ -446,7 +446,7 @@ export function MarketFeasibilityClient({
             <thead>
               <tr>
                 {data.tableColumns.map((col) => (
-                  <th key={col.key}>{col.label}</th>
+                  <th key={col.key} className={col.format === "currency" ? "currency" : col.format === "number" ? "number" : ""}>{col.label}</th>
                 ))}
               </tr>
             </thead>
@@ -459,9 +459,11 @@ export function MarketFeasibilityClient({
                       className={
                         col.format === "currency"
                           ? "currency"
-                          : col.format === "percent"
-                            ? "percent"
-                            : ""
+                          : col.format === "number"
+                            ? "number"
+                            : col.format === "percent"
+                              ? "percent"
+                              : ""
                       }
                     >
                       {col.format === "currency"

@@ -359,12 +359,12 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
         )}
         {data?.tableData && data.tableColumns && (
           <table className="report-data-table">
-            <thead><tr>{data.tableColumns.map((col) => <th key={col.key}>{col.label}</th>)}</tr></thead>
+            <thead><tr>{data.tableColumns.map((col) => <th key={col.key} className={col.format === "currency" ? "currency" : col.format === "number" ? "number" : ""}>{col.label}</th>)}</tr></thead>
             <tbody>
               {data.tableData.map((row, i) => (
                 <tr key={i}>
                   {data.tableColumns!.map((col) => (
-                    <td key={col.key} className={col.format === "currency" ? "currency" : ""}>
+                    <td key={col.key} className={col.format === "currency" ? "currency" : col.format === "number" ? "number" : ""}>
                       {col.format === "currency" ? fmt(row[col.key] as number) : String(row[col.key] ?? "")}
                     </td>
                   ))}
