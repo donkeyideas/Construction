@@ -220,6 +220,7 @@ export async function POST(request: NextRequest) {
           const { error } = await supabase.from("rfis").insert({
             company_id: companyId,
             project_id: r.project_id || body.project_id || null,
+            rfi_number: r.rfi_number || `RFI-${String(i + 1).padStart(3, "0")}`,
             subject: r.subject || "",
             question: r.question || "",
             priority: r.priority || "medium",
@@ -242,6 +243,7 @@ export async function POST(request: NextRequest) {
           const { error } = await supabase.from("change_orders").insert({
             company_id: companyId,
             project_id: r.project_id || body.project_id || null,
+            co_number: r.co_number || `CO-${String(i + 1).padStart(3, "0")}`,
             title: r.title || "",
             description: r.description || null,
             reason: r.reason || null,
@@ -264,6 +266,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("contracts").insert({
             company_id: companyId,
+            contract_number: r.contract_number || `CON-${String(i + 1).padStart(3, "0")}`,
             title: r.title || "",
             contract_type: r.contract_type || "subcontractor",
             party_name: r.party_name || null,
@@ -313,7 +316,7 @@ export async function POST(request: NextRequest) {
       case "maintenance": {
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
-          const { error } = await supabase.from("property_maintenance_requests").insert({
+          const { error } = await supabase.from("maintenance_requests").insert({
             company_id: companyId,
             property_id: r.property_id || null,
             title: r.title || "",
@@ -323,7 +326,7 @@ export async function POST(request: NextRequest) {
             status: r.status || "open",
             scheduled_date: r.scheduled_date || null,
             estimated_cost: r.estimated_cost ? parseFloat(r.estimated_cost) : null,
-            reported_by: userId,
+            requested_by: userId,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
@@ -339,6 +342,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("safety_incidents").insert({
             company_id: companyId,
+            incident_number: r.incident_number || `INC-${String(i + 1).padStart(3, "0")}`,
             title: r.title || "",
             description: r.description || null,
             incident_type: r.incident_type || "near_miss",
@@ -364,12 +368,13 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("toolbox_talks").insert({
             company_id: companyId,
+            talk_number: r.talk_number || `TBT-${String(i + 1).padStart(3, "0")}`,
             title: r.title || "",
             description: r.description || null,
             topic: r.topic || null,
-            scheduled_date: r.scheduled_date || new Date().toISOString().split("T")[0],
+            conducted_date: r.scheduled_date || r.conducted_date || new Date().toISOString().split("T")[0],
             project_id: r.project_id || body.project_id || null,
-            attendees_count: r.attendees_count ? parseInt(r.attendees_count) : null,
+            attendee_count: r.attendees_count ? parseInt(r.attendees_count) : null,
             notes: r.notes || null,
             status: r.status || "scheduled",
             conducted_by: userId,
@@ -392,7 +397,7 @@ export async function POST(request: NextRequest) {
             project_id: r.project_id || body.project_id || null,
             assigned_to: r.assigned_to || null,
             assigned_date: r.assigned_date || new Date().toISOString().split("T")[0],
-            return_date: r.return_date || null,
+            returned_date: r.return_date || null,
             notes: r.notes || null,
             status: r.status || "active",
           });
@@ -460,8 +465,7 @@ export async function POST(request: NextRequest) {
             user_id: r.user_id || userId,
             entry_date: r.entry_date || new Date().toISOString().split("T")[0],
             hours: r.hours ? parseFloat(r.hours) : 0,
-            overtime_hours: r.overtime_hours ? parseFloat(r.overtime_hours) : 0,
-            description: r.description || null,
+            notes: r.description || r.notes || null,
             cost_code: r.cost_code || null,
             status: r.status || "pending",
           });
@@ -481,7 +485,7 @@ export async function POST(request: NextRequest) {
             company_id: companyId,
             contact_id: r.contact_id || null,
             cert_name: r.cert_name || "",
-            cert_type: r.cert_type || null,
+            cert_type: r.cert_type || "certification",
             issuing_authority: r.issuing_authority || null,
             cert_number: r.cert_number || null,
             issued_date: r.issued_date || null,
@@ -510,7 +514,7 @@ export async function POST(request: NextRequest) {
             expected_close_date: r.expected_close_date || null,
             source: r.source || null,
             notes: r.notes || null,
-            owner_id: userId,
+            assigned_to: userId,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
@@ -526,14 +530,14 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("bids").insert({
             company_id: companyId,
+            bid_number: r.bid_number || `BID-${String(i + 1).padStart(3, "0")}`,
             project_name: r.project_name || r.name || "",
             client_name: r.client_name || null,
             bid_amount: r.bid_amount ? parseFloat(r.bid_amount) : null,
             due_date: r.due_date || null,
             status: r.status || "draft",
-            bid_type: r.bid_type || null,
-            notes: r.notes || null,
-            created_by: userId,
+            scope_description: r.notes || null,
+            submitted_by: userId,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
@@ -575,15 +579,16 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("invoices").insert({
             company_id: companyId,
+            invoice_number: r.invoice_number || `INV-${String(i + 1).padStart(4, "0")}`,
+            invoice_date: r.invoice_date || new Date().toISOString().split("T")[0],
             project_id: r.project_id || body.project_id || null,
             invoice_type: r.invoice_type || "receivable",
-            contact_id: r.contact_id || null,
-            amount: r.amount ? parseFloat(r.amount) : 0,
+            subtotal: r.amount ? parseFloat(r.amount) : 0,
+            total_amount: r.amount ? parseFloat(r.amount) + (r.tax_amount ? parseFloat(r.tax_amount) : 0) : 0,
             tax_amount: r.tax_amount ? parseFloat(r.tax_amount) : 0,
             due_date: r.due_date || null,
-            description: r.description || null,
+            notes: r.description || null,
             status: r.status || "draft",
-            created_by: userId,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
@@ -656,9 +661,9 @@ export async function POST(request: NextRequest) {
             const { error: lineError } = await supabase
               .from("journal_entry_lines")
               .insert({
+                company_id: companyId,
                 journal_entry_id: entry.id,
                 account_id: line.account_id || null,
-                account_number: line.account_number || null,
                 debit: line.debit ? parseFloat(line.debit) : 0,
                 credit: line.credit ? parseFloat(line.credit) : 0,
                 description: line.line_description || null,
