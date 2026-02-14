@@ -315,10 +315,37 @@ export async function POST(request: NextRequest) {
             errors.push(`Row ${i + 2}: No property found. Create a property first.`);
             continue;
           }
+          // Auto-create a unit if unit_id not provided
+          let unitId = r.unit_id || null;
+          if (!unitId) {
+            const { count: unitCount } = await supabase
+              .from("units")
+              .select("id", { count: "exact", head: true })
+              .eq("company_id", companyId)
+              .eq("property_id", propertyId);
+            const unitNum = (unitCount ?? 0) + 1;
+            const { data: newUnit, error: unitError } = await supabase
+              .from("units")
+              .insert({
+                company_id: companyId,
+                property_id: propertyId,
+                unit_number: r.unit_number || `Unit ${unitNum}`,
+                unit_type: r.unit_type || "office",
+                status: "occupied",
+                market_rent: r.monthly_rent ? parseFloat(r.monthly_rent) : null,
+              })
+              .select("id")
+              .single();
+            if (unitError || !newUnit) {
+              errors.push(`Row ${i + 2}: Failed to create unit — ${unitError?.message}`);
+              continue;
+            }
+            unitId = newUnit.id;
+          }
           const { error } = await supabase.from("leases").insert({
             company_id: companyId,
             property_id: propertyId,
-            unit_id: r.unit_id || null,
+            unit_id: unitId,
             tenant_name: r.tenant_name || "",
             tenant_email: r.tenant_email || null,
             tenant_phone: r.tenant_phone || null,
