@@ -25,6 +25,7 @@ const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "cert_number", label: "Certificate Number", required: false },
   { key: "issued_date", label: "Issue Date", required: false, type: "date" },
   { key: "expiry_date", label: "Expiry Date", required: false, type: "date" },
+  { key: "contact_name", label: "Contact Name", required: false },
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [

@@ -17,6 +17,22 @@ import {
   Loader2,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import { Upload } from "lucide-react";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
+
+const AP_IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "amount", label: "Amount ($)", required: true, type: "number" },
+  { key: "tax_amount", label: "Tax ($)", required: false, type: "number" },
+  { key: "due_date", label: "Due Date", required: false, type: "date" },
+  { key: "description", label: "Description", required: false },
+  { key: "status", label: "Status", required: false },
+];
+
+const AP_IMPORT_SAMPLE: Record<string, string>[] = [
+  { amount: "48500", tax_amount: "4122.50", due_date: "2026-01-30", description: "Hill Country Lumber - January delivery", status: "approved" },
+  { amount: "32000", tax_amount: "2720", due_date: "2026-01-30", description: "Texas Ready Mix - 147 CY concrete", status: "paid" },
+];
 
 /* ------------------------------------------------------------------
    Types
@@ -88,6 +104,22 @@ export default function APClient({
 }: APClientProps) {
   const router = useRouter();
   const now = new Date();
+
+  // Import modal state
+  const [showImport, setShowImport] = useState(false);
+
+  async function handleImport(rows: Record<string, string>[]) {
+    const apRows = rows.map((r) => ({ ...r, invoice_type: "payable" }));
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "invoices", rows: apRows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
 
   // Detail modal state
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
@@ -192,6 +224,10 @@ export default function APClient({
           <p className="fin-header-sub">Manage vendor bills, subcontractor payments, and retainage</p>
         </div>
         <div className="fin-header-actions">
+          <button className="ui-btn ui-btn-ghost ui-btn-md" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
           <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
             <Receipt size={16} />
             New Bill
@@ -551,6 +587,16 @@ export default function APClient({
         }
         .spin { animation: spin 0.8s linear infinite; }
       `}</style>
+
+      {showImport && (
+        <ImportModal
+          entityName="Payable Invoices"
+          columns={AP_IMPORT_COLUMNS}
+          sampleData={AP_IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
+      )}
     </div>
   );
 }

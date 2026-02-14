@@ -17,6 +17,22 @@ import {
   Loader2,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import { Upload } from "lucide-react";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
+
+const AR_IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "amount", label: "Amount ($)", required: true, type: "number" },
+  { key: "tax_amount", label: "Tax ($)", required: false, type: "number" },
+  { key: "due_date", label: "Due Date", required: false, type: "date" },
+  { key: "description", label: "Description", required: false },
+  { key: "status", label: "Status", required: false },
+];
+
+const AR_IMPORT_SAMPLE: Record<string, string>[] = [
+  { amount: "75000", tax_amount: "0", due_date: "2026-02-28", description: "Progress payment - Phase 1", status: "pending" },
+  { amount: "150000", tax_amount: "0", due_date: "2026-04-01", description: "Milestone 3 completion", status: "draft" },
+];
 
 /* ------------------------------------------------------------------
    Types
@@ -88,6 +104,23 @@ export default function ARClient({
 }: ARClientProps) {
   const router = useRouter();
   const now = new Date();
+
+  // Import modal state
+  const [showImport, setShowImport] = useState(false);
+
+  async function handleImport(rows: Record<string, string>[]) {
+    // Force all rows to receivable type
+    const arRows = rows.map((r) => ({ ...r, invoice_type: "receivable" }));
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "invoices", rows: arRows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
 
   // Detail modal state
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
@@ -192,6 +225,10 @@ export default function ARClient({
           <p className="fin-header-sub">Track client invoices, payments, and retainage receivable</p>
         </div>
         <div className="fin-header-actions">
+          <button className="ui-btn ui-btn-ghost ui-btn-md" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
           <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
             <FileText size={16} />
             New Invoice
@@ -551,6 +588,16 @@ export default function ARClient({
         }
         .spin { animation: spin 0.8s linear infinite; }
       `}</style>
+
+      {showImport && (
+        <ImportModal
+          entityName="Receivable Invoices"
+          columns={AR_IMPORT_COLUMNS}
+          sampleData={AR_IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
+      )}
     </div>
   );
 }

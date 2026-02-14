@@ -1,11 +1,11 @@
-cert_name,cert_type,issuing_authority,cert_number,issued_date,expiry_date
-OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2024-44812,2024-03-15,2029-03-15
-OSHA 10-Hour Construction Safety,safety,OSHA Training Institute,OSHA10-2025-18923,2025-01-20,2030-01-20
-CDL Class A Commercial Driver License,license,Texas DPS,TX-CDL-A-889201,2024-06-01,2028-06-01
-NCCCO Mobile Crane Operator,certification,NCCCO,NCCCO-MCO-55218,2023-11-01,2028-11-01
-First Aid / CPR / AED,safety,American Red Cross,ARC-FA-2025-33104,2025-06-15,2027-06-15
-AWS Certified Welding Inspector,certification,American Welding Society,AWS-CWI-28841,2024-09-01,2027-09-01
-HAZWOPER 40-Hour,safety,OSHA Training Institute,HAZ40-2024-11209,2024-04-20,2025-04-20
-EPA Lead Renovator (RRP),certification,EPA,EPA-LR-TX-44210,2024-07-10,2029-07-10
-Texas Master Electrician License,license,TDLR,TDLR-ME-102844,2023-08-01,2025-08-01
-Texas Master Plumber License,license,TSBPE,TSBPE-MP-78551,2024-01-15,2027-01-15
+cert_name,cert_type,issuing_authority,cert_number,issued_date,expiry_date,contact_name
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2024-44812,2024-03-15,2029-03-15,Marcus Thompson
+OSHA 10-Hour Construction Safety,safety,OSHA Training Institute,OSHA10-2025-18923,2025-01-20,2030-01-20,James Mitchell
+CDL Class A Commercial Driver License,license,Texas DPS,TX-CDL-A-889201,2024-06-01,2028-06-01,James Mitchell
+NCCCO Mobile Crane Operator,certification,NCCCO,NCCCO-MCO-55218,2023-11-01,2028-11-01,Robert Jackson
+First Aid / CPR / AED,safety,American Red Cross,ARC-FA-2025-33104,2025-06-15,2027-06-15,Sarah Chen
+AWS Certified Welding Inspector,certification,American Welding Society,AWS-CWI-28841,2024-09-01,2027-09-01,Elena Rodriguez
+HAZWOPER 40-Hour,safety,OSHA Training Institute,HAZ40-2024-11209,2024-04-20,2025-04-20,Sarah Chen
+EPA Lead Renovator (RRP),certification,EPA,EPA-LR-TX-44210,2024-07-10,2029-07-10,David Williams
+Texas Master Electrician License,license,TDLR,TDLR-ME-102844,2023-08-01,2025-08-01,Tony Vasquez
+Texas Master Plumber License,license,TSBPE,TSBPE-MP-78551,2024-01-15,2027-01-15,Patricia Hawkins

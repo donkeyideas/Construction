@@ -1,0 +1,19 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-001,2026-01-06,Ramirez Concrete - Progress Payment #4,AP-RC-004,5010,185000,,Subcontractor costs - concrete
+JE-001,2026-01-06,Ramirez Concrete - Progress Payment #4,AP-RC-004,2000,,185000,Accounts payable - Ramirez Concrete
+JE-002,2026-01-08,Hill Country Lumber - January delivery,PO-LBR-28841,5020,48500,,Materials - lumber delivery
+JE-002,2026-01-08,Hill Country Lumber - January delivery,PO-LBR-28841,2030,4122.50,,Tax payable on materials
+JE-002,2026-01-08,Hill Country Lumber - January delivery,PO-LBR-28841,1000,,52622.50,Cash payment - Hill Country Lumber
+JE-003,2026-01-15,Riverside Apartments - Progress billing #7,AR-RLA-007,1010,485000,,Accounts receivable - Riverside Dev
+JE-003,2026-01-15,Riverside Apartments - Progress billing #7,AR-RLA-007,4000,,485000,Contract revenue - Riverside Apartments
+JE-004,2026-01-15,Downtown Office Tower - Progress billing #5,AR-DOT-005,1010,312000,,Accounts receivable - Metro Commercial
+JE-004,2026-01-15,Downtown Office Tower - Progress billing #5,AR-DOT-005,4000,,312000,Contract revenue - Downtown Office Tower
+JE-005,2026-01-15,Bi-weekly payroll,PR-2026-02,5000,86000,,Direct labor - field workers
+JE-005,2026-01-15,Bi-weekly payroll,PR-2026-02,6000,42000,,Office salaries - admin staff
+JE-005,2026-01-15,Bi-weekly payroll,PR-2026-02,2020,,128000,Accrued payroll
+JE-006,2026-01-20,Monthly equipment depreciation,DEP-2026-01,7010,8500,,Depreciation expense - January
+JE-006,2026-01-20,Monthly equipment depreciation,DEP-2026-01,1110,,8500,Accumulated depreciation - equipment
+JE-007,2026-01-30,Monthly office rent and utilities,RENT-2026-01,6010,12500,,Rent and utilities - January
+JE-007,2026-01-30,Monthly office rent and utilities,RENT-2026-01,1000,,12500,Cash payment - rent
+JE-008,2026-01-30,Insurance premium - monthly,INS-2026-01,6020,8200,,Workers comp and GL insurance
+JE-008,2026-01-30,Insurance premium - monthly,INS-2026-01,1040,,8200,Prepaid insurance - monthly amortization

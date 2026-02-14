@@ -479,11 +479,36 @@ export async function POST(request: NextRequest) {
       }
 
       case "certifications": {
+        // Pre-fetch contacts to resolve names to IDs
+        const { data: companyContacts } = await supabase
+          .from("contacts")
+          .select("id, first_name, last_name")
+          .eq("company_id", companyId);
+        const contactLookup = (companyContacts || []).reduce((acc, c) => {
+          const full = `${c.first_name} ${c.last_name}`.trim().toLowerCase();
+          acc[full] = c.id;
+          if (c.last_name) acc[c.last_name.toLowerCase()] = c.id;
+          return acc;
+        }, {} as Record<string, string>);
+
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          // Resolve contact_id from contact_name if no UUID provided
+          let contactId = r.contact_id || null;
+          if (!contactId && r.contact_name) {
+            contactId = contactLookup[r.contact_name.trim().toLowerCase()] || null;
+            if (!contactId) {
+              errors.push(`Row ${i + 2}: Could not find contact "${r.contact_name}"`);
+              continue;
+            }
+          }
+          if (!contactId) {
+            // Assign to first contact as fallback
+            contactId = companyContacts?.[0]?.id || null;
+          }
           const { error } = await supabase.from("certifications").insert({
             company_id: companyId,
-            contact_id: r.contact_id || null,
+            contact_id: contactId,
             cert_name: r.cert_name || "",
             cert_type: r.cert_type || "certification",
             issuing_authority: r.issuing_authority || null,
@@ -623,6 +648,16 @@ export async function POST(request: NextRequest) {
       }
 
       case "journal_entries": {
+        // Pre-fetch chart of accounts to resolve account_number to account_id
+        const { data: coaAccounts } = await supabase
+          .from("chart_of_accounts")
+          .select("id, account_number")
+          .eq("company_id", companyId);
+        const acctLookup = (coaAccounts || []).reduce((acc, a) => {
+          acc[a.account_number] = a.id;
+          return acc;
+        }, {} as Record<string, string>);
+
         // Group rows by entry_number to create entries with lines
         const entryMap = new Map<string, Record<string, string>[]>();
         for (const r of rows) {
@@ -663,7 +698,7 @@ export async function POST(request: NextRequest) {
               .insert({
                 company_id: companyId,
                 journal_entry_id: entry.id,
-                account_id: line.account_id || null,
+                account_id: line.account_id || (line.account_number ? acctLookup[line.account_number] : null) || null,
                 debit: line.debit ? parseFloat(line.debit) : 0,
                 credit: line.credit ? parseFloat(line.credit) : 0,
                 description: line.line_description || null,
