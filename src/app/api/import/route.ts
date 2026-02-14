@@ -32,6 +32,7 @@ const ALLOWED_ENTITIES = [
   "vendors",
   "safety_inspections",
   "journal_entries",
+  "submittals",
 ] as const;
 
 type AllowedEntity = (typeof ALLOWED_ENTITIES)[number];

@@ -278,7 +278,7 @@ export default async function DashboardPage() {
                     : item.type === "change_order"
                       ? "/projects/change-orders"
                       : item.type === "submittal"
-                        ? "/projects/rfis"
+                        ? "/projects/submittals"
                         : "#";
                 return (
                   <a
@@ -387,7 +387,7 @@ function getActivityHref(
     case "rfi":
       return "/projects/rfis";
     case "submittal":
-      return "/projects/rfis";
+      return "/projects/submittals";
     case "daily_log":
       return "/projects/daily-logs";
     case "document":

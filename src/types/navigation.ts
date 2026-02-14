@@ -39,6 +39,7 @@ export const appNavigation: NavItem[] = [
       { label: "Gantt Schedule", href: "/projects/gantt" },
       { label: "Daily Logs", href: "/projects/daily-logs" },
       { label: "RFIs", href: "/projects/rfis" },
+      { label: "Submittals", href: "/projects/submittals" },
       { label: "Change Orders", href: "/projects/change-orders" },
       { label: "Contracts", href: "/contracts" },
     ],

@@ -370,9 +370,17 @@
   color: var(--color-red);
 }
 
+[data-theme="dark"] .badge-red {
+  background: rgba(220, 38, 38, 0.15);
+}
+
 .badge-green {
   background: rgba(22, 163, 74, 0.08);
   color: var(--color-green);
+}
+
+[data-theme="dark"] .badge-green {
+  background: rgba(22, 163, 74, 0.15);
 }
 
 /* ===== View All Link ===== */

@@ -799,8 +799,8 @@ export async function POST(request: Request) {
     const arClients = ["Riverside Health Systems", "Catellus Development", "Thomas Sterling", "City of Pflugerville", "SoCo Hospitality"];
     const arProjects = [rmcId, projectMap["MTC-002"], projectMap["WHR-003"], projectMap["PCP-005"], projectMap["SCH-006"]];
 
-    for (let monthBack = 7; monthBack >= 0; monthBack--) {
-      const invDate = new Date(2025, 6 + (7 - monthBack), 1);
+    for (let monthBack = 11; monthBack >= 0; monthBack--) {
+      const invDate = new Date(2025, 2 + (11 - monthBack), 1);
       const dueDate = new Date(invDate);
       dueDate.setDate(dueDate.getDate() + 30);
 
@@ -835,8 +835,8 @@ export async function POST(request: Request) {
     // AP Invoices (from subs/vendors to us)
     const apVendors = ["Miller Steel Erectors", "Hernandez Concrete Works", "Thompson Electric", "Davis Mechanical", "Texas Building Supply", "Atlas Equipment Rental"];
 
-    for (let monthBack = 7; monthBack >= 0; monthBack--) {
-      const invDate = new Date(2025, 6 + (7 - monthBack), 15);
+    for (let monthBack = 11; monthBack >= 0; monthBack--) {
+      const invDate = new Date(2025, 2 + (11 - monthBack), 15);
       const dueDate = new Date(invDate);
       dueDate.setDate(dueDate.getDate() + 30);
 
@@ -868,6 +868,32 @@ export async function POST(request: Request) {
     }
 
     await supabase.from("invoices").insert(invoiceInserts);
+
+    // ============================================================
+    // 15b. PAYMENTS (construction payments for paid invoices)
+    // ============================================================
+    const { data: paidInvoices } = await supabase
+      .from("invoices")
+      .select("id, total_amount, invoice_date")
+      .eq("company_id", companyId)
+      .eq("status", "paid")
+      .order("invoice_date", { ascending: false })
+      .limit(6);
+
+    if (paidInvoices && paidInvoices.length > 0) {
+      const bankAccountId = bankAccounts?.[0]?.id || null;
+      await supabase.from("payments").insert(
+        paidInvoices.map((inv, i) => ({
+          company_id: companyId,
+          invoice_id: inv.id,
+          payment_date: inv.invoice_date,
+          amount: Number(inv.total_amount),
+          method: ["ach", "check", "wire"][i % 3],
+          reference_number: `PAY-${String(i + 1).padStart(4, "0")}`,
+          bank_account_id: bankAccountId,
+        }))
+      );
+    }
 
     // ============================================================
     // 16. CHANGE ORDERS

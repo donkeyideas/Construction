@@ -349,13 +349,13 @@ export async function getRecentActivity(
         .limit(5),
       supabase
         .from("daily_logs")
-        .select("id, log_date, weather, created_at, projects(name), author:user_profiles!daily_logs_created_by_fkey(full_name)")
+        .select("id, log_date, weather, created_at, projects(name), author:user_profiles!daily_logs_creator_profile_fkey(full_name)")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false })
         .limit(5),
       supabase
         .from("documents")
-        .select("id, name, created_at, uploader:user_profiles!documents_uploaded_by_fkey(full_name)")
+        .select("id, name, created_at, uploader:user_profiles!documents_uploader_profile_fkey(full_name)")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false })
         .limit(5),
