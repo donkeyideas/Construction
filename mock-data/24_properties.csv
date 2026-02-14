@@ -1,0 +1,6 @@
+name,property_type,address_line1,city,state,zip,year_built,total_sqft,total_units,purchase_price,current_value
+Sunset Ridge Apartments,residential,1200 Sunset Ridge Dr,Austin,TX,78701,2018,48000,24,4200000,5100000
+Congress Avenue Office Park,commercial,500 Congress Ave Suite 100,Austin,TX,78701,2010,32000,8,6800000,7500000
+Eastside Industrial Complex,industrial,2800 East 7th St,Austin,TX,78702,2005,75000,6,3500000,4200000
+Lamar Mixed-Use Development,mixed_use,1450 S Lamar Blvd,Austin,TX,78704,2022,55000,18,8900000,9800000
+Cedar Park Family Homes,residential,300 Cypress Creek Rd,Cedar Park,TX,78613,2015,36000,12,2800000,3400000

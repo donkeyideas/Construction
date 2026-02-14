@@ -110,14 +110,15 @@ function formatDate(dateStr: string): string {
 
 const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "title", label: "Title", required: true },
+  { key: "project_name", label: "Project Name", required: false },
   { key: "spec_section", label: "Spec Section", required: false },
   { key: "due_date", label: "Due Date", required: false, type: "date" },
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
-  { title: "Structural Steel Shop Drawings", spec_section: "05 12 00", due_date: "2026-03-01" },
-  { title: "HVAC Equipment Submittals", spec_section: "23 05 00", due_date: "2026-03-15" },
-  { title: "Curtain Wall System", spec_section: "08 44 00", due_date: "2026-04-01" },
+  { title: "Structural Steel Shop Drawings", project_name: "Riverside Luxury Apartments", spec_section: "05 12 00", due_date: "2026-03-01" },
+  { title: "HVAC Equipment Submittals", project_name: "Downtown Office Tower Renovation", spec_section: "23 05 00", due_date: "2026-03-15" },
+  { title: "Curtain Wall System", project_name: "Riverside Luxury Apartments", spec_section: "08 44 00", due_date: "2026-04-01" },
 ];
 
 // ---------------------------------------------------------------------------

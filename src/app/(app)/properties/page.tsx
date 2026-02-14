@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProperties } from "@/lib/queries/properties";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
+import PropertiesImport from "./PropertiesImport";
 
 export const metadata = {
   title: "Properties - ConstructionERP",
@@ -110,10 +111,13 @@ export default async function PropertiesPage() {
           <h2>Properties</h2>
           <p>Manage your real estate portfolio</p>
         </div>
-        <Link href="/properties/new" className="ui-btn ui-btn-md ui-btn-primary">
-          <Plus size={16} />
-          Add Property
-        </Link>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <PropertiesImport />
+          <Link href="/properties/new" className="ui-btn ui-btn-md ui-btn-primary">
+            <Plus size={16} />
+            Add Property
+          </Link>
+        </div>
       </div>
 
       {/* Summary Bar */}

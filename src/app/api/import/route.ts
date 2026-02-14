@@ -33,6 +33,7 @@ const ALLOWED_ENTITIES = [
   "safety_inspections",
   "journal_entries",
   "submittals",
+  "properties",
 ] as const;
 
 type AllowedEntity = (typeof ALLOWED_ENTITIES)[number];
@@ -673,6 +674,83 @@ export async function POST(request: NextRequest) {
             corrective_actions: r.corrective_actions || null,
             status: r.status || "scheduled",
             inspector_id: userId,
+          });
+          if (error) {
+            errors.push(`Row ${i + 2}: ${error.message}`);
+          } else {
+            successCount++;
+          }
+        }
+        break;
+      }
+
+      case "submittals": {
+        // Pre-fetch projects to resolve project_name to project_id
+        const { data: subProjects } = await supabase
+          .from("projects")
+          .select("id, name, code")
+          .eq("company_id", companyId);
+        const subProjLookup = (subProjects || []).reduce((acc, p) => {
+          acc[p.name.trim().toLowerCase()] = p.id;
+          if (p.code) acc[p.code.trim().toLowerCase()] = p.id;
+          return acc;
+        }, {} as Record<string, string>);
+
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          let projectId = r.project_id || body.project_id || null;
+          if (!projectId && r.project_name) {
+            projectId = subProjLookup[r.project_name.trim().toLowerCase()] || null;
+          }
+          if (!projectId && r.project_code) {
+            projectId = subProjLookup[r.project_code.trim().toLowerCase()] || null;
+          }
+
+          // Auto-generate submittal number
+          const { count: subCount } = await supabase
+            .from("submittals")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId);
+          const subNum = (subCount ?? 0) + i + 1;
+
+          const { error } = await supabase.from("submittals").insert({
+            company_id: companyId,
+            project_id: projectId,
+            submittal_number: r.submittal_number || `SUB-${String(subNum).padStart(3, "0")}`,
+            title: r.title || "",
+            spec_section: r.spec_section || null,
+            due_date: r.due_date || null,
+            submitted_by: userId,
+            status: r.status || "pending",
+          });
+          if (error) {
+            errors.push(`Row ${i + 2}: ${error.message}`);
+          } else {
+            successCount++;
+          }
+        }
+        break;
+      }
+
+      case "properties": {
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          const { error } = await supabase.from("properties").insert({
+            company_id: companyId,
+            name: r.name || "",
+            property_type: r.property_type || "residential",
+            address_line1: r.address_line1 || r.address || "",
+            city: r.city || "",
+            state: r.state || "",
+            zip: r.zip || "",
+            year_built: r.year_built ? parseInt(r.year_built) : null,
+            total_sqft: r.total_sqft ? parseInt(r.total_sqft) : null,
+            total_units: r.total_units ? parseInt(r.total_units) : 0,
+            occupied_units: 0,
+            purchase_price: r.purchase_price ? parseFloat(r.purchase_price) : null,
+            current_value: r.current_value ? parseFloat(r.current_value) : null,
+            monthly_revenue: 0,
+            monthly_expenses: 0,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);

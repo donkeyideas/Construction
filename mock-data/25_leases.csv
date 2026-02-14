@@ -1,0 +1,9 @@
+tenant_name,tenant_email,tenant_phone,monthly_rent,security_deposit,lease_start,lease_end
+John & Sarah Mitchell,jmitchell@email.com,512-555-0101,2400,4800,2025-06-01,2026-06-01
+Acme Construction Supply LLC,leasing@acmesupply.com,512-555-0202,4500,9000,2025-03-01,2028-03-01
+Maria Garcia,mgarcia@email.com,512-555-0303,1850,3700,2025-09-15,2026-09-15
+Southwest Engineering Group,admin@sweg.com,512-555-0404,6200,12400,2025-01-01,2028-01-01
+David Chen,dchen@email.com,512-555-0505,2100,4200,2026-01-01,2027-01-01
+Thompson Family Trust,info@thompsontrust.com,512-555-0606,3200,6400,2025-07-01,2026-07-01
+Lone Star Realty Inc,office@lonestarrealty.com,512-555-0707,5800,11600,2025-04-01,2028-04-01
+Patricia Williams,pwilliams@email.com,512-555-0808,1950,3900,2025-11-01,2026-11-01
