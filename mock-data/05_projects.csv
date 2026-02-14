@@ -1,4 +1,4 @@
-name,code,status,project_type,address,city,state,budget,start_date,end_date
-Riverside Luxury Apartments,RLA-2025,active,Residential,4200 Riverside Drive,Austin,TX,12500000,2025-06-15,2026-12-30
-Downtown Office Tower Renovation,DOT-2025,active,Commercial,800 Congress Avenue,Austin,TX,8750000,2025-08-01,2026-09-15
-Highway 35 Bridge Repair,H35-2026,pre_construction,Infrastructure,IH-35 & Oltorf St Overpass,Austin,TX,4200000,2026-03-15,2026-11-30
+name,code,status,project_type,address,city,state,zip,client_name,client_email,client_phone,budget,estimated_cost,start_date,end_date,description,completion_pct
+Riverside Luxury Apartments,RLA-2025,active,Residential,4200 Riverside Drive,Austin,TX,78741,Riverside Development LLC,info@riversidedev.com,512-555-0101,12500000,11800000,2025-06-15,2026-12-30,Luxury 200-unit apartment complex with amenities,15
+Downtown Office Tower Renovation,DOT-2025,active,Commercial,800 Congress Avenue,Austin,TX,78701,Capitol Properties Inc,contact@capitolprops.com,512-555-0202,8750000,8200000,2025-08-01,2026-09-15,Full renovation of 12-story Class A office building,32
+Highway 35 Bridge Repair,H35-2026,pre_construction,Infrastructure,IH-35 & Oltorf St Overpass,Austin,TX,78704,Texas DOT,projects@txdot.gov,512-555-0303,4200000,3900000,2026-03-15,2026-11-30,Bridge deck replacement and structural reinforcement,0
