@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
         const projectId = body.project_id as string;
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
-          const { error } = await supabase.from("project_daily_logs").insert({
+          const { error } = await supabase.from("daily_logs").insert({
             company_id: companyId,
             project_id: r.project_id || projectId || null,
             log_date: r.log_date || new Date().toISOString().split("T")[0],

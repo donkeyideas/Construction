@@ -1003,7 +1003,7 @@ export default function RfisClient({
                     <input
                       type="number"
                       className="ticket-form-input"
-                      value={editData.cost_impact as string | number ?? ""}
+                      value={(editData.cost_impact as string | number) ?? ""}
                       onChange={(e) =>
                         setEditData({
                           ...editData,
@@ -1023,7 +1023,7 @@ export default function RfisClient({
                       type="number"
                       className="ticket-form-input"
                       value={
-                        editData.schedule_impact_days as string | number ?? ""
+                        (editData.schedule_impact_days as string | number) ?? ""
                       }
                       onChange={(e) =>
                         setEditData({

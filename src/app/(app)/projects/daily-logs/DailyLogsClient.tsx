@@ -842,12 +842,12 @@ export default function DailyLogsClient({
             )}
 
             {showDeleteConfirm ? (
-              <div className="ticket-delete-confirm">
+              <div style={{ padding: "1rem 1.5rem" }}>
                 <p style={{ marginBottom: 16 }}>
                   Are you sure you want to delete this daily log? This action
                   cannot be undone.
                 </p>
-                <div className="ticket-delete-actions">
+                <div className="ticket-form-actions">
                   <button
                     className="btn-secondary"
                     onClick={() => setShowDeleteConfirm(false)}
@@ -855,7 +855,8 @@ export default function DailyLogsClient({
                     Cancel
                   </button>
                   <button
-                    className="btn-danger"
+                    className="btn-primary"
+                    style={{ backgroundColor: "var(--color-danger, #dc2626)" }}
                     onClick={handleDelete}
                     disabled={saving}
                   >
@@ -1142,7 +1143,8 @@ export default function DailyLogsClient({
 
                 <div className="ticket-form-actions">
                   <button
-                    className="btn-danger-outline"
+                    className="btn-secondary"
+                    style={{ color: "var(--color-danger, #dc2626)" }}
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
