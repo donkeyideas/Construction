@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Sparkles,
   Send,
@@ -92,6 +93,18 @@ const FOLLOW_UP_MAP: Record<string, string[]> = {
     "Expiring certifications",
     "Who joined recently?",
   ],
+};
+
+// ---------------------------------------------------------------------------
+// Markdown config – wrap tables in scrollable container
+// ---------------------------------------------------------------------------
+
+const markdownComponents = {
+  table: ({ children, ...props }: React.ComponentPropsWithoutRef<"table">) => (
+    <div className="table-wrap">
+      <table {...props}>{children}</table>
+    </div>
+  ),
 };
 
 // ---------------------------------------------------------------------------
@@ -654,7 +667,7 @@ export function AIChatClient({
                   <span className="ai-conversation-title">
                     {conv.title || "Untitled"}
                   </span>
-                  <span className="ai-conversation-date">
+                  <span className="ai-conversation-date" suppressHydrationWarning>
                     {formatDate(conv.updated_at)}
                   </span>
                   <span
@@ -812,7 +825,7 @@ function ChatMessage({
           <span className="ai-msg-sender">
             {isUser ? userName : "Assistant"}
           </span>
-          {time && <span className="ai-msg-time">{time}</span>}
+          {time && <span className="ai-msg-time" suppressHydrationWarning>{time}</span>}
         </div>
 
         <div
@@ -836,7 +849,7 @@ function ChatMessage({
                 return isUser ? (
                   <span key={idx}>{part.text}</span>
                 ) : (
-                  <ReactMarkdown key={idx}>{part.text}</ReactMarkdown>
+                  <ReactMarkdown key={idx} remarkPlugins={[remarkGfm]} components={markdownComponents}>{part.text}</ReactMarkdown>
                 );
               }
 
@@ -868,7 +881,7 @@ function ChatMessage({
                 {isUser ? (
                   <span>{String(message.content)}</span>
                 ) : (
-                  <ReactMarkdown>{String(message.content)}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{String(message.content)}</ReactMarkdown>
                 )}
               </>
             )}

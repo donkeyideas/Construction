@@ -248,23 +248,48 @@
   padding: 0;
 }
 
+.ai-msg-content-assistant .table-wrap {
+  overflow-x: auto;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
 .ai-msg-content-assistant table {
   width: 100%;
   border-collapse: collapse;
-  margin: 8px 0;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 .ai-msg-content-assistant th,
 .ai-msg-content-assistant td {
-  border: 1px solid var(--border);
-  padding: 6px 10px;
+  padding: 8px 12px;
   text-align: left;
+  border-bottom: 1px solid var(--border);
 }
 
 .ai-msg-content-assistant th {
   background: var(--bg);
   font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  position: sticky;
+  top: 0;
+}
+
+.ai-msg-content-assistant tr:last-child td {
+  border-bottom: none;
+}
+
+.ai-msg-content-assistant tbody tr:hover {
+  background: var(--hover);
+}
+
+.ai-msg-content-assistant td:first-child {
+  font-weight: 500;
 }
 
 /* ===== Tool Invocation Display ===== */
