@@ -271,39 +271,43 @@ export default async function DashboardPage() {
             {pendingApprovals.length === 0 ? (
               <EmptyState message="No pending approvals" />
             ) : (
-              pendingApprovals.map((item) => (
-                <a
-                  key={item.entityId}
-                  href={
-                    item.type === "change_order"
+              pendingApprovals.map((item) => {
+                const href =
+                  item.type === "invoice"
+                    ? `/financial/invoices/${item.entityId}`
+                    : item.type === "change_order"
                       ? "/projects/change-orders"
-                      : item.type === "invoice"
-                        ? `/financial/invoices/${item.entityId}`
-                        : "/projects/change-orders"
-                  }
-                  className="approval-item"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  <span
-                    className="urgency-dot"
-                    style={{
-                      background:
-                        item.urgency === "high"
-                          ? "var(--color-red)"
-                          : item.urgency === "medium"
-                            ? "var(--color-amber)"
-                            : "var(--color-green)",
-                    }}
-                  />
-                  <div className="approval-info">
-                    <div className="approval-title">{item.title}</div>
-                    <div className="approval-meta">{item.by}</div>
-                  </div>
-                  <div className="approval-amount">
-                    {item.amount != null ? formatCurrency(item.amount) : "--"}
-                  </div>
-                </a>
-              ))
+                      : item.type === "submittal"
+                        ? "/projects/rfis"
+                        : "#";
+                return (
+                  <a
+                    key={item.entityId}
+                    href={href}
+                    className="approval-item"
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    <span
+                      className="urgency-dot"
+                      style={{
+                        background:
+                          item.urgency === "high"
+                            ? "var(--color-red)"
+                            : item.urgency === "medium"
+                              ? "var(--color-amber)"
+                              : "var(--color-green)",
+                      }}
+                    />
+                    <div className="approval-info">
+                      <div className="approval-title">{item.title}</div>
+                      <div className="approval-meta">{item.by}</div>
+                    </div>
+                    <div className="approval-amount">
+                      {item.amount != null ? formatCurrency(item.amount) : "--"}
+                    </div>
+                  </a>
+                );
+              })
             )}
           </div>
         )}
@@ -315,22 +319,31 @@ export default async function DashboardPage() {
             {recentActivity.length === 0 ? (
               <EmptyState message="No recent activity" />
             ) : (
-              recentActivity.slice(0, 5).map((item, i) => (
-                <div key={i} className="activity-item">
-                  <div className="activity-icon">
-                    <Clock size={14} />
-                  </div>
-                  <div>
-                    <div className="activity-text">
-                      <strong>{item.user}</strong> {item.action}{" "}
-                      {item.ref && <span>{item.ref}</span>}
+              recentActivity.slice(0, 5).map((item, i) => {
+                const activityHref = getActivityHref(item.entityType, item.entityId);
+                const Tag = activityHref ? "a" : "div";
+                return (
+                  <Tag
+                    key={i}
+                    {...(activityHref ? { href: activityHref } : {})}
+                    className="activity-item"
+                    style={activityHref ? { textDecoration: "none", color: "inherit", cursor: "pointer" } : undefined}
+                  >
+                    <div className="activity-icon">
+                      <Clock size={14} />
                     </div>
-                    <div className="activity-time">
-                      {formatRelativeTime(item.time)}
+                    <div>
+                      <div className="activity-text">
+                        <strong>{item.user}</strong> {item.action}{" "}
+                        {item.ref && <span>{item.ref}</span>}
+                      </div>
+                      <div className="activity-time">
+                        {formatRelativeTime(item.time)}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))
+                  </Tag>
+                );
+              })
             )}
           </div>
         )}
@@ -353,6 +366,37 @@ export default async function DashboardPage() {
       </div>
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function getActivityHref(
+  entityType: string | null,
+  entityId: string | null
+): string | null {
+  if (!entityType) return null;
+  switch (entityType) {
+    case "project":
+      return entityId ? `/projects/${entityId}` : "/projects";
+    case "invoice":
+      return entityId ? `/financial/invoices/${entityId}` : "/financial/invoices";
+    case "change_order":
+      return "/projects/change-orders";
+    case "rfi":
+      return "/projects/rfis";
+    case "submittal":
+      return "/projects/rfis";
+    case "daily_log":
+      return "/projects/daily-logs";
+    case "document":
+      return "/documents";
+    case "payment":
+      return "/financial";
+    default:
+      return null;
+  }
 }
 
 // ---------------------------------------------------------------------------

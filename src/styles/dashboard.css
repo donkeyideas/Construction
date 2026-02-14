@@ -242,6 +242,17 @@
   gap: 10px;
   padding: 9px 0;
   border-bottom: 1px solid var(--border);
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+a.activity-item {
+  padding: 9px 6px;
+  margin: 0 -6px;
+}
+
+a.activity-item:hover {
+  background: var(--hover);
 }
 
 .activity-item:last-of-type {
