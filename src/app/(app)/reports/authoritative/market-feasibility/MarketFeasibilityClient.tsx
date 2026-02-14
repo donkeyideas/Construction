@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Building2, MapPin, Users, DollarSign, ArrowLeft } from "lucide-react";
+import { Building2, MapPin, Users, DollarSign, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import { ReportWizard } from "@/components/reports/ReportWizard";
 import { ReportToolbar } from "@/components/reports/ReportToolbar";
@@ -84,6 +84,7 @@ export function MarketFeasibilityClient({
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [watermark, setWatermark] = useState<WatermarkType>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   // Toggle property selection
   const toggleProperty = (id: string) => {
@@ -151,9 +152,26 @@ export function MarketFeasibilityClient({
               narrative,
             },
           }));
+        } else {
+          setSectionsData((prev) => ({
+            ...prev,
+            [sectionId]: {
+              ...prev[sectionId],
+              narrative:
+                "AI narrative generation not available. Configure an AI provider in Admin > AI Providers to enable auto-generated narratives.",
+            },
+          }));
         }
       } catch (err) {
         console.error(`Failed to generate ${sectionId}:`, err);
+        setSectionsData((prev) => ({
+          ...prev,
+          [sectionId]: {
+            ...prev[sectionId],
+            narrative:
+              "AI narrative generation not available. Configure an AI provider in Admin > AI Providers to enable auto-generated narratives.",
+          },
+        }));
       }
       setGeneratingSections((prev) => {
         const next = new Set(prev);
@@ -296,15 +314,18 @@ export function MarketFeasibilityClient({
     }
 
     setSectionsData(newSectionsData);
-
-    // Generate AI narratives for enabled AI sections in parallel
-    const aiSections = sections.filter((s) => s.enabled && s.aiGenerated);
-    await Promise.all(
-      aiSections.map((s) => generateNarrative(s.id, data))
-    );
-
     setStep(2);
     setIsGenerating(false);
+
+    // Generate AI narratives in the background; don't block report display
+    const aiSections = sections.filter((s) => s.enabled && s.aiGenerated);
+    try {
+      await Promise.all(
+        aiSections.map((s) => generateNarrative(s.id, data))
+      );
+    } catch (err) {
+      console.error("AI narrative generation failed:", err);
+    }
   }, [fetchData, generateNarrative, sections]);
 
   // Update data (refresh)
@@ -651,6 +672,7 @@ export function MarketFeasibilityClient({
               onUpdateData={handleUpdateData}
               onDownloadPDF={handleDownloadPDF}
               onSave={handleSave}
+              onView={reportData ? () => setShowPreviewModal(true) : undefined}
               isGenerating={isGenerating}
               isDownloading={isDownloading}
               isSaving={isSaving}
@@ -669,6 +691,7 @@ export function MarketFeasibilityClient({
               onUpdateData={handleUpdateData}
               onDownloadPDF={handleDownloadPDF}
               onSave={handleSave}
+              onView={reportData ? () => setShowPreviewModal(true) : undefined}
               isGenerating={isGenerating}
               isDownloading={isDownloading}
               isSaving={isSaving}
@@ -704,6 +727,46 @@ export function MarketFeasibilityClient({
           </div>
         )}
       </ReportWizard>
+
+      {/* Preview Modal */}
+      {showPreviewModal && reportData && (
+        <div className="report-preview-modal-overlay" onClick={() => setShowPreviewModal(false)}>
+          <div className="report-preview-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="report-preview-modal-header">
+              <h3>Report Preview</h3>
+              <button className="report-preview-modal-close" onClick={() => setShowPreviewModal(false)} type="button">
+                <X size={14} /> Close
+              </button>
+            </div>
+            <div className="report-preview-modal-body">
+              <ReportPreview
+                reportType="market_feasibility"
+                title={
+                  selectedProperties.length === 1
+                    ? `Market Feasibility Study: ${selectedProperties[0].name}`
+                    : `Market Feasibility Study: ${selectedProperties.length} Properties`
+                }
+                subtitle={
+                  selectedProperties.length === 1
+                    ? [
+                        selectedProperties[0].address_line1,
+                        selectedProperties[0].city,
+                        selectedProperties[0].state,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")
+                    : undefined
+                }
+                companyName={companyName}
+                generatedAt={reportData.generatedAt}
+                sections={sections}
+                sectionsData={sectionsData}
+                renderSection={renderSection}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

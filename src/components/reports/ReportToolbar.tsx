@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, RefreshCw, Download, Save } from "lucide-react";
+import { Sparkles, RefreshCw, Download, Save, Eye } from "lucide-react";
 import type { WatermarkType } from "@/types/authoritative-reports";
 
 interface ReportToolbarProps {
@@ -8,6 +8,7 @@ interface ReportToolbarProps {
   onUpdateData: () => void;
   onDownloadPDF: () => void;
   onSave: () => void;
+  onView?: () => void;
   isGenerating: boolean;
   isDownloading: boolean;
   isSaving: boolean;
@@ -21,6 +22,7 @@ export function ReportToolbar({
   onUpdateData,
   onDownloadPDF,
   onSave,
+  onView,
   isGenerating,
   isDownloading,
   isSaving,
@@ -64,6 +66,17 @@ export function ReportToolbar({
             <option value="draft">DRAFT</option>
             <option value="confidential">CONFIDENTIAL</option>
           </select>
+
+          {onView && (
+            <button
+              className="report-toolbar-btn"
+              onClick={onView}
+              type="button"
+            >
+              <Eye size={14} />
+              View Report
+            </button>
+          )}
 
           <div className="report-toolbar-spacer" />
 

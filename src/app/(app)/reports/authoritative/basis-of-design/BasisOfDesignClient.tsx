@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { HardHat, MapPin, DollarSign, Percent, ArrowLeft } from "lucide-react";
+import { HardHat, MapPin, DollarSign, Percent, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import { ReportWizard } from "@/components/reports/ReportWizard";
 import { ReportToolbar } from "@/components/reports/ReportToolbar";
@@ -67,6 +67,7 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [watermark, setWatermark] = useState<WatermarkType>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const toggleProject = (id: string) => {
     if (comparative) {
@@ -109,8 +110,25 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
       if (res.ok) {
         const { narrative } = await res.json();
         setSectionsData((prev) => ({ ...prev, [sectionId]: { ...prev[sectionId], narrative } }));
+      } else {
+        setSectionsData((prev) => ({
+          ...prev,
+          [sectionId]: {
+            ...prev[sectionId],
+            narrative: "AI narrative generation not available. Configure an AI provider in Admin > AI Providers to enable auto-generated narratives.",
+          },
+        }));
       }
-    } catch (err) { console.error(`Failed to generate ${sectionId}:`, err); }
+    } catch (err) {
+      console.error(`Failed to generate ${sectionId}:`, err);
+      setSectionsData((prev) => ({
+        ...prev,
+        [sectionId]: {
+          ...prev[sectionId],
+          narrative: "AI narrative generation not available. Configure an AI provider in Admin > AI Providers to enable auto-generated narratives.",
+        },
+      }));
+    }
     setGeneratingSections((prev) => { const next = new Set(prev); next.delete(sectionId); return next; });
   }, [companyName]);
 
@@ -261,12 +279,16 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
     };
 
     setSectionsData(newData);
-
-    const aiSections = sections.filter((s) => s.enabled && s.aiGenerated);
-    await Promise.all(aiSections.map((s) => generateNarrative(s.id, data)));
-
     setStep(2);
     setIsGenerating(false);
+
+    // Generate AI narratives in the background; don't block report display
+    const aiSections = sections.filter((s) => s.enabled && s.aiGenerated);
+    try {
+      await Promise.all(aiSections.map((s) => generateNarrative(s.id, data)));
+    } catch (err) {
+      console.error("AI narrative generation failed:", err);
+    }
   }, [fetchData, generateNarrative, sections]);
 
   const handleDownloadPDF = useCallback(async () => {
@@ -430,12 +452,12 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
                 </label>
               ))}
             </div>
-            <ReportToolbar onGenerate={handleGenerate} onUpdateData={() => fetchData()} onDownloadPDF={handleDownloadPDF} onSave={handleSave} isGenerating={isGenerating} isDownloading={isDownloading} isSaving={isSaving} hasData={!!reportData} watermark={watermark} onWatermarkChange={setWatermark} />
+            <ReportToolbar onGenerate={handleGenerate} onUpdateData={() => fetchData()} onDownloadPDF={handleDownloadPDF} onSave={handleSave} onView={reportData ? () => setShowPreviewModal(true) : undefined} isGenerating={isGenerating} isDownloading={isDownloading} isSaving={isSaving} hasData={!!reportData} watermark={watermark} onWatermarkChange={setWatermark} />
           </div>
         )}
         {step === 2 && (
           <div>
-            <ReportToolbar onGenerate={handleGenerate} onUpdateData={() => fetchData()} onDownloadPDF={handleDownloadPDF} onSave={handleSave} isGenerating={isGenerating} isDownloading={isDownloading} isSaving={isSaving} hasData={!!reportData} watermark={watermark} onWatermarkChange={setWatermark} />
+            <ReportToolbar onGenerate={handleGenerate} onUpdateData={() => fetchData()} onDownloadPDF={handleDownloadPDF} onSave={handleSave} onView={reportData ? () => setShowPreviewModal(true) : undefined} isGenerating={isGenerating} isDownloading={isDownloading} isSaving={isSaving} hasData={!!reportData} watermark={watermark} onWatermarkChange={setWatermark} />
             <ReportPreview
               reportType="basis_of_design"
               title={selectedProjects.length === 1 ? `Basis of Design: ${selectedProjects[0].name}` : `Basis of Design: ${selectedProjects.length} Projects`}
@@ -448,6 +470,31 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
           </div>
         )}
       </ReportWizard>
+
+      {/* Preview Modal */}
+      {showPreviewModal && reportData && (
+        <div className="report-preview-modal-overlay" onClick={() => setShowPreviewModal(false)}>
+          <div className="report-preview-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="report-preview-modal-header">
+              <h3>Report Preview</h3>
+              <button className="report-preview-modal-close" onClick={() => setShowPreviewModal(false)} type="button">
+                <X size={14} /> Close
+              </button>
+            </div>
+            <div className="report-preview-modal-body">
+              <ReportPreview
+                reportType="basis_of_design"
+                title={selectedProjects.length === 1 ? `Basis of Design: ${selectedProjects[0].name}` : `Basis of Design: ${selectedProjects.length} Projects`}
+                companyName={companyName}
+                generatedAt={reportData.generatedAt}
+                sections={sections}
+                sectionsData={sectionsData}
+                renderSection={renderSection}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

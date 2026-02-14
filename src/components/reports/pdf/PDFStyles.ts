@@ -50,7 +50,10 @@ export const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    padding: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
     position: "relative",
   },
   coverBg: {
@@ -62,7 +65,6 @@ export const styles = StyleSheet.create({
   },
   coverContent: {
     alignItems: "center",
-    zIndex: 1,
   },
   coverLabel: {
     fontSize: 9,
@@ -72,12 +74,12 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
   },
   coverTitle: {
-    fontFamily: "Times-Bold",
-    fontSize: 32,
+    fontFamily: "Helvetica-Bold",
+    fontSize: 36,
     color: "white",
     textAlign: "center",
     marginBottom: 12,
-    maxWidth: 400,
+    maxWidth: 420,
   },
   coverSubtitle: {
     fontSize: 13,
@@ -135,7 +137,7 @@ export const styles = StyleSheet.create({
     color: "white",
   },
   sectionTitle: {
-    fontFamily: "Times-Bold",
+    fontFamily: "Helvetica-Bold",
     fontSize: 18,
     flex: 1,
   },
@@ -195,7 +197,7 @@ export const styles = StyleSheet.create({
   tableCellRight: {
     fontSize: 9,
     textAlign: "right",
-    fontFamily: "Courier",
+    fontFamily: "Helvetica",
   },
 
   // --- KPI stat cards ---
@@ -301,5 +303,34 @@ export const styles = StyleSheet.create({
     width: "100%",
     marginVertical: 12,
     borderRadius: 4,
+  },
+
+  // --- Field / Value rows (definition-list style) ---
+  fieldValueTable: {
+    marginVertical: 12,
+  },
+  fieldValueRow: {
+    flexDirection: "row",
+    paddingVertical: 5,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#E0E0E0",
+  },
+  fieldValueField: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 9,
+    width: "35%",
+    color: "#444444",
+  },
+  fieldValueValue: {
+    fontSize: 9,
+    width: "65%",
+  },
+
+  // --- Cover accent line under company name ---
+  coverAccentLine: {
+    width: 80,
+    height: 2,
+    marginTop: 16,
+    borderRadius: 1,
   },
 });

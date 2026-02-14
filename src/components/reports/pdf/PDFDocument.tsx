@@ -44,24 +44,6 @@ function CoverPage({
         style={[styles.coverBg, { backgroundColor: theme.primary }]}
       />
 
-      {/* Geometric dots pattern */}
-      {Array.from({ length: 8 }).map((_, row) =>
-        Array.from({ length: 12 }).map((_, col) => (
-          <View
-            key={`dot-${row}-${col}`}
-            style={{
-              position: "absolute",
-              top: 60 + row * 90,
-              left: 40 + col * 50,
-              width: 3,
-              height: 3,
-              borderRadius: 1.5,
-              backgroundColor: "rgba(255,255,255,0.04)",
-            }}
-          />
-        ))
-      )}
-
       {/* Content */}
       <View style={styles.coverContent}>
         <Text style={styles.coverLabel}>
@@ -76,7 +58,11 @@ function CoverPage({
         />
         <Text style={styles.coverMeta}>
           {companyName}
-          {"\n"}
+        </Text>
+        <View
+          style={[styles.coverAccentLine, { backgroundColor: theme.accent, opacity: 0.5 }]}
+        />
+        <Text style={[styles.coverMeta, { marginTop: 12 }]}>
           {new Date().toLocaleDateString("en-US", {
             month: "long",
             year: "numeric",
@@ -174,7 +160,7 @@ function SectionPage({
         </View>
       )}
 
-      {/* Table */}
+      {/* Table with columns */}
       {data?.tableData && data.tableColumns && (
         <View style={styles.table}>
           <View
@@ -221,6 +207,28 @@ function SectionPage({
                     : String(row[col.key] ?? "")}
                 </Text>
               ))}
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Field/Value table (definition-list style, no tableColumns) */}
+      {data?.tableData && !data.tableColumns && data.tableData.length > 0 && "field" in data.tableData[0] && (
+        <View style={styles.fieldValueTable}>
+          {data.tableData.map((row, ri) => (
+            <View
+              key={ri}
+              style={[
+                styles.fieldValueRow,
+                ri % 2 === 1 ? { backgroundColor: "#F8F8F8" } : {},
+              ]}
+            >
+              <Text style={styles.fieldValueField}>
+                {String(row.field ?? "")}
+              </Text>
+              <Text style={styles.fieldValueValue}>
+                {String(row.value ?? "")}
+              </Text>
             </View>
           ))}
         </View>
