@@ -1,11 +1,11 @@
-invoice_type,amount,tax_amount,due_date,description,status
-receivable,485000,0,2026-02-15,Riverside Luxury Apartments - Progress Payment #7 - Foundation and framing through January 2026,pending
-receivable,312000,0,2026-02-15,Downtown Office Tower Renovation - Progress Payment #5 - Interior build-out floors 1-5 January 2026,pending
-receivable,125000,0,2026-02-28,Riverside Luxury Apartments - Change Order #1 - Additional electrical outlets approved,approved
-payable,185000,0,2026-02-05,Ramirez Concrete Inc - Payment Application #4 - Grade beams Building B and parking structure forms,approved
-payable,142000,0,2026-02-05,O'Brien Framing LLC - Payment Application #3 - Building A first floor framing complete,approved
-payable,48500,4122.50,2026-01-30,Hill Country Lumber Supply - Invoice #LBR-28841 - January lumber delivery 22000 BF plus hardware,paid
-payable,32000,2720.00,2026-01-30,Texas Ready Mix Concrete - Invoice #TRM-9921 - 147 cubic yards concrete January pours,paid
-payable,68000,0,2026-02-10,Vasquez Electrical Services - Payment Application #2 - Underground conduit and panel installation,pending
-receivable,210000,0,2026-03-15,Highway 35 Bridge Repair - Mobilization payment - 5% of contract value upon NTP,draft
-payable,18500,1572.50,2026-02-01,SafetyFirst Equipment Rental - January crane and scissor lift rental,approved
+invoice_type,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,485000,0,2026-02-15,Progress Payment #7 - Foundation and framing through January 2026,pending,,Riverside Development Group,Riverside Luxury Apartments
+receivable,312000,0,2026-02-15,Progress Payment #5 - Interior build-out floors 1-5 January 2026,pending,,Metro Commercial Properties,Downtown Office Tower Renovation
+receivable,125000,0,2026-02-28,Change Order #1 - Additional electrical outlets approved,approved,,Riverside Development Group,Riverside Luxury Apartments
+payable,185000,0,2026-02-05,Payment Application #4 - Grade beams Building B and parking structure forms,approved,Ramirez Concrete Inc,,Riverside Luxury Apartments
+payable,142000,0,2026-02-05,Payment Application #3 - Building A first floor framing complete,approved,O'Brien Framing LLC,,Riverside Luxury Apartments
+payable,48500,4122.50,2026-01-30,Invoice #LBR-28841 - January lumber delivery 22000 BF plus hardware,paid,Hill Country Lumber Supply,,Riverside Luxury Apartments
+payable,32000,2720.00,2026-01-30,Invoice #TRM-9921 - 147 cubic yards concrete January pours,paid,Texas Ready Mix Concrete,,Riverside Luxury Apartments
+payable,68000,0,2026-02-10,Payment Application #2 - Underground conduit and panel installation,pending,Vasquez Electrical Services,,Riverside Luxury Apartments
+receivable,210000,0,2026-03-15,Mobilization payment - 5% of contract value upon NTP,draft,,Texas DOT,Highway 35 Bridge Repair
+payable,18500,1572.50,2026-02-01,January crane and scissor lift rental,approved,SafetyFirst Equipment Rental,,Riverside Luxury Apartments

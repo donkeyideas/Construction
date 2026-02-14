@@ -411,11 +411,30 @@ export async function POST(request: NextRequest) {
       }
 
       case "equipment_maintenance": {
+        // Pre-fetch equipment to resolve names to IDs
+        const { data: companyEquipment } = await supabase
+          .from("equipment")
+          .select("id, name")
+          .eq("company_id", companyId);
+        const equipLookup = (companyEquipment || []).reduce((acc, e) => {
+          acc[e.name.trim().toLowerCase()] = e.id;
+          return acc;
+        }, {} as Record<string, string>);
+
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          // Resolve equipment_id from equipment_name if no UUID provided
+          let equipId = r.equipment_id || null;
+          if (!equipId && r.equipment_name) {
+            equipId = equipLookup[r.equipment_name.trim().toLowerCase()] || null;
+            if (!equipId) {
+              errors.push(`Row ${i + 2}: Could not find equipment "${r.equipment_name}"`);
+              continue;
+            }
+          }
           const { error } = await supabase.from("equipment_maintenance_logs").insert({
             company_id: companyId,
-            equipment_id: r.equipment_id || null,
+            equipment_id: equipId,
             maintenance_type: r.maintenance_type || "preventive",
             title: r.title || "",
             description: r.description || null,
@@ -600,14 +619,31 @@ export async function POST(request: NextRequest) {
       }
 
       case "invoices": {
+        // Pre-fetch projects to resolve project_name to project_id
+        const { data: companyProjects } = await supabase
+          .from("projects")
+          .select("id, name")
+          .eq("company_id", companyId);
+        const projLookup = (companyProjects || []).reduce((acc, p) => {
+          acc[p.name.trim().toLowerCase()] = p.id;
+          return acc;
+        }, {} as Record<string, string>);
+
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          // Resolve project_id from project_name if no UUID provided
+          let projectId = r.project_id || body.project_id || null;
+          if (!projectId && r.project_name) {
+            projectId = projLookup[r.project_name.trim().toLowerCase()] || null;
+          }
           const { error } = await supabase.from("invoices").insert({
             company_id: companyId,
             invoice_number: r.invoice_number || `INV-${String(i + 1).padStart(4, "0")}`,
             invoice_date: r.invoice_date || new Date().toISOString().split("T")[0],
-            project_id: r.project_id || body.project_id || null,
+            project_id: projectId,
             invoice_type: r.invoice_type || "receivable",
+            vendor_name: r.vendor_name || null,
+            client_name: r.client_name || null,
             subtotal: r.amount ? parseFloat(r.amount) : 0,
             total_amount: r.amount ? parseFloat(r.amount) + (r.tax_amount ? parseFloat(r.tax_amount) : 0) : 0,
             tax_amount: r.tax_amount ? parseFloat(r.tax_amount) : 0,

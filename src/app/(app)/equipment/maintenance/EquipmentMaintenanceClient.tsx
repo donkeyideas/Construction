@@ -43,6 +43,7 @@ const MAINTENANCE_STATUS_LABELS: Record<MaintenanceStatus, string> = {
 };
 
 const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "equipment_name", label: "Equipment Name", required: true },
   { key: "title", label: "Title", required: true },
   { key: "maintenance_type", label: "Type", required: false },
   { key: "description", label: "Description", required: false },

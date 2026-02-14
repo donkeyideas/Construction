@@ -27,6 +27,8 @@ const AR_IMPORT_COLUMNS: ImportColumn[] = [
   { key: "due_date", label: "Due Date", required: false, type: "date" },
   { key: "description", label: "Description", required: false },
   { key: "status", label: "Status", required: false },
+  { key: "client_name", label: "Client Name", required: false },
+  { key: "project_name", label: "Project Name", required: false },
 ];
 
 const AR_IMPORT_SAMPLE: Record<string, string>[] = [

@@ -1,0 +1,9 @@
+amount,tax_amount,due_date,description,status,vendor_name,project_name
+185000,0,2026-02-05,Payment Application #4 - Grade beams Building B and parking structure forms,approved,Ramirez Concrete Inc,Riverside Luxury Apartments
+142000,0,2026-02-05,Payment Application #3 - Building A first floor framing complete,approved,O'Brien Framing LLC,Riverside Luxury Apartments
+48500,4122.50,2026-01-30,Invoice #LBR-28841 - January lumber delivery 22000 BF plus hardware,paid,Hill Country Lumber Supply,Riverside Luxury Apartments
+32000,2720.00,2026-01-30,Invoice #TRM-9921 - 147 cubic yards concrete January pours,paid,Texas Ready Mix Concrete,Riverside Luxury Apartments
+68000,0,2026-02-10,Payment Application #2 - Underground conduit and panel installation,pending,Vasquez Electrical Services,Riverside Luxury Apartments
+18500,1572.50,2026-02-01,January crane and scissor lift rental,approved,SafetyFirst Equipment Rental,Riverside Luxury Apartments
+24000,2040.00,2026-02-10,Invoice #LSB-4410 - Drywall and finishing materials floors 1-4,pending,Lone Star Building Supply,Downtown Office Tower Renovation
+15800,0,2026-02-15,Payment Application #1 - Ductwork rough-in floors 3-4,draft,Doyle Mechanical HVAC,Downtown Office Tower Renovation
