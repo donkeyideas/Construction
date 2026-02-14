@@ -128,7 +128,9 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
-  { subject: "Footing depth clarification", question: "What is the required depth for the north footing?", priority: "high", due_date: "2026-02-01" },
+  { subject: "Footing depth clarification", question: "What is the required depth for the north footing per detail 3/S-201?", priority: "high", due_date: "2026-02-01" },
+  { subject: "Window spec substitution", question: "Can we substitute Andersen 400 series for specified Marvin Ultimate?", priority: "medium", due_date: "2026-02-15" },
+  { subject: "Electrical panel relocation", question: "Is it acceptable to relocate Panel LP-2 per field conditions?", priority: "low", due_date: "2026-03-01" },
 ];
 
 // ---------------------------------------------------------------------------

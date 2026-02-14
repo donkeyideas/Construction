@@ -33,6 +33,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { entry_date: "2026-01-15", hours: "8", overtime_hours: "2", description: "Foundation work", cost_code: "03-100" },
+  { entry_date: "2026-01-16", hours: "8", overtime_hours: "0", description: "Framing - 2nd floor", cost_code: "06-100" },
+  { entry_date: "2026-01-17", hours: "6", overtime_hours: "0", description: "Electrical rough-in", cost_code: "26-050" },
 ];
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

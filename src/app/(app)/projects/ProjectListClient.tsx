@@ -30,6 +30,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { name: "Downtown Office Tower", code: "DOT-001", status: "active", project_type: "commercial", address: "123 Main St", city: "Dallas", state: "TX", budget: "5000000", start_date: "2026-01-01", end_date: "2027-06-30" },
+  { name: "Riverside Apartments", code: "RSA-002", status: "pre_construction", project_type: "residential", address: "456 River Rd", city: "Austin", state: "TX", budget: "12000000", start_date: "2026-04-01", end_date: "2028-03-31" },
+  { name: "Highway 35 Bridge Repair", code: "HBR-003", status: "planning", project_type: "infrastructure", address: "Hwy 35 Mile Marker 42", city: "San Antonio", state: "TX", budget: "3200000", start_date: "2026-06-15", end_date: "2027-01-15" },
 ];
 
 const STATUS_LABELS: Record<string, string> = {

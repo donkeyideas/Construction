@@ -32,16 +32,18 @@ const ASSIGNMENT_STATUS_LABELS: Record<string, string> = {
 };
 
 const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "equipment_id", label: "Equipment ID", required: false },
+  { key: "equipment_id", label: "Equipment ID", required: true },
   { key: "project_id", label: "Project ID", required: false },
-  { key: "assigned_to", label: "Assigned To", required: false },
-  { key: "assigned_date", label: "Assigned Date", required: false, type: "date" },
+  { key: "assigned_to", label: "Assigned To (User ID)", required: false },
+  { key: "assigned_date", label: "Assigned Date", required: true, type: "date" },
   { key: "return_date", label: "Return Date", required: false, type: "date" },
   { key: "notes", label: "Notes", required: false },
+  { key: "status", label: "Status", required: false },
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
-  { equipment_id: "", project_id: "", assigned_to: "", assigned_date: "2026-01-15", return_date: "2026-03-15", notes: "Needed for excavation phase" },
+  { equipment_id: "uuid-of-equipment", project_id: "uuid-of-project", assigned_to: "", assigned_date: "2026-01-15", return_date: "2026-03-15", notes: "Needed for excavation phase", status: "active" },
+  { equipment_id: "uuid-of-equipment-2", project_id: "uuid-of-project", assigned_to: "", assigned_date: "2026-02-01", return_date: "2026-04-01", notes: "Concrete pouring operations", status: "active" },
 ];
 
 // ---------------------------------------------------------------------------

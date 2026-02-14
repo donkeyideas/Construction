@@ -30,6 +30,8 @@ const ALLOWED_ENTITIES = [
   "projects",
   "invoices",
   "vendors",
+  "safety_inspections",
+  "journal_entries",
 ] as const;
 
 type AllowedEntity = (typeof ALLOWED_ENTITIES)[number];
@@ -588,6 +590,84 @@ export async function POST(request: NextRequest) {
           } else {
             successCount++;
           }
+        }
+        break;
+      }
+
+      case "safety_inspections": {
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          const { error } = await supabase.from("safety_inspections").insert({
+            company_id: companyId,
+            project_id: r.project_id || body.project_id || null,
+            inspection_type: r.inspection_type || "site_safety",
+            inspection_date: r.inspection_date || new Date().toISOString().split("T")[0],
+            score: r.score ? parseInt(r.score) : null,
+            findings: r.findings || null,
+            corrective_actions: r.corrective_actions || null,
+            status: r.status || "scheduled",
+            inspector_id: userId,
+          });
+          if (error) {
+            errors.push(`Row ${i + 2}: ${error.message}`);
+          } else {
+            successCount++;
+          }
+        }
+        break;
+      }
+
+      case "journal_entries": {
+        // Group rows by entry_number to create entries with lines
+        const entryMap = new Map<string, Record<string, string>[]>();
+        for (const r of rows) {
+          const key = r.entry_number || `auto-${Date.now()}-${Math.random()}`;
+          if (!entryMap.has(key)) entryMap.set(key, []);
+          entryMap.get(key)!.push(r);
+        }
+
+        let entryIdx = 0;
+        for (const [entryNumber, entryRows] of entryMap) {
+          entryIdx++;
+          const first = entryRows[0];
+          // Create the journal entry header
+          const { data: entry, error: headerError } = await supabase
+            .from("journal_entries")
+            .insert({
+              company_id: companyId,
+              entry_number: entryNumber,
+              entry_date: first.entry_date || new Date().toISOString().split("T")[0],
+              description: first.description || "",
+              reference: first.reference || null,
+              status: "draft",
+              created_by: userId,
+            })
+            .select("id")
+            .single();
+
+          if (headerError || !entry) {
+            errors.push(`Entry ${entryIdx}: ${headerError?.message || "Failed to create"}`);
+            continue;
+          }
+
+          // Create journal entry lines
+          for (let j = 0; j < entryRows.length; j++) {
+            const line = entryRows[j];
+            const { error: lineError } = await supabase
+              .from("journal_entry_lines")
+              .insert({
+                journal_entry_id: entry.id,
+                account_id: line.account_id || null,
+                account_number: line.account_number || null,
+                debit: line.debit ? parseFloat(line.debit) : 0,
+                credit: line.credit ? parseFloat(line.credit) : 0,
+                description: line.line_description || null,
+              });
+            if (lineError) {
+              errors.push(`Entry ${entryIdx}, Line ${j + 1}: ${lineError.message}`);
+            }
+          }
+          successCount++;
         }
         break;
       }

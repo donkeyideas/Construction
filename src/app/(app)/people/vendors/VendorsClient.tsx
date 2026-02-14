@@ -27,6 +27,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { company_name: "ABC Supply Co", first_name: "Mike", last_name: "Johnson", email: "mike@abcsupply.com", phone: "555-0200", job_title: "Sales Manager" },
+  { company_name: "ProBuild Materials", first_name: "Sarah", last_name: "Williams", email: "sarah@probuild.com", phone: "555-0300", job_title: "Account Rep" },
+  { company_name: "TrueValue Equipment Rental", first_name: "David", last_name: "Chen", email: "dchen@truevalue.com", phone: "555-0400", job_title: "Branch Manager" },
 ];
 
 interface Contact {

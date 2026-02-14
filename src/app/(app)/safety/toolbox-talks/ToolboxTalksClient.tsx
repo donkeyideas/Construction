@@ -39,7 +39,9 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
-  { title: "Fall Protection Training", description: "Review fall protection procedures", topic: "Fall Protection", scheduled_date: "2026-01-25", attendees_count: "15", notes: "All crew members must attend" },
+  { title: "Fall Protection Training", description: "Review fall protection procedures and harness inspection", topic: "Fall Protection", scheduled_date: "2026-01-25", attendees_count: "15", notes: "All crew members must attend" },
+  { title: "Excavation Safety", description: "Trench safety, shoring requirements, and competent person duties", topic: "Excavation Safety", scheduled_date: "2026-02-01", attendees_count: "8", notes: "Required before excavation starts" },
+  { title: "Heat Illness Prevention", description: "Recognizing signs of heat stroke, water-rest-shade protocol", topic: "Heat Illness Prevention", scheduled_date: "2026-02-08", attendees_count: "22", notes: "Summer preparation" },
 ];
 
 const TOPICS = [

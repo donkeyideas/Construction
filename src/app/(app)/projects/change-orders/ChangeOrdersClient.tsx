@@ -124,6 +124,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { title: "Additional electrical outlets", description: "Owner requested 12 additional outlets in suite 200", reason: "owner_request", amount: "4500", schedule_impact_days: "3" },
+  { title: "Unforeseen rock removal", description: "Rock encountered during excavation at grid B-4", reason: "unforeseen_condition", amount: "18500", schedule_impact_days: "5" },
+  { title: "Upgraded lobby finishes", description: "Replace VCT with porcelain tile in main lobby", reason: "design_change", amount: "12000", schedule_impact_days: "0" },
 ];
 
 // ---------------------------------------------------------------------------

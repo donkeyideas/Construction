@@ -55,6 +55,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { title: "Oil change - CAT 320", maintenance_type: "preventive", description: "Regular oil and filter change", maintenance_date: "2026-01-10", cost: "450", performed_by: "Fleet mechanic", vendor_name: "", next_due_date: "2026-04-10" },
+  { title: "Hydraulic hose replacement", maintenance_type: "repair", description: "Replace cracked hydraulic hose on boom arm", maintenance_date: "2026-01-18", cost: "1200", performed_by: "", vendor_name: "Heavy Equipment Services", next_due_date: "" },
+  { title: "Annual crane inspection", maintenance_type: "inspection", description: "OSHA-required annual inspection and load testing", maintenance_date: "2026-02-01", cost: "2500", performed_by: "", vendor_name: "Crane Safety Inc", next_due_date: "2027-02-01" },
 ];
 
 // ---------------------------------------------------------------------------

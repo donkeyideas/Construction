@@ -92,6 +92,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { title: "Concrete subcontract", contract_type: "subcontractor", party_name: "ABC Concrete", party_email: "info@abcconcrete.com", contract_amount: "250000", start_date: "2026-01-01", end_date: "2026-06-30", payment_terms: "net_30" },
+  { title: "Electrical rough-in", contract_type: "subcontractor", party_name: "Spark Electric Inc", party_email: "bids@sparkelectric.com", contract_amount: "185000", start_date: "2026-02-01", end_date: "2026-08-31", payment_terms: "net_45" },
+  { title: "Architectural services", contract_type: "professional_services", party_name: "Modern Design Group", party_email: "pm@moderndesign.com", contract_amount: "75000", start_date: "2025-10-01", end_date: "2026-12-31", payment_terms: "net_30" },
 ];
 
 // ---------------------------------------------------------------------------

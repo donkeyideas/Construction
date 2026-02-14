@@ -53,6 +53,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { name: "Operating Account", bank_name: "Chase", account_type: "checking", account_number_last4: "4567", routing_number_last4: "1234", current_balance: "125000" },
+  { name: "Payroll Account", bank_name: "Chase", account_type: "checking", account_number_last4: "8901", routing_number_last4: "1234", current_balance: "45000" },
+  { name: "Reserve Fund", bank_name: "Wells Fargo", account_type: "savings", account_number_last4: "3456", routing_number_last4: "5678", current_balance: "250000" },
 ];
 
 // ---------------------------------------------------------------------------

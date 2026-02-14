@@ -111,6 +111,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { name: "Office Tower Renovation", client_name: "Skyline Properties", stage: "proposal", estimated_value: "2500000", probability_pct: "60", expected_close_date: "2026-03-15", source: "referral" },
+  { name: "Warehouse Expansion", client_name: "LogiFlow Inc", stage: "lead", estimated_value: "800000", probability_pct: "25", expected_close_date: "2026-05-01", source: "website" },
+  { name: "School Gymnasium Rebuild", client_name: "Lincoln County Schools", stage: "negotiation", estimated_value: "4200000", probability_pct: "80", expected_close_date: "2026-02-28", source: "public_bid" },
 ];
 
 // ---------------------------------------------------------------------------

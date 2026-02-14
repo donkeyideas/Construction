@@ -146,6 +146,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { log_date: "2026-01-15", weather_conditions: "sunny", temperature: "72", work_performed: "Foundation pour - Phase 1", safety_incidents: "", delays: "" },
+  { log_date: "2026-01-16", weather_conditions: "partly_cloudy", temperature: "65", work_performed: "Framing - 2nd floor east wing", safety_incidents: "Near miss - falling debris", delays: "" },
+  { log_date: "2026-01-17", weather_conditions: "rainy", temperature: "58", work_performed: "Interior electrical rough-in", safety_incidents: "", delays: "Rain delay - exterior work postponed 2 hours" },
 ];
 
 // ---------------------------------------------------------------------------

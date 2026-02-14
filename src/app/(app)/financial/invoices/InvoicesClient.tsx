@@ -27,6 +27,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { invoice_type: "receivable", amount: "75000", tax_amount: "0", due_date: "2026-02-28", description: "Progress payment - Phase 1", status: "draft" },
+  { invoice_type: "payable", amount: "12500", tax_amount: "625", due_date: "2026-03-15", description: "Lumber delivery - PO #4521", status: "pending" },
+  { invoice_type: "receivable", amount: "150000", tax_amount: "0", due_date: "2026-04-01", description: "Milestone 3 - Substantial completion", status: "draft" },
 ];
 
 // ---------------------------------------------------------------------------

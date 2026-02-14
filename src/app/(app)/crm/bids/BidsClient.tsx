@@ -54,6 +54,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { project_name: "Downtown Office Renovation", client_name: "Metro Corp", bid_amount: "1500000", due_date: "2026-02-28", bid_type: "competitive", notes: "Pre-qualified, strong relationship" },
+  { project_name: "Highway Bridge Repair", client_name: "State DOT", bid_amount: "3200000", due_date: "2026-03-15", bid_type: "public", notes: "Prevailing wage required" },
+  { project_name: "Retail Storefront Build-Out", client_name: "Sunrise Shops LLC", bid_amount: "425000", due_date: "2026-04-01", bid_type: "negotiated", notes: "Repeat client, design-build" },
 ];
 
 export default function BidsClient({

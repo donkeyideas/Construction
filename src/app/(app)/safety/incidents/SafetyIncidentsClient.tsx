@@ -64,6 +64,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { title: "Slip and fall near excavation", description: "Worker slipped on wet surface near trench", incident_type: "near_miss", severity: "low", incident_date: "2026-01-20", location: "Building A excavation", osha_recordable: "false" },
+  { title: "Ladder tip-over on 3rd floor", description: "Extension ladder slipped on polished concrete causing 6 ft fall", incident_type: "recordable", severity: "high", incident_date: "2026-01-22", location: "Building B - 3rd floor", osha_recordable: "true" },
+  { title: "Struck by falling pipe fitting", description: "Pipe fitting dropped from overhead rough-in and struck worker on shoulder", incident_type: "first_aid", severity: "medium", incident_date: "2026-01-25", location: "Mechanical room", osha_recordable: "false" },
 ];
 
 // ---------------------------------------------------------------------------

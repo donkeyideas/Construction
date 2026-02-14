@@ -29,6 +29,8 @@ const IMPORT_COLUMNS: ImportColumn[] = [
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { cert_name: "OSHA 30-Hour", cert_type: "safety", issuing_authority: "OSHA", cert_number: "OSH-2026-001", issued_date: "2025-06-15", expiry_date: "2028-06-15" },
+  { cert_name: "CDL Class A", cert_type: "license", issuing_authority: "State DMV", cert_number: "DL-9876543", issued_date: "2024-03-01", expiry_date: "2028-03-01" },
+  { cert_name: "Crane Operator NCCCO", cert_type: "certification", issuing_authority: "NCCCO", cert_number: "NCC-2025-4421", issued_date: "2025-01-10", expiry_date: "2030-01-10" },
 ];
 
 type CertStatus = "valid" | "expiring_soon" | "expired";
