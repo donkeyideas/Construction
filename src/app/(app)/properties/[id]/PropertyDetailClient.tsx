@@ -284,6 +284,7 @@ export default function PropertyDetailClient({
       {activeTab === "units" && (
         <UnitsTabContent
           units={units}
+          leases={leases}
           onSelectUnit={(u) => {
             setSelectedUnit(u);
             setUnitEditMode(false);
@@ -336,6 +337,7 @@ export default function PropertyDetailClient({
         <UnitModal
           unit={selectedUnit}
           propertyId={property.id}
+          leases={leases}
           editMode={unitEditMode}
           saving={saving}
           setSaving={setSaving}
@@ -347,6 +349,12 @@ export default function PropertyDetailClient({
           onDelete={(id, name) =>
             setDeleteTarget({ type: "unit", id, name })
           }
+          onSelectLease={(l) => {
+            setSelectedUnit(null);
+            setUnitEditMode(false);
+            setSelectedLease(l);
+            setLeaseEditMode(false);
+          }}
         />
       )}
 
@@ -982,13 +990,34 @@ function OverviewTabContent({
 
 function UnitsTabContent({
   units,
+  leases,
   onSelectUnit,
   onEditUnit,
 }: {
   units: UnitRow[];
+  leases: LeaseRow[];
   onSelectUnit: (u: UnitRow) => void;
   onEditUnit: (u: UnitRow) => void;
 }) {
+  // Build a map of unit_id -> active lease tenant name
+  const tenantByUnit = new Map<string, string>();
+  for (const l of leases) {
+    if (l.status === "active" && l.unit_id) {
+      tenantByUnit.set(l.unit_id, l.tenant_name);
+    }
+  }
+
+  // Sort: vacant/maintenance first, then occupied
+  const statusOrder: Record<string, number> = {
+    vacant: 0,
+    maintenance: 1,
+    reserved: 2,
+    occupied: 3,
+  };
+  const sorted = [...units].sort(
+    (a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9)
+  );
+
   if (units.length === 0) {
     return (
       <div className="properties-empty" style={{ padding: "40px 20px" }}>
@@ -1000,44 +1029,81 @@ function UnitsTabContent({
     );
   }
 
+  const vacantCount = units.filter((u) => u.status === "vacant").length;
+
   return (
-    <div className="units-grid">
-      {units.map((unit) => (
+    <>
+      {vacantCount > 0 && (
         <div
-          key={unit.id}
-          className="card unit-card clickable"
-          onClick={() => onSelectUnit(unit)}
+          style={{
+            padding: "10px 16px",
+            marginBottom: "12px",
+            background: "rgba(var(--color-amber-rgb, 245, 158, 11), 0.1)",
+            border: "1px solid rgba(var(--color-amber-rgb, 245, 158, 11), 0.3)",
+            borderRadius: "8px",
+            fontSize: "0.85rem",
+            color: "var(--color-amber, #f59e0b)",
+            fontWeight: 500,
+          }}
         >
-          <span className={`unit-status-dot ${unit.status}`} />
-          <div className="unit-card-info">
-            <div className="unit-card-number">Unit {unit.unit_number}</div>
-            <div className="unit-card-meta">
-              {unitTypeLabel(unit.unit_type)}
-              {unit.sqft ? ` -- ${unit.sqft.toLocaleString()} sqft` : ""}
-              {unit.floor_number ? ` -- Floor ${unit.floor_number}` : ""}
-            </div>
-          </div>
-          <div className="unit-card-right">
-            <div className="unit-card-rent">
-              {unit.market_rent ? formatCurrency(unit.market_rent) : "--"}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end" }}>
-              <UnitStatusBadge status={unit.status} />
-              <button
-                className="ui-btn ui-btn-sm ui-btn-ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditUnit(unit);
-                }}
-                title="Edit unit"
-              >
-                <Pencil size={13} />
-              </button>
-            </div>
-          </div>
+          {vacantCount} vacant unit{vacantCount !== 1 ? "s" : ""} available
         </div>
-      ))}
-    </div>
+      )}
+      <div className="units-grid">
+        {sorted.map((unit) => {
+          const tenant = tenantByUnit.get(unit.id);
+          const isVacant = unit.status === "vacant";
+          return (
+            <div
+              key={unit.id}
+              className="card unit-card clickable"
+              onClick={() => onSelectUnit(unit)}
+              style={
+                isVacant
+                  ? {
+                      borderColor: "rgba(var(--color-amber-rgb, 245, 158, 11), 0.4)",
+                      background: "rgba(var(--color-amber-rgb, 245, 158, 11), 0.05)",
+                    }
+                  : undefined
+              }
+            >
+              <span className={`unit-status-dot ${unit.status}`} />
+              <div className="unit-card-info">
+                <div className="unit-card-number">Unit {unit.unit_number}</div>
+                <div className="unit-card-meta">
+                  {unitTypeLabel(unit.unit_type)}
+                  {unit.sqft ? ` -- ${unit.sqft.toLocaleString()} sqft` : ""}
+                  {unit.floor_number ? ` -- Floor ${unit.floor_number}` : ""}
+                </div>
+                {tenant && (
+                  <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: "2px" }}>
+                    Tenant: {tenant}
+                  </div>
+                )}
+              </div>
+              <div className="unit-card-right">
+                <div className="unit-card-rent">
+                  {unit.market_rent ? formatCurrency(unit.market_rent) : "--"}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end" }}>
+                  <UnitStatusBadge status={unit.status} />
+                  <button
+                    className="ui-btn ui-btn-sm ui-btn-ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditUnit(unit);
+                    }}
+                    title="Edit unit"
+                  >
+                    <Pencil size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -1156,7 +1222,9 @@ function MaintenanceTabContent({
     grouped.set(col.key, []);
   }
   for (const req of requests) {
-    const bucket = grouped.get(req.status);
+    // Map legacy "open" status to "submitted"
+    const status = (req.status as string) === "open" ? "submitted" : req.status;
+    const bucket = grouped.get(status);
     if (bucket) {
       bucket.push(req);
     }
@@ -1578,22 +1646,30 @@ function EditPropertyModal({
 function UnitModal({
   unit,
   propertyId,
+  leases,
   editMode,
   saving,
   setSaving,
   onClose,
   onToggleEdit,
   onDelete,
+  onSelectLease,
 }: {
   unit: UnitRow;
   propertyId: string;
+  leases: LeaseRow[];
   editMode: boolean;
   saving: boolean;
   setSaving: (v: boolean) => void;
   onClose: () => void;
   onToggleEdit: () => void;
   onDelete: (id: string, name: string) => void;
+  onSelectLease: (l: LeaseRow) => void;
 }) {
+  // Find the active lease for this unit
+  const activeLease = leases.find(
+    (l) => l.unit_id === unit.id && l.status === "active"
+  );
   const [form, setForm] = useState({
     unit_number: unit.unit_number,
     unit_type: unit.unit_type,
@@ -1840,6 +1916,63 @@ function UnitModal({
                   <div className="detail-value"><UnitStatusBadge status={unit.status} /></div>
                 </div>
               </div>
+
+              {/* Tenant / Lease Info */}
+              {activeLease ? (
+                <div
+                  style={{
+                    marginTop: "16px",
+                    padding: "14px 16px",
+                    background: "rgba(var(--color-green-rgb, 34, 197, 94), 0.08)",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(var(--color-green-rgb, 34, 197, 94), 0.2)",
+                  }}
+                >
+                  <label className="detail-label" style={{ marginBottom: "8px", display: "block" }}>
+                    Current Tenant
+                  </label>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                        {activeLease.tenant_name}
+                      </div>
+                      {activeLease.tenant_email && (
+                        <div style={{ fontSize: "0.8rem", color: "var(--muted)", marginTop: "2px" }}>
+                          {activeLease.tenant_email}
+                        </div>
+                      )}
+                      {activeLease.tenant_phone && (
+                        <div style={{ fontSize: "0.8rem", color: "var(--muted)", marginTop: "1px" }}>
+                          {activeLease.tenant_phone}
+                        </div>
+                      )}
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: "4px" }}>
+                        {formatCurrency(activeLease.monthly_rent)}/mo &middot; Lease ends {formatDate(activeLease.lease_end)}
+                      </div>
+                    </div>
+                    <button
+                      className="ui-btn ui-btn-sm ui-btn-outline"
+                      onClick={() => onSelectLease(activeLease)}
+                    >
+                      View Lease
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    marginTop: "16px",
+                    padding: "14px 16px",
+                    background: "rgba(var(--color-amber-rgb, 245, 158, 11), 0.08)",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(var(--color-amber-rgb, 245, 158, 11), 0.2)",
+                    fontSize: "0.85rem",
+                    color: "var(--color-amber, #f59e0b)",
+                  }}
+                >
+                  No active lease for this unit
+                </div>
+              )}
             </div>
           )}
         </div>

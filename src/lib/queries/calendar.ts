@@ -210,11 +210,11 @@ export async function getCalendarEvents(
         .lte("scheduled_date", endDate)
     ),
 
-    // 12. rent_payments: due_date
+    // 12. rent_payments: due_date (join through leases for property_id)
     safeQuery(
       supabase
         .from("rent_payments")
-        .select("id, due_date, amount, status, unit_id, property_id")
+        .select("id, due_date, amount, status, lease_id, leases(property_id, tenant_name, unit_id)")
         .eq("company_id", companyId)
         .gte("due_date", startDate)
         .lte("due_date", endDate)
@@ -574,16 +574,24 @@ export async function getCalendarEvents(
 
   // 12. Rent Payments
   for (const rp of rentPayments) {
+    const leaseData = (rp as Record<string, unknown>).leases as
+      | { property_id: string; tenant_name: string; unit_id: string }
+      | null;
+    const propId = leaseData?.property_id || "";
+    const tenantName = leaseData?.tenant_name || "";
+    const title = tenantName
+      ? `Rent Due: ${tenantName} ($${rp.amount})`
+      : `Rent Due ($${rp.amount})`;
     events.push({
       id: `rent-payment-${rp.id}`,
-      title: `Rent Due`,
+      title,
       date: rp.due_date,
       module: "properties",
       type: "rent_due",
       entityType: "rent_payments",
       entityId: rp.id,
       color: MODULE_COLORS.properties,
-      url: `/properties/${rp.property_id}`,
+      url: propId ? `/properties/${propId}` : "/properties/leases",
       metadata: { status: rp.status, amount: rp.amount },
     });
   }

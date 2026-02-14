@@ -114,7 +114,41 @@ export async function getProperties(
     .order("name", { ascending: true });
 
   if (error) throw error;
-  return (data ?? []) as PropertyRow[];
+  const properties = (data ?? []) as PropertyRow[];
+
+  // Recalculate stats from live units/leases data for each property
+  if (properties.length > 0) {
+    const [unitsRes, leasesRes] = await Promise.all([
+      supabase
+        .from("units")
+        .select("id, property_id, status")
+        .eq("company_id", companyId),
+      supabase
+        .from("leases")
+        .select("property_id, monthly_rent, status")
+        .eq("company_id", companyId)
+        .eq("status", "active"),
+    ]);
+    const allUnits = unitsRes.data ?? [];
+    const activeLeases = leasesRes.data ?? [];
+
+    for (const prop of properties) {
+      const propUnits = allUnits.filter((u) => u.property_id === prop.id);
+      const propLeases = activeLeases.filter((l) => l.property_id === prop.id);
+      const totalUnits = propUnits.length;
+      const occupiedCount = propUnits.filter((u) => u.status === "occupied").length;
+      const monthlyRevenue = propLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
+      const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
+
+      prop.total_units = totalUnits;
+      prop.occupied_units = occupiedCount;
+      prop.occupancy_rate = occupancyRate;
+      prop.monthly_revenue = monthlyRevenue;
+      prop.noi = monthlyRevenue;
+    }
+  }
+
+  return properties;
 }
 
 /* ---------------------------------------------------------
@@ -157,10 +191,42 @@ export async function getPropertyById(
       .limit(50),
   ]);
 
+  const units = (unitsRes.data ?? []) as UnitRow[];
+  const leases = (leasesRes.data ?? []) as LeaseRow[];
+
+  // Auto-recalculate denormalized stats from live data
+  const occupiedCount = units.filter((u) => u.status === "occupied").length;
+  const activeLeases = leases.filter((l) => l.status === "active");
+  const monthlyRevenue = activeLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
+  const totalUnits = units.length;
+  const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
+
+  const freshProperty = {
+    ...property,
+    total_units: totalUnits,
+    occupied_units: occupiedCount,
+    occupancy_rate: occupancyRate,
+    monthly_revenue: monthlyRevenue,
+    noi: monthlyRevenue,
+  } as PropertyRow;
+
+  // Update the stored stats in the background (fire and forget)
+  supabase
+    .from("properties")
+    .update({
+      total_units: totalUnits,
+      occupied_units: occupiedCount,
+      occupancy_rate: occupancyRate,
+      monthly_revenue: monthlyRevenue,
+      noi: monthlyRevenue,
+    })
+    .eq("id", propertyId)
+    .then(() => {});
+
   return {
-    property: property as PropertyRow,
-    units: (unitsRes.data ?? []) as UnitRow[],
-    leases: (leasesRes.data ?? []) as LeaseRow[],
+    property: freshProperty,
+    units,
+    leases,
     maintenanceRequests: (maintRes.data ?? []) as MaintenanceRequestRow[],
   };
 }
@@ -182,47 +248,77 @@ export async function getPropertyFinancials(
   supabase: SupabaseClient,
   propertyId: string
 ): Promise<PropertyFinancials> {
-  // Get the property's base financials
-  const { data: property } = await supabase
-    .from("properties")
-    .select("monthly_revenue, monthly_expenses, noi")
-    .eq("id", propertyId)
-    .single();
+  // Compute revenue directly from active leases (always accurate)
+  const [leasesRes, maintRes] = await Promise.all([
+    supabase
+      .from("leases")
+      .select("id, monthly_rent")
+      .eq("property_id", propertyId)
+      .eq("status", "active"),
+    supabase
+      .from("maintenance_requests")
+      .select("estimated_cost, actual_cost, status")
+      .eq("property_id", propertyId)
+      .in("status", ["submitted", "assigned", "in_progress", "completed"]),
+  ]);
 
-  const monthlyRevenue = property?.monthly_revenue ?? 0;
-  const monthlyExpenses = property?.monthly_expenses ?? 0;
-  const noi = property?.noi ?? monthlyRevenue - monthlyExpenses;
+  const activeLeases = leasesRes.data ?? [];
+  const maintRequests = maintRes.data ?? [];
 
-  // Get active leases for this property to compute rent collection
-  const { data: leases } = await supabase
-    .from("leases")
-    .select("id, monthly_rent")
-    .eq("property_id", propertyId)
-    .eq("status", "active");
+  // Fetch rent_payments via lease_ids (rent_payments doesn't have property_id)
+  const leaseIdsForPayments = activeLeases.map((l) => l.id);
+  let paymentsData: { amount: number; status: string; due_date: string; lease_id: string }[] = [];
+  if (leaseIdsForPayments.length > 0) {
+    const { data } = await supabase
+      .from("rent_payments")
+      .select("amount, status, due_date, lease_id")
+      .in("lease_id", leaseIdsForPayments);
+    paymentsData = data ?? [];
+  }
 
-  const leaseIds = (leases ?? []).map((l) => l.id);
+  // Revenue = sum of active lease rents
+  const monthlyRevenue = activeLeases.reduce(
+    (sum, l) => sum + (l.monthly_rent ?? 0),
+    0
+  );
+
+  // Expenses = sum of maintenance costs (actual if completed, estimated otherwise)
+  const monthlyExpenses = maintRequests.reduce((sum, m) => {
+    const cost =
+      m.status === "completed"
+        ? (m.actual_cost ?? m.estimated_cost ?? 0)
+        : (m.estimated_cost ?? 0);
+    return sum + cost;
+  }, 0);
+
+  const noi = monthlyRevenue - monthlyExpenses;
+
+  // Rent collection for current month
+  const now = new Date();
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  const leaseIds = activeLeases.map((l) => l.id);
+  const monthPayments = paymentsData.filter(
+    (p) =>
+      leaseIds.includes(p.lease_id) &&
+      p.due_date >= monthStart &&
+      p.due_date <= monthEnd
+  );
+
   let totalPaid = 0;
   let totalDue = 0;
-
-  if (leaseIds.length > 0) {
-    // Current month payments
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
-
-    const { data: payments } = await supabase
-      .from("rent_payments")
-      .select("amount, status, due_date")
-      .in("lease_id", leaseIds)
-      .gte("due_date", monthStart)
-      .lte("due_date", monthEnd);
-
-    for (const p of payments ?? []) {
-      totalDue += p.amount;
-      if (p.status === "paid") {
-        totalPaid += p.amount;
-      }
+  for (const p of monthPayments) {
+    totalDue += p.amount;
+    if (p.status === "paid") {
+      totalPaid += p.amount;
     }
+  }
+
+  // If no rent_payments exist yet, totalDue = sum of active lease rents (expected)
+  if (totalDue === 0 && monthlyRevenue > 0) {
+    totalDue = monthlyRevenue;
   }
 
   const rentCollectionRate = totalDue > 0 ? (totalPaid / totalDue) * 100 : 100;
@@ -456,4 +552,261 @@ export async function createMaintenanceRequest(
 
   if (error) throw error;
   return request as MaintenanceRequestRow;
+}
+
+/* ---------------------------------------------------------
+   syncPropertyFinancials - Auto-generate rent payments,
+   invoices, and recalculate property stats.
+   Called automatically after imports.
+   --------------------------------------------------------- */
+
+export async function syncPropertyFinancials(
+  supabase: SupabaseClient,
+  companyId: string,
+  propertyId?: string | null
+): Promise<{
+  rentPaymentsCreated: number;
+  invoicesCreated: number;
+  propertiesUpdated: number;
+}> {
+  let rentPaymentsCreated = 0;
+  let invoicesCreated = 0;
+  let propertiesUpdated = 0;
+
+  // ── 1. Fetch active leases ──
+  let leasesQuery = supabase
+    .from("leases")
+    .select("id, property_id, tenant_name, monthly_rent, lease_start, lease_end, unit_id")
+    .eq("company_id", companyId)
+    .eq("status", "active");
+  if (propertyId) {
+    leasesQuery = leasesQuery.eq("property_id", propertyId);
+  }
+  const { data: leases } = await leasesQuery;
+
+  // ── 2. Fetch existing rent_payments to avoid duplicates ──
+  const leaseIds = (leases ?? []).map((l) => l.id);
+  let existingPayments: { lease_id: string; due_date: string }[] = [];
+  if (leaseIds.length > 0) {
+    const { data } = await supabase
+      .from("rent_payments")
+      .select("lease_id, due_date")
+      .eq("company_id", companyId)
+      .in("lease_id", leaseIds);
+    existingPayments = data ?? [];
+  }
+  const existingPaymentSet = new Set(
+    existingPayments.map((p) => `${p.lease_id}|${p.due_date}`)
+  );
+
+  // ── 3. Generate rent_payments for each lease (current + next 3 months) ──
+  const now = new Date();
+  const rentPaymentRows: Record<string, unknown>[] = [];
+
+  for (const lease of leases ?? []) {
+    const leaseEnd = lease.lease_end
+      ? new Date(lease.lease_end)
+      : new Date(now.getFullYear() + 1, now.getMonth(), 1);
+
+    const startMonth = lease.lease_start
+      ? new Date(lease.lease_start)
+      : new Date(now.getFullYear(), now.getMonth(), 1);
+    const earliest = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const genStart =
+      startMonth.getTime() > earliest.getTime() ? startMonth : earliest;
+    const maxFuture = new Date(now.getFullYear(), now.getMonth() + 4, 1);
+    const genEnd =
+      leaseEnd.getTime() < maxFuture.getTime() ? leaseEnd : maxFuture;
+
+    const cursor = new Date(genStart.getFullYear(), genStart.getMonth(), 1);
+    while (cursor.getTime() <= genEnd.getTime()) {
+      const dueDate = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-01`;
+      const key = `${lease.id}|${dueDate}`;
+
+      if (!existingPaymentSet.has(key)) {
+        const isPast =
+          cursor.getFullYear() < now.getFullYear() ||
+          (cursor.getFullYear() === now.getFullYear() &&
+            cursor.getMonth() < now.getMonth());
+
+        rentPaymentRows.push({
+          company_id: companyId,
+          lease_id: lease.id,
+          amount: lease.monthly_rent,
+          due_date: dueDate,
+          payment_date: isPast ? dueDate : dueDate,
+          status: isPast ? "paid" : "pending",
+          method: isPast ? "ach" : null,
+        });
+        existingPaymentSet.add(key);
+      }
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+  }
+
+  // Insert rent_payments in batches
+  if (rentPaymentRows.length > 0) {
+    const batchSize = 50;
+    for (let i = 0; i < rentPaymentRows.length; i += batchSize) {
+      const batch = rentPaymentRows.slice(i, i + batchSize);
+      const { error } = await supabase.from("rent_payments").insert(batch);
+      if (!error) {
+        rentPaymentsCreated += batch.length;
+      }
+    }
+  }
+
+  // ── 4. Create receivable invoices for active leases (current month) ──
+  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const { data: existingInvoices } = await supabase
+    .from("invoices")
+    .select("id, notes")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "receivable")
+    .like("notes", `%auto-rent-${currentMonthStr}%`);
+  const existingInvoiceNotes = new Set(
+    (existingInvoices ?? []).map((i) => i.notes)
+  );
+
+  for (const lease of leases ?? []) {
+    const noteTag = `auto-rent-${currentMonthStr}-${lease.id}`;
+    if (existingInvoiceNotes.has(noteTag)) continue;
+
+    const invNum = `RENT-${currentMonthStr}-${lease.tenant_name.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase()}`;
+    const dueDate = `${currentMonthStr}-01`;
+
+    const { error } = await supabase.from("invoices").insert({
+      company_id: companyId,
+      invoice_number: invNum,
+      invoice_type: "receivable",
+      client_name: lease.tenant_name,
+      property_id: lease.property_id,
+      invoice_date: dueDate,
+      due_date: dueDate,
+      subtotal: lease.monthly_rent,
+      tax_amount: 0,
+      total_amount: lease.monthly_rent,
+      amount_paid: 0,
+      status: "pending",
+      line_items: [
+        {
+          description: `Monthly Rent - ${lease.tenant_name}`,
+          quantity: 1,
+          unit_price: lease.monthly_rent,
+          amount: lease.monthly_rent,
+        },
+      ],
+      notes: noteTag,
+    });
+    if (!error) invoicesCreated++;
+  }
+
+  // ── 5. Create payable invoices for maintenance requests ──
+  let maintQuery = supabase
+    .from("maintenance_requests")
+    .select("id, property_id, title, estimated_cost, actual_cost, status, category")
+    .eq("company_id", companyId)
+    .in("status", ["submitted", "assigned", "in_progress", "completed"]);
+  if (propertyId) {
+    maintQuery = maintQuery.eq("property_id", propertyId);
+  }
+  const { data: maintRequests } = await maintQuery;
+
+  const { data: existingMaintInvoices } = await supabase
+    .from("invoices")
+    .select("id, notes")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "payable")
+    .like("notes", "auto-maint-%");
+  const existingMaintSet = new Set(
+    (existingMaintInvoices ?? []).map((i) => i.notes)
+  );
+
+  for (const m of maintRequests ?? []) {
+    const cost = m.actual_cost ?? m.estimated_cost;
+    if (!cost || cost <= 0) continue;
+
+    const noteTag = `auto-maint-${m.id}`;
+    if (existingMaintSet.has(noteTag)) continue;
+
+    const invNum = `MAINT-${m.title.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12).toUpperCase()}`;
+    const today = now.toISOString().slice(0, 10);
+
+    const { error } = await supabase.from("invoices").insert({
+      company_id: companyId,
+      invoice_number: invNum,
+      invoice_type: "payable",
+      vendor_name: `Maintenance - ${m.category || "General"}`,
+      property_id: m.property_id,
+      invoice_date: today,
+      due_date: today,
+      subtotal: cost,
+      tax_amount: 0,
+      total_amount: cost,
+      amount_paid: m.status === "completed" ? cost : 0,
+      status: m.status === "completed" ? "paid" : "pending",
+      line_items: [
+        {
+          description: m.title,
+          quantity: 1,
+          unit_price: cost,
+          amount: cost,
+        },
+      ],
+      notes: noteTag,
+    });
+    if (!error) invoicesCreated++;
+  }
+
+  // ── 6. Recalculate property stats ──
+  let propsQuery = supabase
+    .from("properties")
+    .select("id")
+    .eq("company_id", companyId);
+  if (propertyId) {
+    propsQuery = propsQuery.eq("id", propertyId);
+  }
+  const { data: properties } = await propsQuery;
+
+  for (const prop of properties ?? []) {
+    const [unitsRes, activeLeasesRes] = await Promise.all([
+      supabase
+        .from("units")
+        .select("id, status")
+        .eq("company_id", companyId)
+        .eq("property_id", prop.id),
+      supabase
+        .from("leases")
+        .select("monthly_rent")
+        .eq("company_id", companyId)
+        .eq("property_id", prop.id)
+        .eq("status", "active"),
+    ]);
+
+    const units = unitsRes.data ?? [];
+    const propLeases = activeLeasesRes.data ?? [];
+    const totalUnits = units.length;
+    const occupiedCount = units.filter((u) => u.status === "occupied").length;
+    const monthlyRevenue = propLeases.reduce(
+      (sum, l) => sum + (l.monthly_rent ?? 0),
+      0
+    );
+    const occupancyRate =
+      totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
+
+    await supabase
+      .from("properties")
+      .update({
+        total_units: totalUnits,
+        occupied_units: occupiedCount,
+        occupancy_rate: occupancyRate,
+        monthly_revenue: monthlyRevenue,
+        noi: monthlyRevenue,
+      })
+      .eq("id", prop.id);
+
+    propertiesUpdated++;
+  }
+
+  return { rentPaymentsCreated, invoicesCreated, propertiesUpdated };
 }

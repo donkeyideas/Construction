@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { syncPropertyFinancials } from "@/lib/queries/properties";
 
 // ---------------------------------------------------------------------------
 // POST /api/import — Generic bulk import endpoint
@@ -225,7 +226,7 @@ export async function POST(request: NextRequest) {
             subject: r.subject || "",
             question: r.question || "",
             priority: r.priority || "medium",
-            status: r.status || "open",
+            status: r.status || "submitted",
             due_date: r.due_date || null,
             submitted_by: userId,
           });
@@ -428,7 +429,7 @@ export async function POST(request: NextRequest) {
             description: r.description || null,
             priority: r.priority || "medium",
             category: r.category || null,
-            status: r.status || "open",
+            status: r.status || "submitted",
             scheduled_date: r.scheduled_date || null,
             estimated_cost: r.estimated_cost ? parseFloat(r.estimated_cost) : null,
             requested_by: userId,
@@ -928,6 +929,18 @@ export async function POST(request: NextRequest) {
           successCount++;
         }
         break;
+      }
+    }
+
+    // Auto-sync property financials after lease or maintenance imports
+    if (
+      (entity === "leases" || entity === "maintenance") &&
+      successCount > 0
+    ) {
+      try {
+        await syncPropertyFinancials(supabase, companyId);
+      } catch {
+        // Non-blocking: don't fail the import if sync fails
       }
     }
 
