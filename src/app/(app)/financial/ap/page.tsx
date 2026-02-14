@@ -33,10 +33,12 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
+  const todayStr = now.toISOString().split("T")[0];
+
   const [allApRes, paidThisMonthRes, invoicesRes] = await Promise.all([
     supabase
       .from("invoices")
-      .select("id, balance_due, status")
+      .select("id, balance_due, status, due_date")
       .eq("company_id", userCompany.companyId)
       .eq("invoice_type", "payable")
       .not("status", "eq", "voided"),
@@ -70,7 +72,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     .filter((inv) => inv.status !== "paid")
     .reduce((sum, inv) => sum + (inv.balance_due ?? 0), 0);
   const overdueAmount = allAp
-    .filter((inv) => inv.status === "overdue")
+    .filter((inv) => inv.status !== "paid" && inv.due_date && inv.due_date < todayStr)
     .reduce((sum, inv) => sum + (inv.balance_due ?? 0), 0);
   const pendingApprovalCount = allAp.filter((inv) => inv.status === "pending").length;
   const paidThisMonth = (paidThisMonthRes.data ?? []).reduce(

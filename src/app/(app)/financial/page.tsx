@@ -340,10 +340,12 @@ export default async function FinancialDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentInvoices.map((inv) => (
+                  {recentInvoices.map((inv) => {
+                    const isPastDue = new Date(inv.due_date) < new Date() && inv.status !== "paid" && inv.status !== "voided";
+                    return (
                     <tr
                       key={inv.id}
-                      className={inv.status === "overdue" ? "invoice-row-overdue" : ""}
+                      className={isPastDue || inv.status === "overdue" ? "invoice-row-overdue" : ""}
                     >
                       <td style={{ fontWeight: 600 }}>
                         <Link
@@ -380,7 +382,8 @@ export default async function FinancialDashboardPage() {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>

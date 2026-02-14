@@ -111,6 +111,7 @@ export default function InvoicesClient({
   activeStatus,
 }: InvoicesClientProps) {
   const router = useRouter();
+  const now = new Date();
 
   // Detail / Edit / Delete modal state
   const [selectedInv, setSelectedInv] = useState<InvoiceRow | null>(null);
@@ -302,7 +303,9 @@ export default function InvoicesClient({
               </thead>
               <tbody>
                 {invoices.map((inv) => {
-                  const isOverdue = inv.status === "overdue";
+                  const dueDate = new Date(inv.due_date);
+                  const isPastDue = dueDate < now && inv.status !== "paid" && inv.status !== "voided";
+                  const isOverdue = isPastDue || inv.status === "overdue";
                   return (
                     <tr
                       key={inv.id}

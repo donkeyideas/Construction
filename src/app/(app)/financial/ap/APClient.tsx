@@ -300,9 +300,9 @@ export default function APClient({
               </thead>
               <tbody>
                 {invoices.map((inv) => {
-                  const isOverdue = inv.status === "overdue";
                   const dueDate = new Date(inv.due_date);
                   const isPastDue = dueDate < now && inv.status !== "paid" && inv.status !== "voided";
+                  const isOverdue = isPastDue || inv.status === "overdue";
 
                   return (
                     <tr
