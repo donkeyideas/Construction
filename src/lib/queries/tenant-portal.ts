@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface TenantDashboard {
   lease: {
@@ -91,13 +92,120 @@ export async function getTenantMaintenanceRequests(supabase: SupabaseClient, use
   return data ?? [];
 }
 
-export async function getTenantDocuments(supabase: SupabaseClient, userId: string) {
-  const { data } = await supabase
+export interface TenantDocument {
+  id: string;
+  document_id: string;
+  shared_at: string | null;
+  doc_name: string;
+  file_path: string | null;
+  file_type: string | null;
+  file_size: number | null;
+  category: string | null;
+  doc_created_at: string | null;
+}
+
+export async function getTenantDocuments(
+  _supabase: SupabaseClient,
+  userId: string
+): Promise<TenantDocument[]> {
+  // Admin client bypasses RLS — tenants lack SELECT on the documents table,
+  // so the PostgREST join returns null with the user's client.
+  const admin = createAdminClient();
+
+  const { data } = await admin
     .from("tenant_documents")
-    .select("*, documents(name, file_path, file_type, file_size, created_at)")
+    .select(
+      "id, document_id, shared_at, documents(name, file_path, file_type, file_size, category, created_at)"
+    )
     .eq("shared_with_tenant_user_id", userId)
     .order("shared_at", { ascending: false });
-  return data ?? [];
+
+  return (data ?? []).map((row: Record<string, unknown>) => {
+    const doc = row.documents as {
+      name: string;
+      file_path: string;
+      file_type: string;
+      file_size: number;
+      category: string;
+      created_at: string;
+    } | null;
+    return {
+      id: row.id as string,
+      document_id: row.document_id as string,
+      shared_at: row.shared_at as string | null,
+      doc_name: doc?.name ?? "Untitled Document",
+      file_path: doc?.file_path ?? null,
+      file_type: doc?.file_type ?? null,
+      file_size: doc?.file_size ?? null,
+      category: doc?.category ?? null,
+      doc_created_at: doc?.created_at ?? null,
+    };
+  });
+}
+
+export interface TenantProfile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  lease: {
+    unit_name: string;
+    property_name: string;
+    lease_start: string;
+    lease_end: string;
+    monthly_rent: number;
+    status: string;
+  } | null;
+}
+
+export async function getTenantProfile(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<TenantProfile | null> {
+  const [profileRes, leaseRes] = await Promise.all([
+    supabase
+      .from("user_profiles")
+      .select("id, email, full_name, phone, avatar_url")
+      .eq("id", userId)
+      .single(),
+    supabase
+      .from("leases")
+      .select(
+        "status, monthly_rent, lease_start, lease_end, units(unit_number, properties(name))"
+      )
+      .eq("tenant_user_id", userId)
+      .eq("status", "active")
+      .limit(1)
+      .single(),
+  ]);
+
+  const profile = profileRes.data;
+  if (!profile) return null;
+
+  const lease = leaseRes.data;
+  const unit = lease?.units as unknown as {
+    unit_number: string;
+    properties: { name: string };
+  } | null;
+
+  return {
+    id: profile.id,
+    email: profile.email,
+    full_name: profile.full_name,
+    phone: profile.phone,
+    avatar_url: profile.avatar_url,
+    lease: lease
+      ? {
+          unit_name: unit?.unit_number ?? "Unknown Unit",
+          property_name: unit?.properties?.name ?? "Unknown Property",
+          lease_start: lease.lease_start,
+          lease_end: lease.lease_end,
+          monthly_rent: lease.monthly_rent,
+          status: lease.status,
+        }
+      : null,
+  };
 }
 
 export async function getTenantAnnouncements(supabase: SupabaseClient, userId: string) {

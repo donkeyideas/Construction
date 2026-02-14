@@ -7,3 +7,168 @@
   gap: 16px;
   margin-bottom: 24px;
 }
+
+/* ===== Shared: Fields & Labels ===== */
+.tenant-field {
+  margin-bottom: 16px;
+}
+
+.tenant-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ===== Shared: Alerts ===== */
+.tenant-alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.tenant-alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-red);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.tenant-alert-success {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--color-green);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+/* ===== Modal ===== */
+.tenant-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: tenant-overlay-in 0.2s ease;
+}
+
+@keyframes tenant-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tenant-modal {
+  width: calc(100% - 32px);
+  max-width: 580px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  animation: tenant-modal-in 0.2s ease;
+}
+
+[data-theme="dark"] .tenant-modal {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes tenant-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tenant-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tenant-modal-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.tenant-modal-close:hover {
+  color: var(--foreground);
+  background: rgba(100, 100, 100, 0.1);
+}
+
+/* ===== Detail Rows (used in modals) ===== */
+.tenant-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tenant-detail-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ===== Profile Page ===== */
+.tenant-profile-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tenant-profile-row-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.tenant-profile-row-value {
+  font-size: 0.9rem;
+  color: var(--foreground);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .tenant-profile-row {
+    padding: 10px 0;
+  }
+}
+
+@media (max-width: 500px) {
+  .tenant-modal {
+    padding: 20px;
+  }
+}
