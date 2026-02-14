@@ -146,15 +146,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Step 5: Seed the chart of accounts for the company
-    const { error: seedError } = await supabase.rpc("seed_company_chart_of_accounts", {
-      p_company_id: companyId,
-    });
-
-    if (seedError) {
-      // Log the error but don't fail registration -- chart of accounts can be seeded later
-      console.error("Failed to seed chart of accounts:", seedError.message);
-    }
+    // Chart of accounts is NOT auto-seeded. Users can load defaults from
+    // the Chart of Accounts page or import their own via CSV.
 
     return NextResponse.json(
       {

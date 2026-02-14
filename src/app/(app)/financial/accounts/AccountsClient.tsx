@@ -145,6 +145,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
   const [showImport, setShowImport] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingDefaults, setLoadingDefaults] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form state
@@ -181,6 +182,25 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
     setNormalBalance("debit");
     setError(null);
     setOpen(true);
+  }
+
+  async function handleLoadDefaults() {
+    setLoadingDefaults(true);
+    try {
+      const res = await fetch("/api/financial/accounts/seed-defaults", {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to load default accounts");
+        return;
+      }
+      router.refresh();
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setLoadingDefaults(false);
+    }
   }
 
   function handleClose() {
@@ -348,18 +368,47 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
             </div>
             <div className="fin-empty-title">No Accounts Set Up</div>
             <div className="fin-empty-desc">
-              Create your chart of accounts to organize your general ledger.
-              Start with the standard categories: Assets, Liabilities, Equity,
-              Revenue, and Expenses.
+              Start from scratch by adding accounts manually, import your
+              existing chart of accounts via CSV, or load the standard
+              construction chart of accounts.
             </div>
-            <button
-              type="button"
-              className="ui-btn ui-btn-primary ui-btn-md"
-              onClick={handleOpen}
-            >
-              <Plus size={16} />
-              Add First Account
-            </button>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+              <button
+                type="button"
+                className="ui-btn ui-btn-primary ui-btn-md"
+                onClick={handleLoadDefaults}
+                disabled={loadingDefaults}
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+              >
+                {loadingDefaults ? (
+                  <>
+                    <Loader2 size={16} className="spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <Layers size={16} />
+                    Load Default Accounts
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                className="ui-btn ui-btn-outline ui-btn-md"
+                onClick={() => setShowImport(true)}
+              >
+                <Upload size={16} />
+                Import CSV
+              </button>
+              <button
+                type="button"
+                className="ui-btn ui-btn-outline ui-btn-md"
+                onClick={handleOpen}
+              >
+                <Plus size={16} />
+                Add Manually
+              </button>
+            </div>
           </div>
         </div>
       )}
