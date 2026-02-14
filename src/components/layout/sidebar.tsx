@@ -177,24 +177,36 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {isOpen && <div className="overlay active" onClick={onClose} />}
       <aside className={`sidebar ${isOpen ? "open" : ""}`}>
         <div className="sidebar-brand">
-          {logoUrl ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <img
-                src={logoUrl}
-                alt=""
-                style={{
-                  width: "28px",
-                  height: "28px",
-                  objectFit: "contain",
-                  borderRadius: "4px",
-                }}
-              />
-              <h1 style={{ fontSize: companyName && companyName.length > 18 ? "0.95rem" : undefined }}>
-                {companyName || "ConstructionERP"}
-              </h1>
-            </div>
+          {companyName ? (
+            logoUrl ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <img
+                  src={logoUrl}
+                  alt=""
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    objectFit: "contain",
+                    borderRadius: "4px",
+                  }}
+                />
+                <h1 style={{ fontSize: companyName.length > 18 ? "0.95rem" : undefined }}>
+                  {companyName}
+                </h1>
+              </div>
+            ) : (
+              <h1>{companyName}</h1>
+            )
           ) : (
-            <h1>{companyName || "ConstructionERP"}</h1>
+            <div
+              style={{
+                height: "1.4rem",
+                width: "140px",
+                borderRadius: "6px",
+                background: "var(--border)",
+                opacity: 0.5,
+              }}
+            />
           )}
           <div className="accent-line" />
         </div>

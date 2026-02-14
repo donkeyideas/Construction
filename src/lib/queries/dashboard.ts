@@ -310,7 +310,7 @@ export async function getRecentActivity(
     await Promise.all([
       supabase
         .from("projects")
-        .select("id, name, status, created_at, updated_at")
+        .select("id, name, status, created_at, updated_at, project_manager:user_profiles!projects_pm_profile_fkey(full_name)")
         .eq("company_id", companyId)
         .order("updated_at", { ascending: false })
         .limit(5),
@@ -346,13 +346,13 @@ export async function getRecentActivity(
         .limit(5),
       supabase
         .from("daily_logs")
-        .select("id, log_date, weather, created_at, projects(name)")
+        .select("id, log_date, weather, created_at, projects(name), author:user_profiles!daily_logs_created_by_fkey(full_name)")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false })
         .limit(5),
       supabase
         .from("documents")
-        .select("id, name, created_at")
+        .select("id, name, created_at, uploader:user_profiles!documents_uploaded_by_fkey(full_name)")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false })
         .limit(5),
@@ -360,11 +360,18 @@ export async function getRecentActivity(
 
   const items: RecentActivityItem[] = [];
 
+  // Helper to extract user name from joined profile
+  function userName(profile: unknown): string {
+    if (!profile) return "Team";
+    const p = profile as { full_name?: string };
+    return p.full_name || "Team";
+  }
+
   // Projects
   for (const p of projectsRes.data ?? []) {
     const isNew = p.created_at === p.updated_at;
     items.push({
-      user: "System",
+      user: userName(p.project_manager),
       action: isNew ? "created project" : `updated project (${p.status?.replace(/_/g, " ")})`,
       ref: p.name ?? "",
       time: p.updated_at ?? p.created_at,
@@ -375,7 +382,7 @@ export async function getRecentActivity(
 
   // Invoices
   for (const inv of invoicesRes.data ?? []) {
-    const party = inv.invoice_type === "payable" ? (inv.vendor_name ?? "vendor") : (inv.client_name ?? "client");
+    const party = inv.invoice_type === "payable" ? (inv.vendor_name ?? "Vendor") : (inv.client_name ?? "Client");
     const isNew = inv.created_at === inv.updated_at;
     items.push({
       user: party,
@@ -392,7 +399,7 @@ export async function getRecentActivity(
   // Change Orders
   for (const co of changeOrdersRes.data ?? []) {
     items.push({
-      user: "System",
+      user: "Team",
       action: `change order ${co.status?.replace(/_/g, " ") ?? "created"}`,
       ref: `${co.co_number} - ${co.title}`,
       time: co.updated_at ?? co.created_at,
@@ -404,7 +411,7 @@ export async function getRecentActivity(
   // RFIs
   for (const rfi of rfisRes.data ?? []) {
     items.push({
-      user: "System",
+      user: "Team",
       action: `RFI ${rfi.status?.replace(/_/g, " ") ?? "submitted"}`,
       ref: `${rfi.rfi_number} - ${rfi.subject}`,
       time: rfi.updated_at ?? rfi.created_at,
@@ -416,7 +423,7 @@ export async function getRecentActivity(
   // Submittals
   for (const sub of submittalsRes.data ?? []) {
     items.push({
-      user: "System",
+      user: "Team",
       action: `submittal ${sub.status?.replace(/_/g, " ") ?? "submitted"}`,
       ref: `${sub.submittal_number} - ${sub.title}`,
       time: sub.updated_at ?? sub.created_at,
@@ -429,7 +436,7 @@ export async function getRecentActivity(
   for (const pay of paymentsRes.data ?? []) {
     const invoice = pay.invoices as unknown as { invoice_number: string } | null;
     items.push({
-      user: "System",
+      user: "Finance",
       action: "recorded payment",
       ref: invoice?.invoice_number ?? "",
       time: pay.created_at,
@@ -442,7 +449,7 @@ export async function getRecentActivity(
   for (const log of dailyLogsRes.data ?? []) {
     const project = log.projects as unknown as { name: string } | null;
     items.push({
-      user: "System",
+      user: userName(log.author),
       action: "submitted daily log",
       ref: project?.name ?? log.log_date ?? "",
       time: log.created_at,
@@ -454,7 +461,7 @@ export async function getRecentActivity(
   // Documents
   for (const doc of documentsRes.data ?? []) {
     items.push({
-      user: "System",
+      user: userName(doc.uploader),
       action: "uploaded document",
       ref: doc.name ?? "",
       time: doc.created_at,

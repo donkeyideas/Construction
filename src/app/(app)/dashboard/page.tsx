@@ -294,7 +294,7 @@ export default async function DashboardPage() {
               ))
             )}
             {pendingApprovals.length > 0 && (
-              <a href="/projects/change-orders" className="view-all">
+              <a href="/tickets" className="view-all">
                 View All
               </a>
             )}
@@ -326,7 +326,7 @@ export default async function DashboardPage() {
               ))
             )}
             {recentActivity.length > 0 && (
-              <a href="#" className="view-all">
+              <a href="/reports" className="view-all">
                 View All
               </a>
             )}
