@@ -20,10 +20,11 @@ export interface ProjectStatusBreakdown {
   total: number;
 }
 
-export interface MonthlyBillingItem {
+export interface CashFlowItem {
   month: string; // "Jan", "Feb", etc.
-  amount: number;
-  yearMonth: string; // "2026-01" for sorting
+  cashIn: number; // receivable invoices (billings to clients)
+  cashOut: number; // payable invoices (vendor/sub payments)
+  net: number; // cashIn - cashOut
 }
 
 export interface PendingApprovalItem {
@@ -158,61 +159,77 @@ export async function getProjectStatusBreakdown(
 }
 
 // ---------------------------------------------------------------------------
-// Monthly Billing (bar chart - last 12 months of receivable invoices)
+// Cash Flow (bar chart - last 12 months of receivable vs payable invoices)
 // ---------------------------------------------------------------------------
 
-export async function getMonthlyBilling(
+export async function getCashFlow(
   supabase: SupabaseClient,
   companyId: string,
   projectId?: string
-): Promise<MonthlyBillingItem[]> {
-  // Build date 12 months ago (first of that month)
+): Promise<CashFlowItem[]> {
   const now = new Date();
   const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
   const fromDate = twelveMonthsAgo.toISOString().slice(0, 10);
 
-  let query = supabase
+  // Fetch both receivable and payable invoices in parallel
+  let receivableQuery = supabase
     .from("invoices")
     .select("invoice_date, total_amount")
     .eq("company_id", companyId)
     .eq("invoice_type", "receivable")
-    .gte("invoice_date", fromDate)
-    .order("invoice_date", { ascending: true });
-  if (projectId) query = query.eq("project_id", projectId);
+    .gte("invoice_date", fromDate);
+  if (projectId) receivableQuery = receivableQuery.eq("project_id", projectId);
 
-  const { data } = await query;
+  let payableQuery = supabase
+    .from("invoices")
+    .select("invoice_date, total_amount")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "payable")
+    .gte("invoice_date", fromDate);
+  if (projectId) payableQuery = payableQuery.eq("project_id", projectId);
 
-  const invoices = data ?? [];
+  const [receivableRes, payableRes] = await Promise.all([receivableQuery, payableQuery]);
 
-  // Build a map of all 12 months initialized to 0
-  const monthMap = new Map<string, number>();
+  // Build maps for all 12 months
+  const cashInMap = new Map<string, number>();
+  const cashOutMap = new Map<string, number>();
   const monthLabels = new Map<string, string>();
 
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    monthMap.set(key, 0);
-    monthLabels.set(
-      key,
-      d.toLocaleDateString("en-US", { month: "short" })
-    );
+    cashInMap.set(key, 0);
+    cashOutMap.set(key, 0);
+    monthLabels.set(key, d.toLocaleDateString("en-US", { month: "short" }));
   }
 
-  // Sum invoices into month buckets
-  for (const inv of invoices) {
+  // Sum receivable invoices (cash in)
+  for (const inv of receivableRes.data ?? []) {
     const d = new Date(inv.invoice_date);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    if (monthMap.has(key)) {
-      monthMap.set(key, (monthMap.get(key) ?? 0) + (Number(inv.total_amount) || 0));
+    if (cashInMap.has(key)) {
+      cashInMap.set(key, (cashInMap.get(key) ?? 0) + (Number(inv.total_amount) || 0));
     }
   }
 
-  const result: MonthlyBillingItem[] = [];
-  for (const [yearMonth, amount] of monthMap) {
+  // Sum payable invoices (cash out)
+  for (const inv of payableRes.data ?? []) {
+    const d = new Date(inv.invoice_date);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    if (cashOutMap.has(key)) {
+      cashOutMap.set(key, (cashOutMap.get(key) ?? 0) + (Number(inv.total_amount) || 0));
+    }
+  }
+
+  const result: CashFlowItem[] = [];
+  for (const [yearMonth] of cashInMap) {
+    const cashIn = cashInMap.get(yearMonth) ?? 0;
+    const cashOut = cashOutMap.get(yearMonth) ?? 0;
     result.push({
       month: monthLabels.get(yearMonth) ?? "",
-      amount,
-      yearMonth,
+      cashIn,
+      cashOut,
+      net: cashIn - cashOut,
     });
   }
 

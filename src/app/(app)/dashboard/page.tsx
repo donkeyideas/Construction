@@ -11,7 +11,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import {
   getDashboardKPIs,
   getProjectStatusBreakdown,
-  getMonthlyBilling,
+  getCashFlow,
   getPendingApprovals,
   getRecentActivity,
 } from "@/lib/queries/dashboard";
@@ -22,6 +22,7 @@ import {
   formatRelativeTime,
 } from "@/lib/utils/format";
 import DashboardFilter from "@/components/DashboardFilter";
+import CashFlowChart from "@/components/CashFlowChart";
 
 export const metadata = {
   title: "Dashboard - ConstructionERP",
@@ -97,11 +98,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   if (selectedProjectId) arQuery = arQuery.eq("project_id", selectedProjectId);
 
   // Fetch all dashboard data in parallel
-  const [kpis, projectStatus, monthlyBilling, pendingApprovalsResult, recentActivity, outstandingAPRes, outstandingARRes] =
+  const [kpis, projectStatus, cashFlow, pendingApprovalsResult, recentActivity, outstandingAPRes, outstandingARRes] =
     await Promise.all([
       getDashboardKPIs(supabase, companyId, selectedProjectId),
       getProjectStatusBreakdown(supabase, companyId, selectedProjectId),
-      getMonthlyBilling(supabase, companyId, selectedProjectId),
+      getCashFlow(supabase, companyId, selectedProjectId),
       getPendingApprovals(supabase, companyId, selectedProjectId),
       getRecentActivity(supabase, companyId, selectedProjectId),
       apQuery,
@@ -170,13 +171,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       ? `conic-gradient(${conicParts.join(", ")})`
       : "conic-gradient(var(--border) 0% 100%)";
 
-  // Compute bar chart heights relative to the max billing month
-  const maxBilling = Math.max(...monthlyBilling.map((m) => m.amount), 1);
-  const bars = monthlyBilling.map((m) => ({
-    label: m.month,
-    height: Math.max(Math.round((m.amount / maxBilling) * 100), m.amount > 0 ? 8 : 4),
-    amount: m.amount,
-  }));
+  // Check if cash flow has any data
+  const hasCashFlowData = cashFlow.some((m) => m.cashIn > 0 || m.cashOut > 0);
 
   // Find the selected project name for the header
   const selectedProjectName = selectedProjectId
@@ -255,31 +251,14 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       {/* Charts Row */}
       {sections.charts && (
         <div className="charts-row">
-          {/* Monthly Billing Bar Chart - only for financial roles */}
+          {/* Cash Flow Chart - only for financial roles */}
           {sections.financials && (
             <div className="card">
-              <div className="card-title">
-                Monthly Billing
-                {maxBilling > 1 && (
-                  <span className="chart-max-label">
-                    Peak: {formatCompactCurrency(maxBilling)}
-                  </span>
-                )}
-              </div>
-              {bars.every((b) => b.amount === 0) ? (
-                <EmptyState message="No billing data yet" />
+              <div className="card-title">Cash Flow</div>
+              {!hasCashFlowData ? (
+                <EmptyState message="No cash flow data yet" />
               ) : (
-                <div className="bar-chart">
-                  {bars.map((m) => (
-                    <div key={m.label} className="bar-col">
-                      <div className="bar-amount">
-                        {m.amount > 0 ? formatCompactCurrency(m.amount) : ""}
-                      </div>
-                      <div className="bar" style={{ height: `${m.height}%` }} />
-                      <div className="bar-label">{m.label}</div>
-                    </div>
-                  ))}
-                </div>
+                <CashFlowChart data={cashFlow} />
               )}
             </div>
           )}
