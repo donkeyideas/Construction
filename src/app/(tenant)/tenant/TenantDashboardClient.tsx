@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Home,
@@ -59,6 +59,23 @@ export default function TenantDashboardClient({
   dashboard: TenantDashboard;
 }) {
   const [paymentAlert, setPaymentAlert] = useState("");
+  const [nextDueDate, setNextDueDate] = useState("--");
+
+  useEffect(() => {
+    const now = new Date();
+    const day = 15;
+    let next = new Date(now.getFullYear(), now.getMonth(), day);
+    if (next <= now) {
+      next = new Date(now.getFullYear(), now.getMonth() + 1, day);
+    }
+    setNextDueDate(
+      next.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    );
+  }, []);
 
   function handlePayNow() {
     setPaymentAlert("Online payment processing coming soon. Please contact your property manager.");
@@ -178,7 +195,7 @@ export default function TenantDashboardClient({
                       fontWeight: 600,
                     }}
                   >
-                    {getNextDueDate()}
+                    {nextDueDate}
                   </div>
                 </div>
               </div>
@@ -406,17 +423,4 @@ export default function TenantDashboardClient({
     </div>
   );
 
-  function getNextDueDate(): string {
-    const now = new Date();
-    const day = 15; // Rent typically due on the 15th
-    let next = new Date(now.getFullYear(), now.getMonth(), day);
-    if (next <= now) {
-      next = new Date(now.getFullYear(), now.getMonth() + 1, day);
-    }
-    return next.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
 }
