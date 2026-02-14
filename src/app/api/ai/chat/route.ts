@@ -1,4 +1,4 @@
-import { streamText, jsonSchema, convertToModelMessages, type UIMessage } from "ai";
+import { streamText, jsonSchema, convertToModelMessages, stepCountIs, type UIMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProviderForTask } from "@/lib/ai/provider-router";
@@ -65,7 +65,7 @@ The user's role is: ${userCompany.role}`;
       model,
       system: systemPrompt,
       messages: modelMessages,
-      maxSteps: 5,
+      stopWhen: stepCountIs(5),
       toolChoice: "auto",
       tools: {
         queryProjects: {
