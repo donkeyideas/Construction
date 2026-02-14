@@ -4,7 +4,6 @@ import {
   Briefcase,
   FileWarning,
   Clock,
-  Sparkles,
   Rocket,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -336,14 +335,13 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* AI Insights */}
+        {/* Insights */}
         {sections.insights && (
           <div className="card">
             <div className="card-title">
-              <Sparkles size={18} style={{ color: "var(--color-amber)" }} />
-              AI Insights
+              Insights
             </div>
-            <AiInsights
+            <DashboardInsights
               kpis={kpis}
               projectStatus={projectStatus}
               pendingApprovals={pendingApprovalsTotal}
@@ -480,10 +478,10 @@ function WelcomeState({ companyName }: { companyName: string }) {
 }
 
 /**
- * Generate contextual AI insights based on real dashboard data.
+ * Generate contextual insights based on real dashboard data.
  * These are deterministic rules, not LLM calls -- instant and free.
  */
-function AiInsights({
+function DashboardInsights({
   kpis,
   projectStatus,
   pendingApprovals,

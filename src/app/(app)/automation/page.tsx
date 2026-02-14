@@ -22,7 +22,7 @@ export default async function AutomationPage() {
       .from("automation_logs")
       .select("*, automation_rules(name)")
       .eq("company_id", companyId)
-      .order("executed_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(50),
   ]);
 
