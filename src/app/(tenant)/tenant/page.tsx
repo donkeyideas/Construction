@@ -58,7 +58,7 @@ export default async function TenantDashboardPage() {
             <span className="kpi-label">Next Due Date</span>
             <span className="kpi-value">
               {dashboard.lease
-                ? new Date(dashboard.lease.end_date).toLocaleDateString("en-US", {
+                ? new Date(dashboard.lease.lease_end).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
@@ -113,9 +113,9 @@ export default async function TenantDashboardPage() {
             <div>
               <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Lease Period</div>
               <div style={{ fontWeight: 600 }}>
-                {new Date(dashboard.lease.start_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                {new Date(dashboard.lease.lease_start).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                 {" - "}
-                {new Date(dashboard.lease.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                {new Date(dashboard.lease.lease_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </div>
             </div>
             <div>

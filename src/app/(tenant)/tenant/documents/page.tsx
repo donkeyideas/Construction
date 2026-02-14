@@ -40,7 +40,7 @@ export default async function TenantDocumentsPage() {
           {documents.map((doc) => {
             const docInfo = doc.documents as {
               name: string;
-              file_url: string;
+              file_path: string;
               file_type: string;
               file_size: number;
               created_at: string;
@@ -83,9 +83,9 @@ export default async function TenantDocumentsPage() {
                       </div>
                     </div>
                   </div>
-                  {docInfo?.file_url && (
+                  {docInfo?.file_path && (
                     <a
-                      href={docInfo.file_url}
+                      href={docInfo.file_path}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="ui-btn ui-btn-sm ui-btn-outline"

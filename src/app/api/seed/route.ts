@@ -26,6 +26,19 @@ const TEST_USERS: UserSeed[] = [
   { email: "viewer@demo.com", full_name: "Lisa Martinez", role: "viewer", job_title: "Client Rep", phone: "(512) 555-0106" },
 ];
 
+// Tenant portal users (not company members — they access the tenant portal)
+interface TenantUserSeed {
+  email: string;
+  full_name: string;
+  phone: string;
+  tenant_name: string; // matches tenantNames in leases
+}
+
+const TENANT_USERS: TenantUserSeed[] = [
+  { email: "tenant@demo.com", full_name: "Maria Gonzalez", phone: "(512) 555-3005", tenant_name: "Maria Gonzalez" },
+  { email: "tenant2@demo.com", full_name: "Chris Anderson", phone: "(512) 555-3006", tenant_name: "Chris Anderson" },
+];
+
 export async function POST(request: Request) {
   try {
     const url = new URL(request.url);
@@ -115,6 +128,8 @@ export async function POST(request: Request) {
         supabase.from("journal_entries").delete().eq("company_id", cid),
         supabase.from("bank_accounts").delete().eq("company_id", cid),
         supabase.from("chart_of_accounts").delete().eq("company_id", cid),
+        supabase.from("tenant_documents").delete().eq("company_id", cid),
+        supabase.from("tenant_announcements").delete().eq("company_id", cid),
         supabase.from("documents").delete().eq("company_id", cid),
         supabase.from("contacts").delete().eq("company_id", cid),
         supabase.from("certifications").delete().eq("company_id", cid),
@@ -130,6 +145,7 @@ export async function POST(request: Request) {
         supabase.from("subscription_events").delete().eq("company_id", cid),
       ]);
       // Delete projects, properties, units, leases, maintenance (which depend on projects/properties)
+      await supabase.from("rent_payments").delete().eq("company_id", cid);
       await supabase.from("property_units").delete().eq("company_id", cid);
       await supabase.from("leases").delete().eq("company_id", cid);
       await supabase.from("maintenance_requests").delete().eq("company_id", cid);
@@ -177,6 +193,42 @@ export async function POST(request: Request) {
         user_id: userIds[user.role],
         role: user.role,
         is_active: true,
+      });
+    }
+
+    // ============================================================
+    // 3b. CREATE TENANT PORTAL USERS
+    // ============================================================
+    const tenantUserIds: Record<string, string> = {};
+
+    for (const tenant of TENANT_USERS) {
+      const existing = existingUserMap.get(tenant.email);
+
+      if (existing) {
+        tenantUserIds[tenant.tenant_name] = existing.id;
+      } else {
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: tenant.email,
+          password: DEFAULT_PASSWORD,
+          email_confirm: true,
+          user_metadata: { full_name: tenant.full_name },
+        });
+
+        if (authError) {
+          console.error(`Failed to create tenant user ${tenant.email}:`, authError.message);
+          return NextResponse.json({ error: `Failed to create tenant user ${tenant.email}: ${authError.message}` }, { status: 500 });
+        }
+
+        tenantUserIds[tenant.tenant_name] = authData.user.id;
+      }
+
+      // Upsert tenant profile with portal_type='tenant'
+      await supabase.from("user_profiles").upsert({
+        id: tenantUserIds[tenant.tenant_name],
+        email: tenant.email,
+        full_name: tenant.full_name,
+        phone: tenant.phone,
+        portal_type: "tenant",
       });
     }
 
@@ -671,13 +723,19 @@ export async function POST(request: Request) {
       const startDate = new Date(2025, startMonth, 1);
       const endDate = new Date(2026, startMonth + 12, 0);
       const rent = 1500 + Math.floor(Math.random() * 3000);
+      const name = tenantNames[i % tenantNames.length];
+      // Link tenant auth user if this tenant has a portal account
+      const tenantUserId = tenantUserIds[name] || null;
       return {
         company_id: companyId,
         property_id: unit.property_id,
         unit_id: unit.id,
-        tenant_name: tenantNames[i % tenantNames.length],
-        tenant_email: `tenant${i + 1}@example.com`,
+        tenant_name: name,
+        tenant_email: tenantUserId
+          ? TENANT_USERS.find((t) => t.tenant_name === name)?.email ?? `tenant${i + 1}@example.com`
+          : `tenant${i + 1}@example.com`,
         tenant_phone: `(512) 555-${3000 + i}`,
+        tenant_user_id: tenantUserId,
         lease_start: startDate.toISOString().slice(0, 10),
         lease_end: endDate.toISOString().slice(0, 10),
         monthly_rent: rent,
@@ -687,7 +745,7 @@ export async function POST(request: Request) {
       };
     });
 
-    const { data: leasesData } = await supabase.from("leases").insert(leaseInserts).select("id");
+    const { data: leasesData } = await supabase.from("leases").insert(leaseInserts).select("id, tenant_user_id");
 
     // ============================================================
     // 11. RENT PAYMENTS (last 3 months)
@@ -731,21 +789,32 @@ export async function POST(request: Request) {
       "Elevator service button not illuminating",
     ];
 
-    const maintInserts = maintDescriptions.map((desc, i) => ({
-      company_id: companyId,
-      property_id: i < 6 ? domainId : bartonId,
-      title: desc,
-      description: `${desc}. Tenant reported the issue on ${new Date(2026, 0, 15 + i).toLocaleDateString()}.`,
-      category: maintCategories[i % maintCategories.length],
-      priority: i < 2 ? "emergency" : i < 5 ? "high" : "medium",
-      status: maintStatuses[i % maintStatuses.length],
-      requested_by: userIds.field_worker,
-      assigned_to: i % 3 === 0 ? userIds.superintendent : userIds.field_worker,
-      estimated_cost: 150 + Math.floor(Math.random() * 800),
-      actual_cost: i % 2 === 0 ? 200 + Math.floor(Math.random() * 600) : null,
-      scheduled_date: new Date(2026, 1, 1 + i * 2).toISOString().slice(0, 10),
-      completed_at: maintStatuses[i % maintStatuses.length] === "completed" ? new Date(2026, 1, 5 + i).toISOString() : null,
-    }));
+    // Get tenant user IDs for assigning maintenance requests
+    const tenantId1 = tenantUserIds["Maria Gonzalez"] || null;
+    const tenantId2 = tenantUserIds["Chris Anderson"] || null;
+
+    const maintInserts = maintDescriptions.map((desc, i) => {
+      // First 4 requests are from tenant1 (Maria), next 2 from tenant2 (Chris), rest from field_worker
+      let requestedBy = userIds.field_worker;
+      if (i < 4 && tenantId1) requestedBy = tenantId1;
+      else if (i >= 4 && i < 6 && tenantId2) requestedBy = tenantId2;
+
+      return {
+        company_id: companyId,
+        property_id: i < 6 ? domainId : bartonId,
+        title: desc,
+        description: `${desc}. Tenant reported the issue on ${new Date(2026, 0, 15 + i).toLocaleDateString()}.`,
+        category: maintCategories[i % maintCategories.length],
+        priority: i < 2 ? "emergency" : i < 5 ? "high" : "medium",
+        status: maintStatuses[i % maintStatuses.length],
+        requested_by: requestedBy,
+        assigned_to: i % 3 === 0 ? userIds.superintendent : userIds.field_worker,
+        estimated_cost: 150 + Math.floor(Math.random() * 800),
+        actual_cost: i % 2 === 0 ? 200 + Math.floor(Math.random() * 600) : null,
+        scheduled_date: new Date(2026, 1, 1 + i * 2).toISOString().slice(0, 10),
+        completed_at: maintStatuses[i % maintStatuses.length] === "completed" ? new Date(2026, 1, 5 + i).toISOString() : null,
+      };
+    });
 
     await supabase.from("maintenance_requests").insert(maintInserts);
 
@@ -1716,6 +1785,94 @@ export async function POST(request: Request) {
     ]);
 
     // ============================================================
+    // 40. TENANT ANNOUNCEMENTS
+    // ============================================================
+    await supabase.from("tenant_announcements").insert([
+      {
+        company_id: companyId,
+        property_id: domainId,
+        title: "Scheduled Water Shut-Off — February 20",
+        content: "The building water supply will be shut off on Thursday, February 20 from 9:00 AM to 1:00 PM for maintenance to the main water line. Please plan accordingly and store water for the morning. We apologize for the inconvenience.",
+        category: "maintenance",
+        is_active: true,
+        published_at: "2026-02-10T09:00:00Z",
+        created_by: userIds.owner,
+      },
+      {
+        company_id: companyId,
+        property_id: domainId,
+        title: "Community BBQ & Meet Your Neighbors Event",
+        content: "Join us for our quarterly Community BBQ on Saturday, March 1st from 12:00 PM to 4:00 PM at the rooftop terrace. Food and drinks will be provided. Bring your family and meet your neighbors! RSVP at the front desk.",
+        category: "event",
+        is_active: true,
+        published_at: "2026-02-08T14:00:00Z",
+        created_by: userIds.owner,
+      },
+      {
+        company_id: companyId,
+        property_id: bartonId,
+        title: "Elevator Maintenance Notice",
+        content: "Elevator #2 will undergo routine maintenance on February 25-26. Please use Elevator #1 or the stairwell during this period. We anticipate full service will be restored by February 27.",
+        category: "maintenance",
+        is_active: true,
+        published_at: "2026-02-12T10:00:00Z",
+        created_by: userIds.owner,
+      },
+      {
+        company_id: companyId,
+        property_id: null,
+        title: "Updated Parking Policy",
+        content: "Effective March 1, 2026, all residents must display a valid parking permit on their vehicle dashboard. Visitor parking passes are available at the front desk. Unauthorized vehicles may be towed at the owner's expense.",
+        category: "general",
+        is_active: true,
+        published_at: "2026-02-05T11:00:00Z",
+        created_by: userIds.owner,
+      },
+      {
+        company_id: companyId,
+        property_id: domainId,
+        title: "Emergency: Gas Leak Reported — Resolved",
+        content: "A gas leak was reported on Floor 3 on January 28. The fire department and gas company responded immediately. The leak has been repaired and the building has been cleared for re-entry. If you smell gas, evacuate immediately and call 911.",
+        category: "emergency",
+        is_active: false,
+        published_at: "2026-01-28T16:00:00Z",
+        expires_at: "2026-01-29T12:00:00Z",
+        created_by: userIds.owner,
+      },
+    ]);
+
+    // ============================================================
+    // 41. TENANT DOCUMENTS (share some documents with tenant users)
+    // ============================================================
+    const tenantLeases = (leasesData ?? []).filter((l) => l.tenant_user_id != null);
+
+    if (tenantLeases.length > 0) {
+      // Get document IDs to share
+      const { data: docsForTenant } = await supabase
+        .from("documents")
+        .select("id, name")
+        .eq("company_id", companyId)
+        .in("name", ["Summit Builders Insurance Certificate", "Safety Manual 2026"])
+        .limit(2);
+
+      const tenantDocInserts = [];
+      for (const lease of tenantLeases) {
+        for (const doc of docsForTenant ?? []) {
+          tenantDocInserts.push({
+            company_id: companyId,
+            lease_id: lease.id,
+            document_id: doc.id,
+            shared_with_tenant_user_id: lease.tenant_user_id,
+          });
+        }
+      }
+
+      if (tenantDocInserts.length > 0) {
+        await supabase.from("tenant_documents").insert(tenantDocInserts);
+      }
+    }
+
+    // ============================================================
     // DONE
     // ============================================================
     return NextResponse.json({
@@ -1725,15 +1882,25 @@ export async function POST(request: Request) {
         name: "Summit Builders Group",
         id: companyId,
       },
-      accounts: TEST_USERS.map((u) => ({
-        email: u.email,
-        password: DEFAULT_PASSWORD,
-        role: u.role,
-        name: u.full_name,
-      })),
+      accounts: [
+        ...TEST_USERS.map((u) => ({
+          email: u.email,
+          password: DEFAULT_PASSWORD,
+          role: u.role,
+          name: u.full_name,
+        })),
+        ...TENANT_USERS.map((t) => ({
+          email: t.email,
+          password: DEFAULT_PASSWORD,
+          role: "tenant",
+          name: t.full_name,
+        })),
+      ],
       super_admin_note: "The owner account (owner@demo.com) has been granted platform admin access. Use it to access /super-admin.",
+      tenant_note: "Tenant accounts (tenant@demo.com, tenant2@demo.com) access the tenant portal at /login/tenant.",
       stats: {
         users: TEST_USERS.length,
+        tenant_users: TENANT_USERS.length,
         projects: projectSeeds.length,
         properties: 4,
         invoices: invoiceInserts.length,

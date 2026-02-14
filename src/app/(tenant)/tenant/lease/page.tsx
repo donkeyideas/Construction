@@ -45,7 +45,7 @@ export default async function TenantLeasePage() {
       {leases.length > 0 ? (
         leases.map((lease) => {
           const unit = lease.units as {
-            name: string;
+            unit_number: string;
             properties: {
               name: string;
               address_line1?: string;
@@ -82,7 +82,7 @@ export default async function TenantLeasePage() {
                     {property?.name ?? "Unknown Property"}
                   </div>
                   <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
-                    Unit: {unit?.name ?? "Unknown Unit"}
+                    Unit: {unit?.unit_number ?? "Unknown Unit"}
                   </div>
                   {address && (
                     <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginTop: 4 }}>
@@ -102,16 +102,16 @@ export default async function TenantLeasePage() {
                   <div style={{ fontSize: "0.85rem", marginBottom: 4 }}>
                     <span style={{ color: "var(--muted)" }}>Start: </span>
                     <span style={{ fontWeight: 600 }}>
-                      {lease.start_date
-                        ? new Date(lease.start_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+                      {lease.lease_start
+                        ? new Date(lease.lease_start).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
                         : "--"}
                     </span>
                   </div>
                   <div style={{ fontSize: "0.85rem" }}>
                     <span style={{ color: "var(--muted)" }}>End: </span>
                     <span style={{ fontWeight: 600 }}>
-                      {lease.end_date
-                        ? new Date(lease.end_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+                      {lease.lease_end
+                        ? new Date(lease.lease_end).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
                         : "--"}
                     </span>
                   </div>
