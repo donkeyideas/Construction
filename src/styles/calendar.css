@@ -352,9 +352,11 @@
 
 /* ===== Event Popover ===== */
 .calendar-event-popover {
-  position: absolute;
+  position: fixed;
   z-index: 1000;
   width: 300px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;

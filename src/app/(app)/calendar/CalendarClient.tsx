@@ -475,10 +475,24 @@ export default function CalendarClient({
     (event: CalendarEvent, e: React.MouseEvent) => {
       e.stopPropagation();
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      setPopoverPos({
-        top: rect.bottom + window.scrollY + 4,
-        left: rect.left + window.scrollX,
-      });
+      const popoverWidth = 300;
+      const popoverHeight = 220; // approximate
+      const margin = 12;
+
+      // Calculate left position, clamping to viewport
+      let left = rect.left;
+      if (left + popoverWidth + margin > window.innerWidth) {
+        // Would overflow right — flip to left side of the event
+        left = Math.max(margin, rect.right - popoverWidth);
+      }
+
+      // Calculate top position, prefer below but flip above if needed
+      let top = rect.bottom + 4;
+      if (top + popoverHeight > window.innerHeight) {
+        top = Math.max(margin, rect.top - popoverHeight - 4);
+      }
+
+      setPopoverPos({ top, left });
       setSelectedEvent(event);
     },
     []
