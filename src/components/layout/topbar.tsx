@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
-import { Search, Bell, Sun, Moon, Menu, LogOut, User, Settings } from "lucide-react";
+import { Search, Bell, Sun, Moon, Menu, LogOut, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
+import { SearchModal } from "./SearchModal";
 
 interface TopbarProps {
   breadcrumb: string;
@@ -32,6 +33,7 @@ function getInitials(name: string | null, email: string | null): string {
 export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
+  const [searchOpen, setSearchOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<{ name: string | null; email: string | null }>({
     name: null,
     email: null,
@@ -47,7 +49,6 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           name: data.user.user_metadata?.full_name ?? null,
           email: data.user.email ?? null,
         });
-        // Fetch unread messages count (silent fail if table doesn't exist yet)
         supabase
           .from("messages")
           .select("id", { count: "exact", head: true })
@@ -59,6 +60,19 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
       }
     });
   }, []);
+
+  // Ctrl+K / Cmd+K shortcut
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+      e.preventDefault();
+      setSearchOpen((prev) => !prev);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -78,6 +92,13 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           <span className="dot" />
           <span>{breadcrumb}</span>
         </div>
+
+        {/* Center: Search bar */}
+        <button className="search-btn" onClick={() => setSearchOpen(true)}>
+          <Search size={14} />
+          Search <kbd>Ctrl+K</kbd>
+        </button>
+
         <div className="topbar-right">
           <button onClick={toggleTheme} className="theme-btn" title="Toggle theme">
             {theme === "dark" ? (
@@ -85,10 +106,6 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             ) : (
               <Moon size={18} strokeWidth={2} />
             )}
-          </button>
-          <button className="search-btn">
-            <Search size={14} />
-            Search <kbd>Ctrl+K</kbd>
           </button>
           <button className="notif-btn" onClick={() => router.push("/inbox")} title="Inbox">
             <Bell size={20} />
@@ -123,6 +140,8 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           </DropdownMenu>
         </div>
       </header>
+
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }
