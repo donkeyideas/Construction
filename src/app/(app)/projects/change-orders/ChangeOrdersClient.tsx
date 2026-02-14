@@ -900,23 +900,16 @@ export default function ChangeOrdersClient({
             {/* ---------- View Mode ---------- */}
             {!isEditing && !showDeleteConfirm && (
               <div style={{ padding: "1.25rem" }}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "1rem",
-                    marginBottom: "1rem",
-                  }}
-                >
-                  <div>
+                <div className="detail-grid">
+                  <div className="detail-field">
                     <label className="ticket-form-label">CO Number</label>
-                    <div style={{ fontSize: "0.92rem", fontWeight: 600 }}>
+                    <div className="detail-field-value">
                       {selectedCo.co_number}
                     </div>
                   </div>
-                  <div>
+                  <div className="detail-field">
                     <label className="ticket-form-label">Status</label>
-                    <div>
+                    <div className="detail-field-value">
                       <span
                         className={
                           STATUS_BADGE[selectedCo.status] ?? "inv-status"
@@ -928,47 +921,34 @@ export default function ChangeOrdersClient({
                   </div>
                 </div>
 
-                <div className="ticket-form-group">
+                <div className="detail-section">
                   <label className="ticket-form-label">Title</label>
-                  <div style={{ fontSize: "0.92rem" }}>
+                  <div className="detail-field-value">
                     {selectedCo.title}
                   </div>
                 </div>
 
                 {selectedCo.description && (
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Description</label>
-                    <div
-                      style={{
-                        fontSize: "0.88rem",
-                        color: "var(--muted)",
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
+                  <div className="detail-section">
+                    <div className="detail-section-title">Description</div>
+                    <div className="detail-section-text">
                       {selectedCo.description}
                     </div>
                   </div>
                 )}
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "1rem",
-                    marginBottom: "1rem",
-                  }}
-                >
-                  <div>
+                <div className="detail-grid">
+                  <div className="detail-field">
                     <label className="ticket-form-label">Project</label>
-                    <div style={{ fontSize: "0.88rem" }}>
+                    <div className="detail-field-value">
                       {selectedCo.projects
                         ? `${selectedCo.projects.code} - ${selectedCo.projects.name}`
                         : "--"}
                     </div>
                   </div>
-                  <div>
+                  <div className="detail-field">
                     <label className="ticket-form-label">Reason</label>
-                    <div>
+                    <div className="detail-field-value">
                       {selectedCo.reason ? (
                         <span
                           className={`badge ${
@@ -985,27 +965,20 @@ export default function ChangeOrdersClient({
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "1rem",
-                    marginBottom: "1rem",
-                  }}
-                >
-                  <div>
+                <div className="detail-grid">
+                  <div className="detail-field">
                     <label className="ticket-form-label">Amount</label>
-                    <div style={{ fontSize: "0.92rem", fontWeight: 600 }}>
+                    <div className="detail-field-value">
                       {selectedCo.amount != null
                         ? formatCurrency(selectedCo.amount)
                         : "--"}
                     </div>
                   </div>
-                  <div>
+                  <div className="detail-field">
                     <label className="ticket-form-label">
                       Schedule Impact
                     </label>
-                    <div style={{ fontSize: "0.92rem", fontWeight: 600 }}>
+                    <div className="detail-field-value">
                       {selectedCo.schedule_impact_days != null
                         ? `${selectedCo.schedule_impact_days > 0 ? "+" : ""}${selectedCo.schedule_impact_days} days`
                         : "--"}
@@ -1013,25 +986,18 @@ export default function ChangeOrdersClient({
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "1rem",
-                    marginBottom: "1.25rem",
-                  }}
-                >
-                  <div>
+                <div className="detail-grid">
+                  <div className="detail-field">
                     <label className="ticket-form-label">Requested By</label>
-                    <div style={{ fontSize: "0.88rem" }}>
+                    <div className="detail-field-value">
                       {selectedCo.requested_by
                         ? userMap[selectedCo.requested_by] ?? "--"
                         : "--"}
                     </div>
                   </div>
-                  <div>
+                  <div className="detail-field">
                     <label className="ticket-form-label">Approved By</label>
-                    <div style={{ fontSize: "0.88rem" }}>
+                    <div className="detail-field-value">
                       {selectedCo.approved_by
                         ? userMap[selectedCo.approved_by] ?? "--"
                         : "--"}

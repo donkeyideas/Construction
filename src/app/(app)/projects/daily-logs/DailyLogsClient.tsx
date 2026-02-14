@@ -997,106 +997,97 @@ export default function DailyLogsClient({
                 </div>
               </form>
             ) : (
-              <div className="ticket-detail-body">
-                <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Project</span>
-                  <span>
-                    {selectedLog.projects?.code && (
-                      <strong>{selectedLog.projects.code} - </strong>
-                    )}
-                    {selectedLog.projects?.name || "N/A"}
-                  </span>
+              <div style={{ padding: "1.25rem" }}>
+                {/* Project & Date */}
+                <div className="detail-grid">
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Project</label>
+                    <div className="detail-field-value">
+                      {selectedLog.projects?.code && (
+                        <strong>{selectedLog.projects.code} - </strong>
+                      )}
+                      {selectedLog.projects?.name || "N/A"}
+                    </div>
+                  </div>
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Date</label>
+                    <div className="detail-field-value">
+                      {new Date(selectedLog.log_date).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Date</span>
-                  <span>
-                    {new Date(selectedLog.log_date).toLocaleDateString("en-US", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </span>
+                {/* Status & Weather */}
+                <div className="detail-grid">
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Status</label>
+                    <div>
+                      <span className={STATUS_BADGE[selectedLog.status] ?? "inv-status"}>
+                        {selectedLog.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Weather</label>
+                    <div className="detail-field-value" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      {getWeatherIcon(selectedLog.weather_conditions)}
+                      {selectedLog.weather_conditions || "N/A"}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Status</span>
-                  <span
-                    className={
-                      STATUS_BADGE[selectedLog.status] ?? "inv-status"
-                    }
-                  >
-                    {selectedLog.status}
-                  </span>
-                </div>
-
-                <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Weather</span>
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                    }}
-                  >
-                    {getWeatherIcon(selectedLog.weather_conditions)}
-                    {selectedLog.weather_conditions || "N/A"}
-                  </span>
-                </div>
-
+                {/* Temperature, Wind, Humidity */}
                 {(selectedLog.weather_temp_high != null ||
-                  selectedLog.weather_temp_low != null) && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Temperature</span>
-                    <span>
-                      {selectedLog.weather_temp_low != null
-                        ? `${selectedLog.weather_temp_low}`
-                        : "--"}
-                      {" / "}
-                      {selectedLog.weather_temp_high != null
-                        ? `${selectedLog.weather_temp_high}`
-                        : "--"}
-                      °F
-                    </span>
+                  selectedLog.weather_temp_low != null ||
+                  selectedLog.weather_wind_mph != null ||
+                  selectedLog.weather_humidity_pct != null) && (
+                  <div className="detail-grid">
+                    {(selectedLog.weather_temp_high != null || selectedLog.weather_temp_low != null) && (
+                      <div className="detail-field">
+                        <label className="ticket-form-label">Temperature</label>
+                        <div className="detail-field-value">
+                          {selectedLog.weather_temp_low != null ? `${selectedLog.weather_temp_low}` : "--"}
+                          {" / "}
+                          {selectedLog.weather_temp_high != null ? `${selectedLog.weather_temp_high}` : "--"}
+                          °F
+                        </div>
+                      </div>
+                    )}
+                    {selectedLog.weather_wind_mph != null && (
+                      <div className="detail-field">
+                        <label className="ticket-form-label">Wind</label>
+                        <div className="detail-field-value">{selectedLog.weather_wind_mph} mph</div>
+                      </div>
+                    )}
+                    {selectedLog.weather_humidity_pct != null && (
+                      <div className="detail-field">
+                        <label className="ticket-form-label">Humidity</label>
+                        <div className="detail-field-value">{selectedLog.weather_humidity_pct}%</div>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {selectedLog.weather_wind_mph != null && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Wind</span>
-                    <span>{selectedLog.weather_wind_mph} mph</span>
-                  </div>
-                )}
-
-                {selectedLog.weather_humidity_pct != null && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Humidity</span>
-                    <span>{selectedLog.weather_humidity_pct}%</span>
-                  </div>
-                )}
-
+                {/* Work Performed */}
                 {selectedLog.work_performed && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Work Performed</span>
-                    <span style={{ whiteSpace: "pre-wrap" }}>
-                      {selectedLog.work_performed}
-                    </span>
+                  <div className="detail-section">
+                    <div className="detail-section-title">Work Performed</div>
+                    <div className="detail-section-text">{selectedLog.work_performed}</div>
                   </div>
                 )}
 
+                {/* Workforce */}
                 {selectedLog.workforce && selectedLog.workforce.length > 0 && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Workforce</span>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 4,
-                      }}
-                    >
+                  <div className="detail-section">
+                    <div className="detail-section-title">Workforce</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                       {(selectedLog.workforce as WorkforceEntry[]).map((w, i) => (
-                        <span key={i} style={{ fontSize: "0.9rem" }}>
+                        <span key={i} style={{ fontSize: "0.88rem" }}>
                           {w.trade ?? "General"}: {w.headcount ?? 0} workers
                           {w.hours ? ` × ${w.hours} hrs` : ""}
                         </span>
@@ -1105,50 +1096,49 @@ export default function DailyLogsClient({
                   </div>
                 )}
 
-                {selectedLog.safety_incidents && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label" style={{ color: "var(--color-red)" }}>
-                      Safety Incidents
-                    </span>
-                    <span style={{ whiteSpace: "pre-wrap" }}>
-                      {selectedLog.safety_incidents}
-                    </span>
-                  </div>
-                )}
-
-                {selectedLog.delays && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label" style={{ color: "var(--color-amber)" }}>
-                      Delays
-                    </span>
-                    <span style={{ whiteSpace: "pre-wrap" }}>
-                      {selectedLog.delays}
-                    </span>
-                  </div>
-                )}
-
+                {/* Materials Received */}
                 {selectedLog.materials_received && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Materials Received</span>
-                    <span style={{ whiteSpace: "pre-wrap" }}>
-                      {selectedLog.materials_received}
-                    </span>
+                  <div className="detail-section">
+                    <div className="detail-section-title">Materials Received</div>
+                    <div className="detail-section-text">{selectedLog.materials_received}</div>
                   </div>
                 )}
 
-                {selectedLog.created_by && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Created By</span>
-                    <span>{userMap[selectedLog.created_by] ?? "Unknown"}</span>
+                {/* Safety Incidents */}
+                {selectedLog.safety_incidents && (
+                  <div className="detail-section">
+                    <div className="detail-section-title" style={{ color: "var(--color-red)" }}>
+                      Safety Incidents
+                    </div>
+                    <div className="detail-section-text">{selectedLog.safety_incidents}</div>
                   </div>
                 )}
 
-                {selectedLog.approved_by && (
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Approved By</span>
-                    <span>{userMap[selectedLog.approved_by] ?? "Unknown"}</span>
+                {/* Delays */}
+                {selectedLog.delays && (
+                  <div className="detail-section">
+                    <div className="detail-section-title" style={{ color: "var(--color-amber)" }}>
+                      Delays
+                    </div>
+                    <div className="detail-section-text">{selectedLog.delays}</div>
                   </div>
                 )}
+
+                {/* Created / Approved By */}
+                <div className="detail-grid">
+                  {selectedLog.created_by && (
+                    <div className="detail-field">
+                      <label className="ticket-form-label">Created By</label>
+                      <div className="detail-field-value">{userMap[selectedLog.created_by] ?? "Unknown"}</div>
+                    </div>
+                  )}
+                  {selectedLog.approved_by && (
+                    <div className="detail-field">
+                      <label className="ticket-form-label">Approved By</label>
+                      <div className="detail-field-value">{userMap[selectedLog.approved_by] ?? "Unknown"}</div>
+                    </div>
+                  )}
+                </div>
 
                 <div className="ticket-form-actions">
                   <button

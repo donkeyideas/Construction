@@ -1060,326 +1060,126 @@ export default function RfisClient({
 
             {/* ---- View Mode ---- */}
             {!isEditing && !showDeleteConfirm && (
-              <div style={{ padding: "1.2rem" }}>
-                {/* Subject */}
-                <div style={{ marginBottom: 16 }}>
-                  <div
-                    style={{
-                      fontSize: "0.78rem",
-                      color: "var(--muted)",
-                      fontWeight: 500,
-                      marginBottom: 4,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    Subject
+              <div style={{ padding: "1.25rem" }}>
+                {/* Subject & Project */}
+                <div className="detail-section">
+                  <div className="detail-field" style={{ marginBottom: 12 }}>
+                    <label className="ticket-form-label">Subject</label>
+                    <div className="detail-field-value">{selectedRfi.subject}</div>
                   </div>
-                  <div style={{ fontWeight: 500 }}>{selectedRfi.subject}</div>
-                </div>
-
-                {/* Project */}
-                <div style={{ marginBottom: 16 }}>
-                  <div
-                    style={{
-                      fontSize: "0.78rem",
-                      color: "var(--muted)",
-                      fontWeight: 500,
-                      marginBottom: 4,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    Project
-                  </div>
-                  <div>
-                    {selectedRfi.projects
-                      ? `${selectedRfi.projects.code} - ${selectedRfi.projects.name}`
-                      : "--"}
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Project</label>
+                    <div className="detail-field-value">
+                      {selectedRfi.projects
+                        ? `${selectedRfi.projects.code} - ${selectedRfi.projects.name}`
+                        : "--"}
+                    </div>
                   </div>
                 </div>
 
                 {/* Question */}
-                <div style={{ marginBottom: 16 }}>
-                  <div
-                    style={{
-                      fontSize: "0.78rem",
-                      color: "var(--muted)",
-                      fontWeight: 500,
-                      marginBottom: 4,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    Question
-                  </div>
-                  <div
-                    style={{
-                      whiteSpace: "pre-wrap",
-                      lineHeight: 1.5,
-                      padding: "0.6rem 0.8rem",
-                      background: "var(--surface-hover, #f5f5f5)",
-                      borderRadius: 6,
-                    }}
-                  >
-                    {selectedRfi.question}
-                  </div>
+                <div className="detail-section">
+                  <div className="detail-section-title">Question</div>
+                  <div className="detail-section-box">{selectedRfi.question}</div>
                 </div>
 
                 {/* Answer */}
-                <div style={{ marginBottom: 16 }}>
-                  <div
-                    style={{
-                      fontSize: "0.78rem",
-                      color: "var(--muted)",
-                      fontWeight: 500,
-                      marginBottom: 4,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    Answer
-                  </div>
+                <div className="detail-section">
+                  <div className="detail-section-title">Answer</div>
                   {selectedRfi.answer ? (
-                    <div
-                      style={{
-                        whiteSpace: "pre-wrap",
-                        lineHeight: 1.5,
-                        padding: "0.6rem 0.8rem",
-                        background: "var(--surface-hover, #f5f5f5)",
-                        borderRadius: 6,
-                      }}
-                    >
-                      {selectedRfi.answer}
-                    </div>
+                    <div className="detail-section-box">{selectedRfi.answer}</div>
                   ) : (
-                    <span style={{ color: "var(--muted)", fontStyle: "italic" }}>
+                    <span style={{ color: "var(--muted)", fontStyle: "italic", fontSize: "0.88rem" }}>
                       Not yet answered
                     </span>
                   )}
                 </div>
 
-                {/* Detail grid */}
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "12px 24px",
-                    marginBottom: 16,
-                  }}
-                >
-                  {/* Priority */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.78rem",
-                        color: "var(--muted)",
-                        fontWeight: 500,
-                        marginBottom: 4,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Priority
-                    </div>
+                {/* Priority & Status */}
+                <div className="detail-grid">
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Priority</label>
                     <div>
                       {selectedRfi.priority ? (
-                        <span
-                          className={`badge ${
-                            priorityBadge[selectedRfi.priority] ?? "badge-blue"
-                          }`}
-                        >
+                        <span className={`badge ${priorityBadge[selectedRfi.priority] ?? "badge-blue"}`}>
                           {selectedRfi.priority}
                         </span>
-                      ) : (
-                        "--"
-                      )}
+                      ) : "--"}
                     </div>
                   </div>
-
-                  {/* Status */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.78rem",
-                        color: "var(--muted)",
-                        fontWeight: 500,
-                        marginBottom: 4,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Status
-                    </div>
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Status</label>
                     <div>
-                      <span
-                        className={
-                          statusBadge[selectedRfi.status] ?? "inv-status"
-                        }
-                      >
+                      <span className={statusBadge[selectedRfi.status] ?? "inv-status"}>
                         {selectedRfi.status}
                       </span>
                     </div>
                   </div>
-
-                  {/* Submitted By */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.78rem",
-                        color: "var(--muted)",
-                        fontWeight: 500,
-                        marginBottom: 4,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Submitted By
-                    </div>
-                    <div>
-                      {selectedRfi.submitted_by
-                        ? userMap[selectedRfi.submitted_by] ?? "--"
-                        : "--"}
-                    </div>
-                  </div>
-
-                  {/* Assigned To */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.78rem",
-                        color: "var(--muted)",
-                        fontWeight: 500,
-                        marginBottom: 4,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Assigned To
-                    </div>
-                    <div>
-                      {selectedRfi.assigned_to
-                        ? userMap[selectedRfi.assigned_to] ?? "--"
-                        : "--"}
-                    </div>
-                  </div>
-
-                  {/* Due Date */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.78rem",
-                        color: "var(--muted)",
-                        fontWeight: 500,
-                        marginBottom: 4,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Due Date
-                    </div>
-                    <div>
-                      {selectedRfi.due_date
-                        ? formatDate(selectedRfi.due_date)
-                        : "--"}
-                    </div>
-                  </div>
-
-                  {/* Cost Impact */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.78rem",
-                        color: "var(--muted)",
-                        fontWeight: 500,
-                        marginBottom: 4,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Cost Impact
-                    </div>
-                    <div>
-                      {selectedRfi.cost_impact != null
-                        ? formatCurrency(selectedRfi.cost_impact)
-                        : "--"}
-                    </div>
-                  </div>
-
-                  {/* Schedule Impact */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.78rem",
-                        color: "var(--muted)",
-                        fontWeight: 500,
-                        marginBottom: 4,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Schedule Impact
-                    </div>
-                    <div>
-                      {selectedRfi.schedule_impact_days != null
-                        ? `${selectedRfi.schedule_impact_days} day${
-                            selectedRfi.schedule_impact_days !== 1 ? "s" : ""
-                          }`
-                        : "--"}
-                    </div>
-                  </div>
-
-                  {/* Created */}
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "0.78rem",
-                        color: "var(--muted)",
-                        fontWeight: 500,
-                        marginBottom: 4,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Created
-                    </div>
-                    <div>{formatDate(selectedRfi.created_at)}</div>
-                  </div>
-
-                  {/* Answered At */}
-                  {selectedRfi.answered_at && (
-                    <div>
-                      <div
-                        style={{
-                          fontSize: "0.78rem",
-                          color: "var(--muted)",
-                          fontWeight: 500,
-                          marginBottom: 4,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.04em",
-                        }}
-                      >
-                        Answered At
-                      </div>
-                      <div>{formatDate(selectedRfi.answered_at)}</div>
-                    </div>
-                  )}
                 </div>
+
+                {/* Submitted By & Assigned To */}
+                <div className="detail-grid">
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Submitted By</label>
+                    <div className="detail-field-value">
+                      {selectedRfi.submitted_by ? userMap[selectedRfi.submitted_by] ?? "--" : "--"}
+                    </div>
+                  </div>
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Assigned To</label>
+                    <div className="detail-field-value">
+                      {selectedRfi.assigned_to ? userMap[selectedRfi.assigned_to] ?? "--" : "--"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Due Date & Cost Impact */}
+                <div className="detail-grid">
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Due Date</label>
+                    <div className="detail-field-value">
+                      {selectedRfi.due_date ? formatDate(selectedRfi.due_date) : "--"}
+                    </div>
+                  </div>
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Cost Impact</label>
+                    <div className="detail-field-value">
+                      {selectedRfi.cost_impact != null ? formatCurrency(selectedRfi.cost_impact) : "--"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Schedule Impact & Created */}
+                <div className="detail-grid">
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Schedule Impact</label>
+                    <div className="detail-field-value">
+                      {selectedRfi.schedule_impact_days != null
+                        ? `${selectedRfi.schedule_impact_days} day${selectedRfi.schedule_impact_days !== 1 ? "s" : ""}`
+                        : "--"}
+                    </div>
+                  </div>
+                  <div className="detail-field">
+                    <label className="ticket-form-label">Created</label>
+                    <div className="detail-field-value">{formatDate(selectedRfi.created_at)}</div>
+                  </div>
+                </div>
+
+                {selectedRfi.answered_at && (
+                  <div className="detail-grid">
+                    <div className="detail-field">
+                      <label className="ticket-form-label">Answered At</label>
+                      <div className="detail-field-value">{formatDate(selectedRfi.answered_at)}</div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Footer actions */}
                 <div className="ticket-form-actions">
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={closeDetail}
-                  >
+                  <button type="button" className="btn-secondary" onClick={closeDetail}>
                     Close
                   </button>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={startEditing}
-                  >
+                  <button type="button" className="btn-primary" onClick={startEditing}>
                     <Pencil size={14} />
                     Edit RFI
                   </button>
