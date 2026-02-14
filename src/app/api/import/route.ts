@@ -1030,7 +1030,7 @@ export async function POST(request: NextRequest) {
           return acc;
         }, {} as Record<string, string>);
 
-        // Get current max sort_order
+        // Get current max sort_order for tasks
         const { data: existingTasks } = await supabase
           .from("project_tasks")
           .select("sort_order")
@@ -1038,6 +1038,15 @@ export async function POST(request: NextRequest) {
           .order("sort_order", { ascending: false })
           .limit(1);
         let taskNextSort = (existingTasks?.[0]?.sort_order ?? -1) + 1;
+
+        // Get current max sort_order for phases (in case we auto-create)
+        const { data: existingPhaseSort } = await supabase
+          .from("project_phases")
+          .select("sort_order")
+          .eq("project_id", taskProjId)
+          .order("sort_order", { ascending: false })
+          .limit(1);
+        let phaseNextSort = (existingPhaseSort?.[0]?.sort_order ?? -1) + 1;
 
         const validPriorities = ["low", "medium", "high", "critical"];
 
@@ -1051,8 +1060,24 @@ export async function POST(request: NextRequest) {
           let phaseId = r.phase_id || null;
           if (!phaseId && r.phase_name) {
             phaseId = phaseLookup[r.phase_name.trim().toLowerCase()] || null;
+            // Auto-create phase if not found
             if (!phaseId) {
-              errors.push(`Row ${i + 2}: phase "${r.phase_name}" not found (task imported without phase)`);
+              const { data: newPhase, error: phaseErr } = await supabase
+                .from("project_phases")
+                .insert({
+                  company_id: companyId,
+                  project_id: taskProjId,
+                  name: r.phase_name.trim(),
+                  sort_order: phaseNextSort++,
+                })
+                .select("id")
+                .single();
+              if (newPhase) {
+                phaseId = newPhase.id;
+                phaseLookup[r.phase_name.trim().toLowerCase()] = newPhase.id;
+              } else {
+                errors.push(`Row ${i + 2}: failed to create phase "${r.phase_name}" — ${phaseErr?.message}`);
+              }
             }
           }
           const priority = r.priority && validPriorities.includes(r.priority.toLowerCase())
