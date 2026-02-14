@@ -80,7 +80,6 @@ export default function TenantDashboardClient({
   }
 
   const { lease } = dashboard;
-  const firstName = dashboard.fullName?.split(" ")[0] ?? "Tenant";
 
   return (
     <div>
