@@ -1111,23 +1111,621 @@
   color: var(--text);
 }
 
+/* ===== Page Header (Redesigned) ===== */
+.plan-room-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
+  background: var(--card-bg);
+  flex-shrink: 0;
+}
+
+.plan-room-page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.plan-room-page-title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.plan-room-active-sheet-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-room-active-sheet-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.plan-room-rev-badge {
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-amber);
+}
+
+.plan-room-page-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-room-project-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* ===== Toolbar ===== */
+.plan-room-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.plan-room-tool-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.plan-room-tool-sep {
+  width: 1px;
+  height: 26px;
+  background: var(--border);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+.plan-room-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+
+.plan-room-tool-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.plan-room-tool-btn:hover {
+  color: var(--text);
+  background: var(--bg);
+  border-color: var(--color-blue);
+}
+
+.plan-room-tool-btn.active {
+  background: var(--color-blue);
+  color: #fff;
+  border-color: var(--color-blue);
+}
+
+.plan-room-tool-btn.active svg {
+  stroke: #fff;
+}
+
+.plan-room-tool-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.plan-room-tool-btn-danger {
+  color: var(--color-red);
+}
+
+.plan-room-tool-btn-danger:hover {
+  border-color: var(--color-red);
+}
+
+.plan-room-tool-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+
+.plan-room-color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.plan-room-color-swatch:hover {
+  border-color: var(--text);
+}
+
+.plan-room-color-swatch.active {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
+}
+
+.plan-room-undo-redo {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+/* ===== Main Content Area ===== */
+.plan-room-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ===== Blueprint Viewer Area ===== */
+.plan-room-blueprint-area {
+  background: var(--surface);
+}
+
+.plan-room-blueprint-area.cursor-grab {
+  cursor: grab;
+}
+
+.plan-room-blueprint-area.cursor-crosshair {
+  cursor: crosshair;
+}
+
+.plan-room-blueprint-page {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  margin: 24px auto;
+}
+
+/* ===== Annotation SVG Overlay ===== */
+.plan-room-annotation-svg {
+  pointer-events: none;
+}
+
+.plan-room-annotation-text-input input {
+  font-family: var(--font-sans);
+}
+
+/* ===== Right Panel ===== */
+.plan-room-right-panel {
+  width: 280px;
+  min-width: 280px;
+  border-left: 1px solid var(--border);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.plan-room-right-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.plan-room-right-panel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.plan-room-panel-section {
+  border-bottom: 1px solid var(--border);
+}
+
+.plan-room-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.plan-room-panel-header h3 {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-room-panel-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--color-red);
+}
+
+.plan-room-panel-chevron {
+  stroke: var(--muted);
+  transition: transform 0.2s;
+}
+
+.plan-room-panel-section.open .plan-room-panel-chevron {
+  transform: rotate(90deg);
+}
+
+.plan-room-panel-body {
+  padding: 0 16px 14px;
+}
+
+/* ===== Sheet Index ===== */
+.plan-room-sheet-index {
+  display: flex;
+  flex-direction: column;
+}
+
+.plan-room-sheet-set {
+  margin-bottom: 6px;
+}
+
+.plan-room-sheet-set-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.plan-room-sheet-set-count {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.plan-room-sheet-set-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.plan-room-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  margin: 1px 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.plan-room-sheet-item:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.plan-room-sheet-item.active {
+  background: rgba(29, 78, 216, 0.08);
+  color: var(--color-blue);
+  font-weight: 600;
+}
+
+.plan-room-sheet-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--surface);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.plan-room-sheet-icon.active {
+  background: var(--color-blue);
+  color: #fff;
+}
+
+.plan-room-sheet-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.plan-room-sheet-number {
+  font-size: 0.78rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-room-sheet-number.active {
+  color: var(--color-blue);
+  font-weight: 600;
+}
+
+.plan-room-sheet-rev {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-amber);
+  flex-shrink: 0;
+}
+
+/* ===== Search Inline ===== */
+.plan-room-search-inline {
+  margin-bottom: 8px;
+}
+
+.plan-room-search-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.plan-room-search-input:focus {
+  border-color: var(--color-blue);
+}
+
+.plan-room-search-input::placeholder {
+  color: var(--muted);
+}
+
+/* ===== Markups List ===== */
+.plan-room-mu-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.plan-room-mu-item {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.12s;
+  border-radius: 4px;
+  padding: 6px 4px;
+}
+
+.plan-room-mu-item:last-child {
+  border-bottom: none;
+}
+
+.plan-room-mu-item:hover {
+  background: var(--surface);
+}
+
+.plan-room-mu-item.selected {
+  background: rgba(29, 78, 216, 0.06);
+}
+
+.plan-room-mu-type {
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-room-mu-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.plan-room-mu-desc {
+  font-size: 0.75rem;
+  color: var(--text);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-room-mu-meta {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.plan-room-mu-delete {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 4px;
+  transition: color 0.15s;
+}
+
+.plan-room-mu-delete:hover {
+  color: var(--color-red);
+}
+
+.plan-room-mu-empty {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ===== Revisions ===== */
+.plan-room-rev-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.plan-room-rev-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-radius: 4px;
+  padding: 6px 4px;
+}
+
+.plan-room-rev-item:last-child {
+  border-bottom: none;
+}
+
+.plan-room-rev-item:hover {
+  background: var(--surface);
+}
+
+.plan-room-rev-item.current {
+  background: rgba(29, 78, 216, 0.06);
+}
+
+.plan-room-rev-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.plan-room-rev-num.current {
+  background: var(--color-amber);
+  color: #fff;
+}
+
+.plan-room-rev-num.past {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.plan-room-rev-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.plan-room-rev-title {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.plan-room-rev-date {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.plan-room-rev-empty {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 12px 0;
+}
+
+.plan-room-rev-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.plan-room-rev-actions .plan-room-tool-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ===== Bottom Bar ===== */
+.plan-room-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.75rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.plan-room-bottom-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.plan-room-bottom-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 1280px) {
-  .plan-room-info {
+  .plan-room-right-panel {
     width: 240px;
+    min-width: 240px;
   }
 }
 
 @media (max-width: 1023px) {
-  .plan-room-sidebar {
-    width: 220px;
-  }
-
-  .plan-room-info {
+  .plan-room-right-panel {
     display: none;
   }
 
-  .plan-room-header-right {
+  .plan-room-page-header-right {
     gap: 6px;
   }
 
@@ -1137,40 +1735,38 @@
 }
 
 @media (max-width: 768px) {
-  .plan-room-sidebar {
-    display: none;
-  }
-
-  .plan-room-header {
+  .plan-room-page-header {
     padding: 8px 12px;
   }
 
-  .plan-room-header-left {
+  .plan-room-page-header-left {
     gap: 8px;
   }
 
-  .plan-room-header-right {
-    flex-wrap: wrap;
+  .plan-room-toolbar {
     gap: 4px;
+    padding: 6px 10px;
   }
 
-  .plan-room-filter-select {
-    font-size: 0.72rem;
-    padding: 5px 8px;
+  .plan-room-tool-label {
+    display: none;
   }
 
-  .plan-room-viewer-toolbar {
-    flex-wrap: wrap;
-    padding: 6px 12px;
+  .plan-room-page-title {
+    font-size: 1.1rem;
+  }
+
+  .plan-room-undo-redo {
+    margin-left: 0;
   }
 }
 
 @media (max-width: 640px) {
-  .plan-room-header-right .plan-room-filter-select {
+  .plan-room-page-header-right .plan-room-filter-select {
     display: none;
   }
 
-  .plan-room-header-btn {
+  .plan-room-tool-group:nth-child(n+5) {
     display: none;
   }
 }

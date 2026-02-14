@@ -19,7 +19,7 @@ export default async function AIAssistantPage() {
   const [providersRes, conversationsRes] = await Promise.all([
     supabase
       .from("ai_provider_configs")
-      .select("id, provider_name, display_name, is_active")
+      .select("id, provider_name, is_active")
       .eq("company_id", userCompany.companyId)
       .eq("is_active", true)
       .limit(1),
@@ -33,7 +33,7 @@ export default async function AIAssistantPage() {
   ]);
 
   const hasProvider = (providersRes.data?.length ?? 0) > 0;
-  const providerName = providersRes.data?.[0]?.display_name ?? providersRes.data?.[0]?.provider_name ?? null;
+  const providerName = providersRes.data?.[0]?.provider_name ?? null;
 
   // Get user initials from profile
   const { data: profile } = await supabase

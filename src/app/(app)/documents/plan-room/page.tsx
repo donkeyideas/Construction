@@ -22,10 +22,10 @@ export default async function PlanRoomPage() {
     );
   }
 
-  const { companyId } = userCompany;
+  const { companyId, userId } = userCompany;
 
-  // Parallel fetch: documents, drawing sets, projects
-  const [documents, drawingSets, projectsResult] = await Promise.all([
+  // Parallel fetch: documents, drawing sets, projects, user profile
+  const [documents, drawingSets, projectsResult, profileResult] = await Promise.all([
     getPlanRoomDocuments(supabase, companyId),
     getDrawingSets(supabase, companyId),
     supabase
@@ -33,15 +33,24 @@ export default async function PlanRoomPage() {
       .select("id, name")
       .eq("company_id", companyId)
       .order("name"),
+    supabase
+      .from("user_profiles")
+      .select("full_name")
+      .eq("id", userId)
+      .single(),
   ]);
 
   const projectList: { id: string; name: string }[] = projectsResult.data ?? [];
+  const userName = profileResult.data?.full_name ?? "User";
 
   return (
     <PlanRoomClient
       documents={documents}
       drawingSets={drawingSets}
       projectList={projectList}
+      companyId={companyId}
+      userId={userId}
+      userName={userName}
     />
   );
 }

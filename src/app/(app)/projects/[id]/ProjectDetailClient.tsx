@@ -113,6 +113,7 @@ interface ProjectDetailClientProps {
   rfis: RFI[];
   changeOrders: ChangeOrder[];
   stats: ProjectStats;
+  userMap: Record<string, string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -127,6 +128,7 @@ export default function ProjectDetailClient({
   rfis,
   changeOrders,
   stats,
+  userMap,
 }: ProjectDetailClientProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
 
@@ -261,6 +263,7 @@ export default function ProjectDetailClient({
           editMode={editMode}
           saving={saving}
           setSaving={setSaving}
+          userMap={userMap}
           onClose={() => { setSelectedCo(null); setEditMode(false); }}
           onEdit={() => setEditMode(true)}
           onCancelEdit={() => setEditMode(false)}
@@ -676,6 +679,7 @@ function ChangeOrderModal({
   editMode,
   saving,
   setSaving,
+  userMap,
   onClose,
   onEdit,
   onCancelEdit,
@@ -684,6 +688,7 @@ function ChangeOrderModal({
   editMode: boolean;
   saving: boolean;
   setSaving: (v: boolean) => void;
+  userMap: Record<string, string>;
   onClose: () => void;
   onEdit: () => void;
   onCancelEdit: () => void;
@@ -794,69 +799,88 @@ function ChangeOrderModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="ticket-modal-overlay" onClick={onClose}>
+      <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="ticket-modal-header">
           <h3>{co.co_number}: {co.title}</h3>
-          <button className="modal-close" onClick={onClose}><X size={20} /></button>
+          <button className="ticket-modal-close" onClick={onClose}><X size={20} /></button>
         </div>
-        <div className="modal-body">
-          <div className="modal-detail-row">
-            <span className="modal-detail-label">Status</span>
-            <span className="modal-detail-value">
-              <span className={`badge badge-${co.status}`}>{statusLabel(co.status)}</span>
-            </span>
+        <div style={{ padding: "1.25rem" }}>
+          <div className="detail-grid">
+            <div className="detail-field">
+              <label className="ticket-form-label">Status</label>
+              <div><span className={`badge badge-${co.status}`}>{statusLabel(co.status)}</span></div>
+            </div>
+            <div className="detail-field">
+              <label className="ticket-form-label">Reason</label>
+              <div className="detail-field-value" style={{ textTransform: "capitalize" }}>
+                {co.reason ? co.reason.replace(/_/g, " ") : "--"}
+              </div>
+            </div>
           </div>
-          <div className="modal-detail-row">
-            <span className="modal-detail-label">Amount</span>
-            <span className="modal-detail-value" style={{ fontWeight: 600 }}>
-              {formatCurrency(co.amount)}
-            </span>
+
+          <div className="detail-grid">
+            <div className="detail-field">
+              <label className="ticket-form-label">Amount</label>
+              <div className="detail-field-value">{formatCurrency(co.amount)}</div>
+            </div>
+            <div className="detail-field">
+              <label className="ticket-form-label">Schedule Impact</label>
+              <div className="detail-field-value">
+                {co.schedule_impact_days != null
+                  ? `${co.schedule_impact_days} day${co.schedule_impact_days !== 1 ? "s" : ""}`
+                  : "--"}
+              </div>
+            </div>
           </div>
-          <div className="modal-detail-row">
-            <span className="modal-detail-label">Schedule Impact</span>
-            <span className="modal-detail-value">
-              {co.schedule_impact_days != null
-                ? `${co.schedule_impact_days} day${co.schedule_impact_days !== 1 ? "s" : ""}`
-                : "--"}
-            </span>
-          </div>
-          <div className="modal-detail-row">
-            <span className="modal-detail-label">Reason</span>
-            <span className="modal-detail-value">{co.reason || "--"}</span>
-          </div>
-          <div className="modal-detail-row">
-            <span className="modal-detail-label">Created</span>
-            <span className="modal-detail-value">{formatDateTime(co.created_at)}</span>
-          </div>
-          <div className="modal-detail-row">
-            <span className="modal-detail-label">Approved By</span>
-            <span className="modal-detail-value">{co.approved_by || "--"}</span>
-          </div>
-          <div className="modal-detail-row">
-            <span className="modal-detail-label">Approved At</span>
-            <span className="modal-detail-value">{formatDateTime(co.approved_at)}</span>
+
+          <div className="detail-grid">
+            <div className="detail-field">
+              <label className="ticket-form-label">Approved By</label>
+              <div className="detail-field-value">
+                {co.approved_by ? userMap[co.approved_by] ?? "--" : "--"}
+              </div>
+            </div>
+            <div className="detail-field">
+              <label className="ticket-form-label">Approved At</label>
+              <div className="detail-field-value">{formatDateTime(co.approved_at)}</div>
+            </div>
           </div>
 
           {co.description && (
-            <>
-              <div className="modal-section-title">Description</div>
-              <div style={{ fontSize: "0.85rem", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-                {co.description}
-              </div>
-            </>
+            <div className="detail-section">
+              <div className="detail-section-title">Description</div>
+              <div className="detail-section-text">{co.description}</div>
+            </div>
           )}
 
           {co.line_items && co.line_items.length > 0 && (
-            <>
-              <div className="modal-section-title">Line Items</div>
-              <div style={{ fontSize: "0.85rem", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-                {JSON.stringify(co.line_items, null, 2)}
-              </div>
-            </>
+            <div className="detail-section">
+              <div className="detail-section-title">Line Items</div>
+              <table className="detail-line-items">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Unit</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(co.line_items as Record<string, unknown>[]).map((item, i) => (
+                    <tr key={i}>
+                      <td>{String(item.description || "--")}</td>
+                      <td>{item.quantity != null ? String(item.quantity) : "--"}</td>
+                      <td>{String(item.unit || "--")}</td>
+                      <td>{item.total != null ? formatCurrency(Number(item.total)) : "--"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
-          <div className="modal-actions">
+          <div className="ticket-form-actions">
             <button className="btn-primary" onClick={onEdit}>
               <Pencil size={14} /> Edit Change Order
             </button>

@@ -493,6 +493,115 @@
   letter-spacing: 0.04em;
 }
 
+/* ===== Detail Modal Grid ===== */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-grid:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-field .ticket-form-label {
+  margin: 0;
+}
+
+.detail-field-value {
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.detail-section {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.detail-section-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.detail-section-text {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+.detail-section-box {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  padding: 0.6rem 0.8rem;
+  background: var(--surface);
+  border-radius: 6px;
+}
+
+/* Line items table inside modals */
+.detail-line-items {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.detail-line-items th {
+  text-align: left;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-line-items th:last-child {
+  text-align: right;
+}
+
+.detail-line-items td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-line-items td:last-child {
+  text-align: right;
+  font-weight: 600;
+}
+
+.detail-line-items tbody tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 640px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .ticket-form-input,
 .ticket-form-select,
 .ticket-form-textarea {
