@@ -29,6 +29,7 @@ import "@/styles/contracts.css";
 import "@/styles/import-modal.css";
 import "@/styles/plan-room.css";
 import "@/styles/security.css";
+import "@/styles/authoritative-reports.css";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

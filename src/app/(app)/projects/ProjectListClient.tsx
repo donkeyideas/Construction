@@ -296,15 +296,8 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
       {filtered.length > 0 && view === "card" && (
         <div className="projects-grid">
           {filtered.map((project) => (
-            <div key={project.id} className={`project-card-wrapper ${selectedIds.has(project.id) ? "selected" : ""}`}>
-              <label className="bulk-checkbox card-checkbox" onClick={(e) => e.stopPropagation()}>
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(project.id)}
-                  onChange={() => toggleSelect(project.id)}
-                />
-              </label>
               <Link
+                key={project.id}
                 href={`/projects/${project.id}`}
                 className="project-card"
               >
@@ -346,7 +339,6 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
                   </div>
                 </div>
               </Link>
-            </div>
           ))}
         </div>
       )}

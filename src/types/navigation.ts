@@ -129,8 +129,11 @@ export const appNavigation: NavItem[] = [
   },
   {
     label: "Reports",
-    href: "/reports",
     icon: "bar-chart-3",
+    children: [
+      { label: "Reports Center", href: "/reports" },
+      { label: "Authoritative Reports", href: "/reports/authoritative" },
+    ],
   },
   {
     label: "System Map",

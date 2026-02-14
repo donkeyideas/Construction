@@ -18,6 +18,7 @@ import {
   FileText,
   Clock,
   Shield,
+  Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
@@ -188,6 +189,30 @@ export default async function ReportsPage() {
           </p>
         </div>
       </div>
+
+      {/* Authoritative Reports Banner */}
+      <Link
+        href="/reports/authoritative"
+        className="auth-report-card"
+        data-type="market_feasibility"
+        style={{ marginBottom: "2rem", display: "block" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div
+            className="auth-report-card-icon"
+            style={{ background: "#1B2A4A15", color: "#1B2A4A" }}
+          >
+            <Sparkles size={24} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ margin: "0 0 0.25rem" }}>Authoritative Reports</h3>
+            <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.85rem" }}>
+              Generate investor-grade Market Feasibility Studies, Offering Memorandums, and Basis of Design documents with AI-powered narratives and magazine-quality PDF downloads.
+            </p>
+          </div>
+          <ChevronRight size={18} style={{ color: "var(--color-blue)" }} />
+        </div>
+      </Link>
 
       {/* Report Categories Grid */}
       <div className="reports-grid">

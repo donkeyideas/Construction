@@ -521,8 +521,9 @@ export default function DailyLogsClient({
                   >
                     <span
                       style={{ fontWeight: 600, fontSize: "0.95rem" }}
+                      suppressHydrationWarning
                     >
-                      {new Date(log.log_date).toLocaleDateString("en-US", {
+                      {new Date(log.log_date + "T00:00:00").toLocaleDateString("en-US", {
                         weekday: "short",
                         month: "short",
                         day: "numeric",
@@ -1061,8 +1062,8 @@ export default function DailyLogsClient({
                   </div>
                   <div className="detail-group">
                     <label className="detail-label">Date</label>
-                    <div className="detail-value">
-                      {new Date(selectedLog.log_date).toLocaleDateString("en-US", {
+                    <div className="detail-value" suppressHydrationWarning>
+                      {new Date(selectedLog.log_date + "T00:00:00").toLocaleDateString("en-US", {
                         weekday: "long",
                         year: "numeric",
                         month: "long",
