@@ -89,6 +89,16 @@ function getUserName(
   return user.full_name || user.email || "Unknown";
 }
 
+function getTopicLabel(topic: unknown): string {
+  if (!topic) return "--";
+  if (typeof topic === "string") return topic;
+  if (typeof topic === "object" && topic !== null) {
+    const obj = topic as Record<string, unknown>;
+    return (obj.name as string) || JSON.stringify(topic);
+  }
+  return String(topic);
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -161,7 +171,7 @@ export default function ToolboxTalksClient({
     }
 
     if (topicFilter !== "all") {
-      result = result.filter((t) => t.topic === topicFilter);
+      result = result.filter((t) => getTopicLabel(t.topic) === topicFilter);
     }
 
     if (search.trim()) {
@@ -171,7 +181,7 @@ export default function ToolboxTalksClient({
           t.title.toLowerCase().includes(term) ||
           t.talk_number.toLowerCase().includes(term) ||
           (t.description && t.description.toLowerCase().includes(term)) ||
-          (t.topic && t.topic.toLowerCase().includes(term))
+          getTopicLabel(t.topic).toLowerCase().includes(term)
       );
     }
 
@@ -249,7 +259,7 @@ export default function ToolboxTalksClient({
     setEditData({
       title: selectedTalk.title,
       description: selectedTalk.description || "",
-      topic: selectedTalk.topic || "",
+      topic: getTopicLabel(selectedTalk.topic) !== "--" ? getTopicLabel(selectedTalk.topic) : "",
       status: selectedTalk.status,
       scheduled_date: selectedTalk.scheduled_date
         ? selectedTalk.scheduled_date.split("T")[0]
@@ -282,7 +292,8 @@ export default function ToolboxTalksClient({
       if (editData.title !== selectedTalk.title) payload.title = editData.title;
       if (editData.description !== (selectedTalk.description || ""))
         payload.description = editData.description;
-      if (editData.topic !== (selectedTalk.topic || ""))
+      const currentTopicLabel = getTopicLabel(selectedTalk.topic) !== "--" ? getTopicLabel(selectedTalk.topic) : "";
+      if (editData.topic !== currentTopicLabel)
         payload.topic = editData.topic || null;
       if (editData.status !== selectedTalk.status) payload.status = editData.status;
       if (editData.project_id !== (selectedTalk.project_id || ""))
@@ -500,7 +511,7 @@ export default function ToolboxTalksClient({
                 >
                   <td className="safety-number-cell">{talk.talk_number}</td>
                   <td className="safety-title-cell">{talk.title}</td>
-                  <td className="safety-type-cell">{talk.topic || "--"}</td>
+                  <td className="safety-type-cell">{getTopicLabel(talk.topic)}</td>
                   <td>
                     <span className={`safety-status-badge status-${talk.status}`}>
                       {STATUS_LABELS[talk.status] ?? talk.status}
@@ -757,126 +768,77 @@ export default function ToolboxTalksClient({
 
             {/* Read-only detail view */}
             {!isEditing && (
-              <div className="safety-form" style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
-                <div className="safety-form-group">
-                  <label className="safety-form-label">Title</label>
-                  <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                    {selectedTalk.title}
+              <div style={{ padding: "1.25rem", pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Title</label>
+                    <div className="detail-value">{selectedTalk.title}</div>
                   </div>
-                </div>
-
-                <div className="safety-form-group">
-                  <label className="safety-form-label">Description</label>
-                  <div
-                    className="safety-form-textarea"
-                    style={{
-                      background: "var(--color-bg-tertiary, #f3f4f6)",
-                      cursor: "default",
-                      minHeight: 60,
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {selectedTalk.description || "--"}
-                  </div>
-                </div>
-
-                <div className="safety-form-row">
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Status</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
                       <span className={`safety-status-badge status-${selectedTalk.status}`}>
                         {STATUS_LABELS[selectedTalk.status] ?? selectedTalk.status}
                       </span>
                     </div>
                   </div>
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Topic</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {selectedTalk.topic || "--"}
-                    </div>
+                </div>
+
+                {selectedTalk.description && (
+                  <div className="detail-group">
+                    <label className="detail-label">Description</label>
+                    <div className="detail-value--multiline">{selectedTalk.description}</div>
+                  </div>
+                )}
+
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Topic</label>
+                    <div className="detail-value">{getTopicLabel(selectedTalk.topic)}</div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Scheduled Date</label>
+                    <div className="detail-value">{formatDate(selectedTalk.scheduled_date)}</div>
                   </div>
                 </div>
 
-                <div className="safety-form-row">
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Project</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {selectedTalk.project?.name || "--"}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Project</label>
+                    <div className="detail-value">{selectedTalk.project?.name || "--"}</div>
                   </div>
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Scheduled Date</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {formatDate(selectedTalk.scheduled_date)}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Conducted By</label>
+                    <div className="detail-value">{getUserName(selectedTalk.conductor)}</div>
                   </div>
                 </div>
 
-                <div className="safety-form-row">
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Conducted By</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {getUserName(selectedTalk.conductor)}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Attendees Count</label>
+                    <div className="detail-value">{selectedTalk.attendees_count || 0}</div>
                   </div>
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Attendees Count</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {selectedTalk.attendees_count || 0}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Created</label>
+                    <div className="detail-value">{formatDate(selectedTalk.created_at)}</div>
                   </div>
                 </div>
 
                 {selectedTalk.attendees && (
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Attendees</label>
-                    <div
-                      className="safety-form-textarea"
-                      style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
-                        cursor: "default",
-                        minHeight: 40,
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
-                      {selectedTalk.attendees}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Attendees</label>
+                    <div className="detail-value--multiline">{selectedTalk.attendees}</div>
                   </div>
                 )}
 
                 {selectedTalk.notes && (
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Notes</label>
-                    <div
-                      className="safety-form-textarea"
-                      style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
-                        cursor: "default",
-                        minHeight: 40,
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
-                      {selectedTalk.notes}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Notes</label>
+                    <div className="detail-value--multiline">{selectedTalk.notes}</div>
                   </div>
                 )}
 
-                <div className="safety-form-row">
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Created</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {formatDate(selectedTalk.created_at)}
-                    </div>
-                  </div>
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Updated</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {formatDate(selectedTalk.updated_at)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="safety-form-actions">
+                <div className="ticket-form-actions">
                   <button
                     type="button"
                     className="btn-secondary"

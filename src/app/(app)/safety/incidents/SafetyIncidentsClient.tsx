@@ -827,41 +827,31 @@ export default function SafetyIncidentsClient({
 
             {/* Read-only detail view */}
             {!isEditing && (
-              <div className="safety-form" style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
-                <div className="safety-form-group">
-                  <label className="safety-form-label">Title</label>
-                  <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                    {selectedIncident.title}
-                  </div>
+              <div style={{ padding: "1.25rem", pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
+                <div className="detail-group">
+                  <label className="detail-label">Title</label>
+                  <div className="detail-value">{selectedIncident.title}</div>
                 </div>
 
-                <div className="safety-form-group">
-                  <label className="safety-form-label">Description</label>
-                  <div
-                    className="safety-form-textarea"
-                    style={{
-                      background: "var(--color-bg-tertiary, #f3f4f6)",
-                      cursor: "default",
-                      minHeight: 60,
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {selectedIncident.description || "--"}
+                {selectedIncident.description && (
+                  <div className="detail-group">
+                    <label className="detail-label">Description</label>
+                    <div className="detail-value--multiline">{selectedIncident.description}</div>
                   </div>
-                </div>
+                )}
 
-                <div className="safety-form-row">
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Status</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
                       <span className={`safety-status-badge status-${selectedIncident.status}`}>
                         {STATUS_LABELS[selectedIncident.status] ?? selectedIncident.status}
                       </span>
                     </div>
                   </div>
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Severity</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Severity</label>
+                    <div className="detail-value">
                       <span className={`safety-severity-badge severity-${selectedIncident.severity}`}>
                         {SEVERITY_LABELS[selectedIncident.severity] ?? selectedIncident.severity}
                       </span>
@@ -869,101 +859,67 @@ export default function SafetyIncidentsClient({
                   </div>
                 </div>
 
-                <div className="safety-form-row">
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Type</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Type</label>
+                    <div className="detail-value">
                       {TYPE_LABELS[selectedIncident.incident_type] ?? selectedIncident.incident_type}
                     </div>
                   </div>
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Project</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {selectedIncident.project?.name || "--"}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Project</label>
+                    <div className="detail-value">{selectedIncident.project?.name || "--"}</div>
                   </div>
                 </div>
 
-                <div className="safety-form-row">
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Assigned To</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {getUserName(selectedIncident.assignee)}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Assigned To</label>
+                    <div className="detail-value">{getUserName(selectedIncident.assignee)}</div>
                   </div>
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Location</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {selectedIncident.location || "--"}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Location</label>
+                    <div className="detail-value">{selectedIncident.location || "--"}</div>
                   </div>
                 </div>
 
-                <div className="safety-form-row">
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Incident Date</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {formatDate(selectedIncident.incident_date)}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Incident Date</label>
+                    <div className="detail-value">{formatDate(selectedIncident.incident_date)}</div>
                   </div>
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">OSHA Recordable</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {selectedIncident.osha_recordable ? "Yes" : "No"}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">OSHA Recordable</label>
+                    <div className="detail-value">{selectedIncident.osha_recordable ? "Yes" : "No"}</div>
                   </div>
                 </div>
 
                 {selectedIncident.corrective_actions && (
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Corrective Actions</label>
-                    <div
-                      className="safety-form-textarea"
-                      style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
-                        cursor: "default",
-                        minHeight: 60,
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
-                      {selectedIncident.corrective_actions}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Corrective Actions</label>
+                    <div className="detail-value--multiline">{selectedIncident.corrective_actions}</div>
                   </div>
                 )}
 
                 {selectedIncident.root_cause && (
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Root Cause</label>
-                    <div
-                      className="safety-form-textarea"
-                      style={{
-                        background: "var(--color-bg-tertiary, #f3f4f6)",
-                        cursor: "default",
-                        minHeight: 60,
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
-                      {selectedIncident.root_cause}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Root Cause</label>
+                    <div className="detail-value--multiline">{selectedIncident.root_cause}</div>
                   </div>
                 )}
 
-                <div className="safety-form-row">
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Reported</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {formatDate(selectedIncident.created_at)}
-                    </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Reported</label>
+                    <div className="detail-value">{formatDate(selectedIncident.created_at)}</div>
                   </div>
-                  <div className="safety-form-group">
-                    <label className="safety-form-label">Reported By</label>
-                    <div className="safety-form-input" style={{ background: "var(--color-bg-tertiary, #f3f4f6)", cursor: "default" }}>
-                      {getUserName(selectedIncident.reporter)}
-                    </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Reported By</label>
+                    <div className="detail-value">{getUserName(selectedIncident.reporter)}</div>
                   </div>
                 </div>
 
-                <div className="safety-form-actions">
+                <div className="ticket-form-actions">
                   <button
                     type="button"
                     className="btn-secondary"

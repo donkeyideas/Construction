@@ -1,7 +1,21 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, ClipboardCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  Search,
+  Plus,
+  X,
+  ClipboardCheck,
+  CheckCircle2,
+  Clock,
+  CalendarCheck,
+  Edit3,
+  Trash2,
+  Upload,
+} from "lucide-react";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,6 +65,26 @@ const TYPE_LABELS: Record<string, string> = {
   fall_protection: "Fall Protection",
 };
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "inspection_type", label: "Inspection Type", required: true },
+  { key: "inspection_date", label: "Inspection Date", required: false, type: "date" },
+  { key: "score", label: "Score", required: false, type: "number" },
+  { key: "findings", label: "Findings", required: false },
+  { key: "corrective_actions", label: "Corrective Actions", required: false },
+  { key: "status", label: "Status", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  {
+    inspection_type: "site_safety",
+    inspection_date: "2026-01-20",
+    score: "92",
+    findings: "Minor housekeeping issues in staging area",
+    corrective_actions: "Cleanup scheduled for end of shift",
+    status: "completed",
+  },
+];
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -88,15 +122,60 @@ function truncate(text: string | null, maxLen: number): string {
 
 interface InspectionsClientProps {
   inspections: Inspection[];
+  projects: { id: string; name: string }[];
+  userId: string;
+  companyId: string;
 }
 
 export default function InspectionsClient({
   inspections,
+  projects,
+  userId,
+  companyId,
 }: InspectionsClientProps) {
+  const router = useRouter();
+
   // Filters
   const [statusFilter, setStatusFilter] = useState<StatusValue | "all">("all");
   const [typeFilter, setTypeFilter] = useState<string | "all">("all");
   const [search, setSearch] = useState("");
+
+  // Create modal state
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [formData, setFormData] = useState({
+    inspection_type: "site_safety",
+    project_id: "",
+    inspection_date: new Date().toISOString().split("T")[0],
+    score: "",
+    findings: "",
+    corrective_actions: "",
+    status: "scheduled",
+  });
+
+  // Import modal
+  const [showImport, setShowImport] = useState(false);
+
+  // Detail / Edit / Delete modal state
+  const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editData, setEditData] = useState<Record<string, unknown>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  // Compute summary counts
+  const statusCounts = useMemo(() => {
+    const counts = { scheduled: 0, in_progress: 0, completed: 0, total: 0 };
+    for (const i of inspections) {
+      counts.total++;
+      if (i.status === "scheduled") counts.scheduled++;
+      else if (i.status === "in_progress") counts.in_progress++;
+      else if (i.status === "completed") counts.completed++;
+    }
+    return counts;
+  }, [inspections]);
 
   // Derive available types from data
   const availableTypes = useMemo(() => {
@@ -133,23 +212,253 @@ export default function InspectionsClient({
     return result;
   }, [inspections, statusFilter, typeFilter, search]);
 
+  // Create inspection handler
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setCreating(true);
+    setCreateError("");
+
+    try {
+      const res = await fetch("/api/safety/inspections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inspection_type: formData.inspection_type,
+          project_id: formData.project_id || undefined,
+          inspection_date: formData.inspection_date || undefined,
+          score: formData.score ? Number(formData.score) : undefined,
+          findings: formData.findings || undefined,
+          corrective_actions: formData.corrective_actions || undefined,
+          status: formData.status || "scheduled",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to create inspection");
+      }
+
+      // Reset form and close modal
+      setFormData({
+        inspection_type: "site_safety",
+        project_id: "",
+        inspection_date: new Date().toISOString().split("T")[0],
+        score: "",
+        findings: "",
+        corrective_actions: "",
+        status: "scheduled",
+      });
+      setShowCreate(false);
+      router.refresh();
+    } catch (err: unknown) {
+      setCreateError(err instanceof Error ? err.message : "Failed to create inspection");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  // Open detail modal
+  function openDetail(inspection: Inspection) {
+    setSelectedInspection(inspection);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setSaveError("");
+    setEditData({});
+  }
+
+  // Close detail modal
+  function closeDetail() {
+    setSelectedInspection(null);
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+    setSaveError("");
+    setEditData({});
+  }
+
+  // Enter edit mode
+  function startEditing() {
+    if (!selectedInspection) return;
+    setEditData({
+      inspection_type: selectedInspection.inspection_type || "site_safety",
+      project_id: selectedInspection.project_id || "",
+      inspection_date: selectedInspection.inspection_date
+        ? selectedInspection.inspection_date.split("T")[0]
+        : "",
+      score: selectedInspection.score !== null && selectedInspection.score !== undefined
+        ? String(selectedInspection.score)
+        : "",
+      findings: selectedInspection.findings || "",
+      corrective_actions: selectedInspection.corrective_actions || "",
+      status: selectedInspection.status || "scheduled",
+    });
+    setIsEditing(true);
+    setSaveError("");
+  }
+
+  // Cancel edit mode
+  function cancelEditing() {
+    setIsEditing(false);
+    setEditData({});
+    setSaveError("");
+  }
+
+  // Save edits via PATCH
+  async function handleSave() {
+    if (!selectedInspection) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      // Build payload with only changed fields
+      const payload: Record<string, unknown> = {};
+
+      if (editData.inspection_type !== (selectedInspection.inspection_type || "site_safety"))
+        payload.inspection_type = editData.inspection_type;
+      if (editData.project_id !== (selectedInspection.project_id || ""))
+        payload.project_id = (editData.project_id as string) || null;
+      if (editData.status !== (selectedInspection.status || "scheduled"))
+        payload.status = editData.status;
+      if (editData.findings !== (selectedInspection.findings || ""))
+        payload.findings = (editData.findings as string) || null;
+      if (editData.corrective_actions !== (selectedInspection.corrective_actions || ""))
+        payload.corrective_actions = (editData.corrective_actions as string) || null;
+
+      const scoreStr = editData.score as string;
+      const existingScore = selectedInspection.score !== null && selectedInspection.score !== undefined
+        ? String(selectedInspection.score)
+        : "";
+      if (scoreStr !== existingScore) {
+        payload.score = scoreStr ? Number(scoreStr) : null;
+      }
+
+      const dateVal = editData.inspection_date as string;
+      const existingDate = selectedInspection.inspection_date
+        ? selectedInspection.inspection_date.split("T")[0]
+        : "";
+      if (dateVal !== existingDate) payload.inspection_date = editData.inspection_date;
+
+      if (Object.keys(payload).length === 0) {
+        setIsEditing(false);
+        return;
+      }
+
+      const res = await fetch(`/api/safety/inspections/${selectedInspection.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update inspection");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : "Failed to update inspection");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Delete inspection via DELETE
+  async function handleDelete() {
+    if (!selectedInspection) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch(`/api/safety/inspections/${selectedInspection.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete inspection");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : "Failed to delete inspection");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Import handler
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "safety_inspections", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   return (
     <div className="safety-page">
       {/* Header */}
       <div className="safety-header">
         <div>
-          <h2>
-            Safety Inspections{" "}
-            <span
-              className="safety-status-badge status-scheduled"
-              style={{ fontSize: "0.85rem", verticalAlign: "middle" }}
-            >
-              {inspections.length}
-            </span>
-          </h2>
+          <h2>Safety Inspections</h2>
           <p className="safety-header-sub">
             {inspections.length} inspection{inspections.length !== 1 ? "s" : ""} total
           </p>
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} />
+            New Inspection
+          </button>
+        </div>
+      </div>
+
+      {/* KPI Stats */}
+      <div className="safety-stats">
+        <div className="safety-stat-card stat-scheduled">
+          <div className="safety-stat-icon">
+            <CalendarCheck size={20} />
+          </div>
+          <div className="safety-stat-info">
+            <span className="safety-stat-value">{statusCounts.scheduled}</span>
+            <span className="safety-stat-label">Scheduled</span>
+          </div>
+        </div>
+        <div className="safety-stat-card stat-investigating">
+          <div className="safety-stat-icon">
+            <Clock size={20} />
+          </div>
+          <div className="safety-stat-info">
+            <span className="safety-stat-value">{statusCounts.in_progress}</span>
+            <span className="safety-stat-label">In Progress</span>
+          </div>
+        </div>
+        <div className="safety-stat-card stat-completed">
+          <div className="safety-stat-icon">
+            <CheckCircle2 size={20} />
+          </div>
+          <div className="safety-stat-info">
+            <span className="safety-stat-value">{statusCounts.completed}</span>
+            <span className="safety-stat-label">Completed</span>
+          </div>
+        </div>
+        <div className="safety-stat-card stat-closed">
+          <div className="safety-stat-icon">
+            <ClipboardCheck size={20} />
+          </div>
+          <div className="safety-stat-info">
+            <span className="safety-stat-value">{statusCounts.total}</span>
+            <span className="safety-stat-label">Total</span>
+          </div>
         </div>
       </div>
 
@@ -201,7 +510,11 @@ export default function InspectionsClient({
           {inspections.length === 0 ? (
             <>
               <h3>No inspections recorded</h3>
-              <p>Safety inspections will appear here once they are created.</p>
+              <p>Create your first safety inspection to get started.</p>
+              <button className="btn-primary" onClick={() => setShowCreate(true)}>
+                <Plus size={16} />
+                New Inspection
+              </button>
             </>
           ) : (
             <>
@@ -225,7 +538,11 @@ export default function InspectionsClient({
             </thead>
             <tbody>
               {filtered.map((inspection) => (
-                <tr key={inspection.id} className="safety-table-row">
+                <tr
+                  key={inspection.id}
+                  onClick={() => openDetail(inspection)}
+                  className="safety-table-row"
+                >
                   <td className="safety-date-cell">
                     {formatDate(inspection.inspection_date)}
                   </td>
@@ -263,6 +580,474 @@ export default function InspectionsClient({
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Create Inspection Modal */}
+      {showCreate && (
+        <div className="safety-modal-overlay" onClick={() => setShowCreate(false)}>
+          <div className="safety-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="safety-modal-header">
+              <h3>New Inspection</h3>
+              <button
+                className="safety-modal-close"
+                onClick={() => setShowCreate(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {createError && (
+              <div className="safety-form-error">{createError}</div>
+            )}
+
+            <form onSubmit={handleCreate} className="safety-form">
+              <div className="safety-form-row">
+                <div className="safety-form-group">
+                  <label className="safety-form-label">Inspection Type *</label>
+                  <select
+                    className="safety-form-select"
+                    value={formData.inspection_type}
+                    onChange={(e) =>
+                      setFormData({ ...formData, inspection_type: e.target.value })
+                    }
+                  >
+                    {Object.keys(TYPE_LABELS).map((t) => (
+                      <option key={t} value={t}>
+                        {TYPE_LABELS[t]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="safety-form-group">
+                  <label className="safety-form-label">Project</label>
+                  <select
+                    className="safety-form-select"
+                    value={formData.project_id}
+                    onChange={(e) =>
+                      setFormData({ ...formData, project_id: e.target.value })
+                    }
+                  >
+                    <option value="">No project</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="safety-form-row">
+                <div className="safety-form-group">
+                  <label className="safety-form-label">Inspection Date</label>
+                  <input
+                    type="date"
+                    className="safety-form-input"
+                    value={formData.inspection_date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, inspection_date: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="safety-form-group">
+                  <label className="safety-form-label">Score (0-100)</label>
+                  <input
+                    type="number"
+                    className="safety-form-input"
+                    value={formData.score}
+                    onChange={(e) =>
+                      setFormData({ ...formData, score: e.target.value })
+                    }
+                    min={0}
+                    max={100}
+                    placeholder="e.g. 95"
+                  />
+                </div>
+              </div>
+
+              <div className="safety-form-group">
+                <label className="safety-form-label">Status</label>
+                <select
+                  className="safety-form-select"
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
+                >
+                  {Object.keys(STATUS_LABELS).map((s) => (
+                    <option key={s} value={s}>
+                      {STATUS_LABELS[s]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="safety-form-group">
+                <label className="safety-form-label">Findings</label>
+                <textarea
+                  className="safety-form-textarea"
+                  value={formData.findings}
+                  onChange={(e) =>
+                    setFormData({ ...formData, findings: e.target.value })
+                  }
+                  placeholder="Describe inspection findings..."
+                  rows={4}
+                />
+              </div>
+
+              <div className="safety-form-group">
+                <label className="safety-form-label">Corrective Actions</label>
+                <textarea
+                  className="safety-form-textarea"
+                  value={formData.corrective_actions}
+                  onChange={(e) =>
+                    setFormData({ ...formData, corrective_actions: e.target.value })
+                  }
+                  placeholder="Describe corrective actions required..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="safety-form-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowCreate(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={creating || !formData.inspection_type}
+                >
+                  {creating ? "Creating..." : "Create Inspection"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Detail / Edit / Delete Modal */}
+      {selectedInspection && (
+        <div className="safety-modal-overlay" onClick={closeDetail}>
+          <div className="safety-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="safety-modal-header">
+              <h3>
+                {isEditing
+                  ? "Edit Inspection"
+                  : "Inspection Details"}
+              </h3>
+              <button className="safety-modal-close" onClick={closeDetail}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {saveError && (
+              <div className="safety-form-error">{saveError}</div>
+            )}
+
+            {/* Delete Confirmation */}
+            {showDeleteConfirm && (
+              <div
+                className="safety-modal-overlay"
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{
+                  position: "absolute",
+                  zIndex: 1000,
+                  borderRadius: "inherit",
+                }}
+              >
+                <div
+                  className="safety-modal"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ maxWidth: 440 }}
+                >
+                  <div className="safety-modal-header">
+                    <h3>Delete Inspection</h3>
+                    <button
+                      className="safety-modal-close"
+                      onClick={() => setShowDeleteConfirm(false)}
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <div style={{ padding: "1rem 1.5rem" }}>
+                    <p>
+                      Are you sure you want to delete this inspection? This action
+                      cannot be undone.
+                    </p>
+                  </div>
+                  <div className="safety-form-actions">
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={saving}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      style={{ backgroundColor: "var(--color-danger, #dc2626)" }}
+                      onClick={handleDelete}
+                      disabled={saving}
+                    >
+                      {saving ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Read-only detail view */}
+            {!isEditing && (
+              <div className="safety-form" style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
+                <div className="detail-group">
+                  <div className="detail-row">
+                    <span className="detail-label">Date</span>
+                    <span className="detail-value">
+                      {formatDate(selectedInspection.inspection_date)}
+                    </span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Project</span>
+                    <span className="detail-value">
+                      {selectedInspection.projects?.name || "--"}
+                    </span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Type</span>
+                    <span className="detail-value">
+                      {TYPE_LABELS[selectedInspection.inspection_type ?? ""] ??
+                        selectedInspection.inspection_type ??
+                        "--"}
+                    </span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Score</span>
+                    <span className="detail-value">
+                      <span className={`safety-severity-badge ${getScoreClass(selectedInspection.score)}`}>
+                        {selectedInspection.score !== null && selectedInspection.score !== undefined
+                          ? `${selectedInspection.score}%`
+                          : "--"}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Status</span>
+                    <span className="detail-value">
+                      <span className={`safety-status-badge ${getStatusClass(selectedInspection.status)}`}>
+                        {STATUS_LABELS[selectedInspection.status ?? ""] ??
+                          selectedInspection.status ??
+                          "--"}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="detail-group">
+                  <div className="detail-row" style={{ flexDirection: "column", alignItems: "flex-start" }}>
+                    <span className="detail-label">Findings</span>
+                    <span className="detail-value" style={{ whiteSpace: "pre-wrap", marginTop: "0.25rem" }}>
+                      {selectedInspection.findings || "--"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="detail-group">
+                  <div className="detail-row" style={{ flexDirection: "column", alignItems: "flex-start" }}>
+                    <span className="detail-label">Corrective Actions</span>
+                    <span className="detail-value" style={{ whiteSpace: "pre-wrap", marginTop: "0.25rem" }}>
+                      {selectedInspection.corrective_actions || "--"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="detail-group">
+                  <div className="detail-row">
+                    <span className="detail-label">Created</span>
+                    <span className="detail-value">
+                      {formatDate(selectedInspection.created_at)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="safety-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ color: "var(--color-danger, #dc2626)" }}
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={closeDetail}
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={startEditing}
+                  >
+                    <Edit3 size={16} />
+                    Edit
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Edit view */}
+            {isEditing && (
+              <div className="safety-form">
+                <div className="safety-form-row">
+                  <div className="safety-form-group">
+                    <label className="safety-form-label">Inspection Type *</label>
+                    <select
+                      className="safety-form-select"
+                      value={(editData.inspection_type as string) || "site_safety"}
+                      onChange={(e) =>
+                        setEditData({ ...editData, inspection_type: e.target.value })
+                      }
+                    >
+                      {Object.keys(TYPE_LABELS).map((t) => (
+                        <option key={t} value={t}>
+                          {TYPE_LABELS[t]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="safety-form-group">
+                    <label className="safety-form-label">Project</label>
+                    <select
+                      className="safety-form-select"
+                      value={(editData.project_id as string) || ""}
+                      onChange={(e) =>
+                        setEditData({ ...editData, project_id: e.target.value })
+                      }
+                    >
+                      <option value="">No project</option>
+                      {projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="safety-form-row">
+                  <div className="safety-form-group">
+                    <label className="safety-form-label">Inspection Date</label>
+                    <input
+                      type="date"
+                      className="safety-form-input"
+                      value={(editData.inspection_date as string) || ""}
+                      onChange={(e) =>
+                        setEditData({ ...editData, inspection_date: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="safety-form-group">
+                    <label className="safety-form-label">Score (0-100)</label>
+                    <input
+                      type="number"
+                      className="safety-form-input"
+                      value={(editData.score as string) || ""}
+                      onChange={(e) =>
+                        setEditData({ ...editData, score: e.target.value })
+                      }
+                      min={0}
+                      max={100}
+                      placeholder="e.g. 95"
+                    />
+                  </div>
+                </div>
+
+                <div className="safety-form-group">
+                  <label className="safety-form-label">Status</label>
+                  <select
+                    className="safety-form-select"
+                    value={(editData.status as string) || "scheduled"}
+                    onChange={(e) =>
+                      setEditData({ ...editData, status: e.target.value })
+                    }
+                  >
+                    {Object.keys(STATUS_LABELS).map((s) => (
+                      <option key={s} value={s}>
+                        {STATUS_LABELS[s]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="safety-form-group">
+                  <label className="safety-form-label">Findings</label>
+                  <textarea
+                    className="safety-form-textarea"
+                    value={(editData.findings as string) || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, findings: e.target.value })
+                    }
+                    placeholder="Describe inspection findings..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="safety-form-group">
+                  <label className="safety-form-label">Corrective Actions</label>
+                  <textarea
+                    className="safety-form-textarea"
+                    value={(editData.corrective_actions as string) || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, corrective_actions: e.target.value })
+                    }
+                    placeholder="Describe corrective actions required..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="safety-form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={cancelEditing}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handleSave}
+                    disabled={saving || !(editData.inspection_type as string)?.trim()}
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          entityName="Safety Inspection"
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          onImport={handleImport}
+          onClose={() => { setShowImport(false); router.refresh(); }}
+        />
       )}
     </div>
   );
