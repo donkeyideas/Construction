@@ -29,10 +29,13 @@ import "@/styles/contracts.css";
 import "@/styles/import-modal.css";
 import "@/styles/plan-room.css";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function getBreadcrumb(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length === 0) return "Dashboard";
   return segments
+    .filter((s) => !UUID_RE.test(s))
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " "))
     .join(" / ");
 }

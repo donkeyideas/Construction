@@ -743,67 +743,86 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
             {!editing ? (
               /* ---------- VIEW MODE ---------- */
-              <div style={{ padding: "1.25rem 1.5rem" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem 2rem" }}>
-                  <div>
-                    <div className="ticket-form-label">Tenant Name</div>
-                    <div style={{ fontWeight: 600 }}>{selectedLease.tenant_name ?? "--"}</div>
+              <div style={{ padding: "1.25rem" }}>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Tenant Name</label>
+                    <div className="detail-value">{selectedLease.tenant_name ?? "--"}</div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Status</div>
-                    <span className={getStatusBadge(selectedLease.status)}>
-                      {selectedLease.status}
-                    </span>
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
+                      <span className={getStatusBadge(selectedLease.status)}>
+                        {selectedLease.status}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Email</div>
-                    <div>{selectedLease.tenant_email ?? "--"}</div>
+                </div>
+
+                <div className="detail-row" style={{ marginTop: "1rem" }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Email</label>
+                    <div className="detail-value">{selectedLease.tenant_email ?? "--"}</div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Phone</div>
-                    <div>{selectedLease.tenant_phone ?? "--"}</div>
+                  <div className="detail-group">
+                    <label className="detail-label">Phone</label>
+                    <div className="detail-value">{selectedLease.tenant_phone ?? "--"}</div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Property</div>
-                    <div>{selectedLease.properties?.name ?? "--"}</div>
+                </div>
+
+                <div className="detail-row" style={{ marginTop: "1rem" }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Property</label>
+                    <div className="detail-value">{selectedLease.properties?.name ?? "--"}</div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Unit</div>
-                    <div>{selectedLease.units?.unit_number ?? "--"}</div>
+                  <div className="detail-group">
+                    <label className="detail-label">Unit</label>
+                    <div className="detail-value">{selectedLease.units?.unit_number ?? "--"}</div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Monthly Rent</div>
-                    <div style={{ fontWeight: 600 }}>
+                </div>
+
+                <div className="detail-row" style={{ marginTop: "1rem" }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Monthly Rent</label>
+                    <div className="detail-value">
                       {selectedLease.monthly_rent != null
                         ? formatCurrency(selectedLease.monthly_rent)
                         : "--"}
                     </div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Security Deposit</div>
-                    <div>
+                  <div className="detail-group">
+                    <label className="detail-label">Security Deposit</label>
+                    <div className="detail-value">
                       {selectedLease.security_deposit != null
                         ? formatCurrency(selectedLease.security_deposit)
                         : "--"}
                     </div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Lease Start</div>
-                    <div>{fmtDate(selectedLease.lease_start)}</div>
+                </div>
+
+                <div className="detail-row" style={{ marginTop: "1rem" }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Lease Start</label>
+                    <div className="detail-value">{fmtDate(selectedLease.lease_start)}</div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Lease End</div>
-                    <div>{fmtDate(selectedLease.lease_end)}</div>
+                  <div className="detail-group">
+                    <label className="detail-label">Lease End</label>
+                    <div className="detail-value">{fmtDate(selectedLease.lease_end)}</div>
                   </div>
-                  <div>
-                    <div className="ticket-form-label">Auto Renew</div>
-                    <span
-                      className={
-                        selectedLease.auto_renew ? "badge badge-green" : "badge badge-amber"
-                      }
-                    >
-                      {selectedLease.auto_renew ? "Yes" : "No"}
-                    </span>
+                </div>
+
+                <div className="detail-row" style={{ marginTop: "1rem" }}>
+                  <div className="detail-group">
+                    <label className="detail-label">Auto Renew</label>
+                    <div className="detail-value">
+                      <span
+                        className={
+                          selectedLease.auto_renew ? "badge badge-green" : "badge badge-amber"
+                        }
+                      >
+                        {selectedLease.auto_renew ? "Yes" : "No"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

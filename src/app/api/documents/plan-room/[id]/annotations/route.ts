@@ -35,12 +35,7 @@ export async function GET(
 
     let query = supabase
       .from("markup_annotations")
-      .select(
-        `
-        *,
-        creator:user_profiles!markup_annotations_created_by_fkey(full_name)
-      `
-      )
+      .select("*")
       .eq("document_id", documentId)
       .order("created_at", { ascending: true });
 
@@ -55,13 +50,7 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const annotations = (data ?? []).map((a: Record<string, unknown>) => ({
-      ...a,
-      created_by_name: (a.creator as { full_name: string } | null)?.full_name ?? null,
-      creator: undefined,
-    }));
-
-    return NextResponse.json({ annotations });
+    return NextResponse.json({ annotations: data ?? [] });
   } catch (err) {
     console.error("GET annotations error:", err);
     return NextResponse.json(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -10,6 +10,8 @@ import {
   Grid3x3,
   Building2,
   ImageIcon,
+  Upload,
+  Loader2,
 } from "lucide-react";
 import type {
   PropertyRow,
@@ -401,6 +403,308 @@ export default function PropertyDetailClient({
 }
 
 /* ==================================================================== */
+/*  Photo Gallery                                                        */
+/* ==================================================================== */
+
+interface PhotoItem {
+  id: string;
+  name: string;
+  file_type: string;
+  file_size: number;
+  created_at: string;
+  url: string | null;
+}
+
+function PhotoGallery({ propertyId }: { propertyId: string }) {
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<PhotoItem | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const fetchPhotos = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/properties/${propertyId}/photos`);
+      if (res.ok) {
+        const data = await res.json();
+        setPhotos(data);
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoading(false);
+    }
+  }, [propertyId]);
+
+  useEffect(() => {
+    fetchPhotos();
+  }, [fetchPhotos]);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files?.length) return;
+
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch(`/api/properties/${propertyId}/photos`, {
+          method: "POST",
+          body: fd,
+        });
+        if (res.ok) {
+          const photo = await res.json();
+          setPhotos((prev) => [photo, ...prev]);
+        }
+      }
+    } catch {
+      // silent
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  async function handleDelete(docId: string) {
+    setDeleting(docId);
+    try {
+      const res = await fetch(
+        `/api/properties/${propertyId}/photos?docId=${docId}`,
+        { method: "DELETE" }
+      );
+      if (res.ok) {
+        setPhotos((prev) => prev.filter((p) => p.id !== docId));
+        if (lightbox?.id === docId) setLightbox(null);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleting(null);
+    }
+  }
+
+  return (
+    <>
+      <div className="card">
+        <div className="card-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <ImageIcon size={18} style={{ color: "var(--muted)" }} />
+            Photos {photos.length > 0 && `(${photos.length})`}
+          </span>
+          <label
+            className="btn-primary"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "0.8rem",
+              padding: "6px 12px",
+              cursor: uploading ? "wait" : "pointer",
+            }}
+          >
+            {uploading ? (
+              <Loader2 size={14} className="spin-icon" />
+            ) : (
+              <Upload size={14} />
+            )}
+            {uploading ? "Uploading..." : "Upload"}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleUpload}
+              disabled={uploading}
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
+
+        {loading ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "120px",
+              color: "var(--muted)",
+              fontSize: "0.85rem",
+            }}
+          >
+            Loading photos...
+          </div>
+        ) : photos.length === 0 ? (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "160px",
+              border: "2px dashed var(--border)",
+              borderRadius: "8px",
+              color: "var(--muted)",
+              fontSize: "0.85rem",
+              gap: "8px",
+              cursor: "pointer",
+            }}
+            onClick={() => fileRef.current?.click()}
+          >
+            <ImageIcon size={24} />
+            Click to upload photos
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+              gap: "8px",
+            }}
+          >
+            {photos.map((photo) => (
+              <div
+                key={photo.id}
+                style={{
+                  position: "relative",
+                  aspectRatio: "1",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  border: "1px solid var(--border)",
+                  background: "var(--surface)",
+                }}
+                onClick={() => setLightbox(photo)}
+              >
+                {photo.url ? (
+                  <img
+                    src={photo.url}
+                    alt={photo.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--muted)",
+                    }}
+                  >
+                    <ImageIcon size={32} />
+                  </div>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(photo.id);
+                  }}
+                  disabled={deleting === photo.id}
+                  style={{
+                    position: "absolute",
+                    top: "4px",
+                    right: "4px",
+                    background: "rgba(0,0,0,0.6)",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    color: "#fff",
+                    opacity: 0,
+                    transition: "opacity 0.15s",
+                  }}
+                  className="photo-delete-btn"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.85)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+          }}
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            onClick={() => setLightbox(null)}
+            style={{
+              position: "absolute",
+              top: "16px",
+              right: "16px",
+              background: "rgba(255,255,255,0.15)",
+              border: "none",
+              borderRadius: "50%",
+              width: "36px",
+              height: "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#fff",
+            }}
+          >
+            <X size={20} />
+          </button>
+          {lightbox.url && (
+            <img
+              src={lightbox.url}
+              alt={lightbox.name}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                objectFit: "contain",
+                borderRadius: "8px",
+                cursor: "default",
+              }}
+            />
+          )}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "16px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              color: "#fff",
+              fontSize: "0.85rem",
+              background: "rgba(0,0,0,0.5)",
+              padding: "6px 14px",
+              borderRadius: "6px",
+            }}
+          >
+            {lightbox.name}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ==================================================================== */
 /*  Overview Tab                                                         */
 /* ==================================================================== */
 
@@ -666,27 +970,8 @@ function OverviewTabContent({
         </div>
       </div>
 
-      {/* Photo Gallery Placeholder */}
-      <div className="card">
-        <div className="card-title">
-          <ImageIcon size={18} style={{ color: "var(--muted)" }} />
-          Photos
-        </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "160px",
-            border: "2px dashed var(--border)",
-            borderRadius: "8px",
-            color: "var(--muted)",
-            fontSize: "0.85rem",
-          }}
-        >
-          No photos uploaded yet
-        </div>
-      </div>
+      {/* Photo Gallery */}
+      <PhotoGallery propertyId={property.id} />
     </>
   );
 }
@@ -1514,56 +1799,46 @@ function UnitModal({
             </>
           ) : (
             /* ---- View Mode ---- */
-            <div className="modal-detail-grid">
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Unit Number</span>
-                <span className="modal-detail-value">
-                  {unit.unit_number}
-                </span>
+            <div style={{ padding: "1.25rem" }}>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Unit Number</label>
+                  <div className="detail-value">{unit.unit_number}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Unit Type</label>
+                  <div className="detail-value">{unitTypeLabel(unit.unit_type)}</div>
+                </div>
               </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Unit Type</span>
-                <span className="modal-detail-value">
-                  {unitTypeLabel(unit.unit_type)}
-                </span>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Sq Ft</label>
+                  <div className="detail-value">{unit.sqft ? unit.sqft.toLocaleString() : "--"}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Bedrooms</label>
+                  <div className="detail-value">{unit.bedrooms ?? "--"}</div>
+                </div>
               </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Sq Ft</span>
-                <span className="modal-detail-value">
-                  {unit.sqft ? unit.sqft.toLocaleString() : "--"}
-                </span>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Bathrooms</label>
+                  <div className="detail-value">{unit.bathrooms ?? "--"}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Floor Number</label>
+                  <div className="detail-value">{unit.floor_number ?? "--"}</div>
+                </div>
               </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Bedrooms</span>
-                <span className="modal-detail-value">
-                  {unit.bedrooms ?? "--"}
-                </span>
-              </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Bathrooms</span>
-                <span className="modal-detail-value">
-                  {unit.bathrooms ?? "--"}
-                </span>
-              </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Floor Number</span>
-                <span className="modal-detail-value">
-                  {unit.floor_number ?? "--"}
-                </span>
-              </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Market Rent</span>
-                <span className="modal-detail-value">
-                  {unit.market_rent
-                    ? formatCurrency(unit.market_rent)
-                    : "--"}
-                </span>
-              </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Status</span>
-                <span className="modal-detail-value">
-                  <UnitStatusBadge status={unit.status} />
-                </span>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Market Rent</label>
+                  <div className="detail-value">{unit.market_rent ? formatCurrency(unit.market_rent) : "--"}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Status</label>
+                  <div className="detail-value"><UnitStatusBadge status={unit.status} /></div>
+                </div>
               </div>
             </div>
           )}
@@ -1827,70 +2102,56 @@ function LeaseModal({
             </>
           ) : (
             /* ---- View Mode ---- */
-            <div className="modal-detail-grid">
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Unit</span>
-                <span className="modal-detail-value">
-                  {lease.units?.unit_number
-                    ? `Unit ${lease.units.unit_number}`
-                    : "--"}
-                </span>
+            <div style={{ padding: "1.25rem" }}>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Unit</label>
+                  <div className="detail-value">{lease.units?.unit_number ? `Unit ${lease.units.unit_number}` : "--"}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Tenant Name</label>
+                  <div className="detail-value">{lease.tenant_name}</div>
+                </div>
               </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Tenant Name</span>
-                <span className="modal-detail-value">
-                  {lease.tenant_name}
-                </span>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Email</label>
+                  <div className="detail-value">{lease.tenant_email ?? "--"}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Phone</label>
+                  <div className="detail-value">{lease.tenant_phone ?? "--"}</div>
+                </div>
               </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Email</span>
-                <span className="modal-detail-value">
-                  {lease.tenant_email ?? "--"}
-                </span>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Monthly Rent</label>
+                  <div className="detail-value">{formatCurrency(lease.monthly_rent)}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Security Deposit</label>
+                  <div className="detail-value">{lease.security_deposit ? formatCurrency(lease.security_deposit) : "--"}</div>
+                </div>
               </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Phone</span>
-                <span className="modal-detail-value">
-                  {lease.tenant_phone ?? "--"}
-                </span>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Lease Start</label>
+                  <div className="detail-value">{formatDate(lease.lease_start)}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Lease End</label>
+                  <div className="detail-value">{formatDate(lease.lease_end)}</div>
+                </div>
               </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Monthly Rent</span>
-                <span className="modal-detail-value">
-                  {formatCurrency(lease.monthly_rent)}
-                </span>
-              </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Security Deposit</span>
-                <span className="modal-detail-value">
-                  {lease.security_deposit
-                    ? formatCurrency(lease.security_deposit)
-                    : "--"}
-                </span>
-              </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Lease Start</span>
-                <span className="modal-detail-value">
-                  {formatDate(lease.lease_start)}
-                </span>
-              </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Lease End</span>
-                <span className="modal-detail-value">
-                  {formatDate(lease.lease_end)}
-                </span>
-              </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Status</span>
-                <span className="modal-detail-value">
-                  <LeaseStatusBadge status={lease.status} />
-                </span>
-              </div>
-              <div className="modal-detail-item">
-                <span className="modal-detail-label">Auto Renew</span>
-                <span className="modal-detail-value">
-                  {lease.auto_renew ? "Yes" : "No"}
-                </span>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Status</label>
+                  <div className="detail-value"><LeaseStatusBadge status={lease.status} /></div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Auto Renew</label>
+                  <div className="detail-value">{lease.auto_renew ? "Yes" : "No"}</div>
+                </div>
               </div>
             </div>
           )}
@@ -2155,117 +2416,70 @@ function MaintenanceModal({
             </>
           ) : (
             /* ---- View Mode ---- */
-            <>
-              <div className="modal-detail-grid">
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Title</span>
-                  <span className="modal-detail-value">{maint.title}</span>
+            <div style={{ padding: "1.25rem" }}>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Title</label>
+                  <div className="detail-value">{maint.title}</div>
                 </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Unit</span>
-                  <span className="modal-detail-value">
-                    {maint.units?.unit_number
-                      ? `Unit ${maint.units.unit_number}`
-                      : "--"}
-                  </span>
+                <div className="detail-group">
+                  <label className="detail-label">Unit</label>
+                  <div className="detail-value">{maint.units?.unit_number ? `Unit ${maint.units.unit_number}` : "--"}</div>
                 </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Category</span>
-                  <span
-                    className="modal-detail-value"
-                    style={{ textTransform: "capitalize" }}
-                  >
-                    {maint.category}
-                  </span>
+              </div>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Category</label>
+                  <div className="detail-value" style={{ textTransform: "capitalize" }}>{maint.category}</div>
                 </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Priority</span>
-                  <span className="modal-detail-value">
-                    <PriorityBadge priority={maint.priority} />
-                  </span>
+                <div className="detail-group">
+                  <label className="detail-label">Priority</label>
+                  <div className="detail-value"><PriorityBadge priority={maint.priority} /></div>
                 </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Status</span>
-                  <span className="modal-detail-value">
-                    <MaintenanceStatusBadge status={maint.status} />
-                  </span>
+              </div>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Status</label>
+                  <div className="detail-value"><MaintenanceStatusBadge status={maint.status} /></div>
                 </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Estimated Cost</span>
-                  <span className="modal-detail-value">
-                    {maint.estimated_cost != null
-                      ? formatCurrency(maint.estimated_cost)
-                      : "--"}
-                  </span>
+                <div className="detail-group">
+                  <label className="detail-label">Estimated Cost</label>
+                  <div className="detail-value">{maint.estimated_cost != null ? formatCurrency(maint.estimated_cost) : "--"}</div>
                 </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Actual Cost</span>
-                  <span className="modal-detail-value">
-                    {maint.actual_cost != null
-                      ? formatCurrency(maint.actual_cost)
-                      : "--"}
-                  </span>
+              </div>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Actual Cost</label>
+                  <div className="detail-value">{maint.actual_cost != null ? formatCurrency(maint.actual_cost) : "--"}</div>
                 </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Scheduled Date</span>
-                  <span className="modal-detail-value">
-                    {formatDate(maint.scheduled_date)}
-                  </span>
+                <div className="detail-group">
+                  <label className="detail-label">Scheduled Date</label>
+                  <div className="detail-value">{formatDate(maint.scheduled_date)}</div>
                 </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Created</span>
-                  <span className="modal-detail-value">
-                    {formatDate(maint.created_at)}
-                  </span>
+              </div>
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Created</label>
+                  <div className="detail-value">{formatDate(maint.created_at)}</div>
                 </div>
-                <div className="modal-detail-item">
-                  <span className="modal-detail-label">Completed</span>
-                  <span className="modal-detail-value">
-                    {formatDate(maint.completed_at)}
-                  </span>
+                <div className="detail-group">
+                  <label className="detail-label">Completed</label>
+                  <div className="detail-value">{formatDate(maint.completed_at)}</div>
                 </div>
               </div>
               {maint.description && (
-                <div style={{ marginTop: "20px" }}>
-                  <div
-                    className="modal-detail-label"
-                    style={{ marginBottom: "6px" }}
-                  >
-                    Description
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.88rem",
-                      lineHeight: 1.6,
-                      whiteSpace: "pre-wrap",
-                      color: "var(--text)",
-                    }}
-                  >
-                    {maint.description}
-                  </div>
+                <div className="detail-group">
+                  <label className="detail-label">Description</label>
+                  <div className="detail-value--multiline">{maint.description}</div>
                 </div>
               )}
               {maint.notes && (
-                <div style={{ marginTop: "16px" }}>
-                  <div
-                    className="modal-detail-label"
-                    style={{ marginBottom: "6px" }}
-                  >
-                    Notes
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.88rem",
-                      lineHeight: 1.6,
-                      whiteSpace: "pre-wrap",
-                      color: "var(--text)",
-                    }}
-                  >
-                    {maint.notes}
-                  </div>
+                <div className="detail-group">
+                  <label className="detail-label">Notes</label>
+                  <div className="detail-value--multiline">{maint.notes}</div>
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>

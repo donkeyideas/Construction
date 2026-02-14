@@ -1120,15 +1120,15 @@ export default function MaintenanceClient({
               </>
             ) : (
               /* ---------- View Mode ---------- */
-              <div className="ticket-form" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <div className="ticket-form-group">
-                  <label className="ticket-form-label">Title</label>
-                  <div style={{ fontWeight: 600 }}>{selectedRequest.title}</div>
+              <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div className="detail-group">
+                  <label className="detail-label">Title</label>
+                  <div className="detail-value">{selectedRequest.title}</div>
                 </div>
 
-                <div className="ticket-form-group">
-                  <label className="ticket-form-label">Description</label>
-                  <div>
+                <div className="detail-group">
+                  <label className="detail-label">Description</label>
+                  <div className={selectedRequest.description ? "detail-value detail-value--multiline" : "detail-value"}>
                     {selectedRequest.description || (
                       <span style={{ color: "var(--muted)" }}>
                         No description
@@ -1137,10 +1137,10 @@ export default function MaintenanceClient({
                   </div>
                 </div>
 
-                <div className="ticket-form-row">
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Property</label>
-                    <div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Property</label>
+                    <div className="detail-value">
                       {selectedRequest.properties?.name ?? "--"}
                       {selectedRequest.units?.unit_number && (
                         <span style={{ color: "var(--muted)", marginLeft: "0.5rem" }}>
@@ -1150,9 +1150,9 @@ export default function MaintenanceClient({
                     </div>
                   </div>
 
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Category</label>
-                    <div>
+                  <div className="detail-group">
+                    <label className="detail-label">Category</label>
+                    <div className="detail-value">
                       {selectedRequest.category ? (
                         <span
                           className={getCategoryBadge(
@@ -1168,10 +1168,10 @@ export default function MaintenanceClient({
                   </div>
                 </div>
 
-                <div className="ticket-form-row">
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Priority</label>
-                    <div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Priority</label>
+                    <div className="detail-value">
                       <span
                         className={getPriorityBadge(selectedRequest.priority)}
                       >
@@ -1180,9 +1180,9 @@ export default function MaintenanceClient({
                     </div>
                   </div>
 
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Status</label>
-                    <div>
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
                       <span
                         className={getStatusBadge(selectedRequest.status)}
                       >
@@ -1192,15 +1192,15 @@ export default function MaintenanceClient({
                   </div>
                 </div>
 
-                <div className="ticket-form-row">
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Assigned To</label>
-                    <div>{memberName(selectedRequest.assigned_to)}</div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Assigned To</label>
+                    <div className="detail-value">{memberName(selectedRequest.assigned_to)}</div>
                   </div>
 
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Scheduled Date</label>
-                    <div>
+                  <div className="detail-group">
+                    <label className="detail-label">Scheduled Date</label>
+                    <div className="detail-value">
                       {selectedRequest.scheduled_date
                         ? new Date(
                             selectedRequest.scheduled_date
@@ -1214,19 +1214,19 @@ export default function MaintenanceClient({
                   </div>
                 </div>
 
-                <div className="ticket-form-row">
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Estimated Cost</label>
-                    <div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Estimated Cost</label>
+                    <div className="detail-value">
                       {selectedRequest.estimated_cost != null
                         ? formatCurrency(selectedRequest.estimated_cost)
                         : "--"}
                     </div>
                   </div>
 
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Actual Cost</label>
-                    <div>
+                  <div className="detail-group">
+                    <label className="detail-label">Actual Cost</label>
+                    <div className="detail-value">
                       {selectedRequest.actual_cost != null
                         ? formatCurrency(selectedRequest.actual_cost)
                         : "--"}
@@ -1235,9 +1235,9 @@ export default function MaintenanceClient({
                 </div>
 
                 {selectedRequest.completed_at && (
-                  <div className="ticket-form-group">
-                    <label className="ticket-form-label">Completed At</label>
-                    <div>
+                  <div className="detail-group">
+                    <label className="detail-label">Completed At</label>
+                    <div className="detail-value">
                       {new Date(
                         selectedRequest.completed_at
                       ).toLocaleDateString("en-US", {
@@ -1251,9 +1251,9 @@ export default function MaintenanceClient({
                   </div>
                 )}
 
-                <div className="ticket-form-group">
-                  <label className="ticket-form-label">Notes</label>
-                  <div>
+                <div className="detail-group">
+                  <label className="detail-label">Notes</label>
+                  <div className={selectedRequest.notes ? "detail-value detail-value--multiline" : "detail-value"}>
                     {selectedRequest.notes || (
                       <span style={{ color: "var(--muted)" }}>No notes</span>
                     )}
