@@ -745,67 +745,89 @@ export default function CertificationsClient({
 
             {!isEditing && !showDeleteConfirm && (
               <>
-                <div className="ticket-detail-body">
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Person:</span>
-                    <span>{personName}</span>
-                  </div>
-
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Certification Name:</span>
-                    <span>{selectedCert.cert_name || "--"}</span>
-                  </div>
-
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Type:</span>
-                    <span className={getTypeBadge(selectedCert.cert_type)}>
-                      {formatCertType(selectedCert.cert_type)}
-                    </span>
-                  </div>
-
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Issuing Authority:</span>
-                    <span>{selectedCert.issuing_authority || "--"}</span>
-                  </div>
-
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Cert Number:</span>
-                    <span style={{ fontFamily: "var(--font-mono, monospace)" }}>
-                      {selectedCert.cert_number || "--"}
-                    </span>
-                  </div>
-
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Issued Date:</span>
-                    <span>
-                      {selectedCert.issued_date
-                        ? new Date(selectedCert.issued_date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "--"}
-                    </span>
-                  </div>
-
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Expiry Date:</span>
-                    <span>
-                      {selectedCert.expiry_date
-                        ? new Date(selectedCert.expiry_date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "No Expiry"}
-                    </span>
-                  </div>
-
-                  <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Computed Status:</span>
+                <div style={{ padding: "20px" }}>
+                  {/* Person header */}
+                  <div className="people-detail-header">
+                    <div className="people-detail-avatar">
+                      {personName
+                        .split(" ")
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="people-detail-name">{personName}</div>
+                      {selectedCert.contacts?.company_name && (
+                        <div className="people-detail-company">
+                          {selectedCert.contacts.company_name}
+                        </div>
+                      )}
+                    </div>
                     <span className={getStatusBadge(selectedCert.computedStatus)}>
                       {getStatusLabel(selectedCert.computedStatus)}
                     </span>
+                  </div>
+
+                  {/* Certification details */}
+                  <div className="people-detail-section">
+                    <div className="people-detail-row">
+                      <Award size={16} />
+                      <span>{selectedCert.cert_name || "--"}</span>
+                    </div>
+                    <div className="people-detail-row">
+                      <ShieldCheck size={16} />
+                      <span className={getTypeBadge(selectedCert.cert_type)}>
+                        {formatCertType(selectedCert.cert_type)}
+                      </span>
+                    </div>
+                    {selectedCert.issuing_authority && (
+                      <div className="people-detail-row">
+                        <Award size={16} />
+                        <span>{selectedCert.issuing_authority}</span>
+                      </div>
+                    )}
+                    {selectedCert.cert_number && (
+                      <div className="people-detail-row">
+                        <ShieldCheck size={16} />
+                        <span style={{ fontFamily: "var(--font-mono, monospace)" }}>
+                          {selectedCert.cert_number}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dates section */}
+                  <div className="people-detail-notes">
+                    <label>Dates</label>
+                  </div>
+                  <div className="people-detail-section" style={{ marginTop: 8 }}>
+                    <div className="people-detail-row">
+                      <Award size={16} />
+                      <span>
+                        <strong>Issued:</strong>{" "}
+                        {selectedCert.issued_date
+                          ? new Date(selectedCert.issued_date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "--"}
+                      </span>
+                    </div>
+                    <div className="people-detail-row">
+                      <AlertTriangle size={16} />
+                      <span>
+                        <strong>Expires:</strong>{" "}
+                        {selectedCert.expiry_date
+                          ? new Date(selectedCert.expiry_date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "No Expiry"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
