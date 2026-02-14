@@ -46,8 +46,7 @@ CREATE POLICY "markup_annotations_delete" ON markup_annotations FOR DELETE
     company_id IN (SELECT public.get_company_ids())
     AND (
       created_by = auth.uid()
-      OR public.has_role(company_id, 'admin')
-      OR public.has_role(company_id, 'owner')
+      OR public.has_role(company_id, ARRAY['owner','admin'])
     )
   );
 
