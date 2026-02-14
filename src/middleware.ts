@@ -130,48 +130,56 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Portal access guard: ensure user can only access their designated portal
+  // Portal access guard: ensure user can access the portal they're trying to reach
   if (user && !isPublicRoute && !pathname.startsWith("/api/")) {
-    const { data: profile } = await supabase
-      .from("user_profiles")
-      .select("portal_type, is_platform_admin")
-      .eq("id", user.id)
-      .single();
+    const isPortalPath =
+      pathname.startsWith("/tenant") ||
+      pathname.startsWith("/vendor") ||
+      pathname.startsWith("/admin-panel") ||
+      pathname.startsWith("/super-admin");
 
-    // Platform admins can go anywhere
-    if (profile?.is_platform_admin) {
-      return supabaseResponse;
-    }
+    if (isPortalPath) {
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("portal_type, is_platform_admin")
+        .eq("id", user.id)
+        .single();
 
-    const portalType = profile?.portal_type;
+      // Platform admins can go anywhere
+      if (profile?.is_platform_admin) {
+        return supabaseResponse;
+      }
 
-    // Tenant users can ONLY access /tenant/* — redirect everything else
-    if (portalType === "tenant" && !pathname.startsWith("/tenant")) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/tenant";
-      return NextResponse.redirect(url);
-    }
+      const portalType = profile?.portal_type;
 
-    // Vendor users can ONLY access /vendor/* — redirect everything else
-    if (portalType === "vendor" && !pathname.startsWith("/vendor")) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/vendor";
-      return NextResponse.redirect(url);
-    }
-
-    // Internal staff cannot access tenant/vendor portals
-    if (
-      !portalType ||
-      portalType === "executive" ||
-      portalType === "admin"
-    ) {
-      if (
-        pathname.startsWith("/tenant") ||
-        pathname.startsWith("/vendor")
-      ) {
+      // Tenant can only access /tenant/*
+      if (portalType === "tenant" && !pathname.startsWith("/tenant")) {
         const url = request.nextUrl.clone();
-        url.pathname = "/dashboard";
+        url.pathname = "/tenant";
         return NextResponse.redirect(url);
+      }
+
+      // Vendor can only access /vendor/*
+      if (portalType === "vendor" && !pathname.startsWith("/vendor")) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/vendor";
+        return NextResponse.redirect(url);
+      }
+
+      // Internal staff cannot access tenant/vendor portals
+      if (
+        !portalType ||
+        portalType === "executive" ||
+        portalType === "admin"
+      ) {
+        if (
+          pathname.startsWith("/tenant") ||
+          pathname.startsWith("/vendor")
+        ) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/dashboard";
+          return NextResponse.redirect(url);
+        }
       }
     }
   }
