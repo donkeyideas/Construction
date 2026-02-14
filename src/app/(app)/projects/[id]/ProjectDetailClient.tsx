@@ -327,7 +327,13 @@ function EditProjectModal({
     completion_pct: project.completion_pct,
     project_type: project.project_type ?? "",
     client_name: project.client_name ?? "",
+    description: project.description ?? "",
+    address_line1: project.address_line1 ?? "",
+    city: project.city ?? "",
+    state: project.state ?? "",
+    zip: project.zip ?? "",
     contract_amount: project.contract_amount ?? "",
+    estimated_cost: project.estimated_cost ?? "",
     actual_cost: project.actual_cost ?? "",
     start_date: toInputDate(project.start_date),
     estimated_end_date: toInputDate(project.estimated_end_date),
@@ -347,7 +353,13 @@ function EditProjectModal({
           completion_pct: Number(form.completion_pct),
           project_type: form.project_type || null,
           client_name: form.client_name || null,
+          description: form.description || null,
+          address_line1: form.address_line1 || null,
+          city: form.city || null,
+          state: form.state || null,
+          zip: form.zip || null,
           contract_amount: form.contract_amount !== "" ? Number(form.contract_amount) : null,
+          estimated_cost: form.estimated_cost !== "" ? Number(form.estimated_cost) : null,
           actual_cost: form.actual_cost !== "" ? Number(form.actual_cost) : null,
           start_date: form.start_date || null,
           estimated_end_date: form.estimated_end_date || null,
@@ -426,6 +438,48 @@ function EditProjectModal({
                 onChange={(e) => setForm({ ...form, client_name: e.target.value })}
               />
             </div>
+            <div className="form-group full-width">
+              <label className="form-label">Description</label>
+              <input
+                className="form-input"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Project description"
+              />
+            </div>
+            <div className="form-group full-width">
+              <label className="form-label">Address</label>
+              <input
+                className="form-input"
+                value={form.address_line1}
+                onChange={(e) => setForm({ ...form, address_line1: e.target.value })}
+                placeholder="Street address"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">City</label>
+              <input
+                className="form-input"
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">State</label>
+              <input
+                className="form-input"
+                value={form.state}
+                onChange={(e) => setForm({ ...form, state: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">ZIP</label>
+              <input
+                className="form-input"
+                value={form.zip}
+                onChange={(e) => setForm({ ...form, zip: e.target.value })}
+              />
+            </div>
             <div className="form-group">
               <label className="form-label">Contract Amount</label>
               <input
@@ -433,6 +487,16 @@ function EditProjectModal({
                 type="number"
                 value={form.contract_amount}
                 onChange={(e) => setForm({ ...form, contract_amount: e.target.value })}
+                placeholder="0"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Estimated Cost</label>
+              <input
+                className="form-input"
+                type="number"
+                value={form.estimated_cost}
+                onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })}
                 placeholder="0"
               />
             </div>
