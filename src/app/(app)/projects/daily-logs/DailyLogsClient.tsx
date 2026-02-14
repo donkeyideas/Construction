@@ -23,6 +23,8 @@ import {
   Edit3,
   Trash2,
   Upload,
+  CloudDownload,
+  Loader2,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -63,6 +65,10 @@ interface Project {
   id: string;
   name: string;
   code: string | null;
+  city: string | null;
+  state: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface KpiData {
@@ -180,6 +186,46 @@ export default function DailyLogsClient({
 
   const [showImport, setShowImport] = useState(false);
   const [importProjectId, setImportProjectId] = useState("");
+  const [fetchingWeather, setFetchingWeather] = useState(false);
+
+  async function handleAutoFillWeather() {
+    if (!formData.project_id) return;
+    const project = projects.find((p) => p.id === formData.project_id);
+    if (!project) return;
+
+    setFetchingWeather(true);
+    try {
+      const params = new URLSearchParams();
+      if (project.latitude && project.longitude) {
+        params.set("lat", String(project.latitude));
+        params.set("lon", String(project.longitude));
+      } else if (project.city) {
+        params.set("city", project.city);
+        if (project.state) params.set("state", project.state);
+      } else {
+        setCreateError("Project has no location data. Set a city/state or coordinates on the project.");
+        setFetchingWeather(false);
+        return;
+      }
+
+      const res = await fetch(`/api/weather?${params.toString()}`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to fetch weather");
+      }
+      const weather = await res.json();
+      setFormData((prev) => ({
+        ...prev,
+        weather_conditions: weather.weather_conditions || prev.weather_conditions,
+        temperature: String(weather.weather_temp_high ?? prev.temperature),
+      }));
+      setCreateError("");
+    } catch (err: unknown) {
+      setCreateError(err instanceof Error ? err.message : "Failed to auto-fill weather");
+    } finally {
+      setFetchingWeather(false);
+    }
+  }
 
   // Detail/Edit/Delete modal state
   const [selectedLog, setSelectedLog] = useState<DailyLog | null>(null);
@@ -1236,23 +1282,37 @@ export default function DailyLogsClient({
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">Weather</label>
-                  <select
-                    className="ticket-form-select"
-                    value={formData.weather_conditions}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        weather_conditions: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Select weather...</option>
-                    {WEATHER_OPTIONS.map((w) => (
-                      <option key={w.value} value={w.value}>
-                        {w.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <select
+                      className="ticket-form-select"
+                      style={{ flex: 1 }}
+                      value={formData.weather_conditions}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          weather_conditions: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Select weather...</option>
+                      {WEATHER_OPTIONS.map((w) => (
+                        <option key={w.value} value={w.value}>
+                          {w.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={handleAutoFillWeather}
+                      disabled={!formData.project_id || fetchingWeather}
+                      title="Auto-fill weather from project location"
+                      style={{ whiteSpace: "nowrap", padding: "6px 10px" }}
+                    >
+                      {fetchingWeather ? <Loader2 size={14} className="spin" /> : <CloudDownload size={14} />}
+                      {fetchingWeather ? " Fetching..." : " Auto-Fill"}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="ticket-form-group">

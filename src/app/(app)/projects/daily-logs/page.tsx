@@ -50,7 +50,7 @@ export default async function DailyLogsPage({ searchParams }: PageProps) {
       .eq("company_id", userCompany.companyId),
     supabase
       .from("projects")
-      .select("id, name, code")
+      .select("id, name, code, city, state, latitude, longitude")
       .eq("company_id", userCompany.companyId)
       .order("name"),
   ]);

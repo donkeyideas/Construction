@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { appNavigation, appBottomNav, type NavItem } from "@/types/navigation";
 import { createClient } from "@/lib/supabase/client";
+import CompanySwitcher from "@/components/CompanySwitcher";
 
 const iconMap: Record<string, React.ElementType> = {
   "layout-dashboard": LayoutDashboard,
@@ -210,6 +211,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
           <div className="accent-line" />
         </div>
+        <CompanySwitcher />
         <nav className="sidebar-nav">
           {filteredNav.map((item) => (
             <NavItemComponent key={item.label} item={item} />
