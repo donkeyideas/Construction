@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Home, Clock, ClipboardList, Camera, User } from "lucide-react";
+import OfflineIndicator from "@/components/OfflineIndicator";
 import "@/styles/mobile.css";
 
 const tabs = [
@@ -22,6 +23,7 @@ export default function MobileLayout({
 
   return (
     <div className="mobile-shell">
+      <OfflineIndicator />
       <main className="mobile-content">{children}</main>
       <nav className="mobile-tabs">
         {tabs.map((tab) => {

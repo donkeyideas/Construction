@@ -116,6 +116,7 @@ export const appNavigation: NavItem[] = [
     children: [
       { label: "Pipeline", href: "/crm" },
       { label: "Bid Management", href: "/crm/bids" },
+      { label: "Estimating", href: "/estimating" },
     ],
   },
   {
