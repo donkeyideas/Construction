@@ -4,6 +4,7 @@ import {
   getProjectById,
   getProjectStats,
   getCurrentUserCompany,
+  getCompanyMembers,
 } from "@/lib/queries/projects";
 import ProjectDetailClient from "./ProjectDetailClient";
 
@@ -47,7 +48,10 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
-  const stats = await getProjectStats(supabase, id);
+  const [stats, companyMembers] = await Promise.all([
+    getProjectStats(supabase, id),
+    getCompanyMembers(supabase, userCtx.companyId),
+  ]);
 
   // Build userMap for resolving UUIDs to names
   const userIds = new Set<string>();
@@ -76,6 +80,16 @@ export default async function ProjectDetailPage({
     }
   }
 
+  // Simplify member list for the client component
+  const memberOptions = companyMembers.map((m) => {
+    const u = m.user as unknown as { id: string; full_name: string; email: string } | null;
+    return {
+      id: u?.id ?? "",
+      name: u?.full_name || u?.email || "Unknown",
+      role: m.role,
+    };
+  }).filter((m) => m.id);
+
   return (
     <ProjectDetailClient
       project={result.project}
@@ -86,6 +100,7 @@ export default async function ProjectDetailPage({
       changeOrders={result.changeOrders}
       stats={stats}
       userMap={userMap}
+      memberOptions={memberOptions}
     />
   );
 }

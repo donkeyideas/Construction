@@ -109,6 +109,12 @@ type TabKey = (typeof TABS)[number]["key"];
 // Props
 // ---------------------------------------------------------------------------
 
+interface MemberOption {
+  id: string;
+  name: string;
+  role: string;
+}
+
 interface ProjectDetailClientProps {
   project: ProjectRow;
   phases: ProjectPhase[];
@@ -118,6 +124,7 @@ interface ProjectDetailClientProps {
   changeOrders: ChangeOrder[];
   stats: ProjectStats;
   userMap: Record<string, string>;
+  memberOptions: MemberOption[];
 }
 
 // ---------------------------------------------------------------------------
@@ -133,6 +140,7 @@ export default function ProjectDetailClient({
   changeOrders,
   stats,
   userMap,
+  memberOptions,
 }: ProjectDetailClientProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
 
@@ -278,6 +286,7 @@ export default function ProjectDetailClient({
           saving={saving}
           setSaving={setSaving}
           onClose={() => setEditProjectOpen(false)}
+          memberOptions={memberOptions}
         />
       )}
 
@@ -380,11 +389,13 @@ function EditProjectModal({
   saving,
   setSaving,
   onClose,
+  memberOptions,
 }: {
   project: ProjectRow;
   saving: boolean;
   setSaving: (v: boolean) => void;
   onClose: () => void;
+  memberOptions: MemberOption[];
 }) {
   const [form, setForm] = useState({
     name: project.name,
@@ -402,6 +413,8 @@ function EditProjectModal({
     actual_cost: project.actual_cost ?? "",
     start_date: toInputDate(project.start_date),
     estimated_end_date: toInputDate(project.estimated_end_date),
+    project_manager_id: project.project_manager_id ?? "",
+    superintendent_id: project.superintendent_id ?? "",
   });
   const [error, setError] = useState("");
 
@@ -428,6 +441,8 @@ function EditProjectModal({
           actual_cost: form.actual_cost !== "" ? Number(form.actual_cost) : null,
           start_date: form.start_date || null,
           estimated_end_date: form.estimated_end_date || null,
+          project_manager_id: form.project_manager_id || null,
+          superintendent_id: form.superintendent_id || null,
         }),
       });
       if (res.ok) {
@@ -502,6 +517,32 @@ function EditProjectModal({
                 value={form.client_name}
                 onChange={(e) => setForm({ ...form, client_name: e.target.value })}
               />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Project Manager</label>
+              <select
+                className="form-select"
+                value={form.project_manager_id}
+                onChange={(e) => setForm({ ...form, project_manager_id: e.target.value })}
+              >
+                <option value="">-- None --</option>
+                {memberOptions.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Superintendent</label>
+              <select
+                className="form-select"
+                value={form.superintendent_id}
+                onChange={(e) => setForm({ ...form, superintendent_id: e.target.value })}
+              >
+                <option value="">-- None --</option>
+                {memberOptions.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
             </div>
             <div className="form-group full-width">
               <label className="form-label">Description</label>
