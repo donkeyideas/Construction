@@ -54,32 +54,36 @@ export interface RecentActivityItem {
  */
 export async function getDashboardKPIs(
   supabase: SupabaseClient,
-  companyId: string
+  companyId: string,
+  projectId?: string
 ): Promise<DashboardKPIs> {
   // Run all queries concurrently
+  let activeProjectsQuery = supabase
+    .from("projects")
+    .select("contract_amount, completion_pct, status")
+    .eq("company_id", companyId)
+    .in("status", ["active", "pre_construction"]);
+  if (projectId) activeProjectsQuery = activeProjectsQuery.eq("id", projectId);
+
+  let allActiveQuery = supabase
+    .from("projects")
+    .select("completion_pct")
+    .eq("company_id", companyId)
+    .eq("status", "active");
+  if (projectId) allActiveQuery = allActiveQuery.eq("id", projectId);
+
+  let changeOrdersQuery = supabase
+    .from("change_orders")
+    .select("id", { count: "exact", head: true })
+    .eq("company_id", companyId)
+    .not("status", "in", '("approved","rejected")');
+  if (projectId) changeOrdersQuery = changeOrdersQuery.eq("project_id", projectId);
+
   const [activeProjectsRes, allActiveRes, changeOrdersRes, bankRes] = await Promise.all([
-    // Active + pre_construction for contract value
-    supabase
-      .from("projects")
-      .select("contract_amount, completion_pct, status")
-      .eq("company_id", companyId)
-      .in("status", ["active", "pre_construction"]),
-
-    // Only 'active' projects for schedule performance (exclude pre_construction which hasn't started)
-    supabase
-      .from("projects")
-      .select("completion_pct")
-      .eq("company_id", companyId)
-      .eq("status", "active"),
-
-    // Open change orders: status not in ('approved', 'rejected')
-    supabase
-      .from("change_orders")
-      .select("id", { count: "exact", head: true })
-      .eq("company_id", companyId)
-      .not("status", "in", '("approved","rejected")'),
-
-    // Cash position: sum of all bank account balances
+    activeProjectsQuery,
+    allActiveQuery,
+    changeOrdersQuery,
+    // Cash position: sum of all bank account balances (always company-wide)
     supabase
       .from("bank_accounts")
       .select("current_balance")
@@ -121,12 +125,16 @@ export async function getDashboardKPIs(
 
 export async function getProjectStatusBreakdown(
   supabase: SupabaseClient,
-  companyId: string
+  companyId: string,
+  projectId?: string
 ): Promise<ProjectStatusBreakdown> {
-  const { data } = await supabase
+  let query = supabase
     .from("projects")
     .select("status")
     .eq("company_id", companyId);
+  if (projectId) query = query.eq("id", projectId);
+
+  const { data } = await query;
 
   const projects = data ?? [];
 
@@ -155,20 +163,24 @@ export async function getProjectStatusBreakdown(
 
 export async function getMonthlyBilling(
   supabase: SupabaseClient,
-  companyId: string
+  companyId: string,
+  projectId?: string
 ): Promise<MonthlyBillingItem[]> {
   // Build date 12 months ago (first of that month)
   const now = new Date();
   const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
   const fromDate = twelveMonthsAgo.toISOString().slice(0, 10);
 
-  const { data } = await supabase
+  let query = supabase
     .from("invoices")
     .select("invoice_date, total_amount")
     .eq("company_id", companyId)
     .eq("invoice_type", "receivable")
     .gte("invoice_date", fromDate)
     .order("invoice_date", { ascending: true });
+  if (projectId) query = query.eq("project_id", projectId);
+
+  const { data } = await query;
 
   const invoices = data ?? [];
 
@@ -213,35 +225,37 @@ export async function getMonthlyBilling(
 
 export async function getPendingApprovals(
   supabase: SupabaseClient,
-  companyId: string
+  companyId: string,
+  projectId?: string
 ): Promise<{ items: PendingApprovalItem[]; totalCount: number }> {
-  // Fetch pending change orders, invoices, and submittals in parallel
-  // Use { count: "exact" } to get real totals
-  const [coRes, invRes, subRes] = await Promise.all([
-    supabase
-      .from("change_orders")
-      .select("id, co_number, title, amount, created_at, requested_by", { count: "exact" })
-      .eq("company_id", companyId)
-      .in("status", ["draft", "submitted"])
-      .order("created_at", { ascending: false })
-      .limit(10),
+  let coQuery = supabase
+    .from("change_orders")
+    .select("id, co_number, title, amount, created_at, requested_by", { count: "exact" })
+    .eq("company_id", companyId)
+    .in("status", ["draft", "submitted"])
+    .order("created_at", { ascending: false })
+    .limit(10);
+  if (projectId) coQuery = coQuery.eq("project_id", projectId);
 
-    supabase
-      .from("invoices")
-      .select("id, invoice_number, vendor_name, client_name, total_amount, created_at, invoice_type", { count: "exact" })
-      .eq("company_id", companyId)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .limit(10),
+  let invQuery = supabase
+    .from("invoices")
+    .select("id, invoice_number, vendor_name, client_name, total_amount, created_at, invoice_type", { count: "exact" })
+    .eq("company_id", companyId)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(10);
+  if (projectId) invQuery = invQuery.eq("project_id", projectId);
 
-    supabase
-      .from("submittals")
-      .select("id, submittal_number, title, created_at, submitted_by", { count: "exact" })
-      .eq("company_id", companyId)
-      .in("status", ["pending", "under_review"])
-      .order("created_at", { ascending: false })
-      .limit(10),
-  ]);
+  let subQuery = supabase
+    .from("submittals")
+    .select("id, submittal_number, title, created_at, submitted_by", { count: "exact" })
+    .eq("company_id", companyId)
+    .in("status", ["pending", "under_review"])
+    .order("created_at", { ascending: false })
+    .limit(10);
+  if (projectId) subQuery = subQuery.eq("project_id", projectId);
+
+  const [coRes, invRes, subRes] = await Promise.all([coQuery, invQuery, subQuery]);
 
   const totalCount = (coRes.count ?? 0) + (invRes.count ?? 0) + (subRes.count ?? 0);
 
@@ -306,59 +320,84 @@ export async function getPendingApprovals(
 
 export async function getRecentActivity(
   supabase: SupabaseClient,
-  companyId: string
+  companyId: string,
+  projectId?: string
 ): Promise<RecentActivityItem[]> {
   // Pull recent records from multiple tables in parallel and merge by timestamp
+  let projectsQuery = supabase
+    .from("projects")
+    .select("id, name, status, created_at, updated_at, project_manager:user_profiles!projects_pm_profile_fkey(full_name)")
+    .eq("company_id", companyId)
+    .order("updated_at", { ascending: false })
+    .limit(5);
+  if (projectId) projectsQuery = projectsQuery.eq("id", projectId);
+
+  let invoicesQuery = supabase
+    .from("invoices")
+    .select("id, invoice_number, invoice_type, status, vendor_name, client_name, total_amount, created_at, updated_at")
+    .eq("company_id", companyId)
+    .order("updated_at", { ascending: false })
+    .limit(5);
+  if (projectId) invoicesQuery = invoicesQuery.eq("project_id", projectId);
+
+  let changeOrdersQuery = supabase
+    .from("change_orders")
+    .select("id, co_number, title, status, amount, created_at, updated_at")
+    .eq("company_id", companyId)
+    .order("updated_at", { ascending: false })
+    .limit(5);
+  if (projectId) changeOrdersQuery = changeOrdersQuery.eq("project_id", projectId);
+
+  let rfisQuery = supabase
+    .from("rfis")
+    .select("id, rfi_number, subject, status, created_at, updated_at")
+    .eq("company_id", companyId)
+    .order("updated_at", { ascending: false })
+    .limit(5);
+  if (projectId) rfisQuery = rfisQuery.eq("project_id", projectId);
+
+  let submittalsQuery = supabase
+    .from("submittals")
+    .select("id, submittal_number, title, status, created_at, updated_at")
+    .eq("company_id", companyId)
+    .order("updated_at", { ascending: false })
+    .limit(5);
+  if (projectId) submittalsQuery = submittalsQuery.eq("project_id", projectId);
+
+  // Payments and documents don't have direct project_id, so we skip filtering them
+  const paymentsQuery = supabase
+    .from("payments")
+    .select("id, amount, payment_date, created_at, invoices(invoice_number)")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  let dailyLogsQuery = supabase
+    .from("daily_logs")
+    .select("id, log_date, weather, created_at, projects(name), author:user_profiles!daily_logs_creator_profile_fkey(full_name)")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  if (projectId) dailyLogsQuery = dailyLogsQuery.eq("project_id", projectId);
+
+  let documentsQuery = supabase
+    .from("documents")
+    .select("id, name, created_at, uploader:user_profiles!documents_uploader_profile_fkey(full_name)")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  if (projectId) documentsQuery = documentsQuery.eq("project_id", projectId);
+
   const [projectsRes, invoicesRes, changeOrdersRes, rfisRes, submittalsRes, paymentsRes, dailyLogsRes, documentsRes] =
     await Promise.all([
-      supabase
-        .from("projects")
-        .select("id, name, status, created_at, updated_at, project_manager:user_profiles!projects_pm_profile_fkey(full_name)")
-        .eq("company_id", companyId)
-        .order("updated_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("invoices")
-        .select("id, invoice_number, invoice_type, status, vendor_name, client_name, total_amount, created_at, updated_at")
-        .eq("company_id", companyId)
-        .order("updated_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("change_orders")
-        .select("id, co_number, title, status, amount, created_at, updated_at")
-        .eq("company_id", companyId)
-        .order("updated_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("rfis")
-        .select("id, rfi_number, subject, status, created_at, updated_at")
-        .eq("company_id", companyId)
-        .order("updated_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("submittals")
-        .select("id, submittal_number, title, status, created_at, updated_at")
-        .eq("company_id", companyId)
-        .order("updated_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("payments")
-        .select("id, amount, payment_date, created_at, invoices(invoice_number)")
-        .eq("company_id", companyId)
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("daily_logs")
-        .select("id, log_date, weather, created_at, projects(name), author:user_profiles!daily_logs_creator_profile_fkey(full_name)")
-        .eq("company_id", companyId)
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("documents")
-        .select("id, name, created_at, uploader:user_profiles!documents_uploader_profile_fkey(full_name)")
-        .eq("company_id", companyId)
-        .order("created_at", { ascending: false })
-        .limit(5),
+      projectsQuery,
+      invoicesQuery,
+      changeOrdersQuery,
+      rfisQuery,
+      submittalsQuery,
+      paymentsQuery,
+      dailyLogsQuery,
+      documentsQuery,
     ]);
 
   const items: RecentActivityItem[] = [];

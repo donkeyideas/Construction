@@ -21,6 +21,7 @@ import {
   formatPercent,
   formatRelativeTime,
 } from "@/lib/utils/format";
+import DashboardFilter from "@/components/DashboardFilter";
 
 export const metadata = {
   title: "Dashboard - ConstructionERP",
@@ -47,7 +48,12 @@ const ROLE_GREETING: Record<string, string> = {
   viewer: "Here is a snapshot of current activity.",
 };
 
-export default async function DashboardPage() {
+interface PageProps {
+  searchParams: Promise<{ project?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: PageProps) {
+  const params = await searchParams;
   const supabase = await createClient();
   const userCompany = await getCurrentUserCompany(supabase);
 
@@ -59,28 +65,47 @@ export default async function DashboardPage() {
   const sections = ROLE_SECTIONS[userRole] || ROLE_SECTIONS.viewer;
   const greeting = ROLE_GREETING[userRole] || "Welcome back.";
 
+  const selectedProjectId = params.project || undefined;
+
+  // Fetch project list for filter dropdown
+  const { data: projectList } = await supabase
+    .from("projects")
+    .select("id, name")
+    .eq("company_id", companyId)
+    .order("name");
+
+  const projects = (projectList ?? []).map((p) => ({
+    id: p.id as string,
+    name: p.name as string,
+  }));
+
+  // Build AP/AR queries with optional project filter
+  let apQuery = supabase
+    .from("invoices")
+    .select("balance_due")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "payable")
+    .not("status", "in", '("voided","paid")');
+  if (selectedProjectId) apQuery = apQuery.eq("project_id", selectedProjectId);
+
+  let arQuery = supabase
+    .from("invoices")
+    .select("balance_due")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "receivable")
+    .not("status", "in", '("voided","paid")');
+  if (selectedProjectId) arQuery = arQuery.eq("project_id", selectedProjectId);
+
   // Fetch all dashboard data in parallel
   const [kpis, projectStatus, monthlyBilling, pendingApprovalsResult, recentActivity, outstandingAPRes, outstandingARRes] =
     await Promise.all([
-      getDashboardKPIs(supabase, companyId),
-      getProjectStatusBreakdown(supabase, companyId),
-      getMonthlyBilling(supabase, companyId),
-      getPendingApprovals(supabase, companyId),
-      getRecentActivity(supabase, companyId),
-      // Outstanding AP (what we owe)
-      supabase
-        .from("invoices")
-        .select("balance_due")
-        .eq("company_id", companyId)
-        .eq("invoice_type", "payable")
-        .not("status", "in", '("voided","paid")'),
-      // Outstanding AR (what we're owed)
-      supabase
-        .from("invoices")
-        .select("balance_due")
-        .eq("company_id", companyId)
-        .eq("invoice_type", "receivable")
-        .not("status", "in", '("voided","paid")'),
+      getDashboardKPIs(supabase, companyId, selectedProjectId),
+      getProjectStatusBreakdown(supabase, companyId, selectedProjectId),
+      getMonthlyBilling(supabase, companyId, selectedProjectId),
+      getPendingApprovals(supabase, companyId, selectedProjectId),
+      getRecentActivity(supabase, companyId, selectedProjectId),
+      apQuery,
+      arQuery,
     ]);
 
   const outstandingAP = (outstandingAPRes.data ?? []).reduce(
@@ -97,7 +122,7 @@ export default async function DashboardPage() {
     pendingApprovals.length === 0 &&
     recentActivity.length === 0;
 
-  if (isNewCompany) {
+  if (isNewCompany && !selectedProjectId) {
     return <WelcomeState companyName={companyName} />;
   }
 
@@ -149,9 +174,14 @@ export default async function DashboardPage() {
   const maxBilling = Math.max(...monthlyBilling.map((m) => m.amount), 1);
   const bars = monthlyBilling.map((m) => ({
     label: m.month,
-    height: Math.max(Math.round((m.amount / maxBilling) * 100), 4), // min 4% so bar is visible
+    height: Math.max(Math.round((m.amount / maxBilling) * 100), m.amount > 0 ? 8 : 4),
     amount: m.amount,
   }));
+
+  // Find the selected project name for the header
+  const selectedProjectName = selectedProjectId
+    ? projects.find((p) => p.id === selectedProjectId)?.name
+    : undefined;
 
   return (
     <div>
@@ -160,26 +190,36 @@ export default async function DashboardPage() {
         <div>
           <h2>Dashboard</h2>
           <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: "2px" }}>
-            {greeting}
+            {selectedProjectName
+              ? `Showing data for ${selectedProjectName}`
+              : greeting}
           </p>
         </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            fontSize: "0.875rem",
-            color: "var(--muted)",
-          }}
-        >
-          <span>
-            {new Date().toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </span>
-          <span className="live-dot" />
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {projects.length > 1 && (
+            <DashboardFilter
+              projects={projects}
+              selectedProjectId={selectedProjectId}
+            />
+          )}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontSize: "0.875rem",
+              color: "var(--muted)",
+            }}
+          >
+            <span>
+              {new Date().toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+            <span className="live-dot" />
+          </div>
         </div>
       </div>
 
@@ -187,7 +227,7 @@ export default async function DashboardPage() {
       {sections.kpis && (
         <div className="kpi-grid">
           <KpiCard
-            label="Active Projects"
+            label={selectedProjectId ? "Project Value" : "Active Projects"}
             value={formatCompactCurrency(kpis.activeProjectsValue)}
             icon={<Briefcase size={22} />}
           />
@@ -218,13 +258,23 @@ export default async function DashboardPage() {
           {/* Monthly Billing Bar Chart - only for financial roles */}
           {sections.financials && (
             <div className="card">
-              <div className="card-title">Monthly Billing</div>
+              <div className="card-title">
+                Monthly Billing
+                {maxBilling > 1 && (
+                  <span className="chart-max-label">
+                    Peak: {formatCompactCurrency(maxBilling)}
+                  </span>
+                )}
+              </div>
               {bars.every((b) => b.amount === 0) ? (
                 <EmptyState message="No billing data yet" />
               ) : (
                 <div className="bar-chart">
                   {bars.map((m) => (
                     <div key={m.label} className="bar-col">
+                      <div className="bar-amount">
+                        {m.amount > 0 ? formatCompactCurrency(m.amount) : ""}
+                      </div>
                       <div className="bar" style={{ height: `${m.height}%` }} />
                       <div className="bar-label">{m.label}</div>
                     </div>
