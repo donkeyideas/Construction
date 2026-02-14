@@ -361,6 +361,42 @@ export async function POST(request: NextRequest) {
             successCount++;
           }
         }
+
+        // Recalculate property stats for all affected properties
+        if (leaseProps && leaseProps.length > 0) {
+          for (const prop of leaseProps) {
+            const [unitsRes, leasesRes] = await Promise.all([
+              supabase
+                .from("units")
+                .select("id, status")
+                .eq("company_id", companyId)
+                .eq("property_id", prop.id),
+              supabase
+                .from("leases")
+                .select("monthly_rent")
+                .eq("company_id", companyId)
+                .eq("property_id", prop.id)
+                .eq("status", "active"),
+            ]);
+            const units = unitsRes.data ?? [];
+            const activeLeases = leasesRes.data ?? [];
+            const occupiedCount = units.filter((u) => u.status === "occupied").length;
+            const monthlyRevenue = activeLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
+            const totalUnits = units.length;
+            const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
+
+            await supabase
+              .from("properties")
+              .update({
+                total_units: totalUnits,
+                occupied_units: occupiedCount,
+                occupancy_rate: occupancyRate,
+                monthly_revenue: monthlyRevenue,
+                noi: monthlyRevenue, // simplified: noi = revenue - expenses (expenses stay 0)
+              })
+              .eq("id", prop.id);
+          }
+        }
         break;
       }
 
