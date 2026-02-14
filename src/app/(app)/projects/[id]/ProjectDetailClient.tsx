@@ -10,6 +10,7 @@ import {
   Thermometer,
   Droplets,
   Milestone,
+  Plus,
   X,
 } from "lucide-react";
 import type {
@@ -218,7 +219,12 @@ export default function ProjectDetailClient({
           <OverviewTab project={project} stats={stats} tasks={tasks} />
         )}
         {activeTab === "tasks" && (
-          <TasksTab phases={phases} tasks={tasks} onSelect={setSelectedTask} />
+          <TasksTabWithCreate
+            projectId={project.id}
+            phases={phases}
+            tasks={tasks}
+            onSelect={setSelectedTask}
+          />
         )}
         {activeTab === "daily-logs" && (
           <DailyLogsTab logs={dailyLogs} onSelect={setSelectedLog} />
@@ -1674,7 +1680,324 @@ function OverviewTab({
 }
 
 // ---------------------------------------------------------------------------
-// Tasks Tab
+// Tasks Tab with Create Forms
+// ---------------------------------------------------------------------------
+
+const PHASE_COLORS = [
+  "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16",
+];
+
+function TasksTabWithCreate({
+  projectId,
+  phases,
+  tasks,
+  onSelect,
+}: {
+  projectId: string;
+  phases: ProjectPhase[];
+  tasks: ProjectTask[];
+  onSelect: (task: ProjectTask) => void;
+}) {
+  const router = useRouter();
+  const [showPhaseForm, setShowPhaseForm] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  // Phase form
+  const [phaseName, setPhaseName] = useState("");
+  const [phaseColor, setPhaseColor] = useState(PHASE_COLORS[0]);
+  const [phaseStart, setPhaseStart] = useState("");
+  const [phaseEnd, setPhaseEnd] = useState("");
+
+  // Task form
+  const [taskName, setTaskName] = useState("");
+  const [taskPhaseId, setTaskPhaseId] = useState("");
+  const [taskPriority, setTaskPriority] = useState("medium");
+  const [taskStart, setTaskStart] = useState("");
+  const [taskEnd, setTaskEnd] = useState("");
+  const [taskMilestone, setTaskMilestone] = useState(false);
+
+  async function handleCreatePhase(e: React.FormEvent) {
+    e.preventDefault();
+    if (!phaseName.trim()) return;
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/projects/${projectId}/phases`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: phaseName.trim(),
+          color: phaseColor,
+          start_date: phaseStart || null,
+          end_date: phaseEnd || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to create phase");
+        return;
+      }
+      setPhaseName("");
+      setPhaseStart("");
+      setPhaseEnd("");
+      setShowPhaseForm(false);
+      router.refresh();
+    } catch {
+      setError("Network error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCreateTask(e: React.FormEvent) {
+    e.preventDefault();
+    if (!taskName.trim()) return;
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/projects/${projectId}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: taskName.trim(),
+          phase_id: taskPhaseId || null,
+          priority: taskPriority,
+          start_date: taskStart || null,
+          end_date: taskEnd || null,
+          is_milestone: taskMilestone,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to create task");
+        return;
+      }
+      setTaskName("");
+      setTaskPhaseId("");
+      setTaskPriority("medium");
+      setTaskStart("");
+      setTaskEnd("");
+      setTaskMilestone(false);
+      setShowTaskForm(false);
+      router.refresh();
+    } catch {
+      setError("Network error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      {/* Action Buttons */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <button
+          className="btn-secondary"
+          style={{ fontSize: "0.82rem", padding: "6px 14px" }}
+          onClick={() => { setShowPhaseForm(!showPhaseForm); setShowTaskForm(false); setError(""); }}
+        >
+          <Plus size={14} /> Add Phase
+        </button>
+        <button
+          className="btn-secondary"
+          style={{ fontSize: "0.82rem", padding: "6px 14px" }}
+          onClick={() => { setShowTaskForm(!showTaskForm); setShowPhaseForm(false); setError(""); }}
+        >
+          <Plus size={14} /> Add Task
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ color: "var(--color-red)", fontSize: "0.82rem", marginBottom: 12 }}>
+          {error}
+        </div>
+      )}
+
+      {/* Add Phase Form */}
+      {showPhaseForm && (
+        <form
+          onSubmit={handleCreatePhase}
+          className="card"
+          style={{ marginBottom: 16, padding: 16 }}
+        >
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: 12 }}>New Phase</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end" }}>
+            <div>
+              <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
+                Phase Name *
+              </label>
+              <input
+                type="text"
+                value={phaseName}
+                onChange={(e) => setPhaseName(e.target.value)}
+                placeholder="e.g. Foundation"
+                required
+                className="form-input"
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
+                Color
+              </label>
+              <div style={{ display: "flex", gap: 4 }}>
+                {PHASE_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setPhaseColor(c)}
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 4,
+                      background: c,
+                      border: phaseColor === c ? "2px solid var(--text)" : "2px solid transparent",
+                      cursor: "pointer",
+                      padding: 0,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10, marginTop: 10, alignItems: "end" }}>
+            <div>
+              <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={phaseStart}
+                onChange={(e) => setPhaseStart(e.target.value)}
+                className="form-input"
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
+                End Date
+              </label>
+              <input
+                type="date"
+                value={phaseEnd}
+                onChange={(e) => setPhaseEnd(e.target.value)}
+                className="form-input"
+                style={{ width: "100%" }}
+              />
+            </div>
+            <button type="submit" className="btn-primary" disabled={saving} style={{ padding: "8px 20px" }}>
+              {saving ? "Saving..." : "Create Phase"}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Add Task Form */}
+      {showTaskForm && (
+        <form
+          onSubmit={handleCreateTask}
+          className="card"
+          style={{ marginBottom: 16, padding: 16 }}
+        >
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: 12 }}>New Task</div>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 10, alignItems: "end" }}>
+            <div>
+              <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
+                Task Name *
+              </label>
+              <input
+                type="text"
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
+                placeholder="e.g. Pour foundation slab"
+                required
+                className="form-input"
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
+                Phase
+              </label>
+              <select
+                value={taskPhaseId}
+                onChange={(e) => setTaskPhaseId(e.target.value)}
+                className="form-input"
+                style={{ width: "100%" }}
+              >
+                <option value="">No Phase</option>
+                {phases.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
+                Priority
+              </label>
+              <select
+                value={taskPriority}
+                onChange={(e) => setTaskPriority(e.target.value)}
+                className="form-input"
+                style={{ width: "100%" }}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto auto", gap: 10, marginTop: 10, alignItems: "end" }}>
+            <div>
+              <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={taskStart}
+                onChange={(e) => setTaskStart(e.target.value)}
+                className="form-input"
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
+                End Date
+              </label>
+              <input
+                type="date"
+                value={taskEnd}
+                onChange={(e) => setTaskEnd(e.target.value)}
+                className="form-input"
+                style={{ width: "100%" }}
+              />
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", cursor: "pointer", paddingBottom: 6 }}>
+              <input
+                type="checkbox"
+                checked={taskMilestone}
+                onChange={(e) => setTaskMilestone(e.target.checked)}
+              />
+              Milestone
+            </label>
+            <button type="submit" className="btn-primary" disabled={saving} style={{ padding: "8px 20px" }}>
+              {saving ? "Saving..." : "Create Task"}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Existing Tasks List */}
+      <TasksTab phases={phases} tasks={tasks} onSelect={onSelect} />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tasks Tab (display only)
 // ---------------------------------------------------------------------------
 
 function TasksTab({
