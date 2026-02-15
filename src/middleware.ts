@@ -62,6 +62,7 @@ export async function middleware(request: NextRequest) {
   ];
   const isPublicRoute =
     publicRoutes.some((route) => pathname === route) ||
+    pathname.startsWith("/p/") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/seed") ||
     pathname.startsWith("/api/locale") ||

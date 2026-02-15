@@ -102,14 +102,12 @@ export async function GET() {
         }),
       ]);
 
-    // Parse totals
+    // Parse totals (flatten for client)
     const totalsRow = totalsResponse.data?.rows?.[0];
-    const totals = {
-      clicks: totalsRow?.clicks ?? 0,
-      impressions: totalsRow?.impressions ?? 0,
-      ctr: totalsRow?.ctr ?? 0,
-      position: totalsRow?.position ?? 0,
-    };
+    const totalClicks = totalsRow?.clicks ?? 0;
+    const impressions = totalsRow?.impressions ?? 0;
+    const avgCtr = totalsRow?.ctr ?? 0;
+    const avgPosition = totalsRow?.position ?? 0;
 
     // Parse top queries
     const topQueries = (queriesResponse.data?.rows ?? []).map((row) => ({
@@ -140,7 +138,10 @@ export async function GET() {
 
     return NextResponse.json({
       configured: true,
-      totals,
+      totalClicks,
+      impressions,
+      avgCtr,
+      avgPosition,
       topQueries,
       topPages,
       daily,

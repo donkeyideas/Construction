@@ -212,28 +212,28 @@ export default async function HomePage() {
           <div>
             <h4>Modules</h4>
             <ul>
-              <li><a href="#modules">Project Management</a></li>
-              <li><a href="#modules">Property Management</a></li>
-              <li><a href="#modules">Financial Management</a></li>
-              <li><a href="#modules">Document Management</a></li>
+              <li><Link href="/p/project-management">Project Management</Link></li>
+              <li><Link href="/p/property-management">Property Management</Link></li>
+              <li><Link href="/p/financial-management">Financial Management</Link></li>
+              <li><Link href="/p/document-management">Document Management</Link></li>
             </ul>
           </div>
           <div>
             <h4>Company</h4>
             <ul>
-              <li><a href="#about">About</a></li>
+              <li><Link href="/p/about">About</Link></li>
               <li><a href="#pricing">Plans</a></li>
               <li><Link href="/login">Sign In</Link></li>
-              <li><a href="mailto:support@buildwrk.com">Contact</a></li>
+              <li><Link href="/p/contact">Contact</Link></li>
             </ul>
           </div>
           <div>
             <h4>Legal</h4>
             <ul>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
-              <li><a href="#">Cookie Policy</a></li>
-              <li><a href="#">GDPR</a></li>
+              <li><Link href="/p/privacy-policy">Privacy Policy</Link></li>
+              <li><Link href="/p/terms-of-service">Terms of Service</Link></li>
+              <li><Link href="/p/cookie-policy">Cookie Policy</Link></li>
+              <li><Link href="/p/gdpr">GDPR</Link></li>
             </ul>
           </div>
         </div>

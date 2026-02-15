@@ -1,0 +1,189 @@
+/* ===================================================
+   CMS Public Page Styles
+   Buildwrk - Split Editorial Design System
+   =================================================== */
+
+/* ===== Page Layout ===== */
+.cms-page {
+  min-height: 100vh;
+  padding: 48px 24px 80px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+.cms-page-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ===== Hero Section ===== */
+.cms-hero {
+  text-align: center;
+  padding: 48px 0 40px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+
+.cms-hero-headline {
+  font-family: var(--font-serif);
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 16px;
+  color: var(--text);
+}
+
+.cms-hero-subheadline {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ===== Text Section ===== */
+.cms-text {
+  padding: 32px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.cms-text p {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--text);
+  margin: 0 0 20px;
+}
+
+.cms-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== Features Section ===== */
+.cms-features {
+  padding: 32px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.cms-features-headline {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+.cms-features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.cms-feature-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  transition: border-color 0.15s;
+}
+
+.cms-feature-card:hover {
+  border-color: var(--color-blue);
+}
+
+.cms-feature-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--text);
+}
+
+.cms-feature-card-desc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ===== CTA Section ===== */
+.cms-cta {
+  text-align: center;
+  padding: 48px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.cms-cta-headline {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 24px;
+}
+
+.cms-cta-button {
+  display: inline-block;
+  padding: 12px 32px;
+  background: var(--color-blue);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.cms-cta-button:hover {
+  opacity: 0.9;
+}
+
+/* ===== Back Link ===== */
+.cms-back-link-wrap {
+  padding-top: 40px;
+  text-align: center;
+}
+
+.cms-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.cms-back-link:hover {
+  color: var(--color-blue);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .cms-page {
+    padding: 32px 16px 60px;
+  }
+
+  .cms-hero-headline {
+    font-size: 2rem;
+  }
+
+  .cms-hero-subheadline {
+    font-size: 1rem;
+  }
+
+  .cms-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cms-features-headline,
+  .cms-cta-headline {
+    font-size: 1.4rem;
+  }
+
+  .cms-text p {
+    font-size: 0.95rem;
+  }
+}

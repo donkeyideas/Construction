@@ -120,22 +120,25 @@ export async function GET() {
 
     // Parse overview metrics
     const overviewRow = overviewReport[0]?.rows?.[0];
-    const overview = {
-      pageViews: Number(overviewRow?.metricValues?.[0]?.value ?? 0),
-      sessions: Number(overviewRow?.metricValues?.[1]?.value ?? 0),
-      totalUsers: Number(overviewRow?.metricValues?.[2]?.value ?? 0),
-      avgSessionDuration: Number(overviewRow?.metricValues?.[3]?.value ?? 0),
-    };
+    const pageViews = Number(overviewRow?.metricValues?.[0]?.value ?? 0);
+    const sessions = Number(overviewRow?.metricValues?.[1]?.value ?? 0);
+    const users = Number(overviewRow?.metricValues?.[2]?.value ?? 0);
+    const avgDurationSec = Number(overviewRow?.metricValues?.[3]?.value ?? 0);
+
+    // Format duration as "Xm Ys"
+    const mins = Math.floor(avgDurationSec / 60);
+    const secs = Math.round(avgDurationSec % 60);
+    const avgSessionDuration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 
     // Parse top pages
     const topPages = (topPagesReport[0]?.rows ?? []).map((row) => ({
       path: row.dimensionValues?.[0]?.value ?? "",
-      pageViews: Number(row.metricValues?.[0]?.value ?? 0),
+      views: Number(row.metricValues?.[0]?.value ?? 0),
     }));
 
     // Parse traffic sources
-    const trafficSources = (trafficSourcesReport[0]?.rows ?? []).map((row) => ({
-      channel: row.dimensionValues?.[0]?.value ?? "",
+    const sources = (trafficSourcesReport[0]?.rows ?? []).map((row) => ({
+      source: row.dimensionValues?.[0]?.value ?? "",
       sessions: Number(row.metricValues?.[0]?.value ?? 0),
     }));
 
@@ -148,9 +151,12 @@ export async function GET() {
 
     return NextResponse.json({
       configured: true,
-      overview,
+      pageViews,
+      sessions,
+      users,
+      avgSessionDuration,
       topPages,
-      trafficSources,
+      sources,
       daily,
     });
   } catch (err) {
