@@ -75,6 +75,12 @@ function formatDate(dateStr: string): string {
   });
 }
 
+function formatName(name: string): string {
+  return name
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function replaceVariables(html: string, variables: string[]): string {
   let result = html;
   for (const v of variables) {
@@ -368,10 +374,11 @@ export default function EmailTemplatesClient({ templates }: Props) {
                 return (
                   <tr
                     key={t.id}
-                    style={{ opacity: togglingId === t.id ? 0.5 : 1 }}
+                    style={{ opacity: togglingId === t.id ? 0.5 : 1, cursor: "pointer" }}
+                    onClick={() => openEdit(t)}
                   >
                     <td>
-                      <div style={{ fontWeight: 500 }}>{t.name}</div>
+                      <div style={{ fontWeight: 500 }}>{formatName(t.name)}</div>
                     </td>
                     <td>
                       <div style={{
@@ -401,7 +408,7 @@ export default function EmailTemplatesClient({ templates }: Props) {
                         {t.category}
                       </span>
                     </td>
-                    <td>
+                    <td onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => toggleActive(t.id, t.is_active)}
                         disabled={togglingId === t.id}
@@ -425,7 +432,7 @@ export default function EmailTemplatesClient({ templates }: Props) {
                     <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
                       {formatDate(t.updated_at || t.created_at)}
                     </td>
-                    <td>
+                    <td onClick={(e) => e.stopPropagation()}>
                       <div style={{ display: "flex", gap: "6px" }}>
                         <button
                           className="sa-action-btn"
@@ -499,7 +506,7 @@ export default function EmailTemplatesClient({ templates }: Props) {
           >
             {/* Modal Header */}
             <div className="ticket-modal-header">
-              <h3>{isCreating ? "New Email Template" : "Edit Email Template"}</h3>
+              <h3>{isCreating ? "New Email Template" : `Edit: ${formatName(editingTemplate?.name || "")}`}</h3>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <button
                   className="ticket-modal-close"
