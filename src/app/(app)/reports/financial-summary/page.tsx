@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getFinancialSummaryReport } from "@/lib/queries/reports";
 import { formatCurrency } from "@/lib/utils/format";
-import ReportExportButton from "@/components/ReportExportButton";
+import ExportButton from "@/components/reports/ExportButton";
 
 export const metadata = {
   title: "Financial Summary Report - ConstructionERP",
@@ -98,10 +98,11 @@ export default async function FinancialSummaryPage({
             </p>
           </div>
           <div className="report-page-actions">
-            <ReportExportButton
+            <ExportButton
+              reportType="financial-summary"
+              reportTitle="Financial Summary"
               data={exportData}
               columns={exportColumns}
-              filename={`financial-summary-${new Date().toISOString().slice(0, 10)}`}
             />
           </div>
         </div>

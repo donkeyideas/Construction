@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProjectPerformanceReport } from "@/lib/queries/reports";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
-import ReportExportButton from "@/components/ReportExportButton";
+import ExportButton from "@/components/reports/ExportButton";
 
 export const metadata = {
   title: "Project Performance Report - ConstructionERP",
@@ -99,7 +99,9 @@ export default async function ProjectPerformancePage() {
             </p>
           </div>
           <div className="report-page-actions">
-            <ReportExportButton
+            <ExportButton
+              reportType="project-performance"
+              reportTitle="Project Performance Summary"
               data={projects.map((p) => ({
                 name: p.name,
                 code: p.code,
@@ -124,7 +126,6 @@ export default async function ProjectPerformancePage() {
                 { key: "completion_pct", label: "Completion %" },
                 { key: "schedule_status", label: "Schedule Status" },
               ]}
-              filename={`project-performance-${new Date().toISOString().slice(0, 10)}`}
             />
           </div>
         </div>

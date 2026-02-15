@@ -12,8 +12,10 @@ import {
   Trash2,
   Truck,
   Plus,
+  Shield,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
+import PrequalificationChecklist from "@/components/PrequalificationChecklist";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 const IMPORT_COLUMNS: ImportColumn[] = [
@@ -43,6 +45,10 @@ interface Contact {
   city?: string | null;
   state?: string | null;
   notes?: string | null;
+  emr_rate?: number | null;
+  bonding_capacity?: number | null;
+  prequalification_score?: number | null;
+  prequalification_notes?: string | null;
 }
 
 interface VendorContract {
@@ -664,6 +670,35 @@ export default function VendorsClient({
                     <div className="people-detail-notes">
                       <label>Notes</label>
                       <p>{selectedVendor.notes}</p>
+                    </div>
+                  )}
+
+                  {/* Prequalification Checklist */}
+                  {(selectedVendor.contact_type === "vendor" || selectedVendor.contact_type === "subcontractor") && (
+                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px", marginTop: "16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                        <Shield size={16} style={{ color: "var(--color-blue)" }} />
+                        <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>Prequalification</span>
+                      </div>
+                      <PrequalificationChecklist
+                        contactId={selectedVendor.id}
+                        data={{
+                          emr_rate: selectedVendor.emr_rate ?? null,
+                          bonding_capacity: selectedVendor.bonding_capacity ?? null,
+                          prequalification_score: selectedVendor.prequalification_score ?? null,
+                          prequalification_notes: selectedVendor.prequalification_notes ?? null,
+                        }}
+                        onSave={async (data) => {
+                          try {
+                            await fetch(`/api/contacts/${selectedVendor.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(data),
+                            });
+                            router.refresh();
+                          } catch { /* ignore */ }
+                        }}
+                      />
                     </div>
                   )}
                 </div>

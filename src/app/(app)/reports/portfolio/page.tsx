@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPropertyPortfolioReport } from "@/lib/queries/reports";
 import { formatCurrency, formatPercent, formatCompactCurrency } from "@/lib/utils/format";
-import ReportExportButton from "@/components/ReportExportButton";
+import ExportButton from "@/components/reports/ExportButton";
 
 export const metadata = {
   title: "Property Portfolio Report - ConstructionERP",
@@ -42,7 +42,9 @@ export default async function PortfolioReportPage() {
             </p>
           </div>
           <div className="report-page-actions">
-            <ReportExportButton
+            <ExportButton
+              reportType="portfolio"
+              reportTitle="Property Portfolio Report"
               data={portfolio.properties.map((p) => ({
                 name: p.name,
                 property_type: p.property_type,
@@ -65,7 +67,6 @@ export default async function PortfolioReportPage() {
                 { key: "noi", label: "NOI" },
                 { key: "cap_rate", label: "Cap Rate %" },
               ]}
-              filename={`portfolio-report-${new Date().toISOString().slice(0, 10)}`}
             />
           </div>
         </div>

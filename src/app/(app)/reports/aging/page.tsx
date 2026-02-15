@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAgingReport } from "@/lib/queries/reports";
 import { formatCurrency } from "@/lib/utils/format";
-import ReportExportButton from "@/components/ReportExportButton";
+import ExportButton from "@/components/reports/ExportButton";
 
 export const metadata = {
   title: "Aging Report - ConstructionERP",
@@ -59,7 +59,9 @@ export default async function AgingReportPage({
             </p>
           </div>
           <div className="report-page-actions">
-            <ReportExportButton
+            <ExportButton
+              reportType="aging"
+              reportTitle={`Aging Report - ${activeType === "receivable" ? "AR" : "AP"}`}
               data={report.invoices.map((inv) => ({
                 invoice_number: inv.invoice_number,
                 name: activeType === "receivable" ? (inv.client_name ?? "") : (inv.vendor_name ?? ""),
@@ -80,7 +82,6 @@ export default async function AgingReportPage({
                 { key: "aging_days", label: "Days Overdue" },
                 { key: "aging_bucket", label: "Bucket" },
               ]}
-              filename={`aging-${activeType}-${new Date().toISOString().slice(0, 10)}`}
             />
           </div>
         </div>
