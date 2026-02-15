@@ -33,13 +33,33 @@ function LoginFormInner({
 
   const supabase = createClient();
 
+  async function resolveDestination(userId: string): Promise<string> {
+    // If user had an explicit redirect (e.g. tried accessing a page while logged out), use it
+    const explicit = searchParams.get("redirect");
+    if (explicit) return explicit;
+
+    // Otherwise determine the correct dashboard from profile
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("portal_type, is_platform_admin")
+      .eq("id", userId)
+      .single();
+
+    if (profile?.is_platform_admin) return "/super-admin";
+    if (profile?.portal_type === "tenant") return "/tenant";
+    if (profile?.portal_type === "vendor") return "/vendor";
+    if (profile?.portal_type === "admin") return "/admin-panel";
+
+    return defaultRedirect;
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -50,7 +70,8 @@ function LoginFormInner({
         return;
       }
 
-      router.push(redirectTo);
+      const destination = await resolveDestination(data.user.id);
+      router.push(destination);
       router.refresh();
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -63,11 +84,16 @@ function LoginFormInner({
     setLoading(true);
 
     try {
+      // Only pass explicit redirect (from search params) to the callback;
+      // otherwise let the callback determine the destination from user profile
+      const explicit = searchParams.get("redirect");
+      const callbackUrl = explicit
+        ? `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(explicit)}`
+        : `${window.location.origin}/api/auth/callback`;
+
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(redirectTo)}`,
-        },
+        options: { redirectTo: callbackUrl },
       });
 
       if (oauthError) {
