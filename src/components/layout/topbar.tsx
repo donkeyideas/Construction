@@ -56,14 +56,23 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           name: data.user.user_metadata?.full_name ?? null,
           email: data.user.email ?? null,
         });
-        supabase
-          .from("messages")
-          .select("id", { count: "exact", head: true })
-          .eq("recipient_id", data.user.id)
-          .eq("is_read", false)
-          .then(({ count, error: msgErr }) => {
-            if (!msgErr) setUnreadCount(count ?? 0);
-          });
+        // Count unread messages + notifications
+        Promise.all([
+          supabase
+            .from("messages")
+            .select("id", { count: "exact", head: true })
+            .eq("recipient_id", data.user.id)
+            .eq("is_read", false)
+            .eq("is_archived", false),
+          supabase
+            .from("notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", data.user.id)
+            .eq("is_read", false),
+        ]).then(([msgRes, notifRes]) => {
+          const total = (msgRes.count ?? 0) + (notifRes.count ?? 0);
+          setUnreadCount(total);
+        });
       }
     });
   }, []);

@@ -68,7 +68,7 @@ function filterNavByRole(items: NavItem[], role: string | null): NavItem[] {
   return items.filter((item) => allowed.includes(item.label));
 }
 
-function NavItemComponent({ item, t }: { item: NavItem; t: any }) {
+function NavItemComponent({ item, t, badge }: { item: NavItem; t: any; badge?: number }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const Icon = iconMap[item.icon] || LayoutDashboard;
@@ -112,6 +112,9 @@ function NavItemComponent({ item, t }: { item: NavItem; t: any }) {
       <Link href={item.href!} className={`nav-link ${isActive ? "active" : ""}`}>
         <Icon />
         <span className="label">{t(item.label)}</span>
+        {badge != null && badge > 0 && (
+          <span className="nav-badge">{badge > 99 ? "99+" : badge}</span>
+        )}
       </Link>
     </div>
   );
@@ -127,6 +130,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [inboxUnread, setInboxUnread] = useState(0);
 
   useEffect(() => {
     async function fetchCompanyAndRole() {
@@ -157,6 +161,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           setCompanyName(company.name);
           setLogoUrl(company.logo_url);
         }
+
+        // Fetch unread count for inbox badge
+        const [msgRes, notifRes] = await Promise.all([
+          supabase
+            .from("messages")
+            .select("id", { count: "exact", head: true })
+            .eq("recipient_id", user.id)
+            .eq("is_read", false)
+            .eq("is_archived", false),
+          supabase
+            .from("notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .eq("is_read", false),
+        ]);
+        setInboxUnread((msgRes.count ?? 0) + (notifRes.count ?? 0));
       } catch {
         // silent - fall back to default brand
       }
@@ -216,7 +236,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <CompanySwitcher />
         <nav className="sidebar-nav">
           {filteredNav.map((item) => (
-            <NavItemComponent key={item.label} item={item} t={t} />
+            <NavItemComponent
+              key={item.label}
+              item={item}
+              t={t}
+              badge={item.label === "Inbox" ? inboxUnread : undefined}
+            />
           ))}
         </nav>
         <div className="sidebar-bottom">

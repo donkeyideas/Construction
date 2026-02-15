@@ -113,6 +113,7 @@ export function usePresence(
 
 /**
  * Hook for real-time notification badge count.
+ * Subscribes to both messages and notifications tables.
  */
 export function useRealtimeNotifications(userId: string) {
   const [count, setCount] = useState(0);
@@ -124,6 +125,12 @@ export function useRealtimeNotifications(userId: string) {
   useRealtimeSubscription(
     "messages",
     { column: "recipient_id", value: userId },
+    increment // onInsert
+  );
+
+  useRealtimeSubscription(
+    "notifications",
+    { column: "user_id", value: userId },
     increment // onInsert
   );
 

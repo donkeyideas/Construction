@@ -111,6 +111,22 @@
   background: rgba(29, 78, 216, 0.15);
 }
 
+.nav-badge {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--color-blue);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 .nav-link .chevron {
   margin-left: auto;
   width: 14px;
