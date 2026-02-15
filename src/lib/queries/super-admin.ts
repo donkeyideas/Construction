@@ -9,6 +9,7 @@ export interface PlatformUser {
   phone: string | null;
   job_title: string | null;
   avatar_url: string | null;
+  portal_type: string | null;
 }
 
 export interface UserMembership {
@@ -185,7 +186,7 @@ export async function getAllUsers(
 ): Promise<Array<PlatformUser & { memberships: UserMembership[] }>> {
   const { data: profiles, error } = await supabase
     .from("user_profiles")
-    .select("id, email, full_name, is_platform_admin, created_at, phone, job_title, avatar_url")
+    .select("id, email, full_name, is_platform_admin, created_at, phone, job_title, avatar_url, portal_type")
     .order("created_at", { ascending: false });
 
   if (error || !profiles) return [];
