@@ -49,9 +49,10 @@
   max-width: 80px;
   transition: width 0.3s ease;
 }
-.seo-length-value {
+.seo-length-bar-label {
   font-weight: 600;
   min-width: 28px;
+  font-size: 0.8rem;
 }
 
 /* ===== Technical Check Cards ===== */
@@ -63,68 +64,64 @@
 }
 .seo-check-card {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   padding: 16px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--card-bg);
 }
-.seo-check-icon {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.seo-check-icon.pass { color: var(--color-green); }
-.seo-check-icon.fail { color: var(--color-red); }
-.seo-check-icon.warning { color: var(--color-amber); }
-.seo-check-info {
-  flex: 1;
+.seo-check-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .seo-check-name {
   font-weight: 600;
   font-size: 0.88rem;
-  margin-bottom: 4px;
 }
 .seo-check-desc {
   font-size: 0.78rem;
   color: var(--muted);
-  margin-bottom: 8px;
+  line-height: 1.4;
 }
 .seo-check-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.seo-check-count {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 500;
+  min-width: 40px;
+}
+.seo-check-bar {
+  flex: 1;
   height: 6px;
   background: var(--surface);
   border-radius: 3px;
   overflow: hidden;
 }
-.seo-check-progress-bar {
+.seo-check-bar-fill {
   height: 100%;
   border-radius: 3px;
   transition: width 0.4s ease;
 }
-.seo-check-count {
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin-top: 4px;
-}
 
 /* ===== Technical Score Bar ===== */
-.seo-tech-score {
+.seo-tech-score-bar {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  margin-bottom: 16px;
+  flex-direction: column;
+  gap: 10px;
 }
 .seo-tech-score-label {
   font-weight: 600;
   font-size: 0.9rem;
-  min-width: 140px;
 }
-.seo-tech-score-bar {
-  flex: 1;
+.seo-tech-score-track {
+  width: 100%;
   height: 10px;
   background: var(--surface);
   border-radius: 5px;
@@ -135,53 +132,25 @@
   border-radius: 5px;
   transition: width 0.4s ease;
 }
-.seo-tech-score-value {
-  font-weight: 700;
-  font-size: 1rem;
-  min-width: 50px;
-  text-align: right;
-}
 
 /* ===== Recommendation Cards ===== */
-.seo-rec-filters {
+.seo-rec-toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
-.seo-rec-filter-select {
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--card-bg);
-  color: var(--text);
-  font-size: 0.82rem;
+.seo-rec-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.seo-rec-count-badges {
+.seo-rec-severity-counts {
   display: flex;
   gap: 8px;
-}
-.seo-rec-count-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-.seo-rec-count-badge.critical {
-  background: color-mix(in srgb, var(--color-red) 12%, var(--card-bg));
-  color: var(--color-red);
-}
-.seo-rec-count-badge.warning {
-  background: color-mix(in srgb, var(--color-amber) 12%, var(--card-bg));
-  color: var(--color-amber);
-}
-.seo-rec-count-badge.info {
-  background: color-mix(in srgb, var(--color-blue) 12%, var(--card-bg));
-  color: var(--color-blue);
 }
 
 .seo-rec-list {
@@ -369,6 +338,26 @@
 }
 .seo-quick-issue:last-child {
   border-bottom: none;
+}
+
+/* ===== View All Button ===== */
+.sa-view-all {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  text-align: center;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--color-blue);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sa-view-all:hover {
+  background: var(--surface);
 }
 
 /* ===== Tabs with icons ===== */
