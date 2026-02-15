@@ -640,7 +640,7 @@ export default function ContentClient({ pages }: Props) {
           </span>
         </div>
         <a
-          href={editingPage?.page_slug === "homepage" ? "/" : `/${editingPage?.page_slug}`}
+          href={editingPage?.page_slug === "homepage" ? "/" : `/p/${editingPage?.page_slug}`}
           target="_blank"
           rel="noopener noreferrer"
           className="btn-secondary"
