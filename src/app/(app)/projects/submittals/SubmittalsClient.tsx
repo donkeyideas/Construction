@@ -427,19 +427,24 @@ export default function SubmittalsClient({
 
       {/* Create Modal */}
       {showCreate && (
-        <div className="modal-overlay" onClick={() => setShowCreate(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ticket-modal-header">
               <h3>New Submittal</h3>
-              <button className="modal-close" onClick={() => setShowCreate(false)}>
+              <button className="ticket-modal-close" onClick={() => setShowCreate(false)}>
                 <X size={18} />
               </button>
             </div>
-            <form onSubmit={handleCreate}>
-              <div className="form-group">
-                <label className="form-label">Project *</label>
+
+            {createError && (
+              <div className="ticket-form-error">{createError}</div>
+            )}
+
+            <form onSubmit={handleCreate} className="ticket-form">
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Project *</label>
                 <select
-                  className="form-select"
+                  className="ticket-form-select"
                   required
                   value={formData.project_id}
                   onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
@@ -452,40 +457,42 @@ export default function SubmittalsClient({
                   ))}
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-label">Title *</label>
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Title *</label>
                 <input
-                  className="form-input"
+                  type="text"
+                  className="ticket-form-input"
                   required
                   placeholder="e.g. Structural Steel Shop Drawings"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 />
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Spec Section</label>
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Spec Section</label>
                   <input
-                    className="form-input"
+                    type="text"
+                    className="ticket-form-input"
                     placeholder="e.g. 05 12 00"
                     value={formData.spec_section}
                     onChange={(e) => setFormData({ ...formData, spec_section: e.target.value })}
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Due Date</label>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Due Date</label>
                   <input
                     type="date"
-                    className="form-input"
+                    className="ticket-form-input"
                     value={formData.due_date}
                     onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                   />
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Reviewer</label>
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Reviewer</label>
                 <select
-                  className="form-select"
+                  className="ticket-form-select"
                   value={formData.reviewer_id}
                   onChange={(e) => setFormData({ ...formData, reviewer_id: e.target.value })}
                 >
@@ -497,14 +504,11 @@ export default function SubmittalsClient({
                   ))}
                 </select>
               </div>
-              {createError && (
-                <p style={{ color: "var(--color-red)", fontSize: "0.85rem" }}>{createError}</p>
-              )}
-              <div className="modal-footer">
-                <button type="button" className="btn" onClick={() => setShowCreate(false)}>
+              <div className="ticket-form-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={creating}>
+                <button type="submit" className="btn-primary" disabled={creating}>
                   {creating ? "Creating..." : "Create Submittal"}
                 </button>
               </div>
@@ -515,84 +519,123 @@ export default function SubmittalsClient({
 
       {/* Detail Modal */}
       {selected && (
-        <div className="modal-overlay" onClick={closeDetail}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600 }}>
-            <div className="modal-header">
-              <h3>{selected.submittal_number} — {selected.title}</h3>
-              <button className="modal-close" onClick={closeDetail}>
-                <X size={18} />
-              </button>
+        <div className="ticket-modal-overlay" onClick={closeDetail}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640 }}>
+            {/* Modal Header */}
+            <div className="ticket-modal-header">
+              <h3>
+                {selected.submittal_number}
+                {!isEditing && (
+                  <span
+                    className={statusBadge[selected.status] ?? "inv-status"}
+                    style={{ marginLeft: 10, fontSize: "0.78rem" }}
+                  >
+                    {selected.status.replace(/_/g, " ")}
+                  </span>
+                )}
+              </h3>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {!isEditing && !showDeleteConfirm && (
+                  <>
+                    <button className="ticket-modal-close" onClick={startEditing} title="Edit">
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      className="ticket-modal-close"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      title="Delete"
+                      style={{ color: "var(--color-red)" }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                )}
+                <button className="ticket-modal-close" onClick={closeDetail}>
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
-            {!isEditing ? (
-              <>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: "0.85rem", marginBottom: "16px" }}>
-                  <div><span style={{ color: "var(--muted)" }}>Project:</span> {selected.projects?.name ?? "—"}</div>
-                  <div><span style={{ color: "var(--muted)" }}>Spec Section:</span> {selected.spec_section ?? "—"}</div>
-                  <div><span style={{ color: "var(--muted)" }}>Status:</span> <span className={statusBadge[selected.status] ?? ""}>{selected.status.replace(/_/g, " ")}</span></div>
-                  <div><span style={{ color: "var(--muted)" }}>Due Date:</span> {selected.due_date ? formatDate(selected.due_date) : "—"}</div>
-                  <div><span style={{ color: "var(--muted)" }}>Submitted By:</span> {selected.submitted_by ? (userMap[selected.submitted_by] ?? "—") : "—"}</div>
-                  <div><span style={{ color: "var(--muted)" }}>Reviewer:</span> {selected.reviewer_id ? (userMap[selected.reviewer_id] ?? "—") : "—"}</div>
-                  <div><span style={{ color: "var(--muted)" }}>Created:</span> {formatDate(selected.created_at)}</div>
-                  {selected.reviewed_at && (
-                    <div><span style={{ color: "var(--muted)" }}>Reviewed:</span> {formatDate(selected.reviewed_at)}</div>
-                  )}
-                </div>
-                {selected.review_comments && (
-                  <div style={{ fontSize: "0.85rem", marginBottom: "16px" }}>
-                    <span style={{ color: "var(--muted)" }}>Review Comments:</span>
-                    <p style={{ marginTop: 4, whiteSpace: "pre-wrap" }}>{selected.review_comments}</p>
-                  </div>
-                )}
-                <div className="modal-footer">
-                  <button className="btn" style={{ color: "var(--color-red)" }} onClick={() => setShowDeleteConfirm(true)}>
-                    <Trash2 size={14} /> Delete
-                  </button>
-                  <button className="btn btn-primary" onClick={startEditing}>
-                    <Pencil size={14} /> Edit
-                  </button>
-                </div>
+            {saveError && (
+              <div className="ticket-form-error">{saveError}</div>
+            )}
 
-                {showDeleteConfirm && (
-                  <div style={{ padding: "12px", background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.2)", borderRadius: 8, marginTop: 12 }}>
-                    <p style={{ fontSize: "0.85rem", marginBottom: 8 }}>Are you sure you want to delete this submittal?</p>
-                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                      <button className="btn" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-                      <button className="btn" style={{ background: "var(--color-red)", color: "#fff", borderColor: "var(--color-red)" }} onClick={handleDelete} disabled={saving}>
-                        {saving ? "Deleting..." : "Delete"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="form-group">
-                  <label className="form-label">Title</label>
-                  <input className="form-input" value={editData.title as string ?? ""} onChange={(e) => setEditData({ ...editData, title: e.target.value })} />
+            {/* ---- Delete Confirmation ---- */}
+            {showDeleteConfirm && (
+              <div style={{ padding: "1.2rem" }}>
+                <p style={{ marginBottom: 16, fontWeight: 500 }}>
+                  Are you sure you want to delete submittal{" "}
+                  <strong>{selected.submittal_number}</strong>? This action cannot be undone.
+                </p>
+                <div className="ticket-form-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={saving}>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ backgroundColor: "var(--color-red)" }}
+                    onClick={handleDelete}
+                    disabled={saving}
+                  >
+                    {saving ? "Deleting..." : "Delete Submittal"}
+                  </button>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Status</label>
-                    <select className="form-select" value={editData.status as string ?? ""} onChange={(e) => setEditData({ ...editData, status: e.target.value })}>
+              </div>
+            )}
+
+            {/* ---- Edit Mode ---- */}
+            {isEditing && !showDeleteConfirm && (
+              <div style={{ padding: "1.2rem" }}>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Title</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={editData.title as string ?? ""}
+                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                  />
+                </div>
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Status</label>
+                    <select
+                      className="ticket-form-select"
+                      value={editData.status as string ?? ""}
+                      onChange={(e) => setEditData({ ...editData, status: e.target.value })}
+                    >
                       {STATUS_OPTIONS.map((s) => (
                         <option key={s.value} value={s.value}>{s.label}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Due Date</label>
-                    <input type="date" className="form-input" value={editData.due_date as string ?? ""} onChange={(e) => setEditData({ ...editData, due_date: e.target.value })} />
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Due Date</label>
+                    <input
+                      type="date"
+                      className="ticket-form-input"
+                      value={editData.due_date as string ?? ""}
+                      onChange={(e) => setEditData({ ...editData, due_date: e.target.value })}
+                    />
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Spec Section</label>
-                    <input className="form-input" value={editData.spec_section as string ?? ""} onChange={(e) => setEditData({ ...editData, spec_section: e.target.value })} />
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Spec Section</label>
+                    <input
+                      type="text"
+                      className="ticket-form-input"
+                      value={editData.spec_section as string ?? ""}
+                      onChange={(e) => setEditData({ ...editData, spec_section: e.target.value })}
+                    />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Reviewer</label>
-                    <select className="form-select" value={editData.reviewer_id as string ?? ""} onChange={(e) => setEditData({ ...editData, reviewer_id: e.target.value })}>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Reviewer</label>
+                    <select
+                      className="ticket-form-select"
+                      value={editData.reviewer_id as string ?? ""}
+                      onChange={(e) => setEditData({ ...editData, reviewer_id: e.target.value })}
+                    >
                       <option value="">Select reviewer...</option>
                       {members.map((m) => (
                         <option key={m.user_id} value={m.user_id}>
@@ -602,20 +645,115 @@ export default function SubmittalsClient({
                     </select>
                   </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Review Comments</label>
-                  <textarea className="form-input" rows={3} value={editData.review_comments as string ?? ""} onChange={(e) => setEditData({ ...editData, review_comments: e.target.value })} />
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Review Comments</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    rows={3}
+                    value={editData.review_comments as string ?? ""}
+                    onChange={(e) => setEditData({ ...editData, review_comments: e.target.value })}
+                  />
                 </div>
-                {saveError && (
-                  <p style={{ color: "var(--color-red)", fontSize: "0.85rem" }}>{saveError}</p>
-                )}
-                <div className="modal-footer">
-                  <button className="btn" onClick={() => setIsEditing(false)}>Cancel</button>
-                  <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+                <div className="ticket-form-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)} disabled={saving}>
+                    Cancel
+                  </button>
+                  <button type="button" className="btn-primary" onClick={handleSave} disabled={saving}>
                     {saving ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
-              </>
+              </div>
+            )}
+
+            {/* ---- View Mode ---- */}
+            {!isEditing && !showDeleteConfirm && (
+              <div style={{ padding: "1.25rem" }}>
+                {/* Title */}
+                <div className="detail-group" style={{ marginBottom: 4 }}>
+                  <label className="detail-label">Title</label>
+                  <div className="detail-value">{selected.title}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Project</label>
+                  <div className="detail-value">
+                    {selected.projects
+                      ? `${selected.projects.code} - ${selected.projects.name}`
+                      : "—"}
+                  </div>
+                </div>
+
+                {/* Spec Section */}
+                <div className="detail-group">
+                  <label className="detail-label">Spec Section</label>
+                  <div className="detail-value">{selected.spec_section ?? "—"}</div>
+                </div>
+
+                {/* Status & Due Date */}
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
+                      <span className={statusBadge[selected.status] ?? "inv-status"}>
+                        {selected.status.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Due Date</label>
+                    <div className="detail-value">
+                      {selected.due_date ? formatDate(selected.due_date) : "—"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submitted By & Reviewer */}
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Submitted By</label>
+                    <div className="detail-value">
+                      {selected.submitted_by ? (userMap[selected.submitted_by] ?? "—") : "—"}
+                    </div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Reviewer</label>
+                    <div className="detail-value">
+                      {selected.reviewer_id ? (userMap[selected.reviewer_id] ?? "—") : "—"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Created & Reviewed */}
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Created</label>
+                    <div className="detail-value">{formatDate(selected.created_at)}</div>
+                  </div>
+                  {selected.reviewed_at && (
+                    <div className="detail-group">
+                      <label className="detail-label">Reviewed</label>
+                      <div className="detail-value">{formatDate(selected.reviewed_at)}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Review Comments */}
+                {selected.review_comments && (
+                  <div className="detail-section">
+                    <div className="detail-section-title">Review Comments</div>
+                    <div className="detail-section-box">{selected.review_comments}</div>
+                  </div>
+                )}
+
+                {/* Footer actions */}
+                <div className="ticket-form-actions">
+                  <button type="button" className="btn-secondary" onClick={closeDetail}>
+                    Close
+                  </button>
+                  <button type="button" className="btn-primary" onClick={startEditing}>
+                    <Pencil size={14} /> Edit
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
