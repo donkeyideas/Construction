@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Megaphone, Plus, X, Pencil, Trash2 } from "lucide-react";
+import { Megaphone, Plus, X, Pencil, Trash2, Clock, CalendarOff } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 
 interface Announcement {
@@ -52,7 +52,12 @@ export default function AnnouncementsClient({ announcements }: Props) {
   const [saveError, setSaveError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const now = new Date();
   const activeCount = announcements.filter((a) => a.is_active).length;
+  const inactiveCount = announcements.filter((a) => !a.is_active).length;
+  const expiredCount = announcements.filter(
+    (a) => a.expires_at && new Date(a.expires_at) < now
+  ).length;
 
   function openDetail(a: Announcement) {
     setSelectedAnn(a);
@@ -215,7 +220,7 @@ export default function AnnouncementsClient({ announcements }: Props) {
         </div>
       </div>
 
-      <div className="admin-stats" style={{ gridTemplateColumns: "repeat(2, 1fr)", maxWidth: "400px" }}>
+      <div className="admin-stats" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         <div className="admin-stat-card">
           <div className="admin-stat-icon blue">
             <Megaphone size={18} />
@@ -229,6 +234,20 @@ export default function AnnouncementsClient({ announcements }: Props) {
           </div>
           <div className="admin-stat-label">{t("active")}</div>
           <div className="admin-stat-value">{activeCount}</div>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon" style={{ background: "var(--color-muted-bg, #f3f4f6)", color: "var(--muted)" }}>
+            <Clock size={18} />
+          </div>
+          <div className="admin-stat-label">{t("inactive")}</div>
+          <div className="admin-stat-value">{inactiveCount}</div>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon" style={{ background: "rgba(239,68,68,0.1)", color: "var(--color-red, #ef4444)" }}>
+            <CalendarOff size={18} />
+          </div>
+          <div className="admin-stat-label">{t("expired")}</div>
+          <div className="admin-stat-value">{expiredCount}</div>
         </div>
       </div>
 

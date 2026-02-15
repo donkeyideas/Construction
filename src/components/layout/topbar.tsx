@@ -136,7 +136,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
                 )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push("/settings")}>
+              <DropdownMenuItem onSelect={() => router.push("/admin/settings")}>
                 <Settings size={14} style={{ marginRight: 8 }} />
                 Settings
               </DropdownMenuItem>

@@ -13,8 +13,9 @@ import {
   Plus,
   Inbox,
   CheckCheck,
+  Megaphone,
 } from "lucide-react";
-import type { InboxItem, CompanyMember, Message } from "@/lib/queries/inbox";
+import type { InboxItem, CompanyMember, Message, PlatformAnnouncement } from "@/lib/queries/inbox";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -50,7 +51,7 @@ function formatFullDate(dateStr: string): string {
   });
 }
 
-type TabFilter = "all" | "messages" | "notifications";
+type TabFilter = "all" | "messages" | "notifications" | "announcements";
 
 // ---------------------------------------------------------------------------
 // Component Props
@@ -62,6 +63,7 @@ interface InboxClientProps {
   userId: string;
   companyId: string;
   members: CompanyMember[];
+  announcements: PlatformAnnouncement[];
 }
 
 // ---------------------------------------------------------------------------
@@ -74,7 +76,26 @@ export default function InboxClient({
   userId,
   companyId,
   members,
+  announcements,
 }: InboxClientProps) {
+  // Convert announcements to InboxItems
+  const announcementItems: InboxItem[] = useMemo(
+    () =>
+      announcements.map((a) => ({
+        id: `ann-${a.id}`,
+        kind: "announcement" as const,
+        title: a.title,
+        preview: a.content.length > 120 ? a.content.slice(0, 120) + "..." : a.content,
+        sender_name: "Buildwrk",
+        is_read: true,
+        created_at: a.published_at || a.created_at,
+        entity_type: null,
+        entity_id: null,
+        announcement: a,
+      })),
+    [announcements]
+  );
+
   const [items, setItems] = useState<InboxItem[]>(initialItems);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
@@ -163,7 +184,22 @@ export default function InboxClient({
   // ---------------------------------------------------------------------------
 
   const filtered = useMemo(() => {
-    let result = items;
+    // For announcements tab, use announcementItems only
+    if (activeTab === "announcements") {
+      let result = announcementItems;
+      if (search.trim()) {
+        const term = search.toLowerCase();
+        result = result.filter(
+          (i) =>
+            i.title.toLowerCase().includes(term) ||
+            i.preview.toLowerCase().includes(term)
+        );
+      }
+      return result;
+    }
+
+    // For "all" tab, merge announcements with regular items
+    let result = activeTab === "all" ? [...items, ...announcementItems] : items;
 
     if (activeTab === "messages") {
       result = result.filter((i) => i.kind === "message");
@@ -181,12 +217,21 @@ export default function InboxClient({
       );
     }
 
+    // Sort by date desc
+    result.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
     return result;
-  }, [items, activeTab, search]);
+  }, [items, announcementItems, activeTab, search]);
 
   const selectedItem = useMemo(
-    () => items.find((i) => i.id === selectedId) ?? null,
-    [items, selectedId]
+    () =>
+      items.find((i) => i.id === selectedId) ??
+      announcementItems.find((i) => i.id === selectedId) ??
+      null,
+    [items, announcementItems, selectedId]
   );
 
   // ---------------------------------------------------------------------------
@@ -413,6 +458,7 @@ export default function InboxClient({
 
   const msgCount = items.filter((i) => i.kind === "message").length;
   const notifCount = items.filter((i) => i.kind === "notification").length;
+  const annCount = announcementItems.length;
 
   // ---------------------------------------------------------------------------
   // Render
@@ -473,6 +519,16 @@ export default function InboxClient({
             <span className="inbox-tab-count">{notifCount}</span>
           )}
         </button>
+        <button
+          className={`inbox-tab ${activeTab === "announcements" ? "active" : ""}`}
+          onClick={() => setActiveTab("announcements")}
+        >
+          <Megaphone size={14} />
+          Announcements
+          {annCount > 0 && (
+            <span className="inbox-tab-count">{annCount}</span>
+          )}
+        </button>
       </div>
 
       {/* Search */}
@@ -503,7 +559,9 @@ export default function InboxClient({
                     ? "No messages yet. Send one using the Compose button."
                     : activeTab === "notifications"
                       ? "No notifications to show."
-                      : "Your inbox is empty."}
+                      : activeTab === "announcements"
+                        ? "No platform announcements."
+                        : "Your inbox is empty."}
               </p>
             </div>
           )}
@@ -522,6 +580,8 @@ export default function InboxClient({
               <div className="inbox-item-icon">
                 {item.kind === "message" ? (
                   <Mail size={16} />
+                ) : item.kind === "announcement" ? (
+                  <Megaphone size={16} />
                 ) : (
                   <Bell size={16} />
                 )}
@@ -580,6 +640,31 @@ export default function InboxClient({
                     : ""}
                 </div>
               )}
+            </div>
+          )}
+
+          {selectedItem && selectedItem.kind === "announcement" && (
+            <div className="inbox-detail-content">
+              <div className="inbox-detail-header">
+                <div className="inbox-detail-meta">
+                  <span className="inbox-type-badge inbox-type-announcement">
+                    Announcement
+                  </span>
+                  <span className="inbox-detail-date">
+                    {formatFullDate(selectedItem.created_at)}
+                  </span>
+                </div>
+                <h3>{selectedItem.title}</h3>
+                <div className="inbox-detail-participants">
+                  <span>From: Buildwrk Platform</span>
+                  <span style={{ textTransform: "capitalize" }}>
+                    Audience: {selectedItem.announcement?.target_audience || "all"}
+                  </span>
+                </div>
+              </div>
+              <div className="inbox-detail-body" style={{ whiteSpace: "pre-wrap" }}>
+                {selectedItem.announcement?.content || "No additional details."}
+              </div>
             </div>
           )}
 

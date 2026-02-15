@@ -586,6 +586,7 @@
     "deactivate": "Deactivate",
     "activate": "Activate",
     "inactive": "Inactive",
+    "expired": "Expired",
     "announcementNote": "This announcement will be shown to platform users based on the selected audience.",
     "titleRequired": "Title *",
     "announcementTitle": "Announcement title",

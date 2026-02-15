@@ -586,6 +586,7 @@
     "deactivate": "Desactivar",
     "activate": "Activar",
     "inactive": "Inactivo",
+    "expired": "Expirado",
     "announcementNote": "Este anuncio se mostrará a los usuarios de la plataforma según la audiencia seleccionada.",
     "titleRequired": "Título *",
     "announcementTitle": "Título del anuncio",

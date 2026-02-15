@@ -370,6 +370,15 @@
   color: var(--muted);
 }
 
+.inbox-type-announcement {
+  background: rgba(180, 83, 9, 0.08);
+  color: var(--color-amber, #b45309);
+}
+
+[data-theme="dark"] .inbox-type-announcement {
+  background: rgba(180, 83, 9, 0.15);
+}
+
 /* ===== Detail Body ===== */
 .inbox-detail-body {
   font-size: 0.9rem;

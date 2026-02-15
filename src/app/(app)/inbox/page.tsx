@@ -5,6 +5,7 @@ import {
   getInboxItems,
   getUnreadCount,
   getCompanyMembers,
+  getActiveAnnouncements,
 } from "@/lib/queries/inbox";
 import InboxClient from "./InboxClient";
 
@@ -23,10 +24,11 @@ export default async function InboxPage() {
   const { userId, companyId } = userCompany;
 
   // Fetch all inbox data in parallel
-  const [items, unreadCount, members] = await Promise.all([
+  const [items, unreadCount, members, announcements] = await Promise.all([
     getInboxItems(supabase, companyId, userId),
     getUnreadCount(supabase, userId),
     getCompanyMembers(supabase, companyId),
+    getActiveAnnouncements(supabase),
   ]);
 
   return (
@@ -36,6 +38,7 @@ export default async function InboxPage() {
       userId={userId}
       companyId={companyId}
       members={members}
+      announcements={announcements}
     />
   );
 }

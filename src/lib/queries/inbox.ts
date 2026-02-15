@@ -39,7 +39,18 @@ export interface Notification {
   created_at: string;
 }
 
-export type InboxItemKind = "message" | "notification";
+export interface PlatformAnnouncement {
+  id: string;
+  title: string;
+  content: string;
+  target_audience: string;
+  is_active: boolean;
+  published_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+}
+
+export type InboxItemKind = "message" | "notification" | "announcement";
 
 export interface InboxItem {
   id: string;
@@ -54,6 +65,7 @@ export interface InboxItem {
   // Original data for detail view
   message?: Message;
   notification?: Notification;
+  announcement?: PlatformAnnouncement;
 }
 
 export interface CompanyMember {
@@ -386,4 +398,30 @@ export async function getCompanyMembers(
       email: profile?.email ?? null,
     };
   });
+}
+
+// ---------------------------------------------------------------------------
+// getActiveAnnouncements — fetch active platform announcements for inbox
+// ---------------------------------------------------------------------------
+
+export async function getActiveAnnouncements(
+  supabase: SupabaseClient
+): Promise<PlatformAnnouncement[]> {
+  const { data, error } = await supabase
+    .from("platform_announcements")
+    .select("id, title, content, target_audience, is_active, published_at, expires_at, created_at")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error("getActiveAnnouncements error:", error);
+    return [];
+  }
+
+  // Filter out expired announcements client-side
+  const now = new Date();
+  return (data ?? []).filter(
+    (a) => !a.expires_at || new Date(a.expires_at) > now
+  );
 }
