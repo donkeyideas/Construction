@@ -92,7 +92,7 @@ export default function SuperAdminDashboardClient({
           </p>
         </div>
         <div className="admin-header-actions">
-          <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
+          <span style={{ fontSize: "0.85rem", color: "var(--muted)" }} suppressHydrationWarning>
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",

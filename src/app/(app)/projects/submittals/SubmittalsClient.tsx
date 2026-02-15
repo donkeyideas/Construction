@@ -722,20 +722,6 @@ export default function SubmittalsClient({
                   </div>
                 </div>
 
-                {/* Created & Reviewed */}
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label className="detail-label">Created</label>
-                    <div className="detail-value">{formatDate(selected.created_at)}</div>
-                  </div>
-                  {selected.reviewed_at && (
-                    <div className="detail-group">
-                      <label className="detail-label">Reviewed</label>
-                      <div className="detail-value">{formatDate(selected.reviewed_at)}</div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Review Comments */}
                 {selected.review_comments && (
                   <div className="detail-section">

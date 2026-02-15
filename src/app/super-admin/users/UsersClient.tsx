@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Shield, Search } from "lucide-react";
+import { Users, Shield, Search, X, Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { PlatformUser } from "@/lib/queries/super-admin";
 
+type UserWithCompanies = PlatformUser & { companies: string[] };
+
 interface Props {
-  users: Array<PlatformUser & { companies: string[] }>;
+  users: UserWithCompanies[];
 }
 
 function formatDate(dateStr: string): string {
@@ -29,7 +32,11 @@ function getInitials(name: string | null, email: string): string {
 }
 
 export default function UsersClient({ users }: Props) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
+  const [selectedUser, setSelectedUser] = useState<UserWithCompanies | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const filtered = users.filter((u) => {
     const matchesSearch =
@@ -41,6 +48,33 @@ export default function UsersClient({ users }: Props) {
 
   const totalUsers = users.length;
   const platformAdmins = users.filter((u) => u.is_platform_admin).length;
+
+  function closeModal() {
+    setSelectedUser(null);
+    setSaveError(null);
+  }
+
+  async function handleToggleAdmin() {
+    if (!selectedUser) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const newStatus = !selectedUser.is_platform_admin;
+      const res = await fetch(`/api/super-admin/users/${selectedUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_platform_admin: newStatus }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update user");
+      setSelectedUser({ ...selectedUser, is_platform_admin: newStatus });
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : "Failed to update");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <>
@@ -105,7 +139,7 @@ export default function UsersClient({ users }: Props) {
               </tr>
             ) : (
               filtered.map((user) => (
-                <tr key={user.id}>
+                <tr key={user.id} onClick={() => setSelectedUser(user)} style={{ cursor: "pointer" }}>
                   <td>
                     <div className="member-info">
                       <div className="member-avatar">
@@ -147,6 +181,88 @@ export default function UsersClient({ users }: Props) {
           </tbody>
         </table>
       </div>
+
+      {/* User Detail Modal */}
+      {selectedUser && (
+        <div className="ticket-modal-overlay" onClick={closeModal}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 540 }}>
+            <div className="ticket-modal-header">
+              <h3>{selectedUser.full_name || selectedUser.email}</h3>
+              <button className="ticket-modal-close" onClick={closeModal}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {saveError && (
+              <div className="ticket-form-error">{saveError}</div>
+            )}
+
+            <div style={{ padding: "1.2rem" }}>
+              <div className="detail-group" style={{ marginBottom: 4 }}>
+                <label className="detail-label">Full Name</label>
+                <div className="detail-value">{selectedUser.full_name || "No name"}</div>
+              </div>
+
+              <div className="detail-group" style={{ marginBottom: 4 }}>
+                <label className="detail-label">Email</label>
+                <div className="detail-value">{selectedUser.email}</div>
+              </div>
+
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">Platform Admin</label>
+                  <div className="detail-value">
+                    {selectedUser.is_platform_admin ? (
+                      <span className="sa-badge sa-badge-amber">Yes</span>
+                    ) : (
+                      <span className="sa-badge" style={{ background: "var(--surface)", color: "var(--muted)" }}>No</span>
+                    )}
+                  </div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Joined</label>
+                  <div className="detail-value">{formatDate(selectedUser.created_at)}</div>
+                </div>
+              </div>
+
+              <div className="detail-group">
+                <label className="detail-label">Companies</label>
+                <div className="detail-value">
+                  {selectedUser.companies.length === 0
+                    ? "None"
+                    : selectedUser.companies.join(", ")}
+                </div>
+              </div>
+            </div>
+
+            <div className="ticket-form-actions" style={{ padding: "0 1.2rem 1.2rem" }}>
+              <button type="button" className="btn-secondary" onClick={closeModal} disabled={saving}>
+                Close
+              </button>
+              {selectedUser.is_platform_admin ? (
+                <button
+                  type="button"
+                  className="btn"
+                  style={{ backgroundColor: "var(--color-red)", color: "#fff" }}
+                  onClick={handleToggleAdmin}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Revoke Admin"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleToggleAdmin}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Grant Admin"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

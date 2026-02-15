@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Megaphone, Plus, X } from "lucide-react";
+import { Megaphone, Plus, X, Pencil, Trash2 } from "lucide-react";
 
 interface Announcement {
   id: string;
@@ -39,7 +39,98 @@ export default function AnnouncementsClient({ announcements }: Props) {
   const [content, setContent] = useState("");
   const [targetAudience, setTargetAudience] = useState("all");
 
+  // Detail modal state
+  const [selectedAnn, setSelectedAnn] = useState<Announcement | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<Record<string, string | boolean>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const activeCount = announcements.filter((a) => a.is_active).length;
+
+  function openDetail(a: Announcement) {
+    setSelectedAnn(a);
+    setIsEditing(false);
+    setEditData({});
+    setSaveError("");
+    setShowDeleteConfirm(false);
+  }
+
+  function closeDetail() {
+    setSelectedAnn(null);
+    setIsEditing(false);
+    setEditData({});
+    setSaveError("");
+    setShowDeleteConfirm(false);
+  }
+
+  function startEditing() {
+    if (!selectedAnn) return;
+    setEditData({
+      title: selectedAnn.title,
+      content: selectedAnn.content,
+      target_audience: selectedAnn.target_audience,
+      is_active: selectedAnn.is_active,
+    });
+    setIsEditing(true);
+    setSaveError("");
+    setShowDeleteConfirm(false);
+  }
+
+  async function handleSave() {
+    if (!selectedAnn) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch(`/api/super-admin/announcements/${selectedAnn.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editData),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setSaveError(data.error || "Failed to save changes.");
+        return;
+      }
+
+      setIsEditing(false);
+      closeDetail();
+      router.refresh();
+    } catch {
+      setSaveError("Network error. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!selectedAnn) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch(`/api/super-admin/announcements/${selectedAnn.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setSaveError(data.error || "Failed to delete announcement.");
+        return;
+      }
+
+      closeDetail();
+      setSuccess("Announcement deleted.");
+      router.refresh();
+    } catch {
+      setSaveError("Network error. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -161,7 +252,8 @@ export default function AnnouncementsClient({ announcements }: Props) {
               announcements.map((a) => (
                 <tr
                   key={a.id}
-                  style={{ opacity: toggling === a.id ? 0.5 : 1 }}
+                  style={{ opacity: toggling === a.id ? 0.5 : 1, cursor: "pointer" }}
+                  onClick={() => openDetail(a)}
                 >
                   <td>
                     <div style={{ fontWeight: 500 }}>{a.title}</div>
@@ -189,7 +281,7 @@ export default function AnnouncementsClient({ announcements }: Props) {
                   <td>
                     <button
                       className={`sa-action-btn ${a.is_active ? "danger" : ""}`}
-                      onClick={() => toggleActive(a.id, a.is_active)}
+                      onClick={(e) => { e.stopPropagation(); toggleActive(a.id, a.is_active); }}
                       disabled={toggling === a.id}
                       style={{ fontSize: "0.78rem", padding: "4px 10px" }}
                     >
@@ -203,73 +295,260 @@ export default function AnnouncementsClient({ announcements }: Props) {
         </table>
       </div>
 
+      {/* Create Modal */}
       {showCreate && (
-        <>
-          <div className="invite-modal-overlay" onClick={() => setShowCreate(false)} />
-          <div className="invite-modal">
-            <button className="invite-modal-close" onClick={() => setShowCreate(false)}>
-              <X size={18} />
-            </button>
-            <div className="invite-modal-title">New Announcement</div>
-            <div className="invite-modal-desc">
-              This announcement will be shown to platform users based on the selected audience.
+        <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ticket-modal-header">
+              <h3>New Announcement</h3>
+              <button className="ticket-modal-close" onClick={() => setShowCreate(false)}>
+                <X size={18} />
+              </button>
             </div>
-            <form onSubmit={handleCreate}>
-              <div className="invite-form-group">
-                <label className="invite-form-label">Title</label>
-                <input
-                  type="text"
-                  className="invite-form-input"
-                  placeholder="Announcement title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
+
+            <form onSubmit={handleCreate} className="ticket-form">
+              <div style={{ padding: "1.2rem" }}>
+                <p style={{ color: "var(--muted)", fontSize: "0.85rem", marginBottom: "1rem" }}>
+                  This announcement will be shown to platform users based on the selected audience.
+                </p>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Title *</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    placeholder="Announcement title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Content *</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    placeholder="Announcement content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    required
+                    rows={4}
+                    style={{ resize: "vertical" }}
+                  />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Target Audience</label>
+                  <select
+                    className="ticket-form-select"
+                    value={targetAudience}
+                    onChange={(e) => setTargetAudience(e.target.value)}
+                  >
+                    <option value="all">All Users</option>
+                    <option value="enterprise">Enterprise Only</option>
+                    <option value="professional">Professional Only</option>
+                    <option value="starter">Starter Only</option>
+                  </select>
+                </div>
               </div>
-              <div className="invite-form-group">
-                <label className="invite-form-label">Content</label>
-                <textarea
-                  className="invite-form-input"
-                  placeholder="Announcement content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  required
-                  rows={4}
-                  style={{ resize: "vertical" }}
-                />
-              </div>
-              <div className="invite-form-group">
-                <label className="invite-form-label">Target Audience</label>
-                <select
-                  className="invite-form-select"
-                  value={targetAudience}
-                  onChange={(e) => setTargetAudience(e.target.value)}
-                >
-                  <option value="all">All Users</option>
-                  <option value="enterprise">Enterprise Only</option>
-                  <option value="professional">Professional Only</option>
-                  <option value="starter">Starter Only</option>
-                </select>
-              </div>
-              <div className="invite-modal-footer">
-                <button
-                  type="button"
-                  className="sa-action-btn"
-                  onClick={() => setShowCreate(false)}
-                >
+              <div className="ticket-form-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="sa-action-btn primary"
-                  disabled={creating}
-                >
+                <button type="submit" className="btn-primary" disabled={creating}>
                   {creating ? "Creating..." : "Create Announcement"}
                 </button>
               </div>
             </form>
           </div>
-        </>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {selectedAnn && (
+        <div className="ticket-modal-overlay" onClick={closeDetail}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640 }}>
+            {/* Modal Header */}
+            <div className="ticket-modal-header">
+              <h3>
+                {selectedAnn.title}
+                {!isEditing && (
+                  <span
+                    className={selectedAnn.is_active ? "sa-badge sa-badge-green" : "sa-badge"}
+                    style={{
+                      marginLeft: 10,
+                      fontSize: "0.78rem",
+                      ...(!selectedAnn.is_active ? { background: "var(--surface)", color: "var(--muted)" } : {}),
+                    }}
+                  >
+                    {selectedAnn.is_active ? "Active" : "Inactive"}
+                  </span>
+                )}
+              </h3>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {!isEditing && !showDeleteConfirm && (
+                  <>
+                    <button className="ticket-modal-close" onClick={startEditing} title="Edit">
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      className="ticket-modal-close"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      title="Delete"
+                      style={{ color: "var(--color-red)" }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                )}
+                <button className="ticket-modal-close" onClick={closeDetail}>
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {saveError && (
+              <div className="ticket-form-error">{saveError}</div>
+            )}
+
+            {/* ---- Delete Confirmation ---- */}
+            {showDeleteConfirm && (
+              <div style={{ padding: "1.2rem" }}>
+                <p style={{ marginBottom: 16, fontWeight: 500 }}>
+                  Are you sure you want to delete announcement{" "}
+                  <strong>{selectedAnn.title}</strong>? This action cannot be undone.
+                </p>
+                <div className="ticket-form-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={saving}>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ backgroundColor: "var(--color-red)" }}
+                    onClick={handleDelete}
+                    disabled={saving}
+                  >
+                    {saving ? "Deleting..." : "Delete Announcement"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ---- Edit Mode ---- */}
+            {isEditing && !showDeleteConfirm && (
+              <div style={{ padding: "1.2rem" }}>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Title</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={editData.title as string ?? ""}
+                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                  />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Content</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    rows={4}
+                    value={editData.content as string ?? ""}
+                    onChange={(e) => setEditData({ ...editData, content: e.target.value })}
+                  />
+                </div>
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Target Audience</label>
+                    <select
+                      className="ticket-form-select"
+                      value={editData.target_audience as string ?? "all"}
+                      onChange={(e) => setEditData({ ...editData, target_audience: e.target.value })}
+                    >
+                      <option value="all">All Users</option>
+                      <option value="enterprise">Enterprise Only</option>
+                      <option value="professional">Professional Only</option>
+                      <option value="starter">Starter Only</option>
+                    </select>
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Active</label>
+                    <select
+                      className="ticket-form-select"
+                      value={editData.is_active ? "true" : "false"}
+                      onChange={(e) => setEditData({ ...editData, is_active: e.target.value === "true" })}
+                    >
+                      <option value="true">Active</option>
+                      <option value="false">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="ticket-form-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)} disabled={saving}>
+                    Cancel
+                  </button>
+                  <button type="button" className="btn-primary" onClick={handleSave} disabled={saving}>
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ---- View Mode ---- */}
+            {!isEditing && !showDeleteConfirm && (
+              <div style={{ padding: "1.25rem" }}>
+                <div className="detail-group" style={{ marginBottom: 4 }}>
+                  <label className="detail-label">Title</label>
+                  <div className="detail-value">{selectedAnn.title}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">Content</label>
+                  <div className="detail-value" style={{ whiteSpace: "pre-wrap" }}>{selectedAnn.content}</div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Target Audience</label>
+                    <div className="detail-value">
+                      <span className="sa-badge sa-badge-blue" style={{ textTransform: "capitalize" }}>
+                        {selectedAnn.target_audience}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
+                      {selectedAnn.is_active ? (
+                        <span className="sa-badge sa-badge-green">Active</span>
+                      ) : (
+                        <span className="sa-badge" style={{ background: "var(--surface)", color: "var(--muted)" }}>
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Created</label>
+                    <div className="detail-value">{formatDate(selectedAnn.created_at)}</div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Published</label>
+                    <div className="detail-value">
+                      {selectedAnn.published_at ? formatDate(selectedAnn.published_at) : "---"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer actions */}
+                <div className="ticket-form-actions">
+                  <button type="button" className="btn-secondary" onClick={closeDetail}>
+                    Close
+                  </button>
+                  <button type="button" className="btn-primary" onClick={startEditing}>
+                    <Pencil size={14} /> Edit
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </>
   );

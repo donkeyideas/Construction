@@ -16,18 +16,23 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { is_active } = body;
 
-    if (typeof is_active !== "boolean") {
+    const updateData: Record<string, unknown> = {};
+    if (typeof body.is_active === "boolean") updateData.is_active = body.is_active;
+    if (body.title) updateData.title = body.title;
+    if (body.content) updateData.content = body.content;
+    if (body.target_audience) updateData.target_audience = body.target_audience;
+
+    if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
-        { error: "is_active must be a boolean." },
+        { error: "No valid fields to update." },
         { status: 400 }
       );
     }
 
     const { error } = await supabase
       .from("platform_announcements")
-      .update({ is_active })
+      .update(updateData)
       .eq("id", id);
 
     if (error) {
