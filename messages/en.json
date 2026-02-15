@@ -926,6 +926,8 @@
     "modulesGridLabel": "Additional Modules Grid",
     "pricingLabel": "Pricing Plans",
     "faqLabel": "FAQ",
+    "textLabel": "Text Block",
+    "featuresLabel": "Features",
     "ctaLabel": "Call to Action",
     "headline": "Headline",
     "headlineHint": "Primary H1 — include target keyword",

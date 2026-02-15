@@ -21,6 +21,8 @@ import {
   Layers,
   Grid3X3,
   Sparkles,
+  AlignLeft,
+  LayoutGrid,
   EyeIcon,
   EyeOffIcon,
   ExternalLink,
@@ -76,6 +78,8 @@ function getSectionIcon(type: string) {
     case "modules_grid": return <Grid3X3 size={16} />;
     case "pricing": return <DollarSign size={16} />;
     case "faq": return <HelpCircle size={16} />;
+    case "text": return <AlignLeft size={16} />;
+    case "features": return <LayoutGrid size={16} />;
     case "cta": return <Megaphone size={16} />;
     default: return <FileText size={16} />;
   }
@@ -108,6 +112,8 @@ export default function ContentClient({ pages }: Props) {
     modules_grid: t("modulesGridLabel"),
     pricing: t("pricingLabel"),
     faq: t("faqLabel"),
+    text: t("textLabel"),
+    features: t("featuresLabel"),
     cta: t("ctaLabel"),
   };
 
@@ -282,39 +288,46 @@ export default function ContentClient({ pages }: Props) {
   function renderSectionEditor(section: CmsSection, idx: number) {
     const c = section.content;
     switch (section.type) {
-      case "hero":
+      case "hero": {
+        // Homepage hero uses title/subtitle/cta_text; footer pages use headline/subheadline
+        const isSimpleHero = c.headline !== undefined;
         return (
           <div className="content-section-fields">
             <Field label={t("headline")} hint={t("headlineHint")}>
-              <input value={c.title || ""} onChange={(e) => updateSectionContent(idx, "title", e.target.value)} />
+              <input value={isSimpleHero ? (c.headline || "") : (c.title || "")} onChange={(e) => updateSectionContent(idx, isSimpleHero ? "headline" : "title", e.target.value)} />
             </Field>
             <Field label={t("subtitle")} hint={t("subtitleHint")}>
-              <textarea rows={3} value={c.subtitle || ""} onChange={(e) => updateSectionContent(idx, "subtitle", e.target.value)} />
+              <textarea rows={3} value={isSimpleHero ? (c.subheadline || "") : (c.subtitle || "")} onChange={(e) => updateSectionContent(idx, isSimpleHero ? "subheadline" : "subtitle", e.target.value)} />
             </Field>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label={t("ctaButtonText")}>
-                <input value={c.cta_text || ""} onChange={(e) => updateSectionContent(idx, "cta_text", e.target.value)} />
-              </Field>
-              <Field label={t("ctaButtonLink")}>
-                <input value={c.cta_link || ""} onChange={(e) => updateSectionContent(idx, "cta_link", e.target.value)} />
-              </Field>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label={t("secondaryLinkText")}>
-                <input value={c.secondary_text || ""} onChange={(e) => updateSectionContent(idx, "secondary_text", e.target.value)} />
-              </Field>
-              <Field label={t("secondaryLinkUrl")}>
-                <input value={c.secondary_link || ""} onChange={(e) => updateSectionContent(idx, "secondary_link", e.target.value)} />
-              </Field>
-            </div>
-            <Field label={t("imageUrl")}>
-              <input value={c.image_url || ""} onChange={(e) => updateSectionContent(idx, "image_url", e.target.value)} />
-            </Field>
-            <Field label={t("imageAlt")} hint={t("imageAltHint")}>
-              <input value={c.image_alt || ""} onChange={(e) => updateSectionContent(idx, "image_alt", e.target.value)} />
-            </Field>
+            {!isSimpleHero && (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <Field label={t("ctaButtonText")}>
+                    <input value={c.cta_text || ""} onChange={(e) => updateSectionContent(idx, "cta_text", e.target.value)} />
+                  </Field>
+                  <Field label={t("ctaButtonLink")}>
+                    <input value={c.cta_link || ""} onChange={(e) => updateSectionContent(idx, "cta_link", e.target.value)} />
+                  </Field>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <Field label={t("secondaryLinkText")}>
+                    <input value={c.secondary_text || ""} onChange={(e) => updateSectionContent(idx, "secondary_text", e.target.value)} />
+                  </Field>
+                  <Field label={t("secondaryLinkUrl")}>
+                    <input value={c.secondary_link || ""} onChange={(e) => updateSectionContent(idx, "secondary_link", e.target.value)} />
+                  </Field>
+                </div>
+                <Field label={t("imageUrl")}>
+                  <input value={c.image_url || ""} onChange={(e) => updateSectionContent(idx, "image_url", e.target.value)} />
+                </Field>
+                <Field label={t("imageAlt")} hint={t("imageAltHint")}>
+                  <input value={c.image_alt || ""} onChange={(e) => updateSectionContent(idx, "image_alt", e.target.value)} />
+                </Field>
+              </>
+            )}
           </div>
         );
+      }
 
       case "about":
         return (
@@ -492,21 +505,50 @@ export default function ContentClient({ pages }: Props) {
           </div>
         );
 
+      case "text":
+        return (
+          <div className="content-section-fields">
+            <Field label={t("bodyText")} hint={t("bodyTextHint")}>
+              <textarea rows={10} value={c.body || ""} onChange={(e) => updateSectionContent(idx, "body", e.target.value)} />
+            </Field>
+          </div>
+        );
+
+      case "features":
+        return (
+          <div className="content-section-fields">
+            <Field label={t("headline")}>
+              <input value={c.headline || ""} onChange={(e) => updateSectionContent(idx, "headline", e.target.value)} />
+            </Field>
+            {(c.items || c.features || []).map((item: any, ii: number) => (
+              <div key={ii} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: 14, marginTop: 10 }}>
+                <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--color-blue)", marginBottom: 6 }}>Feature {ii + 1}</div>
+                <Field label={t("title")}>
+                  <input value={item.title || ""} onChange={(e) => updateArrayItem(idx, c.items ? "items" : "features", ii, "title", e.target.value)} />
+                </Field>
+                <Field label={t("description")}>
+                  <textarea rows={2} value={item.description || ""} onChange={(e) => updateArrayItem(idx, c.items ? "items" : "features", ii, "description", e.target.value)} />
+                </Field>
+              </div>
+            ))}
+          </div>
+        );
+
       case "cta":
         return (
           <div className="content-section-fields">
             <Field label={t("headline")}>
-              <input value={c.title || ""} onChange={(e) => updateSectionContent(idx, "title", e.target.value)} />
+              <input value={c.headline || c.title || ""} onChange={(e) => updateSectionContent(idx, c.headline !== undefined ? "headline" : "title", e.target.value)} />
             </Field>
             <Field label={t("subtitle")}>
               <textarea rows={2} value={c.subtitle || ""} onChange={(e) => updateSectionContent(idx, "subtitle", e.target.value)} />
             </Field>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <Field label={t("buttonText")}>
-                <input value={c.cta_text || ""} onChange={(e) => updateSectionContent(idx, "cta_text", e.target.value)} />
+                <input value={c.buttonText || c.cta_text || ""} onChange={(e) => updateSectionContent(idx, c.buttonText !== undefined ? "buttonText" : "cta_text", e.target.value)} />
               </Field>
               <Field label={t("buttonLink")}>
-                <input value={c.cta_link || ""} onChange={(e) => updateSectionContent(idx, "cta_link", e.target.value)} />
+                <input value={c.buttonUrl || c.cta_link || ""} onChange={(e) => updateSectionContent(idx, c.buttonUrl !== undefined ? "buttonUrl" : "cta_link", e.target.value)} />
               </Field>
             </div>
           </div>
