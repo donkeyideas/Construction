@@ -771,6 +771,8 @@
     "preview": "Preview",
     "pageSettings": "Page Settings",
     "pageTitle": "Page Title",
+    "resetToDefaults": "Reset to Defaults",
+    "resetToDefaultsSuccess": "Sections reset to SEO-optimised defaults. Click Save to persist.",
     "expandAll": "Expand All Sections",
     "heroLabel": "Hero Banner",
     "aboutLabel": "About / Story",

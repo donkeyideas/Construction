@@ -274,7 +274,7 @@ export default function ContentClient({ pages }: Props) {
     setSections(defaults.sections);
     setMetaTitle(defaults.metaTitle);
     setMetaDescription(defaults.metaDescription);
-    setNotification({ type: "success", message: "Sections reset to SEO-optimised defaults. Click Save to persist." });
+    setNotification({ type: "success", message: t("resetToDefaultsSuccess") });
   }
 
   /* ---- Section-type editors ---- */
@@ -694,7 +694,7 @@ export default function ContentClient({ pages }: Props) {
                 onClick={resetToDefaults}
                 style={{ fontSize: "0.78rem", color: "var(--color-amber)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)" }}
               >
-                Reset to Defaults
+                {t("resetToDefaults")}
               </button>
             )}
             <button
