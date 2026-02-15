@@ -28,6 +28,7 @@ interface Props {
     created_at: string;
     company_name?: string;
   }>;
+  estimatedMRR: number;
 }
 
 function formatDate(dateStr: string, loc: string): string {
@@ -69,6 +70,7 @@ export default function SuperAdminDashboardClient({
   companies,
   announcements,
   subscriptionEvents,
+  estimatedMRR,
 }: Props) {
   const t = useTranslations("superAdmin");
   const locale = useLocale();
@@ -146,10 +148,12 @@ export default function SuperAdminDashboardClient({
         </div>
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
-            <span className="sa-kpi-label">{t("enterpriseAccounts")}</span>
-            <span className="sa-kpi-value">{totalEnterprise}</span>
+            <span className="sa-kpi-label">{t("estimatedMRR")}</span>
+            <span className="sa-kpi-value">
+              ${estimatedMRR.toLocaleString()}
+            </span>
             <span className="sa-kpi-trend up">
-              {t("ofTotal", { pct: enterprisePct })}
+              ${(estimatedMRR * 12).toLocaleString()} ARR
             </span>
           </div>
           <div className="sa-kpi-icon">
