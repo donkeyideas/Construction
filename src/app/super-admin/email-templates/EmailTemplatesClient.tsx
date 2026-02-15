@@ -104,8 +104,16 @@ export default function EmailTemplatesClient({ templates }: Props) {
   /* ---- Edit / Create modal state ---- */
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  /* ---- Preview modal state ---- */
+  const [previewTemplate, setPreviewTemplate] = useState<{
+    name: string;
+    subject: string;
+    body: string;
+    variables: string[];
+    category: string;
+  } | null>(null);
 
   /* ---- Form fields ---- */
   const [formName, setFormName] = useState("");
@@ -144,7 +152,6 @@ export default function EmailTemplatesClient({ templates }: Props) {
     setFormVariables([]);
     setFormCategory("notification");
     setFormIsActive(true);
-    setShowPreview(false);
     setError("");
   }
 
@@ -157,15 +164,33 @@ export default function EmailTemplatesClient({ templates }: Props) {
     setFormVariables([...(t.variables || [])]);
     setFormCategory(t.category);
     setFormIsActive(t.is_active);
-    setShowPreview(false);
     setError("");
   }
 
   function closeModal() {
     setEditingTemplate(null);
     setIsCreating(false);
-    setShowPreview(false);
     setError("");
+  }
+
+  function openPreview(t: EmailTemplate) {
+    setPreviewTemplate({
+      name: t.name,
+      subject: t.subject,
+      body: t.body,
+      variables: [...(t.variables || [])],
+      category: t.category,
+    });
+  }
+
+  function openPreviewFromEditor() {
+    setPreviewTemplate({
+      name: formName,
+      subject: formSubject,
+      body: formBody,
+      variables: [...formVariables],
+      category: formCategory,
+    });
   }
 
   function addVariable() {
@@ -436,6 +461,14 @@ export default function EmailTemplatesClient({ templates }: Props) {
                       <div style={{ display: "flex", gap: "6px" }}>
                         <button
                           className="sa-action-btn"
+                          onClick={() => openPreview(t)}
+                          style={{ fontSize: "0.78rem", padding: "4px 10px" }}
+                          title="Preview email"
+                        >
+                          <Eye size={12} /> Preview
+                        </button>
+                        <button
+                          className="sa-action-btn"
                           onClick={() => openEdit(t)}
                           style={{ fontSize: "0.78rem", padding: "4px 10px" }}
                         >
@@ -502,31 +535,20 @@ export default function EmailTemplatesClient({ templates }: Props) {
           <div
             className="ticket-modal"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 820, maxHeight: "90vh", overflow: "auto" }}
+            style={{ maxWidth: 720, maxHeight: "92vh", overflow: "hidden", display: "flex", flexDirection: "column" }}
           >
-            {/* Modal Header */}
             <div className="ticket-modal-header">
               <h3>{isCreating ? "New Email Template" : `Edit: ${formatName(editingTemplate?.name || "")}`}</h3>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <button
-                  className="ticket-modal-close"
-                  onClick={() => setShowPreview(!showPreview)}
-                  title={showPreview ? "Hide Preview" : "Show Preview"}
-                  style={{ color: showPreview ? "var(--primary, #3b82f6)" : undefined }}
-                >
-                  <Eye size={18} />
-                </button>
-                <button className="ticket-modal-close" onClick={closeModal}>
-                  <X size={18} />
-                </button>
-              </div>
+              <button className="ticket-modal-close" onClick={closeModal}>
+                <X size={18} />
+              </button>
             </div>
 
             {error && (
-              <div className="invite-error" style={{ margin: "0 1.2rem" }}>{error}</div>
+              <div className="invite-error" style={{ margin: "12px 1.2rem 0" }}>{error}</div>
             )}
 
-            <div style={{ padding: "1.2rem" }}>
+            <div style={{ padding: "1.2rem", overflow: "auto", flex: 1 }}>
               {/* Name */}
               <div className="ticket-form-group">
                 <label className="ticket-form-label">Template Name *</label>
@@ -665,46 +687,8 @@ export default function EmailTemplatesClient({ templates }: Props) {
                 />
               </div>
 
-              {/* Preview */}
-              {showPreview && (
-                <div className="ticket-form-group">
-                  <label className="ticket-form-label" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <Eye size={14} /> Preview
-                  </label>
-                  <div
-                    style={{
-                      border: "1px solid var(--border, #e5e7eb)",
-                      borderRadius: "8px",
-                      padding: "16px",
-                      background: "#fff",
-                      maxHeight: "400px",
-                      overflow: "auto",
-                    }}
-                  >
-                    <div
-                      style={{
-                        marginBottom: "12px",
-                        padding: "8px 12px",
-                        background: "var(--surface, #f9fafb)",
-                        borderRadius: "6px",
-                        fontSize: "0.85rem",
-                      }}
-                    >
-                      <strong>Subject: </strong>
-                      {replaceVariables(formSubject, formVariables)}
-                    </div>
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: replaceVariables(formBody, formVariables),
-                      }}
-                      style={{ fontSize: "0.9rem", lineHeight: "1.6" }}
-                    />
-                  </div>
-                </div>
-              )}
-
               {/* Actions */}
-              <div className="ticket-form-actions">
+              <div className="ticket-form-actions" style={{ marginTop: 16 }}>
                 <button
                   type="button"
                   className="btn-secondary"
@@ -712,6 +696,14 @@ export default function EmailTemplatesClient({ templates }: Props) {
                   disabled={saving}
                 >
                   Cancel
+                </button>
+                <button
+                  type="button"
+                  className="sa-action-btn"
+                  onClick={openPreviewFromEditor}
+                  style={{ display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  <Eye size={14} /> Preview
                 </button>
                 <button
                   type="button"
@@ -724,6 +716,135 @@ export default function EmailTemplatesClient({ templates }: Props) {
                     : isCreating
                     ? "Create Template"
                     : "Save Changes"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Preview Modal ---- */}
+      {previewTemplate && (
+        <div
+          className="ticket-modal-overlay"
+          style={{ zIndex: 1100 }}
+          onClick={() => setPreviewTemplate(null)}
+        >
+          <div
+            className="ticket-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 780, maxHeight: "92vh", overflow: "hidden", display: "flex", flexDirection: "column" }}
+          >
+            <div className="ticket-modal-header">
+              <h3>Preview: {formatName(previewTemplate.name)}</h3>
+              <button className="ticket-modal-close" onClick={() => setPreviewTemplate(null)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: "1.2rem", overflow: "auto", flex: 1 }}>
+              {/* Email client chrome */}
+              <div style={{
+                background: "#e8eaed",
+                borderRadius: 10,
+                overflow: "hidden",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+              }}>
+                {/* Window chrome bar */}
+                <div style={{
+                  padding: "14px 20px",
+                  background: "#f8f9fa",
+                  borderBottom: "1px solid #dee2e6",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57" }} />
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e" }} />
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840" }} />
+                  </div>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem", color: "#333" }}>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: "3px 0", fontWeight: 600, width: 60, verticalAlign: "top", color: "#666" }}>From:</td>
+                        <td style={{ padding: "3px 0" }}>Buildwrk &lt;noreply@buildwrk.com&gt;</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: "3px 0", fontWeight: 600, color: "#666" }}>To:</td>
+                        <td style={{ padding: "3px 0" }}>John Smith &lt;john@acme.com&gt;</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: "3px 0", fontWeight: 600, color: "#666" }}>Subject:</td>
+                        <td style={{ padding: "3px 0", fontWeight: 600 }}>
+                          {replaceVariables(previewTemplate.subject, previewTemplate.variables)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Email body */}
+                <div style={{
+                  background: "#ffffff",
+                  padding: "32px 24px",
+                  minHeight: 300,
+                }}>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: replaceVariables(previewTemplate.body, previewTemplate.variables),
+                    }}
+                    style={{
+                      maxWidth: 600,
+                      margin: "0 auto",
+                      color: "#333333",
+                      fontSize: "15px",
+                      lineHeight: "1.7",
+                      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+                    }}
+                  />
+                </div>
+
+                {/* Email footer */}
+                <div style={{
+                  padding: "16px 24px",
+                  background: "#f8f9fa",
+                  borderTop: "1px solid #dee2e6",
+                  textAlign: "center",
+                  fontSize: "0.72rem",
+                  color: "#999",
+                }}>
+                  Buildwrk Construction &amp; Property Management &middot; info@donkeyideas.com
+                </div>
+              </div>
+
+              {/* Variables used hint */}
+              {previewTemplate.variables.length > 0 && (
+                <div style={{
+                  marginTop: 16,
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  background: "rgba(59,130,246,0.06)",
+                  border: "1px solid rgba(59,130,246,0.15)",
+                  fontSize: "0.78rem",
+                  color: "var(--muted)",
+                }}>
+                  <strong style={{ color: "var(--text)" }}>Sample values used:</strong>{" "}
+                  {previewTemplate.variables.map((v) => (
+                    <span key={v} style={{ marginRight: 10 }}>
+                      <code style={{ color: "#3b82f6" }}>{"{{" + v + "}}"}</code>
+                      {" = "}
+                      {SAMPLE_VALUES[v] || `[${v}]`}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Close button */}
+              <div style={{ marginTop: 16, textAlign: "right" }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setPreviewTemplate(null)}
+                >
+                  Close Preview
                 </button>
               </div>
             </div>
