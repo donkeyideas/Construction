@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
+import { validatePromoCode, redeemPromoCode } from "@/lib/queries/promo-codes";
 
 interface RegisterBody {
   email: string;
@@ -9,6 +10,7 @@ interface RegisterBody {
   company_slug: string;
   industry_type?: string;
   phone?: string | null;
+  promo_code?: string | null;
 }
 
 export async function POST(request: Request) {
@@ -148,6 +150,20 @@ export async function POST(request: Request) {
 
     // Chart of accounts is NOT auto-seeded. Users can load defaults from
     // the Chart of Accounts page or import their own via CSV.
+
+    // Step 5: If promo code provided, validate & redeem
+    if (body.promo_code) {
+      const promo = await validatePromoCode(body.promo_code);
+      if (promo) {
+        await redeemPromoCode(
+          promo.id,
+          companyId,
+          userId,
+          promo.duration_days,
+          promo.plan_granted
+        );
+      }
+    }
 
     return NextResponse.json(
       {

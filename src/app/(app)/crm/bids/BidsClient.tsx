@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { FileText, Plus, AlertTriangle, X, Edit3, Trash2, Upload } from "lucide-react";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
@@ -35,23 +36,6 @@ interface BidsClientProps {
   dueSoonCount: number;
 }
 
-const STATUS_LABELS: Record<BidStatus, string> = {
-  in_progress: "In Progress",
-  submitted: "Submitted",
-  won: "Won",
-  lost: "Lost",
-  no_bid: "No Bid",
-};
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "project_name", label: "Project Name", required: true },
-  { key: "client_name", label: "Client Name", required: false },
-  { key: "bid_amount", label: "Bid Amount ($)", required: false, type: "number" },
-  { key: "due_date", label: "Due Date", required: false, type: "date" },
-  { key: "bid_type", label: "Bid Type", required: false },
-  { key: "notes", label: "Notes", required: false },
-];
-
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { project_name: "Downtown Office Renovation", client_name: "Metro Corp", bid_amount: "1500000", due_date: "2026-02-28", bid_type: "competitive", notes: "Pre-qualified, strong relationship" },
   { project_name: "Highway Bridge Repair", client_name: "State DOT", bid_amount: "3200000", due_date: "2026-03-15", bid_type: "public", notes: "Prevailing wage required" },
@@ -64,6 +48,27 @@ export default function BidsClient({
   dueSoonCount,
 }: BidsClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const STATUS_LABELS: Record<BidStatus, string> = {
+    in_progress: t("bidStatusInProgress"),
+    submitted: t("bidStatusSubmitted"),
+    won: t("bidStatusWon"),
+    lost: t("bidStatusLost"),
+    no_bid: t("bidStatusNoBid"),
+  };
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "project_name", label: t("projectName"), required: true },
+    { key: "client_name", label: t("clientName"), required: false },
+    { key: "bid_amount", label: t("bidAmountDollar"), required: false, type: "number" },
+    { key: "due_date", label: t("dueDate"), required: false, type: "date" },
+    { key: "bid_type", label: t("bidType"), required: false },
+    { key: "notes", label: t("notes"), required: false },
+  ];
+
   const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -130,13 +135,13 @@ export default function BidsClient({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to update bid");
+        throw new Error(data.error || t("failedToUpdateBid"));
       }
 
       router.refresh();
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update bid");
+      setError(err instanceof Error ? err.message : t("failedToUpdateBid"));
     }
   }
 
@@ -150,13 +155,13 @@ export default function BidsClient({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to delete bid");
+        throw new Error(data.error || t("failedToDeleteBid"));
       }
 
       router.refresh();
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete bid");
+      setError(err instanceof Error ? err.message : t("failedToDeleteBid"));
     }
   }
 
@@ -167,7 +172,7 @@ export default function BidsClient({
       body: JSON.stringify({ entity: "bids", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -179,25 +184,25 @@ export default function BidsClient({
       {/* Header */}
       <div className="crm-header">
         <div>
-          <h2>Bid Management</h2>
+          <h2>{t("bidManagement")}</h2>
           <p className="crm-header-sub">
-            Track bids from preparation through award.
+            {t("trackBidsFromPreparationThroughAward")}
           </p>
         </div>
         <div className="crm-header-actions">
           <Link href="/crm" className="ui-btn ui-btn-md ui-btn-secondary">
-            Pipeline
+            {t("pipeline")}
           </Link>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <Link
             href="/crm/bids/new"
             className="ui-btn ui-btn-md ui-btn-primary"
           >
             <Plus size={16} />
-            New Bid
+            {t("newBid")}
           </Link>
         </div>
       </div>
@@ -220,8 +225,7 @@ export default function BidsClient({
         >
           <AlertTriangle size={18} style={{ color: "var(--color-amber)" }} />
           <span>
-            <strong>{dueSoonCount}</strong> bid{dueSoonCount !== 1 ? "s" : ""}{" "}
-            due within the next 7 days.
+            {t("bidsDueSoon", { count: dueSoonCount })}
           </span>
         </div>
       )}
@@ -232,31 +236,31 @@ export default function BidsClient({
           href="/crm/bids"
           className={`people-tab ${!statusFilter ? "active" : ""}`}
         >
-          All
+          {t("all")}
         </Link>
         <Link
           href="/crm/bids?status=in_progress"
           className={`people-tab ${statusFilter === "in_progress" ? "active" : ""}`}
         >
-          In Progress
+          {t("bidStatusInProgress")}
         </Link>
         <Link
           href="/crm/bids?status=submitted"
           className={`people-tab ${statusFilter === "submitted" ? "active" : ""}`}
         >
-          Submitted
+          {t("bidStatusSubmitted")}
         </Link>
         <Link
           href="/crm/bids?status=won"
           className={`people-tab ${statusFilter === "won" ? "active" : ""}`}
         >
-          Won
+          {t("bidStatusWon")}
         </Link>
         <Link
           href="/crm/bids?status=lost"
           className={`people-tab ${statusFilter === "lost" ? "active" : ""}`}
         >
-          Lost
+          {t("bidStatusLost")}
         </Link>
       </div>
 
@@ -274,7 +278,7 @@ export default function BidsClient({
               marginBottom: 8,
             }}
           >
-            No bids found
+            {t("noBidsFound")}
           </div>
           <p
             style={{
@@ -286,8 +290,8 @@ export default function BidsClient({
             }}
           >
             {statusFilter
-              ? `No bids with status "${STATUS_LABELS[statusFilter as BidStatus]}". Try a different filter.`
-              : "Create your first bid to start tracking proposals and win rates."}
+              ? t("noBidsWithStatus", { status: STATUS_LABELS[statusFilter as BidStatus] })
+              : t("createYourFirstBid")}
           </p>
           {!statusFilter && (
             <Link
@@ -295,7 +299,7 @@ export default function BidsClient({
               className="ui-btn ui-btn-md ui-btn-primary"
             >
               <Plus size={16} />
-              Create Bid
+              {t("createBid")}
             </Link>
           )}
         </div>
@@ -305,14 +309,14 @@ export default function BidsClient({
             <table className="bid-table">
               <thead>
                 <tr>
-                  <th>Bid #</th>
-                  <th>Project Name</th>
-                  <th>Client</th>
-                  <th style={{ textAlign: "right" }}>Bid Amount</th>
-                  <th style={{ textAlign: "right" }}>Est. Cost</th>
-                  <th style={{ textAlign: "right" }}>Margin</th>
-                  <th>Status</th>
-                  <th>Due Date</th>
+                  <th>{t("bidNumber")}</th>
+                  <th>{t("projectName")}</th>
+                  <th>{t("client")}</th>
+                  <th style={{ textAlign: "right" }}>{t("bidAmount")}</th>
+                  <th style={{ textAlign: "right" }}>{t("estimatedCost")}</th>
+                  <th style={{ textAlign: "right" }}>{t("margin")}</th>
+                  <th>{t("status")}</th>
+                  <th>{t("dueDate")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -367,7 +371,7 @@ export default function BidsClient({
                             }}
                           >
                             {new Date(bid.due_date).toLocaleDateString(
-                              "en-US",
+                              dateLocale,
                               {
                                 month: "short",
                                 day: "numeric",
@@ -390,7 +394,7 @@ export default function BidsClient({
 
       {showImport && (
         <ImportModal
-          entityName="Bids"
+          entityName={t("bids")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
@@ -410,7 +414,7 @@ export default function BidsClient({
             <div className="ticket-modal-header">
               <div>
                 <h3 style={{ fontSize: "1.1rem", marginBottom: 4 }}>
-                  {isEditing ? "Edit Bid" : selectedBid.bid_number}
+                  {isEditing ? t("editBid") : selectedBid.bid_number}
                 </h3>
                 {!isEditing && (
                   <p style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
@@ -421,7 +425,7 @@ export default function BidsClient({
               <button
                 className="ticket-modal-close"
                 onClick={handleClose}
-                aria-label="Close"
+                aria-label={t("close")}
               >
                 <X size={20} />
               </button>
@@ -431,9 +435,7 @@ export default function BidsClient({
             {isDeleting ? (
               <div className="ticket-delete-confirm">
                 <p>
-                  Are you sure you want to delete bid{" "}
-                  <strong>{selectedBid.bid_number}</strong>? This action cannot
-                  be undone.
+                  {t("confirmDeleteBid", { number: selectedBid.bid_number })}
                 </p>
                 {error && <div className="ticket-form-error">{error}</div>}
                 <div className="ticket-delete-actions">
@@ -444,10 +446,10 @@ export default function BidsClient({
                       setError(null);
                     }}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button className="btn-danger" onClick={handleDelete}>
-                    Delete Bid
+                    {t("deleteBid")}
                   </button>
                 </div>
               </div>
@@ -462,7 +464,7 @@ export default function BidsClient({
                 {error && <div className="ticket-form-error">{error}</div>}
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Project Name</label>
+                  <label className="ticket-form-label">{t("projectName")}</label>
                   <input
                     type="text"
                     className="ticket-form-input"
@@ -475,7 +477,7 @@ export default function BidsClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Client Name</label>
+                  <label className="ticket-form-label">{t("clientName")}</label>
                   <input
                     type="text"
                     className="ticket-form-input"
@@ -488,7 +490,7 @@ export default function BidsClient({
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Bid Amount</label>
+                    <label className="ticket-form-label">{t("bidAmount")}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -506,7 +508,7 @@ export default function BidsClient({
                   </div>
 
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Estimated Cost</label>
+                    <label className="ticket-form-label">{t("estimatedCost")}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -526,7 +528,7 @@ export default function BidsClient({
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Margin %</label>
+                    <label className="ticket-form-label">{t("marginPercent")}</label>
                     <input
                       type="number"
                       step="0.1"
@@ -544,7 +546,7 @@ export default function BidsClient({
                   </div>
 
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Status</label>
+                    <label className="ticket-form-label">{t("status")}</label>
                     <select
                       className="ticket-form-select"
                       value={formData.status || "in_progress"}
@@ -555,17 +557,17 @@ export default function BidsClient({
                         })
                       }
                     >
-                      <option value="in_progress">In Progress</option>
-                      <option value="submitted">Submitted</option>
-                      <option value="won">Won</option>
-                      <option value="lost">Lost</option>
-                      <option value="no_bid">No Bid</option>
+                      <option value="in_progress">{t("bidStatusInProgress")}</option>
+                      <option value="submitted">{t("bidStatusSubmitted")}</option>
+                      <option value="won">{t("bidStatusWon")}</option>
+                      <option value="lost">{t("bidStatusLost")}</option>
+                      <option value="no_bid">{t("bidStatusNoBid")}</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Due Date</label>
+                  <label className="ticket-form-label">{t("dueDate")}</label>
                   <input
                     type="date"
                     className="ticket-form-input"
@@ -577,7 +579,7 @@ export default function BidsClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Scope Description</label>
+                  <label className="ticket-form-label">{t("scopeDescription")}</label>
                   <textarea
                     className="ticket-form-textarea"
                     rows={4}
@@ -597,10 +599,10 @@ export default function BidsClient({
                       setError(null);
                     }}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button type="submit" className="btn-primary">
-                    Save Changes
+                    {t("saveChanges")}
                   </button>
                 </div>
               </form>
@@ -608,19 +610,19 @@ export default function BidsClient({
               <>
                 <div className="ticket-detail-body">
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Bid Number</span>
+                    <span className="ticket-detail-label">{t("bidNumber")}</span>
                     <span>{selectedBid.bid_number}</span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Project Name</span>
+                    <span className="ticket-detail-label">{t("projectName")}</span>
                     <span>{selectedBid.project_name}</span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Client</span>
+                    <span className="ticket-detail-label">{t("client")}</span>
                     <span>{selectedBid.client_name || "--"}</span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Bid Amount</span>
+                    <span className="ticket-detail-label">{t("bidAmount")}</span>
                     <span>
                       {selectedBid.bid_amount != null
                         ? formatCurrency(selectedBid.bid_amount)
@@ -628,7 +630,7 @@ export default function BidsClient({
                     </span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Estimated Cost</span>
+                    <span className="ticket-detail-label">{t("estimatedCost")}</span>
                     <span>
                       {selectedBid.estimated_cost != null
                         ? formatCurrency(selectedBid.estimated_cost)
@@ -636,7 +638,7 @@ export default function BidsClient({
                     </span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Margin</span>
+                    <span className="ticket-detail-label">{t("margin")}</span>
                     <span>
                       {selectedBid.margin_pct != null
                         ? formatPercent(selectedBid.margin_pct)
@@ -644,7 +646,7 @@ export default function BidsClient({
                     </span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Status</span>
+                    <span className="ticket-detail-label">{t("status")}</span>
                     <span
                       className={`bid-status bid-status-${selectedBid.status}`}
                     >
@@ -652,11 +654,11 @@ export default function BidsClient({
                     </span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Due Date</span>
+                    <span className="ticket-detail-label">{t("dueDate")}</span>
                     <span>
                       {selectedBid.due_date
                         ? new Date(selectedBid.due_date).toLocaleDateString(
-                            "en-US",
+                            dateLocale,
                             {
                               month: "short",
                               day: "numeric",
@@ -668,17 +670,17 @@ export default function BidsClient({
                   </div>
                   {selectedBid.scope_description && (
                     <div className="ticket-detail-row">
-                      <span className="ticket-detail-label">Scope Description</span>
+                      <span className="ticket-detail-label">{t("scopeDescription")}</span>
                       <span style={{ whiteSpace: "pre-wrap" }}>
                         {selectedBid.scope_description}
                       </span>
                     </div>
                   )}
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Created</span>
+                    <span className="ticket-detail-label">{t("created")}</span>
                     <span>
                       {new Date(selectedBid.created_at).toLocaleDateString(
-                        "en-US",
+                        dateLocale,
                         {
                           month: "short",
                           day: "numeric",
@@ -695,11 +697,11 @@ export default function BidsClient({
                     onClick={() => setIsDeleting(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button className="btn-primary" onClick={handleEdit}>
                     <Edit3 size={16} />
-                    Edit Bid
+                    {t("editBid")}
                   </button>
                 </div>
               </>

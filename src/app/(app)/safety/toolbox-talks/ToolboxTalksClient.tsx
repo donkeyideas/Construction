@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
   Plus,
@@ -20,29 +21,8 @@ import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
-// Constants
+// Constants (non-translated - topics are domain data)
 // ---------------------------------------------------------------------------
-
-const STATUS_LABELS: Record<ToolboxTalkStatus, string> = {
-  scheduled: "Scheduled",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "title", label: "Title", required: true },
-  { key: "description", label: "Description", required: false },
-  { key: "topic", label: "Topic", required: false },
-  { key: "scheduled_date", label: "Scheduled Date", required: false, type: "date" },
-  { key: "attendees_count", label: "Attendees Count", required: false, type: "number" },
-  { key: "notes", label: "Notes", required: false },
-];
-
-const IMPORT_SAMPLE: Record<string, string>[] = [
-  { title: "Fall Protection Training", description: "Review fall protection procedures and harness inspection", topic: "Fall Protection", scheduled_date: "2026-01-25", attendees_count: "15", notes: "All crew members must attend" },
-  { title: "Excavation Safety", description: "Trench safety, shoring requirements, and competent person duties", topic: "Excavation Safety", scheduled_date: "2026-02-01", attendees_count: "8", notes: "Required before excavation starts" },
-  { title: "Heat Illness Prevention", description: "Recognizing signs of heat stroke, water-rest-shade protocol", topic: "Heat Illness Prevention", scheduled_date: "2026-02-08", attendees_count: "22", notes: "Summer preparation" },
-];
 
 const TOPICS = [
   "Fall Protection",
@@ -64,32 +44,8 @@ const TOPICS = [
 ];
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers (non-translated)
 // ---------------------------------------------------------------------------
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatDateShort(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function getUserName(
-  user: { id: string; full_name: string; email: string } | null | undefined
-): string {
-  if (!user) return "Unknown";
-  return user.full_name || user.email || "Unknown";
-}
 
 function getTopicLabel(topic: unknown): string {
   if (!topic) return "--";
@@ -121,6 +77,62 @@ export default function ToolboxTalksClient({
   companyId,
 }: ToolboxTalksClientProps) {
   const router = useRouter();
+  const t = useTranslations("safety");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  // ---------------------------------------------------------------------------
+  // Constants (translated)
+  // ---------------------------------------------------------------------------
+
+  const STATUS_LABELS: Record<ToolboxTalkStatus, string> = {
+    scheduled: t("talkStatusScheduled"),
+    completed: t("talkStatusCompleted"),
+    cancelled: t("talkStatusCancelled"),
+  };
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "title", label: t("title"), required: true },
+    { key: "description", label: t("description"), required: false },
+    { key: "topic", label: t("topic"), required: false },
+    { key: "scheduled_date", label: t("scheduledDate"), required: false, type: "date" },
+    { key: "attendees_count", label: t("attendeesCount"), required: false, type: "number" },
+    { key: "notes", label: t("notes"), required: false },
+  ];
+
+  const IMPORT_SAMPLE: Record<string, string>[] = [
+    { title: "Fall Protection Training", description: "Review fall protection procedures and harness inspection", topic: "Fall Protection", scheduled_date: "2026-01-25", attendees_count: "15", notes: "All crew members must attend" },
+    { title: "Excavation Safety", description: "Trench safety, shoring requirements, and competent person duties", topic: "Excavation Safety", scheduled_date: "2026-02-01", attendees_count: "8", notes: "Required before excavation starts" },
+    { title: "Heat Illness Prevention", description: "Recognizing signs of heat stroke, water-rest-shade protocol", topic: "Heat Illness Prevention", scheduled_date: "2026-02-08", attendees_count: "22", notes: "Summer preparation" },
+  ];
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatDateShort(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  function getUserName(
+    user: { id: string; full_name: string; email: string } | null | undefined
+  ): string {
+    if (!user) return t("unknown");
+    return user.full_name || user.email || t("unknown");
+  }
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<ToolboxTalkStatus | "all">("all");
@@ -157,9 +169,9 @@ export default function ToolboxTalksClient({
   // Compute summary counts
   const statusCounts = useMemo(() => {
     const counts = { scheduled: 0, completed: 0, cancelled: 0 };
-    for (const t of talks) {
-      if (t.status in counts) {
-        counts[t.status as keyof typeof counts]++;
+    for (const tl of talks) {
+      if (tl.status in counts) {
+        counts[tl.status as keyof typeof counts]++;
       }
     }
     return counts;
@@ -170,21 +182,21 @@ export default function ToolboxTalksClient({
     let result = talks;
 
     if (statusFilter !== "all") {
-      result = result.filter((t) => t.status === statusFilter);
+      result = result.filter((tl) => tl.status === statusFilter);
     }
 
     if (topicFilter !== "all") {
-      result = result.filter((t) => getTopicLabel(t.topic) === topicFilter);
+      result = result.filter((tl) => getTopicLabel(tl.topic) === topicFilter);
     }
 
     if (search.trim()) {
       const term = search.toLowerCase();
       result = result.filter(
-        (t) =>
-          t.title.toLowerCase().includes(term) ||
-          t.talk_number.toLowerCase().includes(term) ||
-          (t.description && t.description.toLowerCase().includes(term)) ||
-          getTopicLabel(t.topic).toLowerCase().includes(term)
+        (tl) =>
+          tl.title.toLowerCase().includes(term) ||
+          tl.talk_number.toLowerCase().includes(term) ||
+          (tl.description && tl.description.toLowerCase().includes(term)) ||
+          getTopicLabel(tl.topic).toLowerCase().includes(term)
       );
     }
 
@@ -215,7 +227,7 @@ export default function ToolboxTalksClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create toolbox talk");
+        throw new Error(data.error || t("failedToCreateToolboxTalk"));
       }
 
       // Reset form and close modal
@@ -232,7 +244,7 @@ export default function ToolboxTalksClient({
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create toolbox talk");
+      setCreateError(err instanceof Error ? err.message : t("failedToCreateToolboxTalk"));
     } finally {
       setCreating(false);
     }
@@ -327,13 +339,13 @@ export default function ToolboxTalksClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update toolbox talk");
+        throw new Error(data.error || t("failedToUpdateToolboxTalk"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update toolbox talk");
+      setSaveError(err instanceof Error ? err.message : t("failedToUpdateToolboxTalk"));
     } finally {
       setSaving(false);
     }
@@ -352,13 +364,13 @@ export default function ToolboxTalksClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete toolbox talk");
+        throw new Error(data.error || t("failedToDeleteToolboxTalk"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to delete toolbox talk");
+      setSaveError(err instanceof Error ? err.message : t("failedToDeleteToolboxTalk"));
     } finally {
       setSaving(false);
     }
@@ -372,7 +384,7 @@ export default function ToolboxTalksClient({
       body: JSON.stringify({ entity: "toolbox_talks", rows, project_id: importProjectId }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -382,19 +394,19 @@ export default function ToolboxTalksClient({
       {/* Header */}
       <div className="safety-header">
         <div>
-          <h2>Toolbox Talks</h2>
+          <h2>{t("toolboxTalks")}</h2>
           <p className="safety-header-sub">
-            {talks.length} talk{talks.length !== 1 ? "s" : ""} total
+            {t("talksTotalCount", { count: talks.length })}
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New Toolbox Talk
+            {t("newToolboxTalk")}
           </button>
         </div>
       </div>
@@ -407,7 +419,7 @@ export default function ToolboxTalksClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{statusCounts.scheduled}</span>
-            <span className="safety-stat-label">Scheduled</span>
+            <span className="safety-stat-label">{t("talkStatusScheduled")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-completed">
@@ -416,7 +428,7 @@ export default function ToolboxTalksClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{statusCounts.completed}</span>
-            <span className="safety-stat-label">Completed</span>
+            <span className="safety-stat-label">{t("talkStatusCompleted")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-cancelled">
@@ -425,7 +437,7 @@ export default function ToolboxTalksClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{statusCounts.cancelled}</span>
-            <span className="safety-stat-label">Cancelled</span>
+            <span className="safety-stat-label">{t("talkStatusCancelled")}</span>
           </div>
         </div>
       </div>
@@ -436,7 +448,7 @@ export default function ToolboxTalksClient({
           <Search size={16} className="safety-search-icon" />
           <input
             type="text"
-            placeholder="Search toolbox talks..."
+            placeholder={t("searchToolboxTalks")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -447,7 +459,7 @@ export default function ToolboxTalksClient({
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as ToolboxTalkStatus | "all")}
         >
-          <option value="all">All Status</option>
+          <option value="all">{t("allStatus")}</option>
           {(Object.keys(STATUS_LABELS) as ToolboxTalkStatus[]).map((s) => (
             <option key={s} value={s}>
               {STATUS_LABELS[s]}
@@ -460,10 +472,10 @@ export default function ToolboxTalksClient({
           value={topicFilter}
           onChange={(e) => setTopicFilter(e.target.value)}
         >
-          <option value="all">All Topics</option>
-          {TOPICS.map((t) => (
-            <option key={t} value={t}>
-              {t}
+          <option value="all">{t("allTopics")}</option>
+          {TOPICS.map((tp) => (
+            <option key={tp} value={tp}>
+              {tp}
             </option>
           ))}
         </select>
@@ -477,17 +489,17 @@ export default function ToolboxTalksClient({
           </div>
           {talks.length === 0 ? (
             <>
-              <h3>No toolbox talks yet</h3>
-              <p>Schedule your first toolbox talk to get started.</p>
+              <h3>{t("noToolboxTalksYet")}</h3>
+              <p>{t("noToolboxTalksYetDesc")}</p>
               <button className="btn-primary" onClick={() => setShowCreate(true)}>
                 <Plus size={16} />
-                New Toolbox Talk
+                {t("newToolboxTalk")}
               </button>
             </>
           ) : (
             <>
-              <h3>No matching toolbox talks</h3>
-              <p>Try adjusting your search or filter criteria.</p>
+              <h3>{t("noMatchingToolboxTalks")}</h3>
+              <p>{t("tryAdjustingFilters")}</p>
             </>
           )}
         </div>
@@ -496,13 +508,13 @@ export default function ToolboxTalksClient({
           <table className="safety-table">
             <thead>
               <tr>
-                <th>Talk #</th>
-                <th>Title</th>
-                <th>Topic</th>
-                <th>Status</th>
-                <th>Conducted By</th>
-                <th>Date</th>
-                <th>Attendees</th>
+                <th>{t("talkNumber")}</th>
+                <th>{t("title")}</th>
+                <th>{t("topic")}</th>
+                <th>{t("status")}</th>
+                <th>{t("conductedBy")}</th>
+                <th>{t("date")}</th>
+                <th>{t("attendees")}</th>
               </tr>
             </thead>
             <tbody>
@@ -541,7 +553,7 @@ export default function ToolboxTalksClient({
         <div className="safety-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="safety-modal" onClick={(e) => e.stopPropagation()}>
             <div className="safety-modal-header">
-              <h3>New Toolbox Talk</h3>
+              <h3>{t("newToolboxTalk")}</h3>
               <button
                 className="safety-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -556,7 +568,7 @@ export default function ToolboxTalksClient({
 
             <form onSubmit={handleCreate} className="safety-form">
               <div className="safety-form-group">
-                <label className="safety-form-label">Title *</label>
+                <label className="safety-form-label">{t("titleRequired")}</label>
                 <input
                   type="text"
                   className="safety-form-input"
@@ -564,27 +576,27 @@ export default function ToolboxTalksClient({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="Title of the toolbox talk"
+                  placeholder={t("titleOfToolboxTalk")}
                   required
                 />
               </div>
 
               <div className="safety-form-group">
-                <label className="safety-form-label">Description</label>
+                <label className="safety-form-label">{t("description")}</label>
                 <textarea
                   className="safety-form-textarea"
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Brief description of what will be covered..."
+                  placeholder={t("briefDescriptionCovered")}
                   rows={3}
                 />
               </div>
 
               <div className="safety-form-row">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Topic</label>
+                  <label className="safety-form-label">{t("topic")}</label>
                   <select
                     className="safety-form-select"
                     value={formData.topic}
@@ -592,17 +604,17 @@ export default function ToolboxTalksClient({
                       setFormData({ ...formData, topic: e.target.value })
                     }
                   >
-                    <option value="">Select topic...</option>
-                    {TOPICS.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
+                    <option value="">{t("selectTopic")}</option>
+                    {TOPICS.map((tp) => (
+                      <option key={tp} value={tp}>
+                        {tp}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Scheduled Date</label>
+                  <label className="safety-form-label">{t("scheduledDate")}</label>
                   <input
                     type="date"
                     className="safety-form-input"
@@ -616,7 +628,7 @@ export default function ToolboxTalksClient({
 
               <div className="safety-form-row">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Project</label>
+                  <label className="safety-form-label">{t("project")}</label>
                   <select
                     className="safety-form-select"
                     value={formData.project_id}
@@ -624,7 +636,7 @@ export default function ToolboxTalksClient({
                       setFormData({ ...formData, project_id: e.target.value })
                     }
                   >
-                    <option value="">No project</option>
+                    <option value="">{t("noProject")}</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -634,7 +646,7 @@ export default function ToolboxTalksClient({
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Expected Attendees</label>
+                  <label className="safety-form-label">{t("expectedAttendees")}</label>
                   <input
                     type="number"
                     className="safety-form-input"
@@ -649,27 +661,27 @@ export default function ToolboxTalksClient({
               </div>
 
               <div className="safety-form-group">
-                <label className="safety-form-label">Attendees</label>
+                <label className="safety-form-label">{t("attendees")}</label>
                 <textarea
                   className="safety-form-textarea"
                   value={formData.attendees}
                   onChange={(e) =>
                     setFormData({ ...formData, attendees: e.target.value })
                   }
-                  placeholder="List of attendees (names, comma-separated)..."
+                  placeholder={t("attendeesListPlaceholder")}
                   rows={2}
                 />
               </div>
 
               <div className="safety-form-group">
-                <label className="safety-form-label">Notes</label>
+                <label className="safety-form-label">{t("notes")}</label>
                 <textarea
                   className="safety-form-textarea"
                   value={formData.notes}
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
                   }
-                  placeholder="Additional notes..."
+                  placeholder={t("additionalNotes")}
                   rows={2}
                 />
               </div>
@@ -680,14 +692,14 @@ export default function ToolboxTalksClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !formData.title.trim()}
                 >
-                  {creating ? "Creating..." : "Create Talk"}
+                  {creating ? t("creating") : t("createTalk")}
                 </button>
               </div>
             </form>
@@ -702,7 +714,7 @@ export default function ToolboxTalksClient({
             <div className="safety-modal-header">
               <h3>
                 {isEditing
-                  ? `Edit ${selectedTalk.talk_number}`
+                  ? t("editTalkNumber", { number: selectedTalk.talk_number })
                   : selectedTalk.talk_number}
               </h3>
               <button className="safety-modal-close" onClick={closeDetail}>
@@ -731,7 +743,7 @@ export default function ToolboxTalksClient({
                   style={{ maxWidth: 440 }}
                 >
                   <div className="safety-modal-header">
-                    <h3>Delete Toolbox Talk</h3>
+                    <h3>{t("deleteToolboxTalk")}</h3>
                     <button
                       className="safety-modal-close"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -741,9 +753,7 @@ export default function ToolboxTalksClient({
                   </div>
                   <div style={{ padding: "1rem 1.5rem" }}>
                     <p>
-                      Are you sure you want to delete toolbox talk{" "}
-                      <strong>{selectedTalk.talk_number}</strong>? This action
-                      cannot be undone.
+                      {t("deleteToolboxTalkConfirm", { number: selectedTalk.talk_number })}
                     </p>
                   </div>
                   <div className="safety-form-actions">
@@ -753,7 +763,7 @@ export default function ToolboxTalksClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="button"
@@ -762,7 +772,7 @@ export default function ToolboxTalksClient({
                       onClick={handleDelete}
                       disabled={saving}
                     >
-                      {saving ? "Deleting..." : "Delete"}
+                      {saving ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 </div>
@@ -774,11 +784,11 @@ export default function ToolboxTalksClient({
               <div style={{ padding: "1.25rem", pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Title</label>
+                    <label className="detail-label">{t("title")}</label>
                     <div className="detail-value">{selectedTalk.title}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Status</label>
+                    <label className="detail-label">{t("status")}</label>
                     <div className="detail-value">
                       <span className={`safety-status-badge status-${selectedTalk.status}`}>
                         {STATUS_LABELS[selectedTalk.status] ?? selectedTalk.status}
@@ -789,54 +799,54 @@ export default function ToolboxTalksClient({
 
                 {selectedTalk.description && (
                   <div className="detail-group">
-                    <label className="detail-label">Description</label>
+                    <label className="detail-label">{t("description")}</label>
                     <div className="detail-value--multiline">{selectedTalk.description}</div>
                   </div>
                 )}
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Topic</label>
+                    <label className="detail-label">{t("topic")}</label>
                     <div className="detail-value">{getTopicLabel(selectedTalk.topic)}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Scheduled Date</label>
+                    <label className="detail-label">{t("scheduledDate")}</label>
                     <div className="detail-value">{formatDate(selectedTalk.scheduled_date)}</div>
                   </div>
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Project</label>
+                    <label className="detail-label">{t("project")}</label>
                     <div className="detail-value">{selectedTalk.project?.name || "--"}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Conducted By</label>
+                    <label className="detail-label">{t("conductedBy")}</label>
                     <div className="detail-value">{getUserName(selectedTalk.conductor)}</div>
                   </div>
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Attendees Count</label>
+                    <label className="detail-label">{t("attendeesCount")}</label>
                     <div className="detail-value">{selectedTalk.attendees_count || 0}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Created</label>
+                    <label className="detail-label">{t("created")}</label>
                     <div className="detail-value">{formatDate(selectedTalk.created_at)}</div>
                   </div>
                 </div>
 
                 {selectedTalk.attendees && (
                   <div className="detail-group">
-                    <label className="detail-label">Attendees</label>
+                    <label className="detail-label">{t("attendees")}</label>
                     <div className="detail-value--multiline">{selectedTalk.attendees}</div>
                   </div>
                 )}
 
                 {selectedTalk.notes && (
                   <div className="detail-group">
-                    <label className="detail-label">Notes</label>
+                    <label className="detail-label">{t("notes")}</label>
                     <div className="detail-value--multiline">{selectedTalk.notes}</div>
                   </div>
                 )}
@@ -849,14 +859,14 @@ export default function ToolboxTalksClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("close")}
                   </button>
                   <button
                     type="button"
@@ -864,7 +874,7 @@ export default function ToolboxTalksClient({
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -874,7 +884,7 @@ export default function ToolboxTalksClient({
             {isEditing && (
               <div className="safety-form">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Title *</label>
+                  <label className="safety-form-label">{t("titleRequired")}</label>
                   <input
                     type="text"
                     className="safety-form-input"
@@ -887,7 +897,7 @@ export default function ToolboxTalksClient({
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Description</label>
+                  <label className="safety-form-label">{t("description")}</label>
                   <textarea
                     className="safety-form-textarea"
                     value={(editData.description as string) || ""}
@@ -900,7 +910,7 @@ export default function ToolboxTalksClient({
 
                 <div className="safety-form-row">
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Status</label>
+                    <label className="safety-form-label">{t("status")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.status as string) || "scheduled"}
@@ -916,7 +926,7 @@ export default function ToolboxTalksClient({
                     </select>
                   </div>
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Topic</label>
+                    <label className="safety-form-label">{t("topic")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.topic as string) || ""}
@@ -924,10 +934,10 @@ export default function ToolboxTalksClient({
                         setEditData({ ...editData, topic: e.target.value })
                       }
                     >
-                      <option value="">Select topic...</option>
-                      {TOPICS.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
+                      <option value="">{t("selectTopic")}</option>
+                      {TOPICS.map((tp) => (
+                        <option key={tp} value={tp}>
+                          {tp}
                         </option>
                       ))}
                     </select>
@@ -936,7 +946,7 @@ export default function ToolboxTalksClient({
 
                 <div className="safety-form-row">
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Scheduled Date</label>
+                    <label className="safety-form-label">{t("scheduledDate")}</label>
                     <input
                       type="date"
                       className="safety-form-input"
@@ -947,7 +957,7 @@ export default function ToolboxTalksClient({
                     />
                   </div>
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Project</label>
+                    <label className="safety-form-label">{t("project")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.project_id as string) || ""}
@@ -955,7 +965,7 @@ export default function ToolboxTalksClient({
                         setEditData({ ...editData, project_id: e.target.value })
                       }
                     >
-                      <option value="">No project</option>
+                      <option value="">{t("noProject")}</option>
                       {projects.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
@@ -967,7 +977,7 @@ export default function ToolboxTalksClient({
 
                 <div className="safety-form-row">
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Attendees Count</label>
+                    <label className="safety-form-label">{t("attendeesCount")}</label>
                     <input
                       type="number"
                       className="safety-form-input"
@@ -979,7 +989,7 @@ export default function ToolboxTalksClient({
                     />
                   </div>
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Attendees</label>
+                    <label className="safety-form-label">{t("attendees")}</label>
                     <input
                       type="text"
                       className="safety-form-input"
@@ -987,13 +997,13 @@ export default function ToolboxTalksClient({
                       onChange={(e) =>
                         setEditData({ ...editData, attendees: e.target.value })
                       }
-                      placeholder="Comma-separated names..."
+                      placeholder={t("commaSeparatedNames")}
                     />
                   </div>
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Notes</label>
+                  <label className="safety-form-label">{t("notes")}</label>
                   <textarea
                     className="safety-form-textarea"
                     value={(editData.notes as string) || ""}
@@ -1011,7 +1021,7 @@ export default function ToolboxTalksClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -1019,7 +1029,7 @@ export default function ToolboxTalksClient({
                     onClick={handleSave}
                     disabled={saving || !(editData.title as string)?.trim()}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>
@@ -1030,7 +1040,7 @@ export default function ToolboxTalksClient({
 
       {showImport && (
         <ImportModal
-          entityName="Toolbox Talk"
+          entityName={t("toolboxTalkEntity")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}

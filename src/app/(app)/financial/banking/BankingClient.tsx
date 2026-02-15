@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Landmark,
   DollarSign,
@@ -42,15 +43,6 @@ function accountTypeBadgeClass(type: string): string {
   }
 }
 
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "name", label: "Account Name", required: true },
-  { key: "bank_name", label: "Bank Name", required: true },
-  { key: "account_type", label: "Account Type", required: false },
-  { key: "account_number_last4", label: "Last 4 of Acct #", required: false },
-  { key: "routing_number_last4", label: "Last 4 of Routing #", required: false },
-  { key: "current_balance", label: "Current Balance ($)", required: false, type: "number" },
-];
-
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { name: "Operating Account", bank_name: "Chase", account_type: "checking", account_number_last4: "4567", routing_number_last4: "1234", current_balance: "125000" },
   { name: "Payroll Account", bank_name: "Chase", account_type: "checking", account_number_last4: "8901", routing_number_last4: "1234", current_balance: "45000" },
@@ -73,6 +65,18 @@ export default function BankingClient({
   companyId,
 }: BankingClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "name", label: t("importAccountName"), required: true },
+    { key: "bank_name", label: t("importBankName"), required: true },
+    { key: "account_type", label: t("importAccountType"), required: false },
+    { key: "account_number_last4", label: t("importLast4Account"), required: false },
+    { key: "routing_number_last4", label: t("importLast4Routing"), required: false },
+    { key: "current_balance", label: t("importCurrentBalance"), required: false, type: "number" },
+  ];
 
   // Create modal
   const [showCreate, setShowCreate] = useState(false);
@@ -108,7 +112,7 @@ export default function BankingClient({
       body: JSON.stringify({ entity: "bank_accounts", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -135,7 +139,7 @@ export default function BankingClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create bank account");
+        throw new Error(data.error || t("failedToCreateBankAccount"));
       }
 
       setFormData({
@@ -150,7 +154,7 @@ export default function BankingClient({
       router.refresh();
     } catch (err: unknown) {
       setCreateError(
-        err instanceof Error ? err.message : "Failed to create bank account"
+        err instanceof Error ? err.message : t("failedToCreateBankAccount")
       );
     } finally {
       setCreating(false);
@@ -248,7 +252,7 @@ export default function BankingClient({
         });
         if (!directRes.ok) {
           const data = await res.json();
-          throw new Error(data.error || "Failed to update bank account");
+          throw new Error(data.error || t("failedToUpdateBankAccount"));
         }
       }
 
@@ -256,7 +260,7 @@ export default function BankingClient({
       router.refresh();
     } catch (err: unknown) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to update bank account"
+        err instanceof Error ? err.message : t("failedToUpdateBankAccount")
       );
     } finally {
       setSaving(false);
@@ -277,14 +281,14 @@ export default function BankingClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete bank account");
+        throw new Error(data.error || t("failedToDeleteBankAccount"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to delete bank account"
+        err instanceof Error ? err.message : t("failedToDeleteBankAccount")
       );
     } finally {
       setSaving(false);
@@ -296,9 +300,9 @@ export default function BankingClient({
       {/* Header */}
       <div className="banking-header">
         <div>
-          <h2>Banking</h2>
+          <h2>{t("banking")}</h2>
           <p className="banking-header-sub">
-            Manage bank accounts, transactions, and reconciliations
+            {t("bankingSubtitle")}
           </p>
         </div>
         <div className="banking-header-actions">
@@ -308,18 +312,18 @@ export default function BankingClient({
               router.push("/financial/banking/reconciliation")
             }
           >
-            Reconciliation
+            {t("reconciliation")}
           </button>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button
             className="btn-primary"
             onClick={() => setShowCreate(true)}
           >
             <Plus size={16} />
-            Add Bank Account
+            {t("addBankAccount")}
           </button>
         </div>
       </div>
@@ -334,7 +338,7 @@ export default function BankingClient({
             <span className="banking-stat-value">
               {formatCurrency(stats.totalBalance)}
             </span>
-            <span className="banking-stat-label">Total Cash Position</span>
+            <span className="banking-stat-label">{t("totalCashPosition")}</span>
           </div>
         </div>
         <div className="banking-stat-card stat-accounts">
@@ -343,7 +347,7 @@ export default function BankingClient({
           </div>
           <div className="banking-stat-info">
             <span className="banking-stat-value">{stats.accountCount}</span>
-            <span className="banking-stat-label">Bank Accounts</span>
+            <span className="banking-stat-label">{t("bankAccounts")}</span>
           </div>
         </div>
         <div className="banking-stat-card stat-unreconciled">
@@ -354,7 +358,7 @@ export default function BankingClient({
             <span className="banking-stat-value">
               {stats.unreconciledCount}
             </span>
-            <span className="banking-stat-label">Unreconciled Txns</span>
+            <span className="banking-stat-label">{t("unreconciledTxns")}</span>
           </div>
         </div>
       </div>
@@ -365,14 +369,14 @@ export default function BankingClient({
           <div className="banking-empty-icon">
             <Landmark size={28} />
           </div>
-          <h3>No bank accounts yet</h3>
-          <p>Add your first bank account to start tracking finances.</p>
+          <h3>{t("noBankAccountsYet")}</h3>
+          <p>{t("addFirstBankAccount")}</p>
           <button
             className="btn-primary"
             onClick={() => setShowCreate(true)}
           >
             <Plus size={16} />
-            Add Bank Account
+            {t("addBankAccount")}
           </button>
         </div>
       ) : (
@@ -392,7 +396,7 @@ export default function BankingClient({
                 <button
                   className="banking-account-card-menu"
                   onClick={(e) => openDetail(e, account)}
-                  title="Edit / Delete"
+                  title={t("editDelete")}
                 >
                   <Edit3 size={14} />
                 </button>
@@ -429,7 +433,7 @@ export default function BankingClient({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="banking-modal-header">
-              <h3>Add Bank Account</h3>
+              <h3>{t("addBankAccount")}</h3>
               <button
                 className="banking-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -444,7 +448,7 @@ export default function BankingClient({
 
             <form onSubmit={handleCreate} className="banking-form">
               <div className="banking-form-group">
-                <label className="banking-form-label">Account Name *</label>
+                <label className="banking-form-label">{t("accountNameRequired")}</label>
                 <input
                   type="text"
                   className="banking-form-input"
@@ -452,13 +456,13 @@ export default function BankingClient({
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  placeholder="e.g. Main Operating Account"
+                  placeholder={t("accountNamePlaceholder")}
                   required
                 />
               </div>
 
               <div className="banking-form-group">
-                <label className="banking-form-label">Bank Name *</label>
+                <label className="banking-form-label">{t("bankNameRequired")}</label>
                 <input
                   type="text"
                   className="banking-form-input"
@@ -466,14 +470,14 @@ export default function BankingClient({
                   onChange={(e) =>
                     setFormData({ ...formData, bank_name: e.target.value })
                   }
-                  placeholder="e.g. Chase, Wells Fargo"
+                  placeholder={t("bankNamePlaceholder")}
                   required
                 />
               </div>
 
               <div className="banking-form-row">
                 <div className="banking-form-group">
-                  <label className="banking-form-label">Account Type *</label>
+                  <label className="banking-form-label">{t("accountTypeRequired")}</label>
                   <select
                     className="banking-form-select"
                     value={formData.account_type}
@@ -484,15 +488,15 @@ export default function BankingClient({
                       })
                     }
                   >
-                    <option value="checking">Checking</option>
-                    <option value="savings">Savings</option>
-                    <option value="credit">Credit</option>
+                    <option value="checking">{t("checking")}</option>
+                    <option value="savings">{t("savings")}</option>
+                    <option value="credit">{t("credit")}</option>
                   </select>
                 </div>
 
                 <div className="banking-form-group">
                   <label className="banking-form-label">
-                    Opening Balance
+                    {t("openingBalance")}
                   </label>
                   <input
                     type="number"
@@ -513,7 +517,7 @@ export default function BankingClient({
               <div className="banking-form-row">
                 <div className="banking-form-group">
                   <label className="banking-form-label">
-                    Account # (last 4)
+                    {t("accountNumberLast4")}
                   </label>
                   <input
                     type="text"
@@ -532,7 +536,7 @@ export default function BankingClient({
 
                 <div className="banking-form-group">
                   <label className="banking-form-label">
-                    Routing # (last 4)
+                    {t("routingNumberLast4")}
                   </label>
                   <input
                     type="text"
@@ -556,7 +560,7 @@ export default function BankingClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -567,7 +571,7 @@ export default function BankingClient({
                     !formData.bank_name.trim()
                   }
                 >
-                  {creating ? "Creating..." : "Add Account"}
+                  {creating ? t("creating") : t("addAccount")}
                 </button>
               </div>
             </form>
@@ -585,7 +589,7 @@ export default function BankingClient({
             <div className="banking-modal-header">
               <h3>
                 {isEditing
-                  ? `Edit ${selectedAccount.name}`
+                  ? t("editAccountName", { name: selectedAccount.name })
                   : selectedAccount.name}
               </h3>
               <button className="banking-modal-close" onClick={closeDetail}>
@@ -614,7 +618,7 @@ export default function BankingClient({
                   style={{ maxWidth: 440 }}
                 >
                   <div className="banking-modal-header">
-                    <h3>Delete Bank Account</h3>
+                    <h3>{t("deleteBankAccount")}</h3>
                     <button
                       className="banking-modal-close"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -624,10 +628,7 @@ export default function BankingClient({
                   </div>
                   <div style={{ padding: "1rem 1.5rem" }}>
                     <p>
-                      Are you sure you want to delete{" "}
-                      <strong>{selectedAccount.name}</strong>? This will
-                      also remove all associated transactions. This action
-                      cannot be undone.
+                      {t("deleteBankAccountConfirm", { name: selectedAccount.name })}
                     </p>
                   </div>
                   <div className="banking-form-actions">
@@ -637,7 +638,7 @@ export default function BankingClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="button"
@@ -648,7 +649,7 @@ export default function BankingClient({
                       onClick={handleDelete}
                       disabled={saving}
                     >
-                      {saving ? "Deleting..." : "Delete"}
+                      {saving ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 </div>
@@ -665,7 +666,7 @@ export default function BankingClient({
               >
                 <div className="banking-form-row">
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Account Name</label>
+                    <label className="banking-form-label">{t("accountName")}</label>
                     <div
                       className="banking-form-input"
                       style={{
@@ -677,7 +678,7 @@ export default function BankingClient({
                     </div>
                   </div>
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Bank Name</label>
+                    <label className="banking-form-label">{t("bankName")}</label>
                     <div
                       className="banking-form-input"
                       style={{
@@ -692,7 +693,7 @@ export default function BankingClient({
 
                 <div className="banking-form-row">
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Account Type</label>
+                    <label className="banking-form-label">{t("accountType")}</label>
                     <div
                       className="banking-form-input"
                       style={{
@@ -710,7 +711,7 @@ export default function BankingClient({
                     </div>
                   </div>
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Balance</label>
+                    <label className="banking-form-label">{t("balance")}</label>
                     <div
                       className="banking-form-input"
                       style={{
@@ -727,7 +728,7 @@ export default function BankingClient({
                 <div className="banking-form-row">
                   <div className="banking-form-group">
                     <label className="banking-form-label">
-                      Account # (last 4)
+                      {t("accountNumberLast4")}
                     </label>
                     <div
                       className="banking-form-input"
@@ -743,7 +744,7 @@ export default function BankingClient({
                   </div>
                   <div className="banking-form-group">
                     <label className="banking-form-label">
-                      Routing # (last 4)
+                      {t("routingNumberLast4")}
                     </label>
                     <div
                       className="banking-form-input"
@@ -767,14 +768,14 @@ export default function BankingClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("close")}
                   </button>
                   <button
                     type="button"
@@ -782,7 +783,7 @@ export default function BankingClient({
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -794,7 +795,7 @@ export default function BankingClient({
                 <div className="banking-form-row">
                   <div className="banking-form-group">
                     <label className="banking-form-label">
-                      Account Name *
+                      {t("accountNameRequired")}
                     </label>
                     <input
                       type="text"
@@ -807,7 +808,7 @@ export default function BankingClient({
                     />
                   </div>
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Bank Name *</label>
+                    <label className="banking-form-label">{t("bankNameRequired")}</label>
                     <input
                       type="text"
                       className="banking-form-input"
@@ -825,7 +826,7 @@ export default function BankingClient({
 
                 <div className="banking-form-row">
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Account Type</label>
+                    <label className="banking-form-label">{t("accountType")}</label>
                     <select
                       className="banking-form-select"
                       value={(editData.account_type as string) || "checking"}
@@ -836,13 +837,13 @@ export default function BankingClient({
                         })
                       }
                     >
-                      <option value="checking">Checking</option>
-                      <option value="savings">Savings</option>
-                      <option value="credit">Credit</option>
+                      <option value="checking">{t("checking")}</option>
+                      <option value="savings">{t("savings")}</option>
+                      <option value="credit">{t("credit")}</option>
                     </select>
                   </div>
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Balance</label>
+                    <label className="banking-form-label">{t("balance")}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -861,7 +862,7 @@ export default function BankingClient({
                 <div className="banking-form-row">
                   <div className="banking-form-group">
                     <label className="banking-form-label">
-                      Account # (last 4)
+                      {t("accountNumberLast4")}
                     </label>
                     <input
                       type="text"
@@ -880,7 +881,7 @@ export default function BankingClient({
                   </div>
                   <div className="banking-form-group">
                     <label className="banking-form-label">
-                      Routing # (last 4)
+                      {t("routingNumberLast4")}
                     </label>
                     <input
                       type="text"
@@ -906,7 +907,7 @@ export default function BankingClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -916,7 +917,7 @@ export default function BankingClient({
                       saving || !(editData.name as string)?.trim()
                     }
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>
@@ -929,7 +930,7 @@ export default function BankingClient({
         <ImportModal
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
-          entityName="Bank Accounts"
+          entityName={t("bankAccountsEntity")}
           onImport={handleImport}
           onClose={() => setShowImport(false)}
         />

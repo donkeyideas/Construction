@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Calculator,
   Plus,
@@ -67,6 +68,10 @@ export default function EstimatingClient({
   projects,
   companyId,
 }: EstimatingClientProps) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const router = useRouter();
   const [tab, setTab] = useState<"estimates" | "assemblies">("estimates");
   const [showCreate, setShowCreate] = useState(false);
@@ -108,14 +113,14 @@ export default function EstimatingClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create estimate");
+        throw new Error(data.error || t("estimatingCreateFailed"));
       }
 
       setShowCreate(false);
       setFormData({ title: "", description: "", project_id: "", overhead_pct: "10", profit_pct: "10" });
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create");
+      setCreateError(err instanceof Error ? err.message : t("estimatingCreateFailed"));
     } finally {
       setCreating(false);
     }
@@ -126,9 +131,9 @@ export default function EstimatingClient({
       {/* Header - matches CRM Bids layout */}
       <div className="crm-header">
         <div>
-          <h2>Estimating</h2>
+          <h2>{t("estimatingTitle")}</h2>
           <p className="crm-header-sub">
-            Create cost estimates and manage reusable assemblies
+            {t("estimatingSubtitle")}
           </p>
         </div>
         <div className="crm-header-actions">
@@ -137,7 +142,7 @@ export default function EstimatingClient({
             onClick={() => setShowCreate(true)}
           >
             <Plus size={16} />
-            New Estimate
+            {t("estimatingNewEstimate")}
           </button>
         </div>
       </div>
@@ -148,28 +153,28 @@ export default function EstimatingClient({
           <div className="pipeline-summary-icon">
             <FileText size={20} />
           </div>
-          <div className="pipeline-summary-label">Total Estimates</div>
+          <div className="pipeline-summary-label">{t("estimatingTotalEstimates")}</div>
           <div className="pipeline-summary-value">{totalEstimates}</div>
         </div>
         <div>
           <div className="pipeline-summary-icon">
             <DollarSign size={20} />
           </div>
-          <div className="pipeline-summary-label">Total Value</div>
+          <div className="pipeline-summary-label">{t("estimatingTotalValue")}</div>
           <div className="pipeline-summary-value">{formatCurrency(totalValue)}</div>
         </div>
         <div>
           <div className="pipeline-summary-icon">
             <Calculator size={20} />
           </div>
-          <div className="pipeline-summary-label">Avg. Margin</div>
+          <div className="pipeline-summary-label">{t("estimatingAvgMargin")}</div>
           <div className="pipeline-summary-value">{avgMargin.toFixed(1)}%</div>
         </div>
         <div>
           <div className="pipeline-summary-icon">
             <Package size={20} />
           </div>
-          <div className="pipeline-summary-label">Assemblies</div>
+          <div className="pipeline-summary-label">{t("estimatingAssemblies")}</div>
           <div className="pipeline-summary-value">{assemblies.length}</div>
         </div>
       </div>
@@ -180,13 +185,13 @@ export default function EstimatingClient({
           className={`people-tab ${tab === "estimates" ? "active" : ""}`}
           onClick={() => setTab("estimates")}
         >
-          Estimates
+          {t("estimatingEstimatesTab")}
         </button>
         <button
           className={`people-tab ${tab === "assemblies" ? "active" : ""}`}
           onClick={() => setTab("assemblies")}
         >
-          Assemblies
+          {t("estimatingAssembliesTab")}
         </button>
       </div>
 
@@ -199,16 +204,16 @@ export default function EstimatingClient({
                 <Calculator size={48} />
               </div>
               <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.15rem", fontWeight: 600, marginBottom: 8 }}>
-                No Estimates Yet
+                {t("estimatingNoEstimatesTitle")}
               </div>
               <div style={{ color: "var(--muted)", fontSize: "0.85rem", maxWidth: "400px", margin: "0 auto 20px" }}>
-                Create your first cost estimate to start tracking project budgets.
+                {t("estimatingNoEstimatesDesc")}
               </div>
               <button
                 className="ui-btn ui-btn-md ui-btn-primary"
                 onClick={() => setShowCreate(true)}
               >
-                <Plus size={16} /> Create Estimate
+                <Plus size={16} /> {t("estimatingCreateEstimate")}
               </button>
             </div>
           ) : (
@@ -216,14 +221,14 @@ export default function EstimatingClient({
               <table className="bid-table">
                 <thead>
                   <tr>
-                    <th>Number</th>
-                    <th>Title</th>
-                    <th>Project</th>
-                    <th>Status</th>
-                    <th className="amount-col">Cost</th>
-                    <th className="amount-col">Price</th>
-                    <th className="margin-col">Margin</th>
-                    <th>Created</th>
+                    <th>{t("estimatingColNumber")}</th>
+                    <th>{t("estimatingColTitle")}</th>
+                    <th>{t("estimatingColProject")}</th>
+                    <th>{t("estimatingColStatus")}</th>
+                    <th className="amount-col">{t("estimatingColCost")}</th>
+                    <th className="amount-col">{t("estimatingColPrice")}</th>
+                    <th className="margin-col">{t("estimatingColMargin")}</th>
+                    <th>{t("estimatingColCreated")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -248,7 +253,7 @@ export default function EstimatingClient({
                         <td className={`margin-col ${getMarginClass(est.margin_pct)}`}>
                           {est.margin_pct?.toFixed(1)}%
                         </td>
-                        <td suppressHydrationWarning>{new Date(est.created_at + "T00:00:00").toLocaleDateString()}</td>
+                        <td suppressHydrationWarning>{new Date(est.created_at + "T00:00:00").toLocaleDateString(dateLocale)}</td>
                       </tr>
                     );
                   })}
@@ -268,10 +273,10 @@ export default function EstimatingClient({
                 <Package size={48} />
               </div>
               <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.15rem", fontWeight: 600, marginBottom: 8 }}>
-                No Assemblies Yet
+                {t("estimatingNoAssembliesTitle")}
               </div>
               <div style={{ color: "var(--muted)", fontSize: "0.85rem", maxWidth: "400px", margin: "0 auto" }}>
-                Create reusable assembly templates (e.g., &quot;Standard Bathroom&quot;) to speed up estimating.
+                {t("estimatingNoAssembliesDesc")}
               </div>
             </div>
           ) : (
@@ -299,43 +304,43 @@ export default function EstimatingClient({
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px" }}>
             <div className="ticket-modal-header">
-              <h3>New Estimate</h3>
+              <h3>{t("estimatingNewEstimate")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate}>
               <div className="ticket-modal-content">
                 {createError && <div className="settings-form-message error">{createError}</div>}
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Title *</label>
+                  <label className="ticket-form-label">{t("estimatingFormTitle")} *</label>
                   <input className="ticket-form-input" required value={formData.title} onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))} />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Description</label>
+                  <label className="ticket-form-label">{t("estimatingFormDescription")}</label>
                   <textarea className="ticket-form-textarea" rows={2} value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Project</label>
+                  <label className="ticket-form-label">{t("estimatingFormProject")}</label>
                   <select className="ticket-form-select" value={formData.project_id} onChange={(e) => setFormData((p) => ({ ...p, project_id: e.target.value }))}>
-                    <option value="">No project (standalone)</option>
+                    <option value="">{t("estimatingNoProject")}</option>
                     {projects.map((p) => <option key={p.id} value={p.id}>{p.code ? `${p.code} - ` : ""}{p.name}</option>)}
                   </select>
                 </div>
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Overhead %</label>
+                    <label className="ticket-form-label">{t("estimatingOverheadPct")}</label>
                     <input className="ticket-form-input" type="number" min="0" step="0.5" value={formData.overhead_pct} onChange={(e) => setFormData((p) => ({ ...p, overhead_pct: e.target.value }))} />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Profit %</label>
+                    <label className="ticket-form-label">{t("estimatingProfitPct")}</label>
                     <input className="ticket-form-input" type="number" min="0" step="0.5" value={formData.profit_pct} onChange={(e) => setFormData((p) => ({ ...p, profit_pct: e.target.value }))} />
                   </div>
                 </div>
               </div>
               <div className="ticket-modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>Cancel</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
                 <button type="submit" className="btn-primary" disabled={creating}>
                   {creating ? <Loader2 size={14} className="spin-icon" /> : <Plus size={14} />}
-                  {creating ? "Creating..." : "Create Estimate"}
+                  {creating ? t("estimatingCreating") : t("estimatingCreateEstimate")}
                 </button>
               </div>
             </form>

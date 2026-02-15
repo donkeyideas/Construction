@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   FolderOpen,
   FileText,
@@ -76,15 +77,6 @@ function isPreviewable(fileType: string): "pdf" | "image" | false {
   return false;
 }
 
-const categoryLabels: Record<string, string> = {
-  plan: "Plans",
-  spec: "Specs",
-  contract: "Contracts",
-  photo: "Photos",
-  report: "Reports",
-  correspondence: "Correspondence",
-};
-
 const categoryBadgeClass: Record<string, string> = {
   plan: "badge badge-blue",
   spec: "badge badge-amber",
@@ -106,6 +98,9 @@ export default function DocumentsClient({
   showUpload = false,
 }: DocumentsClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const [selectedDoc, setSelectedDoc] = useState<DocumentRow | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -129,6 +124,15 @@ export default function DocumentsClient({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+
+  const categoryLabels: Record<string, string> = {
+    plan: t("categoryPlans"),
+    spec: t("categorySpecs"),
+    contract: t("categoryContracts"),
+    photo: t("categoryPhotos"),
+    report: t("categoryReports"),
+    correspondence: t("categoryCorrespondence"),
+  };
 
   const fetchSignedUrl = useCallback(async (docId: string): Promise<string | null> => {
     try {
@@ -166,7 +170,7 @@ export default function DocumentsClient({
         setPreviewUrl(url);
         setShowPreview(true);
       } else {
-        setPreviewError("Could not load file preview. The file may not exist in storage.");
+        setPreviewError(t("previewLoadError"));
       }
     }
   };
@@ -199,13 +203,13 @@ export default function DocumentsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete document");
+        throw new Error(data.error || t("failedToDeleteDocument"));
       }
 
       handleCloseModal();
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete document");
+      setError(err instanceof Error ? err.message : t("failedToDeleteDocument"));
     } finally {
       setIsDeleting(false);
     }
@@ -216,7 +220,7 @@ export default function DocumentsClient({
     if (url) {
       window.open(url, "_blank");
     } else {
-      setError("Could not generate download URL. The file may not exist in storage.");
+      setError(t("downloadUrlError"));
     }
   };
 
@@ -252,7 +256,7 @@ export default function DocumentsClient({
           JSON.stringify(
             uploadTags
               .split(",")
-              .map((t) => t.trim())
+              .map((tg) => tg.trim())
               .filter(Boolean)
           )
         );
@@ -265,7 +269,7 @@ export default function DocumentsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to upload document");
+        throw new Error(data.error || t("failedToUploadDocument"));
       }
 
       // Reset and close
@@ -279,7 +283,7 @@ export default function DocumentsClient({
       router.refresh();
     } catch (err) {
       setUploadError(
-        err instanceof Error ? err.message : "Failed to upload document"
+        err instanceof Error ? err.message : t("failedToUploadDocument")
       );
     } finally {
       setIsUploading(false);
@@ -307,7 +311,7 @@ export default function DocumentsClient({
     >
       <div className="ticket-modal" style={{ maxWidth: "560px" }}>
         <div className="ticket-modal-header">
-          <h3>Upload Document</h3>
+          <h3>{t("uploadDocument")}</h3>
           <button
             className="ticket-modal-close"
             onClick={() => setShowUploadModal(false)}
@@ -351,7 +355,7 @@ export default function DocumentsClient({
                     marginTop: "4px",
                   }}
                 >
-                  {formatFileSize(uploadFile.size)} — Click to change
+                  {formatFileSize(uploadFile.size)} — {t("clickToChange")}
                 </div>
               </div>
             ) : (
@@ -361,7 +365,7 @@ export default function DocumentsClient({
                   style={{ color: "var(--muted)", marginBottom: "8px" }}
                 />
                 <div style={{ fontWeight: 500 }}>
-                  Drop file here or click to browse
+                  {t("dropFileHereOrBrowse")}
                 </div>
                 <div
                   style={{
@@ -370,7 +374,7 @@ export default function DocumentsClient({
                     marginTop: "4px",
                   }}
                 >
-                  PDF, DWG, XLSX, DOCX, JPG, PNG up to 50MB
+                  {t("supportedFileTypes")}
                 </div>
               </div>
             )}
@@ -378,42 +382,42 @@ export default function DocumentsClient({
 
           {/* Name */}
           <div className="ticket-form-group">
-            <label className="ticket-form-label">Document Name</label>
+            <label className="ticket-form-label">{t("documentName")}</label>
             <input
               className="ticket-form-input"
               value={uploadName}
               onChange={(e) => setUploadName(e.target.value)}
-              placeholder="e.g. Floor Plan - Level 3"
+              placeholder={t("documentNamePlaceholder")}
             />
           </div>
 
           <div className="ticket-form-row">
             {/* Category */}
             <div className="ticket-form-group">
-              <label className="ticket-form-label">Category *</label>
+              <label className="ticket-form-label">{t("categoryRequired")}</label>
               <select
                 className="ticket-form-select"
                 value={uploadCategory}
                 onChange={(e) => setUploadCategory(e.target.value)}
               >
-                <option value="plan">Plans</option>
-                <option value="spec">Specifications</option>
-                <option value="contract">Contracts</option>
-                <option value="photo">Photos</option>
-                <option value="report">Reports</option>
-                <option value="correspondence">Correspondence</option>
+                <option value="plan">{t("categoryPlans")}</option>
+                <option value="spec">{t("categorySpecifications")}</option>
+                <option value="contract">{t("categoryContracts")}</option>
+                <option value="photo">{t("categoryPhotos")}</option>
+                <option value="report">{t("categoryReports")}</option>
+                <option value="correspondence">{t("categoryCorrespondence")}</option>
               </select>
             </div>
 
             {/* Project */}
             <div className="ticket-form-group">
-              <label className="ticket-form-label">Project</label>
+              <label className="ticket-form-label">{t("project")}</label>
               <select
                 className="ticket-form-select"
                 value={uploadProjectId}
                 onChange={(e) => setUploadProjectId(e.target.value)}
               >
-                <option value="">None</option>
+                <option value="">{t("none")}</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -426,7 +430,7 @@ export default function DocumentsClient({
           <div className="ticket-form-row">
             {/* Folder */}
             <div className="ticket-form-group">
-              <label className="ticket-form-label">Folder Path</label>
+              <label className="ticket-form-label">{t("folderPath")}</label>
               <input
                 className="ticket-form-input"
                 value={uploadFolderPath}
@@ -437,12 +441,12 @@ export default function DocumentsClient({
 
             {/* Tags */}
             <div className="ticket-form-group">
-              <label className="ticket-form-label">Tags</label>
+              <label className="ticket-form-label">{t("tags")}</label>
               <input
                 className="ticket-form-input"
                 value={uploadTags}
                 onChange={(e) => setUploadTags(e.target.value)}
-                placeholder="structural, rev-c, current"
+                placeholder={t("tagsPlaceholder")}
               />
             </div>
           </div>
@@ -453,14 +457,14 @@ export default function DocumentsClient({
               className="btn btn-ghost"
               onClick={() => setShowUploadModal(false)}
             >
-              Cancel
+              {t("cancel")}
             </button>
             <button
               type="submit"
               className="btn btn-primary"
               disabled={!uploadFile || isUploading}
             >
-              {isUploading ? "Uploading..." : "Upload Document"}
+              {isUploading ? t("uploading") : t("uploadDocument")}
             </button>
           </div>
         </form>
@@ -474,11 +478,11 @@ export default function DocumentsClient({
         <div className="doc-empty-icon">
           <FolderOpen size={48} />
         </div>
-        <div className="doc-empty-title">No Documents Found</div>
+        <div className="doc-empty-title">{t("noDocumentsFound")}</div>
         <div className="doc-empty-desc">
           {hasFilters
-            ? "No documents match your current filters. Try adjusting your search criteria."
-            : "Upload your first document to get started. Plans, specs, contracts, and photos are all supported."}
+            ? t("noDocumentsMatchFilters")
+            : t("uploadFirstDocumentDesc")}
         </div>
         {!hasFilters && (
           <button
@@ -487,7 +491,7 @@ export default function DocumentsClient({
             onClick={openUploadModal}
           >
             <Upload size={16} />
-            Upload Document
+            {t("uploadDocument")}
           </button>
         )}
         {uploadModal}
@@ -498,9 +502,9 @@ export default function DocumentsClient({
   return (
     <>
       <div className="doc-count">
-        {documents.length} document{documents.length !== 1 ? "s" : ""}
+        {t("documentCount", { count: documents.length })}
         {currentFolder && (
-          <span className="doc-count-folder"> in /{currentFolder}</span>
+          <span className="doc-count-folder"> {t("inFolder", { folder: currentFolder })}</span>
         )}
       </div>
       <div className="doc-grid">
@@ -509,6 +513,8 @@ export default function DocumentsClient({
             key={doc.id}
             doc={doc}
             onClick={() => handleCardClick(doc)}
+            categoryLabels={categoryLabels}
+            dateLocale={dateLocale}
           />
         ))}
       </div>
@@ -531,7 +537,7 @@ export default function DocumentsClient({
                   </h3>
                   <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
                     {formatFileSize(selectedDoc.file_size)}
-                    {selectedDoc.version > 1 && <span> &bull; Version {selectedDoc.version}</span>}
+                    {selectedDoc.version > 1 && <span> &bull; {t("version", { number: selectedDoc.version })}</span>}
                     <span> &bull; {categoryLabels[selectedDoc.category] ?? selectedDoc.category}</span>
                   </div>
                 </div>
@@ -539,7 +545,7 @@ export default function DocumentsClient({
               <button
                 onClick={handleCloseModal}
                 className="ticket-modal-close"
-                aria-label="Close"
+                aria-label={t("close")}
               >
                 <X size={20} />
               </button>
@@ -554,7 +560,7 @@ export default function DocumentsClient({
                   disabled={previewLoading}
                 >
                   <Eye size={15} />
-                  {showPreview ? "Hide Preview" : "Preview"}
+                  {showPreview ? t("hidePreview") : t("preview")}
                 </button>
               )}
               <button
@@ -562,7 +568,7 @@ export default function DocumentsClient({
                 onClick={() => handleDownload(selectedDoc)}
               >
                 <Download size={15} />
-                Download
+                {t("download")}
               </button>
               {previewUrl && (
                 <a
@@ -572,7 +578,7 @@ export default function DocumentsClient({
                   className="ui-btn ui-btn-ghost ui-btn-sm"
                 >
                   <ExternalLink size={15} />
-                  Open in New Tab
+                  {t("openInNewTab")}
                 </a>
               )}
             </div>
@@ -581,7 +587,7 @@ export default function DocumentsClient({
             {previewLoading && (
               <div className="doc-preview-loading">
                 <Loader2 size={24} className="doc-spinner" />
-                <span>Loading preview...</span>
+                <span>{t("loadingPreview")}</span>
               </div>
             )}
 
@@ -597,7 +603,7 @@ export default function DocumentsClient({
                   <iframe
                     src={previewUrl}
                     className="doc-preview-iframe"
-                    title={`Preview: ${selectedDoc.name}`}
+                    title={`${t("preview")}: ${selectedDoc.name}`}
                   />
                 ) : (
                   <img
@@ -612,30 +618,30 @@ export default function DocumentsClient({
             {/* Metadata */}
             <div className="ticket-detail-body">
               <div className="ticket-detail-row">
-                <span className="ticket-detail-label">Category</span>
+                <span className="ticket-detail-label">{t("category")}</span>
                 <span className={categoryBadgeClass[selectedDoc.category] ?? "badge badge-gray"}>
                   {categoryLabels[selectedDoc.category] ?? selectedDoc.category}
                 </span>
               </div>
 
               <div className="ticket-detail-row">
-                <span className="ticket-detail-label">File Type</span>
+                <span className="ticket-detail-label">{t("fileType")}</span>
                 <span>{selectedDoc.file_type}</span>
               </div>
 
               <div className="ticket-detail-row">
-                <span className="ticket-detail-label">Uploaded By</span>
+                <span className="ticket-detail-label">{t("uploadedBy")}</span>
                 <span>
                   {(selectedDoc.uploader as { full_name: string; email: string } | null)?.full_name ??
                     (selectedDoc.uploader as { full_name: string; email: string } | null)?.email ??
-                    "Unknown"}
+                    t("unknown")}
                 </span>
               </div>
 
               <div className="ticket-detail-row">
-                <span className="ticket-detail-label">Upload Date</span>
+                <span className="ticket-detail-label">{t("uploadDate")}</span>
                 <span>
-                  {new Date(selectedDoc.created_at).toLocaleDateString("en-US", {
+                  {new Date(selectedDoc.created_at).toLocaleDateString(dateLocale, {
                     month: "long",
                     day: "numeric",
                     year: "numeric",
@@ -647,7 +653,7 @@ export default function DocumentsClient({
 
               {selectedDoc.project && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Project</span>
+                  <span className="ticket-detail-label">{t("project")}</span>
                   <Link
                     href={`/projects/${(selectedDoc.project as { id: string; name: string; code: string }).id}`}
                     className="doc-card-link"
@@ -661,7 +667,7 @@ export default function DocumentsClient({
 
               {selectedDoc.property && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Property</span>
+                  <span className="ticket-detail-label">{t("property")}</span>
                   <Link
                     href={`/properties/${(selectedDoc.property as { id: string; name: string }).id}`}
                     className="doc-card-link"
@@ -674,14 +680,14 @@ export default function DocumentsClient({
 
               {selectedDoc.folder_path && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Folder</span>
+                  <span className="ticket-detail-label">{t("folder")}</span>
                   <span style={{ fontSize: "0.85rem" }}>/{selectedDoc.folder_path}</span>
                 </div>
               )}
 
               {selectedDoc.tags && selectedDoc.tags.length > 0 && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Tags</span>
+                  <span className="ticket-detail-label">{t("tags")}</span>
                   <div className="doc-card-tags">
                     {selectedDoc.tags.map((tag) => (
                       <span key={tag} className="doc-tag">
@@ -699,7 +705,7 @@ export default function DocumentsClient({
               {showDeleteConfirm && (
                 <div className="ticket-delete-confirm">
                   <p>
-                    Are you sure you want to delete <strong>{selectedDoc.name}</strong>? This action cannot be undone.
+                    {t("confirmDeleteDocument", { name: selectedDoc.name })}
                   </p>
                   <div className="ticket-delete-actions">
                     <button
@@ -707,14 +713,14 @@ export default function DocumentsClient({
                       className="btn-secondary"
                       disabled={isDeleting}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       onClick={handleConfirmDelete}
                       className="btn-danger"
                       disabled={isDeleting}
                     >
-                      {isDeleting ? "Deleting..." : "Delete Document"}
+                      {isDeleting ? t("deleting") : t("deleteDocument")}
                     </button>
                   </div>
                 </div>
@@ -729,7 +735,7 @@ export default function DocumentsClient({
                     style={{ width: "100%" }}
                   >
                     <Trash2 size={16} />
-                    Delete Document
+                    {t("deleteDocument")}
                   </button>
                 </div>
               )}
@@ -751,14 +757,19 @@ export default function DocumentsClient({
 function DocumentCard({
   doc,
   onClick,
+  categoryLabels,
+  dateLocale,
 }: {
   doc: DocumentRow;
   onClick: () => void;
+  categoryLabels: Record<string, string>;
+  dateLocale: string;
 }) {
+  const t = useTranslations("app");
   const uploaderName =
     (doc.uploader as { full_name: string; email: string } | null)?.full_name ??
     (doc.uploader as { full_name: string; email: string } | null)?.email ??
-    "Unknown";
+    t("unknown");
 
   const projectInfo = doc.project as { id: string; name: string; code: string } | null;
   const propertyInfo = doc.property as { id: string; name: string } | null;
@@ -780,13 +791,13 @@ function DocumentCard({
 
       <div className="doc-card-details">
         <div className="doc-card-detail">
-          <span className="doc-card-label">Uploaded by</span>
+          <span className="doc-card-label">{t("uploadedBy")}</span>
           <span>{uploaderName}</span>
         </div>
         <div className="doc-card-detail">
-          <span className="doc-card-label">Date</span>
+          <span className="doc-card-label">{t("date")}</span>
           <span>
-            {new Date(doc.created_at).toLocaleDateString("en-US", {
+            {new Date(doc.created_at).toLocaleDateString(dateLocale, {
               month: "short",
               day: "numeric",
               year: "numeric",
@@ -795,7 +806,7 @@ function DocumentCard({
         </div>
         {projectInfo && (
           <div className="doc-card-detail">
-            <span className="doc-card-label">Project</span>
+            <span className="doc-card-label">{t("project")}</span>
             <Link
               href={`/projects/${projectInfo.id}`}
               className="doc-card-link"
@@ -807,7 +818,7 @@ function DocumentCard({
         )}
         {propertyInfo && (
           <div className="doc-card-detail">
-            <span className="doc-card-label">Property</span>
+            <span className="doc-card-label">{t("property")}</span>
             <Link
               href={`/properties/${propertyInfo.id}`}
               className="doc-card-link"

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Plus,
   X,
@@ -23,21 +24,11 @@ import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type { TimeEntry } from "@/lib/queries/people";
 
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "entry_date", label: "Date", required: true, type: "date" },
-  { key: "hours", label: "Hours", required: true, type: "number" },
-  { key: "overtime_hours", label: "Overtime Hours", required: false, type: "number" },
-  { key: "description", label: "Description", required: false },
-  { key: "cost_code", label: "Cost Code", required: false },
-];
-
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { entry_date: "2026-01-15", hours: "8", overtime_hours: "2", description: "Foundation work", cost_code: "03-100" },
   { entry_date: "2026-01-16", hours: "8", overtime_hours: "0", description: "Framing - 2nd floor", cost_code: "06-100" },
   { entry_date: "2026-01-17", hours: "6", overtime_hours: "0", description: "Electrical rough-in", cost_code: "26-050" },
 ];
-
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 interface ProjectOption {
   id: string;
@@ -64,11 +55,6 @@ interface TimeClientProps {
   userRole: string;
 }
 
-function formatDateShort(iso: string): string {
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 export default function TimeClient({
   users,
   entries,
@@ -81,6 +67,24 @@ export default function TimeClient({
   userRole,
 }: TimeClientProps) {
   const router = useRouter();
+  const t = useTranslations("people");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const DAY_LABELS = [t("dayMon"), t("dayTue"), t("dayWed"), t("dayThu"), t("dayFri"), t("daySat"), t("daySun")];
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "entry_date", label: t("date"), required: true, type: "date" },
+    { key: "hours", label: t("hours"), required: true, type: "number" },
+    { key: "overtime_hours", label: t("overtimeHours"), required: false, type: "number" },
+    { key: "description", label: t("description"), required: false },
+    { key: "cost_code", label: t("costCode"), required: false },
+  ];
+
+  function formatDateShort(iso: string): string {
+    const d = new Date(iso + "T00:00:00");
+    return d.toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
+  }
 
   // Create modal state
   const [showCreate, setShowCreate] = useState(false);
@@ -162,7 +166,7 @@ export default function TimeClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create time entry");
+        throw new Error(data.error || t("failedToCreateTimeEntry"));
       }
 
       setFormData({
@@ -176,7 +180,7 @@ export default function TimeClient({
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create time entry");
+      setCreateError(err instanceof Error ? err.message : t("failedToCreateTimeEntry"));
     } finally {
       setCreating(false);
     }
@@ -189,7 +193,7 @@ export default function TimeClient({
       body: JSON.stringify({ entity: "time_entries", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -208,12 +212,12 @@ export default function TimeClient({
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Failed to approve entries");
+        alert(data.error || t("failedToApproveEntries"));
         return;
       }
       router.refresh();
     } catch {
-      alert("Failed to approve entries");
+      alert(t("failedToApproveEntries"));
     } finally {
       setApproving(false);
     }
@@ -277,13 +281,13 @@ export default function TimeClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update time entry");
+        throw new Error(data.error || t("failedToUpdateTimeEntry"));
       }
 
       closeModal();
       router.refresh();
     } catch (err: unknown) {
-      setModalError(err instanceof Error ? err.message : "Failed to update time entry");
+      setModalError(err instanceof Error ? err.message : t("failedToUpdateTimeEntry"));
     } finally {
       setIsSaving(false);
     }
@@ -301,13 +305,13 @@ export default function TimeClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete time entry");
+        throw new Error(data.error || t("failedToDeleteTimeEntry"));
       }
 
       closeModal();
       router.refresh();
     } catch (err: unknown) {
-      setModalError(err instanceof Error ? err.message : "Failed to delete time entry");
+      setModalError(err instanceof Error ? err.message : t("failedToDeleteTimeEntry"));
     } finally {
       setIsDeleting(false);
     }
@@ -321,22 +325,22 @@ export default function TimeClient({
       {/* Header */}
       <div className="people-header">
         <div>
-          <h2>Time & Attendance</h2>
+          <h2>{t("timeAndAttendance")}</h2>
           <p className="people-header-sub">
-            Track team hours and approve timesheets.
+            {t("timeAndAttendanceDescription")}
           </p>
         </div>
         <div className="people-header-actions">
           <Link href="/people" className="ui-btn ui-btn-md ui-btn-secondary">
-            People Directory
+            {t("peopleDirectory")}
           </Link>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New Time Entry
+            {t("newTimeEntry")}
           </button>
         </div>
       </div>
@@ -350,7 +354,7 @@ export default function TimeClient({
           <ChevronRight size={18} />
         </Link>
         <span className="week-nav-label">
-          Week of {formatDateShort(weekStartISO)}
+          {t("weekOf", { date: formatDateShort(weekStartISO) })}
         </span>
         <span className="week-nav-dates">
           {formatDateShort(weekStartISO)} - {formatDateShort(weekEndISO)}, {weekYear}
@@ -361,8 +365,7 @@ export default function TimeClient({
       {pendingCount > 0 && (
         <div className="timesheet-actions">
           <div className="timesheet-actions-info">
-            <strong>{pendingCount}</strong> time{" "}
-            {pendingCount !== 1 ? "entries" : "entry"} pending approval
+            {t("pendingApproval", { count: pendingCount })}
           </div>
           {isAdmin && (
             <button
@@ -371,7 +374,7 @@ export default function TimeClient({
               disabled={approving}
             >
               <CheckCircle2 size={14} />
-              {approving ? "Approving..." : "Approve All"}
+              {approving ? t("approving") : t("approveAll")}
             </button>
           )}
         </div>
@@ -383,11 +386,9 @@ export default function TimeClient({
           <div className="people-empty-icon">
             <Clock size={48} />
           </div>
-          <div className="people-empty-title">No time entries this week</div>
+          <div className="people-empty-title">{t("noTimeEntriesThisWeek")}</div>
           <p className="people-empty-desc">
-            No team members have logged hours for the week of{" "}
-            {formatDateShort(weekStartISO)}. Time entries will appear here as they
-            are submitted.
+            {t("noTimeEntriesDescription", { date: formatDateShort(weekStartISO) })}
           </p>
         </div>
       ) : (
@@ -396,7 +397,7 @@ export default function TimeClient({
             <table className="timesheet-grid">
               <thead>
                 <tr>
-                  <th>Team Member</th>
+                  <th>{t("teamMember")}</th>
                   {weekDates.map((dateStr, i) => {
                     const d = new Date(dateStr + "T00:00:00");
                     return (
@@ -409,8 +410,8 @@ export default function TimeClient({
                       </th>
                     );
                   })}
-                  <th className="total-col">Total</th>
-                  <th>Status</th>
+                  <th className="total-col">{t("total")}</th>
+                  <th>{t("status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -463,10 +464,10 @@ export default function TimeClient({
                       <td>
                         <span className={`time-status time-status-${overallStatus}`}>
                           {overallStatus === "pending"
-                            ? "Pending"
+                            ? t("statusPending")
                             : overallStatus === "approved"
-                              ? "Approved"
-                              : "Rejected"}
+                              ? t("statusApproved")
+                              : t("statusRejected")}
                         </span>
                       </td>
                     </tr>
@@ -483,7 +484,7 @@ export default function TimeClient({
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>New Time Entry</h3>
+              <h3>{t("newTimeEntry")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}>
                 <X size={18} />
               </button>
@@ -493,14 +494,14 @@ export default function TimeClient({
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Project</label>
+                <label className="ticket-form-label">{t("project")}</label>
                 <select
                   className="ticket-form-select"
                   value={formData.project_id}
                   onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
                 >
                   <option value="">
-                    {loadingProjects ? "Loading projects..." : "Select a project..."}
+                    {loadingProjects ? t("loadingProjects") : t("selectProject")}
                   </option>
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -511,7 +512,7 @@ export default function TimeClient({
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Entry Date *</label>
+                <label className="ticket-form-label">{t("entryDateRequired")}</label>
                 <input
                   type="date"
                   className="ticket-form-input"
@@ -523,7 +524,7 @@ export default function TimeClient({
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Hours *</label>
+                  <label className="ticket-form-label">{t("hoursRequired")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -537,7 +538,7 @@ export default function TimeClient({
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Overtime Hours</label>
+                  <label className="ticket-form-label">{t("overtimeHours")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -552,37 +553,37 @@ export default function TimeClient({
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Description</label>
+                <label className="ticket-form-label">{t("description")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="What work was performed?"
+                  placeholder={t("descriptionPlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Cost Code</label>
+                <label className="ticket-form-label">{t("costCode")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
                   value={formData.cost_code}
                   onChange={(e) => setFormData({ ...formData, cost_code: e.target.value })}
-                  placeholder="e.g., 03-100"
+                  placeholder={t("costCodePlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !formData.hours || !formData.entry_date}
                 >
-                  {creating ? "Creating..." : "Create Entry"}
+                  {creating ? t("creating") : t("createEntry")}
                 </button>
               </div>
             </form>
@@ -593,7 +594,7 @@ export default function TimeClient({
       {/* ── Import Modal ── */}
       {showImport && (
         <ImportModal
-          entityName="Time Entries"
+          entityName={t("timeEntriesEntity")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
@@ -606,7 +607,7 @@ export default function TimeClient({
         <div className="ticket-modal-overlay" onClick={closeModal}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Time Entries</h3>
+              <h3>{t("timeEntries")}</h3>
               <button className="ticket-modal-close" onClick={closeModal}>
                 <X size={18} />
               </button>
@@ -641,21 +642,21 @@ export default function TimeClient({
                         .reduce((sum, e) => sum + (Number(e.hours) || 0), 0)
                         .toFixed(1)}
                     </strong>{" "}
-                    hours this week
+                    {t("hoursThisWeek")}
                   </span>
                 </div>
                 <div className="people-detail-row">
                   <FileText size={16} />
                   <span>
                     <strong>{selectedUser.entries.length}</strong>{" "}
-                    {selectedUser.entries.length === 1 ? "entry" : "entries"}
+                    {selectedUser.entries.length === 1 ? t("entry") : t("entries")}
                   </span>
                 </div>
               </div>
 
               {/* Entries list */}
               <div className="people-detail-notes" style={{ marginTop: 0 }}>
-                <label>Entries</label>
+                <label>{t("entries")}</label>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
                 {selectedUser.entries
@@ -695,7 +696,7 @@ export default function TimeClient({
                               {Number(entry.hours || 0).toFixed(1)}h
                             </div>
                             <span className={`time-status time-status-${entry.status}`}>
-                              {entry.status === "pending" ? "Pending" : entry.status === "approved" ? "Approved" : "Rejected"}
+                              {entry.status === "pending" ? t("statusPending") : entry.status === "approved" ? t("statusApproved") : t("statusRejected")}
                             </span>
                           </div>
                         </div>
@@ -713,7 +714,7 @@ export default function TimeClient({
         <div className="ticket-modal-overlay" onClick={closeModal}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Time Entry Details</h3>
+              <h3>{t("timeEntryDetails")}</h3>
               <button className="ticket-modal-close" onClick={closeModal}>
                 <X size={18} />
               </button>
@@ -726,7 +727,7 @@ export default function TimeClient({
                 <div className="people-detail-row">
                   <Calendar size={16} />
                   <span>
-                    {new Date(selectedEntry.entry_date + "T00:00:00").toLocaleDateString("en-US", {
+                    {new Date(selectedEntry.entry_date + "T00:00:00").toLocaleDateString(dateLocale, {
                       weekday: "long",
                       month: "long",
                       day: "numeric",
@@ -736,7 +737,7 @@ export default function TimeClient({
                 </div>
                 <div className="people-detail-row">
                   <Clock size={16} />
-                  <span><strong>{Number(selectedEntry.hours || 0).toFixed(1)}</strong> hours</span>
+                  <span><strong>{Number(selectedEntry.hours || 0).toFixed(1)}</strong> {t("hours")}</span>
                 </div>
                 {selectedEntry.work_type && (
                   <div className="people-detail-row">
@@ -759,14 +760,14 @@ export default function TimeClient({
                 <div className="people-detail-row">
                   <CheckCircle2 size={16} />
                   <span className={`time-status time-status-${selectedEntry.status}`}>
-                    {selectedEntry.status === "pending" ? "Pending" : selectedEntry.status === "approved" ? "Approved" : "Rejected"}
+                    {selectedEntry.status === "pending" ? t("statusPending") : selectedEntry.status === "approved" ? t("statusApproved") : t("statusRejected")}
                   </span>
                 </div>
               </div>
 
               {selectedEntry.notes && (
                 <div className="people-detail-notes">
-                  <label>Notes</label>
+                  <label>{t("notes")}</label>
                   <p>{selectedEntry.notes}</p>
                 </div>
               )}
@@ -776,11 +777,11 @@ export default function TimeClient({
               <div className="ticket-form-actions">
                 <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
                   <Trash2 size={16} />
-                  Delete
+                  {t("delete")}
                 </button>
                 <button className="btn-primary" onClick={() => startEdit(selectedEntry)}>
                   <Edit3 size={16} />
-                  Edit
+                  {t("edit")}
                 </button>
               </div>
             )}
@@ -793,7 +794,7 @@ export default function TimeClient({
         <div className="ticket-modal-overlay" onClick={closeModal}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Edit Time Entry</h3>
+              <h3>{t("editTimeEntry")}</h3>
               <button className="ticket-modal-close" onClick={closeModal}>
                 <X size={18} />
               </button>
@@ -803,7 +804,7 @@ export default function TimeClient({
 
             <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Entry Date *</label>
+                <label className="ticket-form-label">{t("entryDateRequired")}</label>
                 <input
                   type="date"
                   className="ticket-form-input"
@@ -815,7 +816,7 @@ export default function TimeClient({
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Hours *</label>
+                  <label className="ticket-form-label">{t("hoursRequired")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -829,38 +830,38 @@ export default function TimeClient({
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Status</label>
+                  <label className="ticket-form-label">{t("status")}</label>
                   <select
                     className="ticket-form-select"
                     value={editFormData.status}
                     onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
                   >
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="pending">{t("statusPending")}</option>
+                    <option value="approved">{t("statusApproved")}</option>
+                    <option value="rejected">{t("statusRejected")}</option>
                   </select>
                 </div>
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Cost Code</label>
+                <label className="ticket-form-label">{t("costCode")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
                   value={editFormData.cost_code}
                   onChange={(e) => setEditFormData({ ...editFormData, cost_code: e.target.value })}
-                  placeholder="e.g., 03-100"
+                  placeholder={t("costCodePlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Notes</label>
+                <label className="ticket-form-label">{t("notes")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
                   value={editFormData.notes}
                   onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
-                  placeholder="What work was performed?"
+                  placeholder={t("descriptionPlaceholder")}
                 />
               </div>
 
@@ -870,14 +871,14 @@ export default function TimeClient({
                   className="btn-secondary"
                   onClick={() => { setIsEditing(false); setSelectedEntry(selectedEntry); }}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={isSaving || !editFormData.hours || !editFormData.entry_date}
                 >
-                  {isSaving ? "Saving..." : "Save Changes"}
+                  {isSaving ? t("saving") : t("saveChanges")}
                 </button>
               </div>
             </form>
@@ -890,7 +891,7 @@ export default function TimeClient({
         <div className="ticket-modal-overlay" onClick={closeModal}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Delete Time Entry</h3>
+              <h3>{t("deleteTimeEntry")}</h3>
               <button className="ticket-modal-close" onClick={closeModal}>
                 <X size={18} />
               </button>
@@ -899,11 +900,11 @@ export default function TimeClient({
             {modalError && <div className="ticket-form-error">{modalError}</div>}
 
             <div className="ticket-delete-confirm">
-              <p>Are you sure you want to delete this time entry?</p>
+              <p>{t("deleteTimeEntryConfirm")}</p>
               <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginTop: "0.5rem" }}>
-                <strong>{Number(selectedEntry.hours || 0).toFixed(1)} hours</strong> on{" "}
+                <strong>{Number(selectedEntry.hours || 0).toFixed(1)} {t("hours")}</strong> {t("on")}{" "}
                 <strong>
-                  {new Date(selectedEntry.entry_date + "T00:00:00").toLocaleDateString("en-US", {
+                  {new Date(selectedEntry.entry_date + "T00:00:00").toLocaleDateString(dateLocale, {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
@@ -916,14 +917,14 @@ export default function TimeClient({
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   className="btn-danger"
                   onClick={handleDelete}
                   disabled={isDeleting}
                 >
-                  {isDeleting ? "Deleting..." : "Delete Entry"}
+                  {isDeleting ? t("deleting") : t("deleteEntry")}
                 </button>
               </div>
             </div>

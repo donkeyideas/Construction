@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
   Plus,
@@ -39,80 +40,9 @@ interface Inspection {
 
 type StatusValue = "scheduled" | "in_progress" | "completed" | "failed" | "cancelled";
 
-const STATUS_LABELS: Record<string, string> = {
-  scheduled: "Scheduled",
-  in_progress: "In Progress",
-  completed: "Completed",
-  failed: "Failed",
-  cancelled: "Cancelled",
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  daily: "Daily",
-  weekly: "Weekly",
-  monthly: "Monthly",
-  quarterly: "Quarterly",
-  annual: "Annual",
-  pre_task: "Pre-Task",
-  site_safety: "Site Safety",
-  equipment: "Equipment",
-  fire_safety: "Fire Safety",
-  electrical: "Electrical",
-  scaffolding: "Scaffolding",
-  excavation: "Excavation",
-  ppe: "PPE",
-  housekeeping: "Housekeeping",
-  fall_protection: "Fall Protection",
-};
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "inspection_type", label: "Inspection Type", required: true },
-  { key: "inspection_date", label: "Inspection Date", required: false, type: "date" },
-  { key: "score", label: "Score", required: false, type: "number" },
-  { key: "findings", label: "Findings", required: false },
-  { key: "corrective_actions", label: "Corrective Actions", required: false },
-  { key: "status", label: "Status", required: false },
-];
-
-const IMPORT_SAMPLE: Record<string, string>[] = [
-  {
-    inspection_type: "site_safety",
-    inspection_date: "2026-01-20",
-    score: "92",
-    findings: "Minor housekeeping issues in staging area; all PPE in compliance",
-    corrective_actions: "Cleanup scheduled for end of shift",
-    status: "completed",
-  },
-  {
-    inspection_type: "fire_safety",
-    inspection_date: "2026-01-27",
-    score: "85",
-    findings: "Fire extinguisher on 2nd floor expired; exit sign bulb out in stairwell B",
-    corrective_actions: "Replace extinguisher and exit sign bulb by 1/30",
-    status: "action_required",
-  },
-  {
-    inspection_type: "equipment",
-    inspection_date: "2026-02-03",
-    score: "97",
-    findings: "All equipment in good condition; crane cert current through March",
-    corrective_actions: "",
-    status: "completed",
-  },
-];
-
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers (non-translated)
 // ---------------------------------------------------------------------------
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function getScoreClass(score: number | null): string {
   if (score === null || score === undefined) return "score-none";
@@ -150,6 +80,88 @@ export default function InspectionsClient({
   companyId,
 }: InspectionsClientProps) {
   const router = useRouter();
+  const t = useTranslations("safety");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  // ---------------------------------------------------------------------------
+  // Constants (translated)
+  // ---------------------------------------------------------------------------
+
+  const STATUS_LABELS: Record<string, string> = {
+    scheduled: t("inspectionStatusScheduled"),
+    in_progress: t("inspectionStatusInProgress"),
+    completed: t("inspectionStatusCompleted"),
+    failed: t("inspectionStatusFailed"),
+    cancelled: t("inspectionStatusCancelled"),
+  };
+
+  const TYPE_LABELS: Record<string, string> = {
+    daily: t("inspectionTypeDaily"),
+    weekly: t("inspectionTypeWeekly"),
+    monthly: t("inspectionTypeMonthly"),
+    quarterly: t("inspectionTypeQuarterly"),
+    annual: t("inspectionTypeAnnual"),
+    pre_task: t("inspectionTypePreTask"),
+    site_safety: t("inspectionTypeSiteSafety"),
+    equipment: t("inspectionTypeEquipment"),
+    fire_safety: t("inspectionTypeFireSafety"),
+    electrical: t("inspectionTypeElectrical"),
+    scaffolding: t("inspectionTypeScaffolding"),
+    excavation: t("inspectionTypeExcavation"),
+    ppe: t("inspectionTypePpe"),
+    housekeeping: t("inspectionTypeHousekeeping"),
+    fall_protection: t("inspectionTypeFallProtection"),
+  };
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "inspection_type", label: t("inspectionType"), required: true },
+    { key: "inspection_date", label: t("inspectionDate"), required: false, type: "date" },
+    { key: "score", label: t("score"), required: false, type: "number" },
+    { key: "findings", label: t("findings"), required: false },
+    { key: "corrective_actions", label: t("correctiveActions"), required: false },
+    { key: "status", label: t("status"), required: false },
+  ];
+
+  const IMPORT_SAMPLE: Record<string, string>[] = [
+    {
+      inspection_type: "site_safety",
+      inspection_date: "2026-01-20",
+      score: "92",
+      findings: "Minor housekeeping issues in staging area; all PPE in compliance",
+      corrective_actions: "Cleanup scheduled for end of shift",
+      status: "completed",
+    },
+    {
+      inspection_type: "fire_safety",
+      inspection_date: "2026-01-27",
+      score: "85",
+      findings: "Fire extinguisher on 2nd floor expired; exit sign bulb out in stairwell B",
+      corrective_actions: "Replace extinguisher and exit sign bulb by 1/30",
+      status: "action_required",
+    },
+    {
+      inspection_type: "equipment",
+      inspection_date: "2026-02-03",
+      score: "97",
+      findings: "All equipment in good condition; crane cert current through March",
+      corrective_actions: "",
+      status: "completed",
+    },
+  ];
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<StatusValue | "all">("all");
@@ -252,7 +264,7 @@ export default function InspectionsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create inspection");
+        throw new Error(data.error || t("failedToCreateInspection"));
       }
 
       // Reset form and close modal
@@ -268,7 +280,7 @@ export default function InspectionsClient({
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create inspection");
+      setCreateError(err instanceof Error ? err.message : t("failedToCreateInspection"));
     } finally {
       setCreating(false);
     }
@@ -367,13 +379,13 @@ export default function InspectionsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update inspection");
+        throw new Error(data.error || t("failedToUpdateInspection"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update inspection");
+      setSaveError(err instanceof Error ? err.message : t("failedToUpdateInspection"));
     } finally {
       setSaving(false);
     }
@@ -392,13 +404,13 @@ export default function InspectionsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete inspection");
+        throw new Error(data.error || t("failedToDeleteInspection"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to delete inspection");
+      setSaveError(err instanceof Error ? err.message : t("failedToDeleteInspection"));
     } finally {
       setSaving(false);
     }
@@ -412,7 +424,7 @@ export default function InspectionsClient({
       body: JSON.stringify({ entity: "safety_inspections", rows, project_id: importProjectId }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -422,19 +434,19 @@ export default function InspectionsClient({
       {/* Header */}
       <div className="safety-header">
         <div>
-          <h2>Safety Inspections</h2>
+          <h2>{t("safetyInspections")}</h2>
           <p className="safety-header-sub">
-            {inspections.length} inspection{inspections.length !== 1 ? "s" : ""} total
+            {t("inspectionsTotalCount", { count: inspections.length })}
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New Inspection
+            {t("newInspection")}
           </button>
         </div>
       </div>
@@ -447,7 +459,7 @@ export default function InspectionsClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{statusCounts.scheduled}</span>
-            <span className="safety-stat-label">Scheduled</span>
+            <span className="safety-stat-label">{t("inspectionStatusScheduled")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-investigating">
@@ -456,7 +468,7 @@ export default function InspectionsClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{statusCounts.in_progress}</span>
-            <span className="safety-stat-label">In Progress</span>
+            <span className="safety-stat-label">{t("inspectionStatusInProgress")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-completed">
@@ -465,7 +477,7 @@ export default function InspectionsClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{statusCounts.completed}</span>
-            <span className="safety-stat-label">Completed</span>
+            <span className="safety-stat-label">{t("inspectionStatusCompleted")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-closed">
@@ -474,7 +486,7 @@ export default function InspectionsClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{statusCounts.total}</span>
-            <span className="safety-stat-label">Total</span>
+            <span className="safety-stat-label">{t("total")}</span>
           </div>
         </div>
       </div>
@@ -485,7 +497,7 @@ export default function InspectionsClient({
           <Search size={16} className="safety-search-icon" />
           <input
             type="text"
-            placeholder="Search inspections..."
+            placeholder={t("searchInspections")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -496,7 +508,7 @@ export default function InspectionsClient({
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as StatusValue | "all")}
         >
-          <option value="all">All Status</option>
+          <option value="all">{t("allStatus")}</option>
           {Object.keys(STATUS_LABELS).map((s) => (
             <option key={s} value={s}>
               {STATUS_LABELS[s]}
@@ -509,10 +521,10 @@ export default function InspectionsClient({
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
         >
-          <option value="all">All Types</option>
-          {availableTypes.map((t) => (
-            <option key={t} value={t}>
-              {TYPE_LABELS[t] ?? t}
+          <option value="all">{t("allTypes")}</option>
+          {availableTypes.map((tp) => (
+            <option key={tp} value={tp}>
+              {TYPE_LABELS[tp] ?? tp}
             </option>
           ))}
         </select>
@@ -526,17 +538,17 @@ export default function InspectionsClient({
           </div>
           {inspections.length === 0 ? (
             <>
-              <h3>No inspections recorded</h3>
-              <p>Create your first safety inspection to get started.</p>
+              <h3>{t("noInspectionsRecorded")}</h3>
+              <p>{t("createFirstInspectionDesc")}</p>
               <button className="btn-primary" onClick={() => setShowCreate(true)}>
                 <Plus size={16} />
-                New Inspection
+                {t("newInspection")}
               </button>
             </>
           ) : (
             <>
-              <h3>No matching inspections</h3>
-              <p>Try adjusting your search or filter criteria.</p>
+              <h3>{t("noMatchingInspections")}</h3>
+              <p>{t("tryAdjustingFilters")}</p>
             </>
           )}
         </div>
@@ -545,12 +557,12 @@ export default function InspectionsClient({
           <table className="safety-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Project</th>
-                <th>Type</th>
-                <th>Score</th>
-                <th>Findings</th>
-                <th>Status</th>
+                <th>{t("date")}</th>
+                <th>{t("project")}</th>
+                <th>{t("type")}</th>
+                <th>{t("score")}</th>
+                <th>{t("findings")}</th>
+                <th>{t("status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -604,7 +616,7 @@ export default function InspectionsClient({
         <div className="safety-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="safety-modal" onClick={(e) => e.stopPropagation()}>
             <div className="safety-modal-header">
-              <h3>New Inspection</h3>
+              <h3>{t("newInspection")}</h3>
               <button
                 className="safety-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -620,7 +632,7 @@ export default function InspectionsClient({
             <form onSubmit={handleCreate} className="safety-form">
               <div className="safety-form-row">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Inspection Type *</label>
+                  <label className="safety-form-label">{t("inspectionTypeRequired")}</label>
                   <select
                     className="safety-form-select"
                     value={formData.inspection_type}
@@ -628,16 +640,16 @@ export default function InspectionsClient({
                       setFormData({ ...formData, inspection_type: e.target.value })
                     }
                   >
-                    {Object.keys(TYPE_LABELS).map((t) => (
-                      <option key={t} value={t}>
-                        {TYPE_LABELS[t]}
+                    {Object.keys(TYPE_LABELS).map((tp) => (
+                      <option key={tp} value={tp}>
+                        {TYPE_LABELS[tp]}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Project</label>
+                  <label className="safety-form-label">{t("project")}</label>
                   <select
                     className="safety-form-select"
                     value={formData.project_id}
@@ -645,7 +657,7 @@ export default function InspectionsClient({
                       setFormData({ ...formData, project_id: e.target.value })
                     }
                   >
-                    <option value="">No project</option>
+                    <option value="">{t("noProject")}</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -657,7 +669,7 @@ export default function InspectionsClient({
 
               <div className="safety-form-row">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Inspection Date</label>
+                  <label className="safety-form-label">{t("inspectionDate")}</label>
                   <input
                     type="date"
                     className="safety-form-input"
@@ -669,7 +681,7 @@ export default function InspectionsClient({
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Score (0-100)</label>
+                  <label className="safety-form-label">{t("scoreRange")}</label>
                   <input
                     type="number"
                     className="safety-form-input"
@@ -679,13 +691,13 @@ export default function InspectionsClient({
                     }
                     min={0}
                     max={100}
-                    placeholder="e.g. 95"
+                    placeholder={t("scorePlaceholder")}
                   />
                 </div>
               </div>
 
               <div className="safety-form-group">
-                <label className="safety-form-label">Status</label>
+                <label className="safety-form-label">{t("status")}</label>
                 <select
                   className="safety-form-select"
                   value={formData.status}
@@ -702,27 +714,27 @@ export default function InspectionsClient({
               </div>
 
               <div className="safety-form-group">
-                <label className="safety-form-label">Findings</label>
+                <label className="safety-form-label">{t("findings")}</label>
                 <textarea
                   className="safety-form-textarea"
                   value={formData.findings}
                   onChange={(e) =>
                     setFormData({ ...formData, findings: e.target.value })
                   }
-                  placeholder="Describe inspection findings..."
+                  placeholder={t("describeFindingsPlaceholder")}
                   rows={4}
                 />
               </div>
 
               <div className="safety-form-group">
-                <label className="safety-form-label">Corrective Actions</label>
+                <label className="safety-form-label">{t("correctiveActions")}</label>
                 <textarea
                   className="safety-form-textarea"
                   value={formData.corrective_actions}
                   onChange={(e) =>
                     setFormData({ ...formData, corrective_actions: e.target.value })
                   }
-                  placeholder="Describe corrective actions required..."
+                  placeholder={t("describeCorrectiveActionsRequired")}
                   rows={3}
                 />
               </div>
@@ -733,14 +745,14 @@ export default function InspectionsClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !formData.inspection_type}
                 >
-                  {creating ? "Creating..." : "Create Inspection"}
+                  {creating ? t("creating") : t("createInspection")}
                 </button>
               </div>
             </form>
@@ -755,8 +767,8 @@ export default function InspectionsClient({
             <div className="safety-modal-header">
               <h3>
                 {isEditing
-                  ? "Edit Inspection"
-                  : "Inspection Details"}
+                  ? t("editInspection")
+                  : t("inspectionDetails")}
               </h3>
               <button className="safety-modal-close" onClick={closeDetail}>
                 <X size={18} />
@@ -784,7 +796,7 @@ export default function InspectionsClient({
                   style={{ maxWidth: 440 }}
                 >
                   <div className="safety-modal-header">
-                    <h3>Delete Inspection</h3>
+                    <h3>{t("deleteInspection")}</h3>
                     <button
                       className="safety-modal-close"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -794,8 +806,7 @@ export default function InspectionsClient({
                   </div>
                   <div style={{ padding: "1rem 1.5rem" }}>
                     <p>
-                      Are you sure you want to delete this inspection? This action
-                      cannot be undone.
+                      {t("deleteInspectionConfirm")}
                     </p>
                   </div>
                   <div className="safety-form-actions">
@@ -805,7 +816,7 @@ export default function InspectionsClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="button"
@@ -814,7 +825,7 @@ export default function InspectionsClient({
                       onClick={handleDelete}
                       disabled={saving}
                     >
-                      {saving ? "Deleting..." : "Delete"}
+                      {saving ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 </div>
@@ -826,19 +837,19 @@ export default function InspectionsClient({
               <div className="safety-form" style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
                 <div className="detail-group">
                   <div className="detail-row">
-                    <span className="detail-label">Date</span>
+                    <span className="detail-label">{t("date")}</span>
                     <span className="detail-value">
                       {formatDate(selectedInspection.inspection_date)}
                     </span>
                   </div>
                   <div className="detail-row">
-                    <span className="detail-label">Project</span>
+                    <span className="detail-label">{t("project")}</span>
                     <span className="detail-value">
                       {selectedInspection.projects?.name || "--"}
                     </span>
                   </div>
                   <div className="detail-row">
-                    <span className="detail-label">Type</span>
+                    <span className="detail-label">{t("type")}</span>
                     <span className="detail-value">
                       {TYPE_LABELS[selectedInspection.inspection_type ?? ""] ??
                         selectedInspection.inspection_type ??
@@ -846,7 +857,7 @@ export default function InspectionsClient({
                     </span>
                   </div>
                   <div className="detail-row">
-                    <span className="detail-label">Score</span>
+                    <span className="detail-label">{t("score")}</span>
                     <span className="detail-value">
                       <span className={`safety-severity-badge ${getScoreClass(selectedInspection.score)}`}>
                         {selectedInspection.score !== null && selectedInspection.score !== undefined
@@ -856,7 +867,7 @@ export default function InspectionsClient({
                     </span>
                   </div>
                   <div className="detail-row">
-                    <span className="detail-label">Status</span>
+                    <span className="detail-label">{t("status")}</span>
                     <span className="detail-value">
                       <span className={`safety-status-badge ${getStatusClass(selectedInspection.status)}`}>
                         {STATUS_LABELS[selectedInspection.status ?? ""] ??
@@ -869,7 +880,7 @@ export default function InspectionsClient({
 
                 <div className="detail-group">
                   <div className="detail-row" style={{ flexDirection: "column", alignItems: "flex-start" }}>
-                    <span className="detail-label">Findings</span>
+                    <span className="detail-label">{t("findings")}</span>
                     <span className="detail-value" style={{ whiteSpace: "pre-wrap", marginTop: "0.25rem" }}>
                       {selectedInspection.findings || "--"}
                     </span>
@@ -878,7 +889,7 @@ export default function InspectionsClient({
 
                 <div className="detail-group">
                   <div className="detail-row" style={{ flexDirection: "column", alignItems: "flex-start" }}>
-                    <span className="detail-label">Corrective Actions</span>
+                    <span className="detail-label">{t("correctiveActions")}</span>
                     <span className="detail-value" style={{ whiteSpace: "pre-wrap", marginTop: "0.25rem" }}>
                       {selectedInspection.corrective_actions || "--"}
                     </span>
@@ -887,7 +898,7 @@ export default function InspectionsClient({
 
                 <div className="detail-group">
                   <div className="detail-row">
-                    <span className="detail-label">Created</span>
+                    <span className="detail-label">{t("created")}</span>
                     <span className="detail-value">
                       {formatDate(selectedInspection.created_at)}
                     </span>
@@ -902,14 +913,14 @@ export default function InspectionsClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("close")}
                   </button>
                   <button
                     type="button"
@@ -917,7 +928,7 @@ export default function InspectionsClient({
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -928,7 +939,7 @@ export default function InspectionsClient({
               <div className="safety-form">
                 <div className="safety-form-row">
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Inspection Type *</label>
+                    <label className="safety-form-label">{t("inspectionTypeRequired")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.inspection_type as string) || "site_safety"}
@@ -936,15 +947,15 @@ export default function InspectionsClient({
                         setEditData({ ...editData, inspection_type: e.target.value })
                       }
                     >
-                      {Object.keys(TYPE_LABELS).map((t) => (
-                        <option key={t} value={t}>
-                          {TYPE_LABELS[t]}
+                      {Object.keys(TYPE_LABELS).map((tp) => (
+                        <option key={tp} value={tp}>
+                          {TYPE_LABELS[tp]}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Project</label>
+                    <label className="safety-form-label">{t("project")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.project_id as string) || ""}
@@ -952,7 +963,7 @@ export default function InspectionsClient({
                         setEditData({ ...editData, project_id: e.target.value })
                       }
                     >
-                      <option value="">No project</option>
+                      <option value="">{t("noProject")}</option>
                       {projects.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
@@ -964,7 +975,7 @@ export default function InspectionsClient({
 
                 <div className="safety-form-row">
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Inspection Date</label>
+                    <label className="safety-form-label">{t("inspectionDate")}</label>
                     <input
                       type="date"
                       className="safety-form-input"
@@ -975,7 +986,7 @@ export default function InspectionsClient({
                     />
                   </div>
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Score (0-100)</label>
+                    <label className="safety-form-label">{t("scoreRange")}</label>
                     <input
                       type="number"
                       className="safety-form-input"
@@ -985,13 +996,13 @@ export default function InspectionsClient({
                       }
                       min={0}
                       max={100}
-                      placeholder="e.g. 95"
+                      placeholder={t("scorePlaceholder")}
                     />
                   </div>
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Status</label>
+                  <label className="safety-form-label">{t("status")}</label>
                   <select
                     className="safety-form-select"
                     value={(editData.status as string) || "scheduled"}
@@ -1008,27 +1019,27 @@ export default function InspectionsClient({
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Findings</label>
+                  <label className="safety-form-label">{t("findings")}</label>
                   <textarea
                     className="safety-form-textarea"
                     value={(editData.findings as string) || ""}
                     onChange={(e) =>
                       setEditData({ ...editData, findings: e.target.value })
                     }
-                    placeholder="Describe inspection findings..."
+                    placeholder={t("describeFindingsPlaceholder")}
                     rows={4}
                   />
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Corrective Actions</label>
+                  <label className="safety-form-label">{t("correctiveActions")}</label>
                   <textarea
                     className="safety-form-textarea"
                     value={(editData.corrective_actions as string) || ""}
                     onChange={(e) =>
                       setEditData({ ...editData, corrective_actions: e.target.value })
                     }
-                    placeholder="Describe corrective actions required..."
+                    placeholder={t("describeCorrectiveActionsRequired")}
                     rows={3}
                   />
                 </div>
@@ -1040,7 +1051,7 @@ export default function InspectionsClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -1048,7 +1059,7 @@ export default function InspectionsClient({
                     onClick={handleSave}
                     disabled={saving || !(editData.inspection_type as string)?.trim()}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>
@@ -1059,7 +1070,7 @@ export default function InspectionsClient({
 
       {showImport && (
         <ImportModal
-          entityName="Safety Inspection"
+          entityName={t("safetyInspectionEntity")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}

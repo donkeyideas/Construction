@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import {
   BarChart3,
   Droplets,
@@ -147,52 +148,55 @@ function KPICard({
 }
 
 export default function KPIDashboardClient({ kpis }: KPIDashboardClientProps) {
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const [selectedKPI, setSelectedKPI] = useState<KPICardData | null>(null);
 
   // Liquidity Ratios
   const liquidityCards: KPICardData[] = [
     {
-      label: "Current Ratio",
+      label: t("currentRatio"),
       value: formatRatio(kpis.currentRatio),
       status: getRatioStatus(kpis.currentRatio, 1.5, 1.0),
-      explanation: "Current assets divided by current liabilities",
-      detailTitle: "Current Ratio",
-      detailFormula: "Current Assets / Current Liabilities",
+      explanation: t("currentRatioExplanation"),
+      detailTitle: t("currentRatio"),
+      detailFormula: t("currentRatioFormula"),
       detailComponents: [
-        { label: "Ratio", value: formatRatio(kpis.currentRatio) },
+        { label: t("ratio"), value: formatRatio(kpis.currentRatio) },
       ],
-      detailBenchmark: "≥ 1.5 is healthy (green), 1.0–1.5 is acceptable (amber), < 1.0 is a concern (red). In construction, 1.5+ ensures you can cover short-term obligations.",
+      detailBenchmark: t("currentRatioBenchmark"),
     },
     {
-      label: "Quick Ratio",
+      label: t("quickRatio"),
       value: formatRatio(kpis.quickRatio),
       status: getRatioStatus(kpis.quickRatio, 1.5, 1.0),
-      explanation: "Cash + receivables divided by current liabilities",
-      detailTitle: "Quick Ratio (Acid-Test)",
-      detailFormula: "(Cash + Accounts Receivable) / Current Liabilities",
+      explanation: t("quickRatioExplanation"),
+      detailTitle: t("quickRatioDetail"),
+      detailFormula: t("quickRatioFormula"),
       detailComponents: [
-        { label: "Ratio", value: formatRatio(kpis.quickRatio) },
+        { label: t("ratio"), value: formatRatio(kpis.quickRatio) },
       ],
-      detailBenchmark: "≥ 1.5 is healthy, 1.0–1.5 is acceptable. Excludes inventory and prepaid expenses for a stricter liquidity view.",
+      detailBenchmark: t("quickRatioBenchmark"),
     },
     {
-      label: "Working Capital",
+      label: t("workingCapital"),
       value: formatCurrencyValue(kpis.workingCapital),
       status: kpis.workingCapital >= 0 ? "green" : "red",
-      explanation: "Current assets minus current liabilities",
-      detailTitle: "Working Capital",
-      detailFormula: "Current Assets − Current Liabilities",
+      explanation: t("workingCapitalExplanation"),
+      detailTitle: t("workingCapital"),
+      detailFormula: t("workingCapitalFormula"),
       detailComponents: [
-        { label: "Working Capital", value: formatCurrencyValue(kpis.workingCapital) },
+        { label: t("workingCapital"), value: formatCurrencyValue(kpis.workingCapital) },
       ],
-      detailBenchmark: "Positive working capital means you can pay short-term debts. Negative is a red flag that may require financing.",
+      detailBenchmark: t("workingCapitalBenchmark"),
     },
   ];
 
   // Profitability
   const profitabilityCards: KPICardData[] = [
     {
-      label: "Gross Margin",
+      label: t("grossMargin"),
       value: formatPercentValue(kpis.grossMargin),
       status:
         kpis.grossMargin === null
@@ -202,16 +206,16 @@ export default function KPIDashboardClient({ kpis }: KPIDashboardClientProps) {
             : kpis.grossMargin >= 10
               ? "amber"
               : "red",
-      explanation: "Revenue minus cost of construction, as % of revenue",
-      detailTitle: "Gross Margin",
-      detailFormula: "(Revenue − Cost of Construction) / Revenue × 100",
+      explanation: t("grossMarginExplanation"),
+      detailTitle: t("grossMargin"),
+      detailFormula: t("grossMarginFormula"),
       detailComponents: [
-        { label: "Gross Margin", value: formatPercentValue(kpis.grossMargin) },
+        { label: t("grossMargin"), value: formatPercentValue(kpis.grossMargin) },
       ],
-      detailBenchmark: "≥ 20% is strong for construction, 10–20% is typical, < 10% needs attention. Industry average is 15–25%.",
+      detailBenchmark: t("grossMarginBenchmark"),
     },
     {
-      label: "Net Profit Margin",
+      label: t("netProfitMargin"),
       value: formatPercentValue(kpis.netProfitMargin),
       status:
         kpis.netProfitMargin === null
@@ -221,16 +225,16 @@ export default function KPIDashboardClient({ kpis }: KPIDashboardClientProps) {
             : kpis.netProfitMargin >= 0
               ? "amber"
               : "red",
-      explanation: "Net income as a percentage of total revenue",
-      detailTitle: "Net Profit Margin",
-      detailFormula: "Net Income / Total Revenue × 100",
+      explanation: t("netProfitMarginExplanation"),
+      detailTitle: t("netProfitMargin"),
+      detailFormula: t("netProfitMarginFormula"),
       detailComponents: [
-        { label: "Net Profit Margin", value: formatPercentValue(kpis.netProfitMargin) },
+        { label: t("netProfitMargin"), value: formatPercentValue(kpis.netProfitMargin) },
       ],
-      detailBenchmark: "≥ 10% is excellent, 0–10% is typical for construction, negative means the company is operating at a loss.",
+      detailBenchmark: t("netProfitMarginBenchmark"),
     },
     {
-      label: "Revenue Growth",
+      label: t("revenueGrowth"),
       value: formatPercentValue(kpis.revenueGrowth),
       status:
         kpis.revenueGrowth === null
@@ -238,20 +242,20 @@ export default function KPIDashboardClient({ kpis }: KPIDashboardClientProps) {
           : kpis.revenueGrowth > 0
             ? "green"
             : "red",
-      explanation: "Month-over-month change in revenue",
-      detailTitle: "Revenue Growth",
-      detailFormula: "(Current Month − Prior Month) / Prior Month × 100",
+      explanation: t("revenueGrowthExplanation"),
+      detailTitle: t("revenueGrowth"),
+      detailFormula: t("revenueGrowthFormula"),
       detailComponents: [
-        { label: "Growth Rate", value: formatPercentValue(kpis.revenueGrowth) },
+        { label: t("growthRate"), value: formatPercentValue(kpis.revenueGrowth) },
       ],
-      detailBenchmark: "Positive growth indicates expanding revenue. Negative may indicate seasonal slowdown or lost contracts.",
+      detailBenchmark: t("revenueGrowthBenchmark"),
     },
   ];
 
   // Efficiency
   const efficiencyCards: KPICardData[] = [
     {
-      label: "Days Sales Outstanding",
+      label: t("daysSalesOutstanding"),
       value: formatDays(kpis.dso),
       status:
         kpis.dso === null
@@ -261,32 +265,32 @@ export default function KPIDashboardClient({ kpis }: KPIDashboardClientProps) {
             : kpis.dso <= 60
               ? "amber"
               : "red",
-      explanation: "Average days to collect receivables",
-      detailTitle: "Days Sales Outstanding (DSO)",
-      detailFormula: "(Accounts Receivable / Revenue) × 30",
+      explanation: t("dsoExplanation"),
+      detailTitle: t("dsoDetail"),
+      detailFormula: t("dsoFormula"),
       detailComponents: [
-        { label: "DSO", value: formatDays(kpis.dso) },
+        { label: t("dsoLabel"), value: formatDays(kpis.dso) },
       ],
-      detailBenchmark: "≤ 30 days is excellent, 30–60 days is normal for construction, > 60 days indicates slow collections.",
+      detailBenchmark: t("dsoBenchmark"),
     },
     {
-      label: "Days Payable Outstanding",
+      label: t("daysPayableOutstanding"),
       value: formatDays(kpis.dpo),
       status: kpis.dpo === null ? "blue" : "blue",
-      explanation: "Average days to pay vendor invoices",
-      detailTitle: "Days Payable Outstanding (DPO)",
-      detailFormula: "(Accounts Payable / COGS) × 30",
+      explanation: t("dpoExplanation"),
+      detailTitle: t("dpoDetail"),
+      detailFormula: t("dpoFormula"),
       detailComponents: [
-        { label: "DPO", value: formatDays(kpis.dpo) },
+        { label: t("dpoLabel"), value: formatDays(kpis.dpo) },
       ],
-      detailBenchmark: "Higher DPO means you keep cash longer. Too high may harm vendor relationships. 30–45 days is typical.",
+      detailBenchmark: t("dpoBenchmark"),
     },
   ];
 
   // Cash & Debt
   const cashDebtCards: KPICardData[] = [
     {
-      label: "Debt-to-Equity",
+      label: t("debtToEquity"),
       value: formatDebtRatio(kpis.debtToEquity),
       status:
         kpis.debtToEquity === null
@@ -296,33 +300,33 @@ export default function KPIDashboardClient({ kpis }: KPIDashboardClientProps) {
             : kpis.debtToEquity < 2
               ? "amber"
               : "red",
-      explanation: "Total liabilities divided by total equity",
-      detailTitle: "Debt-to-Equity Ratio",
-      detailFormula: "Total Liabilities / Total Equity",
+      explanation: t("debtToEquityExplanation"),
+      detailTitle: t("debtToEquityDetail"),
+      detailFormula: t("debtToEquityFormula"),
       detailComponents: [
-        { label: "Ratio", value: formatDebtRatio(kpis.debtToEquity) },
+        { label: t("ratio"), value: formatDebtRatio(kpis.debtToEquity) },
       ],
-      detailBenchmark: "< 1.0 means more equity than debt (green), 1.0–2.0 is manageable (amber), > 2.0 is heavily leveraged (red).",
+      detailBenchmark: t("debtToEquityBenchmark"),
     },
     {
-      label: "Monthly Burn Rate",
+      label: t("monthlyBurnRate"),
       value: formatCurrencyValue(kpis.burnRate),
       status: kpis.burnRate === 0 ? "blue" : "amber",
-      explanation: "Average monthly expenses over last 6 months",
-      detailTitle: "Monthly Burn Rate",
-      detailFormula: "Total Expenses (Last 6 Months) / 6",
+      explanation: t("monthlyBurnRateExplanation"),
+      detailTitle: t("monthlyBurnRate"),
+      detailFormula: t("monthlyBurnRateFormula"),
       detailComponents: [
-        { label: "Monthly Burn Rate", value: formatCurrencyValue(kpis.burnRate) },
+        { label: t("monthlyBurnRate"), value: formatCurrencyValue(kpis.burnRate) },
       ],
-      detailBenchmark: "Divide cash position by burn rate to estimate months of cash remaining (runway).",
+      detailBenchmark: t("monthlyBurnRateBenchmark"),
     },
   ];
 
   const sections = [
-    { title: "Liquidity Ratios", icon: <Droplets size={18} />, cards: liquidityCards },
-    { title: "Profitability", icon: <TrendingUp size={18} />, cards: profitabilityCards },
-    { title: "Efficiency", icon: <Zap size={18} />, cards: efficiencyCards },
-    { title: "Cash & Debt", icon: <Landmark size={18} />, cards: cashDebtCards },
+    { title: t("liquidityRatios"), icon: <Droplets size={18} />, cards: liquidityCards },
+    { title: t("profitability"), icon: <TrendingUp size={18} />, cards: profitabilityCards },
+    { title: t("efficiency"), icon: <Zap size={18} />, cards: efficiencyCards },
+    { title: t("cashAndDebt"), icon: <Landmark size={18} />, cards: cashDebtCards },
   ];
 
   return (
@@ -330,16 +334,15 @@ export default function KPIDashboardClient({ kpis }: KPIDashboardClientProps) {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Financial KPIs</h2>
+          <h2>{t("financialKpis")}</h2>
           <p className="fin-header-sub">
-            Key performance indicators for your company&apos;s financial health.
-            Click any card for details.
+            {t("financialKpisDesc")}
           </p>
         </div>
         <div className="fin-header-actions">
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.78rem", color: "var(--muted)" }}>
             <BarChart3 size={14} />
-            Updated in real-time
+            {t("updatedInRealTime")}
           </div>
         </div>
       </div>
@@ -389,7 +392,7 @@ export default function KPIDashboardClient({ kpis }: KPIDashboardClientProps) {
 
               {/* Formula */}
               <div className="ticket-detail-row">
-                <span className="ticket-detail-label">Formula</span>
+                <span className="ticket-detail-label">{t("formula")}</span>
                 <span style={{ fontSize: "0.85rem" }}>{selectedKPI.detailFormula}</span>
               </div>
 
@@ -397,7 +400,7 @@ export default function KPIDashboardClient({ kpis }: KPIDashboardClientProps) {
               {selectedKPI.detailComponents.length > 0 && (
                 <div style={{ margin: "16px 0" }}>
                   <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: 8, color: "var(--muted)" }}>
-                    Components
+                    {t("components")}
                   </div>
                   {selectedKPI.detailComponents.map((comp) => (
                     <div key={comp.label} style={{

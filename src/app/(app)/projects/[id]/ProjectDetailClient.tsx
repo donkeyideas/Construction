@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   ArrowLeft,
   Pencil,
@@ -26,63 +27,12 @@ import type {
 } from "@/lib/queries/projects";
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers (locale-aware versions are inside components)
 // ---------------------------------------------------------------------------
-
-function formatCurrency(amount: number | null) {
-  if (amount == null) return "--";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  const [year, month, day] = dateStr.slice(0, 10).split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatDateTime(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
 
 function toInputDate(dateStr: string | null) {
   if (!dateStr) return "";
   return dateStr.slice(0, 10);
-}
-
-function statusLabel(status: string) {
-  const map: Record<string, string> = {
-    pre_construction: "Pre-Construction",
-    active: "Active",
-    on_hold: "On Hold",
-    completed: "Completed",
-    closed: "Closed",
-    draft: "Draft",
-    open: "Open",
-    submitted: "Submitted",
-    answered: "Answered",
-    approved: "Approved",
-    rejected: "Rejected",
-    pending: "Pending",
-    not_started: "Not Started",
-    in_progress: "In Progress",
-  };
-  return map[status] ?? status.replace(/_/g, " ");
 }
 
 function completionClass(pct: number) {
@@ -95,15 +45,7 @@ function completionClass(pct: number) {
 // Tab definitions
 // ---------------------------------------------------------------------------
 
-const TABS = [
-  { key: "overview", label: "Overview" },
-  { key: "tasks", label: "Tasks" },
-  { key: "daily-logs", label: "Daily Logs" },
-  { key: "rfis", label: "RFIs" },
-  { key: "change-orders", label: "Change Orders" },
-] as const;
-
-type TabKey = (typeof TABS)[number]["key"];
+type TabKey = "overview" | "tasks" | "daily-logs" | "rfis" | "change-orders";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -142,6 +84,10 @@ export default function ProjectDetailClient({
   userMap,
   memberOptions,
 }: ProjectDetailClientProps) {
+  const t = useTranslations("projects");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
 
   // Detail / edit modal state
@@ -156,6 +102,65 @@ export default function ProjectDetailClient({
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
 
+  function formatCurrency(amount: number | null) {
+    if (amount == null) return "--";
+    return new Intl.NumberFormat(dateLocale, {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    const [year, month, day] = dateStr.slice(0, 10).split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatDateTime(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  function statusLabel(status: string) {
+    const map: Record<string, string> = {
+      pre_construction: t("statusPreConstruction"),
+      active: t("statusActive"),
+      on_hold: t("statusOnHold"),
+      completed: t("statusCompleted"),
+      closed: t("statusClosed"),
+      draft: t("statusDraft"),
+      open: t("statusOpen"),
+      submitted: t("statusSubmitted"),
+      answered: t("statusAnswered"),
+      approved: t("statusApproved"),
+      rejected: t("statusRejected"),
+      pending: t("statusPending"),
+      not_started: t("statusNotStarted"),
+      in_progress: t("statusInProgress"),
+    };
+    return map[status] ?? status.replace(/_/g, " ");
+  }
+
+  const TABS = [
+    { key: "overview" as TabKey, label: t("tabOverview") },
+    { key: "tasks" as TabKey, label: t("tabTasks") },
+    { key: "daily-logs" as TabKey, label: t("tabDailyLogs") },
+    { key: "rfis" as TabKey, label: t("tabRfis") },
+    { key: "change-orders" as TabKey, label: t("tabChangeOrders") },
+  ];
+
   async function handleDelete() {
     setDeleting(true);
     try {
@@ -164,10 +169,10 @@ export default function ProjectDetailClient({
         router.push("/projects");
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to delete project.");
+        alert(data.error || t("failedToDeleteProject"));
       }
     } catch {
-      alert("Network error. Please try again.");
+      alert(t("networkError"));
     } finally {
       setDeleting(false);
       setConfirmDelete(false);
@@ -191,7 +196,7 @@ export default function ProjectDetailClient({
                 gap: 4,
               }}
             >
-              <ArrowLeft size={14} /> Back to Projects
+              <ArrowLeft size={14} /> {t("backToProjects")}
             </Link>
           </div>
           <h2>
@@ -211,7 +216,7 @@ export default function ProjectDetailClient({
             onClick={() => { setEditProjectOpen(true); setEditMode(false); }}
           >
             <Pencil size={14} />
-            Edit Project
+            {t("editProject")}
           </button>
           <button
             className="btn-secondary"
@@ -219,7 +224,7 @@ export default function ProjectDetailClient({
             onClick={() => setConfirmDelete(true)}
           >
             <Trash2 size={14} />
-            Delete
+            {t("delete")}
           </button>
         </div>
       </div>
@@ -256,7 +261,7 @@ export default function ProjectDetailClient({
       {/* Tab Panels */}
       <div className="project-tab-panel">
         {activeTab === "overview" && (
-          <OverviewTab project={project} stats={stats} tasks={tasks} />
+          <OverviewTab project={project} stats={stats} tasks={tasks} formatCurrency={formatCurrency} formatDate={formatDate} t={t} />
         )}
         {activeTab === "tasks" && (
           <TasksTabWithCreate
@@ -264,16 +269,19 @@ export default function ProjectDetailClient({
             phases={phases}
             tasks={tasks}
             onSelect={setSelectedTask}
+            formatDate={formatDate}
+            statusLabel={statusLabel}
+            t={t}
           />
         )}
         {activeTab === "daily-logs" && (
-          <DailyLogsTab logs={dailyLogs} onSelect={setSelectedLog} />
+          <DailyLogsTab logs={dailyLogs} onSelect={setSelectedLog} dateLocale={dateLocale} statusLabel={statusLabel} t={t} />
         )}
         {activeTab === "rfis" && (
-          <RFIsTab rfis={rfis} onSelect={setSelectedRfi} />
+          <RFIsTab rfis={rfis} onSelect={setSelectedRfi} formatDate={formatDate} statusLabel={statusLabel} t={t} />
         )}
         {activeTab === "change-orders" && (
-          <ChangeOrdersTab changeOrders={changeOrders} onSelect={setSelectedCo} />
+          <ChangeOrdersTab changeOrders={changeOrders} onSelect={setSelectedCo} formatCurrency={formatCurrency} formatDate={formatDate} statusLabel={statusLabel} t={t} />
         )}
       </div>
 
@@ -287,6 +295,8 @@ export default function ProjectDetailClient({
           setSaving={setSaving}
           onClose={() => setEditProjectOpen(false)}
           memberOptions={memberOptions}
+          t={t}
+          statusLabel={statusLabel}
         />
       )}
 
@@ -295,19 +305,19 @@ export default function ProjectDetailClient({
         <div className="modal-overlay" onClick={() => setConfirmDelete(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <div className="modal-header">
-              <h3>Delete Project</h3>
+              <h3>{t("deleteProject")}</h3>
               <button className="modal-close" onClick={() => setConfirmDelete(false)}><X size={20} /></button>
             </div>
             <div className="modal-body">
               <p style={{ marginBottom: 8 }}>
-                Are you sure you want to delete <strong>{project.name}</strong>?
+                {t("confirmDeleteProject", { name: project.name })}
               </p>
               <p style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
-                This will permanently remove the project and all associated tasks, daily logs, RFIs, and change orders. This action cannot be undone.
+                {t("deleteProjectWarning")}
               </p>
               <div className="modal-actions" style={{ marginTop: 16 }}>
                 <button className="btn-secondary" onClick={() => setConfirmDelete(false)} disabled={deleting}>
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   className="btn-primary"
@@ -315,7 +325,7 @@ export default function ProjectDetailClient({
                   onClick={handleDelete}
                   disabled={deleting}
                 >
-                  {deleting ? "Deleting..." : "Delete Project"}
+                  {deleting ? t("deleting") : t("deleteProject")}
                 </button>
               </div>
             </div>
@@ -333,6 +343,11 @@ export default function ProjectDetailClient({
           onClose={() => { setSelectedRfi(null); setEditMode(false); }}
           onEdit={() => setEditMode(true)}
           onCancelEdit={() => setEditMode(false)}
+          formatDate={formatDate}
+          formatDateTime={formatDateTime}
+          formatCurrency={formatCurrency}
+          statusLabel={statusLabel}
+          t={t}
         />
       )}
 
@@ -347,6 +362,10 @@ export default function ProjectDetailClient({
           onClose={() => { setSelectedCo(null); setEditMode(false); }}
           onEdit={() => setEditMode(true)}
           onCancelEdit={() => setEditMode(false)}
+          formatCurrency={formatCurrency}
+          formatDateTime={formatDateTime}
+          statusLabel={statusLabel}
+          t={t}
         />
       )}
 
@@ -360,6 +379,9 @@ export default function ProjectDetailClient({
           onClose={() => { setSelectedLog(null); setEditMode(false); }}
           onEdit={() => setEditMode(true)}
           onCancelEdit={() => setEditMode(false)}
+          formatDate={formatDate}
+          statusLabel={statusLabel}
+          t={t}
         />
       )}
 
@@ -374,6 +396,9 @@ export default function ProjectDetailClient({
           onClose={() => { setSelectedTask(null); setEditMode(false); }}
           onEdit={() => setEditMode(true)}
           onCancelEdit={() => setEditMode(false)}
+          formatDate={formatDate}
+          statusLabel={statusLabel}
+          t={t}
         />
       )}
     </div>
@@ -390,12 +415,16 @@ function EditProjectModal({
   setSaving,
   onClose,
   memberOptions,
+  t,
+  statusLabel,
 }: {
   project: ProjectRow;
   saving: boolean;
   setSaving: (v: boolean) => void;
   onClose: () => void;
   memberOptions: MemberOption[];
+  t: ReturnType<typeof useTranslations>;
+  statusLabel: (s: string) => string;
 }) {
   const [form, setForm] = useState({
     name: project.name,
@@ -449,10 +478,10 @@ function EditProjectModal({
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update project.");
+        setError(data.error || t("failedToUpdateProject"));
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -462,14 +491,14 @@ function EditProjectModal({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Edit Project</h3>
+          <h3>{t("editProject")}</h3>
           <button className="modal-close" onClick={onClose}><X size={20} /></button>
         </div>
         <div className="modal-body">
           {error && <div className="form-error">{error}</div>}
           <div className="modal-form-grid">
             <div className="form-group full-width">
-              <label className="form-label">Project Name</label>
+              <label className="form-label">{t("projectName")}</label>
               <input
                 className="form-input"
                 value={form.name}
@@ -477,21 +506,21 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Status</label>
+              <label className="form-label">{t("columnStatus")}</label>
               <select
                 className="form-select"
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as ProjectStatus })}
               >
-                <option value="pre_construction">Pre-Construction</option>
-                <option value="active">Active</option>
-                <option value="on_hold">On Hold</option>
-                <option value="completed">Completed</option>
-                <option value="closed">Closed</option>
+                <option value="pre_construction">{t("statusPreConstruction")}</option>
+                <option value="active">{t("statusActive")}</option>
+                <option value="on_hold">{t("statusOnHold")}</option>
+                <option value="completed">{t("statusCompleted")}</option>
+                <option value="closed">{t("statusClosed")}</option>
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Completion %</label>
+              <label className="form-label">{t("completionPercent")}</label>
               <input
                 className="form-input"
                 type="number"
@@ -502,16 +531,16 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Project Type</label>
+              <label className="form-label">{t("projectType")}</label>
               <input
                 className="form-input"
                 value={form.project_type}
                 onChange={(e) => setForm({ ...form, project_type: e.target.value })}
-                placeholder="e.g. Commercial, Residential"
+                placeholder={t("projectTypePlaceholder")}
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Client Name</label>
+              <label className="form-label">{t("clientName")}</label>
               <input
                 className="form-input"
                 value={form.client_name}
@@ -519,51 +548,51 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Project Manager</label>
+              <label className="form-label">{t("projectManager")}</label>
               <select
                 className="form-select"
                 value={form.project_manager_id}
                 onChange={(e) => setForm({ ...form, project_manager_id: e.target.value })}
               >
-                <option value="">-- None --</option>
+                <option value="">{t("none")}</option>
                 {memberOptions.map((m) => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Superintendent</label>
+              <label className="form-label">{t("superintendent")}</label>
               <select
                 className="form-select"
                 value={form.superintendent_id}
                 onChange={(e) => setForm({ ...form, superintendent_id: e.target.value })}
               >
-                <option value="">-- None --</option>
+                <option value="">{t("none")}</option>
                 {memberOptions.map((m) => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
               </select>
             </div>
             <div className="form-group full-width">
-              <label className="form-label">Description</label>
+              <label className="form-label">{t("description")}</label>
               <input
                 className="form-input"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Project description"
+                placeholder={t("descriptionPlaceholder")}
               />
             </div>
             <div className="form-group full-width">
-              <label className="form-label">Address</label>
+              <label className="form-label">{t("address")}</label>
               <input
                 className="form-input"
                 value={form.address_line1}
                 onChange={(e) => setForm({ ...form, address_line1: e.target.value })}
-                placeholder="Street address"
+                placeholder={t("streetAddress")}
               />
             </div>
             <div className="form-group">
-              <label className="form-label">City</label>
+              <label className="form-label">{t("city")}</label>
               <input
                 className="form-input"
                 value={form.city}
@@ -571,7 +600,7 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">State</label>
+              <label className="form-label">{t("state")}</label>
               <input
                 className="form-input"
                 value={form.state}
@@ -579,7 +608,7 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">ZIP</label>
+              <label className="form-label">{t("zip")}</label>
               <input
                 className="form-input"
                 value={form.zip}
@@ -587,7 +616,7 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Contract Amount</label>
+              <label className="form-label">{t("contractAmount")}</label>
               <input
                 className="form-input"
                 type="number"
@@ -597,7 +626,7 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Estimated Cost</label>
+              <label className="form-label">{t("estimatedCost")}</label>
               <input
                 className="form-input"
                 type="number"
@@ -607,7 +636,7 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Actual Cost</label>
+              <label className="form-label">{t("actualCost")}</label>
               <input
                 className="form-input"
                 type="number"
@@ -617,7 +646,7 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Start Date</label>
+              <label className="form-label">{t("startDate")}</label>
               <input
                 className="form-input"
                 type="date"
@@ -626,7 +655,7 @@ function EditProjectModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Estimated End Date</label>
+              <label className="form-label">{t("estimatedEndDate")}</label>
               <input
                 className="form-input"
                 type="date"
@@ -637,10 +666,10 @@ function EditProjectModal({
           </div>
           <div className="modal-actions">
             <button className="btn-secondary" onClick={onClose} disabled={saving}>
-              Cancel
+              {t("cancel")}
             </button>
             <button className="btn-primary" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t("saving") : t("saveChanges")}
             </button>
           </div>
         </div>
@@ -661,6 +690,11 @@ function RfiModal({
   onClose,
   onEdit,
   onCancelEdit,
+  formatDate,
+  formatDateTime,
+  formatCurrency,
+  statusLabel,
+  t,
 }: {
   rfi: RFI;
   editMode: boolean;
@@ -669,6 +703,11 @@ function RfiModal({
   onClose: () => void;
   onEdit: () => void;
   onCancelEdit: () => void;
+  formatDate: (s: string | null) => string;
+  formatDateTime: (s: string | null) => string;
+  formatCurrency: (a: number | null) => string;
+  statusLabel: (s: string) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const [form, setForm] = useState({
     status: rfi.status,
@@ -697,10 +736,10 @@ function RfiModal({
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update RFI.");
+        setError(data.error || t("failedToUpdateRfi"));
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -711,63 +750,63 @@ function RfiModal({
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h3>Edit {rfi.rfi_number}: {rfi.subject}</h3>
+            <h3>{t("editRfiTitle", { number: rfi.rfi_number, subject: rfi.subject })}</h3>
             <button className="modal-close" onClick={onClose}><X size={20} /></button>
           </div>
           <div className="modal-body">
             {error && <div className="form-error">{error}</div>}
             <div className="modal-form-grid">
               <div className="form-group">
-                <label className="form-label">Status</label>
+                <label className="form-label">{t("columnStatus")}</label>
                 <select
                   className="form-select"
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                 >
-                  <option value="open">Open</option>
-                  <option value="answered">Answered</option>
-                  <option value="closed">Closed</option>
+                  <option value="open">{t("statusOpen")}</option>
+                  <option value="answered">{t("statusAnswered")}</option>
+                  <option value="closed">{t("statusClosed")}</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Priority</label>
+                <label className="form-label">{t("priority")}</label>
                 <select
                   className="form-select"
                   value={form.priority}
                   onChange={(e) => setForm({ ...form, priority: e.target.value })}
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
+                  <option value="low">{t("priorityLow")}</option>
+                  <option value="medium">{t("priorityMedium")}</option>
+                  <option value="high">{t("priorityHigh")}</option>
+                  <option value="urgent">{t("priorityUrgent")}</option>
                 </select>
               </div>
               <div className="form-group full-width">
-                <label className="form-label">Answer</label>
+                <label className="form-label">{t("answer")}</label>
                 <textarea
                   className="form-textarea"
                   rows={4}
                   value={form.answer}
                   onChange={(e) => setForm({ ...form, answer: e.target.value })}
-                  placeholder="Enter the answer to this RFI..."
+                  placeholder={t("enterAnswerPlaceholder")}
                 />
               </div>
               <div className="form-group full-width">
-                <label className="form-label">Assigned To (User ID)</label>
+                <label className="form-label">{t("assignedToUserId")}</label>
                 <input
                   className="form-input"
                   value={form.assigned_to}
                   onChange={(e) => setForm({ ...form, assigned_to: e.target.value })}
-                  placeholder="User ID"
+                  placeholder={t("userIdPlaceholder")}
                 />
               </div>
             </div>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={onCancelEdit} disabled={saving}>
-                Cancel
+                {t("cancel")}
               </button>
               <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? "Saving..." : "Save Changes"}
+                {saving ? t("saving") : t("saveChanges")}
               </button>
             </div>
           </div>
@@ -785,59 +824,59 @@ function RfiModal({
         </div>
         <div className="modal-body">
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Status</span>
+            <span className="modal-detail-label">{t("columnStatus")}</span>
             <span className="modal-detail-value">
               <span className={`badge badge-${rfi.status}`}>{statusLabel(rfi.status)}</span>
             </span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Priority</span>
+            <span className="modal-detail-label">{t("priority")}</span>
             <span className="modal-detail-value">
               <span className={`badge badge-${rfi.priority}`}>{rfi.priority}</span>
             </span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Assigned To</span>
+            <span className="modal-detail-label">{t("assignedTo")}</span>
             <span className="modal-detail-value">{rfi.assignee?.full_name ?? "--"}</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Due Date</span>
+            <span className="modal-detail-label">{t("dueDate")}</span>
             <span className="modal-detail-value">{formatDate(rfi.due_date)}</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Created</span>
+            <span className="modal-detail-label">{t("created")}</span>
             <span className="modal-detail-value">{formatDateTime(rfi.created_at)}</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Answered At</span>
+            <span className="modal-detail-label">{t("answeredAt")}</span>
             <span className="modal-detail-value">{formatDateTime(rfi.answered_at)}</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Cost Impact</span>
+            <span className="modal-detail-label">{t("costImpact")}</span>
             <span className="modal-detail-value">{rfi.cost_impact != null ? formatCurrency(rfi.cost_impact) : "--"}</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Schedule Impact</span>
+            <span className="modal-detail-label">{t("scheduleImpact")}</span>
             <span className="modal-detail-value">
               {rfi.schedule_impact_days != null
-                ? `${rfi.schedule_impact_days} day${rfi.schedule_impact_days !== 1 ? "s" : ""}`
+                ? t("scheduleImpactDays", { count: rfi.schedule_impact_days })
                 : "--"}
             </span>
           </div>
 
-          <div className="modal-section-title">Question</div>
+          <div className="modal-section-title">{t("question")}</div>
           <div style={{ fontSize: "0.85rem", lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 8 }}>
             {rfi.question || "--"}
           </div>
 
-          <div className="modal-section-title">Answer</div>
+          <div className="modal-section-title">{t("answer")}</div>
           <div style={{ fontSize: "0.85rem", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
             {rfi.answer || "--"}
           </div>
 
           <div className="modal-actions">
             <button className="btn-primary" onClick={onEdit}>
-              <Pencil size={14} /> Edit RFI
+              <Pencil size={14} /> {t("editRfi")}
             </button>
           </div>
         </div>
@@ -859,6 +898,10 @@ function ChangeOrderModal({
   onClose,
   onEdit,
   onCancelEdit,
+  formatCurrency,
+  formatDateTime,
+  statusLabel,
+  t,
 }: {
   co: ChangeOrder;
   editMode: boolean;
@@ -868,6 +911,10 @@ function ChangeOrderModal({
   onClose: () => void;
   onEdit: () => void;
   onCancelEdit: () => void;
+  formatCurrency: (a: number | null) => string;
+  formatDateTime: (s: string | null) => string;
+  statusLabel: (s: string) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const [form, setForm] = useState({
     status: co.status,
@@ -896,10 +943,10 @@ function ChangeOrderModal({
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update change order.");
+        setError(data.error || t("failedToUpdateChangeOrder"));
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -910,27 +957,27 @@ function ChangeOrderModal({
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h3>Edit {co.co_number}: {co.title}</h3>
+            <h3>{t("editCoTitle", { number: co.co_number, title: co.title })}</h3>
             <button className="modal-close" onClick={onClose}><X size={20} /></button>
           </div>
           <div className="modal-body">
             {error && <div className="form-error">{error}</div>}
             <div className="modal-form-grid">
               <div className="form-group">
-                <label className="form-label">Status</label>
+                <label className="form-label">{t("columnStatus")}</label>
                 <select
                   className="form-select"
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                 >
-                  <option value="draft">Draft</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="draft">{t("statusDraft")}</option>
+                  <option value="submitted">{t("statusSubmitted")}</option>
+                  <option value="approved">{t("statusApproved")}</option>
+                  <option value="rejected">{t("statusRejected")}</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Amount ($)</label>
+                <label className="form-label">{t("amountDollar")}</label>
                 <input
                   className="form-input"
                   type="number"
@@ -940,7 +987,7 @@ function ChangeOrderModal({
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Schedule Impact (days)</label>
+                <label className="form-label">{t("scheduleImpactDaysLabel")}</label>
                 <input
                   className="form-input"
                   type="number"
@@ -950,22 +997,22 @@ function ChangeOrderModal({
                 />
               </div>
               <div className="form-group full-width">
-                <label className="form-label">Description</label>
+                <label className="form-label">{t("description")}</label>
                 <textarea
                   className="form-textarea"
                   rows={4}
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Describe the change order..."
+                  placeholder={t("describeChangeOrder")}
                 />
               </div>
             </div>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={onCancelEdit} disabled={saving}>
-                Cancel
+                {t("cancel")}
               </button>
               <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? "Saving..." : "Save Changes"}
+                {saving ? t("saving") : t("saveChanges")}
               </button>
             </div>
           </div>
@@ -984,11 +1031,11 @@ function ChangeOrderModal({
         <div style={{ padding: "1.25rem" }}>
           <div className="detail-grid">
             <div className="detail-field">
-              <label className="ticket-form-label">Status</label>
+              <label className="ticket-form-label">{t("columnStatus")}</label>
               <div><span className={`badge badge-${co.status}`}>{statusLabel(co.status)}</span></div>
             </div>
             <div className="detail-field">
-              <label className="ticket-form-label">Reason</label>
+              <label className="ticket-form-label">{t("reason")}</label>
               <div className="detail-field-value" style={{ textTransform: "capitalize" }}>
                 {co.reason ? co.reason.replace(/_/g, " ") : "--"}
               </div>
@@ -997,14 +1044,14 @@ function ChangeOrderModal({
 
           <div className="detail-grid">
             <div className="detail-field">
-              <label className="ticket-form-label">Amount</label>
+              <label className="ticket-form-label">{t("amount")}</label>
               <div className="detail-field-value">{formatCurrency(co.amount)}</div>
             </div>
             <div className="detail-field">
-              <label className="ticket-form-label">Schedule Impact</label>
+              <label className="ticket-form-label">{t("scheduleImpact")}</label>
               <div className="detail-field-value">
                 {co.schedule_impact_days != null
-                  ? `${co.schedule_impact_days} day${co.schedule_impact_days !== 1 ? "s" : ""}`
+                  ? t("scheduleImpactDays", { count: co.schedule_impact_days })
                   : "--"}
               </div>
             </div>
@@ -1012,34 +1059,34 @@ function ChangeOrderModal({
 
           <div className="detail-grid">
             <div className="detail-field">
-              <label className="ticket-form-label">Approved By</label>
+              <label className="ticket-form-label">{t("approvedBy")}</label>
               <div className="detail-field-value">
                 {co.approved_by ? userMap[co.approved_by] ?? "--" : "--"}
               </div>
             </div>
             <div className="detail-field">
-              <label className="ticket-form-label">Approved At</label>
+              <label className="ticket-form-label">{t("approvedAt")}</label>
               <div className="detail-field-value">{formatDateTime(co.approved_at)}</div>
             </div>
           </div>
 
           {co.description && (
             <div className="detail-section">
-              <div className="detail-section-title">Description</div>
+              <div className="detail-section-title">{t("description")}</div>
               <div className="detail-section-text">{co.description}</div>
             </div>
           )}
 
           {co.line_items && co.line_items.length > 0 && (
             <div className="detail-section">
-              <div className="detail-section-title">Line Items</div>
+              <div className="detail-section-title">{t("lineItems")}</div>
               <table className="detail-line-items">
                 <thead>
                   <tr>
-                    <th>Description</th>
-                    <th>Qty</th>
-                    <th>Unit</th>
-                    <th>Total</th>
+                    <th>{t("description")}</th>
+                    <th>{t("qty")}</th>
+                    <th>{t("unit")}</th>
+                    <th>{t("total")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1058,7 +1105,7 @@ function ChangeOrderModal({
 
           <div className="ticket-form-actions">
             <button className="btn-primary" onClick={onEdit}>
-              <Pencil size={14} /> Edit Change Order
+              <Pencil size={14} /> {t("editChangeOrder")}
             </button>
           </div>
         </div>
@@ -1079,6 +1126,9 @@ function DailyLogModal({
   onClose,
   onEdit,
   onCancelEdit,
+  formatDate,
+  statusLabel,
+  t,
 }: {
   log: DailyLog;
   editMode: boolean;
@@ -1087,6 +1137,9 @@ function DailyLogModal({
   onClose: () => void;
   onEdit: () => void;
   onCancelEdit: () => void;
+  formatDate: (s: string | null) => string;
+  statusLabel: (s: string) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const [form, setForm] = useState({
     status: log.status,
@@ -1122,10 +1175,10 @@ function DailyLogModal({
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update daily log.");
+        setError(data.error || t("failedToUpdateDailyLog"));
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -1136,35 +1189,35 @@ function DailyLogModal({
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content modal-wide" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h3>Edit Daily Log - {formatDate(log.log_date)}</h3>
+            <h3>{t("editDailyLogTitle", { date: formatDate(log.log_date) })}</h3>
             <button className="modal-close" onClick={onClose}><X size={20} /></button>
           </div>
           <div className="modal-body">
             {error && <div className="form-error">{error}</div>}
             <div className="modal-form-grid">
               <div className="form-group">
-                <label className="form-label">Status</label>
+                <label className="form-label">{t("columnStatus")}</label>
                 <select
                   className="form-select"
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                 >
-                  <option value="draft">Draft</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="approved">Approved</option>
+                  <option value="draft">{t("statusDraft")}</option>
+                  <option value="submitted">{t("statusSubmitted")}</option>
+                  <option value="approved">{t("statusApproved")}</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Weather Condition</label>
+                <label className="form-label">{t("weatherCondition")}</label>
                 <input
                   className="form-input"
                   value={form.weather_conditions}
                   onChange={(e) => setForm({ ...form, weather_conditions: e.target.value })}
-                  placeholder="e.g. Sunny, Cloudy, Rain"
+                  placeholder={t("weatherConditionPlaceholder")}
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Temp High (F)</label>
+                <label className="form-label">{t("tempHighF")}</label>
                 <input
                   className="form-input"
                   type="number"
@@ -1173,7 +1226,7 @@ function DailyLogModal({
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Temp Low (F)</label>
+                <label className="form-label">{t("tempLowF")}</label>
                 <input
                   className="form-input"
                   type="number"
@@ -1182,42 +1235,42 @@ function DailyLogModal({
                 />
               </div>
               <div className="form-group full-width">
-                <label className="form-label">Work Performed</label>
+                <label className="form-label">{t("workPerformed")}</label>
                 <textarea
                   className="form-textarea"
                   rows={4}
                   value={form.work_performed}
                   onChange={(e) => setForm({ ...form, work_performed: e.target.value })}
-                  placeholder="Describe work performed today..."
+                  placeholder={t("describeWorkPerformed")}
                 />
               </div>
               <div className="form-group full-width">
-                <label className="form-label">Delays</label>
+                <label className="form-label">{t("delays")}</label>
                 <textarea
                   className="form-textarea"
                   rows={2}
                   value={form.delays}
                   onChange={(e) => setForm({ ...form, delays: e.target.value })}
-                  placeholder="Any delays encountered..."
+                  placeholder={t("delaysPlaceholder")}
                 />
               </div>
               <div className="form-group full-width">
-                <label className="form-label">Safety Incidents</label>
+                <label className="form-label">{t("safetyIncidents")}</label>
                 <textarea
                   className="form-textarea"
                   rows={2}
                   value={form.safety_incidents}
                   onChange={(e) => setForm({ ...form, safety_incidents: e.target.value })}
-                  placeholder="Any safety incidents..."
+                  placeholder={t("safetyIncidentsPlaceholder")}
                 />
               </div>
             </div>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={onCancelEdit} disabled={saving}>
-                Cancel
+                {t("cancel")}
               </button>
               <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? "Saving..." : "Save Changes"}
+                {saving ? t("saving") : t("saveChanges")}
               </button>
             </div>
           </div>
@@ -1235,29 +1288,29 @@ function DailyLogModal({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Daily Log - {formatDate(log.log_date)}</h3>
+          <h3>{t("dailyLogTitle", { date: formatDate(log.log_date) })}</h3>
           <button className="modal-close" onClick={onClose}><X size={20} /></button>
         </div>
         <div className="modal-body">
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Status</span>
+            <span className="modal-detail-label">{t("columnStatus")}</span>
             <span className="modal-detail-value">
               <span className={`badge badge-${log.status}`}>{statusLabel(log.status)}</span>
             </span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Created By</span>
+            <span className="modal-detail-label">{t("createdBy")}</span>
             <span className="modal-detail-value">{log.creator?.full_name ?? "--"}</span>
           </div>
 
           {/* Weather */}
-          <div className="modal-section-title">Weather</div>
+          <div className="modal-section-title">{t("weather")}</div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Condition</span>
+            <span className="modal-detail-label">{t("condition")}</span>
             <span className="modal-detail-value">{log.weather_conditions ?? "--"}</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Temperature</span>
+            <span className="modal-detail-label">{t("temperature")}</span>
             <span className="modal-detail-value">
               {log.weather_temp_high != null
                 ? `${log.weather_temp_high}F / ${log.weather_temp_low ?? "--"}F`
@@ -1265,12 +1318,12 @@ function DailyLogModal({
             </span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Precipitation</span>
+            <span className="modal-detail-label">{t("precipitation")}</span>
             <span className="modal-detail-value">{log.weather_precipitation ?? "--"}</span>
           </div>
 
           {/* Work */}
-          <div className="modal-section-title">Work Performed</div>
+          <div className="modal-section-title">{t("workPerformed")}</div>
           <div style={{ fontSize: "0.85rem", lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 4 }}>
             {log.work_performed || "--"}
           </div>
@@ -1278,12 +1331,12 @@ function DailyLogModal({
           {/* Workforce */}
           {workforce && workforce.length > 0 && (
             <>
-              <div className="modal-section-title">Workforce</div>
+              <div className="modal-section-title">{t("workforce")}</div>
               {workforce.map((w, i) => (
                 <div key={i} className="modal-detail-row">
-                  <span className="modal-detail-label">{w.trade ?? "Trade"}</span>
+                  <span className="modal-detail-label">{w.trade ?? t("trade")}</span>
                   <span className="modal-detail-value">
-                    {w.headcount ?? 0} workers, {w.hours ?? 0} hrs
+                    {t("workersHours", { workers: w.headcount ?? 0, hours: w.hours ?? 0 })}
                   </span>
                 </div>
               ))}
@@ -1293,11 +1346,11 @@ function DailyLogModal({
           {/* Equipment */}
           {equipment && equipment.length > 0 && (
             <>
-              <div className="modal-section-title">Equipment</div>
+              <div className="modal-section-title">{t("equipment")}</div>
               {equipment.map((eq, i) => (
                 <div key={i} className="modal-detail-row">
-                  <span className="modal-detail-label">{eq.name ?? "Equipment"}</span>
-                  <span className="modal-detail-value">{eq.hours ?? 0} hrs</span>
+                  <span className="modal-detail-label">{eq.name ?? t("equipment")}</span>
+                  <span className="modal-detail-value">{eq.hours ?? 0} {t("hrs")}</span>
                 </div>
               ))}
             </>
@@ -1306,7 +1359,7 @@ function DailyLogModal({
           {/* Materials */}
           {materialsReceived && (
             <>
-              <div className="modal-section-title">Materials Received</div>
+              <div className="modal-section-title">{t("materialsReceived")}</div>
               <div style={{ fontSize: "0.85rem", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
                 {materialsReceived}
               </div>
@@ -1314,20 +1367,20 @@ function DailyLogModal({
           )}
 
           {/* Delays */}
-          <div className="modal-section-title">Delays</div>
+          <div className="modal-section-title">{t("delays")}</div>
           <div style={{ fontSize: "0.85rem", lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 4 }}>
-            {log.delays || "None reported"}
+            {log.delays || t("noneReported")}
           </div>
 
           {/* Safety Incidents */}
-          <div className="modal-section-title">Safety Incidents</div>
+          <div className="modal-section-title">{t("safetyIncidents")}</div>
           <div style={{ fontSize: "0.85rem", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-            {log.safety_incidents || "None reported"}
+            {log.safety_incidents || t("noneReported")}
           </div>
 
           <div className="modal-actions">
             <button className="btn-primary" onClick={onEdit}>
-              <Pencil size={14} /> Edit Daily Log
+              <Pencil size={14} /> {t("editDailyLog")}
             </button>
           </div>
         </div>
@@ -1349,6 +1402,9 @@ function TaskModal({
   onClose,
   onEdit,
   onCancelEdit,
+  formatDate,
+  statusLabel,
+  t,
 }: {
   task: ProjectTask;
   projectId: string;
@@ -1358,6 +1414,9 @@ function TaskModal({
   onClose: () => void;
   onEdit: () => void;
   onCancelEdit: () => void;
+  formatDate: (s: string | null) => string;
+  statusLabel: (s: string) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const router = useRouter();
   const [formStatus, setFormStatus] = useState(task.status);
@@ -1388,13 +1447,13 @@ function TaskModal({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Failed to update task.");
+        setError(data.error || t("failedToUpdateTask"));
         return;
       }
       router.refresh();
       onClose();
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -1405,7 +1464,7 @@ function TaskModal({
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h3>Edit Task</h3>
+            <h3>{t("editTask")}</h3>
             <button className="modal-close" onClick={onClose}><X size={20} /></button>
           </div>
           <div className="modal-body">
@@ -1415,37 +1474,37 @@ function TaskModal({
               </div>
             )}
             <div className="modal-detail-row">
-              <span className="modal-detail-label">Name</span>
+              <span className="modal-detail-label">{t("name")}</span>
               <span className="modal-detail-value" style={{ fontWeight: 600 }}>{task.name}</span>
             </div>
             <div className="modal-detail-row">
-              <span className="modal-detail-label">Status</span>
+              <span className="modal-detail-label">{t("columnStatus")}</span>
               <span className="modal-detail-value">
                 <select className="modal-select" value={formStatus} onChange={(e) => {
                   setFormStatus(e.target.value);
                   if (e.target.value === "completed") setFormCompletion("100");
                   if (e.target.value === "not_started") setFormCompletion("0");
                 }}>
-                  <option value="not_started">Not Started</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="blocked">Blocked</option>
+                  <option value="not_started">{t("statusNotStarted")}</option>
+                  <option value="in_progress">{t("statusInProgress")}</option>
+                  <option value="completed">{t("statusCompleted")}</option>
+                  <option value="blocked">{t("statusBlocked")}</option>
                 </select>
               </span>
             </div>
             <div className="modal-detail-row">
-              <span className="modal-detail-label">Priority</span>
+              <span className="modal-detail-label">{t("priority")}</span>
               <span className="modal-detail-value">
                 <select className="modal-select" value={formPriority} onChange={(e) => setFormPriority(e.target.value)}>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
+                  <option value="low">{t("priorityLow")}</option>
+                  <option value="medium">{t("priorityMedium")}</option>
+                  <option value="high">{t("priorityHigh")}</option>
+                  <option value="critical">{t("priorityCritical")}</option>
                 </select>
               </span>
             </div>
             <div className="modal-detail-row">
-              <span className="modal-detail-label">Completion %</span>
+              <span className="modal-detail-label">{t("completionPercent")}</span>
               <span className="modal-detail-value" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <input
                   type="range"
@@ -1460,40 +1519,40 @@ function TaskModal({
               </span>
             </div>
             <div className="modal-detail-row">
-              <span className="modal-detail-label">Start Date</span>
+              <span className="modal-detail-label">{t("startDate")}</span>
               <span className="modal-detail-value">
                 <input type="date" className="modal-input" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} />
               </span>
             </div>
             <div className="modal-detail-row">
-              <span className="modal-detail-label">End Date</span>
+              <span className="modal-detail-label">{t("endDate")}</span>
               <span className="modal-detail-value">
                 <input type="date" className="modal-input" value={formEndDate} onChange={(e) => setFormEndDate(e.target.value)} />
               </span>
             </div>
             <div className="modal-detail-row">
-              <span className="modal-detail-label">Milestone</span>
+              <span className="modal-detail-label">{t("milestone")}</span>
               <span className="modal-detail-value">
                 <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
                   <input type="checkbox" checked={formMilestone} onChange={(e) => setFormMilestone(e.target.checked)} />
-                  Mark as milestone
+                  {t("markAsMilestone")}
                 </label>
               </span>
             </div>
             <div className="modal-detail-row">
-              <span className="modal-detail-label">Critical Path</span>
+              <span className="modal-detail-label">{t("criticalPath")}</span>
               <span className="modal-detail-value">
                 <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
                   <input type="checkbox" checked={formCriticalPath} onChange={(e) => setFormCriticalPath(e.target.checked)} />
-                  On critical path
+                  {t("onCriticalPath")}
                 </label>
               </span>
             </div>
           </div>
           <div className="modal-footer">
-            <button className="btn-secondary" onClick={onCancelEdit} disabled={saving}>Cancel</button>
+            <button className="btn-secondary" onClick={onCancelEdit} disabled={saving}>{t("cancel")}</button>
             <button className="btn-primary" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t("saving") : t("saveChanges")}
             </button>
           </div>
         </div>
@@ -1510,57 +1569,57 @@ function TaskModal({
         </div>
         <div className="modal-body">
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Status</span>
+            <span className="modal-detail-label">{t("columnStatus")}</span>
             <span className="modal-detail-value">
               <span className={`badge badge-${task.status}`}>{statusLabel(task.status)}</span>
             </span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Priority</span>
+            <span className="modal-detail-label">{t("priority")}</span>
             <span className="modal-detail-value">
               <span className={`badge badge-${task.priority}`}>{task.priority}</span>
             </span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Completion</span>
+            <span className="modal-detail-label">{t("columnCompletion")}</span>
             <span className="modal-detail-value">{task.completion_pct}%</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Assigned To</span>
+            <span className="modal-detail-label">{t("assignedTo")}</span>
             <span className="modal-detail-value">{task.assignee?.full_name ?? "--"}</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Start Date</span>
+            <span className="modal-detail-label">{t("startDate")}</span>
             <span className="modal-detail-value">{formatDate(task.start_date)}</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">End Date</span>
+            <span className="modal-detail-label">{t("endDate")}</span>
             <span className="modal-detail-value">{formatDate(task.end_date)}</span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Milestone</span>
+            <span className="modal-detail-label">{t("milestone")}</span>
             <span className="modal-detail-value">
               {task.is_milestone ? (
-                <span className="badge badge-amber">Yes</span>
-              ) : "No"}
+                <span className="badge badge-amber">{t("yes")}</span>
+              ) : t("no")}
             </span>
           </div>
           <div className="modal-detail-row">
-            <span className="modal-detail-label">Critical Path</span>
-            <span className="modal-detail-value">{task.is_critical_path ? "Yes" : "No"}</span>
+            <span className="modal-detail-label">{t("criticalPath")}</span>
+            <span className="modal-detail-value">{task.is_critical_path ? t("yes") : t("no")}</span>
           </div>
           {task.description && (
             <div className="modal-detail-row">
-              <span className="modal-detail-label">Description</span>
+              <span className="modal-detail-label">{t("description")}</span>
               <span className="modal-detail-value">{task.description}</span>
             </div>
           )}
         </div>
         <div className="modal-footer">
-          <button className="btn-secondary" onClick={onClose}>Close</button>
+          <button className="btn-secondary" onClick={onClose}>{t("close")}</button>
           <button className="btn-primary" onClick={onEdit}>
             <Pencil size={14} />
-            Edit Task
+            {t("editTask")}
           </button>
         </div>
       </div>
@@ -1576,10 +1635,16 @@ function OverviewTab({
   project,
   stats,
   tasks,
+  formatCurrency,
+  formatDate,
+  t,
 }: {
   project: ProjectRow;
   stats: ProjectStats;
   tasks: ProjectTask[];
+  formatCurrency: (a: number | null) => string;
+  formatDate: (s: string | null) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const milestones = tasks
     .filter((t) => t.is_milestone)
@@ -1601,13 +1666,13 @@ function OverviewTab({
       {/* KPI Row */}
       <div className="project-kpi-row">
         <div className="project-kpi-card">
-          <div className="project-kpi-label">Contract Amount</div>
+          <div className="project-kpi-label">{t("contractAmount")}</div>
           <div className="project-kpi-value">
             {formatCurrency(project.contract_amount)}
           </div>
         </div>
         <div className="project-kpi-card">
-          <div className="project-kpi-label">Actual Cost</div>
+          <div className="project-kpi-label">{t("actualCost")}</div>
           <div
             className={`project-kpi-value ${budgetPct > 100 ? "red" : ""}`}
           >
@@ -1615,11 +1680,11 @@ function OverviewTab({
           </div>
         </div>
         <div className="project-kpi-card">
-          <div className="project-kpi-label">Completion</div>
+          <div className="project-kpi-label">{t("columnCompletion")}</div>
           <div className="project-kpi-value">{project.completion_pct}%</div>
         </div>
         <div className="project-kpi-card">
-          <div className="project-kpi-label">Open RFIs</div>
+          <div className="project-kpi-label">{t("openRfis")}</div>
           <div
             className={`project-kpi-value ${stats.open_rfis > 0 ? "amber" : ""}`}
           >
@@ -1627,7 +1692,7 @@ function OverviewTab({
           </div>
         </div>
         <div className="project-kpi-card">
-          <div className="project-kpi-label">Open COs</div>
+          <div className="project-kpi-label">{t("openCos")}</div>
           <div
             className={`project-kpi-value ${stats.open_change_orders > 0 ? "amber" : ""}`}
           >
@@ -1639,40 +1704,40 @@ function OverviewTab({
       {/* Info Cards */}
       <div className="project-info-grid">
         <div className="project-info-card">
-          <div className="card-title">Project Details</div>
+          <div className="card-title">{t("projectDetails")}</div>
           <div className="info-row">
-            <span className="info-label">Project Type</span>
+            <span className="info-label">{t("projectType")}</span>
             <span className="info-value">{project.project_type ?? "--"}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">Client</span>
+            <span className="info-label">{t("client")}</span>
             <span className="info-value">{project.client_name ?? "--"}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">Project Manager</span>
+            <span className="info-label">{t("projectManager")}</span>
             <span className="info-value">
               {project.project_manager?.full_name ?? "--"}
             </span>
           </div>
           <div className="info-row">
-            <span className="info-label">Superintendent</span>
+            <span className="info-label">{t("superintendent")}</span>
             <span className="info-value">
               {project.superintendent?.full_name ?? "--"}
             </span>
           </div>
           <div className="info-row">
-            <span className="info-label">Start Date</span>
+            <span className="info-label">{t("startDate")}</span>
             <span className="info-value">{formatDate(project.start_date)}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">Estimated End</span>
+            <span className="info-label">{t("estimatedEnd")}</span>
             <span className="info-value">
               {formatDate(project.estimated_end_date)}
             </span>
           </div>
           {project.actual_end_date && (
             <div className="info-row">
-              <span className="info-label">Actual End</span>
+              <span className="info-label">{t("actualEnd")}</span>
               <span className="info-value">
                 {formatDate(project.actual_end_date)}
               </span>
@@ -1681,33 +1746,33 @@ function OverviewTab({
         </div>
 
         <div className="project-info-card">
-          <div className="card-title">Location</div>
+          <div className="card-title">{t("location")}</div>
           <div className="info-row">
-            <span className="info-label">Address</span>
+            <span className="info-label">{t("address")}</span>
             <span className="info-value">
               {project.address_line1 ?? "--"}
             </span>
           </div>
           <div className="info-row">
-            <span className="info-label">City</span>
+            <span className="info-label">{t("city")}</span>
             <span className="info-value">{project.city ?? "--"}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">State</span>
+            <span className="info-label">{t("state")}</span>
             <span className="info-value">{project.state ?? "--"}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">ZIP</span>
+            <span className="info-label">{t("zip")}</span>
             <span className="info-value">{project.zip ?? "--"}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">Tasks</span>
+            <span className="info-label">{t("tasks")}</span>
             <span className="info-value">
-              {stats.completed_tasks} / {stats.total_tasks} complete
+              {t("tasksComplete", { completed: stats.completed_tasks, total: stats.total_tasks })}
             </span>
           </div>
           <div className="info-row">
-            <span className="info-label">Daily Logs</span>
+            <span className="info-label">{t("dailyLogs")}</span>
             <span className="info-value">{stats.daily_log_count}</span>
           </div>
         </div>
@@ -1715,7 +1780,7 @@ function OverviewTab({
 
       {/* Budget Summary */}
       <div className="budget-summary">
-        <div className="card-title">Budget Summary</div>
+        <div className="card-title">{t("budgetSummary")}</div>
         <div className="budget-bar-container">
           <div className="budget-bar">
             <div
@@ -1725,17 +1790,16 @@ function OverviewTab({
           </div>
           <div className="budget-labels">
             <span>
-              Spent: {formatCurrency(project.actual_cost)} (
-              {budgetPct}%)
+              {t("spent", { amount: formatCurrency(project.actual_cost), pct: budgetPct })}
             </span>
-            <span>Budget: {formatCurrency(project.contract_amount)}</span>
+            <span>{t("budget", { amount: formatCurrency(project.contract_amount) })}</span>
           </div>
         </div>
       </div>
 
       {/* Completion Bar */}
       <div className="project-info-card" style={{ marginBottom: 24 }}>
-        <div className="card-title">Overall Progress</div>
+        <div className="card-title">{t("overallProgress")}</div>
         <div className="completion-bar" style={{ height: 10 }}>
           <div
             className={`completion-bar-fill ${completionClass(project.completion_pct)}`}
@@ -1743,7 +1807,7 @@ function OverviewTab({
           />
         </div>
         <div className="completion-info" style={{ marginTop: 6 }}>
-          <span>{project.completion_pct}% complete</span>
+          <span>{t("percentComplete", { pct: project.completion_pct })}</span>
           <span>
             {formatDate(project.start_date)} -{" "}
             {formatDate(project.estimated_end_date)}
@@ -1756,7 +1820,7 @@ function OverviewTab({
         <div className="project-info-card" style={{ marginBottom: 24 }}>
           <div className="card-title">
             <Milestone size={18} style={{ color: "var(--color-amber)" }} />
-            Milestone Timeline
+            {t("milestoneTimeline")}
           </div>
           <div className="milestone-timeline">
             {milestones.map((ms, idx) => {
@@ -1767,7 +1831,6 @@ function OverviewTab({
 
               return (
                 <div key={ms.id} className="milestone-item">
-                  {/* Vertical line (except for last item) */}
                   {!isLast && (
                     <div
                       className="milestone-line"
@@ -1778,7 +1841,6 @@ function OverviewTab({
                       }}
                     />
                   )}
-                  {/* Dot */}
                   <div
                     className={`milestone-dot ${
                       isCompleted
@@ -1807,7 +1869,6 @@ function OverviewTab({
                       <div className="milestone-dot-inner upcoming" />
                     )}
                   </div>
-                  {/* Content */}
                   <div className="milestone-content">
                     <div className="milestone-header">
                       <span
@@ -1819,7 +1880,7 @@ function OverviewTab({
                       </span>
                       <span className="milestone-date">
                         {msDate
-                          ? (isCompleted ? "" : "Est. ") + formatDate(msDate)
+                          ? (isCompleted ? "" : t("est") + " ") + formatDate(msDate)
                           : "--"}
                       </span>
                     </div>
@@ -1833,10 +1894,10 @@ function OverviewTab({
                       }`}
                     >
                       {isCompleted
-                        ? "Completed"
+                        ? t("statusCompleted")
                         : isInProgress
-                          ? "In Progress"
-                          : "Upcoming"}
+                          ? t("statusInProgress")
+                          : t("upcoming")}
                     </span>
                   </div>
                 </div>
@@ -1862,11 +1923,17 @@ function TasksTabWithCreate({
   phases,
   tasks,
   onSelect,
+  formatDate,
+  statusLabel,
+  t,
 }: {
   projectId: string;
   phases: ProjectPhase[];
   tasks: ProjectTask[];
   onSelect: (task: ProjectTask) => void;
+  formatDate: (s: string | null) => string;
+  statusLabel: (s: string) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const router = useRouter();
   const [showPhaseForm, setShowPhaseForm] = useState(false);
@@ -1906,7 +1973,7 @@ function TasksTabWithCreate({
       });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to create phase");
+        setError(data.error || t("failedToCreatePhase"));
         return;
       }
       setPhaseName("");
@@ -1915,7 +1982,7 @@ function TasksTabWithCreate({
       setShowPhaseForm(false);
       router.refresh();
     } catch {
-      setError("Network error");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -1941,7 +2008,7 @@ function TasksTabWithCreate({
       });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to create task");
+        setError(data.error || t("failedToCreateTask"));
         return;
       }
       setTaskName("");
@@ -1953,7 +2020,7 @@ function TasksTabWithCreate({
       setShowTaskForm(false);
       router.refresh();
     } catch {
-      setError("Network error");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -1968,14 +2035,14 @@ function TasksTabWithCreate({
           style={{ fontSize: "0.82rem", padding: "6px 14px" }}
           onClick={() => { setShowPhaseForm(!showPhaseForm); setShowTaskForm(false); setError(""); }}
         >
-          <Plus size={14} /> Add Phase
+          <Plus size={14} /> {t("addPhase")}
         </button>
         <button
           className="btn-secondary"
           style={{ fontSize: "0.82rem", padding: "6px 14px" }}
           onClick={() => { setShowTaskForm(!showTaskForm); setShowPhaseForm(false); setError(""); }}
         >
-          <Plus size={14} /> Add Task
+          <Plus size={14} /> {t("addTask")}
         </button>
       </div>
 
@@ -1992,17 +2059,17 @@ function TasksTabWithCreate({
           className="card"
           style={{ marginBottom: 16, padding: 16 }}
         >
-          <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: 12 }}>New Phase</div>
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: 12 }}>{t("newPhase")}</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end" }}>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
-                Phase Name *
+                {t("phaseNameRequired")}
               </label>
               <input
                 type="text"
                 value={phaseName}
                 onChange={(e) => setPhaseName(e.target.value)}
-                placeholder="e.g. Foundation"
+                placeholder={t("phaseNamePlaceholder")}
                 required
                 className="form-input"
                 style={{ width: "100%" }}
@@ -2010,7 +2077,7 @@ function TasksTabWithCreate({
             </div>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
-                Color
+                {t("color")}
               </label>
               <div style={{ display: "flex", gap: 4 }}>
                 {PHASE_COLORS.map((c) => (
@@ -2035,7 +2102,7 @@ function TasksTabWithCreate({
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 10, marginTop: 10, alignItems: "end" }}>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
-                Start Date
+                {t("startDate")}
               </label>
               <input
                 type="date"
@@ -2047,7 +2114,7 @@ function TasksTabWithCreate({
             </div>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
-                End Date
+                {t("endDate")}
               </label>
               <input
                 type="date"
@@ -2058,7 +2125,7 @@ function TasksTabWithCreate({
               />
             </div>
             <button type="submit" className="btn-primary" disabled={saving} style={{ padding: "8px 20px" }}>
-              {saving ? "Saving..." : "Create Phase"}
+              {saving ? t("saving") : t("createPhase")}
             </button>
           </div>
         </form>
@@ -2071,17 +2138,17 @@ function TasksTabWithCreate({
           className="card"
           style={{ marginBottom: 16, padding: 16 }}
         >
-          <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: 12 }}>New Task</div>
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: 12 }}>{t("newTask")}</div>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 10, alignItems: "end" }}>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
-                Task Name *
+                {t("taskNameRequired")}
               </label>
               <input
                 type="text"
                 value={taskName}
                 onChange={(e) => setTaskName(e.target.value)}
-                placeholder="e.g. Pour foundation slab"
+                placeholder={t("taskNamePlaceholder")}
                 required
                 className="form-input"
                 style={{ width: "100%" }}
@@ -2089,7 +2156,7 @@ function TasksTabWithCreate({
             </div>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
-                Phase
+                {t("phase")}
               </label>
               <select
                 value={taskPhaseId}
@@ -2097,7 +2164,7 @@ function TasksTabWithCreate({
                 className="form-input"
                 style={{ width: "100%" }}
               >
-                <option value="">No Phase</option>
+                <option value="">{t("noPhase")}</option>
                 {phases.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
@@ -2105,7 +2172,7 @@ function TasksTabWithCreate({
             </div>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
-                Priority
+                {t("priority")}
               </label>
               <select
                 value={taskPriority}
@@ -2113,17 +2180,17 @@ function TasksTabWithCreate({
                 className="form-input"
                 style={{ width: "100%" }}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
+                <option value="low">{t("priorityLow")}</option>
+                <option value="medium">{t("priorityMedium")}</option>
+                <option value="high">{t("priorityHigh")}</option>
+                <option value="critical">{t("priorityCritical")}</option>
               </select>
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto auto", gap: 10, marginTop: 10, alignItems: "end" }}>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
-                Start Date
+                {t("startDate")}
               </label>
               <input
                 type="date"
@@ -2135,7 +2202,7 @@ function TasksTabWithCreate({
             </div>
             <div>
               <label style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginBottom: 4 }}>
-                End Date
+                {t("endDate")}
               </label>
               <input
                 type="date"
@@ -2151,17 +2218,17 @@ function TasksTabWithCreate({
                 checked={taskMilestone}
                 onChange={(e) => setTaskMilestone(e.target.checked)}
               />
-              Milestone
+              {t("milestone")}
             </label>
             <button type="submit" className="btn-primary" disabled={saving} style={{ padding: "8px 20px" }}>
-              {saving ? "Saving..." : "Create Task"}
+              {saving ? t("saving") : t("createTask")}
             </button>
           </div>
         </form>
       )}
 
       {/* Existing Tasks List */}
-      <TasksTab phases={phases} tasks={tasks} onSelect={onSelect} />
+      <TasksTab phases={phases} tasks={tasks} onSelect={onSelect} formatDate={formatDate} statusLabel={statusLabel} t={t} />
     </>
   );
 }
@@ -2174,13 +2241,19 @@ function TasksTab({
   phases,
   tasks,
   onSelect,
+  formatDate,
+  statusLabel,
+  t,
 }: {
   phases: ProjectPhase[];
   tasks: ProjectTask[];
   onSelect: (task: ProjectTask) => void;
+  formatDate: (s: string | null) => string;
+  statusLabel: (s: string) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   if (tasks.length === 0) {
-    return <div className="tab-empty">No tasks have been created for this project yet.</div>;
+    return <div className="tab-empty">{t("noTasksYet")}</div>;
   }
 
   // Group tasks by phase
@@ -2218,10 +2291,10 @@ function TasksTab({
                 style={{ background: phase.color ?? "var(--color-blue)" }}
               />
               <span className="phase-name">{phase.name}</span>
-              <span className="phase-completion">{pct}% complete</span>
+              <span className="phase-completion">{t("percentComplete", { pct })}</span>
             </div>
             {phaseTasks.map((task) => (
-              <TaskRow key={task.id} task={task} onSelect={onSelect} />
+              <TaskRow key={task.id} task={task} onSelect={onSelect} formatDate={formatDate} statusLabel={statusLabel} />
             ))}
           </div>
         );
@@ -2234,13 +2307,13 @@ function TasksTab({
               className="phase-color-dot"
               style={{ background: "var(--muted)" }}
             />
-            <span className="phase-name">Unassigned Phase</span>
+            <span className="phase-name">{t("unassignedPhase")}</span>
             <span className="phase-completion">
-              {phaseCompletion(unphasedTasks)}% complete
+              {t("percentComplete", { pct: phaseCompletion(unphasedTasks) })}
             </span>
           </div>
           {unphasedTasks.map((task) => (
-            <TaskRow key={task.id} task={task} onSelect={onSelect} />
+            <TaskRow key={task.id} task={task} onSelect={onSelect} formatDate={formatDate} statusLabel={statusLabel} />
           ))}
         </div>
       )}
@@ -2248,7 +2321,7 @@ function TasksTab({
   );
 }
 
-function TaskRow({ task, onSelect }: { task: ProjectTask; onSelect: (task: ProjectTask) => void }) {
+function TaskRow({ task, onSelect, formatDate, statusLabel }: { task: ProjectTask; onSelect: (task: ProjectTask) => void; formatDate: (s: string | null) => string; statusLabel: (s: string) => string }) {
   return (
     <div
       className={`task-item clickable ${task.is_milestone ? "milestone" : ""}`}
@@ -2286,12 +2359,18 @@ function TaskRow({ task, onSelect }: { task: ProjectTask; onSelect: (task: Proje
 function DailyLogsTab({
   logs,
   onSelect,
+  dateLocale,
+  statusLabel,
+  t,
 }: {
   logs: DailyLog[];
   onSelect: (log: DailyLog) => void;
+  dateLocale: string;
+  statusLabel: (s: string) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   if (logs.length === 0) {
-    return <div className="tab-empty">No daily logs have been submitted for this project yet.</div>;
+    return <div className="tab-empty">{t("noDailyLogsYet")}</div>;
   }
 
   return (
@@ -2299,7 +2378,7 @@ function DailyLogsTab({
       {logs.map((log) => {
         const d = new Date(log.log_date);
         const day = d.getDate();
-        const month = d.toLocaleDateString("en-US", { month: "short" });
+        const month = d.toLocaleDateString(dateLocale, { month: "short" });
 
         return (
           <div
@@ -2334,7 +2413,7 @@ function DailyLogsTab({
                     {log.weather_precipitation}
                   </span>
                 )}
-                <span>by {log.creator?.full_name ?? "Unknown"}</span>
+                <span>{t("by")} {log.creator?.full_name ?? t("unknown")}</span>
               </div>
               {log.work_performed && (
                 <div className="log-work">{log.work_performed}</div>
@@ -2354,12 +2433,18 @@ function DailyLogsTab({
 function RFIsTab({
   rfis,
   onSelect,
+  formatDate,
+  statusLabel,
+  t,
 }: {
   rfis: RFI[];
   onSelect: (rfi: RFI) => void;
+  formatDate: (s: string | null) => string;
+  statusLabel: (s: string) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   if (rfis.length === 0) {
-    return <div className="tab-empty">No RFIs have been created for this project yet.</div>;
+    return <div className="tab-empty">{t("noRfisYet")}</div>;
   }
 
   return (
@@ -2367,12 +2452,12 @@ function RFIsTab({
       <table className="detail-table">
         <thead>
           <tr>
-            <th>Number</th>
-            <th>Subject</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Assigned To</th>
-            <th>Date</th>
+            <th>{t("number")}</th>
+            <th>{t("subject")}</th>
+            <th>{t("columnStatus")}</th>
+            <th>{t("priority")}</th>
+            <th>{t("assignedTo")}</th>
+            <th>{t("date")}</th>
           </tr>
         </thead>
         <tbody>
@@ -2417,13 +2502,21 @@ function RFIsTab({
 function ChangeOrdersTab({
   changeOrders,
   onSelect,
+  formatCurrency,
+  formatDate,
+  statusLabel,
+  t,
 }: {
   changeOrders: ChangeOrder[];
   onSelect: (co: ChangeOrder) => void;
+  formatCurrency: (a: number | null) => string;
+  formatDate: (s: string | null) => string;
+  statusLabel: (s: string) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   if (changeOrders.length === 0) {
     return (
-      <div className="tab-empty">No change orders have been created for this project yet.</div>
+      <div className="tab-empty">{t("noChangeOrdersYet")}</div>
     );
   }
 
@@ -2432,12 +2525,12 @@ function ChangeOrdersTab({
       <table className="detail-table">
         <thead>
           <tr>
-            <th>Number</th>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Amount</th>
-            <th>Schedule Impact</th>
-            <th>Date</th>
+            <th>{t("number")}</th>
+            <th>{t("columnTitle")}</th>
+            <th>{t("columnStatus")}</th>
+            <th>{t("amount")}</th>
+            <th>{t("scheduleImpact")}</th>
+            <th>{t("date")}</th>
           </tr>
         </thead>
         <tbody>
@@ -2470,7 +2563,7 @@ function ChangeOrdersTab({
               </td>
               <td style={{ whiteSpace: "nowrap" }}>
                 {co.schedule_impact_days != null
-                  ? `${co.schedule_impact_days} day${co.schedule_impact_days !== 1 ? "s" : ""}`
+                  ? t("scheduleImpactDays", { count: co.schedule_impact_days })
                   : "--"}
               </td>
               <td style={{ whiteSpace: "nowrap", fontSize: "0.82rem" }}>

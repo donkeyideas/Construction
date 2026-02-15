@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Plus,
   BookOpen,
@@ -54,14 +55,6 @@ function flattenAccounts(nodes: AccountTreeNode[]): FlatAccount[] {
 
   walk(nodes);
   return result;
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 /* ------------------------------------------------------------------
@@ -133,6 +126,17 @@ export default function GeneralLedgerClient({
   trialBalance: initialTrialBalance,
 }: GeneralLedgerClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
 
   /* ---- State ---- */
   const [activeTab, setActiveTab] = useState<"journal" | "trial">("journal");
@@ -292,15 +296,15 @@ export default function GeneralLedgerClient({
     setCreateError("");
 
     if (!entryNumber.trim()) {
-      setCreateError("Entry number is required.");
+      setCreateError(t("errorEntryNumberRequired"));
       return;
     }
     if (!entryDate) {
-      setCreateError("Entry date is required.");
+      setCreateError(t("errorEntryDateRequired"));
       return;
     }
     if (!description.trim()) {
-      setCreateError("Description is required.");
+      setCreateError(t("errorDescriptionRequired"));
       return;
     }
 
@@ -309,7 +313,7 @@ export default function GeneralLedgerClient({
     );
 
     if (validLines.length < 2) {
-      setCreateError("At least two line items with an account and amount are required.");
+      setCreateError(t("errorMinTwoLines"));
       return;
     }
 
@@ -318,7 +322,7 @@ export default function GeneralLedgerClient({
 
     if (Math.abs(totalDebit - totalCredit) > 0.01) {
       setCreateError(
-        `Entry is not balanced. Debits ($${totalDebit.toFixed(2)}) must equal Credits ($${totalCredit.toFixed(2)}).`
+        t("errorNotBalanced", { debits: `$${totalDebit.toFixed(2)}`, credits: `$${totalCredit.toFixed(2)}` })
       );
       return;
     }
@@ -346,18 +350,18 @@ export default function GeneralLedgerClient({
 
       if (!res.ok) {
         const err = await res.json();
-        setCreateError(err.error || "Failed to create journal entry.");
+        setCreateError(err.error || t("errorFailedToCreate"));
         return;
       }
 
       closeCreate();
       await refreshData();
     } catch {
-      setCreateError("Network error. Please try again.");
+      setCreateError(t("errorNetwork"));
     } finally {
       setCreating(false);
     }
-  }, [entryNumber, entryDate, description, reference, lines, closeCreate, refreshData]);
+  }, [entryNumber, entryDate, description, reference, lines, closeCreate, refreshData, t]);
 
   const handleAction = useCallback(
     async (entryId: string, action: "post" | "void") => {
@@ -417,13 +421,13 @@ export default function GeneralLedgerClient({
           className={`fin-tab ${activeTab === "journal" ? "active" : ""}`}
           onClick={() => setActiveTab("journal")}
         >
-          Journal Entries
+          {t("journalEntries")}
         </button>
         <button
           className={`fin-tab ${activeTab === "trial" ? "active" : ""}`}
           onClick={() => setActiveTab("trial")}
         >
-          Trial Balance
+          {t("trialBalance")}
         </button>
       </div>
 
@@ -441,17 +445,17 @@ export default function GeneralLedgerClient({
                 fontWeight: 500,
               }}
             >
-              Status:
+              {t("statusLabel")}
             </label>
             <select
               className="fin-filter-select"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="all">All</option>
-              <option value="draft">Draft</option>
-              <option value="posted">Posted</option>
-              <option value="voided">Voided</option>
+              <option value="all">{t("statusAll")}</option>
+              <option value="draft">{t("statusDraft")}</option>
+              <option value="posted">{t("statusPosted")}</option>
+              <option value="voided">{t("statusVoided")}</option>
             </select>
 
             <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
@@ -461,14 +465,14 @@ export default function GeneralLedgerClient({
                 style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
               >
                 <Upload size={16} />
-                Import CSV
+                {t("importCsv")}
               </button>
               <button
                 className="ui-btn ui-btn-primary ui-btn-md"
                 onClick={openCreate}
               >
                 <Plus size={16} />
-                New Journal Entry
+                {t("newJournalEntry")}
               </button>
             </div>
           </div>
@@ -480,14 +484,14 @@ export default function GeneralLedgerClient({
                 <table className="invoice-table">
                   <thead>
                     <tr>
-                      <th>Entry #</th>
-                      <th>Date</th>
-                      <th>Description</th>
-                      <th>Reference</th>
-                      <th style={{ textAlign: "right" }}>Debit</th>
-                      <th style={{ textAlign: "right" }}>Credit</th>
-                      <th>Status</th>
-                      <th style={{ textAlign: "center" }}>Actions</th>
+                      <th>{t("entryNumber")}</th>
+                      <th>{t("date")}</th>
+                      <th>{t("description")}</th>
+                      <th>{t("reference")}</th>
+                      <th style={{ textAlign: "right" }}>{t("debit")}</th>
+                      <th style={{ textAlign: "right" }}>{t("credit")}</th>
+                      <th>{t("status")}</th>
+                      <th style={{ textAlign: "center" }}>{t("actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -541,7 +545,7 @@ export default function GeneralLedgerClient({
                                   className="ui-btn ui-btn-outline ui-btn-sm"
                                   onClick={() => handleAction(entry.id, "post")}
                                   disabled={!!loading}
-                                  title="Post entry"
+                                  title={t("postEntry")}
                                   style={{
                                     display: "inline-flex",
                                     alignItems: "center",
@@ -553,13 +557,13 @@ export default function GeneralLedgerClient({
                                   ) : (
                                     <CheckCircle size={14} />
                                   )}
-                                  Post
+                                  {t("post")}
                                 </button>
                                 <button
                                   className="ui-btn ui-btn-outline ui-btn-sm"
                                   onClick={() => handleAction(entry.id, "void")}
                                   disabled={!!loading}
-                                  title="Void entry"
+                                  title={t("voidEntry")}
                                   style={{
                                     display: "inline-flex",
                                     alignItems: "center",
@@ -572,7 +576,7 @@ export default function GeneralLedgerClient({
                                   ) : (
                                     <Ban size={14} />
                                   )}
-                                  Void
+                                  {t("void")}
                                 </button>
                               </div>
                             )}
@@ -580,7 +584,7 @@ export default function GeneralLedgerClient({
                               <button
                                 className="ui-btn ui-btn-outline ui-btn-sm"
                                 onClick={() => openDetail(entry.id)}
-                                title="View entry"
+                                title={t("viewEntry")}
                                 style={{
                                   display: "inline-flex",
                                   alignItems: "center",
@@ -588,7 +592,7 @@ export default function GeneralLedgerClient({
                                 }}
                               >
                                 <Eye size={14} />
-                                View
+                                {t("view")}
                               </button>
                             )}
                             {entry.status === "voided" && (
@@ -615,11 +619,11 @@ export default function GeneralLedgerClient({
                 <div className="fin-empty-icon">
                   <BookOpen size={48} />
                 </div>
-                <div className="fin-empty-title">No Journal Entries</div>
+                <div className="fin-empty-title">{t("noJournalEntries")}</div>
                 <div className="fin-empty-desc">
                   {statusFilter !== "all"
-                    ? "No entries match the selected status filter."
-                    : "Create your first journal entry to start recording transactions in the general ledger."}
+                    ? t("noEntriesMatchFilter")
+                    : t("noEntriesDescription")}
                 </div>
                 {statusFilter === "all" && (
                   <button
@@ -627,7 +631,7 @@ export default function GeneralLedgerClient({
                     onClick={openCreate}
                   >
                     <Plus size={16} />
-                    Create Journal Entry
+                    {t("createJournalEntry")}
                   </button>
                 )}
               </div>
@@ -647,12 +651,12 @@ export default function GeneralLedgerClient({
                 <table className="invoice-table">
                   <thead>
                     <tr>
-                      <th>Account #</th>
-                      <th>Account Name</th>
-                      <th>Type</th>
-                      <th style={{ textAlign: "right" }}>Debit</th>
-                      <th style={{ textAlign: "right" }}>Credit</th>
-                      <th style={{ textAlign: "right" }}>Balance</th>
+                      <th>{t("accountNumber")}</th>
+                      <th>{t("accountName")}</th>
+                      <th>{t("type")}</th>
+                      <th style={{ textAlign: "right" }}>{t("debit")}</th>
+                      <th style={{ textAlign: "right" }}>{t("credit")}</th>
+                      <th style={{ textAlign: "right" }}>{t("balance")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -707,7 +711,7 @@ export default function GeneralLedgerClient({
                       }}
                     >
                       <td colSpan={3} style={{ fontWeight: 700 }}>
-                        Totals
+                        {t("totals")}
                       </td>
                       <td className="amount-col" style={{ fontWeight: 700 }}>
                         {formatCurrency(trialTotals.totalDebit)}
@@ -738,10 +742,9 @@ export default function GeneralLedgerClient({
                 <div className="fin-empty-icon">
                   <BookOpen size={48} />
                 </div>
-                <div className="fin-empty-title">No Trial Balance Data</div>
+                <div className="fin-empty-title">{t("noTrialBalanceData")}</div>
                 <div className="fin-empty-desc">
-                  No posted journal entries yet. Post journal entries to see
-                  the trial balance.
+                  {t("noTrialBalanceDescription")}
                 </div>
               </div>
             </div>
@@ -762,8 +765,8 @@ export default function GeneralLedgerClient({
             <div className="ticket-modal-header">
               <h3>
                 {detailLoading
-                  ? "Loading..."
-                  : `Journal Entry ${selectedEntry?.entry_number}`}
+                  ? t("loading")
+                  : t("journalEntryTitle", { number: selectedEntry?.entry_number ?? "" })}
               </h3>
               <button className="ticket-modal-close" onClick={closeDetail}>
                 <X size={18} />
@@ -779,28 +782,28 @@ export default function GeneralLedgerClient({
                 {/* Entry Info */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                   <div>
-                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Entry Date</div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("entryDate")}</div>
                     <div style={{ fontWeight: 500 }}>{formatDate(selectedEntry.entry_date)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Status</div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("status")}</div>
                     <span className={`inv-status inv-status-${selectedEntry.status}`}>
                       {selectedEntry.status}
                     </span>
                   </div>
                   <div style={{ gridColumn: "span 2" }}>
-                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Description</div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("description")}</div>
                     <div style={{ fontWeight: 500 }}>{selectedEntry.description}</div>
                   </div>
                   {selectedEntry.reference && (
                     <div style={{ gridColumn: "span 2" }}>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Reference</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("reference")}</div>
                       <div>{selectedEntry.reference}</div>
                     </div>
                   )}
                   {selectedEntry.posted_at && (
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Posted Date</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("postedDate")}</div>
                       <div>{formatDate(selectedEntry.posted_at)}</div>
                     </div>
                   )}
@@ -808,16 +811,16 @@ export default function GeneralLedgerClient({
 
                 {/* Line Items Table */}
                 <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 10, color: "var(--muted)" }}>
-                  Line Items
+                  {t("lineItems")}
                 </div>
                 <div style={{ overflowX: "auto", marginBottom: 20 }}>
                   <table className="invoice-table" style={{ fontSize: "0.85rem" }}>
                     <thead>
                       <tr>
-                        <th>Account</th>
-                        <th>Description</th>
-                        <th style={{ textAlign: "right" }}>Debit</th>
-                        <th style={{ textAlign: "right" }}>Credit</th>
+                        <th>{t("account")}</th>
+                        <th>{t("description")}</th>
+                        <th style={{ textAlign: "right" }}>{t("debit")}</th>
+                        <th style={{ textAlign: "right" }}>{t("credit")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -840,7 +843,7 @@ export default function GeneralLedgerClient({
                         </tr>
                       ))}
                       <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border)" }}>
-                        <td colSpan={2} style={{ fontWeight: 700 }}>Totals</td>
+                        <td colSpan={2} style={{ fontWeight: 700 }}>{t("totals")}</td>
                         <td className="amount-col" style={{ fontWeight: 700 }}>
                           {formatCurrency(selectedEntry.lines.reduce((s: number, l: JournalEntryLineRow) => s + l.debit, 0))}
                         </td>
@@ -859,14 +862,14 @@ export default function GeneralLedgerClient({
                       showDeleteConfirm ? (
                         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                           <span style={{ fontSize: "0.85rem", color: "var(--color-red)" }}>
-                            Delete this entry?
+                            {t("deleteConfirmation")}
                           </span>
                           <button
                             className="ui-btn ui-btn-outline ui-btn-sm"
                             onClick={() => setShowDeleteConfirm(false)}
                             disabled={deleteLoading}
                           >
-                            Cancel
+                            {t("cancel")}
                           </button>
                           <button
                             className="ui-btn ui-btn-primary ui-btn-sm"
@@ -874,7 +877,7 @@ export default function GeneralLedgerClient({
                             onClick={handleDelete}
                             disabled={deleteLoading}
                           >
-                            {deleteLoading ? "Deleting..." : "Confirm Delete"}
+                            {deleteLoading ? t("deleting") : t("confirmDelete")}
                           </button>
                         </div>
                       ) : (
@@ -884,7 +887,7 @@ export default function GeneralLedgerClient({
                           style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Trash2 size={14} />
-                          Delete
+                          {t("delete")}
                         </button>
                       )
                     )}
@@ -901,7 +904,7 @@ export default function GeneralLedgerClient({
                           style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Ban size={14} />
-                          Void
+                          {t("void")}
                         </button>
                         <button
                           className="ui-btn ui-btn-primary ui-btn-sm"
@@ -912,7 +915,7 @@ export default function GeneralLedgerClient({
                           style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <CheckCircle size={14} />
-                          Post
+                          {t("post")}
                         </button>
                       </>
                     )}
@@ -926,14 +929,14 @@ export default function GeneralLedgerClient({
                         style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
                       >
                         <Ban size={14} />
-                        Void
+                        {t("void")}
                       </button>
                     )}
                     <button
                       className="ui-btn ui-btn-outline ui-btn-sm"
                       onClick={closeDetail}
                     >
-                      Close
+                      {t("close")}
                     </button>
                   </div>
                 </div>
@@ -999,7 +1002,7 @@ export default function GeneralLedgerClient({
             >
               <h3 className="fin-chart-title" style={{ marginBottom: 0 }}>
                 <BookOpen size={20} />
-                New Journal Entry
+                {t("newJournalEntry")}
               </h3>
               <button
                 onClick={closeCreate}
@@ -1052,7 +1055,7 @@ export default function GeneralLedgerClient({
                     marginBottom: 6,
                   }}
                 >
-                  Entry Number *
+                  {t("entryNumberLabel")}
                 </label>
                 <input
                   className="ui-input"
@@ -1072,7 +1075,7 @@ export default function GeneralLedgerClient({
                     marginBottom: 6,
                   }}
                 >
-                  Entry Date *
+                  {t("entryDateLabel")}
                 </label>
                 <input
                   className="ui-input"
@@ -1091,12 +1094,12 @@ export default function GeneralLedgerClient({
                     marginBottom: 6,
                   }}
                 >
-                  Description *
+                  {t("descriptionLabel")}
                 </label>
                 <input
                   className="ui-input"
                   type="text"
-                  placeholder="Monthly depreciation, payroll allocation, etc."
+                  placeholder={t("descriptionPlaceholder")}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -1111,12 +1114,12 @@ export default function GeneralLedgerClient({
                     marginBottom: 6,
                   }}
                 >
-                  Reference
+                  {t("reference")}
                 </label>
                 <input
                   className="ui-input"
                   type="text"
-                  placeholder="PO-1234, INV-5678, etc."
+                  placeholder={t("referencePlaceholder")}
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
                 />
@@ -1126,7 +1129,7 @@ export default function GeneralLedgerClient({
             {/* Line Items */}
             <div className="line-items-section">
               <div className="line-items-section-title">
-                <span>Line Items</span>
+                <span>{t("lineItems")}</span>
                 <button
                   className="ui-btn ui-btn-outline ui-btn-sm"
                   onClick={addLine}
@@ -1137,17 +1140,17 @@ export default function GeneralLedgerClient({
                   }}
                 >
                   <Plus size={14} />
-                  Add Line
+                  {t("addLine")}
                 </button>
               </div>
 
               <table className="line-items-table">
                 <thead>
                   <tr>
-                    <th style={{ minWidth: 220 }}>Account</th>
-                    <th style={{ width: 130, textAlign: "right" }}>Debit</th>
-                    <th style={{ width: 130, textAlign: "right" }}>Credit</th>
-                    <th style={{ minWidth: 160 }}>Description</th>
+                    <th style={{ minWidth: 220 }}>{t("account")}</th>
+                    <th style={{ width: 130, textAlign: "right" }}>{t("debit")}</th>
+                    <th style={{ width: 130, textAlign: "right" }}>{t("credit")}</th>
+                    <th style={{ minWidth: 160 }}>{t("description")}</th>
                     <th style={{ width: 40 }}></th>
                   </tr>
                 </thead>
@@ -1162,7 +1165,7 @@ export default function GeneralLedgerClient({
                             updateLine(line.key, "account_id", e.target.value)
                           }
                         >
-                          <option value="">Select account...</option>
+                          <option value="">{t("selectAccount")}</option>
                           {flatAccounts.map((acct) => (
                             <option key={acct.id} value={acct.id}>
                               {acct.label}
@@ -1202,7 +1205,7 @@ export default function GeneralLedgerClient({
                         <input
                           className="li-input"
                           type="text"
-                          placeholder="Line description"
+                          placeholder={t("lineDescription")}
                           value={line.description}
                           onChange={(e) =>
                             updateLine(line.key, "description", e.target.value)
@@ -1213,7 +1216,7 @@ export default function GeneralLedgerClient({
                         <button
                           className="li-remove-btn"
                           onClick={() => removeLine(line.key)}
-                          title="Remove line"
+                          title={t("removeLine")}
                           disabled={lines.length <= 1}
                           style={{
                             opacity: lines.length <= 1 ? 0.3 : 1,
@@ -1231,19 +1234,19 @@ export default function GeneralLedgerClient({
               <div className="invoice-totals">
                 <div className="invoice-totals-box">
                   <div className="totals-row">
-                    <span className="totals-label">Total Debits</span>
+                    <span className="totals-label">{t("totalDebits")}</span>
                     <span className="totals-value">
                       {formatCurrency(lineTotals.totalDebit)}
                     </span>
                   </div>
                   <div className="totals-row">
-                    <span className="totals-label">Total Credits</span>
+                    <span className="totals-label">{t("totalCredits")}</span>
                     <span className="totals-value">
                       {formatCurrency(lineTotals.totalCredit)}
                     </span>
                   </div>
                   <div className="totals-row total-final">
-                    <span className="totals-label">Difference</span>
+                    <span className="totals-label">{t("difference")}</span>
                     <span
                       className="totals-value"
                       style={{
@@ -1257,10 +1260,10 @@ export default function GeneralLedgerClient({
                       {formatCurrency(
                         Math.abs(lineTotals.totalDebit - lineTotals.totalCredit)
                       )}
-                      {isBalanced && " (Balanced)"}
+                      {isBalanced && ` (${t("balanced")})`}
                       {!isBalanced &&
                         (lineTotals.totalDebit > 0 || lineTotals.totalCredit > 0) &&
-                        " (Unbalanced)"}
+                        ` (${t("unbalanced")})`}
                     </span>
                   </div>
                 </div>
@@ -1284,14 +1287,14 @@ export default function GeneralLedgerClient({
                 ) : (
                   <BookOpen size={16} />
                 )}
-                {creating ? "Saving..." : "Create Journal Entry"}
+                {creating ? t("saving") : t("createJournalEntry")}
               </button>
               <button
                 className="ui-btn ui-btn-outline ui-btn-md"
                 onClick={closeCreate}
                 disabled={creating}
               >
-                Cancel
+                {t("cancel")}
               </button>
             </div>
           </div>
@@ -1303,7 +1306,7 @@ export default function GeneralLedgerClient({
           ============================================================ */}
       {showImport && (
         <ImportModal
-          entityName="Journal Entries"
+          entityName={t("journalEntries")}
           columns={jeImportColumns}
           sampleData={jeSampleData}
           onImport={async (rows) => {
@@ -1316,7 +1319,7 @@ export default function GeneralLedgerClient({
               }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Import failed");
+            if (!res.ok) throw new Error(data.error || t("importFailed"));
             await refreshData();
             router.refresh();
             return { success: data.success, errors: data.errors };

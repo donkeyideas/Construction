@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getStripeInstance } from "@/lib/stripe/config";
 
 // ---------------------------------------------------------------------------
 // POST /api/stripe/portal - Create a Stripe Customer Portal session
 // ---------------------------------------------------------------------------
 
-const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY;
-
 export async function POST(request: NextRequest) {
-  if (!STRIPE_SECRET) {
-    return NextResponse.json(
-      { error: "Stripe is not configured. Add STRIPE_SECRET_KEY to environment variables." },
-      { status: 503 }
-    );
-  }
-
   try {
+    const stripe = await getStripeInstance();
+    if (!stripe) {
+      return NextResponse.json(
+        { error: "Stripe is not configured. Add keys in Super Admin > Stripe Settings." },
+        { status: 503 }
+      );
+    }
+
     const supabase = await createClient();
     const userCtx = await getCurrentUserCompany(supabase);
 
@@ -36,9 +36,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const Stripe = (await import("stripe")).default;
-    const stripe = new Stripe(STRIPE_SECRET);
 
     const origin = request.headers.get("origin") || "https://construction-gamma-six.vercel.app";
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Shield,
   Key,
@@ -55,13 +56,6 @@ interface SecurityClientProps {
 
 type TabKey = "settings" | "audit" | "sessions" | "login-history";
 
-const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
-  { key: "settings", label: "Settings", icon: Shield },
-  { key: "audit", label: "Audit Log", icon: ScrollText },
-  { key: "sessions", label: "Sessions", icon: Monitor },
-  { key: "login-history", label: "Login History", icon: Clock },
-];
-
 /* ------------------------------------------------------------------ */
 /*  Default settings                                                   */
 /* ------------------------------------------------------------------ */
@@ -79,29 +73,6 @@ const DEFAULTS: Omit<SecuritySettingsRow, "id" | "company_id" | "created_at" | "
   max_concurrent_sessions: 5,
 };
 
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-
-function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-function parseUA(ua: string | null): string {
-  if (!ua) return "Unknown";
-  if (ua.includes("Chrome")) return "Chrome";
-  if (ua.includes("Firefox")) return "Firefox";
-  if (ua.includes("Safari")) return "Safari";
-  if (ua.includes("Edge")) return "Edge";
-  return "Other";
-}
-
 /* ================================================================== */
 /*  SecurityClient                                                     */
 /* ================================================================== */
@@ -111,31 +82,41 @@ export default function SecurityClient({
   auditLogs,
   currentUserRole,
 }: SecurityClientProps) {
+  const t = useTranslations("adminPanel");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const [activeTab, setActiveTab] = useState<TabKey>("settings");
   const isAdmin = currentUserRole === "owner" || currentUserRole === "admin";
+
+  const TABS: { key: TabKey; label: string; icon: typeof Shield }[] = [
+    { key: "settings", label: t("settings"), icon: Shield },
+    { key: "audit", label: t("auditLog"), icon: ScrollText },
+    { key: "sessions", label: t("sessions"), icon: Monitor },
+    { key: "login-history", label: t("loginHistory"), icon: Clock },
+  ];
 
   return (
     <div className="page-container">
       {/* Header */}
       <div className="security-header">
         <div>
-          <h2>Security &amp; Audit</h2>
+          <h2>{t("securityAndAudit")}</h2>
           <div className="security-header-sub">
-            Manage security policies, sessions, and review activity logs
+            {t("manageSecurityPoliciesSessionsLogs")}
           </div>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="security-tabs">
-        {TABS.map((t) => (
+        {TABS.map((tab) => (
           <button
-            key={t.key}
-            className={`security-tab ${activeTab === t.key ? "active" : ""}`}
-            onClick={() => setActiveTab(t.key)}
+            key={tab.key}
+            className={`security-tab ${activeTab === tab.key ? "active" : ""}`}
+            onClick={() => setActiveTab(tab.key)}
           >
-            <t.icon size={15} />
-            {t.label}
+            <tab.icon size={15} />
+            {tab.label}
           </button>
         ))}
       </div>
@@ -143,11 +124,11 @@ export default function SecurityClient({
       {/* Panels */}
       <div className="security-panel">
         {activeTab === "settings" && (
-          <SettingsPanel initialSettings={settings} isAdmin={isAdmin} />
+          <SettingsPanel initialSettings={settings} isAdmin={isAdmin} t={t} dateLocale={dateLocale} />
         )}
-        {activeTab === "audit" && <AuditPanel logs={auditLogs} />}
-        {activeTab === "sessions" && <SessionsPanel isAdmin={isAdmin} />}
-        {activeTab === "login-history" && <LoginHistoryPanel />}
+        {activeTab === "audit" && <AuditPanel logs={auditLogs} t={t} dateLocale={dateLocale} />}
+        {activeTab === "sessions" && <SessionsPanel isAdmin={isAdmin} t={t} dateLocale={dateLocale} />}
+        {activeTab === "login-history" && <LoginHistoryPanel t={t} dateLocale={dateLocale} />}
       </div>
     </div>
   );
@@ -160,9 +141,13 @@ export default function SecurityClient({
 function SettingsPanel({
   initialSettings,
   isAdmin,
+  t,
+  dateLocale,
 }: {
   initialSettings: SecuritySettingsRow | null;
   isAdmin: boolean;
+  t: ReturnType<typeof useTranslations>;
+  dateLocale: string;
 }) {
   const s = initialSettings ?? DEFAULTS;
 
@@ -191,13 +176,13 @@ function SettingsPanel({
         body: JSON.stringify(form),
       });
       if (res.ok) {
-        setMessage({ type: "success", text: "Security settings saved." });
+        setMessage({ type: "success", text: t("securitySettingsSaved") });
       } else {
         const data = await res.json();
-        setMessage({ type: "error", text: data.error || "Failed to save." });
+        setMessage({ type: "error", text: data.error || t("failedToSave") });
       }
     } catch {
-      setMessage({ type: "error", text: "Network error." });
+      setMessage({ type: "error", text: t("networkError") });
     } finally {
       setSaving(false);
     }
@@ -220,12 +205,12 @@ function SettingsPanel({
       <div className="security-form-section">
         <div className="security-form-section-title">
           <Key size={16} style={{ marginRight: "8px", verticalAlign: "middle" }} />
-          Password Policy
+          {t("passwordPolicy")}
         </div>
 
         <div className="security-form-row">
           <div className="security-form-group">
-            <label className="security-form-label">Minimum Password Length</label>
+            <label className="security-form-label">{t("minimumPasswordLength")}</label>
             <input
               type="number"
               className="security-form-input"
@@ -236,11 +221,11 @@ function SettingsPanel({
               disabled={!isAdmin}
             />
             <span className="security-form-hint">
-              Between 6 and 128 characters
+              {t("between6And128Characters")}
             </span>
           </div>
           <div className="security-form-group">
-            <label className="security-form-label">Password Expiry (days)</label>
+            <label className="security-form-label">{t("passwordExpiryDays")}</label>
             <input
               type="number"
               className="security-form-input"
@@ -250,20 +235,20 @@ function SettingsPanel({
               onChange={(e) => setField("password_expiry_days", Number(e.target.value))}
               disabled={!isAdmin}
             />
-            <span className="security-form-hint">0 = never expires</span>
+            <span className="security-form-hint">{t("zeroNeverExpires")}</span>
           </div>
         </div>
 
         <label className="security-form-label" style={{ marginBottom: "8px", display: "block" }}>
-          Require Characters
+          {t("requireCharacters")}
         </label>
         <div className="security-checkbox-group">
           {(
             [
-              ["require_uppercase", "Uppercase (A-Z)"],
-              ["require_lowercase", "Lowercase (a-z)"],
-              ["require_numbers", "Numbers (0-9)"],
-              ["require_special_chars", "Special (!@#...)"],
+              ["require_uppercase", t("uppercaseAZ")],
+              ["require_lowercase", t("lowercaseAZ")],
+              ["require_numbers", t("numbers09")],
+              ["require_special_chars", t("specialChars")],
             ] as const
           ).map(([key, label]) => (
             <label key={key} className="security-checkbox-item">
@@ -283,12 +268,12 @@ function SettingsPanel({
       <div className="security-form-section">
         <div className="security-form-section-title">
           <Shield size={16} style={{ marginRight: "8px", verticalAlign: "middle" }} />
-          Session &amp; Authentication
+          {t("sessionAndAuthentication")}
         </div>
 
         <div className="security-form-row">
           <div className="security-form-group">
-            <label className="security-form-label">Session Timeout (minutes)</label>
+            <label className="security-form-label">{t("sessionTimeoutMinutes")}</label>
             <input
               type="number"
               className="security-form-input"
@@ -300,12 +285,12 @@ function SettingsPanel({
             />
             <span className="security-form-hint">
               {form.session_timeout_minutes >= 60
-                ? `${Math.round(form.session_timeout_minutes / 60)} hours`
-                : `${form.session_timeout_minutes} minutes`}
+                ? t("hoursCount", { count: Math.round(form.session_timeout_minutes / 60) })
+                : t("minutesCount", { count: form.session_timeout_minutes })}
             </span>
           </div>
           <div className="security-form-group">
-            <label className="security-form-label">Max Concurrent Sessions</label>
+            <label className="security-form-label">{t("maxConcurrentSessions")}</label>
             <input
               type="number"
               className="security-form-input"
@@ -323,7 +308,7 @@ function SettingsPanel({
             className="security-toggle-row"
             onClick={() => isAdmin && setField("require_2fa", !form.require_2fa)}
           >
-            <span className="security-toggle-label">Require Two-Factor Authentication</span>
+            <span className="security-toggle-label">{t("requireTwoFactorAuthentication")}</span>
             <button
               type="button"
               className={`security-toggle ${form.require_2fa ? "on" : ""}`}
@@ -342,7 +327,7 @@ function SettingsPanel({
             ) : (
               <Save size={14} />
             )}
-            {saving ? "Saving..." : "Save Settings"}
+            {saving ? t("saving") : t("saveSettings")}
           </button>
         </div>
       )}
@@ -354,23 +339,33 @@ function SettingsPanel({
 /*  Audit Log Panel                                                    */
 /* ================================================================== */
 
-function AuditPanel({ logs }: { logs: AuditLogEntry[] }) {
+function AuditPanel({ logs, t, dateLocale }: { logs: AuditLogEntry[]; t: ReturnType<typeof useTranslations>; dateLocale: string }) {
+  function formatDate(d: string): string {
+    return new Date(d).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
   return (
     <>
       {logs.length === 0 ? (
         <div className="security-empty">
           <ScrollText size={32} />
-          No audit log entries yet. Activity will appear here as users interact with the system.
+          {t("noAuditLogEntriesYet")}
         </div>
       ) : (
         <div className="security-table-wrap">
           <table className="security-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Action</th>
-                <th>Entity</th>
-                <th>Details</th>
+                <th>{t("date")}</th>
+                <th>{t("action")}</th>
+                <th>{t("entity")}</th>
+                <th>{t("details")}</th>
               </tr>
             </thead>
             <tbody>
@@ -383,7 +378,7 @@ function AuditPanel({ logs }: { logs: AuditLogEntry[] }) {
                   <td style={{ textTransform: "capitalize" }}>
                     {log.entity_type?.replace(/_/g, " ")}
                   </td>
-                  <td>{log.details?.name || log.details?.ref || "—"}</td>
+                  <td>{log.details?.name || log.details?.ref || "\u2014"}</td>
                 </tr>
               ))}
             </tbody>
@@ -398,10 +393,29 @@ function AuditPanel({ logs }: { logs: AuditLogEntry[] }) {
 /*  Sessions Panel                                                     */
 /* ================================================================== */
 
-function SessionsPanel({ isAdmin }: { isAdmin: boolean }) {
+function SessionsPanel({ isAdmin, t, dateLocale }: { isAdmin: boolean; t: ReturnType<typeof useTranslations>; dateLocale: string }) {
   const [sessions, setSessions] = useState<SessionEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [revoking, setRevoking] = useState<string | null>(null);
+
+  function formatDate(d: string): string {
+    return new Date(d).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  function parseUA(ua: string | null): string {
+    if (!ua) return t("unknownBrowser");
+    if (ua.includes("Chrome")) return "Chrome";
+    if (ua.includes("Firefox")) return "Firefox";
+    if (ua.includes("Safari")) return "Safari";
+    if (ua.includes("Edge")) return "Edge";
+    return t("other");
+  }
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -440,7 +454,7 @@ function SessionsPanel({ isAdmin }: { isAdmin: boolean }) {
     return (
       <div className="security-empty">
         <Loader2 size={28} className="spin-icon" />
-        Loading sessions...
+        {t("loadingSessions")}
       </div>
     );
   }
@@ -449,8 +463,7 @@ function SessionsPanel({ isAdmin }: { isAdmin: boolean }) {
     return (
       <div className="security-empty">
         <Monitor size={32} />
-        No active sessions found. Sessions will be tracked as the feature is
-        fully integrated.
+        {t("noActiveSessionsFound")}
       </div>
     );
   }
@@ -459,7 +472,7 @@ function SessionsPanel({ isAdmin }: { isAdmin: boolean }) {
     <>
       <div className="security-sessions-header">
         <div className="security-form-section-title" style={{ marginBottom: 0, borderBottom: "none", paddingBottom: 0 }}>
-          Active Sessions ({sessions.length})
+          {t("activeSessionsCount", { count: sessions.length })}
         </div>
       </div>
 
@@ -467,12 +480,12 @@ function SessionsPanel({ isAdmin }: { isAdmin: boolean }) {
         <table className="security-table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>IP Address</th>
-              <th>Browser</th>
-              <th>Last Active</th>
-              <th>Started</th>
-              {isAdmin && <th style={{ width: 100 }}>Actions</th>}
+              <th>{t("user")}</th>
+              <th>{t("ipAddress")}</th>
+              <th>{t("browser")}</th>
+              <th>{t("lastActive")}</th>
+              <th>{t("started")}</th>
+              {isAdmin && <th style={{ width: 100 }}>{t("actions")}</th>}
             </tr>
           </thead>
           <tbody>
@@ -481,7 +494,7 @@ function SessionsPanel({ isAdmin }: { isAdmin: boolean }) {
                 <td className="security-user-cell">
                   {s.user_profile?.full_name || s.user_profile?.email || s.user_id.slice(0, 8)}
                 </td>
-                <td className="security-muted">{s.ip_address || "—"}</td>
+                <td className="security-muted">{s.ip_address || "\u2014"}</td>
                 <td className="security-muted">{parseUA(s.user_agent)}</td>
                 <td style={{ whiteSpace: "nowrap" }}>{formatDate(s.last_active_at)}</td>
                 <td style={{ whiteSpace: "nowrap" }}>{formatDate(s.created_at)}</td>
@@ -493,7 +506,7 @@ function SessionsPanel({ isAdmin }: { isAdmin: boolean }) {
                       disabled={revoking === s.id}
                     >
                       <LogOut size={12} />
-                      {revoking === s.id ? "..." : "Revoke"}
+                      {revoking === s.id ? "..." : t("revoke")}
                     </button>
                   </td>
                 )}
@@ -510,9 +523,19 @@ function SessionsPanel({ isAdmin }: { isAdmin: boolean }) {
 /*  Login History Panel                                                */
 /* ================================================================== */
 
-function LoginHistoryPanel() {
+function LoginHistoryPanel({ t, dateLocale }: { t: ReturnType<typeof useTranslations>; dateLocale: string }) {
   const [history, setHistory] = useState<LoginEntry[]>([]);
   const [loading, setLoading] = useState(true);
+
+  function formatDate(d: string): string {
+    return new Date(d).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -535,7 +558,7 @@ function LoginHistoryPanel() {
     return (
       <div className="security-empty">
         <Loader2 size={28} className="spin-icon" />
-        Loading login history...
+        {t("loadingLoginHistory")}
       </div>
     );
   }
@@ -544,8 +567,7 @@ function LoginHistoryPanel() {
     return (
       <div className="security-empty">
         <Clock size={32} />
-        No login history recorded yet. Login attempts will be logged here as
-        the feature is fully integrated.
+        {t("noLoginHistoryRecorded")}
       </div>
     );
   }
@@ -555,11 +577,11 @@ function LoginHistoryPanel() {
       <table className="security-table">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Email</th>
-            <th>Status</th>
-            <th>IP Address</th>
-            <th>Reason</th>
+            <th>{t("date")}</th>
+            <th>{t("email")}</th>
+            <th>{t("status")}</th>
+            <th>{t("ipAddress")}</th>
+            <th>{t("reason")}</th>
           </tr>
         </thead>
         <tbody>
@@ -571,17 +593,17 @@ function LoginHistoryPanel() {
                 <span className={`security-status-badge ${h.status}`}>
                   {h.status === "success" ? (
                     <>
-                      <Check size={10} /> Success
+                      <Check size={10} /> {t("success")}
                     </>
                   ) : (
                     <>
-                      <AlertTriangle size={10} /> Failed
+                      <AlertTriangle size={10} /> {t("failed")}
                     </>
                   )}
                 </span>
               </td>
-              <td className="security-muted">{h.ip_address || "—"}</td>
-              <td className="security-muted">{h.failure_reason || "—"}</td>
+              <td className="security-muted">{h.ip_address || "\u2014"}</td>
+              <td className="security-muted">{h.failure_reason || "\u2014"}</td>
             </tr>
           ))}
         </tbody>

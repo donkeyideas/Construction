@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   ArrowLeft,
   Plus,
@@ -30,15 +31,6 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -57,6 +49,18 @@ export default function ReconciliationClient({
   userId,
 }: ReconciliationClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
 
   // Create modal
   const [showCreate, setShowCreate] = useState(false);
@@ -99,7 +103,7 @@ export default function ReconciliationClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create reconciliation");
+        throw new Error(data.error || t("failedToCreateReconciliation"));
       }
 
       setFormData({
@@ -114,7 +118,7 @@ export default function ReconciliationClient({
       setCreateError(
         err instanceof Error
           ? err.message
-          : "Failed to create reconciliation"
+          : t("failedToCreateReconciliation")
       );
     } finally {
       setCreating(false);
@@ -190,7 +194,7 @@ export default function ReconciliationClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update reconciliation");
+        throw new Error(data.error || t("failedToUpdateReconciliation"));
       }
 
       closeDetail();
@@ -199,7 +203,7 @@ export default function ReconciliationClient({
       setSaveError(
         err instanceof Error
           ? err.message
-          : "Failed to update reconciliation"
+          : t("failedToUpdateReconciliation")
       );
     } finally {
       setSaving(false);
@@ -219,7 +223,7 @@ export default function ReconciliationClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete reconciliation");
+        throw new Error(data.error || t("failedToDeleteReconciliation"));
       }
 
       closeDetail();
@@ -228,7 +232,7 @@ export default function ReconciliationClient({
       setSaveError(
         err instanceof Error
           ? err.message
-          : "Failed to delete reconciliation"
+          : t("failedToDeleteReconciliation")
       );
     } finally {
       setSaving(false);
@@ -243,16 +247,15 @@ export default function ReconciliationClient({
         onClick={() => router.push("/financial/banking")}
       >
         <ArrowLeft size={16} />
-        Back to Banking
+        {t("backToBanking")}
       </button>
 
       {/* Header */}
       <div className="banking-header">
         <div>
-          <h2>Bank Reconciliation</h2>
+          <h2>{t("bankReconciliation")}</h2>
           <p className="banking-header-sub">
-            {reconciliations.length} reconciliation
-            {reconciliations.length !== 1 ? "s" : ""}
+            {t("reconciliationCount", { count: reconciliations.length })}
           </p>
         </div>
         <button
@@ -260,7 +263,7 @@ export default function ReconciliationClient({
           onClick={() => setShowCreate(true)}
         >
           <Plus size={16} />
-          New Reconciliation
+          {t("newReconciliation")}
         </button>
       </div>
 
@@ -270,14 +273,14 @@ export default function ReconciliationClient({
           <div className="banking-empty-icon">
             <FileCheck size={28} />
           </div>
-          <h3>No reconciliations yet</h3>
-          <p>Start your first bank reconciliation to ensure your books match your statements.</p>
+          <h3>{t("noReconciliationsYet")}</h3>
+          <p>{t("startFirstReconciliation")}</p>
           <button
             className="btn-primary"
             onClick={() => setShowCreate(true)}
           >
             <Plus size={16} />
-            New Reconciliation
+            {t("newReconciliation")}
           </button>
         </div>
       ) : (
@@ -285,12 +288,12 @@ export default function ReconciliationClient({
           <table className="banking-table">
             <thead>
               <tr>
-                <th>Account</th>
-                <th>Statement Date</th>
-                <th>Statement Balance</th>
-                <th>Book Balance</th>
-                <th>Difference</th>
-                <th>Status</th>
+                <th>{t("account")}</th>
+                <th>{t("statementDate")}</th>
+                <th>{t("statementBalance")}</th>
+                <th>{t("bookBalance")}</th>
+                <th>{t("difference")}</th>
+                <th>{t("status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -301,7 +304,7 @@ export default function ReconciliationClient({
                   className="banking-table-row"
                 >
                   <td className="banking-desc-cell">
-                    {recon.bank_account?.name || "Unknown Account"}
+                    {recon.bank_account?.name || t("unknownAccount")}
                     <div
                       style={{
                         fontSize: "0.75rem",
@@ -339,12 +342,12 @@ export default function ReconciliationClient({
                       {recon.status === "completed" ? (
                         <>
                           <CheckCircle2 size={12} />
-                          Completed
+                          {t("completed")}
                         </>
                       ) : (
                         <>
                           <Clock size={12} />
-                          In Progress
+                          {t("inProgress")}
                         </>
                       )}
                     </span>
@@ -367,7 +370,7 @@ export default function ReconciliationClient({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="banking-modal-header">
-              <h3>New Reconciliation</h3>
+              <h3>{t("newReconciliation")}</h3>
               <button
                 className="banking-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -383,7 +386,7 @@ export default function ReconciliationClient({
             <form onSubmit={handleCreate} className="banking-form">
               <div className="banking-form-group">
                 <label className="banking-form-label">
-                  Bank Account *
+                  {t("bankAccountRequired")}
                 </label>
                 <select
                   className="banking-form-select"
@@ -396,7 +399,7 @@ export default function ReconciliationClient({
                   }
                   required
                 >
-                  <option value="">Select bank account...</option>
+                  <option value="">{t("selectBankAccount")}</option>
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
                       {acc.name} - {acc.bank_name} (
@@ -409,7 +412,7 @@ export default function ReconciliationClient({
               <div className="banking-form-row">
                 <div className="banking-form-group">
                   <label className="banking-form-label">
-                    Statement Date *
+                    {t("statementDateRequired")}
                   </label>
                   <input
                     type="date"
@@ -426,7 +429,7 @@ export default function ReconciliationClient({
                 </div>
                 <div className="banking-form-group">
                   <label className="banking-form-label">
-                    Statement Ending Balance *
+                    {t("statementEndingBalanceRequired")}
                   </label>
                   <input
                     type="number"
@@ -446,14 +449,14 @@ export default function ReconciliationClient({
               </div>
 
               <div className="banking-form-group">
-                <label className="banking-form-label">Notes</label>
+                <label className="banking-form-label">{t("notes")}</label>
                 <textarea
                   className="banking-form-input"
                   value={formData.notes}
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
                   }
-                  placeholder="Additional notes..."
+                  placeholder={t("additionalNotes")}
                   rows={3}
                   style={{ resize: "vertical", minHeight: 60 }}
                 />
@@ -465,7 +468,7 @@ export default function ReconciliationClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -476,7 +479,7 @@ export default function ReconciliationClient({
                     !formData.statement_ending_balance
                   }
                 >
-                  {creating ? "Creating..." : "Start Reconciliation"}
+                  {creating ? t("creating") : t("startReconciliation")}
                 </button>
               </div>
             </form>
@@ -494,8 +497,8 @@ export default function ReconciliationClient({
             <div className="banking-modal-header">
               <h3>
                 {isEditing
-                  ? "Edit Reconciliation"
-                  : "Reconciliation Details"}
+                  ? t("editReconciliation")
+                  : t("reconciliationDetails")}
               </h3>
               <button className="banking-modal-close" onClick={closeDetail}>
                 <X size={18} />
@@ -523,7 +526,7 @@ export default function ReconciliationClient({
                   style={{ maxWidth: 440 }}
                 >
                   <div className="banking-modal-header">
-                    <h3>Delete Reconciliation</h3>
+                    <h3>{t("deleteReconciliation")}</h3>
                     <button
                       className="banking-modal-close"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -533,8 +536,7 @@ export default function ReconciliationClient({
                   </div>
                   <div style={{ padding: "1rem 1.5rem" }}>
                     <p>
-                      Are you sure you want to delete this reconciliation?
-                      This action cannot be undone.
+                      {t("deleteReconciliationConfirm")}
                     </p>
                   </div>
                   <div className="banking-form-actions">
@@ -544,7 +546,7 @@ export default function ReconciliationClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="button"
@@ -555,7 +557,7 @@ export default function ReconciliationClient({
                       onClick={handleDelete}
                       disabled={saving}
                     >
-                      {saving ? "Deleting..." : "Delete"}
+                      {saving ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 </div>
@@ -571,7 +573,7 @@ export default function ReconciliationClient({
                 }}
               >
                 <div className="banking-form-group">
-                  <label className="banking-form-label">Account</label>
+                  <label className="banking-form-label">{t("account")}</label>
                   <div
                     className="banking-form-input"
                     style={{
@@ -579,7 +581,7 @@ export default function ReconciliationClient({
                       cursor: "default",
                     }}
                   >
-                    {selectedRecon.bank_account?.name || "Unknown"} -{" "}
+                    {selectedRecon.bank_account?.name || t("unknown")} -{" "}
                     {selectedRecon.bank_account?.bank_name || ""}
                   </div>
                 </div>
@@ -587,7 +589,7 @@ export default function ReconciliationClient({
                 <div className="banking-form-row">
                   <div className="banking-form-group">
                     <label className="banking-form-label">
-                      Statement Date
+                      {t("statementDate")}
                     </label>
                     <div
                       className="banking-form-input"
@@ -600,7 +602,7 @@ export default function ReconciliationClient({
                     </div>
                   </div>
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Status</label>
+                    <label className="banking-form-label">{t("status")}</label>
                     <div
                       className="banking-form-input"
                       style={{
@@ -612,8 +614,8 @@ export default function ReconciliationClient({
                         className={`banking-recon-status-badge status-${selectedRecon.status}`}
                       >
                         {selectedRecon.status === "completed"
-                          ? "Completed"
-                          : "In Progress"}
+                          ? t("completed")
+                          : t("inProgress")}
                       </span>
                     </div>
                   </div>
@@ -622,7 +624,7 @@ export default function ReconciliationClient({
                 <div className="banking-form-row">
                   <div className="banking-form-group">
                     <label className="banking-form-label">
-                      Statement Balance
+                      {t("statementBalance")}
                     </label>
                     <div
                       className="banking-form-input"
@@ -639,7 +641,7 @@ export default function ReconciliationClient({
                   </div>
                   <div className="banking-form-group">
                     <label className="banking-form-label">
-                      Book Balance
+                      {t("bookBalance")}
                     </label>
                     <div
                       className="banking-form-input"
@@ -655,7 +657,7 @@ export default function ReconciliationClient({
                 </div>
 
                 <div className="banking-form-group">
-                  <label className="banking-form-label">Difference</label>
+                  <label className="banking-form-label">{t("difference")}</label>
                   <div
                     className="banking-form-input"
                     style={{
@@ -674,7 +676,7 @@ export default function ReconciliationClient({
 
                 {selectedRecon.notes && (
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Notes</label>
+                    <label className="banking-form-label">{t("notes")}</label>
                     <div
                       className="banking-form-input"
                       style={{
@@ -696,14 +698,14 @@ export default function ReconciliationClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("close")}
                   </button>
                   <button
                     type="button"
@@ -711,7 +713,7 @@ export default function ReconciliationClient({
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -723,7 +725,7 @@ export default function ReconciliationClient({
                 <div className="banking-form-row">
                   <div className="banking-form-group">
                     <label className="banking-form-label">
-                      Statement Date *
+                      {t("statementDateRequired")}
                     </label>
                     <input
                       type="date"
@@ -739,7 +741,7 @@ export default function ReconciliationClient({
                     />
                   </div>
                   <div className="banking-form-group">
-                    <label className="banking-form-label">Status</label>
+                    <label className="banking-form-label">{t("status")}</label>
                     <select
                       className="banking-form-select"
                       value={(editData.status as string) || "in_progress"}
@@ -750,15 +752,15 @@ export default function ReconciliationClient({
                         })
                       }
                     >
-                      <option value="in_progress">In Progress</option>
-                      <option value="completed">Completed</option>
+                      <option value="in_progress">{t("inProgress")}</option>
+                      <option value="completed">{t("completed")}</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="banking-form-group">
                   <label className="banking-form-label">
-                    Statement Ending Balance *
+                    {t("statementEndingBalanceRequired")}
                   </label>
                   <input
                     type="number"
@@ -778,7 +780,7 @@ export default function ReconciliationClient({
                 </div>
 
                 <div className="banking-form-group">
-                  <label className="banking-form-label">Notes</label>
+                  <label className="banking-form-label">{t("notes")}</label>
                   <textarea
                     className="banking-form-input"
                     value={(editData.notes as string) || ""}
@@ -800,7 +802,7 @@ export default function ReconciliationClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -808,7 +810,7 @@ export default function ReconciliationClient({
                     onClick={handleSave}
                     disabled={saving}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   BarChart3,
   AlertTriangle,
@@ -85,8 +86,8 @@ const budgetSampleData = [
    Helpers
    ------------------------------------------------------------------ */
 
-function formatCurrency(n: number): string {
-  return new Intl.NumberFormat("en-US", {
+function formatCurrencyWithLocale(n: number, dateLocale: string): string {
+  return new Intl.NumberFormat(dateLocale, {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 0,
@@ -158,6 +159,9 @@ export default function JobCostingClient({
   summary,
 }: JobCostingClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   // Import modal state
   const [showImport, setShowImport] = useState(false);
@@ -239,13 +243,13 @@ export default function JobCostingClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create budget line");
+        throw new Error(data.error || t("failedToCreateBudgetLine"));
       }
 
       setShowCreate(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create");
+      setError(err instanceof Error ? err.message : t("failedToCreate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -275,14 +279,14 @@ export default function JobCostingClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update budget line");
+        throw new Error(data.error || t("failedToUpdateBudgetLine"));
       }
 
       setSelectedLine(null);
       setIsEditing(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update");
+      setError(err instanceof Error ? err.message : t("failedToUpdate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -301,13 +305,13 @@ export default function JobCostingClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete budget line");
+        throw new Error(data.error || t("failedToDeleteBudgetLine"));
       }
 
       setSelectedLine(null);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete");
+      setError(err instanceof Error ? err.message : t("failedToDelete"));
     } finally {
       setIsSubmitting(false);
     }
@@ -327,7 +331,7 @@ export default function JobCostingClient({
 
         <div className="ticket-form-row">
           <div className="ticket-form-group">
-            <label className="ticket-form-label">CSI Division *</label>
+            <label className="ticket-form-label">{t("csiDivisionRequired")}</label>
             <select
               className="ticket-form-select"
               value={data.csi_code}
@@ -344,14 +348,14 @@ export default function JobCostingClient({
             </select>
           </div>
           <div className="ticket-form-group">
-            <label className="ticket-form-label">Description *</label>
+            <label className="ticket-form-label">{t("descriptionRequired")}</label>
             <input
               className="ticket-form-input"
               value={data.description}
               onChange={(e) =>
                 setData({ ...data, description: e.target.value })
               }
-              placeholder="e.g. Structural Steel"
+              placeholder={t("descriptionPlaceholder")}
               required
             />
           </div>
@@ -359,7 +363,7 @@ export default function JobCostingClient({
 
         <div className="ticket-form-row">
           <div className="ticket-form-group">
-            <label className="ticket-form-label">Budgeted Amount</label>
+            <label className="ticket-form-label">{t("budgetedAmount")}</label>
             <input
               className="ticket-form-input"
               type="number"
@@ -373,7 +377,7 @@ export default function JobCostingClient({
             />
           </div>
           <div className="ticket-form-group">
-            <label className="ticket-form-label">Committed Amount</label>
+            <label className="ticket-form-label">{t("committedAmount")}</label>
             <input
               className="ticket-form-input"
               type="number"
@@ -390,7 +394,7 @@ export default function JobCostingClient({
 
         <div className="ticket-form-row">
           <div className="ticket-form-group">
-            <label className="ticket-form-label">Actual Amount</label>
+            <label className="ticket-form-label">{t("actualAmount")}</label>
             <input
               className="ticket-form-input"
               type="number"
@@ -415,14 +419,14 @@ export default function JobCostingClient({
               setIsEditing(false);
             }}
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="submit"
             className="btn btn-primary"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Saving..." : submitLabel}
+            {isSubmitting ? t("saving") : submitLabel}
           </button>
         </div>
       </form>
@@ -466,12 +470,12 @@ export default function JobCostingClient({
         });
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.error || "Failed to create sample data");
+          throw new Error(data.error || t("failedToCreateSampleData"));
         }
       }
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load sample data");
+      setError(err instanceof Error ? err.message : t("failedToLoadSampleData"));
     } finally {
       setLoadingSample(false);
     }
@@ -482,20 +486,20 @@ export default function JobCostingClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Job Costing</h2>
+          <h2>{t("jobCosting")}</h2>
           <p className="fin-header-sub">
-            Track budget vs actual costs by CSI division.
+            {t("jobCostingDesc")}
           </p>
         </div>
         {selectedProjectId && (
           <div style={{ display: "flex", gap: "8px" }}>
             <button className="btn btn-ghost" onClick={() => setShowImport(true)}>
               <Upload size={16} />
-              Import CSV
+              {t("importCsv")}
             </button>
             <button className="btn btn-primary" onClick={openCreate}>
               <Plus size={16} />
-              Add Budget Line
+              {t("addBudgetLine")}
             </button>
           </div>
         )}
@@ -504,7 +508,7 @@ export default function JobCostingClient({
       {/* Project Selector */}
       <div className="job-cost-header">
         <div className="job-cost-selector">
-          <label>Project:</label>
+          <label>{t("projectLabel")}</label>
           {projects.length > 0 ? (
             <select
               className="fin-filter-select"
@@ -523,7 +527,7 @@ export default function JobCostingClient({
             </select>
           ) : (
             <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
-              No projects found
+              {t("noProjectsFound")}
             </span>
           )}
         </div>
@@ -534,28 +538,28 @@ export default function JobCostingClient({
           {/* Earned Value Metrics */}
           <div className="ev-metrics">
             <div className="ev-metric">
-              <div className="ev-metric-label">BCWP</div>
-              <div className="ev-metric-value">{formatCurrency(bcwp)}</div>
+              <div className="ev-metric-label">{t("bcwpLabel")}</div>
+              <div className="ev-metric-value">{formatCurrencyWithLocale(bcwp, dateLocale)}</div>
               <div className="ev-metric-desc">
-                Budgeted Cost Work Performed
+                {t("bcwpDesc")}
               </div>
             </div>
             <div className="ev-metric">
-              <div className="ev-metric-label">BCWS</div>
-              <div className="ev-metric-value">{formatCurrency(bcws)}</div>
+              <div className="ev-metric-label">{t("bcwsLabel")}</div>
+              <div className="ev-metric-value">{formatCurrencyWithLocale(bcws, dateLocale)}</div>
               <div className="ev-metric-desc">
-                Budgeted Cost Work Scheduled
+                {t("bcwsDesc")}
               </div>
             </div>
             <div className="ev-metric">
-              <div className="ev-metric-label">ACWP</div>
-              <div className="ev-metric-value">{formatCurrency(acwp)}</div>
+              <div className="ev-metric-label">{t("acwpLabel")}</div>
+              <div className="ev-metric-value">{formatCurrencyWithLocale(acwp, dateLocale)}</div>
               <div className="ev-metric-desc">
-                Actual Cost Work Performed
+                {t("acwpDesc")}
               </div>
             </div>
             <div className="ev-metric">
-              <div className="ev-metric-label">CPI</div>
+              <div className="ev-metric-label">{t("cpiLabel")}</div>
               <div
                 className="ev-metric-value"
                 style={{
@@ -569,10 +573,10 @@ export default function JobCostingClient({
               >
                 {cpi.toFixed(2)}
               </div>
-              <div className="ev-metric-desc">Cost Performance Index</div>
+              <div className="ev-metric-desc">{t("cpiDesc")}</div>
             </div>
             <div className="ev-metric">
-              <div className="ev-metric-label">SPI</div>
+              <div className="ev-metric-label">{t("spiLabel")}</div>
               <div
                 className="ev-metric-value"
                 style={{
@@ -586,7 +590,7 @@ export default function JobCostingClient({
               >
                 {spi.toFixed(2)}
               </div>
-              <div className="ev-metric-desc">Schedule Performance Index</div>
+              <div className="ev-metric-desc">{t("spiDesc")}</div>
             </div>
           </div>
 
@@ -596,13 +600,13 @@ export default function JobCostingClient({
               <table className="job-cost-table">
                 <thead>
                   <tr>
-                    <th>CSI Code</th>
-                    <th>Description</th>
-                    <th className="num-col">Budgeted</th>
-                    <th className="num-col">Committed</th>
-                    <th className="num-col">Actual</th>
-                    <th className="num-col">Variance</th>
-                    <th style={{ width: "140px" }}>% Used</th>
+                    <th>{t("csiCode")}</th>
+                    <th>{t("description")}</th>
+                    <th className="num-col">{t("budgeted")}</th>
+                    <th className="num-col">{t("committed")}</th>
+                    <th className="num-col">{t("actual")}</th>
+                    <th className="num-col">{t("variance")}</th>
+                    <th style={{ width: "140px" }}>{t("percentUsed")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -637,6 +641,7 @@ export default function JobCostingClient({
                             variance: divVariance,
                           }}
                           onRowClick={openDetail}
+                          dateLocale={dateLocale}
                         />
                       );
                     }
@@ -645,22 +650,22 @@ export default function JobCostingClient({
                   {/* Summary Row */}
                   <tr className="summary-row">
                     <td colSpan={2} style={{ fontWeight: 700 }}>
-                      Project Total
+                      {t("projectTotalLabel")}
                     </td>
                     <td className="num-col" style={{ fontWeight: 700 }}>
-                      {formatCurrency(summary.totalBudgeted)}
+                      {formatCurrencyWithLocale(summary.totalBudgeted, dateLocale)}
                     </td>
                     <td className="num-col" style={{ fontWeight: 700 }}>
-                      {formatCurrency(summary.totalCommitted)}
+                      {formatCurrencyWithLocale(summary.totalCommitted, dateLocale)}
                     </td>
                     <td className="num-col" style={{ fontWeight: 700 }}>
-                      {formatCurrency(summary.totalActual)}
+                      {formatCurrencyWithLocale(summary.totalActual, dateLocale)}
                     </td>
                     <td
                       className={`num-col ${getVarianceClass(summary.totalBudgeted, summary.totalActual)}`}
                       style={{ fontWeight: 700 }}
                     >
-                      {formatCurrency(summary.totalVariance)}
+                      {formatCurrencyWithLocale(summary.totalVariance, dateLocale)}
                     </td>
                     <td>
                       <BudgetBarCell
@@ -682,23 +687,22 @@ export default function JobCostingClient({
             <div className="fin-empty-icon">
               <BarChart3 size={48} />
             </div>
-            <div className="fin-empty-title">No Budget Lines</div>
+            <div className="fin-empty-title">{t("noBudgetLines")}</div>
             <div className="fin-empty-desc">
-              Click &ldquo;Add Budget Line&rdquo; above to start tracking job
-              costs by CSI division, or load sample data to see how it works.
+              {t("noBudgetLinesJobCostingDesc")}
             </div>
             {error && <div className="ticket-form-error" style={{ marginBottom: 12 }}>{error}</div>}
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <button className="btn btn-primary" onClick={openCreate}>
                 <Plus size={16} />
-                Add Budget Line
+                {t("addBudgetLine")}
               </button>
               <button
                 className="btn btn-ghost"
                 onClick={loadSampleData}
                 disabled={loadingSample}
               >
-                {loadingSample ? "Loading..." : "Load Sample Data"}
+                {loadingSample ? t("loading") : t("loadSampleData")}
               </button>
             </div>
           </div>
@@ -709,11 +713,11 @@ export default function JobCostingClient({
             <div className="fin-empty-icon">
               <BarChart3 size={48} />
             </div>
-            <div className="fin-empty-title">Select a Project</div>
+            <div className="fin-empty-title">{t("selectAProject")}</div>
             <div className="fin-empty-desc">
               {projects.length === 0
-                ? "Create a project first to start tracking job costs."
-                : "Choose a project from the dropdown above to view its budget and cost breakdown."}
+                ? t("createProjectFirst")
+                : t("chooseProjectDesc")}
             </div>
           </div>
         </div>
@@ -722,7 +726,7 @@ export default function JobCostingClient({
       {/* ===== Import CSV Modal ===== */}
       {showImport && selectedProjectId && (
         <ImportModal
-          entityName="Budget Lines"
+          entityName={t("budgetLines")}
           columns={budgetImportColumns}
           sampleData={budgetSampleData}
           onImport={async (rows) => {
@@ -736,7 +740,7 @@ export default function JobCostingClient({
               }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Import failed");
+            if (!res.ok) throw new Error(data.error || t("importFailed"));
             router.refresh();
             return { success: data.success, errors: data.errors };
           }}
@@ -754,7 +758,7 @@ export default function JobCostingClient({
         >
           <div className="ticket-modal">
             <div className="ticket-modal-header">
-              <h3>Add Budget Line</h3>
+              <h3>{t("addBudgetLine")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -762,7 +766,7 @@ export default function JobCostingClient({
                 <X size={18} />
               </button>
             </div>
-            {renderForm(formData, setFormData, handleCreate, "Add Budget Line")}
+            {renderForm(formData, setFormData, handleCreate, t("addBudgetLine"))}
           </div>
         </div>
       )}
@@ -777,7 +781,7 @@ export default function JobCostingClient({
         >
           <div className="ticket-modal">
             <div className="ticket-modal-header">
-              <h3>{isEditing ? "Edit Budget Line" : "Budget Line Detail"}</h3>
+              <h3>{isEditing ? t("editBudgetLine") : t("budgetLineDetail")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => setSelectedLine(null)}
@@ -787,12 +791,11 @@ export default function JobCostingClient({
             </div>
 
             {isEditing ? (
-              renderForm(editData, setEditData, handleUpdate, "Save Changes")
+              renderForm(editData, setEditData, handleUpdate, t("saveChanges"))
             ) : showDeleteConfirm ? (
               <div>
                 <p style={{ marginBottom: "16px" }}>
-                  Are you sure you want to delete this budget line? This action
-                  cannot be undone.
+                  {t("deleteConfirmation")}
                 </p>
                 {error && <div className="ticket-form-error">{error}</div>}
                 <div className="ticket-form-actions">
@@ -800,14 +803,14 @@ export default function JobCostingClient({
                     className="btn btn-ghost"
                     onClick={() => setShowDeleteConfirm(false)}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     className="btn btn-danger"
                     onClick={handleDelete}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Deleting..." : "Delete"}
+                    {isSubmitting ? t("deleting") : t("delete")}
                   </button>
                 </div>
               </div>
@@ -816,44 +819,44 @@ export default function JobCostingClient({
                 <div className="ticket-form" style={{ gap: "12px" }}>
                   <div className="ticket-form-row">
                     <div className="ticket-form-group">
-                      <span className="ticket-form-label">CSI Code</span>
+                      <span className="ticket-form-label">{t("csiCode")}</span>
                       <span>{selectedLine.csi_code}</span>
                     </div>
                     <div className="ticket-form-group">
-                      <span className="ticket-form-label">Description</span>
+                      <span className="ticket-form-label">{t("description")}</span>
                       <span>{selectedLine.description}</span>
                     </div>
                   </div>
                   <div className="ticket-form-row">
                     <div className="ticket-form-group">
-                      <span className="ticket-form-label">Budgeted</span>
+                      <span className="ticket-form-label">{t("budgeted")}</span>
                       <span>
-                        {formatCurrency(selectedLine.budgeted_amount)}
+                        {formatCurrencyWithLocale(selectedLine.budgeted_amount, dateLocale)}
                       </span>
                     </div>
                     <div className="ticket-form-group">
-                      <span className="ticket-form-label">Committed</span>
+                      <span className="ticket-form-label">{t("committed")}</span>
                       <span>
-                        {formatCurrency(selectedLine.committed_amount)}
+                        {formatCurrencyWithLocale(selectedLine.committed_amount, dateLocale)}
                       </span>
                     </div>
                   </div>
                   <div className="ticket-form-row">
                     <div className="ticket-form-group">
-                      <span className="ticket-form-label">Actual</span>
+                      <span className="ticket-form-label">{t("actual")}</span>
                       <span>
-                        {formatCurrency(selectedLine.actual_amount)}
+                        {formatCurrencyWithLocale(selectedLine.actual_amount, dateLocale)}
                       </span>
                     </div>
                     <div className="ticket-form-group">
-                      <span className="ticket-form-label">Variance</span>
+                      <span className="ticket-form-label">{t("variance")}</span>
                       <span
                         className={getVarianceClass(
                           selectedLine.budgeted_amount,
                           selectedLine.actual_amount
                         )}
                       >
-                        {formatCurrency(selectedLine.variance)}
+                        {formatCurrencyWithLocale(selectedLine.variance, dateLocale)}
                       </span>
                     </div>
                   </div>
@@ -869,11 +872,11 @@ export default function JobCostingClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={14} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button className="btn btn-primary" onClick={startEdit}>
                     <Pencil size={14} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -894,6 +897,7 @@ function DivisionGroup({
   lines,
   totals,
   onRowClick,
+  dateLocale,
 }: {
   divCode: string;
   lines: BudgetLineRow[];
@@ -904,6 +908,7 @@ function DivisionGroup({
     variance: number;
   };
   onRowClick: (line: BudgetLineRow) => void;
+  dateLocale: string;
 }) {
   return (
     <>
@@ -911,13 +916,13 @@ function DivisionGroup({
         <td colSpan={2} style={{ fontWeight: 700 }}>
           Division {divCode} -- {getDivisionName(divCode)}
         </td>
-        <td className="num-col">{formatCurrency(totals.budgeted)}</td>
-        <td className="num-col">{formatCurrency(totals.committed)}</td>
-        <td className="num-col">{formatCurrency(totals.actual)}</td>
+        <td className="num-col">{formatCurrencyWithLocale(totals.budgeted, dateLocale)}</td>
+        <td className="num-col">{formatCurrencyWithLocale(totals.committed, dateLocale)}</td>
+        <td className="num-col">{formatCurrencyWithLocale(totals.actual, dateLocale)}</td>
         <td
           className={`num-col ${getVarianceClass(totals.budgeted, totals.actual)}`}
         >
-          {formatCurrency(totals.variance)}
+          {formatCurrencyWithLocale(totals.variance, dateLocale)}
         </td>
         <td>
           <BudgetBarCell budgeted={totals.budgeted} actual={totals.actual} />
@@ -940,18 +945,18 @@ function DivisionGroup({
           </td>
           <td>{line.description}</td>
           <td className="num-col">
-            {formatCurrency(line.budgeted_amount)}
+            {formatCurrencyWithLocale(line.budgeted_amount, dateLocale)}
           </td>
           <td className="num-col">
-            {formatCurrency(line.committed_amount)}
+            {formatCurrencyWithLocale(line.committed_amount, dateLocale)}
           </td>
           <td className="num-col">
-            {formatCurrency(line.actual_amount)}
+            {formatCurrencyWithLocale(line.actual_amount, dateLocale)}
           </td>
           <td
             className={`num-col ${getVarianceClass(line.budgeted_amount, line.actual_amount)}`}
           >
-            {formatCurrency(line.variance)}
+            {formatCurrencyWithLocale(line.variance, dateLocale)}
           </td>
           <td>
             <BudgetBarCell

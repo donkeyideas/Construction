@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   ClipboardList,
   Sun,
@@ -115,22 +116,6 @@ const STATUS_BADGE: Record<string, string> = {
   approved: "inv-status inv-status-approved",
 };
 
-const WEATHER_OPTIONS = [
-  { value: "sunny", label: "Sunny" },
-  { value: "partly_cloudy", label: "Partly Cloudy" },
-  { value: "cloudy", label: "Cloudy" },
-  { value: "rain", label: "Rain" },
-  { value: "snow", label: "Snow" },
-  { value: "storm", label: "Storm" },
-];
-
-const statuses = [
-  { label: "All", value: "all" },
-  { label: "Draft", value: "draft" },
-  { label: "Submitted", value: "submitted" },
-  { label: "Approved", value: "approved" },
-];
-
 function buildUrl(status?: string): string {
   if (!status || status === "all") return "/projects/daily-logs";
   return `/projects/daily-logs?status=${status}`;
@@ -167,7 +152,27 @@ export default function DailyLogsClient({
   projects,
   activeStatus,
 }: DailyLogsClientProps) {
+  const t = useTranslations("projects");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const router = useRouter();
+
+  const WEATHER_OPTIONS = [
+    { value: "sunny", label: t("weatherSunny") },
+    { value: "partly_cloudy", label: t("weatherPartlyCloudy") },
+    { value: "cloudy", label: t("weatherCloudy") },
+    { value: "rain", label: t("weatherRain") },
+    { value: "snow", label: t("weatherSnow") },
+    { value: "storm", label: t("weatherStorm") },
+  ];
+
+  const statuses = [
+    { label: t("statusAll"), value: "all" },
+    { label: t("statusDraft"), value: "draft" },
+    { label: t("statusSubmitted"), value: "submitted" },
+    { label: t("statusApproved"), value: "approved" },
+  ];
 
   // Create modal state
   const [showCreate, setShowCreate] = useState(false);
@@ -203,7 +208,7 @@ export default function DailyLogsClient({
         params.set("city", project.city);
         if (project.state) params.set("state", project.state);
       } else {
-        setCreateError("Project has no location data. Set a city/state or coordinates on the project.");
+        setCreateError(t("noLocationData"));
         setFetchingWeather(false);
         return;
       }
@@ -211,7 +216,7 @@ export default function DailyLogsClient({
       const res = await fetch(`/api/weather?${params.toString()}`);
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to fetch weather");
+        throw new Error(data.error || t("failedToFetchWeather"));
       }
       const weather = await res.json();
       setFormData((prev) => ({
@@ -221,7 +226,7 @@ export default function DailyLogsClient({
       }));
       setCreateError("");
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to auto-fill weather");
+      setCreateError(err instanceof Error ? err.message : t("failedToAutoFillWeather"));
     } finally {
       setFetchingWeather(false);
     }
@@ -242,7 +247,7 @@ export default function DailyLogsClient({
       body: JSON.stringify({ entity: "daily_logs", rows, project_id: importProjectId }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -272,7 +277,7 @@ export default function DailyLogsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create daily log");
+        throw new Error(data.error || t("failedToCreateDailyLog"));
       }
 
       // Reset form and close modal
@@ -290,7 +295,7 @@ export default function DailyLogsClient({
       router.refresh();
     } catch (err: unknown) {
       setCreateError(
-        err instanceof Error ? err.message : "Failed to create daily log"
+        err instanceof Error ? err.message : t("failedToCreateDailyLog")
       );
     } finally {
       setCreating(false);
@@ -352,14 +357,14 @@ export default function DailyLogsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update daily log");
+        throw new Error(data.error || t("failedToUpdateDailyLog"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to update daily log"
+        err instanceof Error ? err.message : t("failedToUpdateDailyLog")
       );
     } finally {
       setSaving(false);
@@ -383,14 +388,14 @@ export default function DailyLogsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete daily log");
+        throw new Error(data.error || t("failedToDeleteDailyLog"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to delete daily log"
+        err instanceof Error ? err.message : t("failedToDeleteDailyLog")
       );
     } finally {
       setSaving(false);
@@ -402,20 +407,19 @@ export default function DailyLogsClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Daily Logs</h2>
+          <h2>{t("dailyLogs")}</h2>
           <p className="fin-header-sub">
-            Field reports with weather, workforce, equipment, and activity
-            tracking
+            {t("dailyLogsSubtitle")}
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New Daily Log
+            {t("newDailyLog")}
           </button>
         </div>
       </div>
@@ -426,21 +430,21 @@ export default function DailyLogsClient({
           <div className="fin-kpi-icon blue">
             <Hash size={18} />
           </div>
-          <span className="fin-kpi-label">Total Logs</span>
+          <span className="fin-kpi-label">{t("totalLogs")}</span>
           <span className="fin-kpi-value">{kpi.totalCount}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon amber">
             <Clock size={18} />
           </div>
-          <span className="fin-kpi-label">Pending Review</span>
+          <span className="fin-kpi-label">{t("pendingReview")}</span>
           <span className="fin-kpi-value">{kpi.pendingReview}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon green">
             <CheckCircle2 size={18} />
           </div>
-          <span className="fin-kpi-label">Approved</span>
+          <span className="fin-kpi-label">{t("statusApproved")}</span>
           <span className="fin-kpi-value">{kpi.approvedCount}</span>
         </div>
       </div>
@@ -454,7 +458,7 @@ export default function DailyLogsClient({
             fontWeight: 500,
           }}
         >
-          Status:
+          {t("statusLabel")}
         </label>
         {statuses.map((s) => (
           <Link
@@ -523,7 +527,7 @@ export default function DailyLogsClient({
                       style={{ fontWeight: 600, fontSize: "0.95rem" }}
                       suppressHydrationWarning
                     >
-                      {new Date(log.log_date + "T00:00:00").toLocaleDateString("en-US", {
+                      {new Date(log.log_date + "T00:00:00").toLocaleDateString(dateLocale, {
                         weekday: "short",
                         month: "short",
                         day: "numeric",
@@ -554,7 +558,7 @@ export default function DailyLogsClient({
                     )}
                     {log.created_by && (
                       <span>
-                        by {userMap[log.created_by] ?? "Unknown"}
+                        {t("by")} {userMap[log.created_by] ?? t("unknown")}
                       </span>
                     )}
                   </div>
@@ -588,7 +592,7 @@ export default function DailyLogsClient({
                       }}
                     >
                       {getWeatherIcon(log.weather_conditions)}
-                      {log.weather_conditions ?? "N/A"}
+                      {log.weather_conditions ?? t("na")}
                     </span>
                     {(log.weather_temp_high != null ||
                       log.weather_temp_low != null) && (
@@ -619,7 +623,7 @@ export default function DailyLogsClient({
                         }}
                       >
                         <Wind size={14} />
-                        {log.weather_wind_mph} mph
+                        {log.weather_wind_mph} {t("mph")}
                       </span>
                     )}
                   </div>
@@ -637,7 +641,7 @@ export default function DailyLogsClient({
                           letterSpacing: "0.03em",
                         }}
                       >
-                        Work Performed
+                        {t("workPerformed")}
                       </div>
                       <div
                         style={{ fontSize: "0.85rem", lineHeight: 1.5 }}
@@ -667,7 +671,7 @@ export default function DailyLogsClient({
                         size={14}
                         style={{ color: "var(--color-blue)" }}
                       />
-                      <strong>{totalWorkers}</strong> workers
+                      <strong>{totalWorkers}</strong> {t("workers")}
                     </span>
                     <span
                       style={{
@@ -681,7 +685,7 @@ export default function DailyLogsClient({
                         style={{ color: "var(--color-blue)" }}
                       />
                       <strong>{totalManHours.toLocaleString()}</strong>{" "}
-                      man-hrs
+                      {t("manHrs")}
                     </span>
                     {equipment.length > 0 && (
                       <span
@@ -695,7 +699,7 @@ export default function DailyLogsClient({
                           size={14}
                           style={{ color: "var(--color-blue)" }}
                         />
-                        <strong>{equipment.length}</strong> equipment
+                        <strong>{equipment.length}</strong> {t("equipment")}
                       </span>
                     )}
                   </div>
@@ -719,7 +723,7 @@ export default function DailyLogsClient({
                           }}
                         >
                           <AlertTriangle size={12} />
-                          Safety Incident
+                          {t("safetyIncident")}
                         </span>
                       )}
                       {hasDelays && (
@@ -732,7 +736,7 @@ export default function DailyLogsClient({
                           }}
                         >
                           <Clock size={12} />
-                          Delay Reported
+                          {t("delayReported")}
                         </span>
                       )}
                     </div>
@@ -753,7 +757,7 @@ export default function DailyLogsClient({
                           className="badge badge-blue"
                           style={{ fontSize: "0.75rem" }}
                         >
-                          {w.trade ?? "General"}: {w.headcount ?? 0}
+                          {w.trade ?? t("general")}: {w.headcount ?? 0}
                         </span>
                       ))}
                     </div>
@@ -779,7 +783,7 @@ export default function DailyLogsClient({
                           userSelect: "none",
                         }}
                       >
-                        Additional Details
+                        {t("additionalDetails")}
                       </summary>
                       <div
                         style={{
@@ -800,7 +804,7 @@ export default function DailyLogsClient({
                                 marginBottom: 2,
                               }}
                             >
-                              Materials Received
+                              {t("materialsReceived")}
                             </div>
                             <div style={{ lineHeight: 1.5 }}>
                               {log.materials_received}
@@ -817,7 +821,7 @@ export default function DailyLogsClient({
                                 marginBottom: 2,
                               }}
                             >
-                              Delays
+                              {t("delays")}
                             </div>
                             <div style={{ lineHeight: 1.5 }}>
                               {log.delays}
@@ -834,7 +838,7 @@ export default function DailyLogsClient({
                                 marginBottom: 2,
                               }}
                             >
-                              Safety Incidents
+                              {t("safetyIncidents")}
                             </div>
                             <div style={{ lineHeight: 1.5 }}>
                               {log.safety_incidents}
@@ -855,11 +859,11 @@ export default function DailyLogsClient({
             <div className="fin-empty-icon">
               <ClipboardList size={48} />
             </div>
-            <div className="fin-empty-title">No Daily Logs Found</div>
+            <div className="fin-empty-title">{t("noDailyLogsFound")}</div>
             <div className="fin-empty-desc">
               {activeStatus && activeStatus !== "all"
-                ? "No daily logs match the current filter. Try selecting a different status."
-                : "No daily logs have been created yet. Field reports will appear here once submitted."}
+                ? t("noDailyLogsFilter")
+                : t("noDailyLogsEmpty")}
             </div>
           </div>
         </div>
@@ -877,7 +881,7 @@ export default function DailyLogsClient({
           >
             <div className="ticket-modal-header">
               <h3>
-                {isEditing ? "Edit Daily Log" : "Daily Log Details"}
+                {isEditing ? t("editDailyLog") : t("dailyLogDetails")}
               </h3>
               <button
                 className="ticket-modal-close"
@@ -894,15 +898,14 @@ export default function DailyLogsClient({
             {showDeleteConfirm ? (
               <div style={{ padding: "1rem 1.5rem" }}>
                 <p style={{ marginBottom: 16 }}>
-                  Are you sure you want to delete this daily log? This action
-                  cannot be undone.
+                  {t("confirmDeleteDailyLog")}
                 </p>
                 <div className="ticket-form-actions">
                   <button
                     className="btn-secondary"
                     onClick={() => setShowDeleteConfirm(false)}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     className="btn-primary"
@@ -910,14 +913,14 @@ export default function DailyLogsClient({
                     onClick={handleDelete}
                     disabled={saving}
                   >
-                    {saving ? "Deleting..." : "Delete Daily Log"}
+                    {saving ? t("deleting") : t("deleteDailyLog")}
                   </button>
                 </div>
               </div>
             ) : isEditing ? (
               <form className="ticket-form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Status</label>
+                  <label className="ticket-form-label">{t("columnStatus")}</label>
                   <select
                     className="ticket-form-select"
                     value={editData.status || "draft"}
@@ -925,15 +928,15 @@ export default function DailyLogsClient({
                       setEditData({ ...editData, status: e.target.value })
                     }
                   >
-                    <option value="draft">Draft</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="approved">Approved</option>
+                    <option value="draft">{t("statusDraft")}</option>
+                    <option value="submitted">{t("statusSubmitted")}</option>
+                    <option value="approved">{t("statusApproved")}</option>
                   </select>
                 </div>
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Weather Conditions</label>
+                    <label className="ticket-form-label">{t("weatherConditions")}</label>
                     <select
                       className="ticket-form-select"
                       value={editData.weather_conditions || ""}
@@ -944,7 +947,7 @@ export default function DailyLogsClient({
                         })
                       }
                     >
-                      <option value="">Select weather...</option>
+                      <option value="">{t("selectWeather")}</option>
                       {WEATHER_OPTIONS.map((w) => (
                         <option key={w.value} value={w.value}>
                           {w.label}
@@ -954,7 +957,7 @@ export default function DailyLogsClient({
                   </div>
 
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Temp High (F)</label>
+                    <label className="ticket-form-label">{t("tempHighF")}</label>
                     <input
                       type="number"
                       className="ticket-form-input"
@@ -965,13 +968,13 @@ export default function DailyLogsClient({
                           weather_temp_high: e.target.value,
                         })
                       }
-                      placeholder="e.g. 72"
+                      placeholder={t("tempPlaceholder")}
                     />
                   </div>
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Work Performed</label>
+                  <label className="ticket-form-label">{t("workPerformed")}</label>
                   <textarea
                     className="ticket-form-textarea"
                     value={editData.work_performed || ""}
@@ -986,7 +989,7 @@ export default function DailyLogsClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Safety Incidents</label>
+                  <label className="ticket-form-label">{t("safetyIncidents")}</label>
                   <textarea
                     className="ticket-form-textarea"
                     value={editData.safety_incidents || ""}
@@ -1001,7 +1004,7 @@ export default function DailyLogsClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Delays</label>
+                  <label className="ticket-form-label">{t("delays")}</label>
                   <textarea
                     className="ticket-form-textarea"
                     value={editData.delays || ""}
@@ -1016,7 +1019,7 @@ export default function DailyLogsClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Materials Received</label>
+                  <label className="ticket-form-label">{t("materialsReceived")}</label>
                   <textarea
                     className="ticket-form-textarea"
                     value={editData.materials_received || ""}
@@ -1036,14 +1039,14 @@ export default function DailyLogsClient({
                     className="btn-secondary"
                     onClick={() => setIsEditing(false)}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="submit"
                     className="btn-primary"
                     disabled={saving}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </form>
@@ -1052,18 +1055,18 @@ export default function DailyLogsClient({
                 {/* Project & Date */}
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Project</label>
+                    <label className="detail-label">{t("project")}</label>
                     <div className="detail-value">
                       {selectedLog.projects?.code && (
                         <strong>{selectedLog.projects.code} - </strong>
                       )}
-                      {selectedLog.projects?.name || "N/A"}
+                      {selectedLog.projects?.name || t("na")}
                     </div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Date</label>
+                    <label className="detail-label">{t("date")}</label>
                     <div className="detail-value" suppressHydrationWarning>
-                      {new Date(selectedLog.log_date + "T00:00:00").toLocaleDateString("en-US", {
+                      {new Date(selectedLog.log_date + "T00:00:00").toLocaleDateString(dateLocale, {
                         weekday: "long",
                         year: "numeric",
                         month: "long",
@@ -1076,7 +1079,7 @@ export default function DailyLogsClient({
                 {/* Status & Weather */}
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Status</label>
+                    <label className="detail-label">{t("columnStatus")}</label>
                     <div className="detail-value">
                       <span className={STATUS_BADGE[selectedLog.status] ?? "inv-status"}>
                         {selectedLog.status}
@@ -1084,10 +1087,10 @@ export default function DailyLogsClient({
                     </div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Weather</label>
+                    <label className="detail-label">{t("weather")}</label>
                     <div className="detail-value" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       {getWeatherIcon(selectedLog.weather_conditions)}
-                      {selectedLog.weather_conditions || "N/A"}
+                      {selectedLog.weather_conditions || t("na")}
                     </div>
                   </div>
                 </div>
@@ -1100,7 +1103,7 @@ export default function DailyLogsClient({
                   <div className="detail-row">
                     {(selectedLog.weather_temp_high != null || selectedLog.weather_temp_low != null) && (
                       <div className="detail-group">
-                        <label className="detail-label">Temperature</label>
+                        <label className="detail-label">{t("temperature")}</label>
                         <div className="detail-value">
                           {selectedLog.weather_temp_low != null ? `${selectedLog.weather_temp_low}` : "--"}
                           {" / "}
@@ -1111,13 +1114,13 @@ export default function DailyLogsClient({
                     )}
                     {selectedLog.weather_wind_mph != null && (
                       <div className="detail-group">
-                        <label className="detail-label">Wind</label>
-                        <div className="detail-value">{selectedLog.weather_wind_mph} mph</div>
+                        <label className="detail-label">{t("wind")}</label>
+                        <div className="detail-value">{selectedLog.weather_wind_mph} {t("mph")}</div>
                       </div>
                     )}
                     {selectedLog.weather_humidity_pct != null && (
                       <div className="detail-group">
-                        <label className="detail-label">Humidity</label>
+                        <label className="detail-label">{t("humidity")}</label>
                         <div className="detail-value">{selectedLog.weather_humidity_pct}%</div>
                       </div>
                     )}
@@ -1127,7 +1130,7 @@ export default function DailyLogsClient({
                 {/* Work Performed */}
                 {selectedLog.work_performed && (
                   <div className="detail-group">
-                    <label className="detail-label">Work Performed</label>
+                    <label className="detail-label">{t("workPerformed")}</label>
                     <div className="detail-value--multiline">{selectedLog.work_performed}</div>
                   </div>
                 )}
@@ -1135,12 +1138,12 @@ export default function DailyLogsClient({
                 {/* Workforce */}
                 {selectedLog.workforce && selectedLog.workforce.length > 0 && (
                   <div className="detail-group">
-                    <label className="detail-label">Workforce</label>
+                    <label className="detail-label">{t("workforce")}</label>
                     <div className="detail-value--multiline">
                       {(selectedLog.workforce as WorkforceEntry[]).map((w, i) => (
                         <div key={i}>
-                          {w.trade ?? "General"}: {w.headcount ?? 0} workers
-                          {w.hours ? ` × ${w.hours} hrs` : ""}
+                          {w.trade ?? t("general")}: {w.headcount ?? 0} {t("workers")}
+                          {w.hours ? ` × ${w.hours} ${t("hrs")}` : ""}
                         </div>
                       ))}
                     </div>
@@ -1150,7 +1153,7 @@ export default function DailyLogsClient({
                 {/* Materials Received */}
                 {selectedLog.materials_received && (
                   <div className="detail-group">
-                    <label className="detail-label">Materials Received</label>
+                    <label className="detail-label">{t("materialsReceived")}</label>
                     <div className="detail-value--multiline">{selectedLog.materials_received}</div>
                   </div>
                 )}
@@ -1159,7 +1162,7 @@ export default function DailyLogsClient({
                 {selectedLog.safety_incidents && (
                   <div className="detail-group">
                     <label className="detail-label" style={{ color: "var(--color-red)" }}>
-                      Safety Incidents
+                      {t("safetyIncidents")}
                     </label>
                     <div className="detail-value--multiline">{selectedLog.safety_incidents}</div>
                   </div>
@@ -1169,7 +1172,7 @@ export default function DailyLogsClient({
                 {selectedLog.delays && (
                   <div className="detail-group">
                     <label className="detail-label" style={{ color: "var(--color-amber)" }}>
-                      Delays
+                      {t("delays")}
                     </label>
                     <div className="detail-value--multiline">{selectedLog.delays}</div>
                   </div>
@@ -1179,14 +1182,14 @@ export default function DailyLogsClient({
                 <div className="detail-row">
                   {selectedLog.created_by && (
                     <div className="detail-group">
-                      <label className="detail-label">Created By</label>
-                      <div className="detail-value">{userMap[selectedLog.created_by] ?? "Unknown"}</div>
+                      <label className="detail-label">{t("createdBy")}</label>
+                      <div className="detail-value">{userMap[selectedLog.created_by] ?? t("unknown")}</div>
                     </div>
                   )}
                   {selectedLog.approved_by && (
                     <div className="detail-group">
-                      <label className="detail-label">Approved By</label>
-                      <div className="detail-value">{userMap[selectedLog.approved_by] ?? "Unknown"}</div>
+                      <label className="detail-label">{t("approvedBy")}</label>
+                      <div className="detail-value">{userMap[selectedLog.approved_by] ?? t("unknown")}</div>
                     </div>
                   )}
                 </div>
@@ -1198,14 +1201,14 @@ export default function DailyLogsClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     className="btn-primary"
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -1225,7 +1228,7 @@ export default function DailyLogsClient({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="ticket-modal-header">
-              <h3>Create New Daily Log</h3>
+              <h3>{t("createNewDailyLog")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -1241,7 +1244,7 @@ export default function DailyLogsClient({
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Project *</label>
+                  <label className="ticket-form-label">{t("projectRequired")}</label>
                   <select
                     className="ticket-form-select"
                     value={formData.project_id}
@@ -1253,7 +1256,7 @@ export default function DailyLogsClient({
                     }
                     required
                   >
-                    <option value="">Select a project...</option>
+                    <option value="">{t("selectProject")}</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.code ? `${p.code} - ` : ""}
@@ -1264,7 +1267,7 @@ export default function DailyLogsClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Log Date *</label>
+                  <label className="ticket-form-label">{t("logDateRequired")}</label>
                   <input
                     type="date"
                     className="ticket-form-input"
@@ -1282,7 +1285,7 @@ export default function DailyLogsClient({
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Weather</label>
+                  <label className="ticket-form-label">{t("weather")}</label>
                   <div style={{ display: "flex", gap: 8 }}>
                     <select
                       className="ticket-form-select"
@@ -1295,7 +1298,7 @@ export default function DailyLogsClient({
                         })
                       }
                     >
-                      <option value="">Select weather...</option>
+                      <option value="">{t("selectWeather")}</option>
                       {WEATHER_OPTIONS.map((w) => (
                         <option key={w.value} value={w.value}>
                           {w.label}
@@ -1307,18 +1310,18 @@ export default function DailyLogsClient({
                       className="btn-secondary"
                       onClick={handleAutoFillWeather}
                       disabled={!formData.project_id || fetchingWeather}
-                      title="Auto-fill weather from project location"
+                      title={t("autoFillWeatherTitle")}
                       style={{ whiteSpace: "nowrap", padding: "6px 10px" }}
                     >
                       {fetchingWeather ? <Loader2 size={14} className="spin" /> : <CloudDownload size={14} />}
-                      {fetchingWeather ? " Fetching..." : " Auto-Fill"}
+                      {fetchingWeather ? ` ${t("fetching")}` : ` ${t("autoFill")}`}
                     </button>
                   </div>
                 </div>
 
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">
-                    Temperature (high, F)
+                    {t("temperatureHighF")}
                   </label>
                   <input
                     type="number"
@@ -1330,14 +1333,14 @@ export default function DailyLogsClient({
                         temperature: e.target.value,
                       })
                     }
-                    placeholder="e.g. 72"
+                    placeholder={t("tempPlaceholder")}
                   />
                 </div>
               </div>
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">
-                  Workforce Count
+                  {t("workforceCount")}
                 </label>
                 <input
                   type="number"
@@ -1349,13 +1352,13 @@ export default function DailyLogsClient({
                       workforce_count: e.target.value,
                     })
                   }
-                  placeholder="Total headcount on site"
+                  placeholder={t("totalHeadcountPlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">
-                  Notes / Work Performed
+                  {t("notesWorkPerformed")}
                 </label>
                 <textarea
                   className="ticket-form-textarea"
@@ -1366,14 +1369,14 @@ export default function DailyLogsClient({
                       work_performed: e.target.value,
                     })
                   }
-                  placeholder="Describe work performed today..."
+                  placeholder={t("describeWorkPerformed")}
                   rows={3}
                 />
               </div>
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">
-                  Safety Incidents (optional)
+                  {t("safetyIncidentsOptional")}
                 </label>
                 <textarea
                   className="ticket-form-textarea"
@@ -1384,14 +1387,14 @@ export default function DailyLogsClient({
                       safety_incidents: e.target.value,
                     })
                   }
-                  placeholder="Describe any safety incidents..."
+                  placeholder={t("describeSafetyIncidents")}
                   rows={2}
                 />
               </div>
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">
-                  Delays (optional)
+                  {t("delaysOptional")}
                 </label>
                 <textarea
                   className="ticket-form-textarea"
@@ -1402,7 +1405,7 @@ export default function DailyLogsClient({
                       delays: e.target.value,
                     })
                   }
-                  placeholder="Describe any delays encountered..."
+                  placeholder={t("describeDelays")}
                   rows={2}
                 />
               </div>
@@ -1413,7 +1416,7 @@ export default function DailyLogsClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -1424,7 +1427,7 @@ export default function DailyLogsClient({
                     !formData.log_date
                   }
                 >
-                  {creating ? "Creating..." : "Create Daily Log"}
+                  {creating ? t("creating") : t("createDailyLog")}
                 </button>
               </div>
             </form>
@@ -1434,7 +1437,7 @@ export default function DailyLogsClient({
 
       {showImport && (
         <ImportModal
-          entityName="Daily Logs"
+          entityName={t("dailyLogs")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}

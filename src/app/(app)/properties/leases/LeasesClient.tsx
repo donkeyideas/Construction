@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   FileSignature,
   DollarSign,
@@ -57,15 +58,6 @@ interface LeasesClientProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function fmtDate(date: string | null): string {
-  if (!date) return "--";
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 function getStatusBadge(status: string): string {
   switch (status) {
     case "active":
@@ -103,8 +95,20 @@ const IMPORT_SAMPLE: Record<string, string>[] = [
 
 export default function LeasesClient({ leases, properties, units }: LeasesClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   const [showImport, setShowImport] = useState(false);
+
+  function fmtDate(date: string | null): string {
+    if (!date) return "--";
+    return new Date(date).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
 
   // ---- State ----
   const [statusFilter, setStatusFilter] = useState("all");
@@ -198,7 +202,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
       body: JSON.stringify({ entity: "leases", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -245,13 +249,13 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create lease");
+        throw new Error(data.error || t("failedToCreateLease"));
       }
 
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create lease");
+      setCreateError(err instanceof Error ? err.message : t("failedToCreateLease"));
     } finally {
       setCreating(false);
     }
@@ -309,13 +313,13 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update lease");
+        throw new Error(data.error || t("failedToUpdateLease"));
       }
 
       setSelectedLease(null);
       router.refresh();
     } catch (err: unknown) {
-      setEditError(err instanceof Error ? err.message : "Failed to update lease");
+      setEditError(err instanceof Error ? err.message : t("failedToUpdateLease"));
     } finally {
       setSaving(false);
     }
@@ -335,14 +339,14 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete lease");
+        throw new Error(data.error || t("failedToDeleteLease"));
       }
 
       setSelectedLease(null);
       setShowDeleteConfirm(false);
       router.refresh();
     } catch (err: unknown) {
-      setEditError(err instanceof Error ? err.message : "Failed to delete lease");
+      setEditError(err instanceof Error ? err.message : t("failedToDeleteLease"));
       setShowDeleteConfirm(false);
     } finally {
       setDeleting(false);
@@ -351,11 +355,11 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
   // ---- Status filter options ----
   const statuses = [
-    { label: "All", value: "all" },
-    { label: "Active", value: "active" },
-    { label: "Expired", value: "expired" },
-    { label: "Pending", value: "pending" },
-    { label: "Terminated", value: "terminated" },
+    { label: t("statusAll"), value: "all" },
+    { label: t("statusActive"), value: "active" },
+    { label: t("statusExpired"), value: "expired" },
+    { label: t("statusPending"), value: "pending" },
+    { label: t("statusTerminated"), value: "terminated" },
   ];
 
   // ---- Render ----
@@ -364,19 +368,19 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Lease Management</h2>
+          <h2>{t("leaseManagement")}</h2>
           <p className="fin-header-sub">
-            Track leases, renewals, rent schedules, and tenant information
+            {t("leaseManagementDesc")}
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={openCreate}>
             <Plus size={16} />
-            New Lease
+            {t("newLease")}
           </button>
         </div>
       </div>
@@ -387,7 +391,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
           <div className="fin-kpi-icon green">
             <FileSignature size={18} />
           </div>
-          <span className="fin-kpi-label">Active Leases</span>
+          <span className="fin-kpi-label">{t("activeLeases")}</span>
           <span className="fin-kpi-value">{totalActive}</span>
         </div>
 
@@ -395,7 +399,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
           <div className="fin-kpi-icon blue">
             <DollarSign size={18} />
           </div>
-          <span className="fin-kpi-label">Monthly Rent Roll</span>
+          <span className="fin-kpi-label">{t("monthlyRentRoll")}</span>
           <span className="fin-kpi-value">{formatCurrency(monthlyRentRoll)}</span>
         </div>
 
@@ -403,7 +407,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
           <div className="fin-kpi-icon amber">
             <Clock size={18} />
           </div>
-          <span className="fin-kpi-label">Expiring Soon (60d)</span>
+          <span className="fin-kpi-label">{t("expiringSoon60d")}</span>
           <span className="fin-kpi-value">{expiringSoon}</span>
         </div>
 
@@ -411,7 +415,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
           <div className="fin-kpi-icon red">
             <Home size={18} />
           </div>
-          <span className="fin-kpi-label">Vacant Units</span>
+          <span className="fin-kpi-label">{t("vacantUnits")}</span>
           <span className="fin-kpi-value">{vacantUnits}</span>
         </div>
       </div>
@@ -419,7 +423,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
       {/* Status Filters */}
       <div className="fin-filters">
         <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>
-          Status:
+          {t("statusLabel")}
         </label>
         {statuses.map((s) => (
           <button
@@ -441,15 +445,15 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Tenant Name</th>
-                  <th>Property</th>
-                  <th>Unit #</th>
-                  <th>Lease Start</th>
-                  <th>Lease End</th>
-                  <th style={{ textAlign: "right" }}>Monthly Rent</th>
-                  <th style={{ textAlign: "right" }}>Security Deposit</th>
-                  <th>Auto-Renew</th>
-                  <th>Status</th>
+                  <th>{t("tenantName")}</th>
+                  <th>{t("property")}</th>
+                  <th>{t("unitNumber")}</th>
+                  <th>{t("leaseStart")}</th>
+                  <th>{t("leaseEnd")}</th>
+                  <th style={{ textAlign: "right" }}>{t("monthlyRent")}</th>
+                  <th style={{ textAlign: "right" }}>{t("securityDeposit")}</th>
+                  <th>{t("autoRenew")}</th>
+                  <th>{t("status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -516,7 +520,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                             lease.auto_renew ? "badge badge-green" : "badge badge-amber"
                           }
                         >
-                          {lease.auto_renew ? "Yes" : "No"}
+                          {lease.auto_renew ? t("yes") : t("no")}
                         </span>
                       </td>
                       <td>
@@ -535,24 +539,22 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
             <div className="fin-empty-icon">
               <FileSignature size={48} />
             </div>
-            <div className="fin-empty-title">No Leases Found</div>
+            <div className="fin-empty-title">{t("noLeasesFound")}</div>
             <div className="fin-empty-desc">
               {statusFilter !== "all"
-                ? "No leases match the current filter. Try adjusting your status filter."
-                : "No leases have been created yet. Add your first lease to start tracking tenants and rent schedules."}
+                ? t("noLeasesMatchFilter")
+                : t("noLeasesCreatedYet")}
             </div>
           </div>
         </div>
       )}
 
-      {/* ================================================================== */}
-      {/* CREATE MODAL                                                       */}
-      {/* ================================================================== */}
+      {/* CREATE MODAL */}
       {showCreate && (
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Create New Lease</h3>
+              <h3>{t("createNewLease")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}>
                 <X size={18} />
               </button>
@@ -562,37 +564,37 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Unit *</label>
+                <label className="ticket-form-label">{t("unitRequired")}</label>
                 <select
                   className="ticket-form-select"
                   value={createForm.unit_id}
                   onChange={(e) => setCreateForm({ ...createForm, unit_id: e.target.value })}
                   required
                 >
-                  <option value="">Select a unit...</option>
+                  <option value="">{t("selectAUnit")}</option>
                   {units.map((u) => (
                     <option key={u.id} value={u.id}>
-                      {u.property_name} - Unit {u.unit_number}
+                      {u.property_name} - {t("unit")} {u.unit_number}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Tenant Name *</label>
+                <label className="ticket-form-label">{t("tenantNameRequired")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
                   value={createForm.tenant_name}
                   onChange={(e) => setCreateForm({ ...createForm, tenant_name: e.target.value })}
-                  placeholder="Full name of tenant"
+                  placeholder={t("fullNameOfTenant")}
                   required
                 />
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Tenant Email</label>
+                  <label className="ticket-form-label">{t("tenantEmail")}</label>
                   <input
                     type="email"
                     className="ticket-form-input"
@@ -604,7 +606,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Tenant Phone</label>
+                  <label className="ticket-form-label">{t("tenantPhone")}</label>
                   <input
                     type="text"
                     className="ticket-form-input"
@@ -619,7 +621,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Monthly Rent *</label>
+                  <label className="ticket-form-label">{t("monthlyRentRequired")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -634,7 +636,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Security Deposit</label>
+                  <label className="ticket-form-label">{t("securityDeposit")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -651,7 +653,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Lease Start *</label>
+                  <label className="ticket-form-label">{t("leaseStartRequired")}</label>
                   <input
                     type="date"
                     className="ticket-form-input"
@@ -663,7 +665,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Lease End *</label>
+                  <label className="ticket-form-label">{t("leaseEndRequired")}</label>
                   <input
                     type="date"
                     className="ticket-form-input"
@@ -680,7 +682,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -692,7 +694,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                     !createForm.monthly_rent
                   }
                 >
-                  {creating ? "Creating..." : "Create Lease"}
+                  {creating ? t("creating") : t("createLease")}
                 </button>
               </div>
             </form>
@@ -700,14 +702,12 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
         </div>
       )}
 
-      {/* ================================================================== */}
-      {/* DETAIL / EDIT MODAL                                                */}
-      {/* ================================================================== */}
+      {/* DETAIL / EDIT MODAL */}
       {selectedLease && (
         <div className="ticket-modal-overlay" onClick={() => setSelectedLease(null)}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>{editing ? "Edit Lease" : "Lease Details"}</h3>
+              <h3>{editing ? t("editLease") : t("leaseDetails")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => setSelectedLease(null)}
@@ -722,8 +722,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
             {showDeleteConfirm && (
               <div style={{ padding: "1rem 1.5rem", background: "var(--color-red-bg, #fef2f2)", borderBottom: "1px solid var(--border)" }}>
                 <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-red, #dc2626)" }}>
-                  Are you sure you want to delete this lease for{" "}
-                  <strong>{selectedLease.tenant_name ?? "this tenant"}</strong>?
+                  {t("confirmDeleteLeaseFor", { tenant: selectedLease.tenant_name ?? t("thisTenant") })}
                 </p>
                 <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem" }}>
                   <button
@@ -732,13 +731,13 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                     onClick={handleDelete}
                     disabled={deleting}
                   >
-                    {deleting ? "Deleting..." : "Yes, Delete"}
+                    {deleting ? t("deleting") : t("yesDelete")}
                   </button>
                   <button
                     className="btn-secondary"
                     onClick={() => setShowDeleteConfirm(false)}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                 </div>
               </div>
@@ -749,11 +748,11 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
               <div style={{ padding: "1.25rem" }}>
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Tenant Name</label>
+                    <label className="detail-label">{t("tenantName")}</label>
                     <div className="detail-value">{selectedLease.tenant_name ?? "--"}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Status</label>
+                    <label className="detail-label">{t("status")}</label>
                     <div className="detail-value">
                       <span className={getStatusBadge(selectedLease.status)}>
                         {selectedLease.status}
@@ -764,29 +763,29 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
                 <div className="detail-row" style={{ marginTop: "1rem" }}>
                   <div className="detail-group">
-                    <label className="detail-label">Email</label>
+                    <label className="detail-label">{t("email")}</label>
                     <div className="detail-value">{selectedLease.tenant_email ?? "--"}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Phone</label>
+                    <label className="detail-label">{t("phone")}</label>
                     <div className="detail-value">{selectedLease.tenant_phone ?? "--"}</div>
                   </div>
                 </div>
 
                 <div className="detail-row" style={{ marginTop: "1rem" }}>
                   <div className="detail-group">
-                    <label className="detail-label">Property</label>
+                    <label className="detail-label">{t("property")}</label>
                     <div className="detail-value">{selectedLease.properties?.name ?? "--"}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Unit</label>
+                    <label className="detail-label">{t("unit")}</label>
                     <div className="detail-value">{selectedLease.units?.unit_number ?? "--"}</div>
                   </div>
                 </div>
 
                 <div className="detail-row" style={{ marginTop: "1rem" }}>
                   <div className="detail-group">
-                    <label className="detail-label">Monthly Rent</label>
+                    <label className="detail-label">{t("monthlyRent")}</label>
                     <div className="detail-value">
                       {selectedLease.monthly_rent != null
                         ? formatCurrency(selectedLease.monthly_rent)
@@ -794,7 +793,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                     </div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Security Deposit</label>
+                    <label className="detail-label">{t("securityDeposit")}</label>
                     <div className="detail-value">
                       {selectedLease.security_deposit != null
                         ? formatCurrency(selectedLease.security_deposit)
@@ -805,25 +804,25 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
                 <div className="detail-row" style={{ marginTop: "1rem" }}>
                   <div className="detail-group">
-                    <label className="detail-label">Lease Start</label>
+                    <label className="detail-label">{t("leaseStart")}</label>
                     <div className="detail-value">{fmtDate(selectedLease.lease_start)}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Lease End</label>
+                    <label className="detail-label">{t("leaseEnd")}</label>
                     <div className="detail-value">{fmtDate(selectedLease.lease_end)}</div>
                   </div>
                 </div>
 
                 <div className="detail-row" style={{ marginTop: "1rem" }}>
                   <div className="detail-group">
-                    <label className="detail-label">Auto Renew</label>
+                    <label className="detail-label">{t("autoRenew")}</label>
                     <div className="detail-value">
                       <span
                         className={
                           selectedLease.auto_renew ? "badge badge-green" : "badge badge-amber"
                         }
                       >
-                        {selectedLease.auto_renew ? "Yes" : "No"}
+                        {selectedLease.auto_renew ? t("yes") : t("no")}
                       </span>
                     </div>
                   </div>
@@ -833,11 +832,11 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                 <div className="ticket-form-actions" style={{ marginTop: "1.5rem" }}>
                   <button className="btn-secondary" onClick={() => setShowDeleteConfirm(true)}>
                     <Trash2 size={14} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button className="btn-primary" onClick={startEditing}>
                     <Pencil size={14} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -845,7 +844,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
               /* ---------- EDIT MODE ---------- */
               <form onSubmit={handleSaveEdit} className="ticket-form">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Tenant Name *</label>
+                  <label className="ticket-form-label">{t("tenantNameRequired")}</label>
                   <input
                     type="text"
                     className="ticket-form-input"
@@ -857,7 +856,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Tenant Email</label>
+                    <label className="ticket-form-label">{t("tenantEmail")}</label>
                     <input
                       type="email"
                       className="ticket-form-input"
@@ -869,7 +868,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                     />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Tenant Phone</label>
+                    <label className="ticket-form-label">{t("tenantPhone")}</label>
                     <input
                       type="text"
                       className="ticket-form-input"
@@ -884,7 +883,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Monthly Rent *</label>
+                    <label className="ticket-form-label">{t("monthlyRentRequired")}</label>
                     <input
                       type="number"
                       className="ticket-form-input"
@@ -898,7 +897,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                     />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Security Deposit</label>
+                    <label className="ticket-form-label">{t("securityDeposit")}</label>
                     <input
                       type="number"
                       className="ticket-form-input"
@@ -914,7 +913,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Lease Start</label>
+                    <label className="ticket-form-label">{t("leaseStart")}</label>
                     <input
                       type="date"
                       className="ticket-form-input"
@@ -925,7 +924,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                     />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Lease End</label>
+                    <label className="ticket-form-label">{t("leaseEnd")}</label>
                     <input
                       type="date"
                       className="ticket-form-input"
@@ -939,16 +938,16 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Status</label>
+                    <label className="ticket-form-label">{t("status")}</label>
                     <select
                       className="ticket-form-select"
                       value={editForm.status}
                       onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
                     >
-                      <option value="active">Active</option>
-                      <option value="expired">Expired</option>
-                      <option value="pending">Pending</option>
-                      <option value="terminated">Terminated</option>
+                      <option value="active">{t("statusActive")}</option>
+                      <option value="expired">{t("statusExpired")}</option>
+                      <option value="pending">{t("statusPending")}</option>
+                      <option value="terminated">{t("statusTerminated")}</option>
                     </select>
                   </div>
                   <div className="ticket-form-group" style={{ display: "flex", alignItems: "center", gap: "0.5rem", paddingTop: "1.5rem" }}>
@@ -961,7 +960,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                       }
                     />
                     <label htmlFor="auto-renew-checkbox" className="ticket-form-label" style={{ margin: 0 }}>
-                      Auto Renew
+                      {t("autoRenew")}
                     </label>
                   </div>
                 </div>
@@ -972,10 +971,10 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                     className="btn-secondary"
                     onClick={() => setEditing(false)}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button type="submit" className="btn-primary" disabled={saving}>
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </form>
@@ -986,7 +985,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
       {showImport && (
         <ImportModal
-          entityName="Leases"
+          entityName={t("leases")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}

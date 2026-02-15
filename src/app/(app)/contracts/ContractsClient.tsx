@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
   Plus,
@@ -24,48 +25,21 @@ import type {
 } from "@/lib/queries/contracts";
 
 // ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const STATUS_LABELS: Record<ContractStatus, string> = {
-  draft: "Draft",
-  pending_approval: "Pending Approval",
-  active: "Active",
-  expired: "Expired",
-  terminated: "Terminated",
-  completed: "Completed",
-};
-
-const TYPE_LABELS: Record<ContractType, string> = {
-  subcontractor: "Subcontractor",
-  vendor: "Vendor",
-  client: "Client",
-  lease: "Lease",
-};
-
-const PAYMENT_TERMS_LABELS: Record<string, string> = {
-  net_30: "Net 30",
-  net_60: "Net 60",
-  net_90: "Net 90",
-  upon_completion: "Upon Completion",
-};
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatDate(dateStr: string | null) {
+function formatDateWithLocale(dateStr: string | null, dateLocale: string) {
   if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  return new Date(dateStr).toLocaleDateString(dateLocale, {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-function formatDateShort(dateStr: string | null) {
+function formatDateShortWithLocale(dateStr: string | null, dateLocale: string) {
   if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  return new Date(dateStr).toLocaleDateString(dateLocale, {
     month: "short",
     day: "numeric",
   });
@@ -78,17 +52,6 @@ function formatCurrency(amount: number | null) {
     currency: "USD",
   }).format(amount);
 }
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "title", label: "Title", required: true },
-  { key: "contract_type", label: "Type", required: false },
-  { key: "party_name", label: "Party Name", required: false },
-  { key: "party_email", label: "Party Email", required: false, type: "email" },
-  { key: "contract_amount", label: "Amount ($)", required: false, type: "number" },
-  { key: "start_date", label: "Start Date", required: false, type: "date" },
-  { key: "end_date", label: "End Date", required: false, type: "date" },
-  { key: "payment_terms", label: "Payment Terms", required: false },
-];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { title: "Concrete subcontract", contract_type: "subcontractor", party_name: "ABC Concrete", party_email: "info@abcconcrete.com", contract_amount: "250000", start_date: "2026-01-01", end_date: "2026-06-30", payment_terms: "net_30" },
@@ -116,6 +79,43 @@ export default function ContractsClient({
   companyId,
 }: ContractsClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const STATUS_LABELS: Record<ContractStatus, string> = {
+    draft: t("contractStatusDraft"),
+    pending_approval: t("contractStatusPendingApproval"),
+    active: t("contractStatusActive"),
+    expired: t("contractStatusExpired"),
+    terminated: t("contractStatusTerminated"),
+    completed: t("contractStatusCompleted"),
+  };
+
+  const TYPE_LABELS: Record<ContractType, string> = {
+    subcontractor: t("contractTypeSubcontractor"),
+    vendor: t("contractTypeVendor"),
+    client: t("contractTypeClient"),
+    lease: t("contractTypeLease"),
+  };
+
+  const PAYMENT_TERMS_LABELS: Record<string, string> = {
+    net_30: t("paymentTermsNet30"),
+    net_60: t("paymentTermsNet60"),
+    net_90: t("paymentTermsNet90"),
+    upon_completion: t("paymentTermsUponCompletion"),
+  };
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "title", label: t("title"), required: true },
+    { key: "contract_type", label: t("type"), required: false },
+    { key: "party_name", label: t("partyName"), required: false },
+    { key: "party_email", label: t("partyEmail"), required: false, type: "email" },
+    { key: "contract_amount", label: t("amountDollar"), required: false, type: "number" },
+    { key: "start_date", label: t("startDate"), required: false, type: "date" },
+    { key: "end_date", label: t("endDate"), required: false, type: "date" },
+    { key: "payment_terms", label: t("paymentTerms"), required: false },
+  ];
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "all">("all");
@@ -182,7 +182,7 @@ export default function ContractsClient({
       body: JSON.stringify({ entity: "contracts", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -216,7 +216,7 @@ export default function ContractsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create contract");
+        throw new Error(data.error || t("failedToCreateContract"));
       }
 
       // Reset form and close modal
@@ -236,7 +236,7 @@ export default function ContractsClient({
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create contract");
+      setCreateError(err instanceof Error ? err.message : t("failedToCreateContract"));
     } finally {
       setCreating(false);
     }
@@ -343,13 +343,13 @@ export default function ContractsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update contract");
+        throw new Error(data.error || t("failedToUpdateContract"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update contract");
+      setSaveError(err instanceof Error ? err.message : t("failedToUpdateContract"));
     } finally {
       setSaving(false);
     }
@@ -368,13 +368,13 @@ export default function ContractsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete contract");
+        throw new Error(data.error || t("failedToDeleteContract"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to delete contract");
+      setSaveError(err instanceof Error ? err.message : t("failedToDeleteContract"));
     } finally {
       setSaving(false);
     }
@@ -385,19 +385,19 @@ export default function ContractsClient({
       {/* Header */}
       <div className="contracts-header">
         <div>
-          <h2>Contracts</h2>
+          <h2>{t("contracts")}</h2>
           <p className="contracts-header-sub">
-            {stats.total} contract{stats.total !== 1 ? "s" : ""} total
+            {t("contractsTotal", { count: stats.total })}
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New Contract
+            {t("newContract")}
           </button>
         </div>
       </div>
@@ -410,7 +410,7 @@ export default function ContractsClient({
           </div>
           <div className="contracts-stat-info">
             <span className="contracts-stat-value">{stats.total}</span>
-            <span className="contracts-stat-label">Total Contracts</span>
+            <span className="contracts-stat-label">{t("totalContracts")}</span>
           </div>
         </div>
         <div className="contracts-stat-card stat-active">
@@ -419,7 +419,7 @@ export default function ContractsClient({
           </div>
           <div className="contracts-stat-info">
             <span className="contracts-stat-value">{stats.active}</span>
-            <span className="contracts-stat-label">Active</span>
+            <span className="contracts-stat-label">{t("contractStatusActive")}</span>
           </div>
         </div>
         <div className="contracts-stat-card stat-expired">
@@ -428,7 +428,7 @@ export default function ContractsClient({
           </div>
           <div className="contracts-stat-info">
             <span className="contracts-stat-value">{stats.expired}</span>
-            <span className="contracts-stat-label">Expired</span>
+            <span className="contracts-stat-label">{t("contractStatusExpired")}</span>
           </div>
         </div>
         <div className="contracts-stat-card stat-value">
@@ -439,7 +439,7 @@ export default function ContractsClient({
             <span className="contracts-stat-value">
               {formatCurrency(stats.total_value)}
             </span>
-            <span className="contracts-stat-label">Total Value</span>
+            <span className="contracts-stat-label">{t("totalValue")}</span>
           </div>
         </div>
       </div>
@@ -450,7 +450,7 @@ export default function ContractsClient({
           <Search size={16} className="contracts-search-icon" />
           <input
             type="text"
-            placeholder="Search contracts..."
+            placeholder={t("searchContractsPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -461,7 +461,7 @@ export default function ContractsClient({
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as ContractStatus | "all")}
         >
-          <option value="all">All Status</option>
+          <option value="all">{t("allStatus")}</option>
           {(Object.keys(STATUS_LABELS) as ContractStatus[]).map((s) => (
             <option key={s} value={s}>
               {STATUS_LABELS[s]}
@@ -474,10 +474,10 @@ export default function ContractsClient({
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as ContractType | "all")}
         >
-          <option value="all">All Types</option>
-          {(Object.keys(TYPE_LABELS) as ContractType[]).map((t) => (
-            <option key={t} value={t}>
-              {TYPE_LABELS[t]}
+          <option value="all">{t("allTypes")}</option>
+          {(Object.keys(TYPE_LABELS) as ContractType[]).map((ct) => (
+            <option key={ct} value={ct}>
+              {TYPE_LABELS[ct]}
             </option>
           ))}
         </select>
@@ -491,17 +491,17 @@ export default function ContractsClient({
           </div>
           {contracts.length === 0 ? (
             <>
-              <h3>No contracts yet</h3>
-              <p>Create your first contract to get started.</p>
+              <h3>{t("noContractsYet")}</h3>
+              <p>{t("createYourFirstContract")}</p>
               <button className="btn-primary" onClick={() => setShowCreate(true)}>
                 <Plus size={16} />
-                New Contract
+                {t("newContract")}
               </button>
             </>
           ) : (
             <>
-              <h3>No matching contracts</h3>
-              <p>Try adjusting your search or filter criteria.</p>
+              <h3>{t("noMatchingContracts")}</h3>
+              <p>{t("tryAdjustingSearch")}</p>
             </>
           )}
         </div>
@@ -510,14 +510,14 @@ export default function ContractsClient({
           <table className="contracts-table">
             <thead>
               <tr>
-                <th>Contract #</th>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Party</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Start Date</th>
-                <th>End Date</th>
+                <th>{t("contractNumber")}</th>
+                <th>{t("title")}</th>
+                <th>{t("type")}</th>
+                <th>{t("party")}</th>
+                <th>{t("amount")}</th>
+                <th>{t("status")}</th>
+                <th>{t("startDate")}</th>
+                <th>{t("endDate")}</th>
               </tr>
             </thead>
             <tbody>
@@ -546,10 +546,10 @@ export default function ContractsClient({
                     </span>
                   </td>
                   <td className="contracts-date-cell">
-                    {formatDateShort(contract.start_date)}
+                    {formatDateShortWithLocale(contract.start_date, dateLocale)}
                   </td>
                   <td className="contracts-date-cell">
-                    {formatDateShort(contract.end_date)}
+                    {formatDateShortWithLocale(contract.end_date, dateLocale)}
                   </td>
                 </tr>
               ))}
@@ -563,7 +563,7 @@ export default function ContractsClient({
         <div className="contracts-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="contracts-modal" onClick={(e) => e.stopPropagation()}>
             <div className="contracts-modal-header">
-              <h3>Create New Contract</h3>
+              <h3>{t("createNewContract")}</h3>
               <button
                 className="contracts-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -578,7 +578,7 @@ export default function ContractsClient({
 
             <form onSubmit={handleCreate} className="contracts-form">
               <div className="contracts-form-group">
-                <label className="contracts-form-label">Title *</label>
+                <label className="contracts-form-label">{t("titleRequired")}</label>
                 <input
                   type="text"
                   className="contracts-form-input"
@@ -586,14 +586,14 @@ export default function ContractsClient({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="Contract title"
+                  placeholder={t("contractTitlePlaceholder")}
                   required
                 />
               </div>
 
               <div className="contracts-form-row">
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Contract Type</label>
+                  <label className="contracts-form-label">{t("contractType")}</label>
                   <select
                     className="contracts-form-select"
                     value={formData.contract_type}
@@ -604,16 +604,16 @@ export default function ContractsClient({
                       })
                     }
                   >
-                    {(Object.keys(TYPE_LABELS) as ContractType[]).map((t) => (
-                      <option key={t} value={t}>
-                        {TYPE_LABELS[t]}
+                    {(Object.keys(TYPE_LABELS) as ContractType[]).map((ct) => (
+                      <option key={ct} value={ct}>
+                        {TYPE_LABELS[ct]}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Project</label>
+                  <label className="contracts-form-label">{t("project")}</label>
                   <select
                     className="contracts-form-select"
                     value={formData.project_id}
@@ -621,7 +621,7 @@ export default function ContractsClient({
                       setFormData({ ...formData, project_id: e.target.value })
                     }
                   >
-                    <option value="">No project</option>
+                    <option value="">{t("noProject")}</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -633,7 +633,7 @@ export default function ContractsClient({
 
               <div className="contracts-form-row">
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Party Name</label>
+                  <label className="contracts-form-label">{t("partyName")}</label>
                   <input
                     type="text"
                     className="contracts-form-input"
@@ -641,12 +641,12 @@ export default function ContractsClient({
                     onChange={(e) =>
                       setFormData({ ...formData, party_name: e.target.value })
                     }
-                    placeholder="Company or individual name"
+                    placeholder={t("companyOrIndividualNamePlaceholder")}
                   />
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Party Email</label>
+                  <label className="contracts-form-label">{t("partyEmail")}</label>
                   <input
                     type="email"
                     className="contracts-form-input"
@@ -661,7 +661,7 @@ export default function ContractsClient({
 
               <div className="contracts-form-row">
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Contract Amount</label>
+                  <label className="contracts-form-label">{t("contractAmount")}</label>
                   <input
                     type="number"
                     className="contracts-form-input"
@@ -676,7 +676,7 @@ export default function ContractsClient({
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Payment Terms</label>
+                  <label className="contracts-form-label">{t("paymentTerms")}</label>
                   <select
                     className="contracts-form-select"
                     value={formData.payment_terms}
@@ -684,7 +684,7 @@ export default function ContractsClient({
                       setFormData({ ...formData, payment_terms: e.target.value })
                     }
                   >
-                    <option value="">Select terms...</option>
+                    <option value="">{t("selectTermsPlaceholder")}</option>
                     {Object.entries(PAYMENT_TERMS_LABELS).map(([key, label]) => (
                       <option key={key} value={key}>
                         {label}
@@ -696,7 +696,7 @@ export default function ContractsClient({
 
               <div className="contracts-form-row">
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Start Date</label>
+                  <label className="contracts-form-label">{t("startDate")}</label>
                   <input
                     type="date"
                     className="contracts-form-input"
@@ -708,7 +708,7 @@ export default function ContractsClient({
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">End Date</label>
+                  <label className="contracts-form-label">{t("endDate")}</label>
                   <input
                     type="date"
                     className="contracts-form-input"
@@ -721,14 +721,14 @@ export default function ContractsClient({
               </div>
 
               <div className="contracts-form-group">
-                <label className="contracts-form-label">Scope of Work</label>
+                <label className="contracts-form-label">{t("scopeOfWork")}</label>
                 <textarea
                   className="contracts-form-textarea"
                   value={formData.scope_of_work}
                   onChange={(e) =>
                     setFormData({ ...formData, scope_of_work: e.target.value })
                   }
-                  placeholder="Describe the scope of work..."
+                  placeholder={t("describeScopeOfWorkPlaceholder")}
                   rows={4}
                 />
               </div>
@@ -742,7 +742,7 @@ export default function ContractsClient({
                       setFormData({ ...formData, insurance_required: e.target.checked })
                     }
                   />
-                  Insurance Required
+                  {t("insuranceRequired")}
                 </label>
               </div>
 
@@ -752,14 +752,14 @@ export default function ContractsClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !formData.title.trim()}
                 >
-                  {creating ? "Creating..." : "Create Contract"}
+                  {creating ? t("creating") : t("createContract")}
                 </button>
               </div>
             </form>
@@ -774,7 +774,7 @@ export default function ContractsClient({
             <div className="contracts-modal-header">
               <h3>
                 {isEditing
-                  ? `Edit ${selectedContract.contract_number}`
+                  ? t("editContractNumber", { number: selectedContract.contract_number })
                   : selectedContract.contract_number}
               </h3>
               <button className="contracts-modal-close" onClick={closeDetail}>
@@ -803,7 +803,7 @@ export default function ContractsClient({
                   style={{ maxWidth: 440 }}
                 >
                   <div className="contracts-modal-header">
-                    <h3>Delete Contract</h3>
+                    <h3>{t("deleteContract")}</h3>
                     <button
                       className="contracts-modal-close"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -813,9 +813,7 @@ export default function ContractsClient({
                   </div>
                   <div style={{ padding: "1rem 1.5rem" }}>
                     <p>
-                      Are you sure you want to delete contract{" "}
-                      <strong>{selectedContract.contract_number}</strong>? This action
-                      cannot be undone.
+                      {t("confirmDeleteContract", { number: selectedContract.contract_number })}
                     </p>
                   </div>
                   <div className="contracts-form-actions">
@@ -825,7 +823,7 @@ export default function ContractsClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="button"
@@ -834,7 +832,7 @@ export default function ContractsClient({
                       onClick={handleDelete}
                       disabled={saving}
                     >
-                      {saving ? "Deleting..." : "Delete"}
+                      {saving ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 </div>
@@ -845,7 +843,7 @@ export default function ContractsClient({
             {!isEditing && (
               <div className="contracts-form" style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Title</label>
+                  <label className="contracts-form-label">{t("title")}</label>
                   <div className="contracts-detail-value">
                     {selectedContract.title}
                   </div>
@@ -853,7 +851,7 @@ export default function ContractsClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Status</label>
+                    <label className="contracts-form-label">{t("status")}</label>
                     <div className="contracts-detail-value">
                       <span className={`contracts-status-badge status-${selectedContract.status}`}>
                         {STATUS_LABELS[selectedContract.status] ?? selectedContract.status}
@@ -861,7 +859,7 @@ export default function ContractsClient({
                     </div>
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Type</label>
+                    <label className="contracts-form-label">{t("type")}</label>
                     <div className="contracts-detail-value">
                       <span className="contracts-type-badge">
                         {TYPE_LABELS[selectedContract.contract_type] ?? selectedContract.contract_type}
@@ -872,54 +870,54 @@ export default function ContractsClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Party Name</label>
+                    <label className="contracts-form-label">{t("partyName")}</label>
                     <div className={`contracts-detail-value${!selectedContract.party_name ? " contracts-detail-value--empty" : ""}`}>
-                      {selectedContract.party_name || "Not set"}
+                      {selectedContract.party_name || t("notSet")}
                     </div>
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Party Email</label>
+                    <label className="contracts-form-label">{t("partyEmail")}</label>
                     <div className={`contracts-detail-value${!selectedContract.party_email ? " contracts-detail-value--empty" : ""}`}>
-                      {selectedContract.party_email || "Not set"}
+                      {selectedContract.party_email || t("notSet")}
                     </div>
                   </div>
                 </div>
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Amount</label>
+                    <label className="contracts-form-label">{t("amount")}</label>
                     <div className="contracts-detail-value">
                       {formatCurrency(selectedContract.contract_amount)}
                     </div>
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Payment Terms</label>
+                    <label className="contracts-form-label">{t("paymentTerms")}</label>
                     <div className={`contracts-detail-value${!selectedContract.payment_terms ? " contracts-detail-value--empty" : ""}`}>
                       {selectedContract.payment_terms
                         ? PAYMENT_TERMS_LABELS[selectedContract.payment_terms] || selectedContract.payment_terms
-                        : "Not set"}
+                        : t("notSet")}
                     </div>
                   </div>
                 </div>
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Start Date</label>
+                    <label className="contracts-form-label">{t("startDate")}</label>
                     <div className="contracts-detail-value">
-                      {formatDate(selectedContract.start_date)}
+                      {formatDateWithLocale(selectedContract.start_date, dateLocale)}
                     </div>
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">End Date</label>
+                    <label className="contracts-form-label">{t("endDate")}</label>
                     <div className="contracts-detail-value">
-                      {formatDate(selectedContract.end_date)}
+                      {formatDateWithLocale(selectedContract.end_date, dateLocale)}
                     </div>
                   </div>
                 </div>
 
                 {selectedContract.scope_of_work && (
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Scope of Work</label>
+                    <label className="contracts-form-label">{t("scopeOfWork")}</label>
                     <div className="contracts-detail-value--multiline">
                       {selectedContract.scope_of_work}
                     </div>
@@ -928,22 +926,22 @@ export default function ContractsClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Insurance Required</label>
+                    <label className="contracts-form-label">{t("insuranceRequired")}</label>
                     <div className="contracts-detail-value">
-                      {selectedContract.insurance_required ? "Yes" : "No"}
+                      {selectedContract.insurance_required ? t("yes") : t("no")}
                     </div>
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Bond Required</label>
+                    <label className="contracts-form-label">{t("bondRequired")}</label>
                     <div className="contracts-detail-value">
-                      {selectedContract.bond_required ? "Yes" : "No"}
+                      {selectedContract.bond_required ? t("yes") : t("no")}
                     </div>
                   </div>
                 </div>
 
                 {selectedContract.project && (
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Project</label>
+                    <label className="contracts-form-label">{t("project")}</label>
                     <div className="contracts-detail-value">
                       {selectedContract.project.name}
                     </div>
@@ -952,15 +950,15 @@ export default function ContractsClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Created</label>
+                    <label className="contracts-form-label">{t("created")}</label>
                     <div className="contracts-detail-value">
-                      {formatDate(selectedContract.created_at)}
+                      {formatDateWithLocale(selectedContract.created_at, dateLocale)}
                     </div>
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Updated</label>
+                    <label className="contracts-form-label">{t("updated")}</label>
                     <div className="contracts-detail-value">
-                      {formatDate(selectedContract.updated_at)}
+                      {formatDateWithLocale(selectedContract.updated_at, dateLocale)}
                     </div>
                   </div>
                 </div>
@@ -973,14 +971,14 @@ export default function ContractsClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("close")}
                   </button>
                   <button
                     type="button"
@@ -988,7 +986,7 @@ export default function ContractsClient({
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -998,7 +996,7 @@ export default function ContractsClient({
             {isEditing && (
               <div className="contracts-form">
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Title *</label>
+                  <label className="contracts-form-label">{t("titleRequired")}</label>
                   <input
                     type="text"
                     className="contracts-form-input"
@@ -1011,7 +1009,7 @@ export default function ContractsClient({
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Description</label>
+                  <label className="contracts-form-label">{t("description")}</label>
                   <textarea
                     className="contracts-form-textarea"
                     value={(editData.description as string) || ""}
@@ -1024,7 +1022,7 @@ export default function ContractsClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Status</label>
+                    <label className="contracts-form-label">{t("status")}</label>
                     <select
                       className="contracts-form-select"
                       value={(editData.status as string) || "draft"}
@@ -1040,7 +1038,7 @@ export default function ContractsClient({
                     </select>
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Type</label>
+                    <label className="contracts-form-label">{t("type")}</label>
                     <select
                       className="contracts-form-select"
                       value={(editData.contract_type as string) || "subcontractor"}
@@ -1048,9 +1046,9 @@ export default function ContractsClient({
                         setEditData({ ...editData, contract_type: e.target.value })
                       }
                     >
-                      {(Object.keys(TYPE_LABELS) as ContractType[]).map((t) => (
-                        <option key={t} value={t}>
-                          {TYPE_LABELS[t]}
+                      {(Object.keys(TYPE_LABELS) as ContractType[]).map((ct) => (
+                        <option key={ct} value={ct}>
+                          {TYPE_LABELS[ct]}
                         </option>
                       ))}
                     </select>
@@ -1059,7 +1057,7 @@ export default function ContractsClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Party Name</label>
+                    <label className="contracts-form-label">{t("partyName")}</label>
                     <input
                       type="text"
                       className="contracts-form-input"
@@ -1070,7 +1068,7 @@ export default function ContractsClient({
                     />
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Party Email</label>
+                    <label className="contracts-form-label">{t("partyEmail")}</label>
                     <input
                       type="email"
                       className="contracts-form-input"
@@ -1084,7 +1082,7 @@ export default function ContractsClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Amount</label>
+                    <label className="contracts-form-label">{t("amount")}</label>
                     <input
                       type="number"
                       className="contracts-form-input"
@@ -1097,7 +1095,7 @@ export default function ContractsClient({
                     />
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Payment Terms</label>
+                    <label className="contracts-form-label">{t("paymentTerms")}</label>
                     <select
                       className="contracts-form-select"
                       value={(editData.payment_terms as string) || ""}
@@ -1105,7 +1103,7 @@ export default function ContractsClient({
                         setEditData({ ...editData, payment_terms: e.target.value })
                       }
                     >
-                      <option value="">Select terms...</option>
+                      <option value="">{t("selectTermsPlaceholder")}</option>
                       {Object.entries(PAYMENT_TERMS_LABELS).map(([key, label]) => (
                         <option key={key} value={key}>
                           {label}
@@ -1117,7 +1115,7 @@ export default function ContractsClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Start Date</label>
+                    <label className="contracts-form-label">{t("startDate")}</label>
                     <input
                       type="date"
                       className="contracts-form-input"
@@ -1128,7 +1126,7 @@ export default function ContractsClient({
                     />
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">End Date</label>
+                    <label className="contracts-form-label">{t("endDate")}</label>
                     <input
                       type="date"
                       className="contracts-form-input"
@@ -1141,7 +1139,7 @@ export default function ContractsClient({
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Scope of Work</label>
+                  <label className="contracts-form-label">{t("scopeOfWork")}</label>
                   <textarea
                     className="contracts-form-textarea"
                     value={(editData.scope_of_work as string) || ""}
@@ -1153,7 +1151,7 @@ export default function ContractsClient({
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Project</label>
+                  <label className="contracts-form-label">{t("project")}</label>
                   <select
                     className="contracts-form-select"
                     value={(editData.project_id as string) || ""}
@@ -1161,7 +1159,7 @@ export default function ContractsClient({
                       setEditData({ ...editData, project_id: e.target.value })
                     }
                   >
-                    <option value="">No project</option>
+                    <option value="">{t("noProject")}</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -1180,7 +1178,7 @@ export default function ContractsClient({
                           setEditData({ ...editData, insurance_required: e.target.checked })
                         }
                       />
-                      Insurance Required
+                      {t("insuranceRequired")}
                     </label>
                   </div>
                   <div className="contracts-form-group">
@@ -1192,7 +1190,7 @@ export default function ContractsClient({
                           setEditData({ ...editData, bond_required: e.target.checked })
                         }
                       />
-                      Bond Required
+                      {t("bondRequired")}
                     </label>
                   </div>
                 </div>
@@ -1204,7 +1202,7 @@ export default function ContractsClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -1212,7 +1210,7 @@ export default function ContractsClient({
                     onClick={handleSave}
                     disabled={saving || !(editData.title as string)?.trim()}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>
@@ -1223,7 +1221,7 @@ export default function ContractsClient({
 
       {showImport && (
         <ImportModal
-          entityName="Contracts"
+          entityName={t("contracts")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}

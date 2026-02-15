@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Plus,
   ChevronRight,
@@ -22,14 +23,6 @@ import type { AccountTreeNode } from "@/lib/queries/financial";
 interface AccountsClientProps {
   accounts: AccountTreeNode[];
 }
-
-const accountTypeLabels: Record<string, string> = {
-  asset: "Assets",
-  liability: "Liabilities",
-  equity: "Equity",
-  revenue: "Revenue",
-  expense: "Expenses",
-};
 
 const accountTypeIcons: Record<string, React.ReactNode> = {
   asset: <Layers size={18} />,
@@ -126,22 +119,11 @@ function AccountNode({
   );
 }
 
-const accountImportColumns: ImportColumn[] = [
-  { key: "account_number", label: "Account Number", required: true },
-  { key: "name", label: "Account Name", required: true },
-  { key: "account_type", label: "Account Type", required: true },
-  { key: "sub_type", label: "Sub Type", required: false },
-  { key: "description", label: "Description", required: false },
-];
-
-const accountSampleData = [
-  { account_number: "1000", name: "Cash & Equivalents", account_type: "asset", sub_type: "Current Asset", description: "Cash on hand and in banks" },
-  { account_number: "2000", name: "Accounts Payable", account_type: "liability", sub_type: "Current Liability", description: "Amounts owed to vendors" },
-  { account_number: "4000", name: "Construction Revenue", account_type: "revenue", sub_type: "", description: "Revenue from construction projects" },
-];
-
 export default function AccountsClient({ accounts }: AccountsClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const [showImport, setShowImport] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -156,6 +138,28 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
   const [parentId, setParentId] = useState("");
   const [description, setDescription] = useState("");
   const [normalBalance, setNormalBalance] = useState<string>("debit");
+
+  const accountTypeLabels: Record<string, string> = {
+    asset: t("assets"),
+    liability: t("liabilities"),
+    equity: t("equity"),
+    revenue: t("revenue"),
+    expense: t("expenses"),
+  };
+
+  const accountImportColumns: ImportColumn[] = [
+    { key: "account_number", label: t("accountNumber"), required: true },
+    { key: "name", label: t("accountName"), required: true },
+    { key: "account_type", label: t("accountType"), required: true },
+    { key: "sub_type", label: t("subType"), required: false },
+    { key: "description", label: t("description"), required: false },
+  ];
+
+  const accountSampleData = [
+    { account_number: "1000", name: "Cash & Equivalents", account_type: "asset", sub_type: "Current Asset", description: "Cash on hand and in banks" },
+    { account_number: "2000", name: "Accounts Payable", account_type: "liability", sub_type: "Current Liability", description: "Amounts owed to vendors" },
+    { account_number: "4000", name: "Construction Revenue", account_type: "revenue", sub_type: "", description: "Revenue from construction projects" },
+  ];
 
   // Group root-level accounts by type
   const grouped: Record<string, AccountTreeNode[]> = {};
@@ -192,12 +196,12 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || "Failed to load default accounts");
+        alert(data.error || t("failedToLoadDefaultAccounts"));
         return;
       }
       router.refresh();
     } catch {
-      alert("Network error. Please try again.");
+      alert(t("networkError"));
     } finally {
       setLoadingDefaults(false);
     }
@@ -225,12 +229,12 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
     setError(null);
 
     if (!accountNumber.trim()) {
-      setError("Account number is required.");
+      setError(t("accountNumberRequired"));
       return;
     }
 
     if (!accountName.trim()) {
-      setError("Account name is required.");
+      setError(t("accountNameRequired"));
       return;
     }
 
@@ -262,14 +266,14 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to create account");
+        throw new Error(data.error || t("failedToCreateAccount"));
       }
 
       setOpen(false);
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : t("unexpectedError")
       );
     } finally {
       setLoading(false);
@@ -302,9 +306,9 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Chart of Accounts</h2>
+          <h2>{t("chartOfAccounts")}</h2>
           <p className="fin-header-sub">
-            Manage your general ledger account structure.
+            {t("chartOfAccountsDesc")}
           </p>
         </div>
         <div className="fin-header-actions" style={{ display: "flex", gap: "8px" }}>
@@ -314,7 +318,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
             onClick={() => setShowImport(true)}
           >
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button
             type="button"
@@ -322,7 +326,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
             onClick={handleOpen}
           >
             <Plus size={16} />
-            Add Account
+            {t("addAccount")}
           </button>
         </div>
       </div>
@@ -366,11 +370,9 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
             <div className="fin-empty-icon">
               <Landmark size={48} />
             </div>
-            <div className="fin-empty-title">No Accounts Set Up</div>
+            <div className="fin-empty-title">{t("noAccountsSetUp")}</div>
             <div className="fin-empty-desc">
-              Start from scratch by adding accounts manually, import your
-              existing chart of accounts via CSV, or load the standard
-              construction chart of accounts.
+              {t("noAccountsDesc")}
             </div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
               <button
@@ -383,12 +385,12 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                 {loadingDefaults ? (
                   <>
                     <Loader2 size={16} className="spin" />
-                    Loading...
+                    {t("loading")}
                   </>
                 ) : (
                   <>
                     <Layers size={16} />
-                    Load Default Accounts
+                    {t("loadDefaultAccounts")}
                   </>
                 )}
               </button>
@@ -398,7 +400,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                 onClick={() => setShowImport(true)}
               >
                 <Upload size={16} />
-                Import CSV
+                {t("importCsv")}
               </button>
               <button
                 type="button"
@@ -406,7 +408,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                 onClick={handleOpen}
               >
                 <Plus size={16} />
-                Add Manually
+                {t("addManually")}
               </button>
             </div>
           </div>
@@ -416,7 +418,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
       {/* Import CSV Modal */}
       {showImport && (
         <ImportModal
-          entityName="Accounts"
+          entityName={t("accounts")}
           columns={accountImportColumns}
           sampleData={accountSampleData}
           onImport={async (rows) => {
@@ -426,7 +428,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
               body: JSON.stringify({ entity: "chart_of_accounts", rows }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Import failed");
+            if (!res.ok) throw new Error(data.error || t("importFailed"));
             router.refresh();
             return { success: data.success, errors: data.errors };
           }}
@@ -483,7 +485,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                     margin: 0,
                   }}
                 >
-                  Add Account
+                  {t("addAccount")}
                 </h3>
                 <p
                   style={{
@@ -492,7 +494,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                     margin: "4px 0 0",
                   }}
                 >
-                  Create a new account in your chart of accounts.
+                  {t("addAccountDesc")}
                 </p>
               </div>
               <button
@@ -550,26 +552,26 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                 >
                   <div>
                     <label style={labelStyle}>
-                      Account No. <span style={{ color: "var(--color-red)" }}>*</span>
+                      {t("accountNo")} <span style={{ color: "var(--color-red)" }}>*</span>
                     </label>
                     <input
                       type="text"
                       value={accountNumber}
                       onChange={(e) => setAccountNumber(e.target.value)}
-                      placeholder="e.g., 1000"
+                      placeholder={t("accountNoPlaceholder")}
                       required
                       style={inputStyle}
                     />
                   </div>
                   <div>
                     <label style={labelStyle}>
-                      Account Name <span style={{ color: "var(--color-red)" }}>*</span>
+                      {t("accountName")} <span style={{ color: "var(--color-red)" }}>*</span>
                     </label>
                     <input
                       type="text"
                       value={accountName}
                       onChange={(e) => setAccountName(e.target.value)}
-                      placeholder="e.g., Cash & Equivalents"
+                      placeholder={t("accountNamePlaceholder")}
                       required
                       style={inputStyle}
                     />
@@ -586,7 +588,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                 >
                   <div>
                     <label style={labelStyle}>
-                      Account Type <span style={{ color: "var(--color-red)" }}>*</span>
+                      {t("accountType")} <span style={{ color: "var(--color-red)" }}>*</span>
                     </label>
                     <select
                       value={accountType}
@@ -594,16 +596,16 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                       required
                       style={{ ...inputStyle, cursor: "pointer" }}
                     >
-                      <option value="asset">Asset</option>
-                      <option value="liability">Liability</option>
-                      <option value="equity">Equity</option>
-                      <option value="revenue">Revenue</option>
-                      <option value="expense">Expense</option>
+                      <option value="asset">{t("asset")}</option>
+                      <option value="liability">{t("liability")}</option>
+                      <option value="equity">{t("equity")}</option>
+                      <option value="revenue">{t("revenue")}</option>
+                      <option value="expense">{t("expense")}</option>
                     </select>
                   </div>
                   <div>
                     <label style={labelStyle}>
-                      Normal Balance <span style={{ color: "var(--color-red)" }}>*</span>
+                      {t("normalBalance")} <span style={{ color: "var(--color-red)" }}>*</span>
                     </label>
                     <select
                       value={normalBalance}
@@ -611,33 +613,33 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                       required
                       style={{ ...inputStyle, cursor: "pointer" }}
                     >
-                      <option value="debit">Debit</option>
-                      <option value="credit">Credit</option>
+                      <option value="debit">{t("debit")}</option>
+                      <option value="credit">{t("credit")}</option>
                     </select>
                   </div>
                 </div>
 
                 {/* Sub Type */}
                 <div>
-                  <label style={labelStyle}>Sub Type</label>
+                  <label style={labelStyle}>{t("subType")}</label>
                   <input
                     type="text"
                     value={subType}
                     onChange={(e) => setSubType(e.target.value)}
-                    placeholder="e.g., Current Asset, Fixed Asset"
+                    placeholder={t("subTypePlaceholder")}
                     style={inputStyle}
                   />
                 </div>
 
                 {/* Parent Account */}
                 <div>
-                  <label style={labelStyle}>Parent Account</label>
+                  <label style={labelStyle}>{t("parentAccount")}</label>
                   <select
                     value={parentId}
                     onChange={(e) => setParentId(e.target.value)}
                     style={{ ...inputStyle, cursor: "pointer" }}
                   >
-                    <option value="">None (top-level account)</option>
+                    <option value="">{t("noneTopLevel")}</option>
                     {flatAccounts.map((a) => (
                       <option key={a.id} value={a.id}>
                         {a.label}
@@ -648,11 +650,11 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
 
                 {/* Description */}
                 <div>
-                  <label style={labelStyle}>Description</label>
+                  <label style={labelStyle}>{t("description")}</label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Optional description of this account..."
+                    placeholder={t("descriptionPlaceholder")}
                     rows={3}
                     style={{
                       ...inputStyle,
@@ -681,7 +683,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                   onClick={handleClose}
                   disabled={loading}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -698,12 +700,12 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                   {loading ? (
                     <>
                       <Loader2 size={16} className="spin" />
-                      Creating...
+                      {t("creating")}
                     </>
                   ) : (
                     <>
                       <Plus size={16} />
-                      Create Account
+                      {t("createAccount")}
                     </>
                   )}
                 </button>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Plus,
   Pencil,
@@ -178,6 +179,9 @@ export default function AIProvidersClient({
   stats,
 }: AIProvidersClientProps) {
   const router = useRouter();
+  const t = useTranslations("adminPanel");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -292,19 +296,19 @@ export default function AIProvidersClient({
         if (!res.ok) {
           setMessage({
             type: "error",
-            text: data.error || "Failed to update provider.",
+            text: data.error || t("failedToUpdateProvider"),
           });
           return;
         }
 
         setMessage({
           type: "success",
-          text: "Provider updated successfully.",
+          text: t("providerUpdatedSuccessfully"),
         });
       } else {
         // Create
         if (!formApiKey.trim()) {
-          setMessage({ type: "error", text: "API key is required." });
+          setMessage({ type: "error", text: t("apiKeyIsRequired") });
           return;
         }
 
@@ -328,14 +332,14 @@ export default function AIProvidersClient({
         if (!res.ok) {
           setMessage({
             type: "error",
-            text: data.error || "Failed to add provider.",
+            text: data.error || t("failedToAddProvider"),
           });
           return;
         }
 
         setMessage({
           type: "success",
-          text: "Provider added successfully.",
+          text: t("providerAddedSuccessfully"),
         });
       }
 
@@ -347,7 +351,7 @@ export default function AIProvidersClient({
     } catch {
       setMessage({
         type: "error",
-        text: "Network error. Please try again.",
+        text: t("networkErrorPleaseTryAgain"),
       });
     } finally {
       setSaving(false);
@@ -359,9 +363,7 @@ export default function AIProvidersClient({
   // -----------------------------------------------------------------------
   async function handleDelete(id: string) {
     if (
-      !window.confirm(
-        "Are you sure you want to remove this AI provider? This cannot be undone."
-      )
+      !window.confirm(t("confirmDeleteProvider"))
     ) {
       return;
     }
@@ -373,13 +375,13 @@ export default function AIProvidersClient({
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Failed to delete provider.");
+        alert(data.error || t("failedToDeleteProvider"));
         return;
       }
 
       router.refresh();
     } catch {
-      alert("Network error. Please try again.");
+      alert(t("networkErrorPleaseTryAgain"));
     }
   }
 
@@ -399,13 +401,13 @@ export default function AIProvidersClient({
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Failed to toggle provider.");
+        alert(data.error || t("failedToToggleProvider"));
         return;
       }
 
       router.refresh();
     } catch {
-      alert("Network error. Please try again.");
+      alert(t("networkErrorPleaseTryAgain"));
     }
   }
 
@@ -427,20 +429,20 @@ export default function AIProvidersClient({
         setTestResult({
           id,
           type: "pass",
-          text: "Connection successful. Provider is working.",
+          text: t("connectionSuccessful"),
         });
       } else {
         setTestResult({
           id,
           type: "fail",
-          text: data.error || "Connection failed. Check your API key.",
+          text: data.error || t("connectionFailedCheckApiKey"),
         });
       }
     } catch {
       setTestResult({
         id,
         type: "fail",
-        text: "Network error during test.",
+        text: t("networkErrorDuringTest"),
       });
     } finally {
       setTestingId(null);
@@ -455,15 +457,15 @@ export default function AIProvidersClient({
       {/* Header */}
       <div className="ai-header">
         <div>
-          <h2>AI Provider Configuration</h2>
+          <h2>{t("aiProviderConfiguration")}</h2>
           <p className="ai-header-sub">
-            Manage API keys, models, and usage limits for AI-powered features
+            {t("manageApiKeysModelsUsageLimits")}
           </p>
         </div>
         <div className="ai-header-actions">
           <button className="btn-primary" onClick={openAddModal}>
             <Plus size={16} />
-            Add Provider
+            {t("addProvider")}
           </button>
         </div>
       </div>
@@ -474,14 +476,14 @@ export default function AIProvidersClient({
           <div className="ai-stat-icon blue">
             <Cpu size={18} />
           </div>
-          <div className="ai-stat-label">Active Providers</div>
+          <div className="ai-stat-label">{t("activeProviders")}</div>
           <div className="ai-stat-value">{stats.activeCount}</div>
         </div>
         <div className="ai-stat-card">
           <div className="ai-stat-icon green">
             <Activity size={18} />
           </div>
-          <div className="ai-stat-label">Monthly Requests</div>
+          <div className="ai-stat-label">{t("monthlyRequests")}</div>
           <div className="ai-stat-value">
             {stats.totalRequests.toLocaleString()}
           </div>
@@ -490,7 +492,7 @@ export default function AIProvidersClient({
           <div className="ai-stat-icon amber">
             <DollarSign size={18} />
           </div>
-          <div className="ai-stat-label">Monthly Budget</div>
+          <div className="ai-stat-label">{t("monthlyBudget")}</div>
           <div className="ai-stat-value">
             {stats.totalBudget > 0
               ? formatCurrency(stats.totalBudget)
@@ -501,7 +503,7 @@ export default function AIProvidersClient({
           <div className="ai-stat-icon red">
             <BarChart3 size={18} />
           </div>
-          <div className="ai-stat-label">Cost This Month</div>
+          <div className="ai-stat-label">{t("costThisMonth")}</div>
           <div className="ai-stat-value">
             {formatCurrency(stats.totalUsage)}
           </div>
@@ -515,15 +517,14 @@ export default function AIProvidersClient({
             <Sparkles size={32} />
           </div>
           <div className="ai-empty-title">
-            No AI providers configured yet
+            {t("noAiProvidersConfigured")}
           </div>
           <div className="ai-empty-desc">
-            Add your first provider to enable AI features like chat,
-            document processing, and predictive analytics.
+            {t("addFirstProviderDescription")}
           </div>
           <button className="btn-primary" onClick={openAddModal}>
             <Plus size={16} />
-            Add Provider
+            {t("addProvider")}
           </button>
         </div>
       ) : (
@@ -531,12 +532,12 @@ export default function AIProvidersClient({
           <table className="ai-providers-table">
             <thead>
               <tr>
-                <th>Provider</th>
-                <th>Model</th>
-                <th>Status</th>
-                <th>Tasks</th>
-                <th>Budget / Usage</th>
-                <th>Actions</th>
+                <th>{t("provider")}</th>
+                <th>{t("model")}</th>
+                <th>{t("status")}</th>
+                <th>{t("tasks")}</th>
+                <th>{t("budgetUsage")}</th>
+                <th>{t("actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -558,7 +559,7 @@ export default function AIProvidersClient({
                           p.provider_name}
                       </span>
                       {p.is_default && (
-                        <span className="ai-default-badge">Default</span>
+                        <span className="ai-default-badge">{t("default")}</span>
                       )}
                     </td>
 
@@ -575,8 +576,8 @@ export default function AIProvidersClient({
                         }`}
                         title={
                           p.is_active
-                            ? "Click to deactivate"
-                            : "Click to activate"
+                            ? t("clickToDeactivate")
+                            : t("clickToActivate")
                         }
                         onClick={() =>
                           handleToggleActive(p.id, p.is_active)
@@ -589,17 +590,17 @@ export default function AIProvidersClient({
                       <div className="task-badges">
                         {p.use_for_chat && (
                           <span className="task-badge task-badge-chat">
-                            Chat
+                            {t("chat")}
                           </span>
                         )}
                         {p.use_for_documents && (
                           <span className="task-badge task-badge-documents">
-                            Docs
+                            {t("docs")}
                           </span>
                         )}
                         {p.use_for_predictions && (
                           <span className="task-badge task-badge-predictions">
-                            Predictions
+                            {t("predictions")}
                           </span>
                         )}
                         {!p.use_for_chat &&
@@ -611,7 +612,7 @@ export default function AIProvidersClient({
                                 color: "var(--muted)",
                               }}
                             >
-                              None
+                              {t("none")}
                             </span>
                           )}
                       </div>
@@ -643,7 +644,7 @@ export default function AIProvidersClient({
                             color: "var(--muted)",
                           }}
                         >
-                          No limit
+                          {t("noLimit")}
                         </span>
                       )}
                     </td>
@@ -653,23 +654,23 @@ export default function AIProvidersClient({
                       <div className="ai-actions">
                         <button
                           className="ai-test-btn"
-                          title="Test Connection"
+                          title={t("testConnection")}
                           onClick={() => handleTestConnection(p.id)}
                           disabled={testingId === p.id}
                         >
                           <Zap size={13} />
-                          {testingId === p.id ? "Testing..." : "Test"}
+                          {testingId === p.id ? t("testing") : t("test")}
                         </button>
                         <button
                           className="ai-action-btn"
-                          title="Edit"
+                          title={t("edit")}
                           onClick={() => openEditModal(p)}
                         >
                           <Pencil size={15} />
                         </button>
                         <button
                           className="ai-action-btn danger"
-                          title="Delete"
+                          title={t("delete")}
                           onClick={() => handleDelete(p.id)}
                         >
                           <Trash2 size={15} />
@@ -707,12 +708,12 @@ export default function AIProvidersClient({
             </button>
 
             <div className="provider-modal-title">
-              {editingId ? "Edit AI Provider" : "Add AI Provider"}
+              {editingId ? t("editAiProvider") : t("addAiProvider")}
             </div>
             <div className="provider-modal-desc">
               {editingId
-                ? "Update the configuration for this AI provider."
-                : "Configure a new AI provider with your API credentials."}
+                ? t("updateProviderConfiguration")
+                : t("configureNewProvider")}
             </div>
 
             {message && (
@@ -724,7 +725,7 @@ export default function AIProvidersClient({
             <form onSubmit={handleSave}>
               {/* Provider Select */}
               <div className="provider-form-group">
-                <label className="provider-form-label">Provider</label>
+                <label className="provider-form-label">{t("provider")}</label>
                 <select
                   className="provider-form-select"
                   value={formProvider}
@@ -745,7 +746,7 @@ export default function AIProvidersClient({
               {/* API Key */}
               <div className="provider-form-group">
                 <label className="provider-form-label">
-                  API Key
+                  {t("apiKey")}
                   {editingId && (
                     <span
                       style={{
@@ -754,7 +755,7 @@ export default function AIProvidersClient({
                         marginLeft: 4,
                       }}
                     >
-                      (leave blank to keep current)
+                      ({t("leaveBlankToKeepCurrent")})
                     </span>
                   )}
                 </label>
@@ -762,7 +763,7 @@ export default function AIProvidersClient({
                   type="password"
                   className="provider-form-input"
                   placeholder={
-                    editingId ? "Enter new key to change..." : "sk-..."
+                    editingId ? t("enterNewKeyToChange") : "sk-..."
                   }
                   value={formApiKey}
                   onChange={(e) => setFormApiKey(e.target.value)}
@@ -772,7 +773,7 @@ export default function AIProvidersClient({
 
               {/* Model ID */}
               <div className="provider-form-group">
-                <label className="provider-form-label">Model</label>
+                <label className="provider-form-label">{t("model")}</label>
                 <select
                   className="provider-form-select"
                   value={formModelId}
@@ -790,7 +791,7 @@ export default function AIProvidersClient({
               {/* Task Checkboxes */}
               <div className="provider-form-group">
                 <label className="provider-form-label">
-                  Assign to Tasks
+                  {t("assignToTasks")}
                 </label>
                 <div className="provider-checkbox-row">
                   <label className="provider-checkbox-item">
@@ -799,7 +800,7 @@ export default function AIProvidersClient({
                       checked={formChat}
                       onChange={(e) => setFormChat(e.target.checked)}
                     />
-                    Chat
+                    {t("chat")}
                   </label>
                   <label className="provider-checkbox-item">
                     <input
@@ -809,7 +810,7 @@ export default function AIProvidersClient({
                         setFormDocuments(e.target.checked)
                       }
                     />
-                    Document Processing
+                    {t("documentProcessing")}
                   </label>
                   <label className="provider-checkbox-item">
                     <input
@@ -819,7 +820,7 @@ export default function AIProvidersClient({
                         setFormPredictions(e.target.checked)
                       }
                     />
-                    Predictions
+                    {t("predictions")}
                   </label>
                   <label className="provider-checkbox-item">
                     <input
@@ -829,7 +830,7 @@ export default function AIProvidersClient({
                         setFormDefault(e.target.checked)
                       }
                     />
-                    Set as Default
+                    {t("setAsDefault")}
                   </label>
                 </div>
               </div>
@@ -837,12 +838,12 @@ export default function AIProvidersClient({
               {/* Monthly Budget */}
               <div className="provider-form-group">
                 <label className="provider-form-label">
-                  Monthly Budget Limit (USD)
+                  {t("monthlyBudgetLimitUsd")}
                 </label>
                 <input
                   type="number"
                   className="provider-form-input"
-                  placeholder="Leave blank for no limit"
+                  placeholder={t("leaveBlankForNoLimit")}
                   value={formBudget}
                   onChange={(e) => setFormBudget(e.target.value)}
                   min="0"
@@ -857,7 +858,7 @@ export default function AIProvidersClient({
                   className="btn-secondary"
                   onClick={closeModal}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -865,10 +866,10 @@ export default function AIProvidersClient({
                   disabled={saving}
                 >
                   {saving
-                    ? "Saving..."
+                    ? t("saving")
                     : editingId
-                    ? "Update Provider"
-                    : "Add Provider"}
+                    ? t("updateProvider")
+                    : t("addProvider")}
                 </button>
               </div>
             </form>

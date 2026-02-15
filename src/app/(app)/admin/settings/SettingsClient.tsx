@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Settings,
   CreditCard,
@@ -17,18 +18,12 @@ import {
   Crown,
   Zap,
   Rocket,
+  Ticket,
 } from "lucide-react";
 
 import type { CompanyDetails, AuditLogEntry } from "@/lib/queries/admin";
 
 type TabKey = "general" | "subscription" | "integrations" | "audit";
-
-const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-  { key: "general", label: "General", icon: <Settings size={15} /> },
-  { key: "subscription", label: "Subscription", icon: <CreditCard size={15} /> },
-  { key: "integrations", label: "Integrations", icon: <Plug size={15} /> },
-  { key: "audit", label: "Audit Log", icon: <ScrollText size={15} /> },
-];
 
 const INDUSTRIES = [
   "General Contracting",
@@ -65,39 +60,6 @@ const INTEGRATIONS = [
   { name: "Dropbox Business", desc: "Cloud document storage and plan room sync" },
 ];
 
-const PLAN_INFO: Record<string, { label: string; icon: typeof Zap; color: string; features: string[] }> = {
-  starter: {
-    label: "Starter",
-    icon: Zap,
-    color: "var(--color-blue)",
-    features: ["Up to 5 users", "3 active projects", "Basic reporting", "Email support"],
-  },
-  professional: {
-    label: "Professional",
-    icon: Rocket,
-    color: "var(--color-amber)",
-    features: ["Up to 25 users", "Unlimited projects", "Advanced reporting", "Priority support", "API access"],
-  },
-  enterprise: {
-    label: "Enterprise",
-    icon: Crown,
-    color: "var(--color-green)",
-    features: ["Unlimited users", "Unlimited projects", "Custom reporting", "Dedicated support", "SSO & SAML", "Custom integrations"],
-  },
-};
-
-function formatDateTime(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
 function formatAction(action: string): string {
   return action
     .split("_")
@@ -127,7 +89,50 @@ export default function SettingsClient({
   currentUserRole,
 }: SettingsClientProps) {
   const router = useRouter();
+  const t = useTranslations("adminPanel");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const [activeTab, setActiveTab] = useState<TabKey>("general");
+
+  const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
+    { key: "general", label: t("general"), icon: <Settings size={15} /> },
+    { key: "subscription", label: t("subscription"), icon: <CreditCard size={15} /> },
+    { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
+    { key: "audit", label: t("auditLog"), icon: <ScrollText size={15} /> },
+  ];
+
+  const PLAN_INFO: Record<string, { label: string; icon: typeof Zap; color: string; features: string[] }> = {
+    starter: {
+      label: t("starter"),
+      icon: Zap,
+      color: "var(--color-blue)",
+      features: [t("upTo5Users"), t("threeActiveProjects"), t("basicReporting"), t("emailSupport")],
+    },
+    professional: {
+      label: t("professional"),
+      icon: Rocket,
+      color: "var(--color-amber)",
+      features: [t("upTo25Users"), t("unlimitedProjects"), t("advancedReporting"), t("prioritySupport"), t("apiAccess")],
+    },
+    enterprise: {
+      label: t("enterprise"),
+      icon: Crown,
+      color: "var(--color-green)",
+      features: [t("unlimitedUsers"), t("unlimitedProjects"), t("customReporting"), t("dedicatedSupport"), t("ssoSaml"), t("customIntegrations")],
+    },
+  };
+
+  function formatDateTime(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }
 
   // General form state
   const [name, setName] = useState(company.name || "");
@@ -153,6 +158,11 @@ export default function SettingsClient({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Promo code redemption state
+  const [promoInput, setPromoInput] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoMessage, setPromoMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   const canEdit = currentUserRole === "owner" || currentUserRole === "admin";
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -160,7 +170,7 @@ export default function SettingsClient({
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setMessage({ type: "error", text: "Please select an image file." });
+      setMessage({ type: "error", text: t("pleaseSelectImageFile") });
       return;
     }
 
@@ -177,14 +187,14 @@ export default function SettingsClient({
       if (res.ok) {
         const data = await res.json();
         setLogoUrl(data.logo_url);
-        setMessage({ type: "success", text: "Logo uploaded successfully." });
+        setMessage({ type: "success", text: t("logoUploadedSuccessfully") });
         router.refresh();
       } else {
         const data = await res.json();
-        setMessage({ type: "error", text: data.error || "Logo upload failed." });
+        setMessage({ type: "error", text: data.error || t("logoUploadFailed") });
       }
     } catch {
-      setMessage({ type: "error", text: "Network error uploading logo." });
+      setMessage({ type: "error", text: t("networkErrorUploadingLogo") });
     } finally {
       setUploadingLogo(false);
       if (logoFileRef.current) logoFileRef.current.value = "";
@@ -221,13 +231,13 @@ export default function SettingsClient({
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage({ type: "error", text: data.error || "Failed to save settings." });
+        setMessage({ type: "error", text: data.error || t("failedToSaveSettings") });
       } else {
-        setMessage({ type: "success", text: "Company settings updated successfully." });
+        setMessage({ type: "success", text: t("companySettingsUpdatedSuccessfully") });
         router.refresh();
       }
     } catch {
-      setMessage({ type: "error", text: "Network error. Please try again." });
+      setMessage({ type: "error", text: t("networkErrorPleaseTryAgain") });
     } finally {
       setSaving(false);
     }
@@ -242,9 +252,9 @@ export default function SettingsClient({
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>Company Settings</h2>
+          <h2>{t("companySettings")}</h2>
           <p className="admin-header-sub">
-            Configure your company profile, subscription, and integrations
+            {t("configureCompanyProfileSubscriptionIntegrations")}
           </p>
         </div>
       </div>
@@ -274,10 +284,10 @@ export default function SettingsClient({
             )}
 
             <div className="settings-form-section">
-              <div className="settings-form-section-title">Company Information</div>
+              <div className="settings-form-section-title">{t("companyInformation")}</div>
               <div className="settings-row">
                 <div className="settings-field">
-                  <label className="settings-field-label">Company Name</label>
+                  <label className="settings-field-label">{t("companyName")}</label>
                   <input
                     type="text"
                     className="settings-field-input"
@@ -288,14 +298,14 @@ export default function SettingsClient({
                   />
                 </div>
                 <div className="settings-field">
-                  <label className="settings-field-label">Industry</label>
+                  <label className="settings-field-label">{t("industry")}</label>
                   <select
                     className="settings-field-select"
                     value={industry}
                     onChange={(e) => setIndustry(e.target.value)}
                     disabled={!canEdit}
                   >
-                    <option value="">Select industry...</option>
+                    <option value="">{t("selectIndustry")}</option>
                     {INDUSTRIES.map((ind) => (
                       <option key={ind} value={ind}>{ind}</option>
                     ))}
@@ -305,21 +315,21 @@ export default function SettingsClient({
             </div>
 
             <div className="settings-form-section">
-              <div className="settings-form-section-title">Address</div>
+              <div className="settings-form-section-title">{t("address")}</div>
               <div className="settings-row">
                 <div className="settings-field full-width">
-                  <label className="settings-field-label">Street Address</label>
+                  <label className="settings-field-label">{t("streetAddress")}</label>
                   <input
                     type="text"
                     className="settings-field-input"
-                    placeholder="123 Main Street"
+                    placeholder={t("streetAddressPlaceholder")}
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     disabled={!canEdit}
                   />
                 </div>
                 <div className="settings-field">
-                  <label className="settings-field-label">City</label>
+                  <label className="settings-field-label">{t("city")}</label>
                   <input
                     type="text"
                     className="settings-field-input"
@@ -329,7 +339,7 @@ export default function SettingsClient({
                   />
                 </div>
                 <div className="settings-field">
-                  <label className="settings-field-label">State</label>
+                  <label className="settings-field-label">{t("state")}</label>
                   <input
                     type="text"
                     className="settings-field-input"
@@ -339,7 +349,7 @@ export default function SettingsClient({
                   />
                 </div>
                 <div className="settings-field">
-                  <label className="settings-field-label">ZIP Code</label>
+                  <label className="settings-field-label">{t("zipCode")}</label>
                   <input
                     type="text"
                     className="settings-field-input"
@@ -352,10 +362,10 @@ export default function SettingsClient({
             </div>
 
             <div className="settings-form-section">
-              <div className="settings-form-section-title">Contact &amp; Branding</div>
+              <div className="settings-form-section-title">{t("contactAndBranding")}</div>
               <div className="settings-row">
                 <div className="settings-field">
-                  <label className="settings-field-label">Phone</label>
+                  <label className="settings-field-label">{t("phone")}</label>
                   <input
                     type="tel"
                     className="settings-field-input"
@@ -366,7 +376,7 @@ export default function SettingsClient({
                   />
                 </div>
                 <div className="settings-field">
-                  <label className="settings-field-label">Website</label>
+                  <label className="settings-field-label">{t("website")}</label>
                   <input
                     type="url"
                     className="settings-field-input"
@@ -380,13 +390,13 @@ export default function SettingsClient({
 
               {/* Logo Upload */}
               <div style={{ marginTop: "16px" }}>
-                <label className="settings-field-label">Company Logo</label>
+                <label className="settings-field-label">{t("companyLogo")}</label>
                 <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "8px" }}>
                   {logoUrl ? (
                     <div style={{ position: "relative" }}>
                       <img
                         src={logoUrl}
-                        alt="Company logo"
+                        alt={t("companyLogoAlt")}
                         style={{
                           width: "80px",
                           height: "80px",
@@ -457,7 +467,7 @@ export default function SettingsClient({
                         ) : (
                           <Upload size={14} />
                         )}
-                        {uploadingLogo ? "Uploading..." : "Upload Logo"}
+                        {uploadingLogo ? t("uploading") : t("uploadLogo")}
                         <input
                           ref={logoFileRef}
                           type="file"
@@ -468,7 +478,7 @@ export default function SettingsClient({
                         />
                       </label>
                       <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: "4px" }}>
-                        PNG, JPG, or SVG. Max 2MB.
+                        {t("logoFileHint")}
                       </div>
                     </div>
                   )}
@@ -477,10 +487,10 @@ export default function SettingsClient({
             </div>
 
             <div className="settings-form-section">
-              <div className="settings-form-section-title">Preferences</div>
+              <div className="settings-form-section-title">{t("preferences")}</div>
               <div className="settings-row">
                 <div className="settings-field">
-                  <label className="settings-field-label">Fiscal Year Start</label>
+                  <label className="settings-field-label">{t("fiscalYearStart")}</label>
                   <select
                     className="settings-field-select"
                     value={fiscalYearStart}
@@ -493,7 +503,7 @@ export default function SettingsClient({
                   </select>
                 </div>
                 <div className="settings-field">
-                  <label className="settings-field-label">Timezone</label>
+                  <label className="settings-field-label">{t("timezone")}</label>
                   <select
                     className="settings-field-select"
                     value={timezone}
@@ -512,7 +522,7 @@ export default function SettingsClient({
               <div className="settings-form-actions">
                 <button type="submit" className="btn-primary" disabled={saving}>
                   <Save size={16} />
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? t("saving") : t("saveChanges")}
                 </button>
               </div>
             )}
@@ -539,7 +549,7 @@ export default function SettingsClient({
                   <PlanIcon size={22} />
                 </div>
                 <div>
-                  <div className="subscription-plan-name">{planInfo.label} Plan</div>
+                  <div className="subscription-plan-name">{t("planName", { plan: planInfo.label })}</div>
                   <div
                     className={`subscription-status ${
                       company.subscription_status === "active" ? "active" : "inactive"
@@ -552,30 +562,30 @@ export default function SettingsClient({
               </div>
 
               <div className="subscription-info-row">
-                <span className="subscription-info-label">Plan</span>
+                <span className="subscription-info-label">{t("plan")}</span>
                 <span className="subscription-info-value" style={{ textTransform: "capitalize" }}>
                   {planInfo.label}
                 </span>
               </div>
               <div className="subscription-info-row">
-                <span className="subscription-info-label">Status</span>
+                <span className="subscription-info-label">{t("status")}</span>
                 <span className="subscription-info-value" style={{ textTransform: "capitalize" }}>
                   {(company.subscription_status || "active").replace("_", " ")}
                 </span>
               </div>
               <div className="subscription-info-row">
-                <span className="subscription-info-label">Active Members</span>
+                <span className="subscription-info-label">{t("activeMembers")}</span>
                 <span className="subscription-info-value">{memberCount}</span>
               </div>
               <div className="subscription-info-row">
-                <span className="subscription-info-label">Member Since</span>
+                <span className="subscription-info-label">{t("memberSince")}</span>
                 <span className="subscription-info-value">
                   {formatDateTime(company.created_at)}
                 </span>
               </div>
               {company.trial_ends_at && (
                 <div className="subscription-info-row">
-                  <span className="subscription-info-label">Trial Ends</span>
+                  <span className="subscription-info-label">{t("trialEnds")}</span>
                   <span className="subscription-info-value">
                     {formatDateTime(company.trial_ends_at)}
                   </span>
@@ -585,7 +595,7 @@ export default function SettingsClient({
 
             {/* Plan Features */}
             <div className="settings-form-section" style={{ marginTop: "24px" }}>
-              <div className="settings-form-section-title">Plan Features</div>
+              <div className="settings-form-section-title">{t("planFeatures")}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {planInfo.features.map((feat) => (
                   <div
@@ -604,11 +614,74 @@ export default function SettingsClient({
               </div>
             </div>
 
+            {/* Redeem Promo Code */}
+            <div className="settings-form-section" style={{ marginTop: "24px" }}>
+              <div className="settings-form-section-title">
+                <Ticket size={16} style={{ display: "inline", verticalAlign: "middle", marginRight: "6px" }} />
+                Redeem Promo Code
+              </div>
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "12px" }}>
+                Have a promo code? Enter it below to upgrade your subscription plan.
+              </p>
+              {promoMessage && (
+                <div
+                  className={`settings-form-message ${promoMessage.type}`}
+                  style={{ marginBottom: "12px" }}
+                >
+                  {promoMessage.text}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <input
+                  type="text"
+                  className="settings-field-input"
+                  placeholder="PROMO-CODE"
+                  value={promoInput}
+                  onChange={(e) => {
+                    setPromoInput(e.target.value.toUpperCase());
+                    setPromoMessage(null);
+                  }}
+                  disabled={promoLoading}
+                  style={{ maxWidth: "260px", textTransform: "uppercase", letterSpacing: "0.05em" }}
+                />
+                <button
+                  className="btn-primary"
+                  disabled={!promoInput.trim() || promoLoading}
+                  onClick={async () => {
+                    setPromoLoading(true);
+                    setPromoMessage(null);
+                    try {
+                      const res = await fetch("/api/promo-codes/redeem", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ code: promoInput.trim() }),
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        setPromoMessage({ type: "success", text: data.message || "Promo code redeemed successfully!" });
+                        setPromoInput("");
+                        router.refresh();
+                      } else {
+                        setPromoMessage({ type: "error", text: data.error || "Invalid or expired promo code." });
+                      }
+                    } catch {
+                      setPromoMessage({ type: "error", text: "Network error. Please try again." });
+                    } finally {
+                      setPromoLoading(false);
+                    }
+                  }}
+                >
+                  {promoLoading ? <Loader2 size={14} className="spin-icon" /> : <Ticket size={14} />}
+                  Redeem
+                </button>
+              </div>
+            </div>
+
             {/* Stripe Manage */}
             <div className="settings-form-section" style={{ marginTop: "24px" }}>
-              <div className="settings-form-section-title">Manage Subscription</div>
+              <div className="settings-form-section-title">{t("manageSubscription")}</div>
               <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>
-                Upgrade your plan, update payment method, or view invoices through the billing portal.
+                {t("manageSubscriptionDescription")}
               </p>
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                 <button
@@ -620,15 +693,15 @@ export default function SettingsClient({
                         const { url } = await res.json();
                         window.open(url, "_blank");
                       } else {
-                        alert("Stripe billing portal is not configured yet. Contact your platform administrator.");
+                        alert(t("stripeBillingPortalNotConfigured"));
                       }
                     } catch {
-                      alert("Stripe billing portal is not configured yet.");
+                      alert(t("stripeBillingPortalNotConfiguredShort"));
                     }
                   }}
                 >
                   <ExternalLink size={14} />
-                  Manage Billing
+                  {t("manageBilling")}
                 </button>
                 {plan !== "enterprise" && (
                   <button
@@ -646,15 +719,15 @@ export default function SettingsClient({
                           const { url } = await res.json();
                           window.open(url, "_blank");
                         } else {
-                          alert("Stripe checkout is not configured yet. Contact your platform administrator.");
+                          alert(t("stripeCheckoutNotConfigured"));
                         }
                       } catch {
-                        alert("Stripe checkout is not configured yet.");
+                        alert(t("stripeCheckoutNotConfiguredShort"));
                       }
                     }}
                   >
                     <Zap size={14} />
-                    Upgrade to {plan === "starter" ? "Professional" : "Enterprise"}
+                    {t("upgradeTo", { plan: plan === "starter" ? t("professional") : t("enterprise") })}
                   </button>
                 )}
               </div>
@@ -673,7 +746,7 @@ export default function SettingsClient({
                 </div>
                 <button
                   className="integration-toggle"
-                  title={`Toggle ${integration.name}`}
+                  title={t("toggleIntegration", { name: integration.name })}
                   onClick={() => {
                     // Placeholder - integrations are not yet implemented
                   }}
@@ -691,9 +764,9 @@ export default function SettingsClient({
                 <div className="admin-empty-icon">
                   <ScrollText size={32} />
                 </div>
-                <div className="admin-empty-title">No audit entries yet</div>
+                <div className="admin-empty-title">{t("noAuditEntriesYet")}</div>
                 <div className="admin-empty-desc">
-                  Activity will appear here as team members make changes.
+                  {t("activityWillAppearHere")}
                 </div>
               </div>
             ) : (
@@ -701,10 +774,10 @@ export default function SettingsClient({
                 <table className="audit-table">
                   <thead>
                     <tr>
-                      <th>Action</th>
-                      <th>User</th>
-                      <th>Entity</th>
-                      <th>Timestamp</th>
+                      <th>{t("action")}</th>
+                      <th>{t("user")}</th>
+                      <th>{t("entity")}</th>
+                      <th>{t("timestamp")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -719,7 +792,7 @@ export default function SettingsClient({
                           <span className="audit-user">
                             {entry.user_profile?.full_name ||
                               entry.user_profile?.email ||
-                              "System"}
+                              t("system")}
                           </span>
                         </td>
                         <td>

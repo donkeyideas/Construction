@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
   Plus,
@@ -24,22 +25,11 @@ import type {
 } from "@/lib/queries/tickets";
 
 // ---------------------------------------------------------------------------
-// Constants
+// Constants (non-translatable keys kept outside)
 // ---------------------------------------------------------------------------
 
-const STATUS_LABELS: Record<TicketStatus, string> = {
-  open: "Open",
-  in_progress: "In Progress",
-  resolved: "Resolved",
-  closed: "Closed",
-};
-
-const PRIORITY_LABELS: Record<TicketPriority, string> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  urgent: "Urgent",
-};
+const STATUS_KEYS: TicketStatus[] = ["open", "in_progress", "resolved", "closed"];
+const PRIORITY_KEYS: TicketPriority[] = ["low", "medium", "high", "urgent"];
 
 const CATEGORIES: TicketCategory[] = [
   "IT",
@@ -50,34 +40,6 @@ const CATEGORIES: TicketCategory[] = [
   "Equipment",
   "General",
 ];
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatDateShort(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function getUserName(
-  user: { id: string; full_name: string; email: string } | null | undefined
-): string {
-  if (!user) return "Unassigned";
-  return user.full_name || user.email || "Unknown";
-}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -99,6 +61,55 @@ export default function TicketListClient({
   companyId,
 }: TicketListClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  // ---------------------------------------------------------------------------
+  // Translated label maps (inside component so t() is available)
+  // ---------------------------------------------------------------------------
+
+  const STATUS_LABELS: Record<TicketStatus, string> = {
+    open: t("ticketStatusOpen"),
+    in_progress: t("ticketStatusInProgress"),
+    resolved: t("ticketStatusResolved"),
+    closed: t("ticketStatusClosed"),
+  };
+
+  const PRIORITY_LABELS: Record<TicketPriority, string> = {
+    low: t("priorityLow"),
+    medium: t("priorityMedium"),
+    high: t("priorityHigh"),
+    urgent: t("priorityUrgent"),
+  };
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatDateShort(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  function getUserName(
+    user: { id: string; full_name: string; email: string } | null | undefined
+  ): string {
+    if (!user) return t("unassigned");
+    return user.full_name || user.email || t("unknown");
+  }
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<TicketStatus | "all">("all");
@@ -132,28 +143,28 @@ export default function TicketListClient({
     let result = tickets;
 
     if (statusFilter !== "all") {
-      result = result.filter((t) => t.status === statusFilter);
+      result = result.filter((tk) => tk.status === statusFilter);
     }
 
     if (priorityFilter !== "all") {
-      result = result.filter((t) => t.priority === priorityFilter);
+      result = result.filter((tk) => tk.priority === priorityFilter);
     }
 
     if (assigneeFilter !== "all") {
       if (assigneeFilter === "unassigned") {
-        result = result.filter((t) => !t.assigned_to);
+        result = result.filter((tk) => !tk.assigned_to);
       } else {
-        result = result.filter((t) => t.assigned_to === assigneeFilter);
+        result = result.filter((tk) => tk.assigned_to === assigneeFilter);
       }
     }
 
     if (search.trim()) {
       const term = search.toLowerCase();
       result = result.filter(
-        (t) =>
-          t.title.toLowerCase().includes(term) ||
-          t.ticket_number.toLowerCase().includes(term) ||
-          (t.description && t.description.toLowerCase().includes(term))
+        (tk) =>
+          tk.title.toLowerCase().includes(term) ||
+          tk.ticket_number.toLowerCase().includes(term) ||
+          (tk.description && tk.description.toLowerCase().includes(term))
       );
     }
 
@@ -169,7 +180,7 @@ export default function TicketListClient({
     try {
       const tagsArray = formData.tags
         .split(",")
-        .map((t) => t.trim())
+        .map((tg) => tg.trim())
         .filter(Boolean);
 
       const res = await fetch("/api/tickets", {
@@ -187,7 +198,7 @@ export default function TicketListClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create ticket");
+        throw new Error(data.error || t("failedToCreateTicket"));
       }
 
       // Reset form and close modal
@@ -202,7 +213,7 @@ export default function TicketListClient({
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create ticket");
+      setCreateError(err instanceof Error ? err.message : t("failedToCreateTicket"));
     } finally {
       setCreating(false);
     }
@@ -282,13 +293,13 @@ export default function TicketListClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update ticket");
+        throw new Error(data.error || t("failedToUpdateTicket"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update ticket");
+      setSaveError(err instanceof Error ? err.message : t("failedToUpdateTicket"));
     } finally {
       setSaving(false);
     }
@@ -307,13 +318,13 @@ export default function TicketListClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete ticket");
+        throw new Error(data.error || t("failedToDeleteTicket"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to delete ticket");
+      setSaveError(err instanceof Error ? err.message : t("failedToDeleteTicket"));
     } finally {
       setSaving(false);
     }
@@ -324,14 +335,14 @@ export default function TicketListClient({
       {/* Header */}
       <div className="tickets-header">
         <div>
-          <h2>Tickets</h2>
+          <h2>{t("tickets")}</h2>
           <p className="tickets-header-sub">
-            {stats.total} ticket{stats.total !== 1 ? "s" : ""} total
+            {t("ticketsTotalCount", { count: stats.total })}
           </p>
         </div>
         <button className="btn-primary" onClick={() => setShowCreate(true)}>
           <Plus size={16} />
-          New Ticket
+          {t("newTicket")}
         </button>
       </div>
 
@@ -343,7 +354,7 @@ export default function TicketListClient({
           </div>
           <div className="tickets-stat-info">
             <span className="tickets-stat-value">{stats.open}</span>
-            <span className="tickets-stat-label">Open</span>
+            <span className="tickets-stat-label">{t("ticketStatusOpen")}</span>
           </div>
         </div>
         <div className="tickets-stat-card stat-in-progress">
@@ -352,7 +363,7 @@ export default function TicketListClient({
           </div>
           <div className="tickets-stat-info">
             <span className="tickets-stat-value">{stats.in_progress}</span>
-            <span className="tickets-stat-label">In Progress</span>
+            <span className="tickets-stat-label">{t("ticketStatusInProgress")}</span>
           </div>
         </div>
         <div className="tickets-stat-card stat-resolved">
@@ -361,7 +372,7 @@ export default function TicketListClient({
           </div>
           <div className="tickets-stat-info">
             <span className="tickets-stat-value">{stats.resolved}</span>
-            <span className="tickets-stat-label">Resolved</span>
+            <span className="tickets-stat-label">{t("ticketStatusResolved")}</span>
           </div>
         </div>
         <div className="tickets-stat-card stat-closed">
@@ -370,7 +381,7 @@ export default function TicketListClient({
           </div>
           <div className="tickets-stat-info">
             <span className="tickets-stat-value">{stats.closed}</span>
-            <span className="tickets-stat-label">Closed</span>
+            <span className="tickets-stat-label">{t("ticketStatusClosed")}</span>
           </div>
         </div>
       </div>
@@ -381,7 +392,7 @@ export default function TicketListClient({
           <Search size={16} className="tickets-search-icon" />
           <input
             type="text"
-            placeholder="Search tickets..."
+            placeholder={t("searchTickets")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -392,8 +403,8 @@ export default function TicketListClient({
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as TicketStatus | "all")}
         >
-          <option value="all">All Status</option>
-          {(Object.keys(STATUS_LABELS) as TicketStatus[]).map((s) => (
+          <option value="all">{t("allStatus")}</option>
+          {STATUS_KEYS.map((s) => (
             <option key={s} value={s}>
               {STATUS_LABELS[s]}
             </option>
@@ -405,8 +416,8 @@ export default function TicketListClient({
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value as TicketPriority | "all")}
         >
-          <option value="all">All Priority</option>
-          {(Object.keys(PRIORITY_LABELS) as TicketPriority[]).map((p) => (
+          <option value="all">{t("allPriority")}</option>
+          {PRIORITY_KEYS.map((p) => (
             <option key={p} value={p}>
               {PRIORITY_LABELS[p]}
             </option>
@@ -418,11 +429,11 @@ export default function TicketListClient({
           value={assigneeFilter}
           onChange={(e) => setAssigneeFilter(e.target.value)}
         >
-          <option value="all">All Assignees</option>
-          <option value="unassigned">Unassigned</option>
+          <option value="all">{t("allAssignees")}</option>
+          <option value="unassigned">{t("unassigned")}</option>
           {members.map((m) => (
             <option key={m.user_id} value={m.user_id}>
-              {m.user?.full_name || m.user?.email || "Unknown"}
+              {m.user?.full_name || m.user?.email || t("unknown")}
             </option>
           ))}
         </select>
@@ -436,17 +447,17 @@ export default function TicketListClient({
           </div>
           {tickets.length === 0 ? (
             <>
-              <h3>No tickets yet</h3>
-              <p>Create your first support ticket to get started.</p>
+              <h3>{t("noTicketsYet")}</h3>
+              <p>{t("createFirstTicketDesc")}</p>
               <button className="btn-primary" onClick={() => setShowCreate(true)}>
                 <Plus size={16} />
-                New Ticket
+                {t("newTicket")}
               </button>
             </>
           ) : (
             <>
-              <h3>No matching tickets</h3>
-              <p>Try adjusting your search or filter criteria.</p>
+              <h3>{t("noMatchingTickets")}</h3>
+              <p>{t("tryAdjustingFilters")}</p>
             </>
           )}
         </div>
@@ -455,14 +466,14 @@ export default function TicketListClient({
           <table className="tickets-table">
             <thead>
               <tr>
-                <th>Ticket #</th>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Category</th>
-                <th>Assignee</th>
-                <th>Created</th>
-                <th>Updated</th>
+                <th>{t("ticketNumber")}</th>
+                <th>{t("title")}</th>
+                <th>{t("status")}</th>
+                <th>{t("priority")}</th>
+                <th>{t("category")}</th>
+                <th>{t("assignee")}</th>
+                <th>{t("created")}</th>
+                <th>{t("updated")}</th>
               </tr>
             </thead>
             <tbody>
@@ -508,7 +519,7 @@ export default function TicketListClient({
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Create New Ticket</h3>
+              <h3>{t("createNewTicket")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -523,7 +534,7 @@ export default function TicketListClient({
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Title *</label>
+                <label className="ticket-form-label">{t("title")} *</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -531,27 +542,27 @@ export default function TicketListClient({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="Brief description of the issue"
+                  placeholder={t("briefDescriptionOfIssue")}
                   required
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Description</label>
+                <label className="ticket-form-label">{t("description")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Provide more details about the issue..."
+                  placeholder={t("provideMoreDetailsAboutIssue")}
                   rows={4}
                 />
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Priority</label>
+                  <label className="ticket-form-label">{t("priority")}</label>
                   <select
                     className="ticket-form-select"
                     value={formData.priority}
@@ -562,7 +573,7 @@ export default function TicketListClient({
                       })
                     }
                   >
-                    {(Object.keys(PRIORITY_LABELS) as TicketPriority[]).map((p) => (
+                    {PRIORITY_KEYS.map((p) => (
                       <option key={p} value={p}>
                         {PRIORITY_LABELS[p]}
                       </option>
@@ -571,7 +582,7 @@ export default function TicketListClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Category</label>
+                  <label className="ticket-form-label">{t("category")}</label>
                   <select
                     className="ticket-form-select"
                     value={formData.category}
@@ -579,7 +590,7 @@ export default function TicketListClient({
                       setFormData({ ...formData, category: e.target.value })
                     }
                   >
-                    <option value="">Select category...</option>
+                    <option value="">{t("selectCategory")}</option>
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>
                         {c}
@@ -590,7 +601,7 @@ export default function TicketListClient({
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Assign To</label>
+                <label className="ticket-form-label">{t("assignTo")}</label>
                 <select
                   className="ticket-form-select"
                   value={formData.assigned_to}
@@ -598,17 +609,17 @@ export default function TicketListClient({
                     setFormData({ ...formData, assigned_to: e.target.value })
                   }
                 >
-                  <option value="">Unassigned</option>
+                  <option value="">{t("unassigned")}</option>
                   {members.map((m) => (
                     <option key={m.user_id} value={m.user_id}>
-                      {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
+                      {m.user?.full_name || m.user?.email || t("unknown")} ({m.role})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Tags</label>
+                <label className="ticket-form-label">{t("tags")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -616,7 +627,7 @@ export default function TicketListClient({
                   onChange={(e) =>
                     setFormData({ ...formData, tags: e.target.value })
                   }
-                  placeholder="Comma-separated tags (e.g. network, urgent, site-a)"
+                  placeholder={t("commaSeparatedTagsPlaceholder")}
                 />
               </div>
 
@@ -626,14 +637,14 @@ export default function TicketListClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !formData.title.trim()}
                 >
-                  {creating ? "Creating..." : "Create Ticket"}
+                  {creating ? t("creating") : t("createTicket")}
                 </button>
               </div>
             </form>
@@ -648,7 +659,7 @@ export default function TicketListClient({
             <div className="ticket-modal-header">
               <h3>
                 {isEditing
-                  ? `Edit ${selectedTicket.ticket_number}`
+                  ? t("editTicketNumber", { number: selectedTicket.ticket_number })
                   : selectedTicket.ticket_number}
               </h3>
               <button className="ticket-modal-close" onClick={closeDetail}>
@@ -677,7 +688,7 @@ export default function TicketListClient({
                   style={{ maxWidth: 440 }}
                 >
                   <div className="ticket-modal-header">
-                    <h3>Delete Ticket</h3>
+                    <h3>{t("deleteTicket")}</h3>
                     <button
                       className="ticket-modal-close"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -687,9 +698,7 @@ export default function TicketListClient({
                   </div>
                   <div style={{ padding: "1rem 1.5rem" }}>
                     <p>
-                      Are you sure you want to delete ticket{" "}
-                      <strong>{selectedTicket.ticket_number}</strong>? This action
-                      cannot be undone.
+                      {t("confirmDeleteTicket", { number: selectedTicket.ticket_number })}
                     </p>
                   </div>
                   <div className="ticket-form-actions">
@@ -699,7 +708,7 @@ export default function TicketListClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="button"
@@ -708,7 +717,7 @@ export default function TicketListClient({
                       onClick={handleDelete}
                       disabled={saving}
                     >
-                      {saving ? "Deleting..." : "Delete"}
+                      {saving ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 </div>
@@ -719,7 +728,7 @@ export default function TicketListClient({
             {!isEditing && (
               <div className="ticket-form" style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Title</label>
+                  <label className="ticket-form-label">{t("title")}</label>
                   <div className="ticket-detail-value">
                     {selectedTicket.title}
                   </div>
@@ -727,7 +736,7 @@ export default function TicketListClient({
 
                 {selectedTicket.description && (
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Description</label>
+                    <label className="ticket-form-label">{t("description")}</label>
                     <div className="ticket-detail-value--multiline">
                       {selectedTicket.description}
                     </div>
@@ -736,7 +745,7 @@ export default function TicketListClient({
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Status</label>
+                    <label className="ticket-form-label">{t("status")}</label>
                     <div className="ticket-detail-value">
                       <span className={`ticket-status-badge status-${selectedTicket.status}`}>
                         {STATUS_LABELS[selectedTicket.status] ?? selectedTicket.status}
@@ -744,7 +753,7 @@ export default function TicketListClient({
                     </div>
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Priority</label>
+                    <label className="ticket-form-label">{t("priority")}</label>
                     <div className="ticket-detail-value">
                       <span className={`ticket-priority-badge priority-${selectedTicket.priority}`}>
                         {PRIORITY_LABELS[selectedTicket.priority] ?? selectedTicket.priority}
@@ -755,13 +764,13 @@ export default function TicketListClient({
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Category</label>
+                    <label className="ticket-form-label">{t("category")}</label>
                     <div className={`ticket-detail-value${!selectedTicket.category ? " ticket-detail-value--empty" : ""}`}>
-                      {selectedTicket.category || "Not set"}
+                      {selectedTicket.category || t("notSet")}
                     </div>
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Assignee</label>
+                    <label className="ticket-form-label">{t("assignee")}</label>
                     <div className="ticket-detail-value">
                       {getUserName(selectedTicket.assignee)}
                     </div>
@@ -770,7 +779,7 @@ export default function TicketListClient({
 
                 {selectedTicket.tags && selectedTicket.tags.length > 0 && (
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Tags</label>
+                    <label className="ticket-form-label">{t("tags")}</label>
                     <div className="ticket-detail-value">
                       {selectedTicket.tags.join(", ")}
                     </div>
@@ -779,13 +788,13 @@ export default function TicketListClient({
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Created</label>
+                    <label className="ticket-form-label">{t("created")}</label>
                     <div className="ticket-detail-value">
                       {formatDate(selectedTicket.created_at)}
                     </div>
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Updated</label>
+                    <label className="ticket-form-label">{t("updated")}</label>
                     <div className="ticket-detail-value">
                       {formatDate(selectedTicket.updated_at)}
                     </div>
@@ -794,7 +803,7 @@ export default function TicketListClient({
 
                 {selectedTicket.resolved_at && (
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Resolved</label>
+                    <label className="ticket-form-label">{t("resolved")}</label>
                     <div className="ticket-detail-value">
                       {formatDate(selectedTicket.resolved_at)}
                     </div>
@@ -809,14 +818,14 @@ export default function TicketListClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("close")}
                   </button>
                   <button
                     type="button"
@@ -824,7 +833,7 @@ export default function TicketListClient({
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -834,7 +843,7 @@ export default function TicketListClient({
             {isEditing && (
               <div className="ticket-form">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Title *</label>
+                  <label className="ticket-form-label">{t("title")} *</label>
                   <input
                     type="text"
                     className="ticket-form-input"
@@ -847,7 +856,7 @@ export default function TicketListClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Description</label>
+                  <label className="ticket-form-label">{t("description")}</label>
                   <textarea
                     className="ticket-form-textarea"
                     value={(editData.description as string) || ""}
@@ -860,7 +869,7 @@ export default function TicketListClient({
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Status</label>
+                    <label className="ticket-form-label">{t("status")}</label>
                     <select
                       className="ticket-form-select"
                       value={(editData.status as string) || "open"}
@@ -868,7 +877,7 @@ export default function TicketListClient({
                         setEditData({ ...editData, status: e.target.value })
                       }
                     >
-                      {(Object.keys(STATUS_LABELS) as TicketStatus[]).map((s) => (
+                      {STATUS_KEYS.map((s) => (
                         <option key={s} value={s}>
                           {STATUS_LABELS[s]}
                         </option>
@@ -876,7 +885,7 @@ export default function TicketListClient({
                     </select>
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Priority</label>
+                    <label className="ticket-form-label">{t("priority")}</label>
                     <select
                       className="ticket-form-select"
                       value={(editData.priority as string) || "medium"}
@@ -884,7 +893,7 @@ export default function TicketListClient({
                         setEditData({ ...editData, priority: e.target.value })
                       }
                     >
-                      {(Object.keys(PRIORITY_LABELS) as TicketPriority[]).map((p) => (
+                      {PRIORITY_KEYS.map((p) => (
                         <option key={p} value={p}>
                           {PRIORITY_LABELS[p]}
                         </option>
@@ -895,7 +904,7 @@ export default function TicketListClient({
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Category</label>
+                    <label className="ticket-form-label">{t("category")}</label>
                     <select
                       className="ticket-form-select"
                       value={(editData.category as string) || ""}
@@ -903,7 +912,7 @@ export default function TicketListClient({
                         setEditData({ ...editData, category: e.target.value })
                       }
                     >
-                      <option value="">Select category...</option>
+                      <option value="">{t("selectCategory")}</option>
                       {CATEGORIES.map((c) => (
                         <option key={c} value={c}>
                           {c}
@@ -912,7 +921,7 @@ export default function TicketListClient({
                     </select>
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Assign To</label>
+                    <label className="ticket-form-label">{t("assignTo")}</label>
                     <select
                       className="ticket-form-select"
                       value={(editData.assigned_to as string) || ""}
@@ -920,10 +929,10 @@ export default function TicketListClient({
                         setEditData({ ...editData, assigned_to: e.target.value })
                       }
                     >
-                      <option value="">Unassigned</option>
+                      <option value="">{t("unassigned")}</option>
                       {members.map((m) => (
                         <option key={m.user_id} value={m.user_id}>
-                          {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
+                          {m.user?.full_name || m.user?.email || t("unknown")} ({m.role})
                         </option>
                       ))}
                     </select>
@@ -937,7 +946,7 @@ export default function TicketListClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -945,7 +954,7 @@ export default function TicketListClient({
                     onClick={handleSave}
                     disabled={saving || !(editData.title as string)?.trim()}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>

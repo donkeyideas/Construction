@@ -1,64 +1,70 @@
 "use client";
 
-const integrations = [
-  {
-    name: "QuickBooks Online",
-    description: "Sync invoices, payments, and chart of accounts with QuickBooks.",
-    category: "Accounting",
-    status: "not_connected",
-  },
-  {
-    name: "Procore",
-    description: "Sync projects, RFIs, submittals, and daily logs with Procore.",
-    category: "Project Management",
-    status: "not_connected",
-  },
-  {
-    name: "PlanGrid",
-    description: "Drawing and document management integration.",
-    category: "Documents",
-    status: "not_connected",
-  },
-  {
-    name: "Stripe",
-    description: "Accept online payments from clients and tenants.",
-    category: "Payments",
-    status: "not_connected",
-  },
-  {
-    name: "Google Workspace",
-    description: "Calendar sync, email notifications, and Drive storage.",
-    category: "Productivity",
-    status: "not_connected",
-  },
-  {
-    name: "Slack",
-    description: "Send notifications and alerts to Slack channels.",
-    category: "Communication",
-    status: "not_connected",
-  },
-  {
-    name: "Zapier",
-    description: "Connect to 5,000+ apps with custom automations.",
-    category: "Automation",
-    status: "not_connected",
-  },
-  {
-    name: "Microsoft 365",
-    description: "Outlook calendar, Teams notifications, and OneDrive storage.",
-    category: "Productivity",
-    status: "not_connected",
-  },
-];
+import { useTranslations, useLocale } from "next-intl";
 
 export default function IntegrationsClient() {
+  const t = useTranslations("adminPanel");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const integrations = [
+    {
+      name: "QuickBooks Online",
+      description: t("quickbooksDescription"),
+      category: t("categoryAccounting"),
+      status: "not_connected",
+    },
+    {
+      name: "Procore",
+      description: t("procoreDescription"),
+      category: t("categoryProjectManagement"),
+      status: "not_connected",
+    },
+    {
+      name: "PlanGrid",
+      description: t("plangridDescription"),
+      category: t("categoryDocuments"),
+      status: "not_connected",
+    },
+    {
+      name: "Stripe",
+      description: t("stripeDescription"),
+      category: t("categoryPayments"),
+      status: "not_connected",
+    },
+    {
+      name: "Google Workspace",
+      description: t("googleWorkspaceDescription"),
+      category: t("categoryProductivity"),
+      status: "not_connected",
+    },
+    {
+      name: "Slack",
+      description: t("slackDescription"),
+      category: t("categoryCommunication"),
+      status: "not_connected",
+    },
+    {
+      name: "Zapier",
+      description: t("zapierDescription"),
+      category: t("categoryAutomation"),
+      status: "not_connected",
+    },
+    {
+      name: "Microsoft 365",
+      description: t("microsoft365Description"),
+      category: t("categoryProductivity"),
+      status: "not_connected",
+    },
+  ];
+
   return (
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>Integrations</h1>
+          <h1>{t("integrations")}</h1>
           <p className="page-subtitle">
-            Connect your tools and services
+            {t("connectYourToolsAndServices")}
           </p>
         </div>
       </div>
@@ -124,7 +130,7 @@ export default function IntegrationsClient() {
                   color: "#6b7280",
                 }}
               >
-                Not Connected
+                {t("notConnected")}
               </span>
               <button
                 className="btn-secondary"
@@ -137,7 +143,7 @@ export default function IntegrationsClient() {
                 }}
                 disabled
               >
-                Connect
+                {t("connect")}
               </button>
             </div>
           </div>

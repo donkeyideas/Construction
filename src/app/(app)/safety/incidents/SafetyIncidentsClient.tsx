@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
   Plus,
@@ -26,77 +27,6 @@ import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 // ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const STATUS_LABELS: Record<IncidentStatus, string> = {
-  reported: "Reported",
-  investigating: "Investigating",
-  corrective_action: "Corrective Action",
-  closed: "Closed",
-};
-
-const SEVERITY_LABELS: Record<IncidentSeverity, string> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  critical: "Critical",
-};
-
-const TYPE_LABELS: Record<IncidentType, string> = {
-  near_miss: "Near Miss",
-  first_aid: "First Aid",
-  recordable: "Recordable",
-  lost_time: "Lost Time",
-  fatality: "Fatality",
-  property_damage: "Property Damage",
-};
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "title", label: "Title", required: true },
-  { key: "description", label: "Description", required: false },
-  { key: "incident_type", label: "Incident Type", required: false },
-  { key: "severity", label: "Severity", required: false },
-  { key: "incident_date", label: "Incident Date", required: false, type: "date" },
-  { key: "location", label: "Location", required: false },
-  { key: "osha_recordable", label: "OSHA Recordable", required: false },
-];
-
-const IMPORT_SAMPLE: Record<string, string>[] = [
-  { title: "Slip and fall near excavation", description: "Worker slipped on wet surface near trench", incident_type: "near_miss", severity: "low", incident_date: "2026-01-20", location: "Building A excavation", osha_recordable: "false" },
-  { title: "Ladder tip-over on 3rd floor", description: "Extension ladder slipped on polished concrete causing 6 ft fall", incident_type: "recordable", severity: "high", incident_date: "2026-01-22", location: "Building B - 3rd floor", osha_recordable: "true" },
-  { title: "Struck by falling pipe fitting", description: "Pipe fitting dropped from overhead rough-in and struck worker on shoulder", incident_type: "first_aid", severity: "medium", incident_date: "2026-01-25", location: "Mechanical room", osha_recordable: "false" },
-];
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatDateShort(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function getUserName(
-  user: { id: string; full_name: string; email: string } | null | undefined
-): string {
-  if (!user) return "Unassigned";
-  return user.full_name || user.email || "Unknown";
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -118,6 +48,80 @@ export default function SafetyIncidentsClient({
   companyId,
 }: SafetyIncidentsClientProps) {
   const router = useRouter();
+  const t = useTranslations("safety");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  // ---------------------------------------------------------------------------
+  // Constants (translated)
+  // ---------------------------------------------------------------------------
+
+  const STATUS_LABELS: Record<IncidentStatus, string> = {
+    reported: t("statusReported"),
+    investigating: t("statusInvestigating"),
+    corrective_action: t("statusCorrectiveAction"),
+    closed: t("statusClosed"),
+  };
+
+  const SEVERITY_LABELS: Record<IncidentSeverity, string> = {
+    low: t("severityLow"),
+    medium: t("severityMedium"),
+    high: t("severityHigh"),
+    critical: t("severityCritical"),
+  };
+
+  const TYPE_LABELS: Record<IncidentType, string> = {
+    near_miss: t("typeNearMiss"),
+    first_aid: t("typeFirstAid"),
+    recordable: t("typeRecordable"),
+    lost_time: t("typeLostTime"),
+    fatality: t("typeFatality"),
+    property_damage: t("typePropertyDamage"),
+  };
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "title", label: t("title"), required: true },
+    { key: "description", label: t("description"), required: false },
+    { key: "incident_type", label: t("incidentType"), required: false },
+    { key: "severity", label: t("severity"), required: false },
+    { key: "incident_date", label: t("incidentDate"), required: false, type: "date" },
+    { key: "location", label: t("location"), required: false },
+    { key: "osha_recordable", label: t("oshaRecordable"), required: false },
+  ];
+
+  const IMPORT_SAMPLE: Record<string, string>[] = [
+    { title: "Slip and fall near excavation", description: "Worker slipped on wet surface near trench", incident_type: "near_miss", severity: "low", incident_date: "2026-01-20", location: "Building A excavation", osha_recordable: "false" },
+    { title: "Ladder tip-over on 3rd floor", description: "Extension ladder slipped on polished concrete causing 6 ft fall", incident_type: "recordable", severity: "high", incident_date: "2026-01-22", location: "Building B - 3rd floor", osha_recordable: "true" },
+    { title: "Struck by falling pipe fitting", description: "Pipe fitting dropped from overhead rough-in and struck worker on shoulder", incident_type: "first_aid", severity: "medium", incident_date: "2026-01-25", location: "Mechanical room", osha_recordable: "false" },
+  ];
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatDateShort(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  function getUserName(
+    user: { id: string; full_name: string; email: string } | null | undefined
+  ): string {
+    if (!user) return t("unassigned");
+    return user.full_name || user.email || t("unknown");
+  }
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<IncidentStatus | "all">("all");
@@ -207,7 +211,7 @@ export default function SafetyIncidentsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create incident");
+        throw new Error(data.error || t("failedToCreateIncident"));
       }
 
       // Reset form and close modal
@@ -225,7 +229,7 @@ export default function SafetyIncidentsClient({
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create incident");
+      setCreateError(err instanceof Error ? err.message : t("failedToCreateIncident"));
     } finally {
       setCreating(false);
     }
@@ -328,13 +332,13 @@ export default function SafetyIncidentsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update incident");
+        throw new Error(data.error || t("failedToUpdateIncident"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update incident");
+      setSaveError(err instanceof Error ? err.message : t("failedToUpdateIncident"));
     } finally {
       setSaving(false);
     }
@@ -353,13 +357,13 @@ export default function SafetyIncidentsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete incident");
+        throw new Error(data.error || t("failedToDeleteIncident"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to delete incident");
+      setSaveError(err instanceof Error ? err.message : t("failedToDeleteIncident"));
     } finally {
       setSaving(false);
     }
@@ -373,7 +377,7 @@ export default function SafetyIncidentsClient({
       body: JSON.stringify({ entity: "safety_incidents", rows, project_id: importProjectId }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -383,19 +387,19 @@ export default function SafetyIncidentsClient({
       {/* Header */}
       <div className="safety-header">
         <div>
-          <h2>Safety Incidents</h2>
+          <h2>{t("safetyIncidents")}</h2>
           <p className="safety-header-sub">
-            {stats.total} incident{stats.total !== 1 ? "s" : ""} total
+            {t("incidentsTotalCount", { count: stats.total })}
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            Report Incident
+            {t("reportIncident")}
           </button>
         </div>
       </div>
@@ -408,7 +412,7 @@ export default function SafetyIncidentsClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{stats.reported}</span>
-            <span className="safety-stat-label">Reported</span>
+            <span className="safety-stat-label">{t("statusReported")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-investigating">
@@ -417,7 +421,7 @@ export default function SafetyIncidentsClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{stats.investigating}</span>
-            <span className="safety-stat-label">Investigating</span>
+            <span className="safety-stat-label">{t("statusInvestigating")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-corrective">
@@ -426,7 +430,7 @@ export default function SafetyIncidentsClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{stats.corrective_action}</span>
-            <span className="safety-stat-label">Corrective Action</span>
+            <span className="safety-stat-label">{t("statusCorrectiveAction")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-closed">
@@ -435,7 +439,7 @@ export default function SafetyIncidentsClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{stats.closed}</span>
-            <span className="safety-stat-label">Closed</span>
+            <span className="safety-stat-label">{t("statusClosed")}</span>
           </div>
         </div>
       </div>
@@ -446,7 +450,7 @@ export default function SafetyIncidentsClient({
           <Search size={16} className="safety-search-icon" />
           <input
             type="text"
-            placeholder="Search incidents..."
+            placeholder={t("searchIncidents")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -457,7 +461,7 @@ export default function SafetyIncidentsClient({
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as IncidentStatus | "all")}
         >
-          <option value="all">All Status</option>
+          <option value="all">{t("allStatus")}</option>
           {(Object.keys(STATUS_LABELS) as IncidentStatus[]).map((s) => (
             <option key={s} value={s}>
               {STATUS_LABELS[s]}
@@ -470,7 +474,7 @@ export default function SafetyIncidentsClient({
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value as IncidentSeverity | "all")}
         >
-          <option value="all">All Severity</option>
+          <option value="all">{t("allSeverity")}</option>
           {(Object.keys(SEVERITY_LABELS) as IncidentSeverity[]).map((s) => (
             <option key={s} value={s}>
               {SEVERITY_LABELS[s]}
@@ -483,10 +487,10 @@ export default function SafetyIncidentsClient({
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as IncidentType | "all")}
         >
-          <option value="all">All Types</option>
-          {(Object.keys(TYPE_LABELS) as IncidentType[]).map((t) => (
-            <option key={t} value={t}>
-              {TYPE_LABELS[t]}
+          <option value="all">{t("allTypes")}</option>
+          {(Object.keys(TYPE_LABELS) as IncidentType[]).map((tp) => (
+            <option key={tp} value={tp}>
+              {TYPE_LABELS[tp]}
             </option>
           ))}
         </select>
@@ -500,17 +504,17 @@ export default function SafetyIncidentsClient({
           </div>
           {incidents.length === 0 ? (
             <>
-              <h3>No incidents reported</h3>
-              <p>Report your first safety incident to get started.</p>
+              <h3>{t("noIncidentsReported")}</h3>
+              <p>{t("reportFirstIncidentDesc")}</p>
               <button className="btn-primary" onClick={() => setShowCreate(true)}>
                 <Plus size={16} />
-                Report Incident
+                {t("reportIncident")}
               </button>
             </>
           ) : (
             <>
-              <h3>No matching incidents</h3>
-              <p>Try adjusting your search or filter criteria.</p>
+              <h3>{t("noMatchingIncidents")}</h3>
+              <p>{t("tryAdjustingFilters")}</p>
             </>
           )}
         </div>
@@ -519,14 +523,14 @@ export default function SafetyIncidentsClient({
           <table className="safety-table">
             <thead>
               <tr>
-                <th>Incident #</th>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Severity</th>
-                <th>Status</th>
-                <th>Project</th>
-                <th>Reported By</th>
-                <th>Date</th>
+                <th>{t("incidentNumber")}</th>
+                <th>{t("title")}</th>
+                <th>{t("type")}</th>
+                <th>{t("severity")}</th>
+                <th>{t("status")}</th>
+                <th>{t("project")}</th>
+                <th>{t("reportedBy")}</th>
+                <th>{t("date")}</th>
               </tr>
             </thead>
             <tbody>
@@ -572,7 +576,7 @@ export default function SafetyIncidentsClient({
         <div className="safety-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="safety-modal" onClick={(e) => e.stopPropagation()}>
             <div className="safety-modal-header">
-              <h3>Report New Incident</h3>
+              <h3>{t("reportNewIncident")}</h3>
               <button
                 className="safety-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -587,7 +591,7 @@ export default function SafetyIncidentsClient({
 
             <form onSubmit={handleCreate} className="safety-form">
               <div className="safety-form-group">
-                <label className="safety-form-label">Title *</label>
+                <label className="safety-form-label">{t("titleRequired")}</label>
                 <input
                   type="text"
                   className="safety-form-input"
@@ -595,27 +599,27 @@ export default function SafetyIncidentsClient({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="Brief description of the incident"
+                  placeholder={t("briefIncidentDescription")}
                   required
                 />
               </div>
 
               <div className="safety-form-group">
-                <label className="safety-form-label">Description</label>
+                <label className="safety-form-label">{t("description")}</label>
                 <textarea
                   className="safety-form-textarea"
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Provide more details about the incident..."
+                  placeholder={t("provideMoreDetails")}
                   rows={4}
                 />
               </div>
 
               <div className="safety-form-row">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Incident Type</label>
+                  <label className="safety-form-label">{t("incidentType")}</label>
                   <select
                     className="safety-form-select"
                     value={formData.incident_type}
@@ -626,16 +630,16 @@ export default function SafetyIncidentsClient({
                       })
                     }
                   >
-                    {(Object.keys(TYPE_LABELS) as IncidentType[]).map((t) => (
-                      <option key={t} value={t}>
-                        {TYPE_LABELS[t]}
+                    {(Object.keys(TYPE_LABELS) as IncidentType[]).map((tp) => (
+                      <option key={tp} value={tp}>
+                        {TYPE_LABELS[tp]}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Severity</label>
+                  <label className="safety-form-label">{t("severity")}</label>
                   <select
                     className="safety-form-select"
                     value={formData.severity}
@@ -657,7 +661,7 @@ export default function SafetyIncidentsClient({
 
               <div className="safety-form-row">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Project</label>
+                  <label className="safety-form-label">{t("project")}</label>
                   <select
                     className="safety-form-select"
                     value={formData.project_id}
@@ -665,7 +669,7 @@ export default function SafetyIncidentsClient({
                       setFormData({ ...formData, project_id: e.target.value })
                     }
                   >
-                    <option value="">No project</option>
+                    <option value="">{t("noProject")}</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -675,7 +679,7 @@ export default function SafetyIncidentsClient({
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Assign To</label>
+                  <label className="safety-form-label">{t("assignTo")}</label>
                   <select
                     className="safety-form-select"
                     value={formData.assigned_to}
@@ -683,10 +687,10 @@ export default function SafetyIncidentsClient({
                       setFormData({ ...formData, assigned_to: e.target.value })
                     }
                   >
-                    <option value="">Unassigned</option>
+                    <option value="">{t("unassigned")}</option>
                     {members.map((m) => (
                       <option key={m.user_id} value={m.user_id}>
-                        {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
+                        {m.user?.full_name || m.user?.email || t("unknown")} ({m.role})
                       </option>
                     ))}
                   </select>
@@ -695,7 +699,7 @@ export default function SafetyIncidentsClient({
 
               <div className="safety-form-row">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Incident Date</label>
+                  <label className="safety-form-label">{t("incidentDate")}</label>
                   <input
                     type="date"
                     className="safety-form-input"
@@ -707,7 +711,7 @@ export default function SafetyIncidentsClient({
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Location</label>
+                  <label className="safety-form-label">{t("location")}</label>
                   <input
                     type="text"
                     className="safety-form-input"
@@ -715,7 +719,7 @@ export default function SafetyIncidentsClient({
                     onChange={(e) =>
                       setFormData({ ...formData, location: e.target.value })
                     }
-                    placeholder="e.g. Building A, Floor 3"
+                    placeholder={t("locationPlaceholder")}
                   />
                 </div>
               </div>
@@ -729,7 +733,7 @@ export default function SafetyIncidentsClient({
                       setFormData({ ...formData, osha_recordable: e.target.checked })
                     }
                   />
-                  OSHA Recordable
+                  {t("oshaRecordable")}
                 </label>
               </div>
 
@@ -739,14 +743,14 @@ export default function SafetyIncidentsClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !formData.title.trim()}
                 >
-                  {creating ? "Reporting..." : "Report Incident"}
+                  {creating ? t("reporting") : t("reportIncident")}
                 </button>
               </div>
             </form>
@@ -761,7 +765,7 @@ export default function SafetyIncidentsClient({
             <div className="safety-modal-header">
               <h3>
                 {isEditing
-                  ? `Edit ${selectedIncident.incident_number}`
+                  ? t("editIncidentNumber", { number: selectedIncident.incident_number })
                   : selectedIncident.incident_number}
               </h3>
               <button className="safety-modal-close" onClick={closeDetail}>
@@ -790,7 +794,7 @@ export default function SafetyIncidentsClient({
                   style={{ maxWidth: 440 }}
                 >
                   <div className="safety-modal-header">
-                    <h3>Delete Incident</h3>
+                    <h3>{t("deleteIncident")}</h3>
                     <button
                       className="safety-modal-close"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -800,9 +804,7 @@ export default function SafetyIncidentsClient({
                   </div>
                   <div style={{ padding: "1rem 1.5rem" }}>
                     <p>
-                      Are you sure you want to delete incident{" "}
-                      <strong>{selectedIncident.incident_number}</strong>? This action
-                      cannot be undone.
+                      {t("deleteIncidentConfirm", { number: selectedIncident.incident_number })}
                     </p>
                   </div>
                   <div className="safety-form-actions">
@@ -812,7 +814,7 @@ export default function SafetyIncidentsClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="button"
@@ -821,7 +823,7 @@ export default function SafetyIncidentsClient({
                       onClick={handleDelete}
                       disabled={saving}
                     >
-                      {saving ? "Deleting..." : "Delete"}
+                      {saving ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 </div>
@@ -832,20 +834,20 @@ export default function SafetyIncidentsClient({
             {!isEditing && (
               <div style={{ padding: "1.25rem", pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
                 <div className="detail-group">
-                  <label className="detail-label">Title</label>
+                  <label className="detail-label">{t("title")}</label>
                   <div className="detail-value">{selectedIncident.title}</div>
                 </div>
 
                 {selectedIncident.description && (
                   <div className="detail-group">
-                    <label className="detail-label">Description</label>
+                    <label className="detail-label">{t("description")}</label>
                     <div className="detail-value--multiline">{selectedIncident.description}</div>
                   </div>
                 )}
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Status</label>
+                    <label className="detail-label">{t("status")}</label>
                     <div className="detail-value">
                       <span className={`safety-status-badge status-${selectedIncident.status}`}>
                         {STATUS_LABELS[selectedIncident.status] ?? selectedIncident.status}
@@ -853,7 +855,7 @@ export default function SafetyIncidentsClient({
                     </div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Severity</label>
+                    <label className="detail-label">{t("severity")}</label>
                     <div className="detail-value">
                       <span className={`safety-severity-badge severity-${selectedIncident.severity}`}>
                         {SEVERITY_LABELS[selectedIncident.severity] ?? selectedIncident.severity}
@@ -864,60 +866,60 @@ export default function SafetyIncidentsClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Type</label>
+                    <label className="detail-label">{t("type")}</label>
                     <div className="detail-value">
                       {TYPE_LABELS[selectedIncident.incident_type] ?? selectedIncident.incident_type}
                     </div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Project</label>
+                    <label className="detail-label">{t("project")}</label>
                     <div className="detail-value">{selectedIncident.project?.name || "--"}</div>
                   </div>
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Assigned To</label>
+                    <label className="detail-label">{t("assignedTo")}</label>
                     <div className="detail-value">{getUserName(selectedIncident.assignee)}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Location</label>
+                    <label className="detail-label">{t("location")}</label>
                     <div className="detail-value">{selectedIncident.location || "--"}</div>
                   </div>
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Incident Date</label>
+                    <label className="detail-label">{t("incidentDate")}</label>
                     <div className="detail-value">{formatDate(selectedIncident.incident_date)}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">OSHA Recordable</label>
-                    <div className="detail-value">{selectedIncident.osha_recordable ? "Yes" : "No"}</div>
+                    <label className="detail-label">{t("oshaRecordable")}</label>
+                    <div className="detail-value">{selectedIncident.osha_recordable ? t("yes") : t("no")}</div>
                   </div>
                 </div>
 
                 {selectedIncident.corrective_actions && (
                   <div className="detail-group">
-                    <label className="detail-label">Corrective Actions</label>
+                    <label className="detail-label">{t("correctiveActions")}</label>
                     <div className="detail-value--multiline">{selectedIncident.corrective_actions}</div>
                   </div>
                 )}
 
                 {selectedIncident.root_cause && (
                   <div className="detail-group">
-                    <label className="detail-label">Root Cause</label>
+                    <label className="detail-label">{t("rootCause")}</label>
                     <div className="detail-value--multiline">{selectedIncident.root_cause}</div>
                   </div>
                 )}
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Reported</label>
+                    <label className="detail-label">{t("reported")}</label>
                     <div className="detail-value">{formatDate(selectedIncident.created_at)}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Reported By</label>
+                    <label className="detail-label">{t("reportedBy")}</label>
                     <div className="detail-value">{getUserName(selectedIncident.reporter)}</div>
                   </div>
                 </div>
@@ -930,14 +932,14 @@ export default function SafetyIncidentsClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("close")}
                   </button>
                   <button
                     type="button"
@@ -945,7 +947,7 @@ export default function SafetyIncidentsClient({
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -955,7 +957,7 @@ export default function SafetyIncidentsClient({
             {isEditing && (
               <div className="safety-form">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Title *</label>
+                  <label className="safety-form-label">{t("titleRequired")}</label>
                   <input
                     type="text"
                     className="safety-form-input"
@@ -968,7 +970,7 @@ export default function SafetyIncidentsClient({
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Description</label>
+                  <label className="safety-form-label">{t("description")}</label>
                   <textarea
                     className="safety-form-textarea"
                     value={(editData.description as string) || ""}
@@ -981,7 +983,7 @@ export default function SafetyIncidentsClient({
 
                 <div className="safety-form-row">
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Status</label>
+                    <label className="safety-form-label">{t("status")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.status as string) || "reported"}
@@ -997,7 +999,7 @@ export default function SafetyIncidentsClient({
                     </select>
                   </div>
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Severity</label>
+                    <label className="safety-form-label">{t("severity")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.severity as string) || "medium"}
@@ -1016,7 +1018,7 @@ export default function SafetyIncidentsClient({
 
                 <div className="safety-form-row">
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Incident Type</label>
+                    <label className="safety-form-label">{t("incidentType")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.incident_type as string) || "near_miss"}
@@ -1024,15 +1026,15 @@ export default function SafetyIncidentsClient({
                         setEditData({ ...editData, incident_type: e.target.value })
                       }
                     >
-                      {(Object.keys(TYPE_LABELS) as IncidentType[]).map((t) => (
-                        <option key={t} value={t}>
-                          {TYPE_LABELS[t]}
+                      {(Object.keys(TYPE_LABELS) as IncidentType[]).map((tp) => (
+                        <option key={tp} value={tp}>
+                          {TYPE_LABELS[tp]}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Project</label>
+                    <label className="safety-form-label">{t("project")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.project_id as string) || ""}
@@ -1040,7 +1042,7 @@ export default function SafetyIncidentsClient({
                         setEditData({ ...editData, project_id: e.target.value })
                       }
                     >
-                      <option value="">No project</option>
+                      <option value="">{t("noProject")}</option>
                       {projects.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
@@ -1052,7 +1054,7 @@ export default function SafetyIncidentsClient({
 
                 <div className="safety-form-row">
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Assign To</label>
+                    <label className="safety-form-label">{t("assignTo")}</label>
                     <select
                       className="safety-form-select"
                       value={(editData.assigned_to as string) || ""}
@@ -1060,16 +1062,16 @@ export default function SafetyIncidentsClient({
                         setEditData({ ...editData, assigned_to: e.target.value })
                       }
                     >
-                      <option value="">Unassigned</option>
+                      <option value="">{t("unassigned")}</option>
                       {members.map((m) => (
                         <option key={m.user_id} value={m.user_id}>
-                          {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
+                          {m.user?.full_name || m.user?.email || t("unknown")} ({m.role})
                         </option>
                       ))}
                     </select>
                   </div>
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Location</label>
+                    <label className="safety-form-label">{t("location")}</label>
                     <input
                       type="text"
                       className="safety-form-input"
@@ -1077,14 +1079,14 @@ export default function SafetyIncidentsClient({
                       onChange={(e) =>
                         setEditData({ ...editData, location: e.target.value })
                       }
-                      placeholder="e.g. Building A, Floor 3"
+                      placeholder={t("locationPlaceholder")}
                     />
                   </div>
                 </div>
 
                 <div className="safety-form-row">
                   <div className="safety-form-group">
-                    <label className="safety-form-label">Incident Date</label>
+                    <label className="safety-form-label">{t("incidentDate")}</label>
                     <input
                       type="date"
                       className="safety-form-input"
@@ -1103,33 +1105,33 @@ export default function SafetyIncidentsClient({
                           setEditData({ ...editData, osha_recordable: e.target.checked })
                         }
                       />
-                      OSHA Recordable
+                      {t("oshaRecordable")}
                     </label>
                   </div>
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Corrective Actions</label>
+                  <label className="safety-form-label">{t("correctiveActions")}</label>
                   <textarea
                     className="safety-form-textarea"
                     value={(editData.corrective_actions as string) || ""}
                     onChange={(e) =>
                       setEditData({ ...editData, corrective_actions: e.target.value })
                     }
-                    placeholder="Describe corrective actions taken..."
+                    placeholder={t("describeCorrectiveActions")}
                     rows={3}
                   />
                 </div>
 
                 <div className="safety-form-group">
-                  <label className="safety-form-label">Root Cause</label>
+                  <label className="safety-form-label">{t("rootCause")}</label>
                   <textarea
                     className="safety-form-textarea"
                     value={(editData.root_cause as string) || ""}
                     onChange={(e) =>
                       setEditData({ ...editData, root_cause: e.target.value })
                     }
-                    placeholder="Describe the root cause..."
+                    placeholder={t("describeRootCause")}
                     rows={3}
                   />
                 </div>
@@ -1141,7 +1143,7 @@ export default function SafetyIncidentsClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -1149,7 +1151,7 @@ export default function SafetyIncidentsClient({
                     onClick={handleSave}
                     disabled={saving || !(editData.title as string)?.trim()}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>
@@ -1160,7 +1162,7 @@ export default function SafetyIncidentsClient({
 
       {showImport && (
         <ImportModal
-          entityName="Safety Incident"
+          entityName={t("safetyIncidentEntity")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}

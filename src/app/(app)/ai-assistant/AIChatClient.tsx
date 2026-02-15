@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import ReactMarkdown from "react-markdown";
@@ -119,6 +120,10 @@ export function AIChatClient({
   providerName,
   initialConversations,
 }: AIChatClientProps) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const [input, setInput] = useState("");
   const [conversations, setConversations] =
     useState<Conversation[]>(initialConversations);
@@ -169,21 +174,21 @@ export function AIChatClient({
 
           if (toolName === "queryProjects" && summary) {
             items.push({
-              title: "Projects Found",
+              title: t("aiProjectsFound"),
               value: String(summary.count ?? 0),
-              detail: `Avg ${summary.averageCompletion ?? 0}% complete`,
+              detail: t("aiAvgComplete", { pct: String(summary.averageCompletion ?? 0) }),
             });
             if (Number(summary.overBudgetCount ?? 0) > 0) {
               items.push({
-                title: "Over Budget",
+                title: t("aiOverBudget"),
                 value: String(summary.overBudgetCount),
-                detail: `${formatCurrency(Number(summary.totalVariance ?? 0))} total variance`,
+                detail: t("aiTotalVariance", { amount: formatCurrency(Number(summary.totalVariance ?? 0)) }),
                 type: "negative",
               });
             }
             if (Number(summary.totalContractValue ?? 0) > 0) {
               items.push({
-                title: "Total Contract Value",
+                title: t("aiTotalContractValue"),
                 value: formatCurrency(Number(summary.totalContractValue)),
               });
             }
@@ -192,7 +197,7 @@ export function AIChatClient({
           if (toolName === "queryFinancials" && summary) {
             if (summary.totalOutstanding !== undefined) {
               items.push({
-                title: "Outstanding Balance",
+                title: t("aiOutstandingBalance"),
                 value: formatCurrency(Number(summary.totalOutstanding)),
                 type:
                   Number(summary.overdueCount ?? 0) > 0
@@ -202,21 +207,21 @@ export function AIChatClient({
             }
             if (summary.accountsReceivable !== undefined) {
               items.push({
-                title: "Accounts Receivable",
+                title: t("aiAccountsReceivable"),
                 value: formatCurrency(Number(summary.accountsReceivable)),
               });
             }
             if (summary.accountsPayable !== undefined) {
               items.push({
-                title: "Accounts Payable",
+                title: t("aiAccountsPayable"),
                 value: formatCurrency(Number(summary.accountsPayable)),
               });
             }
             if (summary.totalOverdueAmount !== undefined) {
               items.push({
-                title: "Overdue Amount",
+                title: t("aiOverdueAmount"),
                 value: formatCurrency(Number(summary.totalOverdueAmount)),
-                detail: `${summary.count ?? 0} overdue invoices`,
+                detail: t("aiOverdueInvoices", { count: String(summary.count ?? 0) }),
                 type: "negative",
               });
             }
@@ -225,9 +230,9 @@ export function AIChatClient({
           if (toolName === "queryProperties" && summary) {
             if (Number(summary.count ?? 0) > 0) {
               items.push({
-                title: "Portfolio",
-                value: `${summary.count} properties`,
-                detail: `${summary.avgOccupancy ?? 0}% occupancy`,
+                title: t("aiPortfolio"),
+                value: t("aiPropertiesCount", { count: String(summary.count) }),
+                detail: t("aiOccupancyPct", { pct: String(summary.avgOccupancy ?? 0) }),
                 type:
                   Number(summary.avgOccupancy ?? 0) >= 90
                     ? "positive"
@@ -238,7 +243,7 @@ export function AIChatClient({
             }
             if (Number(summary.totalMonthlyNOI ?? 0) !== 0) {
               items.push({
-                title: "Monthly NOI",
+                title: t("aiMonthlyNOI"),
                 value: formatCurrency(Number(summary.totalMonthlyNOI)),
                 type:
                   Number(summary.totalMonthlyNOI ?? 0) > 0
@@ -250,12 +255,12 @@ export function AIChatClient({
 
           if (toolName === "queryMaintenanceRequests" && summary) {
             items.push({
-              title: "Open Requests",
+              title: t("aiOpenRequests"),
               value: String(summary.total ?? 0),
               detail:
                 Number(summary.urgentCount ?? 0) > 0
-                  ? `${summary.urgentCount} urgent`
-                  : "No urgent items",
+                  ? t("aiUrgentCount", { count: String(summary.urgentCount) })
+                  : t("aiNoUrgentItems"),
               type:
                 Number(summary.urgentCount ?? 0) > 0
                   ? "negative"
@@ -265,9 +270,9 @@ export function AIChatClient({
 
           if (toolName === "querySafetyData" && summary) {
             items.push({
-              title: "Safety Incidents",
+              title: t("aiSafetyIncidents"),
               value: String(summary.totalIncidents ?? 0),
-              detail: `${summary.openIncidents ?? 0} open, ${summary.oshaRecordable ?? 0} OSHA recordable`,
+              detail: t("aiSafetyDetail", { open: String(summary.openIncidents ?? 0), osha: String(summary.oshaRecordable ?? 0) }),
               type:
                 Number(summary.openIncidents ?? 0) > 0
                   ? "warning"
@@ -277,17 +282,17 @@ export function AIChatClient({
 
           if (toolName === "queryLeases" && summary) {
             items.push({
-              title: "Leases",
+              title: t("aiLeases"),
               value: String(summary.count ?? 0),
-              detail: `${formatCurrency(Number(summary.totalMonthlyRent ?? 0))}/mo rent`,
+              detail: t("aiMonthlyRent", { amount: formatCurrency(Number(summary.totalMonthlyRent ?? 0)) }),
             });
           }
 
           if (toolName === "queryEquipment" && summary) {
             items.push({
-              title: "Equipment",
+              title: t("aiEquipment"),
               value: String(summary.count ?? 0),
-              detail: `${summary.available ?? 0} available, ${summary.inUse ?? 0} in use`,
+              detail: t("aiEquipmentDetail", { available: String(summary.available ?? 0), inUse: String(summary.inUse ?? 0) }),
               type:
                 Number(summary.maintenanceOverdue ?? 0) > 0
                   ? "warning"
@@ -297,9 +302,9 @@ export function AIChatClient({
 
           if (toolName === "queryWorkforce" && summary) {
             items.push({
-              title: "Team Members",
+              title: t("aiTeamMembers"),
               value: String(summary.activeMembers ?? 0),
-              detail: `${summary.inactiveMembers ?? 0} inactive`,
+              detail: t("aiInactiveMembers", { count: String(summary.inactiveMembers ?? 0) }),
             });
           }
         }
@@ -321,7 +326,7 @@ export function AIChatClient({
       }
     }
     setFollowUpSuggestions(suggestions);
-  }, [messages]);
+  }, [messages, t]);
 
   // Save conversation when assistant finishes responding
   useEffect(() => {
@@ -457,12 +462,11 @@ export function AIChatClient({
     return (
       <div className="ai-no-provider">
         <Sparkles size={48} style={{ color: "var(--color-amber)" }} />
-        <h3>AI Assistant Not Configured</h3>
+        <h3>{t("aiNotConfiguredTitle")}</h3>
         <p>
-          An administrator needs to configure an AI provider before the
-          assistant can be used.
+          {t("aiNotConfiguredDesc")}
         </p>
-        <a href="/admin/ai-providers">Configure AI Providers</a>
+        <a href="/admin/ai-providers">{t("aiConfigureProviders")}</a>
       </div>
     );
   }
@@ -483,10 +487,9 @@ export function AIChatClient({
                 <Sparkles size={20} />
               </div>
               <div>
-                <h2>AI Assistant</h2>
+                <h2>{t("aiAssistantTitle")}</h2>
                 <p className="ai-chat-header-sub">
-                  Ask questions about your projects, finances, properties, and
-                  operations
+                  {t("aiAssistantSubtitle")}
                 </p>
               </div>
             </div>
@@ -522,7 +525,7 @@ export function AIChatClient({
 
           {error && (
             <div className="ai-error">
-              {error.message || "Something went wrong. Please try again."}
+              {error.message || t("aiGenericError")}
             </div>
           )}
 
@@ -550,7 +553,7 @@ export function AIChatClient({
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about your projects, finances, or properties..."
+            placeholder={t("aiInputPlaceholder")}
             className="ai-input"
             disabled={isLoading}
           />
@@ -558,7 +561,7 @@ export function AIChatClient({
             type="submit"
             className="ai-send-btn"
             disabled={isLoading || !input.trim()}
-            aria-label="Send message"
+            aria-label={t("aiSendMessage")}
           >
             <Send size={16} />
           </button>
@@ -569,7 +572,7 @@ export function AIChatClient({
       <aside className="ai-right-sidebar">
         {/* Related Data */}
         <div className="ai-sidebar-section">
-          <h4>Related Data</h4>
+          <h4>{t("aiRelatedData")}</h4>
           {relatedData.length > 0 ? (
             <div className="ai-data-cards">
               {relatedData.map((item, i) => (
@@ -587,14 +590,14 @@ export function AIChatClient({
             </div>
           ) : (
             <div className="ai-data-empty">
-              Ask a question to see related data here
+              {t("aiRelatedDataEmpty")}
             </div>
           )}
         </div>
 
         {/* Quick Actions */}
         <div className="ai-sidebar-section">
-          <h4>Quick Actions</h4>
+          <h4>{t("aiQuickActions")}</h4>
           <div className="ai-quick-actions-grid">
             <button
               className="ai-quick-action-btn"
@@ -606,7 +609,7 @@ export function AIChatClient({
               }
             >
               <BarChart3 size={18} />
-              Analyze
+              {t("aiActionAnalyze")}
             </button>
             <button
               className="ai-quick-action-btn"
@@ -618,7 +621,7 @@ export function AIChatClient({
               }
             >
               <FileText size={18} />
-              Report
+              {t("aiActionReport")}
             </button>
             <button
               className="ai-quick-action-btn"
@@ -630,7 +633,7 @@ export function AIChatClient({
               }
             >
               <ShieldAlert size={18} />
-              Risks
+              {t("aiActionRisks")}
             </button>
             <button
               className="ai-quick-action-btn"
@@ -642,17 +645,17 @@ export function AIChatClient({
               }
             >
               <TrendingUp size={18} />
-              Portfolio
+              {t("aiActionPortfolio")}
             </button>
           </div>
         </div>
 
         {/* Previous Conversations */}
         <div className="ai-sidebar-section">
-          <h4>Previous Conversations</h4>
+          <h4>{t("aiPreviousConversations")}</h4>
           <button className="ai-new-chat-btn" onClick={handleNewChat}>
             <Plus size={14} />
-            New Chat
+            {t("aiNewChat")}
           </button>
           {conversations.length > 0 ? (
             <div className="ai-conversation-list">
@@ -665,7 +668,7 @@ export function AIChatClient({
                   onClick={() => handleLoadConversation(conv.id)}
                 >
                   <span className="ai-conversation-title">
-                    {conv.title || "Untitled"}
+                    {conv.title || t("aiUntitled")}
                   </span>
                   <span className="ai-conversation-date" suppressHydrationWarning>
                     {formatDate(conv.updated_at)}
@@ -680,7 +683,7 @@ export function AIChatClient({
               ))}
             </div>
           ) : (
-            <div className="ai-no-conversations">No conversations yet</div>
+            <div className="ai-no-conversations">{t("aiNoConversations")}</div>
           )}
         </div>
       </aside>
@@ -713,49 +716,51 @@ function WelcomeMessage({
   onPrompt: (text: string) => void;
   disabled: boolean;
 }) {
+  const t = useTranslations("app");
+
   const starters = [
     {
       icon: <HardHat size={18} />,
-      label: "Project Status",
+      label: t("aiStarterProjectStatus"),
       prompt: "Show me all active projects with budget and schedule status",
     },
     {
       icon: <DollarSign size={18} />,
-      label: "Financial Overview",
+      label: t("aiStarterFinancialOverview"),
       prompt:
         "Give me a financial summary including AR/AP, overdue invoices, and cash position",
     },
     {
       icon: <Building2 size={18} />,
-      label: "Property Portfolio",
+      label: t("aiStarterPropertyPortfolio"),
       prompt:
         "Show the property portfolio with occupancy rates, revenue, and NOI",
     },
     {
       icon: <Wrench size={18} />,
-      label: "Maintenance",
+      label: t("aiStarterMaintenance"),
       prompt: "What are the open maintenance requests by priority?",
     },
     {
       icon: <ShieldAlert size={18} />,
-      label: "Safety Report",
+      label: t("aiStarterSafetyReport"),
       prompt:
         "Give me a safety overview including recent incidents and toolbox talks",
     },
     {
       icon: <Users size={18} />,
-      label: "Team Overview",
+      label: t("aiStarterTeamOverview"),
       prompt:
         "Show team composition by role and any expiring certifications",
     },
     {
       icon: <ClipboardList size={18} />,
-      label: "Lease Expiration",
+      label: t("aiStarterLeaseExpiration"),
       prompt: "Show leases expiring in the next 90 days",
     },
     {
       icon: <TrendingUp size={18} />,
-      label: "Risk Analysis",
+      label: t("aiStarterRiskAnalysis"),
       prompt:
         "Identify the top risks across projects, financials, and properties",
     },
@@ -766,11 +771,9 @@ function WelcomeMessage({
       <div className="ai-welcome-icon">
         <Sparkles size={28} />
       </div>
-      <h3>Welcome, {userName}</h3>
+      <h3>{t("aiWelcome", { name: userName })}</h3>
       <p>
-        I have access to your project, financial, property, safety, equipment,
-        and workforce data. Ask me anything — I&apos;ll query your real data
-        and give you actionable insights.
+        {t("aiWelcomeDesc")}
       </p>
       <div className="ai-welcome-starters">
         {starters.map((s) => (
@@ -799,6 +802,7 @@ function ChatMessage({
   userInitials: string;
   userName: string;
 }) {
+  const t = useTranslations("app");
   const isUser = message.role === "user";
   const time = message.metadata?.createdAt
     ? formatTime(new Date(message.metadata.createdAt as string))
@@ -823,7 +827,7 @@ function ChatMessage({
       <div className="ai-msg-bubble">
         <div className="ai-msg-meta">
           <span className="ai-msg-sender">
-            {isUser ? userName : "Assistant"}
+            {isUser ? userName : t("aiAssistantLabel")}
           </span>
           {time && <span className="ai-msg-time" suppressHydrationWarning>{time}</span>}
         </div>
@@ -902,20 +906,21 @@ function ToolCallDisplay({
   input?: unknown;
   output?: unknown;
 }) {
+  const t = useTranslations("app");
   const [expanded, setExpanded] = useState(false);
 
   const friendlyName: Record<string, string> = {
-    queryProjects: "Querying projects",
-    queryFinancials: "Querying financial data",
-    queryProperties: "Querying properties",
-    queryMaintenanceRequests: "Querying maintenance requests",
-    querySafetyData: "Querying safety data",
-    queryLeases: "Querying leases",
-    queryEquipment: "Querying equipment",
-    queryWorkforce: "Querying workforce data",
+    queryProjects: t("aiToolQueryProjects"),
+    queryFinancials: t("aiToolQueryFinancials"),
+    queryProperties: t("aiToolQueryProperties"),
+    queryMaintenanceRequests: t("aiToolQueryMaintenance"),
+    querySafetyData: t("aiToolQuerySafety"),
+    queryLeases: t("aiToolQueryLeases"),
+    queryEquipment: t("aiToolQueryEquipment"),
+    queryWorkforce: t("aiToolQueryWorkforce"),
   };
 
-  const label = friendlyName[toolName] ?? `Running ${toolName}`;
+  const label = friendlyName[toolName] ?? t("aiToolRunning", { name: toolName });
   const isDone = state === "output-available";
   const isError = state === "output-error";
   const isPending = !isDone && !isError;
@@ -938,14 +943,14 @@ function ToolCallDisplay({
                 : "ai-tool-status-pending"
           }`}
         >
-          {isDone ? "Done" : isError ? "Error" : "Running"}
+          {isDone ? t("aiToolDone") : isError ? t("aiToolError") : t("aiToolRunningStatus")}
         </span>
       </div>
       {expanded && (
         <div className="ai-tool-call-body">
           {input != null && (
             <>
-              <strong>Parameters:</strong>
+              <strong>{t("aiToolParameters")}</strong>
               {"\n"}
               {JSON.stringify(input as Record<string, unknown>, null, 2)}
               {"\n\n"}
@@ -953,14 +958,14 @@ function ToolCallDisplay({
           )}
           {(isDone || isError) && output != null && (
             <>
-              <strong>Result:</strong>
+              <strong>{t("aiToolResult")}</strong>
               {"\n"}
               {typeof output === "string"
                 ? output
                 : JSON.stringify(output as Record<string, unknown>, null, 2)}
             </>
           )}
-          {isPending && "Waiting for result..."}
+          {isPending && t("aiToolWaiting")}
         </div>
       )}
     </div>

@@ -40,6 +40,9 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
     children: [
       { label: "pricingTiers", href: "/super-admin/pricing" },
       { label: "subscriptions", href: "/super-admin/subscriptions" },
+      { label: "promoCodes", href: "/super-admin/promo-codes" },
+      { label: "revenue", href: "/super-admin/revenue" },
+      { label: "stripeSettings", href: "/super-admin/stripe-settings" },
     ],
   },
   {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Upload,
   Mail,
@@ -20,15 +21,6 @@ import {
 import ImportModal from "@/components/ImportModal";
 import PrequalificationChecklist from "@/components/PrequalificationChecklist";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "company_name", label: "Company Name", required: true },
-  { key: "first_name", label: "Contact First Name", required: false },
-  { key: "last_name", label: "Contact Last Name", required: false },
-  { key: "email", label: "Email", required: false, type: "email" },
-  { key: "phone", label: "Phone", required: false },
-  { key: "job_title", label: "Job Title", required: false },
-];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { company_name: "ABC Supply Co", first_name: "Mike", last_name: "Johnson", email: "mike@abcsupply.com", phone: "555-0200", job_title: "Sales Manager" },
@@ -79,6 +71,19 @@ export default function VendorsClient({
   contracts: VendorContract[];
 }) {
   const router = useRouter();
+  const t = useTranslations("people");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "company_name", label: t("companyName"), required: true },
+    { key: "first_name", label: t("contactFirstName"), required: false },
+    { key: "last_name", label: t("contactLastName"), required: false },
+    { key: "email", label: t("email"), required: false, type: "email" },
+    { key: "phone", label: t("phone"), required: false },
+    { key: "job_title", label: t("jobTitle"), required: false },
+  ];
+
   const [tab, setTab] = useState<"directory" | "contracts">("directory");
   const [showImport, setShowImport] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -118,7 +123,7 @@ export default function VendorsClient({
       body: JSON.stringify({ entity: "vendors", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -146,7 +151,7 @@ export default function VendorsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create vendor");
+        throw new Error(data.error || t("failedToCreateVendor"));
       }
 
       setCreateFormData({
@@ -162,7 +167,7 @@ export default function VendorsClient({
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create vendor");
+      setCreateError(err instanceof Error ? err.message : t("failedToCreateVendor"));
     } finally {
       setCreating(false);
     }
@@ -208,13 +213,13 @@ export default function VendorsClient({
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update");
+        throw new Error(data.error || t("failedToUpdate"));
       }
       setSelectedVendor(null);
       setIsEditing(false);
       router.refresh();
     } catch (err: unknown) {
-      setEditError(err instanceof Error ? err.message : "Failed to update");
+      setEditError(err instanceof Error ? err.message : t("failedToUpdate"));
     } finally {
       setUpdating(false);
     }
@@ -227,13 +232,13 @@ export default function VendorsClient({
       const res = await fetch(`/api/people/contacts/${selectedVendor.id}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete");
+        throw new Error(data.error || t("failedToDelete"));
       }
       setSelectedVendor(null);
       setShowDeleteConfirm(false);
       router.refresh();
     } catch (err: unknown) {
-      setEditError(err instanceof Error ? err.message : "Failed to delete");
+      setEditError(err instanceof Error ? err.message : t("failedToDelete"));
       setShowDeleteConfirm(false);
     } finally {
       setDeleting(false);
@@ -248,7 +253,7 @@ export default function VendorsClient({
   }
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", {
+    new Intl.NumberFormat(dateLocale, {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0,
@@ -259,20 +264,19 @@ export default function VendorsClient({
       {/* Header */}
       <div className="people-header">
         <div>
-          <h2>Vendors &amp; Subcontractors</h2>
+          <h2>{t("vendorsAndSubcontractors")}</h2>
           <p className="people-header-sub">
-            {contacts.length} vendor{contacts.length !== 1 ? "s" : ""} &middot;{" "}
-            {contracts.length} contract{contracts.length !== 1 ? "s" : ""}
+            {t("vendorsSummary", { vendorCount: contacts.length, contractCount: contracts.length })}
           </p>
         </div>
         <div className="people-header-actions">
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => { setShowCreate(true); setCreateError(""); }}>
             <Plus size={16} />
-            Add Vendor
+            {t("addVendor")}
           </button>
         </div>
       </div>
@@ -283,13 +287,13 @@ export default function VendorsClient({
           className={`people-tab ${tab === "directory" ? "active" : ""}`}
           onClick={() => setTab("directory")}
         >
-          Directory ({contacts.length})
+          {t("directory")} ({contacts.length})
         </button>
         <button
           className={`people-tab ${tab === "contracts" ? "active" : ""}`}
           onClick={() => setTab("contracts")}
         >
-          Contracts ({contracts.length})
+          {t("contracts")} ({contracts.length})
         </button>
       </div>
 
@@ -298,9 +302,9 @@ export default function VendorsClient({
         contacts.length === 0 ? (
           <div className="people-empty">
             <div className="people-empty-icon"><Truck size={48} /></div>
-            <div className="people-empty-title">No vendors found</div>
+            <div className="people-empty-title">{t("noVendorsFound")}</div>
             <p className="people-empty-desc">
-              Add vendors and subcontractors to your directory to manage them here.
+              {t("noVendorsDescription")}
             </p>
           </div>
         ) : (
@@ -326,7 +330,7 @@ export default function VendorsClient({
                   </div>
                   <div className="contact-card-type">
                     <span className={`badge ${TYPE_BADGE_CLASS[v.contact_type] || ""}`}>
-                      {v.contact_type === "subcontractor" ? "Subcontractor" : "Vendor"}
+                      {v.contact_type === "subcontractor" ? t("typeSubcontractor") : t("typeVendor")}
                     </span>
                   </div>
                 </div>
@@ -362,7 +366,7 @@ export default function VendorsClient({
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--muted)" }}>
                     <Shield size={13} />
-                    <span>Prequalification</span>
+                    <span>{t("prequalification")}</span>
                   </div>
                   {v.prequalification_score != null ? (
                     <div style={{
@@ -387,7 +391,7 @@ export default function VendorsClient({
                     </div>
                   ) : (
                     <span style={{ color: "var(--muted)", fontStyle: "italic", fontSize: "0.75rem" }}>
-                      Not evaluated
+                      {t("notEvaluated")}
                     </span>
                   )}
                 </div>
@@ -403,21 +407,21 @@ export default function VendorsClient({
           <table className="data-table">
             <thead>
               <tr>
-                <th>Contract #</th>
-                <th>Title</th>
-                <th>Vendor</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Start</th>
-                <th>End</th>
+                <th>{t("contractNumber")}</th>
+                <th>{t("title")}</th>
+                <th>{t("typeVendor")}</th>
+                <th>{t("type")}</th>
+                <th>{t("amount")}</th>
+                <th>{t("status")}</th>
+                <th>{t("start")}</th>
+                <th>{t("end")}</th>
               </tr>
             </thead>
             <tbody>
               {contracts.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="table-empty-cell">
-                    No contracts found
+                    {t("noContractsFound")}
                   </td>
                 </tr>
               ) : (
@@ -435,8 +439,8 @@ export default function VendorsClient({
                         {c.status}
                       </span>
                     </td>
-                    <td>{c.start_date ? new Date(c.start_date).toLocaleDateString() : "\u2014"}</td>
-                    <td>{c.end_date ? new Date(c.end_date).toLocaleDateString() : "\u2014"}</td>
+                    <td>{c.start_date ? new Date(c.start_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
+                    <td>{c.end_date ? new Date(c.end_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
                   </tr>
                 ))
               )}
@@ -450,7 +454,7 @@ export default function VendorsClient({
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Add Vendor</h3>
+              <h3>{t("addVendor")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}>
                 <X size={18} />
               </button>
@@ -460,31 +464,31 @@ export default function VendorsClient({
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Type</label>
+                <label className="ticket-form-label">{t("type")}</label>
                 <select
                   className="ticket-form-select"
                   value={createFormData.contact_type}
                   onChange={(e) => setCreateFormData({ ...createFormData, contact_type: e.target.value })}
                 >
-                  <option value="vendor">Vendor</option>
-                  <option value="subcontractor">Subcontractor</option>
+                  <option value="vendor">{t("typeVendor")}</option>
+                  <option value="subcontractor">{t("typeSubcontractor")}</option>
                 </select>
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Company Name</label>
+                <label className="ticket-form-label">{t("companyName")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
                   value={createFormData.company_name}
                   onChange={(e) => setCreateFormData({ ...createFormData, company_name: e.target.value })}
-                  placeholder="e.g., ABC Supply Co"
+                  placeholder={t("companyNameExamplePlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Contact First Name *</label>
+                  <label className="ticket-form-label">{t("contactFirstNameRequired")}</label>
                   <input
                     type="text"
                     className="ticket-form-input"
@@ -494,7 +498,7 @@ export default function VendorsClient({
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Contact Last Name *</label>
+                  <label className="ticket-form-label">{t("contactLastNameRequired")}</label>
                   <input
                     type="text"
                     className="ticket-form-input"
@@ -507,59 +511,59 @@ export default function VendorsClient({
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Email</label>
+                  <label className="ticket-form-label">{t("email")}</label>
                   <input
                     type="email"
                     className="ticket-form-input"
                     value={createFormData.email}
                     onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
-                    placeholder="contact@company.com"
+                    placeholder={t("vendorEmailPlaceholder")}
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Phone</label>
+                  <label className="ticket-form-label">{t("phone")}</label>
                   <input
                     type="text"
                     className="ticket-form-input"
                     value={createFormData.phone}
                     onChange={(e) => setCreateFormData({ ...createFormData, phone: e.target.value })}
-                    placeholder="(555) 555-0000"
+                    placeholder={t("vendorPhonePlaceholder")}
                   />
                 </div>
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Job Title</label>
+                <label className="ticket-form-label">{t("jobTitle")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
                   value={createFormData.job_title}
                   onChange={(e) => setCreateFormData({ ...createFormData, job_title: e.target.value })}
-                  placeholder="e.g., Sales Manager"
+                  placeholder={t("jobTitleExamplePlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Notes</label>
+                <label className="ticket-form-label">{t("notes")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   value={createFormData.notes}
                   onChange={(e) => setCreateFormData({ ...createFormData, notes: e.target.value })}
                   rows={3}
-                  placeholder="Any additional notes..."
+                  placeholder={t("additionalNotesPlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !createFormData.first_name.trim() || !createFormData.last_name.trim()}
                 >
-                  {creating ? "Creating..." : "Add Vendor"}
+                  {creating ? t("creating") : t("addVendor")}
                 </button>
               </div>
             </form>
@@ -570,7 +574,7 @@ export default function VendorsClient({
       {/* Import Modal */}
       {showImport && (
         <ImportModal
-          entityName="Vendors"
+          entityName={t("vendorsEntity")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
@@ -585,7 +589,7 @@ export default function VendorsClient({
             <div className="ticket-modal-header">
               <h3>
                 {isEditing
-                  ? "Edit Vendor"
+                  ? t("editVendor")
                   : selectedVendor.company_name || `${selectedVendor.first_name} ${selectedVendor.last_name}`}
               </h3>
               <button className="ticket-modal-close" onClick={closeModal}>
@@ -598,68 +602,66 @@ export default function VendorsClient({
             {showDeleteConfirm ? (
               <div className="ticket-delete-confirm">
                 <p>
-                  Are you sure you want to delete{" "}
-                  <strong>{selectedVendor.company_name || `${selectedVendor.first_name} ${selectedVendor.last_name}`}</strong>?
-                  This action cannot be undone.
+                  {t("deleteVendorConfirm", { name: selectedVendor.company_name || `${selectedVendor.first_name} ${selectedVendor.last_name}` })}
                 </p>
                 <div className="ticket-delete-actions">
-                  <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>Cancel</button>
+                  <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>{t("cancel")}</button>
                   <button className="btn-danger" onClick={handleDelete} disabled={deleting}>
-                    {deleting ? "Deleting..." : "Delete"}
+                    {deleting ? t("deleting") : t("delete")}
                   </button>
                 </div>
               </div>
             ) : isEditing ? (
               <form onSubmit={handleUpdate} className="ticket-form">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Type</label>
+                  <label className="ticket-form-label">{t("type")}</label>
                   <select className="ticket-form-select" value={editFormData.contact_type} onChange={(e) => setEditFormData({ ...editFormData, contact_type: e.target.value })}>
-                    <option value="vendor">Vendor</option>
-                    <option value="subcontractor">Subcontractor</option>
+                    <option value="vendor">{t("typeVendor")}</option>
+                    <option value="subcontractor">{t("typeSubcontractor")}</option>
                   </select>
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Company Name</label>
+                  <label className="ticket-form-label">{t("companyName")}</label>
                   <input type="text" className="ticket-form-input" value={editFormData.company_name} onChange={(e) => setEditFormData({ ...editFormData, company_name: e.target.value })} />
                 </div>
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Contact First Name</label>
+                    <label className="ticket-form-label">{t("contactFirstName")}</label>
                     <input type="text" className="ticket-form-input" value={editFormData.first_name} onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })} />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Contact Last Name</label>
+                    <label className="ticket-form-label">{t("contactLastName")}</label>
                     <input type="text" className="ticket-form-input" value={editFormData.last_name} onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Email</label>
+                    <label className="ticket-form-label">{t("email")}</label>
                     <input type="email" className="ticket-form-input" value={editFormData.email} onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })} />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Phone</label>
+                    <label className="ticket-form-label">{t("phone")}</label>
                     <input type="text" className="ticket-form-input" value={editFormData.phone} onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Job Title</label>
+                  <label className="ticket-form-label">{t("jobTitle")}</label>
                   <input type="text" className="ticket-form-input" value={editFormData.job_title} onChange={(e) => setEditFormData({ ...editFormData, job_title: e.target.value })} />
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Notes</label>
+                  <label className="ticket-form-label">{t("notes")}</label>
                   <textarea className="ticket-form-textarea" value={editFormData.notes} onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })} rows={3} />
                 </div>
 
                 <div className="ticket-form-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
+                  <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)}>{t("cancel")}</button>
                   <button type="submit" className="btn-primary" disabled={updating}>
-                    {updating ? "Saving..." : "Save Changes"}
+                    {updating ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </form>
@@ -680,7 +682,7 @@ export default function VendorsClient({
                       </div>
                     </div>
                     <span className={`badge ${TYPE_BADGE_CLASS[selectedVendor.contact_type] || ""}`}>
-                      {selectedVendor.contact_type === "subcontractor" ? "Subcontractor" : "Vendor"}
+                      {selectedVendor.contact_type === "subcontractor" ? t("typeSubcontractor") : t("typeVendor")}
                     </span>
                   </div>
 
@@ -713,7 +715,7 @@ export default function VendorsClient({
 
                   {selectedVendor.notes && (
                     <div className="people-detail-notes">
-                      <label>Notes</label>
+                      <label>{t("notes")}</label>
                       <p>{selectedVendor.notes}</p>
                     </div>
                   )}
@@ -723,7 +725,7 @@ export default function VendorsClient({
                     <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px", marginTop: "16px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
                         <Shield size={16} style={{ color: "var(--color-blue)" }} />
-                        <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>Prequalification</span>
+                        <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{t("prequalification")}</span>
                       </div>
                       <PrequalificationChecklist
                         contactId={selectedVendor.id}
@@ -751,11 +753,11 @@ export default function VendorsClient({
                 <div className="ticket-form-actions">
                   <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button className="btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </>

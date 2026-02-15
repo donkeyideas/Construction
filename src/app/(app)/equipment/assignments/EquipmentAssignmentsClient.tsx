@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
   Plus,
@@ -26,11 +27,6 @@ import type { ImportColumn } from "@/lib/utils/csv-parser";
 // Constants
 // ---------------------------------------------------------------------------
 
-const ASSIGNMENT_STATUS_LABELS: Record<string, string> = {
-  active: "Active",
-  returned: "Returned",
-};
-
 const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "equipment_id", label: "Equipment ID", required: true },
   { key: "project_id", label: "Project ID", required: false },
@@ -49,15 +45,6 @@ const IMPORT_SAMPLE: Record<string, string>[] = [
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function getUserName(
   user: { id: string; full_name: string; email: string } | null | undefined
@@ -88,6 +75,23 @@ export default function EquipmentAssignmentsClient({
   companyId,
 }: EquipmentAssignmentsClientProps) {
   const router = useRouter();
+  const t = useTranslations("equipment");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const ASSIGNMENT_STATUS_LABELS: Record<string, string> = {
+    active: t("assignmentStatusActive"),
+    returned: t("assignmentStatusReturned"),
+  };
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<AssignmentStatus | "all">("all");
@@ -200,7 +204,7 @@ export default function EquipmentAssignmentsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create assignment");
+        throw new Error(data.error || t("errorCreateAssignment"));
       }
 
       setFormData({
@@ -212,7 +216,7 @@ export default function EquipmentAssignmentsClient({
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create assignment");
+      setCreateError(err instanceof Error ? err.message : t("errorCreateAssignment"));
     } finally {
       setCreating(false);
     }
@@ -243,12 +247,12 @@ export default function EquipmentAssignmentsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to return equipment");
+        throw new Error(data.error || t("errorReturnEquipment"));
       }
 
       router.refresh();
     } catch (err: unknown) {
-      setActionError(err instanceof Error ? err.message : "Failed to return equipment");
+      setActionError(err instanceof Error ? err.message : t("errorReturnEquipment"));
     } finally {
       setReturning(null);
     }
@@ -266,12 +270,12 @@ export default function EquipmentAssignmentsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete assignment");
+        throw new Error(data.error || t("errorDeleteAssignment"));
       }
 
       router.refresh();
     } catch (err: unknown) {
-      setActionError(err instanceof Error ? err.message : "Failed to delete assignment");
+      setActionError(err instanceof Error ? err.message : t("errorDeleteAssignment"));
     } finally {
       setReturning(null);
     }
@@ -282,19 +286,19 @@ export default function EquipmentAssignmentsClient({
       {/* Header */}
       <div className="equipment-header">
         <div>
-          <h2>Equipment Assignments</h2>
+          <h2>{t("equipmentAssignments")}</h2>
           <p className="equipment-header-sub">
-            {activeCount} active, {returnedCount} returned
+            {t("activeAndReturned", { active: activeCount, returned: returnedCount })}
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            Assign Equipment
+            {t("assignEquipment")}
           </button>
         </div>
       </div>
@@ -307,7 +311,7 @@ export default function EquipmentAssignmentsClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{activeCount}</span>
-            <span className="equipment-stat-label">Active</span>
+            <span className="equipment-stat-label">{t("assignmentStatusActive")}</span>
           </div>
         </div>
         <div className="equipment-stat-card stat-available">
@@ -316,7 +320,7 @@ export default function EquipmentAssignmentsClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{returnedCount}</span>
-            <span className="equipment-stat-label">Returned</span>
+            <span className="equipment-stat-label">{t("assignmentStatusReturned")}</span>
           </div>
         </div>
         <div className="equipment-stat-card stat-available">
@@ -325,7 +329,7 @@ export default function EquipmentAssignmentsClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{assignments.length}</span>
-            <span className="equipment-stat-label">Total</span>
+            <span className="equipment-stat-label">{t("total")}</span>
           </div>
         </div>
         <div className="equipment-stat-card stat-available">
@@ -334,7 +338,7 @@ export default function EquipmentAssignmentsClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{availableEquipment.length}</span>
-            <span className="equipment-stat-label">Available to Assign</span>
+            <span className="equipment-stat-label">{t("availableToAssign")}</span>
           </div>
         </div>
       </div>
@@ -346,9 +350,9 @@ export default function EquipmentAssignmentsClient({
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as AssignmentStatus | "all")}
         >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="returned">Returned</option>
+          <option value="all">{t("allStatus")}</option>
+          <option value="active">{t("assignmentStatusActive")}</option>
+          <option value="returned">{t("assignmentStatusReturned")}</option>
         </select>
 
         <select
@@ -356,7 +360,7 @@ export default function EquipmentAssignmentsClient({
           value={equipmentFilter}
           onChange={(e) => setEquipmentFilter(e.target.value)}
         >
-          <option value="all">All Equipment</option>
+          <option value="all">{t("allEquipment")}</option>
           {equipmentList.map((eq) => (
             <option key={eq.id} value={eq.id}>
               {eq.name}
@@ -369,7 +373,7 @@ export default function EquipmentAssignmentsClient({
           value={projectFilter}
           onChange={(e) => setProjectFilter(e.target.value)}
         >
-          <option value="all">All Projects</option>
+          <option value="all">{t("allProjects")}</option>
           {projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -392,12 +396,12 @@ export default function EquipmentAssignmentsClient({
           </div>
           {assignments.length === 0 ? (
             <>
-              <h3>No assignments yet</h3>
-              <p>Assign equipment to projects and team members.</p>
+              <h3>{t("noAssignmentsYet")}</h3>
+              <p>{t("assignEquipmentToProjects")}</p>
               <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
                 <button className="btn-primary" onClick={() => setShowCreate(true)}>
                   <Plus size={16} />
-                  Assign Equipment
+                  {t("assignEquipment")}
                 </button>
                 {availableEquipment.length > 0 && (
                   <button
@@ -405,20 +409,20 @@ export default function EquipmentAssignmentsClient({
                     onClick={loadSampleData}
                     disabled={loadingSamples}
                   >
-                    {loadingSamples ? "Loading..." : "Load Sample Data"}
+                    {loadingSamples ? t("loading") : t("loadSampleData")}
                   </button>
                 )}
               </div>
               {equipmentList.length === 0 && (
                 <p style={{ fontSize: "0.82rem", marginTop: "8px" }}>
-                  Add equipment in Inventory first, then come back to create assignments.
+                  {t("addEquipmentInInventoryFirst")}
                 </p>
               )}
             </>
           ) : (
             <>
-              <h3>No matching assignments</h3>
-              <p>Try adjusting your filter criteria.</p>
+              <h3>{t("noMatchingAssignments")}</h3>
+              <p>{t("tryAdjustingFilters")}</p>
             </>
           )}
         </div>
@@ -427,13 +431,13 @@ export default function EquipmentAssignmentsClient({
           <table className="equipment-table">
             <thead>
               <tr>
-                <th>Equipment</th>
-                <th>Project</th>
-                <th>Assigned To</th>
-                <th>Assigned Date</th>
-                <th>Returned Date</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>{t("columnEquipment")}</th>
+                <th>{t("columnProject")}</th>
+                <th>{t("labelAssignedTo")}</th>
+                <th>{t("columnAssignedDate")}</th>
+                <th>{t("columnReturnedDate")}</th>
+                <th>{t("columnStatus")}</th>
+                <th>{t("columnActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -470,17 +474,17 @@ export default function EquipmentAssignmentsClient({
                           className="equipment-action-btn return-btn"
                           onClick={() => handleReturn(assignment.id)}
                           disabled={returning === assignment.id}
-                          title="Return Equipment"
+                          title={t("returnEquipment")}
                         >
                           <RotateCcw size={14} />
-                          {returning === assignment.id ? "..." : "Return"}
+                          {returning === assignment.id ? "..." : t("return")}
                         </button>
                       )}
                       <button
                         className="equipment-action-btn delete-btn"
                         onClick={() => handleDelete(assignment.id)}
                         disabled={returning === assignment.id}
-                        title="Delete Assignment"
+                        title={t("deleteAssignment")}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -498,7 +502,7 @@ export default function EquipmentAssignmentsClient({
         <div className="equipment-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="equipment-modal" onClick={(e) => e.stopPropagation()}>
             <div className="equipment-modal-header">
-              <h3>Assign Equipment</h3>
+              <h3>{t("assignEquipment")}</h3>
               <button
                 className="equipment-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -513,7 +517,7 @@ export default function EquipmentAssignmentsClient({
 
             <form onSubmit={handleCreate} className="equipment-form">
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Equipment *</label>
+                <label className="equipment-form-label">{t("labelEquipmentRequired")}</label>
                 <select
                   className="equipment-form-select"
                   value={formData.equipment_id}
@@ -522,7 +526,7 @@ export default function EquipmentAssignmentsClient({
                   }
                   required
                 >
-                  <option value="">Select equipment...</option>
+                  <option value="">{t("selectEquipment")}</option>
                   {availableEquipment.map((eq) => (
                     <option key={eq.id} value={eq.id}>
                       {eq.name} ({eq.equipment_type})
@@ -531,13 +535,13 @@ export default function EquipmentAssignmentsClient({
                 </select>
                 {availableEquipment.length === 0 && (
                   <p style={{ fontSize: "0.8rem", color: "var(--color-amber)", marginTop: 4 }}>
-                    No equipment available for assignment.
+                    {t("noEquipmentAvailable")}
                   </p>
                 )}
               </div>
 
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Project</label>
+                <label className="equipment-form-label">{t("columnProject")}</label>
                 <select
                   className="equipment-form-select"
                   value={formData.project_id}
@@ -545,7 +549,7 @@ export default function EquipmentAssignmentsClient({
                     setFormData({ ...formData, project_id: e.target.value })
                   }
                 >
-                  <option value="">No project</option>
+                  <option value="">{t("noProject")}</option>
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -555,7 +559,7 @@ export default function EquipmentAssignmentsClient({
               </div>
 
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Assign To</label>
+                <label className="equipment-form-label">{t("labelAssignTo")}</label>
                 <select
                   className="equipment-form-select"
                   value={formData.assigned_to}
@@ -563,7 +567,7 @@ export default function EquipmentAssignmentsClient({
                     setFormData({ ...formData, assigned_to: e.target.value })
                   }
                 >
-                  <option value="">Unassigned</option>
+                  <option value="">{t("unassigned")}</option>
                   {members.map((m) => (
                     <option key={m.user_id} value={m.user_id}>
                       {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
@@ -573,14 +577,14 @@ export default function EquipmentAssignmentsClient({
               </div>
 
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Notes</label>
+                <label className="equipment-form-label">{t("labelNotes")}</label>
                 <textarea
                   className="equipment-form-textarea"
                   value={formData.notes}
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
                   }
-                  placeholder="Optional notes about this assignment..."
+                  placeholder={t("placeholderAssignmentNotes")}
                   rows={3}
                 />
               </div>
@@ -591,14 +595,14 @@ export default function EquipmentAssignmentsClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !formData.equipment_id}
                 >
-                  {creating ? "Assigning..." : "Assign Equipment"}
+                  {creating ? t("assigning") : t("assignEquipment")}
                 </button>
               </div>
             </form>

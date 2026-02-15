@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   ArrowLeft,
   Pencil,
@@ -38,31 +39,9 @@ interface PropertyDetailClientProps {
 /*  Helper Functions                                                    */
 /* ------------------------------------------------------------------ */
 
-function formatDate(d: string | null | undefined): string {
-  if (!d) return "--";
-  return new Date(d).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 function toInputDate(d: string | null | undefined): string {
   if (!d) return "";
   return d.slice(0, 10);
-}
-
-function unitTypeLabel(t: string): string {
-  const map: Record<string, string> = {
-    studio: "Studio",
-    "1br": "1 BR",
-    "2br": "2 BR",
-    "3br": "3 BR",
-    office: "Office",
-    retail: "Retail",
-    warehouse: "Warehouse",
-  };
-  return map[t] ?? t;
 }
 
 /* ------------------------------------------------------------------ */
@@ -70,11 +49,12 @@ function unitTypeLabel(t: string): string {
 /* ------------------------------------------------------------------ */
 
 function PropertyTypeBadge({ type }: { type: string }) {
+  const t = useTranslations("app");
   const labels: Record<string, string> = {
-    residential: "Residential",
-    commercial: "Commercial",
-    industrial: "Industrial",
-    mixed_use: "Mixed Use",
+    residential: t("propTypeResidential"),
+    commercial: t("propTypeCommercial"),
+    industrial: t("propTypeIndustrial"),
+    mixed_use: t("propTypeMixedUse"),
   };
   const variants: Record<string, string> = {
     residential: "badge-green",
@@ -90,45 +70,49 @@ function PropertyTypeBadge({ type }: { type: string }) {
 }
 
 function UnitStatusBadge({ status }: { status: string }) {
+  const t = useTranslations("app");
   const map: Record<string, { label: string; cls: string }> = {
-    occupied: { label: "Occupied", cls: "badge-green" },
-    vacant: { label: "Vacant", cls: "badge-amber" },
-    maintenance: { label: "Maintenance", cls: "badge-red" },
-    reserved: { label: "Reserved", cls: "badge-blue" },
+    occupied: { label: t("unitStatusOccupied"), cls: "badge-green" },
+    vacant: { label: t("unitStatusVacant"), cls: "badge-amber" },
+    maintenance: { label: t("unitStatusMaintenance"), cls: "badge-red" },
+    reserved: { label: t("unitStatusReserved"), cls: "badge-blue" },
   };
   const m = map[status] ?? { label: status, cls: "badge-blue" };
   return <span className={`badge ${m.cls}`}>{m.label}</span>;
 }
 
 function LeaseStatusBadge({ status }: { status: string }) {
+  const t = useTranslations("app");
   const map: Record<string, { label: string; cls: string }> = {
-    active: { label: "Active", cls: "badge-green" },
-    expired: { label: "Expired", cls: "badge-red" },
-    terminated: { label: "Terminated", cls: "badge-red" },
-    pending: { label: "Pending", cls: "badge-amber" },
+    active: { label: t("statusActive"), cls: "badge-green" },
+    expired: { label: t("statusExpired"), cls: "badge-red" },
+    terminated: { label: t("statusTerminated"), cls: "badge-red" },
+    pending: { label: t("statusPending"), cls: "badge-amber" },
   };
   const m = map[status] ?? { label: status, cls: "badge-blue" };
   return <span className={`badge ${m.cls}`}>{m.label}</span>;
 }
 
 function PriorityBadge({ priority }: { priority: string }) {
+  const t = useTranslations("app");
   const map: Record<string, { label: string; cls: string }> = {
-    low: { label: "Low", cls: "badge-green" },
-    medium: { label: "Medium", cls: "badge-blue" },
-    high: { label: "High", cls: "badge-amber" },
-    emergency: { label: "Emergency", cls: "badge-red" },
+    low: { label: t("priorityLow"), cls: "badge-green" },
+    medium: { label: t("priorityMedium"), cls: "badge-blue" },
+    high: { label: t("priorityHigh"), cls: "badge-amber" },
+    emergency: { label: t("priorityEmergency"), cls: "badge-red" },
   };
   const m = map[priority] ?? { label: priority, cls: "badge-blue" };
   return <span className={`badge ${m.cls}`}>{m.label}</span>;
 }
 
 function MaintenanceStatusBadge({ status }: { status: string }) {
+  const t = useTranslations("app");
   const map: Record<string, { label: string; cls: string }> = {
-    submitted: { label: "Submitted", cls: "badge-amber" },
-    assigned: { label: "Assigned", cls: "badge-blue" },
-    in_progress: { label: "In Progress", cls: "badge-blue" },
-    completed: { label: "Completed", cls: "badge-green" },
-    closed: { label: "Closed", cls: "badge-green" },
+    submitted: { label: t("maintStatusSubmitted"), cls: "badge-amber" },
+    assigned: { label: t("maintStatusAssigned"), cls: "badge-blue" },
+    in_progress: { label: t("maintStatusInProgress"), cls: "badge-blue" },
+    completed: { label: t("maintStatusCompleted"), cls: "badge-green" },
+    closed: { label: t("maintStatusClosed"), cls: "badge-green" },
   };
   const m = map[status] ?? { label: status, cls: "badge-blue" };
   return <span className={`badge ${m.cls}`}>{m.label}</span>;
@@ -138,15 +122,8 @@ function MaintenanceStatusBadge({ status }: { status: string }) {
 /*  Tab Definitions                                                     */
 /* ------------------------------------------------------------------ */
 
-const TABS = [
-  { key: "overview", label: "Overview" },
-  { key: "units", label: "Units" },
-  { key: "leases", label: "Leases" },
-  { key: "maintenance", label: "Maintenance" },
-  { key: "financials", label: "Financials" },
-] as const;
-
-type TabKey = (typeof TABS)[number]["key"];
+const TAB_KEYS = ["overview", "units", "leases", "maintenance", "financials"] as const;
+type TabKey = (typeof TAB_KEYS)[number];
 
 /* ------------------------------------------------------------------ */
 /*  Main Component                                                      */
@@ -159,6 +136,10 @@ export default function PropertyDetailClient({
   maintenanceRequests,
   financials,
 }: PropertyDetailClientProps) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [saving, setSaving] = useState(false);
 
@@ -196,14 +177,37 @@ export default function PropertyDetailClient({
       ? (property.occupied_units / property.total_units) * 100
       : 0);
 
+  // Helper
+  function formatDate(d: string | null | undefined): string {
+    if (!d) return "--";
+    return new Date(d).toLocaleDateString(dateLocale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  function unitTypeLabel(ut: string): string {
+    const map: Record<string, string> = {
+      studio: t("unitTypeStudio"),
+      "1br": t("unitType1br"),
+      "2br": t("unitType2br"),
+      "3br": t("unitType3br"),
+      office: t("unitTypeOffice"),
+      retail: t("unitTypeRetail"),
+      warehouse: t("unitTypeWarehouse"),
+    };
+    return map[ut] ?? ut;
+  }
+
   // Tab labels with counts
-  const tabLabels: Record<string, string> = {
-    overview: "Overview",
-    units: `Units (${units.length})`,
-    leases: `Leases (${leases.length})`,
-    maintenance: `Maintenance (${maintenanceRequests.length})`,
-    financials: "Financials",
-  };
+  const TABS = [
+    { key: "overview" as TabKey, label: t("propTabOverview") },
+    { key: "units" as TabKey, label: t("propTabUnitsCount", { count: units.length }) },
+    { key: "leases" as TabKey, label: t("propTabLeasesCount", { count: leases.length }) },
+    { key: "maintenance" as TabKey, label: t("propTabMaintenanceCount", { count: maintenanceRequests.length }) },
+    { key: "financials" as TabKey, label: t("propTabFinancials") },
+  ];
 
   return (
     <div>
@@ -223,7 +227,7 @@ export default function PropertyDetailClient({
               }}
             >
               <ArrowLeft size={14} />
-              Back to Properties
+              {t("backToProperties")}
             </Link>
           </div>
           <h2>
@@ -241,20 +245,20 @@ export default function PropertyDetailClient({
             onClick={() => setEditPropertyOpen(true)}
           >
             <Pencil size={14} />
-            Edit Property
+            {t("editProperty")}
           </button>
         </div>
       </div>
 
       {/* ===== Tabs ===== */}
       <div className="property-tabs">
-        {TABS.map((t) => (
+        {TABS.map((tab) => (
           <button
-            key={t.key}
-            className={`property-tab ${activeTab === t.key ? "active" : ""}`}
-            onClick={() => setActiveTab(t.key)}
+            key={tab.key}
+            className={`property-tab ${activeTab === tab.key ? "active" : ""}`}
+            onClick={() => setActiveTab(tab.key)}
           >
-            {tabLabels[t.key]}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -424,6 +428,7 @@ interface PhotoItem {
 }
 
 function PhotoGallery({ propertyId }: { propertyId: string }) {
+  const t = useTranslations("app");
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -499,7 +504,7 @@ function PhotoGallery({ propertyId }: { propertyId: string }) {
         <div className="card-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <ImageIcon size={18} style={{ color: "var(--muted)" }} />
-            Photos {photos.length > 0 && `(${photos.length})`}
+            {t("photos")} {photos.length > 0 && `(${photos.length})`}
           </span>
           <label
             className="btn-primary"
@@ -517,7 +522,7 @@ function PhotoGallery({ propertyId }: { propertyId: string }) {
             ) : (
               <Upload size={14} />
             )}
-            {uploading ? "Uploading..." : "Upload"}
+            {uploading ? t("uploading") : t("upload")}
             <input
               ref={fileRef}
               type="file"
@@ -541,7 +546,7 @@ function PhotoGallery({ propertyId }: { propertyId: string }) {
               fontSize: "0.85rem",
             }}
           >
-            Loading photos...
+            {t("loadingPhotos")}
           </div>
         ) : photos.length === 0 ? (
           <div
@@ -561,7 +566,7 @@ function PhotoGallery({ propertyId }: { propertyId: string }) {
             onClick={() => fileRef.current?.click()}
           >
             <ImageIcon size={24} />
-            Click to upload photos
+            {t("clickToUploadPhotos")}
           </div>
         ) : (
           <div
@@ -739,6 +744,19 @@ function OverviewTabContent({
   onSelectUnit: (u: UnitRow) => void;
   onSelectLease: (l: LeaseRow) => void;
 }) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(d: string | null | undefined): string {
+    if (!d) return "--";
+    return new Date(d).toLocaleDateString(dateLocale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   // Upcoming lease expirations within 120 days
   const upcomingExpirations = leases
     .filter((l) => l.status === "active" && l.lease_end)
@@ -758,7 +776,7 @@ function OverviewTabContent({
       {/* KPI Row */}
       <div className="property-kpi-row">
         <div className="card property-kpi">
-          <span className="property-kpi-label">Occupancy Rate</span>
+          <span className="property-kpi-label">{t("occupancyRate")}</span>
           <span
             className={`property-kpi-value ${
               occupancy >= 90 ? "green" : occupancy >= 70 ? "amber" : "red"
@@ -768,19 +786,19 @@ function OverviewTabContent({
           </span>
         </div>
         <div className="card property-kpi">
-          <span className="property-kpi-label">Monthly Revenue</span>
+          <span className="property-kpi-label">{t("monthlyRevenue")}</span>
           <span className="property-kpi-value">
             {formatCurrency(financials.monthlyRevenue)}
           </span>
         </div>
         <div className="card property-kpi">
-          <span className="property-kpi-label">Monthly Expenses</span>
+          <span className="property-kpi-label">{t("monthlyExpenses")}</span>
           <span className="property-kpi-value">
             {formatCurrency(financials.monthlyExpenses)}
           </span>
         </div>
         <div className="card property-kpi">
-          <span className="property-kpi-label">NOI</span>
+          <span className="property-kpi-label">{t("noi")}</span>
           <span
             className={`property-kpi-value ${
               financials.noi >= 0 ? "green" : "red"
@@ -790,11 +808,11 @@ function OverviewTabContent({
           </span>
         </div>
         <div className="card property-kpi">
-          <span className="property-kpi-label">Active Leases</span>
+          <span className="property-kpi-label">{t("activeLeases")}</span>
           <span className="property-kpi-value">{activeLeaseCount}</span>
         </div>
         <div className="card property-kpi">
-          <span className="property-kpi-label">Open Maintenance</span>
+          <span className="property-kpi-label">{t("openMaintenance")}</span>
           <span
             className={`property-kpi-value ${openMaintCount > 0 ? "amber" : ""}`}
           >
@@ -807,12 +825,12 @@ function OverviewTabContent({
       <div className="overview-grid-row">
         <div className="card unit-status-grid-section">
           <div className="card-title-row">
-            <span className="card-title">Unit Status Grid</span>
+            <span className="card-title">{t("unitStatusGrid")}</span>
             <button
               className="link-btn"
               onClick={() => onTabSwitch("units")}
             >
-              View All Units &rarr;
+              {t("viewAllUnits")} &rarr;
             </button>
           </div>
           {units.length > 0 ? (
@@ -822,7 +840,7 @@ function OverviewTabContent({
                   <div
                     key={unit.id}
                     className={`unit-grid-cell ${unit.status}`}
-                    title={`Unit ${unit.unit_number} - ${unit.status}`}
+                    title={t("unitStatusTitle", { number: unit.unit_number, status: unit.status })}
                     onClick={() => onSelectUnit(unit)}
                   >
                     {unit.unit_number}
@@ -832,21 +850,21 @@ function OverviewTabContent({
               <div className="unit-grid-legend">
                 <span className="legend-item">
                   <span className="legend-dot occupied" />
-                  Occupied (
+                  {t("unitStatusOccupied")} (
                   {units.filter((u) => u.status === "occupied").length})
                 </span>
                 <span className="legend-item">
                   <span className="legend-dot vacant" />
-                  Vacant ({units.filter((u) => u.status === "vacant").length})
+                  {t("unitStatusVacant")} ({units.filter((u) => u.status === "vacant").length})
                 </span>
                 <span className="legend-item">
                   <span className="legend-dot maintenance" />
-                  Maintenance (
+                  {t("unitStatusMaintenance")} (
                   {units.filter((u) => u.status === "maintenance").length})
                 </span>
                 <span className="legend-item">
                   <span className="legend-dot reserved" />
-                  Reserved (
+                  {t("unitStatusReserved")} (
                   {units.filter((u) => u.status === "reserved").length})
                 </span>
               </div>
@@ -860,19 +878,19 @@ function OverviewTabContent({
                 fontSize: "0.85rem",
               }}
             >
-              No units added yet
+              {t("noUnitsAddedYet")}
             </div>
           )}
         </div>
 
         <div className="card lease-expirations-section">
           <div className="card-title-row">
-            <span className="card-title">Upcoming Lease Expirations</span>
+            <span className="card-title">{t("upcomingLeaseExpirations")}</span>
             <button
               className="link-btn"
               onClick={() => onTabSwitch("leases")}
             >
-              View All Leases &rarr;
+              {t("viewAllLeases")} &rarr;
             </button>
           </div>
           {upcomingExpirations.length > 0 ? (
@@ -890,10 +908,10 @@ function OverviewTabContent({
                   >
                     <div className="lease-expiry-header">
                       <span className="lease-expiry-unit">
-                        Unit {l.units?.unit_number ?? "--"}
+                        {t("unitLabel", { number: l.units?.unit_number ?? "--" })}
                       </span>
                       {daysLeft < 30 && (
-                        <span className="badge badge-red">Urgent</span>
+                        <span className="badge badge-red">{t("priorityUrgent")}</span>
                       )}
                     </div>
                     <div className="lease-expiry-tenant">{l.tenant_name}</div>
@@ -910,7 +928,7 @@ function OverviewTabContent({
                               : ""
                         }`}
                       >
-                        {daysLeft} days
+                        {t("daysCount", { count: daysLeft })}
                       </span>
                     </div>
                   </div>
@@ -919,7 +937,7 @@ function OverviewTabContent({
             </div>
           ) : (
             <div className="lease-expiry-empty">
-              No leases expiring within the next 120 days
+              {t("noLeasesExpiringWithin120Days")}
             </div>
           )}
         </div>
@@ -927,10 +945,10 @@ function OverviewTabContent({
 
       {/* Property Info */}
       <div className="card" style={{ marginBottom: "24px" }}>
-        <div className="card-title">Property Information</div>
+        <div className="card-title">{t("propertyInformation")}</div>
         <div className="property-info-grid">
           <div className="property-info-item">
-            <span className="property-info-label">Property Type</span>
+            <span className="property-info-label">{t("propertyType")}</span>
             <span
               className="property-info-value"
               style={{ textTransform: "capitalize" }}
@@ -939,20 +957,20 @@ function OverviewTabContent({
             </span>
           </div>
           <div className="property-info-item">
-            <span className="property-info-label">Address</span>
+            <span className="property-info-label">{t("address")}</span>
             <span className="property-info-value">
               {property.address_line1}, {property.city}, {property.state}{" "}
               {property.zip}
             </span>
           </div>
           <div className="property-info-item">
-            <span className="property-info-label">Year Built</span>
+            <span className="property-info-label">{t("yearBuilt")}</span>
             <span className="property-info-value">
               {property.year_built ?? "--"}
             </span>
           </div>
           <div className="property-info-item">
-            <span className="property-info-label">Total Sq Ft</span>
+            <span className="property-info-label">{t("totalSqFt")}</span>
             <span className="property-info-value">
               {property.total_sqft
                 ? property.total_sqft.toLocaleString()
@@ -960,7 +978,7 @@ function OverviewTabContent({
             </span>
           </div>
           <div className="property-info-item">
-            <span className="property-info-label">Purchase Price</span>
+            <span className="property-info-label">{t("purchasePrice")}</span>
             <span className="property-info-value">
               {property.purchase_price
                 ? formatCurrency(property.purchase_price)
@@ -968,7 +986,7 @@ function OverviewTabContent({
             </span>
           </div>
           <div className="property-info-item">
-            <span className="property-info-label">Current Value</span>
+            <span className="property-info-label">{t("currentValue")}</span>
             <span className="property-info-value">
               {property.current_value
                 ? formatCurrency(property.current_value)
@@ -999,6 +1017,21 @@ function UnitsTabContent({
   onSelectUnit: (u: UnitRow) => void;
   onEditUnit: (u: UnitRow) => void;
 }) {
+  const t = useTranslations("app");
+
+  function unitTypeLabel(ut: string): string {
+    const map: Record<string, string> = {
+      studio: t("unitTypeStudio"),
+      "1br": t("unitType1br"),
+      "2br": t("unitType2br"),
+      "3br": t("unitType3br"),
+      office: t("unitTypeOffice"),
+      retail: t("unitTypeRetail"),
+      warehouse: t("unitTypeWarehouse"),
+    };
+    return map[ut] ?? ut;
+  }
+
   // Build a map of unit_id -> active lease tenant name
   const tenantByUnit = new Map<string, string>();
   for (const l of leases) {
@@ -1021,9 +1054,9 @@ function UnitsTabContent({
   if (units.length === 0) {
     return (
       <div className="properties-empty" style={{ padding: "40px 20px" }}>
-        <div className="properties-empty-title">No units</div>
+        <div className="properties-empty-title">{t("noUnits")}</div>
         <div className="properties-empty-desc">
-          Add units to this property to track occupancy and leases.
+          {t("addUnitsDesc")}
         </div>
       </div>
     );
@@ -1046,7 +1079,7 @@ function UnitsTabContent({
             fontWeight: 500,
           }}
         >
-          {vacantCount} vacant unit{vacantCount !== 1 ? "s" : ""} available
+          {t("vacantUnitsAvailable", { count: vacantCount })}
         </div>
       )}
       <div className="units-grid">
@@ -1069,15 +1102,15 @@ function UnitsTabContent({
             >
               <span className={`unit-status-dot ${unit.status}`} />
               <div className="unit-card-info">
-                <div className="unit-card-number">Unit {unit.unit_number}</div>
+                <div className="unit-card-number">{t("unitLabel", { number: unit.unit_number })}</div>
                 <div className="unit-card-meta">
                   {unitTypeLabel(unit.unit_type)}
                   {unit.sqft ? ` -- ${unit.sqft.toLocaleString()} sqft` : ""}
-                  {unit.floor_number ? ` -- Floor ${unit.floor_number}` : ""}
+                  {unit.floor_number ? ` -- ${t("floorLabel", { number: unit.floor_number })}` : ""}
                 </div>
                 {tenant && (
                   <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: "2px" }}>
-                    Tenant: {tenant}
+                    {t("tenantLabel", { name: tenant })}
                   </div>
                 )}
               </div>
@@ -1093,7 +1126,7 @@ function UnitsTabContent({
                       e.stopPropagation();
                       onEditUnit(unit);
                     }}
-                    title="Edit unit"
+                    title={t("editUnit")}
                   >
                     <Pencil size={13} />
                   </button>
@@ -1118,12 +1151,25 @@ function LeasesTabContent({
   leases: LeaseRow[];
   onSelectLease: (l: LeaseRow) => void;
 }) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(d: string | null | undefined): string {
+    if (!d) return "--";
+    return new Date(d).toLocaleDateString(dateLocale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   if (leases.length === 0) {
     return (
       <div className="properties-empty" style={{ padding: "40px 20px" }}>
-        <div className="properties-empty-title">No leases</div>
+        <div className="properties-empty-title">{t("noLeases")}</div>
         <div className="properties-empty-desc">
-          Active and historical leases will appear here.
+          {t("leasesWillAppearHere")}
         </div>
       </div>
     );
@@ -1134,12 +1180,12 @@ function LeasesTabContent({
       <table className="lease-table">
         <thead>
           <tr>
-            <th>Unit</th>
-            <th>Tenant</th>
-            <th>Monthly Rent</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Status</th>
+            <th>{t("unit")}</th>
+            <th>{t("tenant")}</th>
+            <th>{t("monthlyRent")}</th>
+            <th>{t("start")}</th>
+            <th>{t("end")}</th>
+            <th>{t("status")}</th>
           </tr>
         </thead>
         <tbody>
@@ -1183,7 +1229,7 @@ function LeasesTabContent({
                       className="badge badge-amber"
                       style={{ marginLeft: "8px" }}
                     >
-                      Expiring Soon
+                      {t("expiringSoon")}
                     </span>
                   )}
                 </td>
@@ -1210,11 +1256,24 @@ function MaintenanceTabContent({
   requests: MaintenanceRequestRow[];
   onSelectMaint: (m: MaintenanceRequestRow) => void;
 }) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(d: string | null | undefined): string {
+    if (!d) return "--";
+    return new Date(d).toLocaleDateString(dateLocale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   const columns: { key: string; label: string }[] = [
-    { key: "submitted", label: "Submitted" },
-    { key: "assigned", label: "Assigned" },
-    { key: "in_progress", label: "In Progress" },
-    { key: "completed", label: "Completed" },
+    { key: "submitted", label: t("maintStatusSubmitted") },
+    { key: "assigned", label: t("maintStatusAssigned") },
+    { key: "in_progress", label: t("maintStatusInProgress") },
+    { key: "completed", label: t("maintStatusCompleted") },
   ];
 
   const grouped = new Map<string, MaintenanceRequestRow[]>();
@@ -1250,7 +1309,7 @@ function MaintenanceTabContent({
                 <div className="maintenance-card-title">{req.title}</div>
                 <div className="maintenance-card-meta">
                   {req.units?.unit_number && (
-                    <span>Unit {req.units.unit_number}</span>
+                    <span>{t("unitLabel", { number: req.units.unit_number })}</span>
                   )}
                   <span style={{ textTransform: "capitalize" }}>
                     {req.category}
@@ -1266,7 +1325,7 @@ function MaintenanceTabContent({
                         color: "var(--muted)",
                       }}
                     >
-                      Est. {formatCurrency(req.estimated_cost)}
+                      {t("estAbbr")} {formatCurrency(req.estimated_cost)}
                     </span>
                   )}
                 </div>
@@ -1281,7 +1340,7 @@ function MaintenanceTabContent({
                   padding: "20px 0",
                 }}
               >
-                No requests
+                {t("noRequests")}
               </div>
             )}
           </div>
@@ -1300,6 +1359,8 @@ function FinancialsTabContent({
 }: {
   financials: PropertyFinancials;
 }) {
+  const t = useTranslations("app");
+
   const maxVal = Math.max(
     financials.monthlyRevenue,
     financials.monthlyExpenses,
@@ -1310,9 +1371,9 @@ function FinancialsTabContent({
     <div className="financials-grid">
       {/* Revenue vs Expenses */}
       <div className="card">
-        <div className="card-title">Revenue vs Expenses</div>
+        <div className="card-title">{t("revenueVsExpenses")}</div>
         <div className="financials-bar-row">
-          <span className="financials-bar-label">Revenue</span>
+          <span className="financials-bar-label">{t("revenue")}</span>
           <div className="financials-bar-track">
             <div
               className="financials-bar-fill"
@@ -1327,7 +1388,7 @@ function FinancialsTabContent({
           </span>
         </div>
         <div className="financials-bar-row">
-          <span className="financials-bar-label">Expenses</span>
+          <span className="financials-bar-label">{t("expenses")}</span>
           <div className="financials-bar-track">
             <div
               className="financials-bar-fill"
@@ -1343,7 +1404,7 @@ function FinancialsTabContent({
         </div>
         <div className="financials-bar-row">
           <span className="financials-bar-label" style={{ fontWeight: 600 }}>
-            NOI
+            {t("noi")}
           </span>
           <div className="financials-bar-track">
             <div
@@ -1368,12 +1429,12 @@ function FinancialsTabContent({
 
       {/* Rent Collection */}
       <div className="card">
-        <div className="card-title">Rent Collection (Current Month)</div>
+        <div className="card-title">{t("rentCollectionCurrentMonth")}</div>
         <div
           style={{ display: "flex", flexDirection: "column", gap: "16px" }}
         >
           <div className="property-info-item">
-            <span className="property-info-label">Collection Rate</span>
+            <span className="property-info-label">{t("collectionRate")}</span>
             <span
               className="property-info-value"
               style={{
@@ -1408,7 +1469,7 @@ function FinancialsTabContent({
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div className="property-info-item">
-              <span className="property-info-label">Collected</span>
+              <span className="property-info-label">{t("collected")}</span>
               <span
                 className="property-info-value"
                 style={{ color: "var(--color-green)" }}
@@ -1420,7 +1481,7 @@ function FinancialsTabContent({
               className="property-info-item"
               style={{ textAlign: "right" }}
             >
-              <span className="property-info-label">Total Due</span>
+              <span className="property-info-label">{t("totalDue")}</span>
               <span className="property-info-value">
                 {formatCurrency(financials.totalDue)}
               </span>
@@ -1447,6 +1508,7 @@ function EditPropertyModal({
   setSaving: (v: boolean) => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("app");
   const [form, setForm] = useState({
     name: property.name,
     property_type: property.property_type,
@@ -1487,10 +1549,10 @@ function EditPropertyModal({
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update property.");
+        setError(data.error || t("failedToUpdateProperty"));
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -1503,7 +1565,7 @@ function EditPropertyModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h3>Edit Property</h3>
+          <h3>{t("editProperty")}</h3>
           <button className="modal-close" onClick={onClose}>
             <X size={20} />
           </button>
@@ -1512,7 +1574,7 @@ function EditPropertyModal({
           {error && <div className="form-error">{error}</div>}
           <div className="modal-form-grid">
             <div className="form-group full-width">
-              <label className="form-label">Property Name</label>
+              <label className="form-label">{t("propertyName")}</label>
               <input
                 className="form-input"
                 value={form.name}
@@ -1520,7 +1582,7 @@ function EditPropertyModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Property Type</label>
+              <label className="form-label">{t("propertyType")}</label>
               <select
                 className="form-select"
                 value={form.property_type}
@@ -1528,14 +1590,14 @@ function EditPropertyModal({
                   setForm({ ...form, property_type: e.target.value as PropertyRow["property_type"] })
                 }
               >
-                <option value="residential">Residential</option>
-                <option value="commercial">Commercial</option>
-                <option value="industrial">Industrial</option>
-                <option value="mixed_use">Mixed Use</option>
+                <option value="residential">{t("propTypeResidential")}</option>
+                <option value="commercial">{t("propTypeCommercial")}</option>
+                <option value="industrial">{t("propTypeIndustrial")}</option>
+                <option value="mixed_use">{t("propTypeMixedUse")}</option>
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Year Built</label>
+              <label className="form-label">{t("yearBuilt")}</label>
               <input
                 className="form-input"
                 type="number"
@@ -1543,11 +1605,11 @@ function EditPropertyModal({
                 onChange={(e) =>
                   setForm({ ...form, year_built: e.target.value })
                 }
-                placeholder="e.g. 2005"
+                placeholder={t("yearBuiltPlaceholder")}
               />
             </div>
             <div className="form-group full-width">
-              <label className="form-label">Address</label>
+              <label className="form-label">{t("address")}</label>
               <input
                 className="form-input"
                 value={form.address_line1}
@@ -1557,7 +1619,7 @@ function EditPropertyModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">City</label>
+              <label className="form-label">{t("city")}</label>
               <input
                 className="form-input"
                 value={form.city}
@@ -1565,7 +1627,7 @@ function EditPropertyModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">State</label>
+              <label className="form-label">{t("state")}</label>
               <input
                 className="form-input"
                 value={form.state}
@@ -1573,7 +1635,7 @@ function EditPropertyModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">ZIP</label>
+              <label className="form-label">{t("zip")}</label>
               <input
                 className="form-input"
                 value={form.zip}
@@ -1581,7 +1643,7 @@ function EditPropertyModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Total Sq Ft</label>
+              <label className="form-label">{t("totalSqFt")}</label>
               <input
                 className="form-input"
                 type="number"
@@ -1593,7 +1655,7 @@ function EditPropertyModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Purchase Price</label>
+              <label className="form-label">{t("purchasePrice")}</label>
               <input
                 className="form-input"
                 type="number"
@@ -1605,7 +1667,7 @@ function EditPropertyModal({
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Current Value</label>
+              <label className="form-label">{t("currentValue")}</label>
               <input
                 className="form-input"
                 type="number"
@@ -1623,14 +1685,14 @@ function EditPropertyModal({
               onClick={onClose}
               disabled={saving}
             >
-              Cancel
+              {t("cancel")}
             </button>
             <button
               className="ui-btn ui-btn-md ui-btn-primary"
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t("saving") : t("saveChanges")}
             </button>
           </div>
         </div>
@@ -1666,6 +1728,32 @@ function UnitModal({
   onDelete: (id: string, name: string) => void;
   onSelectLease: (l: LeaseRow) => void;
 }) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(d: string | null | undefined): string {
+    if (!d) return "--";
+    return new Date(d).toLocaleDateString(dateLocale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  function unitTypeLabel(ut: string): string {
+    const map: Record<string, string> = {
+      studio: t("unitTypeStudio"),
+      "1br": t("unitType1br"),
+      "2br": t("unitType2br"),
+      "3br": t("unitType3br"),
+      office: t("unitTypeOffice"),
+      retail: t("unitTypeRetail"),
+      warehouse: t("unitTypeWarehouse"),
+    };
+    return map[ut] ?? ut;
+  }
+
   // Find the active lease for this unit
   const activeLease = leases.find(
     (l) => l.unit_id === unit.id && l.status === "active"
@@ -1707,10 +1795,10 @@ function UnitModal({
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update unit.");
+        setError(data.error || t("failedToUpdateUnit"));
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -1726,17 +1814,17 @@ function UnitModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h3>Unit {unit.unit_number}</h3>
+          <h3>{t("unitLabel", { number: unit.unit_number })}</h3>
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               className="ui-btn ui-btn-sm ui-btn-outline"
               onClick={onToggleEdit}
             >
-              {editMode ? "Cancel" : "Edit"}
+              {editMode ? t("cancel") : t("edit")}
             </button>
             <button
               className="ui-btn ui-btn-sm ui-btn-danger"
-              onClick={() => onDelete(unit.id, `Unit ${unit.unit_number}`)}
+              onClick={() => onDelete(unit.id, t("unitLabel", { number: unit.unit_number }))}
             >
               <Trash2 size={13} />
             </button>
@@ -1753,7 +1841,7 @@ function UnitModal({
             <>
               <div className="modal-form-grid">
                 <div className="form-group">
-                  <label className="form-label">Unit Number</label>
+                  <label className="form-label">{t("unitNumber")}</label>
                   <input
                     className="form-input"
                     value={form.unit_number}
@@ -1763,7 +1851,7 @@ function UnitModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Unit Type</label>
+                  <label className="form-label">{t("unitType")}</label>
                   <select
                     className="form-select"
                     value={form.unit_type}
@@ -1771,17 +1859,17 @@ function UnitModal({
                       setForm({ ...form, unit_type: e.target.value as UnitRow["unit_type"] })
                     }
                   >
-                    <option value="studio">Studio</option>
-                    <option value="1br">1 BR</option>
-                    <option value="2br">2 BR</option>
-                    <option value="3br">3 BR</option>
-                    <option value="office">Office</option>
-                    <option value="retail">Retail</option>
-                    <option value="warehouse">Warehouse</option>
+                    <option value="studio">{t("unitTypeStudio")}</option>
+                    <option value="1br">{t("unitType1br")}</option>
+                    <option value="2br">{t("unitType2br")}</option>
+                    <option value="3br">{t("unitType3br")}</option>
+                    <option value="office">{t("unitTypeOffice")}</option>
+                    <option value="retail">{t("unitTypeRetail")}</option>
+                    <option value="warehouse">{t("unitTypeWarehouse")}</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Sq Ft</label>
+                  <label className="form-label">{t("sqFt")}</label>
                   <input
                     className="form-input"
                     type="number"
@@ -1793,7 +1881,7 @@ function UnitModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Bedrooms</label>
+                  <label className="form-label">{t("bedrooms")}</label>
                   <input
                     className="form-input"
                     type="number"
@@ -1805,7 +1893,7 @@ function UnitModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Bathrooms</label>
+                  <label className="form-label">{t("bathrooms")}</label>
                   <input
                     className="form-input"
                     type="number"
@@ -1817,7 +1905,7 @@ function UnitModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Floor Number</label>
+                  <label className="form-label">{t("floorNumber")}</label>
                   <input
                     className="form-input"
                     type="number"
@@ -1829,7 +1917,7 @@ function UnitModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Market Rent</label>
+                  <label className="form-label">{t("marketRent")}</label>
                   <input
                     className="form-input"
                     type="number"
@@ -1841,7 +1929,7 @@ function UnitModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Status</label>
+                  <label className="form-label">{t("status")}</label>
                   <select
                     className="form-select"
                     value={form.status}
@@ -1849,10 +1937,10 @@ function UnitModal({
                       setForm({ ...form, status: e.target.value as UnitRow["status"] })
                     }
                   >
-                    <option value="vacant">Vacant</option>
-                    <option value="occupied">Occupied</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="reserved">Reserved</option>
+                    <option value="vacant">{t("unitStatusVacant")}</option>
+                    <option value="occupied">{t("unitStatusOccupied")}</option>
+                    <option value="maintenance">{t("unitStatusMaintenance")}</option>
+                    <option value="reserved">{t("unitStatusReserved")}</option>
                   </select>
                 </div>
               </div>
@@ -1862,14 +1950,14 @@ function UnitModal({
                   onClick={onToggleEdit}
                   disabled={saving}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   className="ui-btn ui-btn-md ui-btn-primary"
                   onClick={handleSave}
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? t("saving") : t("saveChanges")}
                 </button>
               </div>
             </>
@@ -1878,41 +1966,41 @@ function UnitModal({
             <div style={{ padding: "1.25rem" }}>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Unit Number</label>
+                  <label className="detail-label">{t("unitNumber")}</label>
                   <div className="detail-value">{unit.unit_number}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Unit Type</label>
+                  <label className="detail-label">{t("unitType")}</label>
                   <div className="detail-value">{unitTypeLabel(unit.unit_type)}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Sq Ft</label>
+                  <label className="detail-label">{t("sqFt")}</label>
                   <div className="detail-value">{unit.sqft ? unit.sqft.toLocaleString() : "--"}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Bedrooms</label>
+                  <label className="detail-label">{t("bedrooms")}</label>
                   <div className="detail-value">{unit.bedrooms ?? "--"}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Bathrooms</label>
+                  <label className="detail-label">{t("bathrooms")}</label>
                   <div className="detail-value">{unit.bathrooms ?? "--"}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Floor Number</label>
+                  <label className="detail-label">{t("floorNumber")}</label>
                   <div className="detail-value">{unit.floor_number ?? "--"}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Market Rent</label>
+                  <label className="detail-label">{t("marketRent")}</label>
                   <div className="detail-value">{unit.market_rent ? formatCurrency(unit.market_rent) : "--"}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Status</label>
+                  <label className="detail-label">{t("status")}</label>
                   <div className="detail-value"><UnitStatusBadge status={unit.status} /></div>
                 </div>
               </div>
@@ -1929,7 +2017,7 @@ function UnitModal({
                   }}
                 >
                   <label className="detail-label" style={{ marginBottom: "8px", display: "block" }}>
-                    Current Tenant
+                    {t("currentTenant")}
                   </label>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
@@ -1947,14 +2035,14 @@ function UnitModal({
                         </div>
                       )}
                       <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: "4px" }}>
-                        {formatCurrency(activeLease.monthly_rent)}/mo &middot; Lease ends {formatDate(activeLease.lease_end)}
+                        {formatCurrency(activeLease.monthly_rent)}/{t("moAbbr")} &middot; {t("leaseEnds")} {formatDate(activeLease.lease_end)}
                       </div>
                     </div>
                     <button
                       className="ui-btn ui-btn-sm ui-btn-outline"
                       onClick={() => onSelectLease(activeLease)}
                     >
-                      View Lease
+                      {t("viewLease")}
                     </button>
                   </div>
                 </div>
@@ -1970,7 +2058,7 @@ function UnitModal({
                     color: "var(--color-amber, #f59e0b)",
                   }}
                 >
-                  No active lease for this unit
+                  {t("noActiveLeaseForUnit")}
                 </div>
               )}
             </div>
@@ -2004,6 +2092,19 @@ function LeaseModal({
   onToggleEdit: () => void;
   onDelete: (id: string, name: string) => void;
 }) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(d: string | null | undefined): string {
+    if (!d) return "--";
+    return new Date(d).toLocaleDateString(dateLocale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   const [form, setForm] = useState({
     tenant_name: lease.tenant_name,
     tenant_email: lease.tenant_email ?? "",
@@ -2044,10 +2145,10 @@ function LeaseModal({
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update lease.");
+        setError(data.error || t("failedToUpdateLease"));
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -2061,7 +2162,7 @@ function LeaseModal({
       >
         <div className="modal-header">
           <h3>
-            Lease - {lease.tenant_name}
+            {t("leaseFor", { tenant: lease.tenant_name })}
             {lease.units?.unit_number && (
               <span
                 style={{
@@ -2071,7 +2172,7 @@ function LeaseModal({
                   marginLeft: "8px",
                 }}
               >
-                (Unit {lease.units.unit_number})
+                ({t("unitLabel", { number: lease.units.unit_number })})
               </span>
             )}
           </h3>
@@ -2080,12 +2181,12 @@ function LeaseModal({
               className="ui-btn ui-btn-sm ui-btn-outline"
               onClick={onToggleEdit}
             >
-              {editMode ? "Cancel" : "Edit"}
+              {editMode ? t("cancel") : t("edit")}
             </button>
             <button
               className="ui-btn ui-btn-sm ui-btn-danger"
               onClick={() =>
-                onDelete(lease.id, `Lease for ${lease.tenant_name}`)
+                onDelete(lease.id, t("leaseFor", { tenant: lease.tenant_name }))
               }
             >
               <Trash2 size={13} />
@@ -2103,7 +2204,7 @@ function LeaseModal({
             <>
               <div className="modal-form-grid">
                 <div className="form-group full-width">
-                  <label className="form-label">Tenant Name</label>
+                  <label className="form-label">{t("tenantName")}</label>
                   <input
                     className="form-input"
                     value={form.tenant_name}
@@ -2113,7 +2214,7 @@ function LeaseModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Tenant Email</label>
+                  <label className="form-label">{t("tenantEmail")}</label>
                   <input
                     className="form-input"
                     type="email"
@@ -2125,7 +2226,7 @@ function LeaseModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Tenant Phone</label>
+                  <label className="form-label">{t("tenantPhone")}</label>
                   <input
                     className="form-input"
                     value={form.tenant_phone}
@@ -2136,7 +2237,7 @@ function LeaseModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Monthly Rent</label>
+                  <label className="form-label">{t("monthlyRent")}</label>
                   <input
                     className="form-input"
                     type="number"
@@ -2151,7 +2252,7 @@ function LeaseModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Security Deposit</label>
+                  <label className="form-label">{t("securityDeposit")}</label>
                   <input
                     className="form-input"
                     type="number"
@@ -2163,7 +2264,7 @@ function LeaseModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Lease Start</label>
+                  <label className="form-label">{t("leaseStart")}</label>
                   <input
                     className="form-input"
                     type="date"
@@ -2174,7 +2275,7 @@ function LeaseModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Lease End</label>
+                  <label className="form-label">{t("leaseEnd")}</label>
                   <input
                     className="form-input"
                     type="date"
@@ -2185,7 +2286,7 @@ function LeaseModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Status</label>
+                  <label className="form-label">{t("status")}</label>
                   <select
                     className="form-select"
                     value={form.status}
@@ -2193,14 +2294,14 @@ function LeaseModal({
                       setForm({ ...form, status: e.target.value as LeaseRow["status"] })
                     }
                   >
-                    <option value="active">Active</option>
-                    <option value="expired">Expired</option>
-                    <option value="terminated">Terminated</option>
-                    <option value="pending">Pending</option>
+                    <option value="active">{t("statusActive")}</option>
+                    <option value="expired">{t("statusExpired")}</option>
+                    <option value="terminated">{t("statusTerminated")}</option>
+                    <option value="pending">{t("statusPending")}</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Auto Renew</label>
+                  <label className="form-label">{t("autoRenew")}</label>
                   <select
                     className="form-select"
                     value={form.auto_renew ? "true" : "false"}
@@ -2211,8 +2312,8 @@ function LeaseModal({
                       })
                     }
                   >
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    <option value="true">{t("yes")}</option>
+                    <option value="false">{t("no")}</option>
                   </select>
                 </div>
               </div>
@@ -2222,14 +2323,14 @@ function LeaseModal({
                   onClick={onToggleEdit}
                   disabled={saving}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   className="ui-btn ui-btn-md ui-btn-primary"
                   onClick={handleSave}
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? t("saving") : t("saveChanges")}
                 </button>
               </div>
             </>
@@ -2238,52 +2339,52 @@ function LeaseModal({
             <div style={{ padding: "1.25rem" }}>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Unit</label>
-                  <div className="detail-value">{lease.units?.unit_number ? `Unit ${lease.units.unit_number}` : "--"}</div>
+                  <label className="detail-label">{t("unit")}</label>
+                  <div className="detail-value">{lease.units?.unit_number ? t("unitLabel", { number: lease.units.unit_number }) : "--"}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Tenant Name</label>
+                  <label className="detail-label">{t("tenantName")}</label>
                   <div className="detail-value">{lease.tenant_name}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Email</label>
+                  <label className="detail-label">{t("email")}</label>
                   <div className="detail-value">{lease.tenant_email ?? "--"}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Phone</label>
+                  <label className="detail-label">{t("phone")}</label>
                   <div className="detail-value">{lease.tenant_phone ?? "--"}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Monthly Rent</label>
+                  <label className="detail-label">{t("monthlyRent")}</label>
                   <div className="detail-value">{formatCurrency(lease.monthly_rent)}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Security Deposit</label>
+                  <label className="detail-label">{t("securityDeposit")}</label>
                   <div className="detail-value">{lease.security_deposit ? formatCurrency(lease.security_deposit) : "--"}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Lease Start</label>
+                  <label className="detail-label">{t("leaseStart")}</label>
                   <div className="detail-value">{formatDate(lease.lease_start)}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Lease End</label>
+                  <label className="detail-label">{t("leaseEnd")}</label>
                   <div className="detail-value">{formatDate(lease.lease_end)}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Status</label>
+                  <label className="detail-label">{t("status")}</label>
                   <div className="detail-value"><LeaseStatusBadge status={lease.status} /></div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Auto Renew</label>
-                  <div className="detail-value">{lease.auto_renew ? "Yes" : "No"}</div>
+                  <label className="detail-label">{t("autoRenew")}</label>
+                  <div className="detail-value">{lease.auto_renew ? t("yes") : t("no")}</div>
                 </div>
               </div>
             </div>
@@ -2317,6 +2418,19 @@ function MaintenanceModal({
   onToggleEdit: () => void;
   onDelete: (id: string, name: string) => void;
 }) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(d: string | null | undefined): string {
+    if (!d) return "--";
+    return new Date(d).toLocaleDateString(dateLocale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   const [form, setForm] = useState({
     title: maint.title,
     description: maint.description ?? "",
@@ -2361,10 +2475,10 @@ function MaintenanceModal({
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update maintenance request.");
+        setError(data.error || t("failedToUpdateMaintenance"));
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -2383,7 +2497,7 @@ function MaintenanceModal({
               className="ui-btn ui-btn-sm ui-btn-outline"
               onClick={onToggleEdit}
             >
-              {editMode ? "Cancel" : "Edit"}
+              {editMode ? t("cancel") : t("edit")}
             </button>
             <button
               className="ui-btn ui-btn-sm ui-btn-danger"
@@ -2404,7 +2518,7 @@ function MaintenanceModal({
             <>
               <div className="modal-form-grid">
                 <div className="form-group full-width">
-                  <label className="form-label">Title</label>
+                  <label className="form-label">{t("title")}</label>
                   <input
                     className="form-input"
                     value={form.title}
@@ -2414,7 +2528,7 @@ function MaintenanceModal({
                   />
                 </div>
                 <div className="form-group full-width">
-                  <label className="form-label">Description</label>
+                  <label className="form-label">{t("description")}</label>
                   <textarea
                     className="form-textarea"
                     value={form.description}
@@ -2422,11 +2536,11 @@ function MaintenanceModal({
                       setForm({ ...form, description: e.target.value })
                     }
                     rows={3}
-                    placeholder="Describe the issue..."
+                    placeholder={t("describeTheIssue")}
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Category</label>
+                  <label className="form-label">{t("category")}</label>
                   <select
                     className="form-select"
                     value={form.category}
@@ -2437,16 +2551,16 @@ function MaintenanceModal({
                       })
                     }
                   >
-                    <option value="plumbing">Plumbing</option>
-                    <option value="electrical">Electrical</option>
-                    <option value="hvac">HVAC</option>
-                    <option value="appliance">Appliance</option>
-                    <option value="structural">Structural</option>
-                    <option value="general">General</option>
+                    <option value="plumbing">{t("categoryPlumbing")}</option>
+                    <option value="electrical">{t("categoryElectrical")}</option>
+                    <option value="hvac">{t("categoryHvac")}</option>
+                    <option value="appliance">{t("categoryAppliance")}</option>
+                    <option value="structural">{t("categoryStructural")}</option>
+                    <option value="general">{t("categoryGeneral")}</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Priority</label>
+                  <label className="form-label">{t("priority")}</label>
                   <select
                     className="form-select"
                     value={form.priority}
@@ -2457,14 +2571,14 @@ function MaintenanceModal({
                       })
                     }
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="emergency">Emergency</option>
+                    <option value="low">{t("priorityLow")}</option>
+                    <option value="medium">{t("priorityMedium")}</option>
+                    <option value="high">{t("priorityHigh")}</option>
+                    <option value="emergency">{t("priorityEmergency")}</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Status</label>
+                  <label className="form-label">{t("status")}</label>
                   <select
                     className="form-select"
                     value={form.status}
@@ -2475,15 +2589,15 @@ function MaintenanceModal({
                       })
                     }
                   >
-                    <option value="submitted">Submitted</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="closed">Closed</option>
+                    <option value="submitted">{t("maintStatusSubmitted")}</option>
+                    <option value="assigned">{t("maintStatusAssigned")}</option>
+                    <option value="in_progress">{t("maintStatusInProgress")}</option>
+                    <option value="completed">{t("maintStatusCompleted")}</option>
+                    <option value="closed">{t("maintStatusClosed")}</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Estimated Cost</label>
+                  <label className="form-label">{t("estimatedCost")}</label>
                   <input
                     className="form-input"
                     type="number"
@@ -2495,7 +2609,7 @@ function MaintenanceModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Actual Cost</label>
+                  <label className="form-label">{t("actualCost")}</label>
                   <input
                     className="form-input"
                     type="number"
@@ -2507,7 +2621,7 @@ function MaintenanceModal({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Scheduled Date</label>
+                  <label className="form-label">{t("scheduledDate")}</label>
                   <input
                     className="form-input"
                     type="date"
@@ -2518,7 +2632,7 @@ function MaintenanceModal({
                   />
                 </div>
                 <div className="form-group full-width">
-                  <label className="form-label">Notes</label>
+                  <label className="form-label">{t("notes")}</label>
                   <textarea
                     className="form-textarea"
                     value={form.notes}
@@ -2526,7 +2640,7 @@ function MaintenanceModal({
                       setForm({ ...form, notes: e.target.value })
                     }
                     rows={3}
-                    placeholder="Additional notes..."
+                    placeholder={t("additionalNotes")}
                   />
                 </div>
               </div>
@@ -2536,14 +2650,14 @@ function MaintenanceModal({
                   onClick={onToggleEdit}
                   disabled={saving}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   className="ui-btn ui-btn-md ui-btn-primary"
                   onClick={handleSave}
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? t("saving") : t("saveChanges")}
                 </button>
               </div>
             </>
@@ -2552,63 +2666,63 @@ function MaintenanceModal({
             <div style={{ padding: "1.25rem" }}>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Title</label>
+                  <label className="detail-label">{t("title")}</label>
                   <div className="detail-value">{maint.title}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Unit</label>
-                  <div className="detail-value">{maint.units?.unit_number ? `Unit ${maint.units.unit_number}` : "--"}</div>
+                  <label className="detail-label">{t("unit")}</label>
+                  <div className="detail-value">{maint.units?.unit_number ? t("unitLabel", { number: maint.units.unit_number }) : "--"}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Category</label>
+                  <label className="detail-label">{t("category")}</label>
                   <div className="detail-value" style={{ textTransform: "capitalize" }}>{maint.category}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Priority</label>
+                  <label className="detail-label">{t("priority")}</label>
                   <div className="detail-value"><PriorityBadge priority={maint.priority} /></div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Status</label>
+                  <label className="detail-label">{t("status")}</label>
                   <div className="detail-value"><MaintenanceStatusBadge status={maint.status} /></div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Estimated Cost</label>
+                  <label className="detail-label">{t("estimatedCost")}</label>
                   <div className="detail-value">{maint.estimated_cost != null ? formatCurrency(maint.estimated_cost) : "--"}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Actual Cost</label>
+                  <label className="detail-label">{t("actualCost")}</label>
                   <div className="detail-value">{maint.actual_cost != null ? formatCurrency(maint.actual_cost) : "--"}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Scheduled Date</label>
+                  <label className="detail-label">{t("scheduledDate")}</label>
                   <div className="detail-value">{formatDate(maint.scheduled_date)}</div>
                 </div>
               </div>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Created</label>
+                  <label className="detail-label">{t("created")}</label>
                   <div className="detail-value">{formatDate(maint.created_at)}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Completed</label>
+                  <label className="detail-label">{t("maintCompleted")}</label>
                   <div className="detail-value">{formatDate(maint.completed_at)}</div>
                 </div>
               </div>
               {maint.description && (
                 <div className="detail-group">
-                  <label className="detail-label">Description</label>
+                  <label className="detail-label">{t("description")}</label>
                   <div className="detail-value--multiline">{maint.description}</div>
                 </div>
               )}
               {maint.notes && (
                 <div className="detail-group">
-                  <label className="detail-label">Notes</label>
+                  <label className="detail-label">{t("notes")}</label>
                   <div className="detail-value--multiline">{maint.notes}</div>
                 </div>
               )}
@@ -2637,6 +2751,7 @@ function DeleteConfirmModal({
   setSaving: (v: boolean) => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("app");
   const [error, setError] = useState("");
 
   async function handleDelete() {
@@ -2664,10 +2779,10 @@ function DeleteConfirmModal({
         window.location.reload();
       } else {
         const data = await res.json();
-        setError(data.error || `Failed to delete ${target.type}.`);
+        setError(data.error || t("failedToDeleteItem", { type: target.type }));
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -2680,7 +2795,7 @@ function DeleteConfirmModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h3>Confirm Delete</h3>
+          <h3>{t("confirmDelete")}</h3>
           <button className="modal-close" onClick={onClose}>
             <X size={20} />
           </button>
@@ -2688,8 +2803,7 @@ function DeleteConfirmModal({
         <div className="modal-body">
           {error && <div className="form-error">{error}</div>}
           <div className="delete-confirm-text">
-            Are you sure you want to delete {target.type}{" "}
-            <span className="delete-confirm-name">{target.name}</span>?
+            {t("confirmDeleteTypeAndName", { type: target.type, name: target.name })}
             <br />
             <span
               style={{
@@ -2699,7 +2813,7 @@ function DeleteConfirmModal({
                 display: "inline-block",
               }}
             >
-              This action cannot be undone.
+              {t("cannotBeUndone")}
             </span>
           </div>
           <div className="modal-footer" style={{ border: "none", padding: "16px 0 0" }}>
@@ -2708,14 +2822,14 @@ function DeleteConfirmModal({
               onClick={onClose}
               disabled={saving}
             >
-              Cancel
+              {t("cancel")}
             </button>
             <button
               className="ui-btn ui-btn-md ui-btn-danger"
               onClick={handleDelete}
               disabled={saving}
             >
-              {saving ? "Deleting..." : "Delete"}
+              {saving ? t("deleting") : t("delete")}
             </button>
           </div>
         </div>

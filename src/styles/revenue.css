@@ -1,0 +1,109 @@
+/* ===================================================
+   Revenue Dashboard Styles
+   Super Admin - Revenue & MRR tracking
+   =================================================== */
+
+/* ===== 5-column KPI grid for revenue ===== */
+.rev-kpi-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* Past-due card gets a subtle red tint */
+.rev-kpi-pastdue {
+  border-color: color-mix(in srgb, var(--color-red) 20%, var(--border));
+  background: color-mix(in srgb, var(--color-red) 3%, var(--card-bg));
+}
+
+[data-theme="dark"] .rev-kpi-pastdue {
+  background: color-mix(in srgb, var(--color-red) 5%, var(--card-bg));
+}
+
+/* ===== Plan Distribution List ===== */
+.rev-plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rev-plan-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 120px;
+  align-items: center;
+  gap: 16px;
+}
+
+.rev-plan-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rev-plan-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.rev-plan-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.rev-plan-bar-wrap {
+  height: 10px;
+  background: var(--surface);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.rev-plan-bar {
+  height: 100%;
+  background: var(--color-blue);
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
+.rev-plan-revenue {
+  text-align: right;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.rev-plan-revenue-label {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1280px) {
+  .rev-kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .rev-plan-row {
+    grid-template-columns: 160px 1fr 100px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .rev-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .rev-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rev-plan-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .rev-plan-revenue {
+    text-align: left;
+  }
+}

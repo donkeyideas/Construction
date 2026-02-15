@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getStripeInstance, getWebhookSecret } from "@/lib/stripe/config";
 
 // ---------------------------------------------------------------------------
 // POST /api/stripe/webhook - Handle Stripe webhook events
 // ---------------------------------------------------------------------------
 
-const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY;
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-
 export async function POST(request: NextRequest) {
-  if (!STRIPE_SECRET || !STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
-  }
-
   try {
+    const stripe = await getStripeInstance();
+    const webhookSecret = await getWebhookSecret();
+
+    if (!stripe || !webhookSecret) {
+      return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
+    }
+
     const body = await request.text();
     const sig = request.headers.get("stripe-signature");
 
@@ -21,10 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing signature" }, { status: 400 });
     }
 
-    const Stripe = (await import("stripe")).default;
-    const stripe = new Stripe(STRIPE_SECRET);
-
-    const event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET);
+    const event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     const supabase = createAdminClient();
 
     switch (event.type) {

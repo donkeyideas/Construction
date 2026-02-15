@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Receipt,
   AlertCircle,
@@ -20,21 +21,6 @@ import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import { Upload } from "lucide-react";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
-
-const AP_IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "amount", label: "Amount ($)", required: true, type: "number" },
-  { key: "tax_amount", label: "Tax ($)", required: false, type: "number" },
-  { key: "due_date", label: "Due Date", required: false, type: "date" },
-  { key: "description", label: "Description", required: false },
-  { key: "status", label: "Status", required: false },
-  { key: "vendor_name", label: "Vendor Name", required: false },
-  { key: "project_name", label: "Project Name", required: false },
-];
-
-const AP_IMPORT_SAMPLE: Record<string, string>[] = [
-  { amount: "48500", tax_amount: "4122.50", due_date: "2026-01-30", description: "Hill Country Lumber - January delivery", status: "approved" },
-  { amount: "32000", tax_amount: "2720", due_date: "2026-01-30", description: "Texas Ready Mix - 147 CY concrete", status: "paid" },
-];
 
 /* ------------------------------------------------------------------
    Types
@@ -68,23 +54,6 @@ interface APClientProps {
    Helpers
    ------------------------------------------------------------------ */
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-const statuses = [
-  { label: "Active", value: "all" },
-  { label: "Draft", value: "draft" },
-  { label: "Pending", value: "pending" },
-  { label: "Approved", value: "approved" },
-  { label: "Overdue", value: "overdue" },
-  { label: "Paid", value: "paid" },
-];
-
 function buildUrl(status?: string): string {
   const p = new URLSearchParams();
   if (status && status !== "all") p.set("status", status);
@@ -105,7 +74,42 @@ export default function APClient({
   activeStatus,
 }: APClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const now = new Date();
+
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  const statuses = [
+    { label: t("statusActive"), value: "all" },
+    { label: t("statusDraft"), value: "draft" },
+    { label: t("statusPending"), value: "pending" },
+    { label: t("statusApproved"), value: "approved" },
+    { label: t("statusOverdue"), value: "overdue" },
+    { label: t("statusPaid"), value: "paid" },
+  ];
+
+  const AP_IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "amount", label: t("importAmountColumn"), required: true, type: "number" },
+    { key: "tax_amount", label: t("importTaxColumn"), required: false, type: "number" },
+    { key: "due_date", label: t("dueDate"), required: false, type: "date" },
+    { key: "description", label: t("description"), required: false },
+    { key: "status", label: t("status"), required: false },
+    { key: "vendor_name", label: t("vendorName"), required: false },
+    { key: "project_name", label: t("projectName"), required: false },
+  ];
+
+  const AP_IMPORT_SAMPLE: Record<string, string>[] = [
+    { amount: "48500", tax_amount: "4122.50", due_date: "2026-01-30", description: "Hill Country Lumber - January delivery", status: "approved" },
+    { amount: "32000", tax_amount: "2720", due_date: "2026-01-30", description: "Texas Ready Mix - 147 CY concrete", status: "paid" },
+  ];
 
   // Import modal state
   const [showImport, setShowImport] = useState(false);
@@ -118,7 +122,7 @@ export default function APClient({
       body: JSON.stringify({ entity: "invoices", rows: apRows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -181,13 +185,13 @@ export default function APClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update invoice");
+        throw new Error(data.error || t("failedToUpdateInvoice"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update");
+      setSaveError(err instanceof Error ? err.message : t("failedToUpdate"));
     } finally {
       setSaving(false);
     }
@@ -205,13 +209,13 @@ export default function APClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to void invoice");
+        throw new Error(data.error || t("failedToVoidInvoice"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to void");
+      setSaveError(err instanceof Error ? err.message : t("failedToVoid"));
     } finally {
       setSaving(false);
     }
@@ -222,17 +226,17 @@ export default function APClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Accounts Payable</h2>
-          <p className="fin-header-sub">Manage vendor bills, subcontractor payments, and retainage</p>
+          <h2>{t("accountsPayable")}</h2>
+          <p className="fin-header-sub">{t("accountsPayableDesc")}</p>
         </div>
         <div className="fin-header-actions">
           <button className="ui-btn ui-btn-ghost ui-btn-md" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
             <Receipt size={16} />
-            New Bill
+            {t("newBill")}
           </Link>
         </div>
       </div>
@@ -241,31 +245,31 @@ export default function APClient({
       <div className="financial-kpi-row" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         <div className="fin-kpi">
           <div className="fin-kpi-icon amber"><DollarSign size={18} /></div>
-          <span className="fin-kpi-label">Total AP Balance</span>
+          <span className="fin-kpi-label">{t("totalApBalance")}</span>
           <span className="fin-kpi-value">{formatCompactCurrency(totalApBalance)}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon red"><FileWarning size={18} /></div>
-          <span className="fin-kpi-label">Overdue Amount</span>
+          <span className="fin-kpi-label">{t("overdueAmount")}</span>
           <span className={`fin-kpi-value ${overdueAmount > 0 ? "negative" : ""}`}>
             {formatCompactCurrency(overdueAmount)}
           </span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon blue"><Clock size={18} /></div>
-          <span className="fin-kpi-label">Pending Approval</span>
+          <span className="fin-kpi-label">{t("pendingApproval")}</span>
           <span className="fin-kpi-value">{pendingApprovalCount}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon green"><CheckCircle size={18} /></div>
-          <span className="fin-kpi-label">Paid This Month</span>
+          <span className="fin-kpi-label">{t("paidThisMonth")}</span>
           <span className="fin-kpi-value positive">{formatCompactCurrency(paidThisMonth)}</span>
         </div>
       </div>
 
       {/* Status Filters */}
       <div className="fin-filters">
-        <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>Status:</label>
+        <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>{t("status")}:</label>
         {statuses.map((s) => (
           <Link
             key={s.value}
@@ -288,14 +292,14 @@ export default function APClient({
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Invoice #</th>
-                  <th>Vendor Name</th>
-                  <th>Project</th>
-                  <th>Date</th>
-                  <th>Due Date</th>
-                  <th style={{ textAlign: "right" }}>Amount</th>
-                  <th style={{ textAlign: "right" }}>Balance Due</th>
-                  <th>Status</th>
+                  <th>{t("invoiceNumber")}</th>
+                  <th>{t("vendorName")}</th>
+                  <th>{t("project")}</th>
+                  <th>{t("date")}</th>
+                  <th>{t("dueDate")}</th>
+                  <th style={{ textAlign: "right" }}>{t("amount")}</th>
+                  <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
+                  <th>{t("status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -350,15 +354,15 @@ export default function APClient({
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><Receipt size={48} /></div>
-            <div className="fin-empty-title">No Invoices Found</div>
+            <div className="fin-empty-title">{t("noInvoicesFound")}</div>
             <div className="fin-empty-desc">
               {activeStatus
-                ? "No payable invoices match the current filter. Try adjusting your filter or create a new bill."
-                : "No outstanding payable invoices. Create a new bill to start tracking vendor payments."}
+                ? t("noApFilteredDesc")
+                : t("noApEmptyDesc")}
             </div>
             <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
               <Receipt size={16} />
-              Create Bill
+              {t("createBill")}
             </Link>
           </div>
         </div>
@@ -369,7 +373,7 @@ export default function APClient({
         <div className="ticket-modal-overlay" onClick={closeDetail}>
           <div className="ticket-modal" style={{ maxWidth: 600 }} onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>{isEditing ? "Edit Bill" : `Bill ${selectedInvoice.invoice_number}`}</h3>
+              <h3>{isEditing ? t("editBill") : t("billTitle", { number: selectedInvoice.invoice_number })}</h3>
               <button className="ticket-modal-close" onClick={closeDetail}>
                 <X size={18} />
               </button>
@@ -393,7 +397,7 @@ export default function APClient({
                   marginBottom: 16, border: "1px solid var(--color-red)",
                 }}>
                   <p style={{ fontSize: "0.85rem", marginBottom: 12 }}>
-                    Are you sure you want to void this bill? This action cannot be undone.
+                    {t("voidBillConfirm")}
                   </p>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button
@@ -401,7 +405,7 @@ export default function APClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       className="ui-btn ui-btn-primary ui-btn-sm"
@@ -410,7 +414,7 @@ export default function APClient({
                       disabled={saving}
                     >
                       {saving ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
-                      {saving ? "Voiding..." : "Void Bill"}
+                      {saving ? t("voiding") : t("voidBill")}
                     </button>
                   </div>
                 </div>
@@ -421,21 +425,21 @@ export default function APClient({
                   {/* Read-only view */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Vendor</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("vendor")}</div>
                       <div style={{ fontWeight: 500 }}>{selectedInvoice.vendor_name || "--"}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Status</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("status")}</div>
                       <span className={`inv-status inv-status-${selectedInvoice.status}`}>
                         {selectedInvoice.status}
                       </span>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Invoice Date</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("invoiceDate")}</div>
                       <div>{formatDate(selectedInvoice.invoice_date)}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Due Date</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("dueDate")}</div>
                       <div style={{
                         color: new Date(selectedInvoice.due_date) < now && selectedInvoice.status !== "paid"
                           ? "var(--color-red)" : "var(--text)",
@@ -445,13 +449,13 @@ export default function APClient({
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Total Amount</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("totalAmount")}</div>
                       <div style={{ fontWeight: 600, fontSize: "1.1rem" }}>
                         {formatCurrency(selectedInvoice.total_amount)}
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Balance Due</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("balanceDue")}</div>
                       <div style={{
                         fontWeight: 600, fontSize: "1.1rem",
                         color: selectedInvoice.balance_due > 0 ? "var(--color-red)" : "var(--color-green)",
@@ -461,13 +465,13 @@ export default function APClient({
                     </div>
                     {selectedInvoice.projects?.name && (
                       <div style={{ gridColumn: "span 2" }}>
-                        <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Project</div>
+                        <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("project")}</div>
                         <div>{selectedInvoice.projects.name}</div>
                       </div>
                     )}
                     {selectedInvoice.notes && (
                       <div style={{ gridColumn: "span 2" }}>
-                        <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Notes</div>
+                        <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("notes")}</div>
                         <div style={{ fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>{selectedInvoice.notes}</div>
                       </div>
                     )}
@@ -486,7 +490,7 @@ export default function APClient({
                           style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Trash2 size={14} />
-                          Void
+                          {t("void")}
                         </button>
                       )}
                     </div>
@@ -497,7 +501,7 @@ export default function APClient({
                         style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
                       >
                         <ExternalLink size={14} />
-                        View Full Detail
+                        {t("viewFullDetail")}
                       </Link>
                       {selectedInvoice.status !== "voided" && (
                         <button
@@ -506,7 +510,7 @@ export default function APClient({
                           style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Edit3 size={14} />
-                          Edit
+                          {t("edit")}
                         </button>
                       )}
                     </div>
@@ -517,36 +521,36 @@ export default function APClient({
                   {/* Edit view */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Vendor</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("vendor")}</div>
                       <div style={{ fontWeight: 500 }}>{selectedInvoice.vendor_name || "--"}</div>
                     </div>
                     <div>
                       <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
-                        Status
+                        {t("status")}
                       </label>
                       <select
                         className="fin-filter-select"
                         value={editData.status}
                         onChange={(e) => setEditData({ ...editData, status: e.target.value })}
                       >
-                        <option value="draft">Draft</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="overdue">Overdue</option>
-                        <option value="paid">Paid</option>
+                        <option value="draft">{t("statusDraft")}</option>
+                        <option value="pending">{t("statusPending")}</option>
+                        <option value="approved">{t("statusApproved")}</option>
+                        <option value="overdue">{t("statusOverdue")}</option>
+                        <option value="paid">{t("statusPaid")}</option>
                       </select>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Total Amount</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("totalAmount")}</div>
                       <div style={{ fontWeight: 600 }}>{formatCurrency(selectedInvoice.total_amount)}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Balance Due</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("balanceDue")}</div>
                       <div style={{ fontWeight: 600 }}>{formatCurrency(selectedInvoice.balance_due)}</div>
                     </div>
                     <div style={{ gridColumn: "span 2" }}>
                       <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
-                        Notes
+                        {t("notes")}
                       </label>
                       <textarea
                         className="ui-input"
@@ -563,7 +567,7 @@ export default function APClient({
                       onClick={() => setIsEditing(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       className="ui-btn ui-btn-primary ui-btn-sm"
@@ -572,7 +576,7 @@ export default function APClient({
                       style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
                     >
                       {saving ? <Loader2 size={14} className="spin" /> : null}
-                      {saving ? "Saving..." : "Save Changes"}
+                      {saving ? t("saving") : t("saveChanges")}
                     </button>
                   </div>
                 </>
@@ -592,7 +596,7 @@ export default function APClient({
 
       {showImport && (
         <ImportModal
-          entityName="Payable Invoices"
+          entityName={t("payableInvoices")}
           columns={AP_IMPORT_COLUMNS}
           sampleData={AP_IMPORT_SAMPLE}
           onImport={handleImport}

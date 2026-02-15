@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Wrench,
   ClipboardList,
@@ -117,71 +118,6 @@ function formatStatus(status: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Filter config
-// ---------------------------------------------------------------------------
-
-const statusFilters = [
-  { label: "All", value: "all" },
-  { label: "Submitted", value: "submitted" },
-  { label: "Assigned", value: "assigned" },
-  { label: "In Progress", value: "in_progress" },
-  { label: "Completed", value: "completed" },
-  { label: "Closed", value: "closed" },
-];
-
-const priorityFilters = [
-  { label: "All Priorities", value: "all" },
-  { label: "Emergency", value: "emergency" },
-  { label: "High", value: "high" },
-  { label: "Medium", value: "medium" },
-  { label: "Low", value: "low" },
-];
-
-const categoryOptions = [
-  { label: "Select category...", value: "" },
-  { label: "Plumbing", value: "plumbing" },
-  { label: "Electrical", value: "electrical" },
-  { label: "HVAC", value: "hvac" },
-  { label: "Structural", value: "structural" },
-  { label: "Cosmetic", value: "cosmetic" },
-  { label: "Appliance", value: "appliance" },
-  { label: "Pest Control", value: "pest_control" },
-  { label: "General", value: "general" },
-  { label: "Other", value: "other" },
-];
-
-const priorityOptions = [
-  { label: "Low", value: "low" },
-  { label: "Medium", value: "medium" },
-  { label: "High", value: "high" },
-  { label: "Emergency", value: "emergency" },
-];
-
-const statusOptions = [
-  { label: "Submitted", value: "submitted" },
-  { label: "Assigned", value: "assigned" },
-  { label: "In Progress", value: "in_progress" },
-  { label: "Completed", value: "completed" },
-  { label: "Closed", value: "closed" },
-];
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "title", label: "Title", required: true },
-  { key: "property_name", label: "Property Name", required: false },
-  { key: "description", label: "Description", required: false },
-  { key: "priority", label: "Priority", required: false },
-  { key: "category", label: "Category", required: false },
-  { key: "scheduled_date", label: "Scheduled Date", required: false, type: "date" },
-  { key: "estimated_cost", label: "Estimated Cost ($)", required: false, type: "number" },
-];
-
-const IMPORT_SAMPLE: Record<string, string>[] = [
-  { title: "HVAC filter replacement", property_name: "Sunset Ridge Apartments", description: "Replace all HVAC filters in Building A", priority: "medium", category: "HVAC", scheduled_date: "2026-02-15", estimated_cost: "350" },
-  { title: "Roof leak repair - Unit 204", property_name: "Sunset Ridge Apartments", description: "Water intrusion at northeast corner near skylight", priority: "high", category: "Roofing", scheduled_date: "2026-02-10", estimated_cost: "1200" },
-  { title: "Parking lot striping", property_name: "Congress Avenue Office Park", description: "Re-stripe all parking spaces and handicap zones", priority: "low", category: "Exterior", scheduled_date: "2026-03-01", estimated_cost: "800" },
-];
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -191,6 +127,74 @@ export default function MaintenanceClient({
   members,
 }: MaintenanceClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  // ---------------------------------------------------------------------------
+  // Filter config (inside component so t() is available)
+  // ---------------------------------------------------------------------------
+
+  const statusFilters = [
+    { label: t("statusAll"), value: "all" },
+    { label: t("maintStatusSubmitted"), value: "submitted" },
+    { label: t("maintStatusAssigned"), value: "assigned" },
+    { label: t("maintStatusInProgress"), value: "in_progress" },
+    { label: t("maintStatusCompleted"), value: "completed" },
+    { label: t("maintStatusClosed"), value: "closed" },
+  ];
+
+  const priorityFilters = [
+    { label: t("allPriorities"), value: "all" },
+    { label: t("priorityEmergency"), value: "emergency" },
+    { label: t("priorityHigh"), value: "high" },
+    { label: t("priorityMedium"), value: "medium" },
+    { label: t("priorityLow"), value: "low" },
+  ];
+
+  const categoryOptions = [
+    { label: t("selectCategory"), value: "" },
+    { label: t("categoryPlumbing"), value: "plumbing" },
+    { label: t("categoryElectrical"), value: "electrical" },
+    { label: t("categoryHvac"), value: "hvac" },
+    { label: t("categoryStructural"), value: "structural" },
+    { label: t("categoryCosmetic"), value: "cosmetic" },
+    { label: t("categoryAppliance"), value: "appliance" },
+    { label: t("categoryPestControl"), value: "pest_control" },
+    { label: t("categoryGeneral"), value: "general" },
+    { label: t("categoryOther"), value: "other" },
+  ];
+
+  const priorityOptions = [
+    { label: t("priorityLow"), value: "low" },
+    { label: t("priorityMedium"), value: "medium" },
+    { label: t("priorityHigh"), value: "high" },
+    { label: t("priorityEmergency"), value: "emergency" },
+  ];
+
+  const statusOptions = [
+    { label: t("maintStatusSubmitted"), value: "submitted" },
+    { label: t("maintStatusAssigned"), value: "assigned" },
+    { label: t("maintStatusInProgress"), value: "in_progress" },
+    { label: t("maintStatusCompleted"), value: "completed" },
+    { label: t("maintStatusClosed"), value: "closed" },
+  ];
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "title", label: t("title"), required: true },
+    { key: "property_name", label: t("propertyName"), required: false },
+    { key: "description", label: t("description"), required: false },
+    { key: "priority", label: t("priority"), required: false },
+    { key: "category", label: t("category"), required: false },
+    { key: "scheduled_date", label: t("scheduledDate"), required: false, type: "date" },
+    { key: "estimated_cost", label: t("estimatedCostDollar"), required: false, type: "number" },
+  ];
+
+  const IMPORT_SAMPLE: Record<string, string>[] = [
+    { title: "HVAC filter replacement", property_name: "Sunset Ridge Apartments", description: "Replace all HVAC filters in Building A", priority: "medium", category: "HVAC", scheduled_date: "2026-02-15", estimated_cost: "350" },
+    { title: "Roof leak repair - Unit 204", property_name: "Sunset Ridge Apartments", description: "Water intrusion at northeast corner near skylight", priority: "high", category: "Roofing", scheduled_date: "2026-02-10", estimated_cost: "1200" },
+    { title: "Parking lot striping", property_name: "Congress Avenue Office Park", description: "Re-stripe all parking spaces and handicap zones", priority: "low", category: "Exterior", scheduled_date: "2026-03-01", estimated_cost: "800" },
+  ];
 
   // Filters (client-side)
   const [activeStatus, setActiveStatus] = useState("all");
@@ -288,7 +292,7 @@ export default function MaintenanceClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create request");
+        throw new Error(data.error || t("failedToCreateRequest"));
       }
 
       setCreateForm({
@@ -304,7 +308,7 @@ export default function MaintenanceClient({
       router.refresh();
     } catch (err: unknown) {
       setCreateError(
-        err instanceof Error ? err.message : "Failed to create request"
+        err instanceof Error ? err.message : t("failedToCreateRequest")
       );
     } finally {
       setCreating(false);
@@ -370,7 +374,7 @@ export default function MaintenanceClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update request");
+        throw new Error(data.error || t("failedToUpdateRequest"));
       }
 
       setSelectedRequest(null);
@@ -378,7 +382,7 @@ export default function MaintenanceClient({
       router.refresh();
     } catch (err: unknown) {
       setEditError(
-        err instanceof Error ? err.message : "Failed to update request"
+        err instanceof Error ? err.message : t("failedToUpdateRequest")
       );
     } finally {
       setSaving(false);
@@ -403,7 +407,7 @@ export default function MaintenanceClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete request");
+        throw new Error(data.error || t("failedToDeleteRequest"));
       }
 
       setDeleteTarget(null);
@@ -411,7 +415,7 @@ export default function MaintenanceClient({
       router.refresh();
     } catch (err: unknown) {
       setDeleteError(
-        err instanceof Error ? err.message : "Failed to delete request"
+        err instanceof Error ? err.message : t("failedToDeleteRequest")
       );
     } finally {
       setDeleting(false);
@@ -429,7 +433,7 @@ export default function MaintenanceClient({
       body: JSON.stringify({ entity: "maintenance", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -454,19 +458,19 @@ export default function MaintenanceClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Maintenance Requests</h2>
+          <h2>{t("maintenanceRequests")}</h2>
           <p className="fin-header-sub">
-            Track work orders, preventive maintenance, and repair requests
+            {t("maintenanceRequestsDesc")}
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New Request
+            {t("newRequest")}
           </button>
         </div>
       </div>
@@ -477,7 +481,7 @@ export default function MaintenanceClient({
           <div className="fin-kpi-icon blue">
             <ClipboardList size={18} />
           </div>
-          <span className="fin-kpi-label">Total Requests</span>
+          <span className="fin-kpi-label">{t("totalRequests")}</span>
           <span className="fin-kpi-value">{totalRequests}</span>
         </div>
 
@@ -485,7 +489,7 @@ export default function MaintenanceClient({
           <div className="fin-kpi-icon amber">
             <Wrench size={18} />
           </div>
-          <span className="fin-kpi-label">Open</span>
+          <span className="fin-kpi-label">{t("maintOpen")}</span>
           <span className="fin-kpi-value">{openCount}</span>
         </div>
 
@@ -493,7 +497,7 @@ export default function MaintenanceClient({
           <div className="fin-kpi-icon green">
             <CheckCircle2 size={18} />
           </div>
-          <span className="fin-kpi-label">Completed</span>
+          <span className="fin-kpi-label">{t("maintCompleted")}</span>
           <span className="fin-kpi-value">{completedCount}</span>
         </div>
 
@@ -501,7 +505,7 @@ export default function MaintenanceClient({
           <div className="fin-kpi-icon red">
             <AlertTriangle size={18} />
           </div>
-          <span className="fin-kpi-label">Emergency</span>
+          <span className="fin-kpi-label">{t("maintEmergency")}</span>
           <span className="fin-kpi-value">{emergencyCount}</span>
         </div>
       </div>
@@ -515,7 +519,7 @@ export default function MaintenanceClient({
             fontWeight: 500,
           }}
         >
-          Status:
+          {t("statusLabel")}:
         </label>
         {statusFilters.map((s) => (
           <button
@@ -539,7 +543,7 @@ export default function MaintenanceClient({
             fontWeight: 500,
           }}
         >
-          Priority:
+          {t("priority")}:
         </label>
         {priorityFilters.map((p) => (
           <button
@@ -561,15 +565,15 @@ export default function MaintenanceClient({
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Title</th>
-                  <th>Property</th>
-                  <th>Category</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Assigned To</th>
-                  <th>Scheduled Date</th>
-                  <th style={{ textAlign: "right" }}>Est. Cost</th>
-                  <th style={{ textAlign: "right" }}>Actual Cost</th>
+                  <th>{t("title")}</th>
+                  <th>{t("property")}</th>
+                  <th>{t("category")}</th>
+                  <th>{t("priority")}</th>
+                  <th>{t("status")}</th>
+                  <th>{t("assignedTo")}</th>
+                  <th>{t("scheduledDate")}</th>
+                  <th style={{ textAlign: "right" }}>{t("estimatedCost")}</th>
+                  <th style={{ textAlign: "right" }}>{t("actualCost")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -612,7 +616,7 @@ export default function MaintenanceClient({
                               color: "var(--muted)",
                             }}
                           >
-                            Unit {unit.unit_number}
+                            {t("unitLabel", { number: unit.unit_number })}
                           </div>
                         )}
                       </td>
@@ -639,7 +643,7 @@ export default function MaintenanceClient({
                       <td>
                         {req.scheduled_date
                           ? new Date(req.scheduled_date).toLocaleDateString(
-                              "en-US",
+                              dateLocale,
                               {
                                 month: "short",
                                 day: "numeric",
@@ -671,11 +675,11 @@ export default function MaintenanceClient({
             <div className="fin-empty-icon">
               <Wrench size={48} />
             </div>
-            <div className="fin-empty-title">No Maintenance Requests Found</div>
+            <div className="fin-empty-title">{t("noMaintenanceRequestsFound")}</div>
             <div className="fin-empty-desc">
               {activeStatus !== "all" || activePriority !== "all"
-                ? "No requests match the current filters. Try adjusting your filters."
-                : "No maintenance requests have been submitted yet."}
+                ? t("noRequestsMatchFilters")
+                : t("noRequestsSubmittedYet")}
             </div>
           </div>
         </div>
@@ -691,7 +695,7 @@ export default function MaintenanceClient({
         >
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>New Maintenance Request</h3>
+              <h3>{t("newMaintenanceRequest")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -706,7 +710,7 @@ export default function MaintenanceClient({
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Property *</label>
+                <label className="ticket-form-label">{t("property")} *</label>
                 <select
                   className="ticket-form-select"
                   value={createForm.property_id}
@@ -718,7 +722,7 @@ export default function MaintenanceClient({
                   }
                   required
                 >
-                  <option value="">Select a property...</option>
+                  <option value="">{t("selectAProperty")}</option>
                   {properties.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -728,7 +732,7 @@ export default function MaintenanceClient({
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Title *</label>
+                <label className="ticket-form-label">{t("title")} *</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -736,13 +740,13 @@ export default function MaintenanceClient({
                   onChange={(e) =>
                     setCreateForm({ ...createForm, title: e.target.value })
                   }
-                  placeholder="Brief description of the issue"
+                  placeholder={t("briefDescriptionOfIssue")}
                   required
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Description</label>
+                <label className="ticket-form-label">{t("description")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   value={createForm.description}
@@ -752,14 +756,14 @@ export default function MaintenanceClient({
                       description: e.target.value,
                     })
                   }
-                  placeholder="Provide more details about the maintenance issue..."
+                  placeholder={t("provideMoreDetailsAboutMaintenance")}
                   rows={4}
                 />
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Priority</label>
+                  <label className="ticket-form-label">{t("priority")}</label>
                   <select
                     className="ticket-form-select"
                     value={createForm.priority}
@@ -779,7 +783,7 @@ export default function MaintenanceClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Category</label>
+                  <label className="ticket-form-label">{t("category")}</label>
                   <select
                     className="ticket-form-select"
                     value={createForm.category}
@@ -801,7 +805,7 @@ export default function MaintenanceClient({
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Scheduled Date</label>
+                  <label className="ticket-form-label">{t("scheduledDate")}</label>
                   <input
                     type="date"
                     className="ticket-form-input"
@@ -816,7 +820,7 @@ export default function MaintenanceClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Estimated Cost</label>
+                  <label className="ticket-form-label">{t("estimatedCost")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -840,7 +844,7 @@ export default function MaintenanceClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -851,7 +855,7 @@ export default function MaintenanceClient({
                     !createForm.property_id
                   }
                 >
-                  {creating ? "Creating..." : "Create Request"}
+                  {creating ? t("creating") : t("createRequest")}
                 </button>
               </div>
             </form>
@@ -872,7 +876,7 @@ export default function MaintenanceClient({
         >
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>{editing ? "Edit Request" : "Request Details"}</h3>
+              <h3>{editing ? t("editRequest") : t("requestDetails")}</h3>
               <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
                 {!editing && (
                   <>
@@ -886,7 +890,7 @@ export default function MaintenanceClient({
                       }}
                     >
                       <Pencil size={14} />
-                      Edit
+                      {t("edit")}
                     </button>
                     <button
                       className="btn-secondary"
@@ -899,7 +903,7 @@ export default function MaintenanceClient({
                       }}
                     >
                       <Trash2 size={14} />
-                      Delete
+                      {t("delete")}
                     </button>
                   </>
                 )}
@@ -924,7 +928,7 @@ export default function MaintenanceClient({
 
                 <form onSubmit={handleSaveEdit} className="ticket-form">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Title *</label>
+                    <label className="ticket-form-label">{t("title")} *</label>
                     <input
                       type="text"
                       className="ticket-form-input"
@@ -937,7 +941,7 @@ export default function MaintenanceClient({
                   </div>
 
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Description</label>
+                    <label className="ticket-form-label">{t("description")}</label>
                     <textarea
                       className="ticket-form-textarea"
                       value={editForm.description}
@@ -953,7 +957,7 @@ export default function MaintenanceClient({
 
                   <div className="ticket-form-row">
                     <div className="ticket-form-group">
-                      <label className="ticket-form-label">Category</label>
+                      <label className="ticket-form-label">{t("category")}</label>
                       <select
                         className="ticket-form-select"
                         value={editForm.category}
@@ -973,7 +977,7 @@ export default function MaintenanceClient({
                     </div>
 
                     <div className="ticket-form-group">
-                      <label className="ticket-form-label">Priority</label>
+                      <label className="ticket-form-label">{t("priority")}</label>
                       <select
                         className="ticket-form-select"
                         value={editForm.priority}
@@ -995,7 +999,7 @@ export default function MaintenanceClient({
 
                   <div className="ticket-form-row">
                     <div className="ticket-form-group">
-                      <label className="ticket-form-label">Status</label>
+                      <label className="ticket-form-label">{t("status")}</label>
                       <select
                         className="ticket-form-select"
                         value={editForm.status}
@@ -1015,7 +1019,7 @@ export default function MaintenanceClient({
                     </div>
 
                     <div className="ticket-form-group">
-                      <label className="ticket-form-label">Assigned To</label>
+                      <label className="ticket-form-label">{t("assignedTo")}</label>
                       <select
                         className="ticket-form-select"
                         value={editForm.assigned_to}
@@ -1026,7 +1030,7 @@ export default function MaintenanceClient({
                           })
                         }
                       >
-                        <option value="">Unassigned</option>
+                        <option value="">{t("unassigned")}</option>
                         {members.map((m) => (
                           <option key={m.user_id} value={m.user_id}>
                             {m.full_name || m.email || m.user_id}
@@ -1039,7 +1043,7 @@ export default function MaintenanceClient({
                   <div className="ticket-form-row">
                     <div className="ticket-form-group">
                       <label className="ticket-form-label">
-                        Estimated Cost
+                        {t("estimatedCost")}
                       </label>
                       <input
                         type="number"
@@ -1058,7 +1062,7 @@ export default function MaintenanceClient({
                     </div>
 
                     <div className="ticket-form-group">
-                      <label className="ticket-form-label">Actual Cost</label>
+                      <label className="ticket-form-label">{t("actualCost")}</label>
                       <input
                         type="number"
                         className="ticket-form-input"
@@ -1077,7 +1081,7 @@ export default function MaintenanceClient({
                   </div>
 
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Scheduled Date</label>
+                    <label className="ticket-form-label">{t("scheduledDate")}</label>
                     <input
                       type="date"
                       className="ticket-form-input"
@@ -1092,7 +1096,7 @@ export default function MaintenanceClient({
                   </div>
 
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Notes</label>
+                    <label className="ticket-form-label">{t("notes")}</label>
                     <textarea
                       className="ticket-form-textarea"
                       value={editForm.notes}
@@ -1109,14 +1113,14 @@ export default function MaintenanceClient({
                       className="btn-secondary"
                       onClick={() => setEditing(false)}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="submit"
                       className="btn-primary"
                       disabled={saving || !editForm.title.trim()}
                     >
-                      {saving ? "Saving..." : "Save Changes"}
+                      {saving ? t("saving") : t("saveChanges")}
                     </button>
                   </div>
                 </form>
@@ -1125,16 +1129,16 @@ export default function MaintenanceClient({
               /* ---------- View Mode ---------- */
               <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
                 <div className="detail-group">
-                  <label className="detail-label">Title</label>
+                  <label className="detail-label">{t("title")}</label>
                   <div className="detail-value">{selectedRequest.title}</div>
                 </div>
 
                 <div className="detail-group">
-                  <label className="detail-label">Description</label>
+                  <label className="detail-label">{t("description")}</label>
                   <div className={selectedRequest.description ? "detail-value detail-value--multiline" : "detail-value"}>
                     {selectedRequest.description || (
                       <span style={{ color: "var(--muted)" }}>
-                        No description
+                        {t("noDescription")}
                       </span>
                     )}
                   </div>
@@ -1142,19 +1146,19 @@ export default function MaintenanceClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Property</label>
+                    <label className="detail-label">{t("property")}</label>
                     <div className="detail-value">
                       {selectedRequest.properties?.name ?? "--"}
                       {selectedRequest.units?.unit_number && (
                         <span style={{ color: "var(--muted)", marginLeft: "0.5rem" }}>
-                          Unit {selectedRequest.units.unit_number}
+                          {t("unitLabel", { number: selectedRequest.units.unit_number })}
                         </span>
                       )}
                     </div>
                   </div>
 
                   <div className="detail-group">
-                    <label className="detail-label">Category</label>
+                    <label className="detail-label">{t("category")}</label>
                     <div className="detail-value">
                       {selectedRequest.category ? (
                         <span
@@ -1173,7 +1177,7 @@ export default function MaintenanceClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Priority</label>
+                    <label className="detail-label">{t("priority")}</label>
                     <div className="detail-value">
                       <span
                         className={getPriorityBadge(selectedRequest.priority)}
@@ -1184,7 +1188,7 @@ export default function MaintenanceClient({
                   </div>
 
                   <div className="detail-group">
-                    <label className="detail-label">Status</label>
+                    <label className="detail-label">{t("status")}</label>
                     <div className="detail-value">
                       <span
                         className={getStatusBadge(selectedRequest.status)}
@@ -1197,17 +1201,17 @@ export default function MaintenanceClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Assigned To</label>
+                    <label className="detail-label">{t("assignedTo")}</label>
                     <div className="detail-value">{memberName(selectedRequest.assigned_to)}</div>
                   </div>
 
                   <div className="detail-group">
-                    <label className="detail-label">Scheduled Date</label>
+                    <label className="detail-label">{t("scheduledDate")}</label>
                     <div className="detail-value">
                       {selectedRequest.scheduled_date
                         ? new Date(
                             selectedRequest.scheduled_date
-                          ).toLocaleDateString("en-US", {
+                          ).toLocaleDateString(dateLocale, {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
@@ -1219,7 +1223,7 @@ export default function MaintenanceClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Estimated Cost</label>
+                    <label className="detail-label">{t("estimatedCost")}</label>
                     <div className="detail-value">
                       {selectedRequest.estimated_cost != null
                         ? formatCurrency(selectedRequest.estimated_cost)
@@ -1228,7 +1232,7 @@ export default function MaintenanceClient({
                   </div>
 
                   <div className="detail-group">
-                    <label className="detail-label">Actual Cost</label>
+                    <label className="detail-label">{t("actualCost")}</label>
                     <div className="detail-value">
                       {selectedRequest.actual_cost != null
                         ? formatCurrency(selectedRequest.actual_cost)
@@ -1239,11 +1243,11 @@ export default function MaintenanceClient({
 
                 {selectedRequest.completed_at && (
                   <div className="detail-group">
-                    <label className="detail-label">Completed At</label>
+                    <label className="detail-label">{t("completedAt")}</label>
                     <div className="detail-value">
                       {new Date(
                         selectedRequest.completed_at
-                      ).toLocaleDateString("en-US", {
+                      ).toLocaleDateString(dateLocale, {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -1255,10 +1259,10 @@ export default function MaintenanceClient({
                 )}
 
                 <div className="detail-group">
-                  <label className="detail-label">Notes</label>
+                  <label className="detail-label">{t("notes")}</label>
                   <div className={selectedRequest.notes ? "detail-value detail-value--multiline" : "detail-value"}>
                     {selectedRequest.notes || (
-                      <span style={{ color: "var(--muted)" }}>No notes</span>
+                      <span style={{ color: "var(--muted)" }}>{t("noNotes")}</span>
                     )}
                   </div>
                 </div>
@@ -1281,7 +1285,7 @@ export default function MaintenanceClient({
         >
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Delete Request</h3>
+              <h3>{t("deleteRequest")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => {
@@ -1295,7 +1299,7 @@ export default function MaintenanceClient({
 
             <div className="ticket-form" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <p>
-                Are you sure you want to delete &apos;{deleteTarget.title}&apos;?
+                {t("confirmDeleteRequest", { title: deleteTarget.title })}
               </p>
 
               {deleteError && (
@@ -1311,7 +1315,7 @@ export default function MaintenanceClient({
                     setDeleteError("");
                   }}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="button"
@@ -1320,7 +1324,7 @@ export default function MaintenanceClient({
                   onClick={handleDelete}
                   disabled={deleting}
                 >
-                  {deleting ? "Deleting..." : "Delete"}
+                  {deleting ? t("deleting") : t("delete")}
                 </button>
               </div>
             </div>
@@ -1330,7 +1334,7 @@ export default function MaintenanceClient({
 
       {showImport && (
         <ImportModal
-          entityName="Maintenance Request"
+          entityName={t("maintenanceRequest")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Upload,
   Plus,
@@ -70,6 +71,9 @@ export default function PlanRoomClient({
   userName,
 }: PlanRoomClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   // ------- Selection & Filtering -------
   const [selectedId, setSelectedId] = useState<string | null>(
@@ -203,13 +207,13 @@ export default function PlanRoomClient({
           setPreviewUrl(data.url);
         } else {
           setPreviewUrl(null);
-          setPreviewError(data.error || "File not available");
+          setPreviewError(data.error || t("fileNotAvailable"));
         }
       })
       .catch((err) => {
         console.error("Download network error:", err);
         setPreviewUrl(null);
-        setPreviewError(err.message || "Network error");
+        setPreviewError(err.message || t("networkError"));
       })
       .finally(() => setPreviewLoading(false));
 
@@ -368,14 +372,14 @@ export default function PlanRoomClient({
         <div className="plan-room-body">
           <div className="plan-room-empty-state">
             <FolderOpen size={48} />
-            <h3>No Documents Yet</h3>
-            <p>Upload construction plans and specifications to get started.</p>
+            <h3>{t("noDocumentsYet")}</h3>
+            <p>{t("uploadPlansToGetStarted")}</p>
             <button
               className="plan-room-upload-btn lg"
               onClick={() => setShowUploadModal(true)}
             >
               <Upload size={16} />
-              Upload Your First Document
+              {t("uploadYourFirstDocument")}
             </button>
           </div>
         </div>
@@ -458,11 +462,11 @@ export default function PlanRoomClient({
 
         {/* Right Panel */}
         <RightPanel>
-          <PanelSection title="Sheet Index">
+          <PanelSection title={t("sheetIndex")}>
             <div className="plan-room-search-inline">
               <input
                 type="text"
-                placeholder="Search sheets..."
+                placeholder={t("searchSheets")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="plan-room-search-input"
@@ -475,7 +479,7 @@ export default function PlanRoomClient({
             />
           </PanelSection>
 
-          <PanelSection title="Markups" badge={pageAnnotations.length}>
+          <PanelSection title={t("markups")} badge={pageAnnotations.length}>
             <MarkupsList
               annotations={annotationsHook.annotations}
               pageNumber={pdfViewer.currentPage}
@@ -485,7 +489,7 @@ export default function PlanRoomClient({
             />
           </PanelSection>
 
-          <PanelSection title="Revisions">
+          <PanelSection title={t("revisions")}>
             <RevisionsPanel
               versions={versionHistory}
               currentDocId={selectedId}
@@ -498,21 +502,21 @@ export default function PlanRoomClient({
                   onClick={() => setShowRevisionModal(true)}
                 >
                   <Upload size={12} />
-                  Upload Revision
+                  {t("uploadRevision")}
                 </button>
                 <button
                   className="plan-room-tool-btn"
                   onClick={handleDownload}
                 >
                   <Download size={12} />
-                  Download
+                  {t("download")}
                 </button>
                 <button
                   className="plan-room-tool-btn plan-room-tool-btn-danger"
                   onClick={() => setShowDeleteConfirm(true)}
                 >
                   <Trash2 size={12} />
-                  Delete
+                  {t("delete")}
                 </button>
               </div>
             )}
@@ -547,44 +551,44 @@ export default function PlanRoomClient({
         <div className="plan-room-modal-overlay" onClick={() => setShowNewSetModal(false)}>
           <div className="plan-room-modal" onClick={(e) => e.stopPropagation()}>
             <div className="plan-room-modal-header">
-              <h3>New Drawing Set</h3>
+              <h3>{t("newDrawingSet")}</h3>
               <button className="plan-room-modal-close" onClick={() => setShowNewSetModal(false)}>
                 <X size={16} />
               </button>
             </div>
             <div className="plan-room-modal-body">
               <div className="plan-room-form-group">
-                <label>Name *</label>
+                <label>{t("nameRequired")}</label>
                 <input
                   type="text"
                   value={newSetName}
                   onChange={(e) => setNewSetName(e.target.value)}
-                  placeholder="e.g., Structural Set Rev C"
+                  placeholder={t("drawingSetNamePlaceholder")}
                 />
               </div>
               <div className="plan-room-form-group">
-                <label>Description</label>
+                <label>{t("description")}</label>
                 <textarea
                   value={newSetDesc}
                   onChange={(e) => setNewSetDesc(e.target.value)}
-                  placeholder="Optional description"
+                  placeholder={t("optionalDescription")}
                   rows={2}
                 />
               </div>
               <div className="plan-room-form-row">
                 <div className="plan-room-form-group">
-                  <label>Discipline</label>
+                  <label>{t("discipline")}</label>
                   <select value={newSetDiscipline} onChange={(e) => setNewSetDiscipline(e.target.value)}>
-                    <option value="">None</option>
+                    <option value="">{t("none")}</option>
                     {DISCIPLINES.map((d) => (
                       <option key={d.value} value={d.value}>{d.label}</option>
                     ))}
                   </select>
                 </div>
                 <div className="plan-room-form-group">
-                  <label>Project</label>
+                  <label>{t("project")}</label>
                   <select value={newSetProject} onChange={(e) => setNewSetProject(e.target.value)}>
-                    <option value="">None</option>
+                    <option value="">{t("none")}</option>
                     {projectList.map((p) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
@@ -594,14 +598,14 @@ export default function PlanRoomClient({
             </div>
             <div className="plan-room-modal-footer">
               <button className="plan-room-btn-secondary" onClick={() => setShowNewSetModal(false)}>
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="plan-room-btn-primary"
                 onClick={handleCreateSet}
                 disabled={!newSetName.trim() || newSetLoading}
               >
-                {newSetLoading ? "Creating..." : "Create Set"}
+                {newSetLoading ? t("creating") : t("createSet")}
               </button>
             </div>
           </div>
@@ -613,18 +617,17 @@ export default function PlanRoomClient({
         <div className="plan-room-modal-overlay" onClick={() => setShowRevisionModal(false)}>
           <div className="plan-room-modal" onClick={(e) => e.stopPropagation()}>
             <div className="plan-room-modal-header">
-              <h3>Upload New Revision</h3>
+              <h3>{t("uploadNewRevision")}</h3>
               <button className="plan-room-modal-close" onClick={() => setShowRevisionModal(false)}>
                 <X size={16} />
               </button>
             </div>
             <div className="plan-room-modal-body">
               <p className="plan-room-modal-hint">
-                Uploading a new revision of <strong>{selectedDoc.name}</strong>
-                {" "}(currently v{selectedDoc.version})
+                {t("uploadingRevisionOf", { name: selectedDoc.name, version: selectedDoc.version })}
               </p>
               <div className="plan-room-form-group">
-                <label>File *</label>
+                <label>{t("fileRequired")}</label>
                 <div
                   className={`plan-room-dropzone ${revisionFile ? "has-file" : ""}`}
                   onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
@@ -647,12 +650,12 @@ export default function PlanRoomClient({
                   {revisionFile ? (
                     <span>{revisionFile.name} ({formatBytes(revisionFile.size)})</span>
                   ) : (
-                    <span>Drop file here or click to browse</span>
+                    <span>{t("dropFileHereOrBrowse")}</span>
                   )}
                 </div>
               </div>
               <div className="plan-room-form-group">
-                <label>Revision Label</label>
+                <label>{t("revisionLabel")}</label>
                 <input
                   type="text"
                   value={revisionLabel}
@@ -663,14 +666,14 @@ export default function PlanRoomClient({
             </div>
             <div className="plan-room-modal-footer">
               <button className="plan-room-btn-secondary" onClick={() => setShowRevisionModal(false)}>
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="plan-room-btn-primary"
                 onClick={handleUploadRevision}
                 disabled={!revisionFile || revisionLoading}
               >
-                {revisionLoading ? "Uploading..." : "Upload Revision"}
+                {revisionLoading ? t("uploading") : t("uploadRevision")}
               </button>
             </div>
           </div>
@@ -682,7 +685,7 @@ export default function PlanRoomClient({
         <div className="plan-room-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
           <div className="plan-room-modal sm" onClick={(e) => e.stopPropagation()}>
             <div className="plan-room-modal-header">
-              <h3>Delete Document</h3>
+              <h3>{t("deleteDocument")}</h3>
               <button className="plan-room-modal-close" onClick={() => setShowDeleteConfirm(false)}>
                 <X size={16} />
               </button>
@@ -691,21 +694,20 @@ export default function PlanRoomClient({
               <div className="plan-room-delete-warning">
                 <AlertTriangle size={20} />
                 <p>
-                  Are you sure you want to delete <strong>{selectedDoc.name}</strong>?
-                  This action cannot be undone.
+                  {t("confirmDeleteDocument", { name: selectedDoc.name })}
                 </p>
               </div>
             </div>
             <div className="plan-room-modal-footer">
               <button className="plan-room-btn-secondary" onClick={() => setShowDeleteConfirm(false)}>
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="plan-room-btn-danger"
                 onClick={handleDelete}
                 disabled={deleteLoading}
               >
-                {deleteLoading ? "Deleting..." : "Delete"}
+                {deleteLoading ? t("deleting") : t("delete")}
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import {
   ChevronDown,
@@ -41,6 +42,10 @@ interface SystemMapClientProps {
 // ──────────────────────────────────────────────
 
 export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const [expandedDashboards, setExpandedDashboards] = useState<Set<string>>(
     () => new Set(dashboards.map((d) => d.id))
   );
@@ -116,9 +121,9 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
         <div className="system-map-header-text">
           <h2>
             <Map size={28} style={{ display: "inline", verticalAlign: "middle", marginRight: 10 }} />
-            System Map
+            {t("systemMapTitle")}
           </h2>
-          <p>Complete overview of all dashboards and pages in the platform</p>
+          <p>{t("systemMapSubtitle")}</p>
         </div>
       </div>
 
@@ -130,7 +135,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
           </div>
           <div className="system-map-stat-info">
             <span className="system-map-stat-value">{dashboards.length}</span>
-            <span className="system-map-stat-label">Dashboards</span>
+            <span className="system-map-stat-label">{t("systemMapDashboards")}</span>
           </div>
         </div>
         <div className="system-map-stat">
@@ -139,7 +144,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
           </div>
           <div className="system-map-stat-info">
             <span className="system-map-stat-value">{totalPages}</span>
-            <span className="system-map-stat-label">Total Pages</span>
+            <span className="system-map-stat-label">{t("systemMapTotalPages")}</span>
           </div>
         </div>
         <div className="system-map-stat">
@@ -148,7 +153,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
           </div>
           <div className="system-map-stat-info">
             <span className="system-map-stat-value">{activeCount}</span>
-            <span className="system-map-stat-label">Active</span>
+            <span className="system-map-stat-label">{t("systemMapActive")}</span>
           </div>
         </div>
         <div className="system-map-stat">
@@ -157,7 +162,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
           </div>
           <div className="system-map-stat-info">
             <span className="system-map-stat-value">{comingSoonCount}</span>
-            <span className="system-map-stat-label">Coming Soon</span>
+            <span className="system-map-stat-label">{t("systemMapComingSoon")}</span>
           </div>
         </div>
         <div className="system-map-stat">
@@ -166,7 +171,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
           </div>
           <div className="system-map-stat-info">
             <span className="system-map-stat-value">{inactiveCount}</span>
-            <span className="system-map-stat-label">Inactive</span>
+            <span className="system-map-stat-label">{t("systemMapInactive")}</span>
           </div>
         </div>
       </div>
@@ -176,10 +181,10 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
         <div className="system-map-filter-buttons">
           {(
             [
-              { value: "all", label: "All" },
-              { value: "active", label: "Active" },
-              { value: "coming_soon", label: "Coming Soon" },
-              { value: "inactive", label: "Inactive" },
+              { value: "all", label: t("systemMapFilterAll") },
+              { value: "active", label: t("systemMapFilterActive") },
+              { value: "coming_soon", label: t("systemMapFilterComingSoon") },
+              { value: "inactive", label: t("systemMapFilterInactive") },
             ] as { value: StatusFilter; label: string }[]
           ).map((filter) => (
             <button
@@ -196,7 +201,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
             <Search size={16} className="system-map-search-icon" />
             <input
               type="text"
-              placeholder="Search pages..."
+              placeholder={t("systemMapSearchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="system-map-search-input"
@@ -204,7 +209,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
           </div>
           <button className="system-map-toggle-all" onClick={toggleAll}>
             <ChevronsUpDown size={16} />
-            {allExpanded ? "Collapse All" : "Expand All"}
+            {allExpanded ? t("systemMapCollapseAll") : t("systemMapExpandAll")}
           </button>
         </div>
       </div>
@@ -212,7 +217,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
       {/* Results Count */}
       {(searchQuery || statusFilter !== "all") && (
         <div className="system-map-results-count">
-          Showing {visiblePageCount} of {totalPages} pages
+          {t("systemMapShowingResults", { visible: visiblePageCount, total: totalPages })}
         </div>
       )}
 
@@ -221,7 +226,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
         {filteredDashboards.length === 0 ? (
           <div className="system-map-empty">
             <Search size={40} />
-            <p>No pages match your filters</p>
+            <p>{t("systemMapNoMatch")}</p>
             <button
               className="system-map-filter-btn"
               onClick={() => {
@@ -229,7 +234,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
                 setStatusFilter("all");
               }}
             >
-              Clear filters
+              {t("systemMapClearFilters")}
             </button>
           </div>
         ) : (
@@ -277,7 +282,7 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
                   </div>
                   <div className="system-map-dashboard-meta">
                     <span className="system-map-page-count-badge">
-                      {pageCount} {pageCount === 1 ? "page" : "pages"}
+                      {t("systemMapPageCount", { count: pageCount })}
                     </span>
                     <Link
                       href={dashboard.loginUrl}
@@ -320,12 +325,14 @@ export default function SystemMapClient({ dashboards }: SystemMapClientProps) {
 // ──────────────────────────────────────────────
 
 function PageRow({ page }: { page: SystemPage }) {
+  const t = useTranslations("app");
+
   const statusLabel =
     page.status === "active"
-      ? "Active"
+      ? t("systemMapStatusActive")
       : page.status === "coming_soon"
-        ? "Coming Soon"
-        : "Inactive";
+        ? t("systemMapStatusComingSoon")
+        : t("systemMapStatusInactive");
 
   return (
     <div className="system-map-page-row">
@@ -346,7 +353,7 @@ function PageRow({ page }: { page: SystemPage }) {
           ))}
         </div>
       </div>
-      <Link href={page.href} className="system-map-page-go" title={`Go to ${page.label}`}>
+      <Link href={page.href} className="system-map-page-go" title={t("systemMapGoTo", { page: page.label })}>
         <ExternalLink size={14} />
       </Link>
     </div>

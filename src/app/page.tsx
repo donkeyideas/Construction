@@ -8,6 +8,10 @@ import {
   DEFAULT_META_DESCRIPTION,
   type CmsSection,
 } from "@/lib/cms/homepage-defaults";
+import {
+  getPublicPricingTiers,
+  mapTiersToHomepagePlans,
+} from "@/lib/queries/pricing";
 import type { Metadata } from "next";
 
 /* ================================================================
@@ -61,6 +65,24 @@ export default async function HomePage() {
     // Use defaults if DB is unreachable
   }
 
+  // Fetch pricing tiers from DB and merge into CMS sections
+  let dbPlans: ReturnType<typeof mapTiersToHomepagePlans> = [];
+  try {
+    const supabase = await createClient();
+    const tiers = await getPublicPricingTiers(supabase);
+    if (tiers.length > 0) {
+      dbPlans = mapTiersToHomepagePlans(tiers);
+      // Replace plans in the pricing section while keeping CMS title/subtitle
+      sections = sections.map((s) =>
+        s.type === "pricing"
+          ? { ...s, content: { ...s.content, plans: dbPlans } }
+          : s,
+      );
+    }
+  } catch {
+    // Fall back to CMS / default plans
+  }
+
   const visible = sections
     .filter((s) => s.visible)
     .sort((a, b) => a.order - b.order);
@@ -68,6 +90,22 @@ export default async function HomePage() {
   // Extract FAQ for JSON-LD structured data
   const faqSection = visible.find((s) => s.type === "faq");
   const faqItems = faqSection?.content?.items || [];
+
+  // Build JSON-LD offers from DB tiers when available, otherwise use defaults
+  const jsonLdOffers =
+    dbPlans.length > 0
+      ? dbPlans.map((p) => ({
+          "@type": "Offer" as const,
+          name: p.name,
+          price: p.price,
+          priceCurrency: "USD",
+          priceValidUntil: "2027-12-31",
+        }))
+      : [
+          { "@type": "Offer" as const, name: "Starter", price: "79", priceCurrency: "USD", priceValidUntil: "2027-12-31" },
+          { "@type": "Offer" as const, name: "Professional", price: "199", priceCurrency: "USD", priceValidUntil: "2027-12-31" },
+          { "@type": "Offer" as const, name: "Enterprise", price: "449", priceCurrency: "USD", priceValidUntil: "2027-12-31" },
+        ];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -79,11 +117,7 @@ export default async function HomePage() {
         operatingSystem: "Web",
         description:
           "All-in-one Buildwrk and real estate management platform for general contractors, developers, and property managers.",
-        offers: [
-          { "@type": "Offer", name: "Starter", price: "79", priceCurrency: "USD", priceValidUntil: "2027-12-31" },
-          { "@type": "Offer", name: "Professional", price: "199", priceCurrency: "USD", priceValidUntil: "2027-12-31" },
-          { "@type": "Offer", name: "Enterprise", price: "449", priceCurrency: "USD", priceValidUntil: "2027-12-31" },
-        ],
+        offers: jsonLdOffers,
         featureList: [
           "Project Management with Gantt Charts",
           "Job Costing by CSI Division",

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   HandCoins,
   AlertCircle,
@@ -20,21 +21,6 @@ import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import { Upload } from "lucide-react";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
-
-const AR_IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "amount", label: "Amount ($)", required: true, type: "number" },
-  { key: "tax_amount", label: "Tax ($)", required: false, type: "number" },
-  { key: "due_date", label: "Due Date", required: false, type: "date" },
-  { key: "description", label: "Description", required: false },
-  { key: "status", label: "Status", required: false },
-  { key: "client_name", label: "Client Name", required: false },
-  { key: "project_name", label: "Project Name", required: false },
-];
-
-const AR_IMPORT_SAMPLE: Record<string, string>[] = [
-  { amount: "75000", tax_amount: "0", due_date: "2026-02-28", description: "Progress payment - Phase 1", status: "pending" },
-  { amount: "150000", tax_amount: "0", due_date: "2026-04-01", description: "Milestone 3 completion", status: "draft" },
-];
 
 /* ------------------------------------------------------------------
    Types
@@ -68,23 +54,6 @@ interface ARClientProps {
    Helpers
    ------------------------------------------------------------------ */
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-const statuses = [
-  { label: "All", value: "all" },
-  { label: "Draft", value: "draft" },
-  { label: "Pending", value: "pending" },
-  { label: "Approved", value: "approved" },
-  { label: "Overdue", value: "overdue" },
-  { label: "Paid", value: "paid" },
-];
-
 function buildUrl(status?: string): string {
   const p = new URLSearchParams();
   if (status && status !== "all") p.set("status", status);
@@ -105,7 +74,42 @@ export default function ARClient({
   activeStatus,
 }: ARClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const now = new Date();
+
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  const statuses = [
+    { label: t("all"), value: "all" },
+    { label: t("statusDraft"), value: "draft" },
+    { label: t("statusPending"), value: "pending" },
+    { label: t("statusApproved"), value: "approved" },
+    { label: t("statusOverdue"), value: "overdue" },
+    { label: t("statusPaid"), value: "paid" },
+  ];
+
+  const AR_IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "amount", label: t("importAmountColumn"), required: true, type: "number" },
+    { key: "tax_amount", label: t("importTaxColumn"), required: false, type: "number" },
+    { key: "due_date", label: t("dueDate"), required: false, type: "date" },
+    { key: "description", label: t("description"), required: false },
+    { key: "status", label: t("status"), required: false },
+    { key: "client_name", label: t("clientName"), required: false },
+    { key: "project_name", label: t("projectName"), required: false },
+  ];
+
+  const AR_IMPORT_SAMPLE: Record<string, string>[] = [
+    { amount: "75000", tax_amount: "0", due_date: "2026-02-28", description: "Progress payment - Phase 1", status: "pending" },
+    { amount: "150000", tax_amount: "0", due_date: "2026-04-01", description: "Milestone 3 completion", status: "draft" },
+  ];
 
   // Import modal state
   const [showImport, setShowImport] = useState(false);
@@ -119,7 +123,7 @@ export default function ARClient({
       body: JSON.stringify({ entity: "invoices", rows: arRows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -182,13 +186,13 @@ export default function ARClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update invoice");
+        throw new Error(data.error || t("failedToUpdateInvoice"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update");
+      setSaveError(err instanceof Error ? err.message : t("failedToUpdate"));
     } finally {
       setSaving(false);
     }
@@ -206,13 +210,13 @@ export default function ARClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to void invoice");
+        throw new Error(data.error || t("failedToVoidInvoice"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to void");
+      setSaveError(err instanceof Error ? err.message : t("failedToVoid"));
     } finally {
       setSaving(false);
     }
@@ -223,17 +227,17 @@ export default function ARClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Accounts Receivable</h2>
-          <p className="fin-header-sub">Track client invoices, payments, and retainage receivable</p>
+          <h2>{t("accountsReceivable")}</h2>
+          <p className="fin-header-sub">{t("accountsReceivableDesc")}</p>
         </div>
         <div className="fin-header-actions">
           <button className="ui-btn ui-btn-ghost ui-btn-md" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
             <FileText size={16} />
-            New Invoice
+            {t("newInvoice")}
           </Link>
         </div>
       </div>
@@ -242,31 +246,31 @@ export default function ARClient({
       <div className="financial-kpi-row" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         <div className="fin-kpi">
           <div className="fin-kpi-icon blue"><DollarSign size={18} /></div>
-          <span className="fin-kpi-label">Total AR Balance</span>
+          <span className="fin-kpi-label">{t("totalArBalance")}</span>
           <span className="fin-kpi-value">{formatCompactCurrency(totalArBalance)}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon red"><Clock size={18} /></div>
-          <span className="fin-kpi-label">Overdue Amount</span>
+          <span className="fin-kpi-label">{t("overdueAmount")}</span>
           <span className={`fin-kpi-value ${overdueAmount > 0 ? "negative" : ""}`}>
             {formatCompactCurrency(overdueAmount)}
           </span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon amber"><TrendingUp size={18} /></div>
-          <span className="fin-kpi-label">Billed This Month</span>
+          <span className="fin-kpi-label">{t("billedThisMonth")}</span>
           <span className="fin-kpi-value">{formatCompactCurrency(billedThisMonth)}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon green"><HandCoins size={18} /></div>
-          <span className="fin-kpi-label">Collected This Month</span>
+          <span className="fin-kpi-label">{t("collectedThisMonth")}</span>
           <span className="fin-kpi-value positive">{formatCompactCurrency(collectedThisMonth)}</span>
         </div>
       </div>
 
       {/* Status Filters */}
       <div className="fin-filters">
-        <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>Status:</label>
+        <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>{t("status")}:</label>
         {statuses.map((s) => (
           <Link
             key={s.value}
@@ -289,14 +293,14 @@ export default function ARClient({
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Invoice #</th>
-                  <th>Client Name</th>
-                  <th>Project</th>
-                  <th>Date</th>
-                  <th>Due Date</th>
-                  <th style={{ textAlign: "right" }}>Amount</th>
-                  <th style={{ textAlign: "right" }}>Balance Due</th>
-                  <th>Status</th>
+                  <th>{t("invoiceNumber")}</th>
+                  <th>{t("clientName")}</th>
+                  <th>{t("project")}</th>
+                  <th>{t("date")}</th>
+                  <th>{t("dueDate")}</th>
+                  <th style={{ textAlign: "right" }}>{t("amount")}</th>
+                  <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
+                  <th>{t("status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -351,15 +355,15 @@ export default function ARClient({
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><HandCoins size={48} /></div>
-            <div className="fin-empty-title">No Invoices Found</div>
+            <div className="fin-empty-title">{t("noInvoicesFound")}</div>
             <div className="fin-empty-desc">
               {activeStatus
-                ? "No receivable invoices match the current filter. Try adjusting your filter or create a new invoice."
-                : "No receivable invoices yet. Create an invoice to start tracking client payments."}
+                ? t("noArFilteredDesc")
+                : t("noArEmptyDesc")}
             </div>
             <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
               <FileText size={16} />
-              Create Invoice
+              {t("createInvoice")}
             </Link>
           </div>
         </div>
@@ -370,7 +374,7 @@ export default function ARClient({
         <div className="ticket-modal-overlay" onClick={closeDetail}>
           <div className="ticket-modal" style={{ maxWidth: 600 }} onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>{isEditing ? "Edit Invoice" : `Invoice ${selectedInvoice.invoice_number}`}</h3>
+              <h3>{isEditing ? t("editInvoice") : t("invoiceTitle", { number: selectedInvoice.invoice_number })}</h3>
               <button className="ticket-modal-close" onClick={closeDetail}>
                 <X size={18} />
               </button>
@@ -394,7 +398,7 @@ export default function ARClient({
                   marginBottom: 16, border: "1px solid var(--color-red)",
                 }}>
                   <p style={{ fontSize: "0.85rem", marginBottom: 12 }}>
-                    Are you sure you want to void this invoice? This action cannot be undone.
+                    {t("voidInvoiceConfirmGeneric")}
                   </p>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button
@@ -402,7 +406,7 @@ export default function ARClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       className="ui-btn ui-btn-primary ui-btn-sm"
@@ -411,7 +415,7 @@ export default function ARClient({
                       disabled={saving}
                     >
                       {saving ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
-                      {saving ? "Voiding..." : "Void Invoice"}
+                      {saving ? t("voiding") : t("voidInvoice")}
                     </button>
                   </div>
                 </div>
@@ -422,21 +426,21 @@ export default function ARClient({
                   {/* Read-only view */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Client</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("client")}</div>
                       <div style={{ fontWeight: 500 }}>{selectedInvoice.client_name || "--"}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Status</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("status")}</div>
                       <span className={`inv-status inv-status-${selectedInvoice.status}`}>
                         {selectedInvoice.status}
                       </span>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Invoice Date</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("invoiceDate")}</div>
                       <div>{formatDate(selectedInvoice.invoice_date)}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Due Date</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("dueDate")}</div>
                       <div style={{
                         color: new Date(selectedInvoice.due_date) < now && selectedInvoice.status !== "paid"
                           ? "var(--color-red)" : "var(--text)",
@@ -446,13 +450,13 @@ export default function ARClient({
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Total Amount</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("totalAmount")}</div>
                       <div style={{ fontWeight: 600, fontSize: "1.1rem" }}>
                         {formatCurrency(selectedInvoice.total_amount)}
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Balance Due</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("balanceDue")}</div>
                       <div style={{
                         fontWeight: 600, fontSize: "1.1rem",
                         color: selectedInvoice.balance_due > 0 ? "var(--color-red)" : "var(--color-green)",
@@ -462,13 +466,13 @@ export default function ARClient({
                     </div>
                     {selectedInvoice.projects?.name && (
                       <div style={{ gridColumn: "span 2" }}>
-                        <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Project</div>
+                        <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("project")}</div>
                         <div>{selectedInvoice.projects.name}</div>
                       </div>
                     )}
                     {selectedInvoice.notes && (
                       <div style={{ gridColumn: "span 2" }}>
-                        <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Notes</div>
+                        <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("notes")}</div>
                         <div style={{ fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>{selectedInvoice.notes}</div>
                       </div>
                     )}
@@ -487,7 +491,7 @@ export default function ARClient({
                           style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Trash2 size={14} />
-                          Void
+                          {t("void")}
                         </button>
                       )}
                     </div>
@@ -498,7 +502,7 @@ export default function ARClient({
                         style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
                       >
                         <ExternalLink size={14} />
-                        View Full Detail
+                        {t("viewFullDetail")}
                       </Link>
                       {selectedInvoice.status !== "voided" && (
                         <button
@@ -507,7 +511,7 @@ export default function ARClient({
                           style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Edit3 size={14} />
-                          Edit
+                          {t("edit")}
                         </button>
                       )}
                     </div>
@@ -518,36 +522,36 @@ export default function ARClient({
                   {/* Edit view */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Client</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("client")}</div>
                       <div style={{ fontWeight: 500 }}>{selectedInvoice.client_name || "--"}</div>
                     </div>
                     <div>
                       <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
-                        Status
+                        {t("status")}
                       </label>
                       <select
                         className="fin-filter-select"
                         value={editData.status}
                         onChange={(e) => setEditData({ ...editData, status: e.target.value })}
                       >
-                        <option value="draft">Draft</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="overdue">Overdue</option>
-                        <option value="paid">Paid</option>
+                        <option value="draft">{t("statusDraft")}</option>
+                        <option value="pending">{t("statusPending")}</option>
+                        <option value="approved">{t("statusApproved")}</option>
+                        <option value="overdue">{t("statusOverdue")}</option>
+                        <option value="paid">{t("statusPaid")}</option>
                       </select>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Total Amount</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("totalAmount")}</div>
                       <div style={{ fontWeight: 600 }}>{formatCurrency(selectedInvoice.total_amount)}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>Balance Due</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("balanceDue")}</div>
                       <div style={{ fontWeight: 600 }}>{formatCurrency(selectedInvoice.balance_due)}</div>
                     </div>
                     <div style={{ gridColumn: "span 2" }}>
                       <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
-                        Notes
+                        {t("notes")}
                       </label>
                       <textarea
                         className="ui-input"
@@ -564,7 +568,7 @@ export default function ARClient({
                       onClick={() => setIsEditing(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       className="ui-btn ui-btn-primary ui-btn-sm"
@@ -573,7 +577,7 @@ export default function ARClient({
                       style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
                     >
                       {saving ? <Loader2 size={14} className="spin" /> : null}
-                      {saving ? "Saving..." : "Save Changes"}
+                      {saving ? t("saving") : t("saveChanges")}
                     </button>
                   </div>
                 </>
@@ -593,7 +597,7 @@ export default function ARClient({
 
       {showImport && (
         <ImportModal
-          entityName="Receivable Invoices"
+          entityName={t("receivableInvoices")}
           columns={AR_IMPORT_COLUMNS}
           sampleData={AR_IMPORT_SAMPLE}
           onImport={handleImport}

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 
 /* ------------------------------------------------------------------ */
 /*  Types matching the actual DB schema                                */
@@ -101,6 +102,10 @@ export default function AutomationClient({
   rules: Rule[];
   logs: LogEntry[];
 }) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const router = useRouter();
   const [tab, setTab] = useState<"rules" | "logs">("rules");
   const [showCreate, setShowCreate] = useState(false);
@@ -151,15 +156,15 @@ export default function AutomationClient({
       });
       if (!res.ok) {
         const err = await res.json();
-        flash("error", err.error || "Failed to create rule");
+        flash("error", err.error || t("automationCreateFailed"));
         return;
       }
-      flash("success", "Rule created successfully");
+      flash("success", t("automationRuleCreated"));
       setShowCreate(false);
       resetForm();
       router.refresh();
     } catch {
-      flash("error", "Network error");
+      flash("error", t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -184,12 +189,12 @@ export default function AutomationClient({
         body: JSON.stringify({ is_enabled: !rule.is_enabled }),
       });
       if (!res.ok) {
-        flash("error", "Failed to toggle rule");
+        flash("error", t("automationToggleFailed"));
         return;
       }
       router.refresh();
     } catch {
-      flash("error", "Network error");
+      flash("error", t("networkError"));
     } finally {
       setToggling(null);
     }
@@ -203,14 +208,14 @@ export default function AutomationClient({
         method: "DELETE",
       });
       if (!res.ok) {
-        flash("error", "Failed to delete rule");
+        flash("error", t("automationDeleteFailed"));
         return;
       }
-      flash("success", "Rule deleted");
+      flash("success", t("automationRuleDeleted"));
       setConfirmDelete(null);
       router.refresh();
     } catch {
-      flash("error", "Network error");
+      flash("error", t("networkError"));
     } finally {
       setDeleting(null);
     }
@@ -226,14 +231,14 @@ export default function AutomationClient({
       {/* Header */}
       <div className="automation-header">
         <div>
-          <h2>Automation</h2>
+          <h2>{t("automationTitle")}</h2>
           <p className="automation-header-sub">
-            {rules.length} rule{rules.length !== 1 ? "s" : ""} configured
+            {t("automationRulesConfigured", { count: rules.length })}
           </p>
         </div>
         <div className="automation-header-actions">
           <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-            + Create Rule
+            + {t("automationCreateRule")}
           </button>
         </div>
       </div>
@@ -249,28 +254,28 @@ export default function AutomationClient({
           <div className="automation-stat-icon blue">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
           </div>
-          <span className="automation-stat-label">Total Rules</span>
+          <span className="automation-stat-label">{t("automationTotalRules")}</span>
           <span className="automation-stat-value">{rules.length}</span>
         </div>
         <div className="automation-stat-card">
           <div className="automation-stat-icon green">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7" /></svg>
           </div>
-          <span className="automation-stat-label">Active</span>
+          <span className="automation-stat-label">{t("automationActive")}</span>
           <span className="automation-stat-value">{activeCount}</span>
         </div>
         <div className="automation-stat-card">
           <div className="automation-stat-icon amber">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
           </div>
-          <span className="automation-stat-label">Executions</span>
+          <span className="automation-stat-label">{t("automationExecutions")}</span>
           <span className="automation-stat-value">{totalExecutions}</span>
         </div>
         <div className="automation-stat-card">
           <div className="automation-stat-icon red">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
-          <span className="automation-stat-label">Failed</span>
+          <span className="automation-stat-label">{t("automationFailed")}</span>
           <span className="automation-stat-value">{failedLogs}</span>
         </div>
       </div>
@@ -281,13 +286,13 @@ export default function AutomationClient({
           className={`tab-btn ${tab === "rules" ? "tab-btn-active" : ""}`}
           onClick={() => setTab("rules")}
         >
-          Rules ({rules.length})
+          {t("automationRulesTab", { count: rules.length })}
         </button>
         <button
           className={`tab-btn ${tab === "logs" ? "tab-btn-active" : ""}`}
           onClick={() => setTab("logs")}
         >
-          Activity Log ({logs.length})
+          {t("automationActivityLogTab", { count: logs.length })}
         </button>
       </div>
 
@@ -299,16 +304,15 @@ export default function AutomationClient({
               <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" style={{ color: "var(--muted)", marginBottom: 8 }}>
                 <path d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <p className="automation-empty-title">No automation rules yet</p>
+              <p className="automation-empty-title">{t("automationNoRulesTitle")}</p>
               <p className="automation-empty-desc">
-                Create rules to automate notifications, status changes, and
-                workflows across your projects.
+                {t("automationNoRulesDesc")}
               </p>
               <button
                 className="btn btn-primary"
                 onClick={() => setShowCreate(true)}
               >
-                + Create Your First Rule
+                + {t("automationCreateFirstRule")}
               </button>
             </div>
           ) : (
@@ -316,13 +320,13 @@ export default function AutomationClient({
               <table className="automation-table">
                 <thead>
                   <tr>
-                    <th>Status</th>
-                    <th>Name</th>
-                    <th>Trigger</th>
-                    <th>Entity</th>
-                    <th>Executions</th>
-                    <th>Last Triggered</th>
-                    <th style={{ textAlign: "right" }}>Actions</th>
+                    <th>{t("automationColStatus")}</th>
+                    <th>{t("automationColName")}</th>
+                    <th>{t("automationColTrigger")}</th>
+                    <th>{t("automationColEntity")}</th>
+                    <th>{t("automationColExecutions")}</th>
+                    <th>{t("automationColLastTriggered")}</th>
+                    <th style={{ textAlign: "right" }}>{t("automationColActions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -333,7 +337,7 @@ export default function AutomationClient({
                           className={`automation-toggle ${r.is_enabled ? "on" : ""}`}
                           onClick={() => handleToggle(r)}
                           disabled={toggling === r.id}
-                          title={r.is_enabled ? "Disable rule" : "Enable rule"}
+                          title={r.is_enabled ? t("automationDisableRule") : t("automationEnableRule")}
                         />
                       </td>
                       <td>
@@ -357,8 +361,8 @@ export default function AutomationClient({
                       </td>
                       <td className="automation-muted">
                         {r.last_triggered_at
-                          ? new Date(r.last_triggered_at).toLocaleDateString()
-                          : "Never"}
+                          ? new Date(r.last_triggered_at).toLocaleDateString(dateLocale)
+                          : t("automationNever")}
                       </td>
                       <td>
                         <div
@@ -372,7 +376,7 @@ export default function AutomationClient({
                                 style={{ fontSize: "0.75rem" }}
                                 onClick={() => setConfirmDelete(null)}
                               >
-                                Cancel
+                                {t("cancel")}
                               </button>
                               <button
                                 className="btn btn-sm"
@@ -385,13 +389,13 @@ export default function AutomationClient({
                                 onClick={() => handleDelete(r.id)}
                                 disabled={deleting === r.id}
                               >
-                                {deleting === r.id ? "..." : "Confirm"}
+                                {deleting === r.id ? "..." : t("confirm")}
                               </button>
                             </>
                           ) : (
                             <button
                               className="automation-action-btn danger"
-                              title="Delete rule"
+                              title={t("automationDeleteRule")}
                               onClick={() => setConfirmDelete(r.id)}
                             >
                               <svg
@@ -419,7 +423,7 @@ export default function AutomationClient({
           <div className="automation-templates-section">
             <h3 className="automation-section-title">
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              Quick Start Templates
+              {t("automationQuickStartTemplates")}
             </h3>
             <div className="automation-templates-grid">
               {PRESETS.map((p) => (
@@ -430,7 +434,7 @@ export default function AutomationClient({
                     className="btn btn-sm automation-template-btn"
                     onClick={() => handlePreset(p)}
                   >
-                    Use Template
+                    {t("automationUseTemplate")}
                   </button>
                 </div>
               ))}
@@ -445,12 +449,12 @@ export default function AutomationClient({
           <table className="automation-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Rule</th>
-                <th>Entity</th>
-                <th>Status</th>
-                <th>Duration</th>
-                <th>Error</th>
+                <th>{t("automationLogDate")}</th>
+                <th>{t("automationLogRule")}</th>
+                <th>{t("automationLogEntity")}</th>
+                <th>{t("automationLogStatus")}</th>
+                <th>{t("automationLogDuration")}</th>
+                <th>{t("automationLogError")}</th>
               </tr>
             </thead>
             <tbody>
@@ -464,14 +468,14 @@ export default function AutomationClient({
                       color: "var(--text-secondary)",
                     }}
                   >
-                    No automation activity yet
+                    {t("automationNoActivity")}
                   </td>
                 </tr>
               ) : (
                 logs.map((l) => (
                   <tr key={l.id}>
                     <td className="automation-muted">
-                      {new Date(l.created_at).toLocaleString()}
+                      {new Date(l.created_at).toLocaleString(dateLocale)}
                     </td>
                     <td>
                       {l.automation_rules?.name ?? l.rule_name ?? "—"}
@@ -522,27 +526,26 @@ export default function AutomationClient({
             >
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
-            <h3 className="automation-modal-title">Create Automation Rule</h3>
+            <h3 className="automation-modal-title">{t("automationCreateRuleTitle")}</h3>
             <p className="automation-modal-desc">
-              Set up a trigger-based rule to automate notifications and
-              workflows.
+              {t("automationCreateRuleDesc")}
             </p>
 
             <div className="automation-form-group">
-              <label className="automation-form-label">Rule Name *</label>
+              <label className="automation-form-label">{t("automationRuleName")} *</label>
               <input
                 className="automation-form-input"
-                placeholder="e.g. Overdue Invoice Alert"
+                placeholder={t("automationRuleNamePlaceholder")}
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
               />
             </div>
 
             <div className="automation-form-group">
-              <label className="automation-form-label">Description</label>
+              <label className="automation-form-label">{t("automationDescription")}</label>
               <input
                 className="automation-form-input"
-                placeholder="What does this rule do?"
+                placeholder={t("automationDescriptionPlaceholder")}
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
               />
@@ -550,27 +553,27 @@ export default function AutomationClient({
 
             <div className="automation-form-row">
               <div className="automation-form-group">
-                <label className="automation-form-label">Trigger Type *</label>
+                <label className="automation-form-label">{t("automationTriggerType")} *</label>
                 <select
                   className="automation-form-select"
                   value={formTriggerType}
                   onChange={(e) => setFormTriggerType(e.target.value)}
                 >
-                  {TRIGGER_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
+                  {TRIGGER_TYPES.map((tt) => (
+                    <option key={tt.value} value={tt.value}>
+                      {tt.label}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="automation-form-group">
-                <label className="automation-form-label">Entity</label>
+                <label className="automation-form-label">{t("automationEntity")}</label>
                 <select
                   className="automation-form-select"
                   value={formTriggerEntity}
                   onChange={(e) => setFormTriggerEntity(e.target.value)}
                 >
-                  <option value="">Select entity...</option>
+                  <option value="">{t("automationSelectEntity")}</option>
                   {TRIGGER_ENTITIES.map((e) => (
                     <option key={e.value} value={e.value}>
                       {e.label}
@@ -588,14 +591,14 @@ export default function AutomationClient({
                   resetForm();
                 }}
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="btn btn-primary"
                 disabled={!formName.trim() || !formTriggerType || saving}
                 onClick={handleCreate}
               >
-                {saving ? "Creating..." : "Create Rule"}
+                {saving ? t("automationCreating") : t("automationCreateRule")}
               </button>
             </div>
           </div>

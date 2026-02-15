@@ -56,6 +56,9 @@ export default function RegisterPage() {
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [industryType, setIndustryType] = useState("");
   const [phone, setPhone] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoValidating, setPromoValidating] = useState(false);
+  const [promoStatus, setPromoStatus] = useState<"idle" | "valid" | "invalid">("idle");
 
   const passwordStrength = getPasswordStrength(password);
 
@@ -102,6 +105,24 @@ export default function RegisterPage() {
     }
   }
 
+  async function validatePromo() {
+    if (!promoCode.trim()) return;
+    setPromoValidating(true);
+    setPromoStatus("idle");
+    try {
+      const res = await fetch("/api/promo-codes/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode.trim() }),
+      });
+      setPromoStatus(res.ok ? "valid" : "invalid");
+    } catch {
+      setPromoStatus("invalid");
+    } finally {
+      setPromoValidating(false);
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -133,6 +154,7 @@ export default function RegisterPage() {
           company_slug: companySlug,
           industry_type: industryType,
           phone: phone || null,
+          promo_code: promoCode.trim() || null,
         }),
       });
 
@@ -395,6 +417,51 @@ export default function RegisterPage() {
               autoComplete="tel"
               disabled={loading}
             />
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="promoCode" className="auth-label">
+              Promo code{" "}
+              <span style={{ color: "var(--muted)", fontWeight: 400 }}>
+                (optional)
+              </span>
+            </label>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <input
+                id="promoCode"
+                type="text"
+                className="auth-input"
+                placeholder="Enter code"
+                value={promoCode}
+                onChange={(e) => {
+                  setPromoCode(e.target.value.toUpperCase());
+                  setPromoStatus("idle");
+                }}
+                disabled={loading}
+                style={{ flex: 1, textTransform: "uppercase", letterSpacing: "0.05em" }}
+              />
+              {promoCode.trim() && (
+                <button
+                  type="button"
+                  className="auth-btn-secondary"
+                  onClick={validatePromo}
+                  disabled={promoValidating || loading}
+                  style={{ width: "auto", padding: "0 16px", flex: "0 0 auto" }}
+                >
+                  {promoValidating ? "..." : "Verify"}
+                </button>
+              )}
+            </div>
+            {promoStatus === "valid" && (
+              <div style={{ color: "var(--color-green)", fontSize: "0.78rem", marginTop: "4px" }}>
+                Promo code is valid and will be applied.
+              </div>
+            )}
+            {promoStatus === "invalid" && (
+              <div style={{ color: "var(--color-red)", fontSize: "0.78rem", marginTop: "4px" }}>
+                Invalid or expired promo code.
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", gap: "12px" }}>

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { Plus, X, Save, Globe } from "lucide-react";
 import type { CmsPageRow } from "@/lib/queries/content";
 
@@ -39,6 +40,9 @@ export default function ContentEditorClient({
   userId,
 }: ContentEditorClientProps) {
   const router = useRouter();
+  const t = useTranslations("adminPanel");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   // Page-level fields
   const [title, setTitle] = useState(page?.title ?? "");
@@ -90,11 +94,11 @@ export default function ContentEditorClient({
 
   async function handleSave() {
     if (!title.trim()) {
-      setNotification({ type: "error", message: "Page title is required." });
+      setNotification({ type: "error", message: t("pageTitleIsRequired") });
       return;
     }
     if (!slug.trim()) {
-      setNotification({ type: "error", message: "Page slug is required." });
+      setNotification({ type: "error", message: t("pageSlugIsRequired") });
       return;
     }
 
@@ -137,13 +141,13 @@ export default function ContentEditorClient({
         const data = await res.json();
         setNotification({
           type: "error",
-          message: data.error || "Failed to save page.",
+          message: data.error || t("failedToSavePage"),
         });
       } else {
         const savedPage = await res.json();
         setNotification({
           type: "success",
-          message: isNew ? "Page created successfully." : "Page saved successfully.",
+          message: isNew ? t("pageCreatedSuccessfully") : t("pageSavedSuccessfully"),
         });
 
         if (isNew) {
@@ -159,7 +163,7 @@ export default function ContentEditorClient({
     } catch {
       setNotification({
         type: "error",
-        message: "Network error. Please try again.",
+        message: t("networkErrorPleaseTryAgain"),
       });
     } finally {
       setSaving(false);
@@ -179,39 +183,39 @@ export default function ContentEditorClient({
         <div className="content-editor-main">
           {/* Page Details */}
           <div className="content-editor-section">
-            <div className="content-editor-section-title">Page Details</div>
+            <div className="content-editor-section-title">{t("pageDetails")}</div>
             <div className="content-field">
-              <label htmlFor="page-title">Page Title</label>
+              <label htmlFor="page-title">{t("pageTitle")}</label>
               <input
                 id="page-title"
                 type="text"
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder="Enter page title"
+                placeholder={t("enterPageTitle")}
               />
             </div>
           </div>
 
           {/* Hero Section */}
           <div className="content-editor-section">
-            <div className="content-editor-section-title">Hero Section</div>
+            <div className="content-editor-section-title">{t("heroSection")}</div>
             <div className="content-field">
-              <label htmlFor="hero-title">Hero Title</label>
+              <label htmlFor="hero-title">{t("heroTitle")}</label>
               <input
                 id="hero-title"
                 type="text"
                 value={heroTitle}
                 onChange={(e) => setHeroTitle(e.target.value)}
-                placeholder="Main headline for the page"
+                placeholder={t("heroTitlePlaceholder")}
               />
             </div>
             <div className="content-field">
-              <label htmlFor="hero-subtitle">Hero Subtitle</label>
+              <label htmlFor="hero-subtitle">{t("heroSubtitle")}</label>
               <textarea
                 id="hero-subtitle"
                 value={heroSubtitle}
                 onChange={(e) => setHeroSubtitle(e.target.value)}
-                placeholder="Supporting text below the headline"
+                placeholder={t("heroSubtitlePlaceholder")}
                 style={{ minHeight: "60px" }}
               />
             </div>
@@ -227,14 +231,14 @@ export default function ContentEditorClient({
                 alignItems: "center",
               }}
             >
-              <span>Content Sections</span>
+              <span>{t("contentSections")}</span>
               <button
                 type="button"
                 className="ui-btn ui-btn-outline ui-btn-sm"
                 onClick={addSection}
               >
                 <Plus size={14} />
-                Add Section
+                {t("addSection")}
               </button>
             </div>
 
@@ -247,8 +251,7 @@ export default function ContentEditorClient({
                   padding: "24px 0",
                 }}
               >
-                No content sections yet. Click "Add Section" to start building
-                your page.
+                {t("noContentSectionsYet")}
               </p>
             )}
 
@@ -256,36 +259,36 @@ export default function ContentEditorClient({
               <div key={index} className="content-section-item">
                 <div className="content-section-header">
                   <span className="content-section-number">
-                    Section {index + 1}
+                    {t("sectionNumber", { number: index + 1 })}
                   </span>
                   <button
                     type="button"
                     className="content-section-remove"
                     onClick={() => removeSection(index)}
-                    title="Remove section"
+                    title={t("removeSection")}
                   >
                     <X size={14} />
                   </button>
                 </div>
                 <div className="content-field">
-                  <label>Heading</label>
+                  <label>{t("heading")}</label>
                   <input
                     type="text"
                     value={section.heading}
                     onChange={(e) =>
                       updateSection(index, "heading", e.target.value)
                     }
-                    placeholder="Section heading"
+                    placeholder={t("sectionHeadingPlaceholder")}
                   />
                 </div>
                 <div className="content-field">
-                  <label>Body</label>
+                  <label>{t("body")}</label>
                   <textarea
                     value={section.body}
                     onChange={(e) =>
                       updateSection(index, "body", e.target.value)
                     }
-                    placeholder="Section body content"
+                    placeholder={t("sectionBodyPlaceholder")}
                     style={{ minHeight: "100px" }}
                   />
                 </div>
@@ -298,10 +301,10 @@ export default function ContentEditorClient({
         <div className="content-editor-sidebar">
           {/* Publish Controls */}
           <div className="content-editor-section">
-            <div className="content-editor-section-title">Publishing</div>
+            <div className="content-editor-section-title">{t("publishing")}</div>
             <div className="publish-toggle">
               <span className="publish-toggle-label">
-                {isPublished ? "Published" : "Draft"}
+                {isPublished ? t("published") : t("draft")}
               </span>
               <button
                 type="button"
@@ -322,8 +325,8 @@ export default function ContentEditorClient({
               >
                 {page.published_at && (
                   <p>
-                    Published:{" "}
-                    {new Date(page.published_at).toLocaleDateString("en-US", {
+                    {t("publishedLabel")}{" "}
+                    {new Date(page.published_at).toLocaleDateString(dateLocale, {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
@@ -331,8 +334,8 @@ export default function ContentEditorClient({
                   </p>
                 )}
                 <p>
-                  Last updated:{" "}
-                  {new Date(page.updated_at).toLocaleDateString("en-US", {
+                  {t("lastUpdatedLabel")}{" "}
+                  {new Date(page.updated_at).toLocaleDateString(dateLocale, {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
@@ -354,7 +357,7 @@ export default function ContentEditorClient({
                 ) : (
                   <Save size={16} />
                 )}
-                {saving ? "Saving..." : isNew ? "Create Page" : "Save Changes"}
+                {saving ? t("saving") : isNew ? t("createPage") : t("saveChanges")}
               </button>
             </div>
           </div>
@@ -364,50 +367,50 @@ export default function ContentEditorClient({
             <div className="content-editor-section-title">
               <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <Globe size={16} />
-                SEO Settings
+                {t("seoSettings")}
               </span>
             </div>
             <div className="content-field">
-              <label htmlFor="page-slug">URL Slug</label>
+              <label htmlFor="page-slug">{t("urlSlug")}</label>
               <input
                 id="page-slug"
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                placeholder="page-url-slug"
+                placeholder={t("urlSlugPlaceholder")}
               />
               <span className="field-hint">
-                The URL path for this page: /{slug || "..."}
+                {t("urlPathForPage", { slug: slug || "..." })}
               </span>
             </div>
             <div className="content-field">
-              <label htmlFor="meta-title">Meta Title</label>
+              <label htmlFor="meta-title">{t("metaTitle")}</label>
               <input
                 id="meta-title"
                 type="text"
                 value={metaTitle}
                 onChange={(e) => setMetaTitle(e.target.value)}
-                placeholder="SEO title for search engines"
+                placeholder={t("metaTitlePlaceholder")}
               />
               <span
                 className={`char-count ${metaTitle.length > 70 ? "over" : ""}`}
               >
-                {metaTitle.length}/70 characters
+                {t("charactersCount", { count: metaTitle.length, max: 70 })}
               </span>
             </div>
             <div className="content-field">
-              <label htmlFor="meta-desc">Meta Description</label>
+              <label htmlFor="meta-desc">{t("metaDescription")}</label>
               <textarea
                 id="meta-desc"
                 value={metaDescription}
                 onChange={(e) => setMetaDescription(e.target.value)}
-                placeholder="Brief description for search results"
+                placeholder={t("metaDescriptionPlaceholder")}
                 style={{ minHeight: "80px" }}
               />
               <span
                 className={`char-count ${metaDescription.length > 160 ? "over" : ""}`}
               >
-                {metaDescription.length}/160 characters
+                {t("charactersCount", { count: metaDescription.length, max: 160 })}
               </span>
             </div>
           </div>

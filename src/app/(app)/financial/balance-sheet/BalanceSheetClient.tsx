@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { Printer, AlertTriangle, CheckCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import type { BalanceSheetData, BalanceSheetSection } from "@/lib/queries/financial";
@@ -11,12 +12,7 @@ interface Props {
   companyName: string;
 }
 
-function formatDateLabel(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-}
-
-function StatementSection({ section }: { section: BalanceSheetSection }) {
+function StatementSection({ section, t }: { section: BalanceSheetSection; t: (key: string, values?: Record<string, string>) => string }) {
   return (
     <>
       {/* Section header */}
@@ -37,13 +33,13 @@ function StatementSection({ section }: { section: BalanceSheetSection }) {
 
       {section.accounts.length === 0 && (
         <tr className="fs-account-row">
-          <td className="fs-indent fs-no-data" colSpan={2}>No accounts recorded</td>
+          <td className="fs-indent fs-no-data" colSpan={2}>{t("noAccountsRecorded")}</td>
         </tr>
       )}
 
       {/* Section total */}
       <tr className="fs-section-total">
-        <td>Total {section.label}</td>
+        <td>{t("totalSection", { section: section.label })}</td>
         <td className="fs-amount">{formatCurrency(section.total)}</td>
       </tr>
     </>
@@ -52,7 +48,15 @@ function StatementSection({ section }: { section: BalanceSheetSection }) {
 
 export default function BalanceSheetClient({ data, companyName }: Props) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const [asOfDate, setAsOfDate] = useState(data.asOfDate);
+
+  function formatDateLabel(dateStr: string): string {
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString(dateLocale, { month: "long", day: "numeric", year: "numeric" });
+  }
 
   function handleApply() {
     router.push(`/financial/balance-sheet?asOf=${asOfDate}`);
@@ -67,13 +71,13 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Balance Sheet</h2>
-          <p className="fin-header-sub">Statement of Financial Position</p>
+          <h2>{t("balanceSheet")}</h2>
+          <p className="fin-header-sub">{t("statementOfFinancialPosition")}</p>
         </div>
         <div className="fin-header-actions">
           <button className="ui-btn ui-btn-outline ui-btn-sm" onClick={handlePrint}>
             <Printer size={14} />
-            Print
+            {t("print")}
           </button>
         </div>
       </div>
@@ -81,7 +85,7 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
       {/* Date Controls */}
       <div className="fs-date-controls">
         <div className="fs-date-field">
-          <label htmlFor="fs-asof">As of</label>
+          <label htmlFor="fs-asof">{t("asOf")}</label>
           <input
             id="fs-asof"
             type="date"
@@ -90,7 +94,7 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
           />
         </div>
         <button className="ui-btn ui-btn-primary ui-btn-md" onClick={handleApply}>
-          Apply
+          {t("apply")}
         </button>
       </div>
 
@@ -98,7 +102,7 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
       {!data.isBalanced && (
         <div className="fs-warning-banner">
           <AlertTriangle size={18} />
-          <span>Warning: Balance sheet is not balanced. Total Assets ({formatCurrency(data.assets.total)}) does not equal Total Liabilities + Equity ({formatCurrency(data.totalLiabilitiesAndEquity)}).</span>
+          <span>{t("warningBalance", { assets: formatCurrency(data.assets.total), liabilities: formatCurrency(data.totalLiabilitiesAndEquity) })}</span>
         </div>
       )}
 
@@ -107,9 +111,9 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
         {/* Statement Title Block */}
         <div className="fs-title-block">
           <div className="fs-company-name">{companyName}</div>
-          <div className="fs-statement-name">Balance Sheet</div>
+          <div className="fs-statement-name">{t("balanceSheet")}</div>
           <div className="fs-date-range">
-            As of {formatDateLabel(data.asOfDate)}
+            {t("asOf")} {formatDateLabel(data.asOfDate)}
           </div>
         </div>
 
@@ -118,28 +122,28 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
           <table className="fs-table">
             <thead>
               <tr>
-                <th>Account</th>
-                <th className="fs-amount">Amount</th>
+                <th>{t("account")}</th>
+                <th className="fs-amount">{t("amount")}</th>
               </tr>
             </thead>
             <tbody>
               {/* Assets */}
-              <StatementSection section={data.assets} />
+              <StatementSection section={data.assets} t={t} />
 
               <tr className="fs-spacer"><td colSpan={2} /></tr>
 
               {/* Liabilities */}
-              <StatementSection section={data.liabilities} />
+              <StatementSection section={data.liabilities} t={t} />
 
               <tr className="fs-spacer"><td colSpan={2} /></tr>
 
               {/* Equity */}
-              <StatementSection section={data.equity} />
+              <StatementSection section={data.equity} t={t} />
 
               {/* Total Liabilities + Equity */}
               <tr className="fs-spacer"><td colSpan={2} /></tr>
               <tr className="fs-grand-total">
-                <td>TOTAL LIABILITIES + EQUITY</td>
+                <td>{t("totalLiabilitiesAndEquity")}</td>
                 <td className="fs-amount">{formatCurrency(data.totalLiabilitiesAndEquity)}</td>
               </tr>
 
@@ -151,12 +155,12 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
                     {data.isBalanced ? (
                       <>
                         <CheckCircle size={16} />
-                        <span>Balanced</span>
+                        <span>{t("balanced")}</span>
                       </>
                     ) : (
                       <>
                         <AlertTriangle size={16} />
-                        <span>UNBALANCED &mdash; Difference: {formatCurrency(Math.abs(data.assets.total - data.totalLiabilitiesAndEquity))}</span>
+                        <span>{t("unbalancedDifference", { difference: formatCurrency(Math.abs(data.assets.total - data.totalLiabilitiesAndEquity)) })}</span>
                       </>
                     )}
                   </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { FileText, Printer, Download } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import type { IncomeStatementData, IncomeStatementSection } from "@/lib/queries/financial";
@@ -11,17 +12,14 @@ interface Props {
   companyName: string;
 }
 
-function formatDateLabel(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-}
-
 function StatementSection({
   section,
   indent = true,
+  t,
 }: {
   section: IncomeStatementSection;
   indent?: boolean;
+  t: (key: string, values?: Record<string, string>) => string;
 }) {
   return (
     <>
@@ -43,13 +41,13 @@ function StatementSection({
 
       {section.accounts.length === 0 && (
         <tr className="fs-account-row">
-          <td className="fs-indent fs-no-data" colSpan={2}>No accounts for this period</td>
+          <td className="fs-indent fs-no-data" colSpan={2}>{t("noAccountsForPeriod")}</td>
         </tr>
       )}
 
       {/* Section total */}
       <tr className="fs-section-total">
-        <td>Total {section.label}</td>
+        <td>{t("totalSection", { section: section.label })}</td>
         <td className="fs-amount">{formatCurrency(section.total)}</td>
       </tr>
     </>
@@ -58,8 +56,16 @@ function StatementSection({
 
 export default function IncomeStatementClient({ data, companyName }: Props) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const [startDate, setStartDate] = useState(data.startDate);
   const [endDate, setEndDate] = useState(data.endDate);
+
+  function formatDateLabel(dateStr: string): string {
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString(dateLocale, { month: "long", day: "numeric", year: "numeric" });
+  }
 
   function handleApply() {
     router.push(`/financial/income-statement?start=${startDate}&end=${endDate}`);
@@ -74,13 +80,13 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Income Statement</h2>
-          <p className="fin-header-sub">Profit &amp; Loss for the period</p>
+          <h2>{t("incomeStatement")}</h2>
+          <p className="fin-header-sub">{t("profitAndLossForPeriod")}</p>
         </div>
         <div className="fin-header-actions">
           <button className="ui-btn ui-btn-outline ui-btn-sm" onClick={handlePrint}>
             <Printer size={14} />
-            Print
+            {t("print")}
           </button>
         </div>
       </div>
@@ -88,7 +94,7 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
       {/* Date Range Controls */}
       <div className="fs-date-controls">
         <div className="fs-date-field">
-          <label htmlFor="fs-start">From</label>
+          <label htmlFor="fs-start">{t("from")}</label>
           <input
             id="fs-start"
             type="date"
@@ -97,7 +103,7 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
           />
         </div>
         <div className="fs-date-field">
-          <label htmlFor="fs-end">To</label>
+          <label htmlFor="fs-end">{t("to")}</label>
           <input
             id="fs-end"
             type="date"
@@ -106,7 +112,7 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
           />
         </div>
         <button className="ui-btn ui-btn-primary ui-btn-md" onClick={handleApply}>
-          Apply
+          {t("apply")}
         </button>
       </div>
 
@@ -115,7 +121,7 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
         {/* Statement Title Block */}
         <div className="fs-title-block">
           <div className="fs-company-name">{companyName}</div>
-          <div className="fs-statement-name">Income Statement</div>
+          <div className="fs-statement-name">{t("incomeStatement")}</div>
           <div className="fs-date-range">
             {formatDateLabel(data.startDate)} &mdash; {formatDateLabel(data.endDate)}
           </div>
@@ -126,24 +132,24 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
           <table className="fs-table">
             <thead>
               <tr>
-                <th>Account</th>
-                <th className="fs-amount">Amount</th>
+                <th>{t("account")}</th>
+                <th className="fs-amount">{t("amount")}</th>
               </tr>
             </thead>
             <tbody>
               {/* Revenue */}
-              <StatementSection section={data.revenue} />
+              <StatementSection section={data.revenue} t={t} />
 
               {/* Spacer */}
               <tr className="fs-spacer"><td colSpan={2} /></tr>
 
               {/* Cost of Construction */}
-              <StatementSection section={data.costOfConstruction} />
+              <StatementSection section={data.costOfConstruction} t={t} />
 
               {/* Gross Profit */}
               <tr className="fs-spacer"><td colSpan={2} /></tr>
               <tr className="fs-grand-total">
-                <td>GROSS PROFIT</td>
+                <td>{t("grossProfit")}</td>
                 <td className={`fs-amount ${data.grossProfit >= 0 ? "fs-positive" : "fs-negative"}`}>
                   {formatCurrency(data.grossProfit)}
                 </td>
@@ -153,12 +159,12 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
               <tr className="fs-spacer"><td colSpan={2} /></tr>
 
               {/* Operating Expenses */}
-              <StatementSection section={data.operatingExpenses} />
+              <StatementSection section={data.operatingExpenses} t={t} />
 
               {/* Net Income */}
               <tr className="fs-spacer"><td colSpan={2} /></tr>
               <tr className="fs-net-income">
-                <td>NET INCOME</td>
+                <td>{t("netIncome")}</td>
                 <td className={`fs-amount ${data.netIncome >= 0 ? "fs-positive" : "fs-negative"}`}>
                   {formatCurrency(data.netIncome)}
                 </td>

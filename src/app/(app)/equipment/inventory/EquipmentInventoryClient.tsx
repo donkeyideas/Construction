@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
   Plus,
@@ -26,48 +27,8 @@ import type {
 import type { CompanyMember } from "@/lib/queries/tickets";
 
 // ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const STATUS_LABELS: Record<EquipmentStatus, string> = {
-  available: "Available",
-  in_use: "In Use",
-  maintenance: "Maintenance",
-  retired: "Retired",
-};
-
-const EQUIPMENT_TYPES: { value: EquipmentType; label: string }[] = [
-  { value: "excavator", label: "Excavator" },
-  { value: "loader", label: "Loader" },
-  { value: "crane", label: "Crane" },
-  { value: "truck", label: "Truck" },
-  { value: "generator", label: "Generator" },
-  { value: "compressor", label: "Compressor" },
-  { value: "scaffold", label: "Scaffold" },
-  { value: "tools", label: "Tools" },
-  { value: "other", label: "Other" },
-];
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatDateShort(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
 
 function formatCurrency(value: number | null) {
   if (value === null || value === undefined) return "--";
@@ -124,6 +85,45 @@ export default function EquipmentInventoryClient({
   companyId,
 }: EquipmentInventoryClientProps) {
   const router = useRouter();
+  const t = useTranslations("equipment");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const STATUS_LABELS: Record<EquipmentStatus, string> = {
+    available: t("statusAvailable"),
+    in_use: t("statusInUse"),
+    maintenance: t("statusMaintenance"),
+    retired: t("statusRetired"),
+  };
+
+  const EQUIPMENT_TYPES: { value: EquipmentType; label: string }[] = [
+    { value: "excavator", label: t("typeExcavator") },
+    { value: "loader", label: t("typeLoader") },
+    { value: "crane", label: t("typeCrane") },
+    { value: "truck", label: t("typeTruck") },
+    { value: "generator", label: t("typeGenerator") },
+    { value: "compressor", label: t("typeCompressor") },
+    { value: "scaffold", label: t("typeScaffold") },
+    { value: "tools", label: t("typeTools") },
+    { value: "other", label: t("typeOther") },
+  ];
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatDateShort(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+    });
+  }
 
   // Import modal state
   const [showImport, setShowImport] = useState(false);
@@ -206,7 +206,7 @@ export default function EquipmentInventoryClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create equipment");
+        throw new Error(data.error || t("errorCreateEquipment"));
       }
 
       setFormData({
@@ -222,7 +222,7 @@ export default function EquipmentInventoryClient({
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to create equipment");
+      setCreateError(err instanceof Error ? err.message : t("errorCreateEquipment"));
     } finally {
       setCreating(false);
     }
@@ -310,13 +310,13 @@ export default function EquipmentInventoryClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update equipment");
+        throw new Error(data.error || t("errorUpdateEquipment"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update equipment");
+      setSaveError(err instanceof Error ? err.message : t("errorUpdateEquipment"));
     } finally {
       setSaving(false);
     }
@@ -335,13 +335,13 @@ export default function EquipmentInventoryClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete equipment");
+        throw new Error(data.error || t("errorDeleteEquipment"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to delete equipment");
+      setSaveError(err instanceof Error ? err.message : t("errorDeleteEquipment"));
     } finally {
       setSaving(false);
     }
@@ -352,19 +352,19 @@ export default function EquipmentInventoryClient({
       {/* Header */}
       <div className="equipment-header">
         <div>
-          <h2>Equipment Inventory</h2>
+          <h2>{t("equipmentInventory")}</h2>
           <p className="equipment-header-sub">
-            {stats.total} item{stats.total !== 1 ? "s" : ""} total
+            {t("itemsTotal", { count: stats.total })}
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            Add Equipment
+            {t("addEquipment")}
           </button>
         </div>
       </div>
@@ -377,7 +377,7 @@ export default function EquipmentInventoryClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{stats.available}</span>
-            <span className="equipment-stat-label">Available</span>
+            <span className="equipment-stat-label">{t("statusAvailable")}</span>
           </div>
         </div>
         <div className="equipment-stat-card stat-in-use">
@@ -386,7 +386,7 @@ export default function EquipmentInventoryClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{stats.in_use}</span>
-            <span className="equipment-stat-label">In Use</span>
+            <span className="equipment-stat-label">{t("statusInUse")}</span>
           </div>
         </div>
         <div className="equipment-stat-card stat-maintenance">
@@ -395,7 +395,7 @@ export default function EquipmentInventoryClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{stats.maintenance}</span>
-            <span className="equipment-stat-label">Maintenance</span>
+            <span className="equipment-stat-label">{t("statusMaintenance")}</span>
           </div>
         </div>
         <div className="equipment-stat-card stat-retired">
@@ -404,7 +404,7 @@ export default function EquipmentInventoryClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{stats.retired}</span>
-            <span className="equipment-stat-label">Retired</span>
+            <span className="equipment-stat-label">{t("statusRetired")}</span>
           </div>
         </div>
       </div>
@@ -415,7 +415,7 @@ export default function EquipmentInventoryClient({
           <Search size={16} className="equipment-search-icon" />
           <input
             type="text"
-            placeholder="Search equipment..."
+            placeholder={t("searchEquipment")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -426,7 +426,7 @@ export default function EquipmentInventoryClient({
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as EquipmentStatus | "all")}
         >
-          <option value="all">All Status</option>
+          <option value="all">{t("allStatus")}</option>
           {(Object.keys(STATUS_LABELS) as EquipmentStatus[]).map((s) => (
             <option key={s} value={s}>
               {STATUS_LABELS[s]}
@@ -439,10 +439,10 @@ export default function EquipmentInventoryClient({
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
         >
-          <option value="all">All Types</option>
-          {EQUIPMENT_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
+          <option value="all">{t("allTypes")}</option>
+          {EQUIPMENT_TYPES.map((t_item) => (
+            <option key={t_item.value} value={t_item.value}>
+              {t_item.label}
             </option>
           ))}
         </select>
@@ -456,17 +456,17 @@ export default function EquipmentInventoryClient({
           </div>
           {equipment.length === 0 ? (
             <>
-              <h3>No equipment yet</h3>
-              <p>Add your first piece of equipment to get started.</p>
+              <h3>{t("noEquipmentYet")}</h3>
+              <p>{t("addFirstEquipment")}</p>
               <button className="btn-primary" onClick={() => setShowCreate(true)}>
                 <Plus size={16} />
-                Add Equipment
+                {t("addEquipment")}
               </button>
             </>
           ) : (
             <>
-              <h3>No matching equipment</h3>
-              <p>Try adjusting your search or filter criteria.</p>
+              <h3>{t("noMatchingEquipment")}</h3>
+              <p>{t("tryAdjustingSearch")}</p>
             </>
           )}
         </div>
@@ -475,14 +475,14 @@ export default function EquipmentInventoryClient({
           <table className="equipment-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Make / Model</th>
-                <th>Serial #</th>
-                <th>Status</th>
-                <th>Current Project</th>
-                <th>Assigned To</th>
-                <th>Next Maintenance</th>
+                <th>{t("columnName")}</th>
+                <th>{t("columnType")}</th>
+                <th>{t("columnMakeModel")}</th>
+                <th>{t("columnSerialNumber")}</th>
+                <th>{t("columnStatus")}</th>
+                <th>{t("labelCurrentProject")}</th>
+                <th>{t("labelAssignedTo")}</th>
+                <th>{t("labelNextMaintenance")}</th>
               </tr>
             </thead>
             <tbody>
@@ -494,7 +494,7 @@ export default function EquipmentInventoryClient({
                 >
                   <td className="equipment-name-cell">{item.name}</td>
                   <td className="equipment-type-cell">
-                    {EQUIPMENT_TYPES.find((t) => t.value === item.equipment_type)?.label ??
+                    {EQUIPMENT_TYPES.find((t_item) => t_item.value === item.equipment_type)?.label ??
                       item.equipment_type}
                   </td>
                   <td className="equipment-makemodel-cell">
@@ -550,7 +550,7 @@ export default function EquipmentInventoryClient({
         <div className="equipment-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="equipment-modal" onClick={(e) => e.stopPropagation()}>
             <div className="equipment-modal-header">
-              <h3>Add New Equipment</h3>
+              <h3>{t("addNewEquipment")}</h3>
               <button
                 className="equipment-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -565,7 +565,7 @@ export default function EquipmentInventoryClient({
 
             <form onSubmit={handleCreate} className="equipment-form">
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Name *</label>
+                <label className="equipment-form-label">{t("labelNameRequired")}</label>
                 <input
                   type="text"
                   className="equipment-form-input"
@@ -573,14 +573,14 @@ export default function EquipmentInventoryClient({
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  placeholder="Equipment name"
+                  placeholder={t("placeholderEquipmentName")}
                   required
                 />
               </div>
 
               <div className="equipment-form-row">
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Type *</label>
+                  <label className="equipment-form-label">{t("labelTypeRequired")}</label>
                   <select
                     className="equipment-form-select"
                     value={formData.equipment_type}
@@ -589,16 +589,16 @@ export default function EquipmentInventoryClient({
                     }
                     required
                   >
-                    <option value="">Select type...</option>
-                    {EQUIPMENT_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
+                    <option value="">{t("selectType")}</option>
+                    {EQUIPMENT_TYPES.map((t_item) => (
+                      <option key={t_item.value} value={t_item.value}>
+                        {t_item.label}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Serial Number</label>
+                  <label className="equipment-form-label">{t("labelSerialNumber")}</label>
                   <input
                     type="text"
                     className="equipment-form-input"
@@ -606,14 +606,14 @@ export default function EquipmentInventoryClient({
                     onChange={(e) =>
                       setFormData({ ...formData, serial_number: e.target.value })
                     }
-                    placeholder="S/N"
+                    placeholder={t("placeholderSerialNumber")}
                   />
                 </div>
               </div>
 
               <div className="equipment-form-row">
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Make</label>
+                  <label className="equipment-form-label">{t("labelMake")}</label>
                   <input
                     type="text"
                     className="equipment-form-input"
@@ -621,11 +621,11 @@ export default function EquipmentInventoryClient({
                     onChange={(e) =>
                       setFormData({ ...formData, make: e.target.value })
                     }
-                    placeholder="Manufacturer"
+                    placeholder={t("placeholderManufacturer")}
                   />
                 </div>
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Model</label>
+                  <label className="equipment-form-label">{t("labelModel")}</label>
                   <input
                     type="text"
                     className="equipment-form-input"
@@ -633,14 +633,14 @@ export default function EquipmentInventoryClient({
                     onChange={(e) =>
                       setFormData({ ...formData, model: e.target.value })
                     }
-                    placeholder="Model name/number"
+                    placeholder={t("placeholderModelName")}
                   />
                 </div>
               </div>
 
               <div className="equipment-form-row">
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Purchase Date</label>
+                  <label className="equipment-form-label">{t("labelPurchaseDate")}</label>
                   <input
                     type="date"
                     className="equipment-form-input"
@@ -651,7 +651,7 @@ export default function EquipmentInventoryClient({
                   />
                 </div>
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Purchase Cost ($)</label>
+                  <label className="equipment-form-label">{t("labelPurchaseCostDollar")}</label>
                   <input
                     type="number"
                     className="equipment-form-input"
@@ -667,7 +667,7 @@ export default function EquipmentInventoryClient({
               </div>
 
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Hourly Rate ($)</label>
+                <label className="equipment-form-label">{t("labelHourlyRateDollar")}</label>
                 <input
                   type="number"
                   className="equipment-form-input"
@@ -687,14 +687,14 @@ export default function EquipmentInventoryClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !formData.name.trim() || !formData.equipment_type}
                 >
-                  {creating ? "Adding..." : "Add Equipment"}
+                  {creating ? t("adding") : t("addEquipment")}
                 </button>
               </div>
             </form>
@@ -708,7 +708,7 @@ export default function EquipmentInventoryClient({
           <div className="equipment-modal" onClick={(e) => e.stopPropagation()}>
             <div className="equipment-modal-header">
               <h3>
-                {isEditing ? `Edit ${selectedItem.name}` : selectedItem.name}
+                {isEditing ? t("editName", { name: selectedItem.name }) : selectedItem.name}
               </h3>
               <button className="equipment-modal-close" onClick={closeDetail}>
                 <X size={18} />
@@ -736,7 +736,7 @@ export default function EquipmentInventoryClient({
                   style={{ maxWidth: 440 }}
                 >
                   <div className="equipment-modal-header">
-                    <h3>Delete Equipment</h3>
+                    <h3>{t("deleteEquipment")}</h3>
                     <button
                       className="equipment-modal-close"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -746,9 +746,7 @@ export default function EquipmentInventoryClient({
                   </div>
                   <div style={{ padding: "1rem 1.5rem" }}>
                     <p>
-                      Are you sure you want to delete{" "}
-                      <strong>{selectedItem.name}</strong>? This action cannot be
-                      undone.
+                      {t("confirmDeleteEquipment", { name: selectedItem.name })}
                     </p>
                   </div>
                   <div className="equipment-form-actions">
@@ -758,7 +756,7 @@ export default function EquipmentInventoryClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="button"
@@ -767,7 +765,7 @@ export default function EquipmentInventoryClient({
                       onClick={handleDelete}
                       disabled={saving}
                     >
-                      {saving ? "Deleting..." : "Delete"}
+                      {saving ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 </div>
@@ -779,13 +777,13 @@ export default function EquipmentInventoryClient({
               <div style={{ padding: "1.25rem", pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Name</label>
+                    <label className="detail-label">{t("columnName")}</label>
                     <div className="detail-value">{selectedItem.name}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Type</label>
+                    <label className="detail-label">{t("columnType")}</label>
                     <div className="detail-value">
-                      {EQUIPMENT_TYPES.find((t) => t.value === selectedItem.equipment_type)?.label ??
+                      {EQUIPMENT_TYPES.find((t_item) => t_item.value === selectedItem.equipment_type)?.label ??
                         selectedItem.equipment_type}
                     </div>
                   </div>
@@ -793,22 +791,22 @@ export default function EquipmentInventoryClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Make</label>
+                    <label className="detail-label">{t("labelMake")}</label>
                     <div className="detail-value">{selectedItem.make || "--"}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Model</label>
+                    <label className="detail-label">{t("labelModel")}</label>
                     <div className="detail-value">{selectedItem.model || "--"}</div>
                   </div>
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Serial Number</label>
+                    <label className="detail-label">{t("labelSerialNumber")}</label>
                     <div className="detail-value">{selectedItem.serial_number || "--"}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Status</label>
+                    <label className="detail-label">{t("columnStatus")}</label>
                     <div className="detail-value">
                       <span className={`equipment-status-badge status-${selectedItem.status}`}>
                         {STATUS_LABELS[selectedItem.status] ?? selectedItem.status}
@@ -819,46 +817,46 @@ export default function EquipmentInventoryClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Current Project</label>
+                    <label className="detail-label">{t("labelCurrentProject")}</label>
                     <div className="detail-value">{selectedItem.project?.name || "--"}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Assigned To</label>
+                    <label className="detail-label">{t("labelAssignedTo")}</label>
                     <div className="detail-value">{getUserName(selectedItem.assignee)}</div>
                   </div>
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Purchase Date</label>
+                    <label className="detail-label">{t("labelPurchaseDate")}</label>
                     <div className="detail-value">{formatDate(selectedItem.purchase_date)}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Purchase Cost</label>
+                    <label className="detail-label">{t("labelPurchaseCost")}</label>
                     <div className="detail-value">{formatCurrency(selectedItem.purchase_cost)}</div>
                   </div>
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Hourly Rate</label>
+                    <label className="detail-label">{t("labelHourlyRate")}</label>
                     <div className="detail-value">
                       {selectedItem.hourly_rate ? `${formatCurrency(selectedItem.hourly_rate)}/hr` : "--"}
                     </div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Total Hours</label>
+                    <label className="detail-label">{t("labelTotalHours")}</label>
                     <div className="detail-value">{selectedItem.total_hours ?? "--"}</div>
                   </div>
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Last Maintenance</label>
+                    <label className="detail-label">{t("labelLastMaintenance")}</label>
                     <div className="detail-value">{formatDate(selectedItem.last_maintenance_date)}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Next Maintenance</label>
+                    <label className="detail-label">{t("labelNextMaintenance")}</label>
                     <div className="detail-value">{formatDate(selectedItem.next_maintenance_date)}</div>
                   </div>
                 </div>
@@ -871,14 +869,14 @@ export default function EquipmentInventoryClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("close")}
                   </button>
                   <button
                     type="button"
@@ -886,7 +884,7 @@ export default function EquipmentInventoryClient({
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -897,7 +895,7 @@ export default function EquipmentInventoryClient({
               <div className="equipment-form">
                 <div className="equipment-form-row">
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Name *</label>
+                    <label className="equipment-form-label">{t("labelNameRequired")}</label>
                     <input
                       type="text"
                       className="equipment-form-input"
@@ -909,7 +907,7 @@ export default function EquipmentInventoryClient({
                     />
                   </div>
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Type *</label>
+                    <label className="equipment-form-label">{t("labelTypeRequired")}</label>
                     <select
                       className="equipment-form-select"
                       value={(editData.equipment_type as string) || ""}
@@ -917,9 +915,9 @@ export default function EquipmentInventoryClient({
                         setEditData({ ...editData, equipment_type: e.target.value })
                       }
                     >
-                      {EQUIPMENT_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>
-                          {t.label}
+                      {EQUIPMENT_TYPES.map((t_item) => (
+                        <option key={t_item.value} value={t_item.value}>
+                          {t_item.label}
                         </option>
                       ))}
                     </select>
@@ -928,7 +926,7 @@ export default function EquipmentInventoryClient({
 
                 <div className="equipment-form-row">
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Make</label>
+                    <label className="equipment-form-label">{t("labelMake")}</label>
                     <input
                       type="text"
                       className="equipment-form-input"
@@ -939,7 +937,7 @@ export default function EquipmentInventoryClient({
                     />
                   </div>
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Model</label>
+                    <label className="equipment-form-label">{t("labelModel")}</label>
                     <input
                       type="text"
                       className="equipment-form-input"
@@ -953,7 +951,7 @@ export default function EquipmentInventoryClient({
 
                 <div className="equipment-form-row">
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Serial Number</label>
+                    <label className="equipment-form-label">{t("labelSerialNumber")}</label>
                     <input
                       type="text"
                       className="equipment-form-input"
@@ -964,7 +962,7 @@ export default function EquipmentInventoryClient({
                     />
                   </div>
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Status</label>
+                    <label className="equipment-form-label">{t("columnStatus")}</label>
                     <select
                       className="equipment-form-select"
                       value={(editData.status as string) || "available"}
@@ -983,7 +981,7 @@ export default function EquipmentInventoryClient({
 
                 <div className="equipment-form-row">
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Purchase Date</label>
+                    <label className="equipment-form-label">{t("labelPurchaseDate")}</label>
                     <input
                       type="date"
                       className="equipment-form-input"
@@ -994,7 +992,7 @@ export default function EquipmentInventoryClient({
                     />
                   </div>
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Purchase Cost ($)</label>
+                    <label className="equipment-form-label">{t("labelPurchaseCostDollar")}</label>
                     <input
                       type="number"
                       className="equipment-form-input"
@@ -1009,7 +1007,7 @@ export default function EquipmentInventoryClient({
                 </div>
 
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Hourly Rate ($)</label>
+                  <label className="equipment-form-label">{t("labelHourlyRateDollar")}</label>
                   <input
                     type="number"
                     className="equipment-form-input"
@@ -1029,7 +1027,7 @@ export default function EquipmentInventoryClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -1037,7 +1035,7 @@ export default function EquipmentInventoryClient({
                     onClick={handleSave}
                     disabled={saving || !(editData.name as string)?.trim()}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>

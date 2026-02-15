@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   ArrowLeft,
   Send,
@@ -24,22 +25,11 @@ import type {
 } from "@/lib/queries/tickets";
 
 // ---------------------------------------------------------------------------
-// Constants
+// Constants (non-translatable keys / icons kept outside)
 // ---------------------------------------------------------------------------
 
-const STATUS_LABELS: Record<TicketStatus, string> = {
-  open: "Open",
-  in_progress: "In Progress",
-  resolved: "Resolved",
-  closed: "Closed",
-};
-
-const PRIORITY_LABELS: Record<TicketPriority, string> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  urgent: "Urgent",
-};
+const STATUS_KEYS: TicketStatus[] = ["open", "in_progress", "resolved", "closed"];
+const PRIORITY_KEYS: TicketPriority[] = ["low", "medium", "high", "urgent"];
 
 const CATEGORIES = [
   "IT",
@@ -67,53 +57,6 @@ const STATUS_ICONS: Record<TicketStatus, React.ReactNode> = {
 };
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function formatDateTime(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-function formatRelativeTime(dateStr: string) {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return formatDateTime(dateStr);
-}
-
-function getUserName(
-  user: { id: string; full_name: string; email: string } | null | undefined
-): string {
-  if (!user) return "Unknown";
-  return user.full_name || user.email || "Unknown";
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -133,6 +76,74 @@ export default function TicketDetailClient({
   companyId,
 }: TicketDetailClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  // ---------------------------------------------------------------------------
+  // Translated label maps (inside component so t() is available)
+  // ---------------------------------------------------------------------------
+
+  const STATUS_LABELS: Record<TicketStatus, string> = {
+    open: t("ticketStatusOpen"),
+    in_progress: t("ticketStatusInProgress"),
+    resolved: t("ticketStatusResolved"),
+    closed: t("ticketStatusClosed"),
+  };
+
+  const PRIORITY_LABELS: Record<TicketPriority, string> = {
+    low: t("priorityLow"),
+    medium: t("priorityMedium"),
+    high: t("priorityHigh"),
+    urgent: t("priorityUrgent"),
+  };
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  function formatDateTime(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  function formatRelativeTime(dateStr: string) {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return t("justNow");
+    if (diffMins < 60) return t("minutesAgo", { count: diffMins });
+    if (diffHours < 24) return t("hoursAgo", { count: diffHours });
+    if (diffDays < 7) return t("daysAgo", { count: diffDays });
+    return formatDateTime(dateStr);
+  }
+
+  function getUserName(
+    user: { id: string; full_name: string; email: string } | null | undefined
+  ): string {
+    if (!user) return t("unknown");
+    return user.full_name || user.email || t("unknown");
+  }
+
+  function getInitials(name: string): string {
+    return name
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  }
 
   // State
   const [updating, setUpdating] = useState(false);
@@ -157,12 +168,12 @@ export default function TicketDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update status");
+        throw new Error(data.error || t("failedToUpdateStatus"));
       }
 
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update status");
+      setError(err instanceof Error ? err.message : t("failedToUpdateStatus"));
     } finally {
       setUpdating(false);
     }
@@ -181,12 +192,12 @@ export default function TicketDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update ticket");
+        throw new Error(data.error || t("failedToUpdateTicket"));
       }
 
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update ticket");
+      setError(err instanceof Error ? err.message : t("failedToUpdateTicket"));
     } finally {
       setUpdating(false);
     }
@@ -208,13 +219,13 @@ export default function TicketDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to add comment");
+        throw new Error(data.error || t("failedToAddComment"));
       }
 
       setCommentBody("");
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to add comment");
+      setError(err instanceof Error ? err.message : t("failedToAddComment"));
     } finally {
       setSubmittingComment(false);
     }
@@ -228,7 +239,7 @@ export default function TicketDetailClient({
       {/* Back button */}
       <button className="ticket-back-btn" onClick={() => router.push("/tickets")}>
         <ArrowLeft size={16} />
-        Back to Tickets
+        {t("backToTickets")}
       </button>
 
       {error && <div className="ticket-form-error">{error}</div>}
@@ -256,7 +267,7 @@ export default function TicketDetailClient({
           {/* Description */}
           {ticket.description && (
             <div className="ticket-description">
-              <h3>Description</h3>
+              <h3>{t("description")}</h3>
               <p>{ticket.description}</p>
             </div>
           )}
@@ -264,7 +275,7 @@ export default function TicketDetailClient({
           {/* Tags */}
           {ticket.tags && ticket.tags.length > 0 && (
             <div className="ticket-tags-section">
-              <h3>Tags</h3>
+              <h3>{t("tags")}</h3>
               <div className="ticket-tags-list">
                 {ticket.tags.map((tag, i) => (
                   <span key={i} className="ticket-tag">
@@ -279,13 +290,13 @@ export default function TicketDetailClient({
           {/* Comments Thread */}
           <div className="ticket-comments">
             <h3>
-              Comments
+              {t("comments")}
               <span className="ticket-comments-count">({comments.length})</span>
             </h3>
 
             {comments.length === 0 ? (
               <div className="ticket-comments-empty">
-                No comments yet. Be the first to comment.
+                {t("noCommentsYet")}
               </div>
             ) : (
               <div className="ticket-comments-list">
@@ -316,7 +327,7 @@ export default function TicketDetailClient({
                 className="ticket-comment-input"
                 value={commentBody}
                 onChange={(e) => setCommentBody(e.target.value)}
-                placeholder="Write a comment..."
+                placeholder={t("writeAComment")}
                 rows={3}
               />
               <div className="ticket-comment-form-actions">
@@ -326,7 +337,7 @@ export default function TicketDetailClient({
                   disabled={submittingComment || !commentBody.trim()}
                 >
                   <Send size={14} />
-                  {submittingComment ? "Sending..." : "Add Comment"}
+                  {submittingComment ? t("sending") : t("addComment")}
                 </button>
               </div>
             </form>
@@ -337,7 +348,7 @@ export default function TicketDetailClient({
         <div className="ticket-sidebar">
           {/* Status Transitions */}
           <div className="ticket-sidebar-section">
-            <h4>Status</h4>
+            <h4>{t("status")}</h4>
             <div className="ticket-current-status">
               <span className={`ticket-status-badge status-${ticket.status}`}>
                 {STATUS_ICONS[ticket.status]}
@@ -354,7 +365,7 @@ export default function TicketDetailClient({
                     disabled={updating}
                   >
                     {STATUS_ICONS[nextStatus]}
-                    <span>Move to {STATUS_LABELS[nextStatus]}</span>
+                    <span>{t("moveTo", { status: STATUS_LABELS[nextStatus] })}</span>
                     <ChevronRight size={14} />
                   </button>
                 ))}
@@ -364,14 +375,14 @@ export default function TicketDetailClient({
 
           {/* Priority */}
           <div className="ticket-sidebar-section">
-            <h4>Priority</h4>
+            <h4>{t("priority")}</h4>
             <select
               className="ticket-sidebar-select"
               value={ticket.priority}
               onChange={(e) => handleFieldUpdate("priority", e.target.value)}
               disabled={updating}
             >
-              {(Object.keys(PRIORITY_LABELS) as TicketPriority[]).map((p) => (
+              {PRIORITY_KEYS.map((p) => (
                 <option key={p} value={p}>
                   {PRIORITY_LABELS[p]}
                 </option>
@@ -381,14 +392,14 @@ export default function TicketDetailClient({
 
           {/* Category */}
           <div className="ticket-sidebar-section">
-            <h4>Category</h4>
+            <h4>{t("category")}</h4>
             <select
               className="ticket-sidebar-select"
               value={ticket.category || ""}
               onChange={(e) => handleFieldUpdate("category", e.target.value)}
               disabled={updating}
             >
-              <option value="">No Category</option>
+              <option value="">{t("noCategory")}</option>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -399,17 +410,17 @@ export default function TicketDetailClient({
 
           {/* Assignee */}
           <div className="ticket-sidebar-section">
-            <h4>Assignee</h4>
+            <h4>{t("assignee")}</h4>
             <select
               className="ticket-sidebar-select"
               value={ticket.assigned_to || ""}
               onChange={(e) => handleFieldUpdate("assigned_to", e.target.value)}
               disabled={updating}
             >
-              <option value="">Unassigned</option>
+              <option value="">{t("unassigned")}</option>
               {members.map((m) => (
                 <option key={m.user_id} value={m.user_id}>
-                  {m.user?.full_name || m.user?.email || "Unknown"}
+                  {m.user?.full_name || m.user?.email || t("unknown")}
                 </option>
               ))}
             </select>
@@ -417,11 +428,11 @@ export default function TicketDetailClient({
 
           {/* Details */}
           <div className="ticket-sidebar-section">
-            <h4>Details</h4>
+            <h4>{t("details")}</h4>
             <div className="ticket-sidebar-details">
               <div className="ticket-sidebar-detail">
                 <span className="ticket-sidebar-detail-label">
-                  <User size={14} /> Created by
+                  <User size={14} /> {t("createdBy")}
                 </span>
                 <span className="ticket-sidebar-detail-value">
                   {getUserName(ticket.creator)}
@@ -429,7 +440,7 @@ export default function TicketDetailClient({
               </div>
               <div className="ticket-sidebar-detail">
                 <span className="ticket-sidebar-detail-label">
-                  <Calendar size={14} /> Created
+                  <Calendar size={14} /> {t("created")}
                 </span>
                 <span className="ticket-sidebar-detail-value">
                   {formatDateTime(ticket.created_at)}
@@ -437,7 +448,7 @@ export default function TicketDetailClient({
               </div>
               <div className="ticket-sidebar-detail">
                 <span className="ticket-sidebar-detail-label">
-                  <Clock size={14} /> Updated
+                  <Clock size={14} /> {t("updated")}
                 </span>
                 <span className="ticket-sidebar-detail-value">
                   {formatDateTime(ticket.updated_at)}
@@ -446,7 +457,7 @@ export default function TicketDetailClient({
               {ticket.resolved_at && (
                 <div className="ticket-sidebar-detail">
                   <span className="ticket-sidebar-detail-label">
-                    <CheckCircle2 size={14} /> Resolved
+                    <CheckCircle2 size={14} /> {t("resolved")}
                   </span>
                   <span className="ticket-sidebar-detail-value">
                     {formatDateTime(ticket.resolved_at)}
@@ -456,7 +467,7 @@ export default function TicketDetailClient({
               {ticket.closed_at && (
                 <div className="ticket-sidebar-detail">
                   <span className="ticket-sidebar-detail-label">
-                    <Archive size={14} /> Closed
+                    <Archive size={14} /> {t("ticketStatusClosed")}
                   </span>
                   <span className="ticket-sidebar-detail-value">
                     {formatDateTime(ticket.closed_at)}
@@ -466,7 +477,7 @@ export default function TicketDetailClient({
               {ticket.resolver && (
                 <div className="ticket-sidebar-detail">
                   <span className="ticket-sidebar-detail-label">
-                    <User size={14} /> Resolved by
+                    <User size={14} /> {t("resolvedBy")}
                   </span>
                   <span className="ticket-sidebar-detail-value">
                     {getUserName(ticket.resolver)}

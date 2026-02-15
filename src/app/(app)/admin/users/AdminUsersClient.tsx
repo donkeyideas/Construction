@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Users,
   UserCheck,
@@ -52,26 +53,6 @@ const ASSIGNABLE_ROLES: MemberRole[] = [
   "viewer",
 ];
 
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatDateTime(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 function getInitials(name: string | null | undefined, email: string | null | undefined): string {
   if (name) {
     const parts = name.split(" ");
@@ -82,13 +63,6 @@ function getInitials(name: string | null | undefined, email: string | null | und
   }
   if (email) return email[0]?.toUpperCase() ?? "?";
   return "?";
-}
-
-function getMemberStatus(member: CompanyMember): { label: string; dotClass: string } {
-  if (member.is_active && member.user_id) return { label: "Active", dotClass: "active" };
-  if (member.invited_email && !member.user_id) return { label: "Pending Invite", dotClass: "pending" };
-  if (!member.is_active) return { label: "Inactive", dotClass: "inactive" };
-  return { label: "Active", dotClass: "active" };
 }
 
 function formatPermission(perm: string): string {
@@ -121,6 +95,36 @@ export default function AdminUsersClient({
   currentUserRole,
 }: AdminUsersClientProps) {
   const router = useRouter();
+  const t = useTranslations("adminPanel");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatDateTime(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  function getMemberStatus(member: CompanyMember): { label: string; dotClass: string } {
+    if (member.is_active && member.user_id) return { label: t("active"), dotClass: "active" };
+    if (member.invited_email && !member.user_id) return { label: t("pendingInvite"), dotClass: "pending" };
+    if (!member.is_active) return { label: t("inactive"), dotClass: "inactive" };
+    return { label: t("active"), dotClass: "active" };
+  }
 
   // Invite modal state
   const [showInvite, setShowInvite] = useState(false);
@@ -165,12 +169,12 @@ export default function AdminUsersClient({
     setInviteSuccess("");
 
     if (!inviteEmail.trim()) {
-      setInviteError("Email is required.");
+      setInviteError(t("emailIsRequired"));
       return;
     }
 
     if (inviteCreateAccount && (!invitePassword || invitePassword.length < 8)) {
-      setInviteError("Password must be at least 8 characters.");
+      setInviteError(t("passwordMinLength"));
       return;
     }
 
@@ -184,7 +188,7 @@ export default function AdminUsersClient({
       });
       const data = await res.json();
       if (!res.ok) {
-        setInviteError(data.error || "Failed to send invite.");
+        setInviteError(data.error || t("failedToSendInvite"));
         setInviteLoading(false);
         return;
       }
@@ -202,17 +206,17 @@ export default function AdminUsersClient({
         const accData = await accRes.json();
         if (!accRes.ok) {
           setInviteError(
-            `Invite created but account creation failed: ${accData.error}. You can create the account later from the user detail.`
+            t("inviteCreatedButAccountFailed", { error: accData.error })
           );
           setInviteLoading(false);
           router.refresh();
           return;
         }
         setInviteSuccess(
-          `Account created for ${inviteEmail.trim()}. They can now log in with their email and the password you set.`
+          t("accountCreatedForEmail", { email: inviteEmail.trim() })
         );
       } else {
-        setInviteSuccess(`Invitation sent to ${inviteEmail.trim()}.`);
+        setInviteSuccess(t("invitationSentTo", { email: inviteEmail.trim() }));
       }
 
       setInviteEmail("");
@@ -222,7 +226,7 @@ export default function AdminUsersClient({
       setInviteCreateAccount(true);
       router.refresh();
     } catch {
-      setInviteError("Network error. Please try again.");
+      setInviteError(t("networkErrorPleaseTryAgain"));
     } finally {
       setInviteLoading(false);
     }
@@ -244,7 +248,7 @@ export default function AdminUsersClient({
     setCreateAccError("");
 
     if (!createAccPassword || createAccPassword.length < 8) {
-      setCreateAccError("Password must be at least 8 characters.");
+      setCreateAccError(t("passwordMinLength"));
       return;
     }
 
@@ -260,7 +264,7 @@ export default function AdminUsersClient({
       });
       const data = await res.json();
       if (!res.ok) {
-        setCreateAccError(data.error || "Failed to create account.");
+        setCreateAccError(data.error || t("failedToCreateAccount"));
         setCreateAccLoading(false);
         return;
       }
@@ -269,7 +273,7 @@ export default function AdminUsersClient({
       setSelectedMember(null);
       router.refresh();
     } catch {
-      setCreateAccError("Network error. Please try again.");
+      setCreateAccError(t("networkErrorPleaseTryAgain"));
     } finally {
       setCreateAccLoading(false);
     }
@@ -300,7 +304,7 @@ export default function AdminUsersClient({
 
   // ----- Deactivate -----
   async function handleDeactivate(memberId: string) {
-    if (!confirm("Are you sure you want to deactivate this member? They will lose access to the platform.")) return;
+    if (!confirm(t("confirmDeactivateMember"))) return;
     setActionLoading(memberId);
     try {
       const res = await fetch(`/api/admin/members/${memberId}`, {
@@ -356,9 +360,9 @@ export default function AdminUsersClient({
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>Users & Roles</h2>
+          <h2>{t("usersAndRoles")}</h2>
           <p className="admin-header-sub">
-            Manage team members, roles, and permissions
+            {t("manageTeamMembersRolesPermissions")}
           </p>
         </div>
         {canManageMembers && (
@@ -372,7 +376,7 @@ export default function AdminUsersClient({
               }}
             >
               <UserPlus size={16} />
-              Add User
+              {t("addUser")}
             </button>
           </div>
         )}
@@ -384,28 +388,28 @@ export default function AdminUsersClient({
           <div className="admin-stat-icon blue">
             <Users size={18} />
           </div>
-          <div className="admin-stat-label">Total Members</div>
+          <div className="admin-stat-label">{t("totalMembers")}</div>
           <div className="admin-stat-value">{totalMembers}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon green">
             <UserCheck size={18} />
           </div>
-          <div className="admin-stat-label">Active</div>
+          <div className="admin-stat-label">{t("active")}</div>
           <div className="admin-stat-value">{activeMembers}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon amber">
             <Clock size={18} />
           </div>
-          <div className="admin-stat-label">Pending Invites</div>
+          <div className="admin-stat-label">{t("pendingInvites")}</div>
           <div className="admin-stat-value">{pendingInvites}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon red">
             <Shield size={18} />
           </div>
-          <div className="admin-stat-label">Top Role</div>
+          <div className="admin-stat-label">{t("topRole")}</div>
           <div className="admin-stat-value" style={{ fontSize: "1.1rem" }}>
             {topRole}
           </div>
@@ -418,14 +422,14 @@ export default function AdminUsersClient({
           <div className="admin-empty-icon">
             <Users size={32} />
           </div>
-          <div className="admin-empty-title">No team members yet</div>
+          <div className="admin-empty-title">{t("noTeamMembersYet")}</div>
           <div className="admin-empty-desc">
-            Add your first team member to get started with collaboration.
+            {t("addFirstTeamMember")}
           </div>
           {canManageMembers && (
             <button className="btn-primary" onClick={() => setShowInvite(true)}>
               <UserPlus size={16} />
-              Add User
+              {t("addUser")}
             </button>
           )}
         </div>
@@ -434,19 +438,19 @@ export default function AdminUsersClient({
           <table className="members-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Joined</th>
-                {canManageMembers && <th>Actions</th>}
+                <th>{t("name")}</th>
+                <th>{t("email")}</th>
+                <th>{t("role")}</th>
+                <th>{t("status")}</th>
+                <th>{t("joined")}</th>
+                {canManageMembers && <th>{t("actions")}</th>}
               </tr>
             </thead>
             <tbody>
               {initialMembers.map((member) => {
                 const profile = member.user_profile;
                 const displayName =
-                  profile?.full_name || member.invited_email || "Unknown";
+                  profile?.full_name || member.invited_email || t("unknown");
                 const displayEmail =
                   profile?.email || member.invited_email || "--";
                 const status = getMemberStatus(member);
@@ -493,7 +497,7 @@ export default function AdminUsersClient({
                           {!isOwner && (
                             <button
                               className="member-action-btn"
-                              title="View details"
+                              title={t("viewDetails")}
                               onClick={() => openMemberDetail(member)}
                             >
                               <Pencil size={14} />
@@ -502,7 +506,7 @@ export default function AdminUsersClient({
                           {!isOwner && member.is_active && (
                             <button
                               className="member-action-btn danger"
-                              title="Deactivate member"
+                              title={t("deactivateMember")}
                               onClick={() => handleDeactivate(member.id)}
                             >
                               <UserX size={14} />
@@ -511,7 +515,7 @@ export default function AdminUsersClient({
                           {!isOwner && !member.is_active && !member.user_id && (
                             <button
                               className="member-action-btn"
-                              title="Create account"
+                              title={t("createAccount")}
                               onClick={() => openCreateAccountModal(member)}
                             >
                               <Key size={14} />
@@ -520,7 +524,7 @@ export default function AdminUsersClient({
                           {!isOwner && !member.is_active && member.user_id && (
                             <button
                               className="member-action-btn"
-                              title="Reactivate"
+                              title={t("reactivate")}
                               onClick={() => handleReactivate(member.id)}
                             >
                               <RefreshCw size={14} />
@@ -540,12 +544,12 @@ export default function AdminUsersClient({
       {/* Permissions Matrix */}
       {allPermissions.length > 0 && rolesInMatrix.length > 0 && (
         <div className="permissions-section">
-          <h3 className="permissions-section-title">Role Permission Matrix</h3>
+          <h3 className="permissions-section-title">{t("rolePermissionMatrix")}</h3>
           <div className="permissions-table-wrap">
             <table className="permissions-table">
               <thead>
                 <tr>
-                  <th>Permission</th>
+                  <th>{t("permission")}</th>
                   {rolesInMatrix.map((role) => (
                     <th key={role}>{ROLE_LABELS[role] ?? role}</th>
                   ))}
@@ -614,7 +618,7 @@ export default function AdminUsersClient({
                 <h3 className="user-detail-name">
                   {selectedMember.user_profile?.full_name ||
                     selectedMember.invited_email ||
-                    "Unknown User"}
+                    t("unknownUser")}
                 </h3>
                 <span
                   className={`role-badge role-badge-${selectedMember.role}`}
@@ -635,7 +639,7 @@ export default function AdminUsersClient({
             <div className="user-detail-info">
               <div className="detail-row">
                 <Mail size={14} />
-                <span className="detail-label">Email</span>
+                <span className="detail-label">{t("email")}</span>
                 <span className="detail-value">
                   {selectedMember.user_profile?.email ||
                     selectedMember.invited_email ||
@@ -646,7 +650,7 @@ export default function AdminUsersClient({
               {selectedMember.user_profile?.phone && (
                 <div className="detail-row">
                   <Phone size={14} />
-                  <span className="detail-label">Phone</span>
+                  <span className="detail-label">{t("phone")}</span>
                   <span className="detail-value">
                     {selectedMember.user_profile.phone}
                   </span>
@@ -655,7 +659,7 @@ export default function AdminUsersClient({
 
               <div className="detail-row">
                 <Calendar size={14} />
-                <span className="detail-label">Invited</span>
+                <span className="detail-label">{t("invited")}</span>
                 <span className="detail-value">
                   {formatDateTime(selectedMember.invited_at || selectedMember.created_at)}
                 </span>
@@ -664,7 +668,7 @@ export default function AdminUsersClient({
               {selectedMember.joined_at && (
                 <div className="detail-row">
                   <UserCheck size={14} />
-                  <span className="detail-label">Joined</span>
+                  <span className="detail-label">{t("joined")}</span>
                   <span className="detail-value">
                     {formatDateTime(selectedMember.joined_at)}
                   </span>
@@ -673,9 +677,9 @@ export default function AdminUsersClient({
 
               <div className="detail-row">
                 <Key size={14} />
-                <span className="detail-label">Account</span>
+                <span className="detail-label">{t("account")}</span>
                 <span className="detail-value">
-                  {selectedMember.user_id ? "Active login" : "No account yet"}
+                  {selectedMember.user_id ? t("activeLogin") : t("noAccountYet")}
                 </span>
               </div>
             </div>
@@ -683,7 +687,7 @@ export default function AdminUsersClient({
             {/* Role Management */}
             {canManageMembers && selectedMember.role !== "owner" && (
               <div className="user-detail-section">
-                <div className="user-detail-section-title">Role</div>
+                <div className="user-detail-section-title">{t("role")}</div>
                 {editingRole ? (
                   <div className="user-detail-role-edit">
                     <select
@@ -711,13 +715,13 @@ export default function AdminUsersClient({
                         ) : (
                           <Check size={14} />
                         )}
-                        Save Role
+                        {t("saveRole")}
                       </button>
                       <button
                         className="btn-secondary btn-sm"
                         onClick={() => setEditingRole(false)}
                       >
-                        Cancel
+                        {t("cancel")}
                       </button>
                     </div>
                   </div>
@@ -739,7 +743,7 @@ export default function AdminUsersClient({
                       }}
                     >
                       <Pencil size={14} />
-                      Change
+                      {t("change")}
                     </button>
                   </div>
                 )}
@@ -749,7 +753,7 @@ export default function AdminUsersClient({
             {/* Permissions for this role */}
             {Object.keys(memberPermissions).length > 0 && (
               <div className="user-detail-section">
-                <div className="user-detail-section-title">Permissions</div>
+                <div className="user-detail-section-title">{t("permissions")}</div>
                 <div className="user-detail-permissions">
                   {Object.entries(memberPermissions)
                     .sort(([a], [b]) => a.localeCompare(b))
@@ -778,7 +782,7 @@ export default function AdminUsersClient({
                     }}
                   >
                     <Key size={14} />
-                    Create Login Account
+                    {t("createLoginAccount")}
                   </button>
                 )}
                 {!selectedMember.is_active && selectedMember.user_id && (
@@ -788,7 +792,7 @@ export default function AdminUsersClient({
                     onClick={() => handleReactivate(selectedMember.id)}
                   >
                     <RefreshCw size={14} />
-                    Reactivate
+                    {t("reactivate")}
                   </button>
                 )}
                 {selectedMember.is_active && (
@@ -798,7 +802,7 @@ export default function AdminUsersClient({
                     onClick={() => handleDeactivate(selectedMember.id)}
                   >
                     <UserX size={14} />
-                    Deactivate
+                    {t("deactivate")}
                   </button>
                 )}
               </div>
@@ -821,10 +825,9 @@ export default function AdminUsersClient({
             >
               <X size={18} />
             </button>
-            <div className="invite-modal-title">Add Team Member</div>
+            <div className="invite-modal-title">{t("addTeamMember")}</div>
             <div className="invite-modal-desc">
-              Create a new user account for a team member. They will be able to
-              log in immediately with the credentials you set.
+              {t("addTeamMemberDescription")}
             </div>
 
             {inviteError && (
@@ -836,11 +839,11 @@ export default function AdminUsersClient({
 
             <form onSubmit={handleInvite}>
               <div className="invite-form-group">
-                <label className="invite-form-label">Email Address *</label>
+                <label className="invite-form-label">{t("emailAddressRequired")}</label>
                 <input
                   type="email"
                   className="invite-form-input"
-                  placeholder="colleague@company.com"
+                  placeholder={t("emailPlaceholder")}
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   required
@@ -848,18 +851,18 @@ export default function AdminUsersClient({
               </div>
 
               <div className="invite-form-group">
-                <label className="invite-form-label">Full Name</label>
+                <label className="invite-form-label">{t("fullName")}</label>
                 <input
                   type="text"
                   className="invite-form-input"
-                  placeholder="John Smith"
+                  placeholder={t("fullNamePlaceholder")}
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
                 />
               </div>
 
               <div className="invite-form-group">
-                <label className="invite-form-label">Role</label>
+                <label className="invite-form-label">{t("role")}</label>
                 <select
                   className="invite-form-select"
                   value={inviteRole}
@@ -883,20 +886,20 @@ export default function AdminUsersClient({
                     checked={inviteCreateAccount}
                     onChange={(e) => setInviteCreateAccount(e.target.checked)}
                   />
-                  Create login account now
+                  {t("createLoginAccountNow")}
                 </label>
               </div>
 
               {inviteCreateAccount && (
                 <div className="invite-form-group">
                   <label className="invite-form-label">
-                    Temporary Password *
+                    {t("temporaryPasswordRequired")}
                   </label>
                   <div className="invite-pw-field">
                     <input
                       type={inviteShowPw ? "text" : "password"}
                       className="invite-form-input"
-                      placeholder="Min 8 characters"
+                      placeholder={t("minEightCharacters")}
                       value={invitePassword}
                       onChange={(e) => setInvitePassword(e.target.value)}
                       minLength={8}
@@ -911,7 +914,7 @@ export default function AdminUsersClient({
                     </button>
                   </div>
                   <span className="invite-form-hint">
-                    Share this password with the user. They should change it after first login.
+                    {t("sharePasswordHint")}
                   </span>
                 </div>
               )}
@@ -922,7 +925,7 @@ export default function AdminUsersClient({
                   className="btn-secondary"
                   onClick={() => setShowInvite(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -932,12 +935,12 @@ export default function AdminUsersClient({
                   {inviteLoading ? (
                     <>
                       <Loader2 size={14} className="spin-icon" />
-                      Creating...
+                      {t("creating")}
                     </>
                   ) : (
                     <>
                       <UserPlus size={14} />
-                      {inviteCreateAccount ? "Create Account" : "Send Invite"}
+                      {inviteCreateAccount ? t("createAccount") : t("sendInvite")}
                     </>
                   )}
                 </button>
@@ -961,11 +964,9 @@ export default function AdminUsersClient({
             >
               <X size={18} />
             </button>
-            <div className="invite-modal-title">Create Login Account</div>
+            <div className="invite-modal-title">{t("createLoginAccount")}</div>
             <div className="invite-modal-desc">
-              Create a login account for{" "}
-              <strong>{createAccMember.invited_email}</strong> so they can access
-              the platform.
+              {t("createLoginAccountFor", { email: createAccMember.invited_email ?? "" })}
             </div>
 
             {createAccError && (
@@ -974,23 +975,23 @@ export default function AdminUsersClient({
 
             <form onSubmit={handleCreateAccount}>
               <div className="invite-form-group">
-                <label className="invite-form-label">Full Name</label>
+                <label className="invite-form-label">{t("fullName")}</label>
                 <input
                   type="text"
                   className="invite-form-input"
-                  placeholder="John Smith"
+                  placeholder={t("fullNamePlaceholder")}
                   value={createAccName}
                   onChange={(e) => setCreateAccName(e.target.value)}
                 />
               </div>
 
               <div className="invite-form-group">
-                <label className="invite-form-label">Password *</label>
+                <label className="invite-form-label">{t("passwordRequired")}</label>
                 <div className="invite-pw-field">
                   <input
                     type={createAccShowPw ? "text" : "password"}
                     className="invite-form-input"
-                    placeholder="Min 8 characters"
+                    placeholder={t("minEightCharacters")}
                     value={createAccPassword}
                     onChange={(e) => setCreateAccPassword(e.target.value)}
                     minLength={8}
@@ -1013,7 +1014,7 @@ export default function AdminUsersClient({
                   className="btn-secondary"
                   onClick={() => setShowCreateAccount(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -1023,12 +1024,12 @@ export default function AdminUsersClient({
                   {createAccLoading ? (
                     <>
                       <Loader2 size={14} className="spin-icon" />
-                      Creating...
+                      {t("creating")}
                     </>
                   ) : (
                     <>
                       <Key size={14} />
-                      Create Account
+                      {t("createAccount")}
                     </>
                   )}
                 </button>

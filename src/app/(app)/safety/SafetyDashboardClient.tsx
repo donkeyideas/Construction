@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -18,65 +19,8 @@ import type {
 } from "@/lib/queries/safety";
 
 // ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const STATUS_LABELS: Record<string, string> = {
-  reported: "Reported",
-  investigating: "Investigating",
-  corrective_action: "Corrective Action",
-  closed: "Closed",
-};
-
-const SEVERITY_LABELS: Record<string, string> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  critical: "Critical",
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  near_miss: "Near Miss",
-  first_aid: "First Aid",
-  recordable: "Recordable",
-  lost_time: "Lost Time",
-  fatality: "Fatality",
-  property_damage: "Property Damage",
-};
-
-const TALK_STATUS_LABELS: Record<string, string> = {
-  scheduled: "Scheduled",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatDateShort(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function getUserName(
-  user: { id: string; full_name: string; email: string } | null | undefined
-): string {
-  if (!user) return "Unassigned";
-  return user.full_name || user.email || "Unknown";
-}
 
 function getTopicLabel(topic: unknown): string {
   if (!topic) return "--";
@@ -103,31 +47,96 @@ export default function SafetyDashboardClient({
   stats,
   toolboxTalks,
 }: SafetyDashboardClientProps) {
+  const t = useTranslations("safety");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const [selectedIncident, setSelectedIncident] = useState<SafetyIncidentRow | null>(null);
   const [selectedTalk, setSelectedTalk] = useState<ToolboxTalkRow | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // Constants (translated)
+  // ---------------------------------------------------------------------------
+
+  const STATUS_LABELS: Record<string, string> = {
+    reported: t("statusReported"),
+    investigating: t("statusInvestigating"),
+    corrective_action: t("statusCorrectiveAction"),
+    closed: t("statusClosed"),
+  };
+
+  const SEVERITY_LABELS: Record<string, string> = {
+    low: t("severityLow"),
+    medium: t("severityMedium"),
+    high: t("severityHigh"),
+    critical: t("severityCritical"),
+  };
+
+  const TYPE_LABELS: Record<string, string> = {
+    near_miss: t("typeNearMiss"),
+    first_aid: t("typeFirstAid"),
+    recordable: t("typeRecordable"),
+    lost_time: t("typeLostTime"),
+    fatality: t("typeFatality"),
+    property_damage: t("typePropertyDamage"),
+  };
+
+  const TALK_STATUS_LABELS: Record<string, string> = {
+    scheduled: t("talkStatusScheduled"),
+    completed: t("talkStatusCompleted"),
+    cancelled: t("talkStatusCancelled"),
+  };
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  function formatDateShort(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function getUserName(
+    user: { id: string; full_name: string; email: string } | null | undefined
+  ): string {
+    if (!user) return t("unassigned");
+    return user.full_name || user.email || t("unknown");
+  }
 
   return (
     <div className="safety-page">
       {/* Header */}
       <div className="safety-header">
         <div>
-          <h2>Safety</h2>
+          <h2>{t("safety")}</h2>
           <p className="safety-header-sub">
-            Safety management dashboard
+            {t("safetyManagementDashboard")}
           </p>
         </div>
         <div className="safety-header-actions">
           <Link href="/safety/incidents" className="btn-secondary">
             <AlertTriangle size={16} />
-            View Incidents
+            {t("viewIncidents")}
           </Link>
           <Link href="/safety/inspections" className="btn-secondary">
             <ShieldCheck size={16} />
-            Inspections
+            {t("inspections")}
           </Link>
           <Link href="/safety/toolbox-talks" className="btn-secondary">
             <ClipboardList size={16} />
-            Toolbox Talks
+            {t("toolboxTalks")}
           </Link>
         </div>
       </div>
@@ -140,7 +149,7 @@ export default function SafetyDashboardClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{stats.total}</span>
-            <span className="safety-stat-label">Total Incidents (YTD)</span>
+            <span className="safety-stat-label">{t("totalIncidentsYtd")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-reported">
@@ -149,7 +158,7 @@ export default function SafetyDashboardClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{stats.reported}</span>
-            <span className="safety-stat-label">Reported</span>
+            <span className="safety-stat-label">{t("statusReported")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-investigating">
@@ -158,7 +167,7 @@ export default function SafetyDashboardClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{stats.investigating}</span>
-            <span className="safety-stat-label">Investigating</span>
+            <span className="safety-stat-label">{t("statusInvestigating")}</span>
           </div>
         </div>
         <div className="safety-stat-card stat-closed">
@@ -167,7 +176,7 @@ export default function SafetyDashboardClient({
           </div>
           <div className="safety-stat-info">
             <span className="safety-stat-value">{stats.closed}</span>
-            <span className="safety-stat-label">Closed</span>
+            <span className="safety-stat-label">{t("statusClosed")}</span>
           </div>
         </div>
       </div>
@@ -175,9 +184,9 @@ export default function SafetyDashboardClient({
       {/* Recent Incidents */}
       <div className="safety-section">
         <div className="safety-section-header">
-          <h3>Recent Incidents</h3>
+          <h3>{t("recentIncidents")}</h3>
           <Link href="/safety/incidents" className="safety-section-link">
-            View All <ArrowRight size={14} />
+            {t("viewAll")} <ArrowRight size={14} />
           </Link>
         </div>
 
@@ -186,21 +195,21 @@ export default function SafetyDashboardClient({
             <div className="safety-empty-icon">
               <ShieldCheck size={28} />
             </div>
-            <h3>No incidents reported</h3>
-            <p>Great news! No safety incidents have been reported yet.</p>
+            <h3>{t("noIncidentsReported")}</h3>
+            <p>{t("noIncidentsReportedDesc")}</p>
           </div>
         ) : (
           <div className="safety-table-wrap">
             <table className="safety-table">
               <thead>
                 <tr>
-                  <th>Incident #</th>
-                  <th>Title</th>
-                  <th>Type</th>
-                  <th>Severity</th>
-                  <th>Status</th>
-                  <th>Reported By</th>
-                  <th>Date</th>
+                  <th>{t("incidentNumber")}</th>
+                  <th>{t("title")}</th>
+                  <th>{t("type")}</th>
+                  <th>{t("severity")}</th>
+                  <th>{t("status")}</th>
+                  <th>{t("reportedBy")}</th>
+                  <th>{t("date")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -242,9 +251,9 @@ export default function SafetyDashboardClient({
       {/* Recent Toolbox Talks */}
       <div className="safety-section">
         <div className="safety-section-header">
-          <h3>Recent Toolbox Talks</h3>
+          <h3>{t("recentToolboxTalks")}</h3>
           <Link href="/safety/toolbox-talks" className="safety-section-link">
-            View All <ArrowRight size={14} />
+            {t("viewAll")} <ArrowRight size={14} />
           </Link>
         </div>
 
@@ -253,21 +262,21 @@ export default function SafetyDashboardClient({
             <div className="safety-empty-icon">
               <ClipboardList size={28} />
             </div>
-            <h3>No toolbox talks yet</h3>
-            <p>Schedule your first toolbox talk to get started.</p>
+            <h3>{t("noToolboxTalksYet")}</h3>
+            <p>{t("noToolboxTalksYetDesc")}</p>
           </div>
         ) : (
           <div className="safety-table-wrap">
             <table className="safety-table">
               <thead>
                 <tr>
-                  <th>Talk #</th>
-                  <th>Title</th>
-                  <th>Topic</th>
-                  <th>Status</th>
-                  <th>Conducted By</th>
-                  <th>Date</th>
-                  <th>Attendees</th>
+                  <th>{t("talkNumber")}</th>
+                  <th>{t("title")}</th>
+                  <th>{t("topic")}</th>
+                  <th>{t("status")}</th>
+                  <th>{t("conductedBy")}</th>
+                  <th>{t("date")}</th>
+                  <th>{t("attendees")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -319,11 +328,11 @@ export default function SafetyDashboardClient({
             <div style={{ padding: "1.25rem" }}>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Title</label>
+                  <label className="detail-label">{t("title")}</label>
                   <div className="detail-value">{selectedIncident.title}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Status</label>
+                  <label className="detail-label">{t("status")}</label>
                   <div className="detail-value">
                     <span className={`safety-status-badge status-${selectedIncident.status}`}>
                       {STATUS_LABELS[selectedIncident.status] ?? selectedIncident.status}
@@ -334,13 +343,13 @@ export default function SafetyDashboardClient({
 
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Type</label>
+                  <label className="detail-label">{t("type")}</label>
                   <div className="detail-value">
                     {TYPE_LABELS[selectedIncident.incident_type] ?? selectedIncident.incident_type}
                   </div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Severity</label>
+                  <label className="detail-label">{t("severity")}</label>
                   <div className="detail-value">
                     <span className={`safety-severity-badge severity-${selectedIncident.severity}`}>
                       {SEVERITY_LABELS[selectedIncident.severity] ?? selectedIncident.severity}
@@ -351,36 +360,36 @@ export default function SafetyDashboardClient({
 
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Date</label>
+                  <label className="detail-label">{t("date")}</label>
                   <div className="detail-value">{formatDate(selectedIncident.incident_date)}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Reported By</label>
+                  <label className="detail-label">{t("reportedBy")}</label>
                   <div className="detail-value">{getUserName(selectedIncident.reporter)}</div>
                 </div>
               </div>
 
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Project</label>
+                  <label className="detail-label">{t("project")}</label>
                   <div className="detail-value">{selectedIncident.project?.name || "--"}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Location</label>
+                  <label className="detail-label">{t("location")}</label>
                   <div className="detail-value">{selectedIncident.location || "--"}</div>
                 </div>
               </div>
 
               {selectedIncident.description && (
                 <div className="detail-group">
-                  <label className="detail-label">Description</label>
+                  <label className="detail-label">{t("description")}</label>
                   <div className="detail-value--multiline">{selectedIncident.description}</div>
                 </div>
               )}
 
               {selectedIncident.corrective_actions && (
                 <div className="detail-group">
-                  <label className="detail-label">Corrective Actions</label>
+                  <label className="detail-label">{t("correctiveActions")}</label>
                   <div className="detail-value--multiline">{selectedIncident.corrective_actions}</div>
                 </div>
               )}
@@ -391,10 +400,10 @@ export default function SafetyDashboardClient({
                   className="btn-secondary"
                   onClick={() => setSelectedIncident(null)}
                 >
-                  Close
+                  {t("close")}
                 </button>
                 <Link href="/safety/incidents" className="btn-primary">
-                  View All Incidents
+                  {t("viewAllIncidents")}
                   <ArrowRight size={16} />
                 </Link>
               </div>
@@ -420,11 +429,11 @@ export default function SafetyDashboardClient({
             <div style={{ padding: "1.25rem" }}>
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Title</label>
+                  <label className="detail-label">{t("title")}</label>
                   <div className="detail-value">{selectedTalk.title}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Status</label>
+                  <label className="detail-label">{t("status")}</label>
                   <div className="detail-value">
                     <span className={`safety-status-badge status-${selectedTalk.status}`}>
                       {TALK_STATUS_LABELS[selectedTalk.status] ?? selectedTalk.status}
@@ -435,47 +444,47 @@ export default function SafetyDashboardClient({
 
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Topic</label>
+                  <label className="detail-label">{t("topic")}</label>
                   <div className="detail-value">{getTopicLabel(selectedTalk.topic)}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Scheduled Date</label>
+                  <label className="detail-label">{t("scheduledDate")}</label>
                   <div className="detail-value">{formatDate(selectedTalk.scheduled_date)}</div>
                 </div>
               </div>
 
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Conducted By</label>
+                  <label className="detail-label">{t("conductedBy")}</label>
                   <div className="detail-value">{getUserName(selectedTalk.conductor)}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Project</label>
+                  <label className="detail-label">{t("project")}</label>
                   <div className="detail-value">{selectedTalk.project?.name || "--"}</div>
                 </div>
               </div>
 
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Attendees</label>
+                  <label className="detail-label">{t("attendees")}</label>
                   <div className="detail-value">{selectedTalk.attendees_count || 0}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Created</label>
+                  <label className="detail-label">{t("created")}</label>
                   <div className="detail-value">{formatDate(selectedTalk.created_at)}</div>
                 </div>
               </div>
 
               {selectedTalk.description && (
                 <div className="detail-group">
-                  <label className="detail-label">Description</label>
+                  <label className="detail-label">{t("description")}</label>
                   <div className="detail-value--multiline">{selectedTalk.description}</div>
                 </div>
               )}
 
               {selectedTalk.notes && (
                 <div className="detail-group">
-                  <label className="detail-label">Notes</label>
+                  <label className="detail-label">{t("notes")}</label>
                   <div className="detail-value--multiline">{selectedTalk.notes}</div>
                 </div>
               )}
@@ -486,10 +495,10 @@ export default function SafetyDashboardClient({
                   className="btn-secondary"
                   onClick={() => setSelectedTalk(null)}
                 >
-                  Close
+                  {t("close")}
                 </button>
                 <Link href="/safety/toolbox-talks" className="btn-primary">
-                  View All Talks
+                  {t("viewAllTalks")}
                   <ArrowRight size={16} />
                 </Link>
               </div>

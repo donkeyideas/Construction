@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import {
   ChevronLeft,
@@ -30,17 +31,12 @@ interface CalendarClientProps {
 // Constants
 // ---------------------------------------------------------------------------
 
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-const MODULE_META: Record<
-  CalendarModule,
-  { label: string; color: string }
-> = {
-  projects: { label: "Projects", color: "#3b82f6" },
-  properties: { label: "Properties", color: "#22c55e" },
-  financial: { label: "Financial", color: "#f59e0b" },
-  people: { label: "People", color: "#a855f7" },
-  crm: { label: "CRM", color: "#14b8a6" },
+const MODULE_COLORS: Record<CalendarModule, string> = {
+  projects: "#3b82f6",
+  properties: "#22c55e",
+  financial: "#f59e0b",
+  people: "#a855f7",
+  crm: "#14b8a6",
 };
 
 const ALL_MODULES: CalendarModule[] = [
@@ -57,8 +53,8 @@ const MAX_VISIBLE_EVENTS = 3;
 // Helpers
 // ---------------------------------------------------------------------------
 
-function monthName(month: number): string {
-  return new Date(2024, month - 1).toLocaleString("en-US", { month: "long" });
+function monthName(month: number, dateLocale: string): string {
+  return new Date(2024, month - 1).toLocaleString(dateLocale, { month: "long" });
 }
 
 function toISODate(d: Date): string {
@@ -72,9 +68,9 @@ function isSameDay(a: string, b: string): boolean {
   return a === b;
 }
 
-function formatEventDate(dateStr: string): string {
+function formatEventDate(dateStr: string, dateLocale: string): string {
   const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleDateString(dateLocale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -164,6 +160,20 @@ export default function CalendarClient({
   initialYear,
   initialMonth,
 }: CalendarClientProps) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const WEEKDAY_LABELS = [t("weekdaySun"), t("weekdayMon"), t("weekdayTue"), t("weekdayWed"), t("weekdayThu"), t("weekdayFri"), t("weekdaySat")];
+
+  const MODULE_META: Record<CalendarModule, { label: string; color: string }> = {
+    projects: { label: t("moduleProjects"), color: MODULE_COLORS.projects },
+    properties: { label: t("moduleProperties"), color: MODULE_COLORS.properties },
+    financial: { label: t("moduleFinancial"), color: MODULE_COLORS.financial },
+    people: { label: t("modulePeople"), color: MODULE_COLORS.people },
+    crm: { label: t("moduleCrm"), color: MODULE_COLORS.crm },
+  };
+
   const [year, setYear] = useState(initialYear);
   const [month, setMonth] = useState(initialMonth);
   const [view, setView] = useState<ViewMode>("month");
@@ -294,7 +304,7 @@ export default function CalendarClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create event");
+        throw new Error(data.error || t("failedToCreateEvent"));
       }
 
       resetEventForm();
@@ -318,7 +328,7 @@ export default function CalendarClient({
       }
     } catch (err: unknown) {
       setCreateEventError(
-        err instanceof Error ? err.message : "Failed to create event"
+        err instanceof Error ? err.message : t("failedToCreateEvent")
       );
     } finally {
       setCreatingEvent(false);
@@ -506,18 +516,18 @@ export default function CalendarClient({
   // Build the header text
   const headerText =
     view === "month"
-      ? `${monthName(month)} ${year}`
+      ? `${monthName(month, dateLocale)} ${year}`
       : view === "week"
         ? (() => {
             const weekDates = getWeekDates(currentDate);
             const first = weekDates[0];
             const last = weekDates[6];
             if (first.getMonth() === last.getMonth()) {
-              return `${first.toLocaleDateString("en-US", { month: "long" })} ${first.getDate()}-${last.getDate()}, ${first.getFullYear()}`;
+              return `${first.toLocaleDateString(dateLocale, { month: "long" })} ${first.getDate()}-${last.getDate()}, ${first.getFullYear()}`;
             }
-            return `${first.toLocaleDateString("en-US", { month: "short" })} ${first.getDate()} - ${last.toLocaleDateString("en-US", { month: "short" })} ${last.getDate()}, ${last.getFullYear()}`;
+            return `${first.toLocaleDateString(dateLocale, { month: "short" })} ${first.getDate()} - ${last.toLocaleDateString(dateLocale, { month: "short" })} ${last.getDate()}, ${last.getFullYear()}`;
           })()
-        : currentDate.toLocaleDateString("en-US", {
+        : currentDate.toLocaleDateString(dateLocale, {
             weekday: "long",
             month: "long",
             day: "numeric",
@@ -551,16 +561,16 @@ export default function CalendarClient({
       <div className="calendar-header">
         <div className="calendar-header-left">
           <h2>{headerText}</h2>
-          {loading && <span className="calendar-loading">Loading...</span>}
+          {loading && <span className="calendar-loading">{t("loading")}</span>}
         </div>
         <div className="calendar-header-right">
-          <button className="calendar-nav-btn" onClick={goPrev} title="Previous">
+          <button className="calendar-nav-btn" onClick={goPrev} title={t("previous")}>
             <ChevronLeft size={18} />
           </button>
           <button className="calendar-today-btn" onClick={goToToday}>
-            Today
+            {t("today")}
           </button>
-          <button className="calendar-nav-btn" onClick={goNext} title="Next">
+          <button className="calendar-nav-btn" onClick={goNext} title={t("next")}>
             <ChevronRight size={18} />
           </button>
 
@@ -571,14 +581,14 @@ export default function CalendarClient({
                 className={`calendar-view-btn ${view === v ? "active" : ""}`}
                 onClick={() => setView(v)}
               >
-                {v.charAt(0).toUpperCase() + v.slice(1)}
+                {v === "month" ? t("viewMonth") : v === "week" ? t("viewWeek") : t("viewDay")}
               </button>
             ))}
           </div>
 
           <button className="btn-primary" onClick={openCreateModal}>
             <Plus size={16} />
-            Add Event
+            {t("addEvent")}
           </button>
         </div>
       </div>
@@ -661,7 +671,7 @@ export default function CalendarClient({
                           setSelectedDay(cell.date);
                         }}
                       >
-                        +{hiddenCount} more
+                        {t("calendarMoreEvents", { count: hiddenCount })}
                       </button>
                     )}
                     {isExpanded && dayEvents.length > MAX_VISIBLE_EVENTS && (
@@ -672,7 +682,7 @@ export default function CalendarClient({
                           setSelectedDay(null);
                         }}
                       >
-                        Show less
+                        {t("showLess")}
                       </button>
                     )}
                   </div>
@@ -696,7 +706,7 @@ export default function CalendarClient({
                   className={`calendar-weekday-cell week-view-header ${isToday ? "today" : ""}`}
                 >
                   <span className="calendar-week-dow">
-                    {d.toLocaleDateString("en-US", { weekday: "short" })}
+                    {d.toLocaleDateString(dateLocale, { weekday: "short" })}
                   </span>
                   <span className={`calendar-week-date ${isToday ? "calendar-today-badge" : ""}`}>
                     {d.getDate()}
@@ -712,7 +722,7 @@ export default function CalendarClient({
               return (
                 <div key={dateStr} className="calendar-week-day">
                   {dayEvents.length === 0 && (
-                    <div className="calendar-week-empty">No events</div>
+                    <div className="calendar-week-empty">{t("noEvents")}</div>
                   )}
                   {dayEvents.map((ev) => (
                     <button
@@ -742,7 +752,7 @@ export default function CalendarClient({
           <div className="calendar-day-view-header">
             <CalendarIcon size={20} />
             <span>
-              {currentDate.toLocaleDateString("en-US", {
+              {currentDate.toLocaleDateString(dateLocale, {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
@@ -754,7 +764,7 @@ export default function CalendarClient({
             {(eventsByDate[toISODate(currentDate)] || []).length === 0 && (
               <div className="calendar-day-view-empty">
                 <CalendarIcon size={40} strokeWidth={1.2} />
-                <p>No events scheduled for this day</p>
+                <p>{t("noEventsScheduled")}</p>
               </div>
             )}
             {(eventsByDate[toISODate(currentDate)] || []).map((ev) => (
@@ -777,7 +787,7 @@ export default function CalendarClient({
                 <div className="calendar-day-event-title">{ev.title}</div>
                 {ev.endDate && (
                   <div className="calendar-day-event-range">
-                    {formatEventDate(ev.date)} - {formatEventDate(ev.endDate)}
+                    {formatEventDate(ev.date, dateLocale)} - {formatEventDate(ev.endDate, dateLocale)}
                   </div>
                 )}
                 {ev.metadata && (
@@ -801,7 +811,7 @@ export default function CalendarClient({
                 )}
                 {ev.url && (
                   <Link href={ev.url} className="calendar-event-link">
-                    Go to Source <ExternalLink size={12} />
+                    {t("goToSource")} <ExternalLink size={12} />
                   </Link>
                 )}
               </div>
@@ -836,9 +846,9 @@ export default function CalendarClient({
           </div>
           <div className="calendar-popover-title">{selectedEvent.title}</div>
           <div className="calendar-popover-date">
-            {formatEventDate(selectedEvent.date)}
+            {formatEventDate(selectedEvent.date, dateLocale)}
             {selectedEvent.endDate && (
-              <> &mdash; {formatEventDate(selectedEvent.endDate)}</>
+              <> &mdash; {formatEventDate(selectedEvent.endDate, dateLocale)}</>
             )}
           </div>
           <div className="calendar-popover-type">
@@ -868,7 +878,7 @@ export default function CalendarClient({
               href={selectedEvent.url}
               className="calendar-popover-link"
             >
-              Go to Source <ExternalLink size={12} />
+              {t("goToSource")} <ExternalLink size={12} />
             </Link>
           )}
         </div>
@@ -885,7 +895,7 @@ export default function CalendarClient({
         >
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Add Event</h3>
+              <h3>{t("addEvent")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => {
@@ -904,7 +914,7 @@ export default function CalendarClient({
             <form onSubmit={handleCreateEvent} className="ticket-form">
               {/* Event type indicator */}
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Event Type</label>
+                <label className="ticket-form-label">{t("eventType")}</label>
                 <select
                   className="ticket-form-select"
                   value={eventForm.event_type}
@@ -912,13 +922,13 @@ export default function CalendarClient({
                     setEventForm({ ...eventForm, event_type: e.target.value })
                   }
                 >
-                  <option value="task">Task</option>
-                  <option value="milestone">Milestone</option>
+                  <option value="task">{t("eventTypeTask")}</option>
+                  <option value="milestone">{t("eventTypeMilestone")}</option>
                 </select>
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Project *</label>
+                <label className="ticket-form-label">{t("projectRequired")}</label>
                 <select
                   className="ticket-form-select"
                   value={eventForm.project_id}
@@ -929,8 +939,8 @@ export default function CalendarClient({
                 >
                   <option value="">
                     {loadingEventData
-                      ? "Loading projects..."
-                      : "Select a project..."}
+                      ? t("loadingProjects")
+                      : t("selectProject")}
                   </option>
                   {eventProjects.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -941,7 +951,7 @@ export default function CalendarClient({
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Title *</label>
+                <label className="ticket-form-label">{t("titleRequired")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -949,27 +959,27 @@ export default function CalendarClient({
                   onChange={(e) =>
                     setEventForm({ ...eventForm, title: e.target.value })
                   }
-                  placeholder="Task title"
+                  placeholder={t("taskTitlePlaceholder")}
                   required
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Description</label>
+                <label className="ticket-form-label">{t("description")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   value={eventForm.description}
                   onChange={(e) =>
                     setEventForm({ ...eventForm, description: e.target.value })
                   }
-                  placeholder="Describe the task..."
+                  placeholder={t("describeTaskPlaceholder")}
                   rows={3}
                 />
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Start Date *</label>
+                  <label className="ticket-form-label">{t("startDateRequired")}</label>
                   <input
                     type="date"
                     className="ticket-form-input"
@@ -982,7 +992,7 @@ export default function CalendarClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">End Date</label>
+                  <label className="ticket-form-label">{t("endDate")}</label>
                   <input
                     type="date"
                     className="ticket-form-input"
@@ -996,7 +1006,7 @@ export default function CalendarClient({
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Priority</label>
+                  <label className="ticket-form-label">{t("priority")}</label>
                   <select
                     className="ticket-form-select"
                     value={eventForm.priority}
@@ -1004,15 +1014,15 @@ export default function CalendarClient({
                       setEventForm({ ...eventForm, priority: e.target.value })
                     }
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">{t("priorityLow")}</option>
+                    <option value="medium">{t("priorityMedium")}</option>
+                    <option value="high">{t("priorityHigh")}</option>
+                    <option value="urgent">{t("priorityUrgent")}</option>
                   </select>
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Assigned To</label>
+                  <label className="ticket-form-label">{t("assignedTo")}</label>
                   <select
                     className="ticket-form-select"
                     value={eventForm.assigned_to}
@@ -1021,11 +1031,11 @@ export default function CalendarClient({
                     }
                   >
                     <option value="">
-                      {loadingEventData ? "Loading..." : "Unassigned"}
+                      {loadingEventData ? t("loading") : t("unassigned")}
                     </option>
                     {eventMembers.map((m) => (
                       <option key={m.user_id} value={m.user_id}>
-                        {m.full_name || m.email || "Unknown"}
+                        {m.full_name || m.email || t("unknown")}
                       </option>
                     ))}
                   </select>
@@ -1041,7 +1051,7 @@ export default function CalendarClient({
                     resetEventForm();
                   }}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -1053,7 +1063,7 @@ export default function CalendarClient({
                     !eventForm.start_date
                   }
                 >
-                  {creatingEvent ? "Creating..." : "Create Event"}
+                  {creatingEvent ? t("creating") : t("createEvent")}
                 </button>
               </div>
             </form>

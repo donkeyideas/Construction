@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   FileText,
   Plus,
@@ -15,24 +16,6 @@ import {
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 import { formatCurrency } from "@/lib/utils/format";
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "invoice_type", label: "Type (receivable/payable)", required: false },
-  { key: "amount", label: "Amount ($)", required: true, type: "number" },
-  { key: "tax_amount", label: "Tax ($)", required: false, type: "number" },
-  { key: "due_date", label: "Due Date", required: false, type: "date" },
-  { key: "description", label: "Description", required: false },
-  { key: "status", label: "Status", required: false },
-  { key: "vendor_name", label: "Vendor Name", required: false },
-  { key: "client_name", label: "Client Name", required: false },
-  { key: "project_name", label: "Project Name", required: false },
-];
-
-const IMPORT_SAMPLE: Record<string, string>[] = [
-  { invoice_type: "receivable", amount: "75000", tax_amount: "0", due_date: "2026-02-28", description: "Progress payment - Phase 1", status: "draft" },
-  { invoice_type: "payable", amount: "12500", tax_amount: "625", due_date: "2026-03-15", description: "Lumber delivery - PO #4521", status: "pending" },
-  { invoice_type: "receivable", amount: "150000", tax_amount: "0", due_date: "2026-04-01", description: "Milestone 3 - Substantial completion", status: "draft" },
-];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -68,31 +51,6 @@ interface InvoicesClientProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-const tabs = [
-  { label: "All", value: undefined as string | undefined },
-  { label: "Payable (AP)", value: "payable" },
-  { label: "Receivable (AR)", value: "receivable" },
-];
-
-const statuses = [
-  { label: "All Statuses", value: "all" },
-  { label: "Draft", value: "draft" },
-  { label: "Pending", value: "pending" },
-  { label: "Approved", value: "approved" },
-  { label: "Paid", value: "paid" },
-  { label: "Overdue", value: "overdue" },
-  { label: "Voided", value: "voided" },
-];
-
 function buildUrl(type?: string, status?: string): string {
   const p = new URLSearchParams();
   if (type) p.set("type", type);
@@ -111,7 +69,53 @@ export default function InvoicesClient({
   activeStatus,
 }: InvoicesClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const now = new Date();
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  const tabs = [
+    { label: t("all"), value: undefined as string | undefined },
+    { label: t("payableAp"), value: "payable" },
+    { label: t("receivableAr"), value: "receivable" },
+  ];
+
+  const statuses = [
+    { label: t("allStatuses"), value: "all" },
+    { label: t("statusDraft"), value: "draft" },
+    { label: t("statusPending"), value: "pending" },
+    { label: t("statusApproved"), value: "approved" },
+    { label: t("statusPaid"), value: "paid" },
+    { label: t("statusOverdue"), value: "overdue" },
+    { label: t("statusVoided"), value: "voided" },
+  ];
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "invoice_type", label: t("importTypeColumn"), required: false },
+    { key: "amount", label: t("importAmountColumn"), required: true, type: "number" },
+    { key: "tax_amount", label: t("importTaxColumn"), required: false, type: "number" },
+    { key: "due_date", label: t("dueDate"), required: false, type: "date" },
+    { key: "description", label: t("description"), required: false },
+    { key: "status", label: t("status"), required: false },
+    { key: "vendor_name", label: t("vendorName"), required: false },
+    { key: "client_name", label: t("clientName"), required: false },
+    { key: "project_name", label: t("projectName"), required: false },
+  ];
+
+  const IMPORT_SAMPLE: Record<string, string>[] = [
+    { invoice_type: "receivable", amount: "75000", tax_amount: "0", due_date: "2026-02-28", description: "Progress payment - Phase 1", status: "draft" },
+    { invoice_type: "payable", amount: "12500", tax_amount: "625", due_date: "2026-03-15", description: "Lumber delivery - PO #4521", status: "pending" },
+    { invoice_type: "receivable", amount: "150000", tax_amount: "0", due_date: "2026-04-01", description: "Milestone 3 - Substantial completion", status: "draft" },
+  ];
 
   // Detail / Edit / Delete modal state
   const [selectedInv, setSelectedInv] = useState<InvoiceRow | null>(null);
@@ -129,7 +133,7 @@ export default function InvoicesClient({
       body: JSON.stringify({ entity: "invoices", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -192,13 +196,13 @@ export default function InvoicesClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update invoice");
+        throw new Error(data.error || t("failedToUpdateInvoice"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update invoice");
+      setSaveError(err instanceof Error ? err.message : t("failedToUpdateInvoice"));
     } finally {
       setSaving(false);
     }
@@ -216,13 +220,13 @@ export default function InvoicesClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to void invoice");
+        throw new Error(data.error || t("failedToVoidInvoice"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to void invoice");
+      setSaveError(err instanceof Error ? err.message : t("failedToVoidInvoice"));
     } finally {
       setSaving(false);
     }
@@ -233,19 +237,19 @@ export default function InvoicesClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Invoices</h2>
+          <h2>{t("invoices")}</h2>
           <p className="fin-header-sub">
-            Manage your accounts payable and receivable.
+            {t("invoicesDesc")}
           </p>
         </div>
         <div className="fin-header-actions" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
             <Plus size={16} />
-            New Invoice
+            {t("newInvoice")}
           </Link>
         </div>
       </div>
@@ -266,7 +270,7 @@ export default function InvoicesClient({
       {/* Status Filter */}
       <div className="fin-filters">
         <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>
-          Status:
+          {t("status")}:
         </label>
         {statuses.map((s) => (
           <Link
@@ -290,15 +294,15 @@ export default function InvoicesClient({
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Invoice #</th>
-                  <th>Type</th>
-                  <th>Vendor / Client</th>
-                  <th>Project</th>
-                  <th>Date</th>
-                  <th>Due Date</th>
-                  <th style={{ textAlign: "right" }}>Amount</th>
-                  <th style={{ textAlign: "right" }}>Balance Due</th>
-                  <th>Status</th>
+                  <th>{t("invoiceNumber")}</th>
+                  <th>{t("type")}</th>
+                  <th>{t("vendorClient")}</th>
+                  <th>{t("project")}</th>
+                  <th>{t("date")}</th>
+                  <th>{t("dueDate")}</th>
+                  <th style={{ textAlign: "right" }}>{t("amount")}</th>
+                  <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
+                  <th>{t("status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -318,7 +322,7 @@ export default function InvoicesClient({
                       </td>
                       <td>
                         <span className={`inv-type inv-type-${inv.invoice_type}`}>
-                          {inv.invoice_type === "payable" ? "AP" : "AR"}
+                          {inv.invoice_type === "payable" ? t("ap") : t("ar")}
                         </span>
                       </td>
                       <td>
@@ -368,15 +372,15 @@ export default function InvoicesClient({
             <div className="fin-empty-icon">
               <FileText size={48} />
             </div>
-            <div className="fin-empty-title">No Invoices Found</div>
+            <div className="fin-empty-title">{t("noInvoicesFound")}</div>
             <div className="fin-empty-desc">
               {activeType || activeStatus
-                ? "No invoices match the current filters. Try adjusting your filters or create a new invoice."
-                : "Get started by creating your first invoice to track payments and receivables."}
+                ? t("noInvoicesFilteredDesc")
+                : t("noInvoicesEmptyDesc")}
             </div>
             <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
               <Plus size={16} />
-              Create Invoice
+              {t("createInvoice")}
             </Link>
           </div>
         </div>
@@ -385,7 +389,7 @@ export default function InvoicesClient({
       {/* Detail / Edit / Delete Modal */}
       {showImport && (
         <ImportModal
-          entityName="Invoices"
+          entityName={t("invoices")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
@@ -397,7 +401,7 @@ export default function InvoicesClient({
         <div className="ticket-modal-overlay" onClick={closeDetail}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>{isEditing ? "Edit Invoice" : `Invoice ${selectedInv.invoice_number}`}</h3>
+              <h3>{isEditing ? t("editInvoice") : t("invoiceTitle", { number: selectedInv.invoice_number })}</h3>
               <button className="ticket-modal-close" onClick={closeDetail}>
                 <X size={18} />
               </button>
@@ -408,15 +412,14 @@ export default function InvoicesClient({
             {showDeleteConfirm && (
               <div className="ticket-delete-confirm">
                 <p>
-                  Are you sure you want to void invoice{" "}
-                  <strong>{selectedInv.invoice_number}</strong>? This action cannot be undone.
+                  {t("voidInvoiceConfirm", { number: selectedInv.invoice_number })}
                 </p>
                 <div className="ticket-delete-actions">
                   <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={saving}>
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button className="btn-danger" onClick={handleDelete} disabled={saving}>
-                    {saving ? "Voiding..." : "Void Invoice"}
+                    {saving ? t("voiding") : t("voidInvoice")}
                   </button>
                 </div>
               </div>
@@ -427,18 +430,18 @@ export default function InvoicesClient({
                 /* Read-only detail */
                 <div className="ticket-detail-body">
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Invoice #</span>
+                    <span className="ticket-detail-label">{t("invoiceNumber")}</span>
                     <span>{selectedInv.invoice_number}</span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Type</span>
+                    <span className="ticket-detail-label">{t("type")}</span>
                     <span className={`inv-type inv-type-${selectedInv.invoice_type}`}>
-                      {selectedInv.invoice_type === "payable" ? "Accounts Payable" : "Accounts Receivable"}
+                      {selectedInv.invoice_type === "payable" ? t("accountsPayable") : t("accountsReceivable")}
                     </span>
                   </div>
                   <div className="ticket-detail-row">
                     <span className="ticket-detail-label">
-                      {selectedInv.invoice_type === "payable" ? "Vendor" : "Client"}
+                      {selectedInv.invoice_type === "payable" ? t("vendor") : t("client")}
                     </span>
                     <span>
                       {selectedInv.invoice_type === "payable"
@@ -447,46 +450,46 @@ export default function InvoicesClient({
                     </span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Invoice Date</span>
+                    <span className="ticket-detail-label">{t("invoiceDate")}</span>
                     <span>{formatDate(selectedInv.invoice_date)}</span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Due Date</span>
+                    <span className="ticket-detail-label">{t("dueDate")}</span>
                     <span>{formatDate(selectedInv.due_date)}</span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Total Amount</span>
+                    <span className="ticket-detail-label">{t("totalAmount")}</span>
                     <span style={{ fontWeight: 600 }}>{formatCurrency(selectedInv.total_amount)}</span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Amount Paid</span>
+                    <span className="ticket-detail-label">{t("amountPaid")}</span>
                     <span>{formatCurrency(selectedInv.amount_paid)}</span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Balance Due</span>
+                    <span className="ticket-detail-label">{t("balanceDue")}</span>
                     <span style={{ fontWeight: 600, color: selectedInv.balance_due > 0 ? "var(--color-red)" : "var(--color-green)" }}>
                       {formatCurrency(selectedInv.balance_due)}
                     </span>
                   </div>
                   <div className="ticket-detail-row">
-                    <span className="ticket-detail-label">Status</span>
+                    <span className="ticket-detail-label">{t("status")}</span>
                     <span className={`inv-status inv-status-${selectedInv.status}`}>
                       {selectedInv.status}
                     </span>
                   </div>
                   {selectedInv.notes && (
                     <div className="ticket-detail-row">
-                      <span className="ticket-detail-label">Notes</span>
+                      <span className="ticket-detail-label">{t("notes")}</span>
                       <span>{selectedInv.notes}</span>
                     </div>
                   )}
 
                   <div className="ticket-detail-actions">
                     <button className="btn-secondary" onClick={startEditing}>
-                      <Edit3 size={14} /> Edit
+                      <Edit3 size={14} /> {t("edit")}
                     </button>
                     <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
-                      <Trash2 size={14} /> Void
+                      <Trash2 size={14} /> {t("void")}
                     </button>
                   </div>
                 </div>
@@ -494,23 +497,23 @@ export default function InvoicesClient({
                 /* Edit form */
                 <div className="ticket-form">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Status</label>
+                    <label className="ticket-form-label">{t("status")}</label>
                     <select
                       className="ticket-form-select"
                       value={editData.status || ""}
                       onChange={(e) => setEditData({ ...editData, status: e.target.value })}
                     >
-                      <option value="draft">Draft</option>
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
-                      <option value="paid">Paid</option>
-                      <option value="overdue">Overdue</option>
-                      <option value="voided">Voided</option>
+                      <option value="draft">{t("statusDraft")}</option>
+                      <option value="pending">{t("statusPending")}</option>
+                      <option value="approved">{t("statusApproved")}</option>
+                      <option value="paid">{t("statusPaid")}</option>
+                      <option value="overdue">{t("statusOverdue")}</option>
+                      <option value="voided">{t("statusVoided")}</option>
                     </select>
                   </div>
                   <div className="ticket-form-row">
                     <div className="ticket-form-group">
-                      <label className="ticket-form-label">Vendor Name</label>
+                      <label className="ticket-form-label">{t("vendorName")}</label>
                       <input
                         type="text"
                         className="ticket-form-input"
@@ -519,7 +522,7 @@ export default function InvoicesClient({
                       />
                     </div>
                     <div className="ticket-form-group">
-                      <label className="ticket-form-label">Client Name</label>
+                      <label className="ticket-form-label">{t("clientName")}</label>
                       <input
                         type="text"
                         className="ticket-form-input"
@@ -529,7 +532,7 @@ export default function InvoicesClient({
                     </div>
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Due Date</label>
+                    <label className="ticket-form-label">{t("dueDate")}</label>
                     <input
                       type="date"
                       className="ticket-form-input"
@@ -538,7 +541,7 @@ export default function InvoicesClient({
                     />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Notes</label>
+                    <label className="ticket-form-label">{t("notes")}</label>
                     <textarea
                       className="ticket-form-textarea"
                       value={editData.notes || ""}
@@ -548,10 +551,10 @@ export default function InvoicesClient({
                   </div>
                   <div className="ticket-form-actions">
                     <button className="btn-secondary" onClick={() => setIsEditing(false)}>
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                      {saving ? "Saving..." : "Save Changes"}
+                      {saving ? t("saving") : t("saveChanges")}
                     </button>
                   </div>
                 </div>

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Plus,
   X,
@@ -28,20 +29,6 @@ import type { ImportColumn } from "@/lib/utils/csv-parser";
 // Constants
 // ---------------------------------------------------------------------------
 
-const MAINTENANCE_TYPE_LABELS: Record<MaintenanceType, string> = {
-  preventive: "Preventive",
-  corrective: "Corrective",
-  inspection: "Inspection",
-  emergency: "Emergency",
-};
-
-const MAINTENANCE_STATUS_LABELS: Record<MaintenanceStatus, string> = {
-  scheduled: "Scheduled",
-  in_progress: "In Progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
 const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "equipment_name", label: "Equipment Name", required: true },
   { key: "title", label: "Title", required: true },
@@ -63,23 +50,6 @@ const IMPORT_SAMPLE: Record<string, string>[] = [
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatDateShort(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
 
 function formatCurrency(value: number | null) {
   if (value === null || value === undefined) return "--";
@@ -109,6 +79,40 @@ export default function EquipmentMaintenanceClient({
   companyId,
 }: EquipmentMaintenanceClientProps) {
   const router = useRouter();
+  const t = useTranslations("equipment");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const MAINTENANCE_TYPE_LABELS: Record<MaintenanceType, string> = {
+    preventive: t("maintenanceTypePreventive"),
+    corrective: t("maintenanceTypeCorrective"),
+    inspection: t("maintenanceTypeInspection"),
+    emergency: t("maintenanceTypeEmergency"),
+  };
+
+  const MAINTENANCE_STATUS_LABELS: Record<MaintenanceStatus, string> = {
+    scheduled: t("maintenanceStatusScheduled"),
+    in_progress: t("maintenanceStatusInProgress"),
+    completed: t("maintenanceStatusCompleted"),
+    cancelled: t("maintenanceStatusCancelled"),
+  };
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatDateShort(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+    });
+  }
 
   // Filters
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -227,7 +231,7 @@ export default function EquipmentMaintenanceClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create maintenance log");
+        throw new Error(data.error || t("errorCreateMaintenanceLog"));
       }
 
       setFormData({
@@ -246,7 +250,7 @@ export default function EquipmentMaintenanceClient({
       router.refresh();
     } catch (err: unknown) {
       setCreateError(
-        err instanceof Error ? err.message : "Failed to create maintenance log"
+        err instanceof Error ? err.message : t("errorCreateMaintenanceLog")
       );
     } finally {
       setCreating(false);
@@ -348,14 +352,14 @@ export default function EquipmentMaintenanceClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update maintenance log");
+        throw new Error(data.error || t("errorUpdateMaintenanceLog"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to update maintenance log"
+        err instanceof Error ? err.message : t("errorUpdateMaintenanceLog")
       );
     } finally {
       setSaving(false);
@@ -375,14 +379,14 @@ export default function EquipmentMaintenanceClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete maintenance log");
+        throw new Error(data.error || t("errorDeleteMaintenanceLog"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to delete maintenance log"
+        err instanceof Error ? err.message : t("errorDeleteMaintenanceLog")
       );
     } finally {
       setSaving(false);
@@ -394,19 +398,19 @@ export default function EquipmentMaintenanceClient({
       {/* Header */}
       <div className="equipment-header">
         <div>
-          <h2>Equipment Maintenance</h2>
+          <h2>{t("equipmentMaintenance")}</h2>
           <p className="equipment-header-sub">
-            {logs.length} maintenance record{logs.length !== 1 ? "s" : ""}
+            {t("maintenanceRecords", { count: logs.length })}
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New Maintenance Log
+            {t("newMaintenanceLog")}
           </button>
         </div>
       </div>
@@ -419,7 +423,7 @@ export default function EquipmentMaintenanceClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{scheduledCount}</span>
-            <span className="equipment-stat-label">Scheduled</span>
+            <span className="equipment-stat-label">{t("maintenanceStatusScheduled")}</span>
           </div>
         </div>
         <div className="equipment-stat-card stat-maintenance">
@@ -428,7 +432,7 @@ export default function EquipmentMaintenanceClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{inProgressCount}</span>
-            <span className="equipment-stat-label">In Progress</span>
+            <span className="equipment-stat-label">{t("maintenanceStatusInProgress")}</span>
           </div>
         </div>
         <div className="equipment-stat-card stat-available">
@@ -437,7 +441,7 @@ export default function EquipmentMaintenanceClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{completedCount}</span>
-            <span className="equipment-stat-label">Completed</span>
+            <span className="equipment-stat-label">{t("maintenanceStatusCompleted")}</span>
           </div>
         </div>
         <div className="equipment-stat-card stat-retired">
@@ -446,7 +450,7 @@ export default function EquipmentMaintenanceClient({
           </div>
           <div className="equipment-stat-info">
             <span className="equipment-stat-value">{logs.length}</span>
-            <span className="equipment-stat-label">Total Records</span>
+            <span className="equipment-stat-label">{t("totalRecords")}</span>
           </div>
         </div>
       </div>
@@ -458,10 +462,10 @@ export default function EquipmentMaintenanceClient({
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
         >
-          <option value="all">All Types</option>
-          {(Object.keys(MAINTENANCE_TYPE_LABELS) as MaintenanceType[]).map((t) => (
-            <option key={t} value={t}>
-              {MAINTENANCE_TYPE_LABELS[t]}
+          <option value="all">{t("allTypes")}</option>
+          {(Object.keys(MAINTENANCE_TYPE_LABELS) as MaintenanceType[]).map((mt) => (
+            <option key={mt} value={mt}>
+              {MAINTENANCE_TYPE_LABELS[mt]}
             </option>
           ))}
         </select>
@@ -471,7 +475,7 @@ export default function EquipmentMaintenanceClient({
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
-          <option value="all">All Status</option>
+          <option value="all">{t("allStatus")}</option>
           {(Object.keys(MAINTENANCE_STATUS_LABELS) as MaintenanceStatus[]).map(
             (s) => (
               <option key={s} value={s}>
@@ -486,7 +490,7 @@ export default function EquipmentMaintenanceClient({
           value={equipmentFilter}
           onChange={(e) => setEquipmentFilter(e.target.value)}
         >
-          <option value="all">All Equipment</option>
+          <option value="all">{t("allEquipment")}</option>
           {equipmentList.map((eq) => (
             <option key={eq.id} value={eq.id}>
               {eq.name}
@@ -503,12 +507,12 @@ export default function EquipmentMaintenanceClient({
           </div>
           {logs.length === 0 ? (
             <>
-              <h3>No maintenance records yet</h3>
-              <p>Create your first maintenance log to get started.</p>
+              <h3>{t("noMaintenanceRecordsYet")}</h3>
+              <p>{t("createFirstMaintenanceLog")}</p>
               <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
                 <button className="btn-primary" onClick={() => setShowCreate(true)}>
                   <Plus size={16} />
-                  New Maintenance Log
+                  {t("newMaintenanceLog")}
                 </button>
                 {equipmentList.length > 0 && (
                   <button
@@ -516,20 +520,20 @@ export default function EquipmentMaintenanceClient({
                     onClick={loadSampleData}
                     disabled={loadingSamples}
                   >
-                    {loadingSamples ? "Loading..." : "Load Sample Data"}
+                    {loadingSamples ? t("loading") : t("loadSampleData")}
                   </button>
                 )}
               </div>
               {equipmentList.length === 0 && (
                 <p style={{ fontSize: "0.82rem", marginTop: "8px" }}>
-                  Add equipment in Inventory first, then come back to add maintenance logs.
+                  {t("addEquipmentInInventoryFirstMaintenance")}
                 </p>
               )}
             </>
           ) : (
             <>
-              <h3>No matching records</h3>
-              <p>Try adjusting your filter criteria.</p>
+              <h3>{t("noMatchingRecords")}</h3>
+              <p>{t("tryAdjustingFilters")}</p>
             </>
           )}
         </div>
@@ -538,14 +542,14 @@ export default function EquipmentMaintenanceClient({
           <table className="equipment-table">
             <thead>
               <tr>
-                <th>Equipment</th>
-                <th>Type</th>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Cost</th>
-                <th>Performed By</th>
-                <th>Status</th>
-                <th>Next Due</th>
+                <th>{t("columnEquipment")}</th>
+                <th>{t("columnType")}</th>
+                <th>{t("columnTitle")}</th>
+                <th>{t("columnDate")}</th>
+                <th>{t("columnCost")}</th>
+                <th>{t("columnPerformedBy")}</th>
+                <th>{t("columnStatus")}</th>
+                <th>{t("columnNextDue")}</th>
               </tr>
             </thead>
             <tbody>
@@ -612,7 +616,7 @@ export default function EquipmentMaintenanceClient({
         >
           <div className="equipment-modal" onClick={(e) => e.stopPropagation()}>
             <div className="equipment-modal-header">
-              <h3>New Maintenance Log</h3>
+              <h3>{t("newMaintenanceLog")}</h3>
               <button
                 className="equipment-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -627,7 +631,7 @@ export default function EquipmentMaintenanceClient({
 
             <form onSubmit={handleCreate} className="equipment-form">
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Equipment *</label>
+                <label className="equipment-form-label">{t("labelEquipmentRequired")}</label>
                 <select
                   className="equipment-form-select"
                   value={formData.equipment_id}
@@ -636,7 +640,7 @@ export default function EquipmentMaintenanceClient({
                   }
                   required
                 >
-                  <option value="">Select equipment...</option>
+                  <option value="">{t("selectEquipment")}</option>
                   {equipmentList.map((eq) => (
                     <option key={eq.id} value={eq.id}>
                       {eq.name} ({eq.equipment_type})
@@ -648,7 +652,7 @@ export default function EquipmentMaintenanceClient({
               <div className="equipment-form-row">
                 <div className="equipment-form-group">
                   <label className="equipment-form-label">
-                    Maintenance Type *
+                    {t("labelMaintenanceTypeRequired")}
                   </label>
                   <select
                     className="equipment-form-select"
@@ -661,18 +665,18 @@ export default function EquipmentMaintenanceClient({
                     }
                     required
                   >
-                    <option value="">Select type...</option>
+                    <option value="">{t("selectType")}</option>
                     {(
                       Object.keys(MAINTENANCE_TYPE_LABELS) as MaintenanceType[]
-                    ).map((t) => (
-                      <option key={t} value={t}>
-                        {MAINTENANCE_TYPE_LABELS[t]}
+                    ).map((mt) => (
+                      <option key={mt} value={mt}>
+                        {MAINTENANCE_TYPE_LABELS[mt]}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Status</label>
+                  <label className="equipment-form-label">{t("columnStatus")}</label>
                   <select
                     className="equipment-form-select"
                     value={formData.status}
@@ -694,7 +698,7 @@ export default function EquipmentMaintenanceClient({
               </div>
 
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Title *</label>
+                <label className="equipment-form-label">{t("labelTitleRequired")}</label>
                 <input
                   type="text"
                   className="equipment-form-input"
@@ -702,20 +706,20 @@ export default function EquipmentMaintenanceClient({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="Brief description of the maintenance"
+                  placeholder={t("placeholderMaintenanceTitle")}
                   required
                 />
               </div>
 
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Description</label>
+                <label className="equipment-form-label">{t("labelDescription")}</label>
                 <textarea
                   className="equipment-form-textarea"
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Detailed notes about the maintenance..."
+                  placeholder={t("placeholderMaintenanceDescription")}
                   rows={3}
                 />
               </div>
@@ -723,7 +727,7 @@ export default function EquipmentMaintenanceClient({
               <div className="equipment-form-row">
                 <div className="equipment-form-group">
                   <label className="equipment-form-label">
-                    Maintenance Date
+                    {t("labelMaintenanceDate")}
                   </label>
                   <input
                     type="date"
@@ -738,7 +742,7 @@ export default function EquipmentMaintenanceClient({
                   />
                 </div>
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Cost ($)</label>
+                  <label className="equipment-form-label">{t("labelCostDollar")}</label>
                   <input
                     type="number"
                     className="equipment-form-input"
@@ -755,7 +759,7 @@ export default function EquipmentMaintenanceClient({
 
               <div className="equipment-form-row">
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Performed By</label>
+                  <label className="equipment-form-label">{t("labelPerformedBy")}</label>
                   <input
                     type="text"
                     className="equipment-form-input"
@@ -766,11 +770,11 @@ export default function EquipmentMaintenanceClient({
                         performed_by: e.target.value,
                       })
                     }
-                    placeholder="Technician / team"
+                    placeholder={t("placeholderTechnician")}
                   />
                 </div>
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Vendor Name</label>
+                  <label className="equipment-form-label">{t("labelVendorName")}</label>
                   <input
                     type="text"
                     className="equipment-form-input"
@@ -781,13 +785,13 @@ export default function EquipmentMaintenanceClient({
                         vendor_name: e.target.value,
                       })
                     }
-                    placeholder="Service provider"
+                    placeholder={t("placeholderServiceProvider")}
                   />
                 </div>
               </div>
 
               <div className="equipment-form-group">
-                <label className="equipment-form-label">Next Due Date</label>
+                <label className="equipment-form-label">{t("labelNextDueDate")}</label>
                 <input
                   type="date"
                   className="equipment-form-input"
@@ -804,7 +808,7 @@ export default function EquipmentMaintenanceClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -816,7 +820,7 @@ export default function EquipmentMaintenanceClient({
                     !formData.title.trim()
                   }
                 >
-                  {creating ? "Creating..." : "Create Log"}
+                  {creating ? t("creating") : t("createLog")}
                 </button>
               </div>
             </form>
@@ -829,7 +833,7 @@ export default function EquipmentMaintenanceClient({
         <div className="equipment-modal-overlay" onClick={closeDetail}>
           <div className="equipment-modal" onClick={(e) => e.stopPropagation()}>
             <div className="equipment-modal-header">
-              <h3>{isEditing ? "Edit Maintenance Log" : selectedLog.title}</h3>
+              <h3>{isEditing ? t("editMaintenanceLog") : selectedLog.title}</h3>
               <button className="equipment-modal-close" onClick={closeDetail}>
                 <X size={18} />
               </button>
@@ -856,7 +860,7 @@ export default function EquipmentMaintenanceClient({
                   style={{ maxWidth: 440 }}
                 >
                   <div className="equipment-modal-header">
-                    <h3>Delete Maintenance Log</h3>
+                    <h3>{t("deleteMaintenanceLog")}</h3>
                     <button
                       className="equipment-modal-close"
                       onClick={() => setShowDeleteConfirm(false)}
@@ -866,9 +870,7 @@ export default function EquipmentMaintenanceClient({
                   </div>
                   <div style={{ padding: "1rem 1.5rem" }}>
                     <p>
-                      Are you sure you want to delete{" "}
-                      <strong>{selectedLog.title}</strong>? This action cannot be
-                      undone.
+                      {t("confirmDeleteMaintenanceLog", { name: selectedLog.title })}
                     </p>
                   </div>
                   <div className="equipment-form-actions">
@@ -878,7 +880,7 @@ export default function EquipmentMaintenanceClient({
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="button"
@@ -889,7 +891,7 @@ export default function EquipmentMaintenanceClient({
                       onClick={handleDelete}
                       disabled={saving}
                     >
-                      {saving ? "Deleting..." : "Delete"}
+                      {saving ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 </div>
@@ -901,11 +903,11 @@ export default function EquipmentMaintenanceClient({
               <div style={{ padding: "1.25rem", pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Equipment</label>
+                    <label className="detail-label">{t("columnEquipment")}</label>
                     <div className="detail-value">{selectedLog.equipment?.name || "--"}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Type</label>
+                    <label className="detail-label">{t("columnType")}</label>
                     <div className="detail-value">
                       {MAINTENANCE_TYPE_LABELS[
                         selectedLog.maintenance_type as MaintenanceType
@@ -915,24 +917,24 @@ export default function EquipmentMaintenanceClient({
                 </div>
 
                 <div className="detail-group">
-                  <label className="detail-label">Title</label>
+                  <label className="detail-label">{t("columnTitle")}</label>
                   <div className="detail-value">{selectedLog.title}</div>
                 </div>
 
                 {selectedLog.description && (
                   <div className="detail-group">
-                    <label className="detail-label">Description</label>
+                    <label className="detail-label">{t("labelDescription")}</label>
                     <div className="detail-value--multiline">{selectedLog.description}</div>
                   </div>
                 )}
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Date</label>
+                    <label className="detail-label">{t("columnDate")}</label>
                     <div className="detail-value">{formatDate(selectedLog.maintenance_date)}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Status</label>
+                    <label className="detail-label">{t("columnStatus")}</label>
                     <div className="detail-value">
                       {MAINTENANCE_STATUS_LABELS[
                         selectedLog.status as MaintenanceStatus
@@ -943,22 +945,22 @@ export default function EquipmentMaintenanceClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Cost</label>
+                    <label className="detail-label">{t("columnCost")}</label>
                     <div className="detail-value">{formatCurrency(selectedLog.cost)}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Performed By</label>
+                    <label className="detail-label">{t("labelPerformedBy")}</label>
                     <div className="detail-value">{selectedLog.performed_by || "--"}</div>
                   </div>
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Vendor</label>
+                    <label className="detail-label">{t("labelVendor")}</label>
                     <div className="detail-value">{selectedLog.vendor_name || "--"}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Next Due</label>
+                    <label className="detail-label">{t("columnNextDue")}</label>
                     <div className="detail-value">{formatDate(selectedLog.next_due_date)}</div>
                   </div>
                 </div>
@@ -971,14 +973,14 @@ export default function EquipmentMaintenanceClient({
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("close")}
                   </button>
                   <button
                     type="button"
@@ -986,7 +988,7 @@ export default function EquipmentMaintenanceClient({
                     onClick={startEditing}
                   >
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </div>
@@ -996,7 +998,7 @@ export default function EquipmentMaintenanceClient({
             {isEditing && (
               <div className="equipment-form">
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Title *</label>
+                  <label className="equipment-form-label">{t("labelTitleRequired")}</label>
                   <input
                     type="text"
                     className="equipment-form-input"
@@ -1009,7 +1011,7 @@ export default function EquipmentMaintenanceClient({
                 </div>
 
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Description</label>
+                  <label className="equipment-form-label">{t("labelDescription")}</label>
                   <textarea
                     className="equipment-form-textarea"
                     value={(editData.description as string) || ""}
@@ -1023,7 +1025,7 @@ export default function EquipmentMaintenanceClient({
                 <div className="equipment-form-row">
                   <div className="equipment-form-group">
                     <label className="equipment-form-label">
-                      Maintenance Type
+                      {t("labelMaintenanceType")}
                     </label>
                     <select
                       className="equipment-form-select"
@@ -1039,15 +1041,15 @@ export default function EquipmentMaintenanceClient({
                         Object.keys(
                           MAINTENANCE_TYPE_LABELS
                         ) as MaintenanceType[]
-                      ).map((t) => (
-                        <option key={t} value={t}>
-                          {MAINTENANCE_TYPE_LABELS[t]}
+                      ).map((mt) => (
+                        <option key={mt} value={mt}>
+                          {MAINTENANCE_TYPE_LABELS[mt]}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Status</label>
+                    <label className="equipment-form-label">{t("columnStatus")}</label>
                     <select
                       className="equipment-form-select"
                       value={(editData.status as string) || "scheduled"}
@@ -1071,7 +1073,7 @@ export default function EquipmentMaintenanceClient({
                 <div className="equipment-form-row">
                   <div className="equipment-form-group">
                     <label className="equipment-form-label">
-                      Maintenance Date
+                      {t("labelMaintenanceDate")}
                     </label>
                     <input
                       type="date"
@@ -1086,7 +1088,7 @@ export default function EquipmentMaintenanceClient({
                     />
                   </div>
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Cost ($)</label>
+                    <label className="equipment-form-label">{t("labelCostDollar")}</label>
                     <input
                       type="number"
                       className="equipment-form-input"
@@ -1102,7 +1104,7 @@ export default function EquipmentMaintenanceClient({
 
                 <div className="equipment-form-row">
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Performed By</label>
+                    <label className="equipment-form-label">{t("labelPerformedBy")}</label>
                     <input
                       type="text"
                       className="equipment-form-input"
@@ -1116,7 +1118,7 @@ export default function EquipmentMaintenanceClient({
                     />
                   </div>
                   <div className="equipment-form-group">
-                    <label className="equipment-form-label">Vendor Name</label>
+                    <label className="equipment-form-label">{t("labelVendorName")}</label>
                     <input
                       type="text"
                       className="equipment-form-input"
@@ -1132,7 +1134,7 @@ export default function EquipmentMaintenanceClient({
                 </div>
 
                 <div className="equipment-form-group">
-                  <label className="equipment-form-label">Next Due Date</label>
+                  <label className="equipment-form-label">{t("labelNextDueDate")}</label>
                   <input
                     type="date"
                     className="equipment-form-input"
@@ -1153,7 +1155,7 @@ export default function EquipmentMaintenanceClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -1161,7 +1163,7 @@ export default function EquipmentMaintenanceClient({
                     onClick={handleSave}
                     disabled={saving || !(editData.title as string)?.trim()}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>

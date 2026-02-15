@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   ArrowLeft,
   Edit3,
@@ -23,54 +24,6 @@ import type {
 } from "@/lib/queries/contracts";
 
 // ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const STATUS_LABELS: Record<ContractStatus, string> = {
-  draft: "Draft",
-  pending_approval: "Pending Approval",
-  active: "Active",
-  expired: "Expired",
-  terminated: "Terminated",
-  completed: "Completed",
-};
-
-const TYPE_LABELS: Record<ContractType, string> = {
-  subcontractor: "Subcontractor",
-  vendor: "Vendor",
-  client: "Client",
-  lease: "Lease",
-};
-
-const PAYMENT_TERMS_LABELS: Record<string, string> = {
-  net_30: "Net 30",
-  net_60: "Net 60",
-  net_90: "Net 90",
-  upon_completion: "Upon Completion",
-};
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(amount: number | null) {
-  if (amount === null || amount === undefined) return "--";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -90,6 +43,57 @@ export default function ContractDetailClient({
   companyId,
 }: ContractDetailClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  // ---------------------------------------------------------------------------
+  // Constants (inside component for translation access)
+  // ---------------------------------------------------------------------------
+
+  const STATUS_LABELS: Record<ContractStatus, string> = {
+    draft: t("contractStatusDraft"),
+    pending_approval: t("contractStatusPendingApproval"),
+    active: t("contractStatusActive"),
+    expired: t("contractStatusExpired"),
+    terminated: t("contractStatusTerminated"),
+    completed: t("contractStatusCompleted"),
+  };
+
+  const TYPE_LABELS: Record<ContractType, string> = {
+    subcontractor: t("contractTypeSubcontractor"),
+    vendor: t("contractTypeVendor"),
+    client: t("contractTypeClient"),
+    lease: t("contractTypeLease"),
+  };
+
+  const PAYMENT_TERMS_LABELS: Record<string, string> = {
+    net_30: t("paymentTermsNet30"),
+    net_60: t("paymentTermsNet60"),
+    net_90: t("paymentTermsNet90"),
+    upon_completion: t("paymentTermsUponCompletion"),
+  };
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatCurrency(amount: number | null) {
+    if (amount === null || amount === undefined) return "--";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  }
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -192,14 +196,14 @@ export default function ContractDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update contract");
+        throw new Error(data.error || t("failedToUpdateContract"));
       }
 
       setIsEditing(false);
       setEditData({});
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update contract");
+      setSaveError(err instanceof Error ? err.message : t("failedToUpdateContract"));
     } finally {
       setSaving(false);
     }
@@ -217,13 +221,13 @@ export default function ContractDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete contract");
+        throw new Error(data.error || t("failedToDeleteContract"));
       }
 
       router.push("/contracts");
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to delete contract");
+      setSaveError(err instanceof Error ? err.message : t("failedToDeleteContract"));
     } finally {
       setSaving(false);
     }
@@ -250,14 +254,14 @@ export default function ContractDetailClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create milestone");
+        throw new Error(data.error || t("failedToCreateMilestone"));
       }
 
       setMilestoneForm({ title: "", description: "", due_date: "", amount: "" });
       setShowMilestoneCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setMilestoneError(err instanceof Error ? err.message : "Failed to create milestone");
+      setMilestoneError(err instanceof Error ? err.message : t("failedToCreateMilestone"));
     } finally {
       setMilestoneCreating(false);
     }
@@ -274,12 +278,6 @@ export default function ContractDetailClient({
         body: JSON.stringify({}), // dummy to satisfy endpoint
       });
 
-      // Use a direct supabase call pattern through a PATCH on the milestone
-      // Since we don't have a dedicated milestone PATCH endpoint, we'll call the milestones API with POST
-      // Actually, let's use a different approach - call PATCH on the contract [id] endpoint
-      // and handle milestone updates separately
-
-      // For milestone completion, we'll do a direct fetch to complete it
       const milestoneRes = await fetch(`/api/contracts/${contract.id}/milestones`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -289,9 +287,6 @@ export default function ContractDetailClient({
         }),
       });
 
-      // Since we don't have a dedicated milestone update endpoint,
-      // let's handle this via the contract API by passing milestone update data
-      // For now, just refresh to show updated state
       router.refresh();
     } catch {
       // Silently handle error
@@ -308,7 +303,7 @@ export default function ContractDetailClient({
         onClick={() => router.push("/contracts")}
       >
         <ArrowLeft size={16} />
-        Back to Contracts
+        {t("backToContracts")}
       </button>
 
       {saveError && (
@@ -339,7 +334,7 @@ export default function ContractDetailClient({
             ) : (
               <div className="contracts-form" style={{ marginTop: 12 }}>
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Title *</label>
+                  <label className="contracts-form-label">{t("titleRequired")}</label>
                   <input
                     type="text"
                     className="contracts-form-input"
@@ -351,7 +346,7 @@ export default function ContractDetailClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Status</label>
+                    <label className="contracts-form-label">{t("status")}</label>
                     <select
                       className="contracts-form-select"
                       value={(editData.status as string) || "draft"}
@@ -363,14 +358,14 @@ export default function ContractDetailClient({
                     </select>
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Type</label>
+                    <label className="contracts-form-label">{t("type")}</label>
                     <select
                       className="contracts-form-select"
                       value={(editData.contract_type as string) || "subcontractor"}
                       onChange={(e) => setEditData({ ...editData, contract_type: e.target.value })}
                     >
-                      {(Object.keys(TYPE_LABELS) as ContractType[]).map((t) => (
-                        <option key={t} value={t}>{TYPE_LABELS[t]}</option>
+                      {(Object.keys(TYPE_LABELS) as ContractType[]).map((ct) => (
+                        <option key={ct} value={ct}>{TYPE_LABELS[ct]}</option>
                       ))}
                     </select>
                   </div>
@@ -378,7 +373,7 @@ export default function ContractDetailClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Party Name</label>
+                    <label className="contracts-form-label">{t("partyName")}</label>
                     <input
                       type="text"
                       className="contracts-form-input"
@@ -387,7 +382,7 @@ export default function ContractDetailClient({
                     />
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Party Email</label>
+                    <label className="contracts-form-label">{t("partyEmail")}</label>
                     <input
                       type="email"
                       className="contracts-form-input"
@@ -399,7 +394,7 @@ export default function ContractDetailClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Amount</label>
+                    <label className="contracts-form-label">{t("amount")}</label>
                     <input
                       type="number"
                       className="contracts-form-input"
@@ -410,7 +405,7 @@ export default function ContractDetailClient({
                     />
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Retention %</label>
+                    <label className="contracts-form-label">{t("retentionPercent")}</label>
                     <input
                       type="number"
                       className="contracts-form-input"
@@ -425,7 +420,7 @@ export default function ContractDetailClient({
 
                 <div className="contracts-form-row">
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">Start Date</label>
+                    <label className="contracts-form-label">{t("startDate")}</label>
                     <input
                       type="date"
                       className="contracts-form-input"
@@ -434,7 +429,7 @@ export default function ContractDetailClient({
                     />
                   </div>
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">End Date</label>
+                    <label className="contracts-form-label">{t("endDate")}</label>
                     <input
                       type="date"
                       className="contracts-form-input"
@@ -445,13 +440,13 @@ export default function ContractDetailClient({
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Payment Terms</label>
+                  <label className="contracts-form-label">{t("paymentTerms")}</label>
                   <select
                     className="contracts-form-select"
                     value={(editData.payment_terms as string) || ""}
                     onChange={(e) => setEditData({ ...editData, payment_terms: e.target.value })}
                   >
-                    <option value="">Select terms...</option>
+                    <option value="">{t("selectTermsPlaceholder")}</option>
                     {Object.entries(PAYMENT_TERMS_LABELS).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
                     ))}
@@ -459,13 +454,13 @@ export default function ContractDetailClient({
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Project</label>
+                  <label className="contracts-form-label">{t("project")}</label>
                   <select
                     className="contracts-form-select"
                     value={(editData.project_id as string) || ""}
                     onChange={(e) => setEditData({ ...editData, project_id: e.target.value })}
                   >
-                    <option value="">No project</option>
+                    <option value="">{t("noProject")}</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
@@ -480,7 +475,7 @@ export default function ContractDetailClient({
                         checked={(editData.insurance_required as boolean) ?? false}
                         onChange={(e) => setEditData({ ...editData, insurance_required: e.target.checked })}
                       />
-                      Insurance Required
+                      {t("insuranceRequired")}
                     </label>
                   </div>
                   <div className="contracts-form-group">
@@ -490,7 +485,7 @@ export default function ContractDetailClient({
                         checked={(editData.bond_required as boolean) ?? false}
                         onChange={(e) => setEditData({ ...editData, bond_required: e.target.checked })}
                       />
-                      Bond Required
+                      {t("bondRequired")}
                     </label>
                   </div>
                 </div>
@@ -502,7 +497,7 @@ export default function ContractDetailClient({
                     onClick={cancelEditing}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="button"
@@ -510,7 +505,7 @@ export default function ContractDetailClient({
                     onClick={handleSave}
                     disabled={saving || !(editData.title as string)?.trim()}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>
@@ -522,14 +517,14 @@ export default function ContractDetailClient({
             <>
               {contract.description && (
                 <div className="contracts-description">
-                  <h3>Description</h3>
+                  <h3>{t("description")}</h3>
                   <p>{contract.description}</p>
                 </div>
               )}
 
               {contract.scope_of_work && (
                 <div className="contracts-description">
-                  <h3>Scope of Work</h3>
+                  <h3>{t("scopeOfWork")}</h3>
                   <p>{contract.scope_of_work}</p>
                 </div>
               )}
@@ -540,7 +535,7 @@ export default function ContractDetailClient({
           <div className="contracts-milestones">
             <div className="contracts-milestones-header">
               <h3>
-                Milestones{" "}
+                {t("milestones")}{" "}
                 <span className="contracts-milestones-count">
                   ({milestones.length})
                 </span>
@@ -551,24 +546,24 @@ export default function ContractDetailClient({
                 style={{ fontSize: "0.82rem", padding: "6px 12px" }}
               >
                 <Plus size={14} />
-                Add Milestone
+                {t("addMilestone")}
               </button>
             </div>
 
             {milestones.length === 0 ? (
               <div className="contracts-milestones-empty">
-                <p>No milestones yet. Add milestones to track contract progress.</p>
+                <p>{t("noMilestonesYet")}</p>
               </div>
             ) : (
               <div className="contracts-milestones-table-wrap">
                 <table className="contracts-milestones-table">
                   <thead>
                     <tr>
-                      <th>Title</th>
-                      <th>Due Date</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                      <th>Action</th>
+                      <th>{t("title")}</th>
+                      <th>{t("dueDate")}</th>
+                      <th>{t("amount")}</th>
+                      <th>{t("status")}</th>
+                      <th>{t("action")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -588,10 +583,10 @@ export default function ContractDetailClient({
                             }`}
                           >
                             {m.status === "completed"
-                              ? "Completed"
+                              ? t("milestoneCompleted")
                               : m.status === "in_progress"
-                              ? "In Progress"
-                              : "Pending"}
+                              ? t("milestoneInProgress")
+                              : t("milestonePending")}
                           </span>
                         </td>
                         <td>
@@ -603,7 +598,7 @@ export default function ContractDetailClient({
                               disabled={completingMilestoneId === m.id}
                             >
                               <CheckCircle2 size={12} />
-                              {completingMilestoneId === m.id ? "..." : "Complete"}
+                              {completingMilestoneId === m.id ? "..." : t("complete")}
                             </button>
                           )}
                         </td>
@@ -625,7 +620,7 @@ export default function ContractDetailClient({
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 <Trash2 size={16} />
-                Delete Contract
+                {t("deleteContract")}
               </button>
               <button
                 type="button"
@@ -633,7 +628,7 @@ export default function ContractDetailClient({
                 onClick={startEditing}
               >
                 <Edit3 size={16} />
-                Edit Contract
+                {t("editContract")}
               </button>
             </div>
           )}
@@ -642,26 +637,26 @@ export default function ContractDetailClient({
         {/* Right: Sidebar */}
         <div className="contracts-sidebar">
           <div className="contracts-sidebar-section">
-            <h4>Status</h4>
+            <h4>{t("status")}</h4>
             <span className={`contracts-status-badge status-${contract.status}`}>
               {STATUS_LABELS[contract.status] ?? contract.status}
             </span>
           </div>
 
           <div className="contracts-sidebar-section">
-            <h4>Contract Type</h4>
+            <h4>{t("contractType")}</h4>
             <span className="contracts-type-badge">
               {TYPE_LABELS[contract.contract_type] ?? contract.contract_type}
             </span>
           </div>
 
           <div className="contracts-sidebar-section">
-            <h4>Party Information</h4>
+            <h4>{t("partyInformation")}</h4>
             <div className="contracts-sidebar-details">
               <div className="contracts-sidebar-detail">
                 <span className="contracts-sidebar-detail-label">
                   <FileText size={13} />
-                  Name
+                  {t("name")}
                 </span>
                 <span className="contracts-sidebar-detail-value">
                   {contract.party_name || "--"}
@@ -670,7 +665,7 @@ export default function ContractDetailClient({
               <div className="contracts-sidebar-detail">
                 <span className="contracts-sidebar-detail-label">
                   <FileText size={13} />
-                  Email
+                  {t("email")}
                 </span>
                 <span className="contracts-sidebar-detail-value">
                   {contract.party_email || "--"}
@@ -680,12 +675,12 @@ export default function ContractDetailClient({
           </div>
 
           <div className="contracts-sidebar-section">
-            <h4>Financial Details</h4>
+            <h4>{t("financialDetails")}</h4>
             <div className="contracts-sidebar-details">
               <div className="contracts-sidebar-detail">
                 <span className="contracts-sidebar-detail-label">
                   <DollarSign size={13} />
-                  Amount
+                  {t("amount")}
                 </span>
                 <span className="contracts-sidebar-detail-value">
                   {formatCurrency(contract.contract_amount)}
@@ -695,7 +690,7 @@ export default function ContractDetailClient({
                 <div className="contracts-sidebar-detail">
                   <span className="contracts-sidebar-detail-label">
                     <DollarSign size={13} />
-                    Retention
+                    {t("retention")}
                   </span>
                   <span className="contracts-sidebar-detail-value">
                     {contract.retention_pct}%
@@ -705,7 +700,7 @@ export default function ContractDetailClient({
               <div className="contracts-sidebar-detail">
                 <span className="contracts-sidebar-detail-label">
                   <Clock size={13} />
-                  Payment Terms
+                  {t("paymentTerms")}
                 </span>
                 <span className="contracts-sidebar-detail-value">
                   {contract.payment_terms
@@ -717,12 +712,12 @@ export default function ContractDetailClient({
           </div>
 
           <div className="contracts-sidebar-section">
-            <h4>Dates</h4>
+            <h4>{t("dates")}</h4>
             <div className="contracts-sidebar-details">
               <div className="contracts-sidebar-detail">
                 <span className="contracts-sidebar-detail-label">
                   <Calendar size={13} />
-                  Start Date
+                  {t("startDate")}
                 </span>
                 <span className="contracts-sidebar-detail-value">
                   {formatDate(contract.start_date)}
@@ -731,7 +726,7 @@ export default function ContractDetailClient({
               <div className="contracts-sidebar-detail">
                 <span className="contracts-sidebar-detail-label">
                   <Calendar size={13} />
-                  End Date
+                  {t("endDate")}
                 </span>
                 <span className="contracts-sidebar-detail-value">
                   {formatDate(contract.end_date)}
@@ -740,7 +735,7 @@ export default function ContractDetailClient({
               <div className="contracts-sidebar-detail">
                 <span className="contracts-sidebar-detail-label">
                   <Calendar size={13} />
-                  Created
+                  {t("created")}
                 </span>
                 <span className="contracts-sidebar-detail-value">
                   {formatDate(contract.created_at)}
@@ -750,24 +745,24 @@ export default function ContractDetailClient({
           </div>
 
           <div className="contracts-sidebar-section">
-            <h4>Insurance & Bond</h4>
+            <h4>{t("insuranceAndBond")}</h4>
             <div className="contracts-sidebar-details">
               <div className="contracts-sidebar-detail">
                 <span className="contracts-sidebar-detail-label">
                   <Shield size={13} />
-                  Insurance Required
+                  {t("insuranceRequired")}
                 </span>
                 <span className="contracts-sidebar-detail-value">
-                  {contract.insurance_required ? "Yes" : "No"}
+                  {contract.insurance_required ? t("yes") : t("no")}
                 </span>
               </div>
               <div className="contracts-sidebar-detail">
                 <span className="contracts-sidebar-detail-label">
                   <Shield size={13} />
-                  Bond Required
+                  {t("bondRequired")}
                 </span>
                 <span className="contracts-sidebar-detail-value">
-                  {contract.bond_required ? "Yes" : "No"}
+                  {contract.bond_required ? t("yes") : t("no")}
                 </span>
               </div>
             </div>
@@ -775,7 +770,7 @@ export default function ContractDetailClient({
 
           {contract.project && (
             <div className="contracts-sidebar-section">
-              <h4>Project</h4>
+              <h4>{t("project")}</h4>
               <div className="contracts-sidebar-details">
                 <div className="contracts-sidebar-detail">
                   <span className="contracts-sidebar-detail-value">
@@ -788,7 +783,7 @@ export default function ContractDetailClient({
 
           {contract.creator && (
             <div className="contracts-sidebar-section">
-              <h4>Created By</h4>
+              <h4>{t("createdBy")}</h4>
               <div className="contracts-sidebar-details">
                 <div className="contracts-sidebar-detail">
                   <span className="contracts-sidebar-detail-value">
@@ -813,7 +808,7 @@ export default function ContractDetailClient({
             style={{ maxWidth: 440 }}
           >
             <div className="contracts-modal-header">
-              <h3>Delete Contract</h3>
+              <h3>{t("deleteContract")}</h3>
               <button
                 className="contracts-modal-close"
                 onClick={() => setShowDeleteConfirm(false)}
@@ -823,9 +818,7 @@ export default function ContractDetailClient({
             </div>
             <div style={{ padding: "1rem 1.5rem" }}>
               <p>
-                Are you sure you want to delete contract{" "}
-                <strong>{contract.contract_number}</strong>? This action cannot be
-                undone.
+                {t("confirmDeleteContract", { number: contract.contract_number })}
               </p>
             </div>
             <div className="contracts-form-actions">
@@ -835,7 +828,7 @@ export default function ContractDetailClient({
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={saving}
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -844,7 +837,7 @@ export default function ContractDetailClient({
                 onClick={handleDelete}
                 disabled={saving}
               >
-                {saving ? "Deleting..." : "Delete"}
+                {saving ? t("deleting") : t("delete")}
               </button>
             </div>
           </div>
@@ -859,7 +852,7 @@ export default function ContractDetailClient({
         >
           <div className="contracts-modal" onClick={(e) => e.stopPropagation()}>
             <div className="contracts-modal-header">
-              <h3>Add Milestone</h3>
+              <h3>{t("addMilestone")}</h3>
               <button
                 className="contracts-modal-close"
                 onClick={() => setShowMilestoneCreate(false)}
@@ -874,7 +867,7 @@ export default function ContractDetailClient({
 
             <form onSubmit={handleCreateMilestone} className="contracts-form">
               <div className="contracts-form-group">
-                <label className="contracts-form-label">Title *</label>
+                <label className="contracts-form-label">{t("titleRequired")}</label>
                 <input
                   type="text"
                   className="contracts-form-input"
@@ -882,27 +875,27 @@ export default function ContractDetailClient({
                   onChange={(e) =>
                     setMilestoneForm({ ...milestoneForm, title: e.target.value })
                   }
-                  placeholder="Milestone title"
+                  placeholder={t("milestoneTitlePlaceholder")}
                   required
                 />
               </div>
 
               <div className="contracts-form-group">
-                <label className="contracts-form-label">Description</label>
+                <label className="contracts-form-label">{t("description")}</label>
                 <textarea
                   className="contracts-form-textarea"
                   value={milestoneForm.description}
                   onChange={(e) =>
                     setMilestoneForm({ ...milestoneForm, description: e.target.value })
                   }
-                  placeholder="Milestone description..."
+                  placeholder={t("milestoneDescriptionPlaceholder")}
                   rows={3}
                 />
               </div>
 
               <div className="contracts-form-row">
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Due Date</label>
+                  <label className="contracts-form-label">{t("dueDate")}</label>
                   <input
                     type="date"
                     className="contracts-form-input"
@@ -913,7 +906,7 @@ export default function ContractDetailClient({
                   />
                 </div>
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">Amount</label>
+                  <label className="contracts-form-label">{t("amount")}</label>
                   <input
                     type="number"
                     className="contracts-form-input"
@@ -934,14 +927,14 @@ export default function ContractDetailClient({
                   className="btn-secondary"
                   onClick={() => setShowMilestoneCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={milestoneCreating || !milestoneForm.title.trim()}
                 >
-                  {milestoneCreating ? "Creating..." : "Add Milestone"}
+                  {milestoneCreating ? t("creating") : t("addMilestone")}
                 </button>
               </div>
             </form>

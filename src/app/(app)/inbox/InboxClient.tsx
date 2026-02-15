@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { useRealtimeSubscription } from "@/lib/supabase/realtime";
 import {
   Search,
@@ -21,7 +22,7 @@ import type { InboxItem, CompanyMember, Message, PlatformAnnouncement } from "@/
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatRelativeTime(dateStr: string): string {
+function formatRelativeTime(dateStr: string, dateLocale: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diffMs = now - then;
@@ -34,14 +35,14 @@ function formatRelativeTime(dateStr: string): string {
   if (diffHr < 24) return `${diffHr}h ago`;
   if (diffDay < 7) return `${diffDay}d ago`;
 
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  return new Date(dateStr).toLocaleDateString(dateLocale, {
     month: "short",
     day: "numeric",
   });
 }
 
-function formatFullDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+function formatFullDate(dateStr: string, dateLocale: string): string {
+  return new Date(dateStr).toLocaleDateString(dateLocale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -78,6 +79,10 @@ export default function InboxClient({
   members,
   announcements,
 }: InboxClientProps) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   // Convert announcements to InboxItems
   const announcementItems: InboxItem[] = useMemo(
     () =>
@@ -132,7 +137,7 @@ export default function InboxClient({
         const newItem: InboxItem = {
           id: newMsg.id as string,
           kind: "message",
-          title: (newMsg.subject as string) || "(No subject)",
+          title: (newMsg.subject as string) || t("inboxNoSubject"),
           preview: ((newMsg.body as string) || "").slice(0, 120),
           sender_name: senderName,
           is_read: false,
@@ -147,7 +152,7 @@ export default function InboxClient({
         });
         setUnreadCount((prev) => prev + 1);
       },
-      [userId, members]
+      [userId, members, t]
     )
   );
 
@@ -160,9 +165,9 @@ export default function InboxClient({
         const newItem: InboxItem = {
           id: newNotif.id as string,
           kind: "notification",
-          title: (newNotif.title as string) || "Notification",
+          title: (newNotif.title as string) || t("inboxNotification"),
           preview: ((newNotif.body as string) || "").slice(0, 120),
-          sender_name: "System",
+          sender_name: t("inboxSystem"),
           is_read: false,
           created_at: newNotif.created_at as string,
           entity_type: (newNotif.entity_type as string) || null,
@@ -175,7 +180,7 @@ export default function InboxClient({
         });
         setUnreadCount((prev) => prev + 1);
       },
-      []
+      [t]
     )
   );
 
@@ -357,7 +362,7 @@ export default function InboxClient({
 
         if (!res.ok) {
           const data = await res.json();
-          setComposeError(data.error || "Failed to send message");
+          setComposeError(data.error || t("inboxSendFailed"));
           return;
         }
 
@@ -374,12 +379,12 @@ export default function InboxClient({
         const newItem: InboxItem = {
           id: newMessage.id,
           kind: "message",
-          title: composeSubject || "(No subject)",
+          title: composeSubject || t("inboxNoSubject"),
           preview:
             composeBody.length > 120
               ? composeBody.slice(0, 120) + "..."
               : composeBody,
-          sender_name: `To: ${recipientName}`,
+          sender_name: `${t("inboxTo")}: ${recipientName}`,
           is_read: true,
           created_at: newMessage.created_at,
           entity_type: null,
@@ -396,12 +401,12 @@ export default function InboxClient({
         setShowCompose(false);
       } catch (err) {
         console.error("Failed to send message:", err);
-        setComposeError("An unexpected error occurred");
+        setComposeError(t("inboxUnexpectedError"));
       } finally {
         setComposeSending(false);
       }
     },
-    [composeRecipient, composeSubject, composeBody, members]
+    [composeRecipient, composeSubject, composeBody, members, t]
   );
 
   // ---------------------------------------------------------------------------
@@ -469,11 +474,11 @@ export default function InboxClient({
       {/* Header */}
       <div className="inbox-header">
         <div>
-          <h2>Inbox</h2>
+          <h2>{t("inboxTitle")}</h2>
           <p className="inbox-header-sub">
             {unreadCount > 0
-              ? `${unreadCount} unread item${unreadCount === 1 ? "" : "s"}`
-              : "All caught up"}
+              ? t("inboxUnreadItems", { count: unreadCount })
+              : t("inboxAllCaughtUp")}
           </p>
         </div>
         <button
@@ -484,7 +489,7 @@ export default function InboxClient({
           }}
         >
           <Plus size={16} />
-          Compose
+          {t("inboxCompose")}
         </button>
       </div>
 
@@ -494,7 +499,7 @@ export default function InboxClient({
           className={`inbox-tab ${activeTab === "all" ? "active" : ""}`}
           onClick={() => setActiveTab("all")}
         >
-          All
+          {t("inboxAll")}
           {items.length > 0 && (
             <span className="inbox-tab-count">{items.length}</span>
           )}
@@ -504,7 +509,7 @@ export default function InboxClient({
           onClick={() => setActiveTab("messages")}
         >
           <Mail size={14} />
-          Messages
+          {t("inboxMessages")}
           {msgCount > 0 && (
             <span className="inbox-tab-count">{msgCount}</span>
           )}
@@ -514,7 +519,7 @@ export default function InboxClient({
           onClick={() => setActiveTab("notifications")}
         >
           <Bell size={14} />
-          Notifications
+          {t("inboxNotifications")}
           {notifCount > 0 && (
             <span className="inbox-tab-count">{notifCount}</span>
           )}
@@ -524,7 +529,7 @@ export default function InboxClient({
           onClick={() => setActiveTab("announcements")}
         >
           <Megaphone size={14} />
-          Announcements
+          {t("inboxAnnouncements")}
           {annCount > 0 && (
             <span className="inbox-tab-count">{annCount}</span>
           )}
@@ -536,7 +541,7 @@ export default function InboxClient({
         <Search size={16} className="inbox-search-icon" />
         <input
           type="text"
-          placeholder="Search inbox..."
+          placeholder={t("inboxSearchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -551,17 +556,17 @@ export default function InboxClient({
               <div className="inbox-empty-icon">
                 <Inbox size={28} />
               </div>
-              <h3>No items</h3>
+              <h3>{t("inboxNoItems")}</h3>
               <p>
                 {search.trim()
-                  ? "No items match your search."
+                  ? t("inboxNoSearchResults")
                   : activeTab === "messages"
-                    ? "No messages yet. Send one using the Compose button."
+                    ? t("inboxNoMessages")
                     : activeTab === "notifications"
-                      ? "No notifications to show."
+                      ? t("inboxNoNotifications")
                       : activeTab === "announcements"
-                        ? "No platform announcements."
-                        : "Your inbox is empty."}
+                        ? t("inboxNoAnnouncements")
+                        : t("inboxEmpty")}
               </p>
             </div>
           )}
@@ -590,10 +595,10 @@ export default function InboxClient({
               <div className="inbox-item-content">
                 <div className="inbox-item-top">
                   <span className="inbox-item-sender">
-                    {item.sender_name || "System"}
+                    {item.sender_name || t("inboxSystem")}
                   </span>
                   <span className="inbox-item-time">
-                    {formatRelativeTime(item.created_at)}
+                    {formatRelativeTime(item.created_at, dateLocale)}
                   </span>
                 </div>
                 <div className="inbox-item-title">{item.title}</div>
@@ -610,7 +615,7 @@ export default function InboxClient({
           {!selectedItem && (
             <div className="inbox-detail-empty">
               <Mail size={40} />
-              <p>Select an item to view details</p>
+              <p>{t("inboxSelectItem")}</p>
             </div>
           )}
 
@@ -624,17 +629,17 @@ export default function InboxClient({
                     {selectedItem.notification?.type || "info"}
                   </span>
                   <span className="inbox-detail-date">
-                    {formatFullDate(selectedItem.created_at)}
+                    {formatFullDate(selectedItem.created_at, dateLocale)}
                   </span>
                 </div>
                 <h3>{selectedItem.title}</h3>
               </div>
               <div className="inbox-detail-body">
-                {selectedItem.notification?.body || "No additional details."}
+                {selectedItem.notification?.body || t("inboxNoAdditionalDetails")}
               </div>
               {selectedItem.entity_type && (
                 <div className="inbox-detail-entity">
-                  Related: {selectedItem.entity_type}
+                  {t("inboxRelated")}: {selectedItem.entity_type}
                   {selectedItem.entity_id
                     ? ` (${selectedItem.entity_id.slice(0, 8)}...)`
                     : ""}
@@ -648,22 +653,22 @@ export default function InboxClient({
               <div className="inbox-detail-header">
                 <div className="inbox-detail-meta">
                   <span className="inbox-type-badge inbox-type-announcement">
-                    Announcement
+                    {t("inboxAnnouncementLabel")}
                   </span>
                   <span className="inbox-detail-date">
-                    {formatFullDate(selectedItem.created_at)}
+                    {formatFullDate(selectedItem.created_at, dateLocale)}
                   </span>
                 </div>
                 <h3>{selectedItem.title}</h3>
                 <div className="inbox-detail-participants">
-                  <span>From: Buildwrk Platform</span>
+                  <span>{t("inboxFrom")}: {t("inboxBuildwrkPlatform")}</span>
                   <span style={{ textTransform: "capitalize" }}>
-                    Audience: {selectedItem.announcement?.target_audience || "all"}
+                    {t("inboxAudience")}: {selectedItem.announcement?.target_audience || t("inboxAll")}
                   </span>
                 </div>
               </div>
               <div className="inbox-detail-body" style={{ whiteSpace: "pre-wrap" }}>
-                {selectedItem.announcement?.content || "No additional details."}
+                {selectedItem.announcement?.content || t("inboxNoAdditionalDetails")}
               </div>
             </div>
           )}
@@ -673,22 +678,22 @@ export default function InboxClient({
               <div className="inbox-detail-header">
                 <div className="inbox-detail-meta">
                   <span className="inbox-type-badge inbox-type-message">
-                    Message
+                    {t("inboxMessageLabel")}
                   </span>
                   <span className="inbox-detail-date">
-                    {formatFullDate(selectedItem.created_at)}
+                    {formatFullDate(selectedItem.created_at, dateLocale)}
                   </span>
                 </div>
                 <h3>{selectedItem.title}</h3>
                 <div className="inbox-detail-participants">
                   <span>
-                    From:{" "}
+                    {t("inboxFrom")}:{" "}
                     {selectedItem.message?.sender?.full_name ||
                       selectedItem.message?.sender?.email ||
                       "Unknown"}
                   </span>
                   <span>
-                    To:{" "}
+                    {t("inboxTo")}:{" "}
                     {selectedItem.message?.recipient?.full_name ||
                       selectedItem.message?.recipient?.email ||
                       "Unknown"}
@@ -700,7 +705,7 @@ export default function InboxClient({
               <div className="inbox-thread">
                 {loadingThread && (
                   <div className="inbox-thread-loading">
-                    Loading conversation...
+                    {t("inboxLoadingConversation")}
                   </div>
                 )}
 
@@ -714,13 +719,13 @@ export default function InboxClient({
                         <div className="inbox-thread-message-header">
                           <strong>
                             {msg.sender_id === userId
-                              ? "You"
+                              ? t("inboxYou")
                               : msg.sender?.full_name ||
                                 msg.sender?.email ||
                                 "Unknown"}
                           </strong>
                           <span className="inbox-thread-message-time">
-                            {formatFullDate(msg.created_at)}
+                            {formatFullDate(msg.created_at, dateLocale)}
                           </span>
                         </div>
                         <div className="inbox-thread-message-body">
@@ -736,13 +741,13 @@ export default function InboxClient({
                     <div className="inbox-thread-message-header">
                       <strong>
                         {selectedItem.message.sender_id === userId
-                          ? "You"
+                          ? t("inboxYou")
                           : selectedItem.message.sender?.full_name ||
                             selectedItem.message.sender?.email ||
                             "Unknown"}
                       </strong>
                       <span className="inbox-thread-message-time">
-                        {formatFullDate(selectedItem.created_at)}
+                        {formatFullDate(selectedItem.created_at, dateLocale)}
                       </span>
                     </div>
                     <div className="inbox-thread-message-body">
@@ -757,18 +762,18 @@ export default function InboxClient({
                 <button
                   className="inbox-action-btn"
                   onClick={() => setShowReply(!showReply)}
-                  title="Reply"
+                  title={t("inboxReply")}
                 >
                   <Reply size={16} />
-                  Reply
+                  {t("inboxReply")}
                 </button>
                 <button
                   className="inbox-action-btn"
                   onClick={() => handleArchive(selectedItem)}
-                  title="Archive"
+                  title={t("inboxArchive")}
                 >
                   <Archive size={16} />
-                  Archive
+                  {t("inboxArchive")}
                 </button>
               </div>
 
@@ -777,7 +782,7 @@ export default function InboxClient({
                 <form className="inbox-reply-form" onSubmit={handleSendReply}>
                   <textarea
                     className="inbox-reply-textarea"
-                    placeholder="Write your reply..."
+                    placeholder={t("inboxReplyPlaceholder")}
                     value={replyBody}
                     onChange={(e) => setReplyBody(e.target.value)}
                     rows={4}
@@ -792,7 +797,7 @@ export default function InboxClient({
                         setReplyBody("");
                       }}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       type="submit"
@@ -800,7 +805,7 @@ export default function InboxClient({
                       disabled={replySending || !replyBody.trim()}
                     >
                       <Send size={14} />
-                      {replySending ? "Sending..." : "Send Reply"}
+                      {replySending ? t("inboxSending") : t("inboxSendReply")}
                     </button>
                   </div>
                 </form>
@@ -820,11 +825,11 @@ export default function InboxClient({
         >
           <div className="inbox-compose">
             <div className="inbox-compose-header">
-              <h3>New Message</h3>
+              <h3>{t("inboxNewMessage")}</h3>
               <button
                 className="inbox-compose-close"
                 onClick={() => setShowCompose(false)}
-                title="Close"
+                title={t("inboxClose")}
               >
                 <X size={18} />
               </button>
@@ -837,7 +842,7 @@ export default function InboxClient({
             <form onSubmit={handleSendMessage}>
               <div className="inbox-compose-field">
                 <label className="form-label" htmlFor="compose-recipient">
-                  To
+                  {t("inboxTo")}
                 </label>
                 <select
                   id="compose-recipient"
@@ -846,7 +851,7 @@ export default function InboxClient({
                   onChange={(e) => setComposeRecipient(e.target.value)}
                   required
                 >
-                  <option value="">Select recipient...</option>
+                  <option value="">{t("inboxSelectRecipient")}</option>
                   {members
                     .filter((m) => m.user_id !== userId)
                     .map((m) => (
@@ -859,13 +864,13 @@ export default function InboxClient({
 
               <div className="inbox-compose-field">
                 <label className="form-label" htmlFor="compose-subject">
-                  Subject
+                  {t("inboxSubject")}
                 </label>
                 <input
                   id="compose-subject"
                   className="form-input"
                   type="text"
-                  placeholder="Message subject (optional)"
+                  placeholder={t("inboxSubjectPlaceholder")}
                   value={composeSubject}
                   onChange={(e) => setComposeSubject(e.target.value)}
                 />
@@ -873,12 +878,12 @@ export default function InboxClient({
 
               <div className="inbox-compose-field">
                 <label className="form-label" htmlFor="compose-body">
-                  Message
+                  {t("inboxMessageFieldLabel")}
                 </label>
                 <textarea
                   id="compose-body"
                   className="form-textarea"
-                  placeholder="Write your message..."
+                  placeholder={t("inboxMessagePlaceholder")}
                   value={composeBody}
                   onChange={(e) => setComposeBody(e.target.value)}
                   rows={8}
@@ -892,7 +897,7 @@ export default function InboxClient({
                   className="btn-secondary"
                   onClick={() => setShowCompose(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -900,7 +905,7 @@ export default function InboxClient({
                   disabled={composeSending || !composeRecipient || !composeBody.trim()}
                 >
                   <Send size={14} />
-                  {composeSending ? "Sending..." : "Send Message"}
+                  {composeSending ? t("inboxSending") : t("inboxSendMessage")}
                 </button>
               </div>
             </form>

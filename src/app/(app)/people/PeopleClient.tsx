@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Users,
   Plus,
@@ -45,14 +46,6 @@ const TYPE_BADGE_CLASS: Record<ContactType, string> = {
   tenant: "contact-type-tenant",
 };
 
-const TYPE_LABELS_LOCAL: Record<ContactType, string> = {
-  employee: "Employee",
-  subcontractor: "Subcontractor",
-  vendor: "Vendor",
-  client: "Client",
-  tenant: "Tenant",
-};
-
 interface PeopleClientProps {
   contacts: Contact[];
   typeFilter?: string;
@@ -60,31 +53,42 @@ interface PeopleClientProps {
   typeLabels: Record<string, string>;
 }
 
-const contactImportColumns: ImportColumn[] = [
-  { key: "first_name", label: "First Name", required: true },
-  { key: "last_name", label: "Last Name", required: true },
-  { key: "contact_type", label: "Type", required: false },
-  { key: "email", label: "Email", required: false, type: "email" },
-  { key: "phone", label: "Phone", required: false },
-  { key: "company_name", label: "Company", required: false },
-  { key: "job_title", label: "Job Title", required: false },
-];
-
 const contactSampleData = [
   { first_name: "Carlos", last_name: "Ramirez", contact_type: "subcontractor", email: "carlos@ramirezelectric.com", phone: "(512) 555-0101", company_name: "Ramirez Electric", job_title: "Owner" },
   { first_name: "Sarah", last_name: "Chen", contact_type: "vendor", email: "sarah@supplydepot.com", phone: "(512) 555-0202", company_name: "Supply Depot", job_title: "Sales Rep" },
 ];
 
-const FILTER_TABS: { key: string | undefined; label: string; href: string }[] = [
-  { key: undefined, label: "All", href: "/people" },
-  { key: "employee", label: "Employees", href: "/people?type=employee" },
-  { key: "subcontractor", label: "Subcontractors", href: "/people?type=subcontractor" },
-  { key: "vendor", label: "Vendors", href: "/people?type=vendor" },
-  { key: "client", label: "Clients", href: "/people?type=client" },
-];
-
 export default function PeopleClient({ contacts, typeFilter, searchFilter, typeLabels }: PeopleClientProps) {
   const router = useRouter();
+  const t = useTranslations("people");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const TYPE_LABELS_LOCAL: Record<ContactType, string> = {
+    employee: t("typeEmployee"),
+    subcontractor: t("typeSubcontractor"),
+    vendor: t("typeVendor"),
+    client: t("typeClient"),
+    tenant: t("typeTenant"),
+  };
+
+  const contactImportColumns: ImportColumn[] = [
+    { key: "first_name", label: t("firstName"), required: true },
+    { key: "last_name", label: t("lastName"), required: true },
+    { key: "contact_type", label: t("type"), required: false },
+    { key: "email", label: t("email"), required: false, type: "email" },
+    { key: "phone", label: t("phone"), required: false },
+    { key: "company_name", label: t("companyName"), required: false },
+    { key: "job_title", label: t("jobTitle"), required: false },
+  ];
+
+  const FILTER_TABS: { key: string | undefined; label: string; href: string }[] = [
+    { key: undefined, label: t("filterAll"), href: "/people" },
+    { key: "employee", label: t("filterEmployees"), href: "/people?type=employee" },
+    { key: "subcontractor", label: t("filterSubcontractors"), href: "/people?type=subcontractor" },
+    { key: "vendor", label: t("filterVendors"), href: "/people?type=vendor" },
+    { key: "client", label: t("filterClients"), href: "/people?type=client" },
+  ];
 
   const [showImport, setShowImport] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -143,7 +147,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to add contact");
+        throw new Error(data.error || t("failedToAddContact"));
       }
 
       setCreateFormData({
@@ -159,7 +163,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : "Failed to add contact");
+      setCreateError(err instanceof Error ? err.message : t("failedToAddContact"));
     } finally {
       setCreating(false);
     }
@@ -207,14 +211,14 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update contact");
+        throw new Error(data.error || t("failedToUpdateContact"));
       }
 
       setSelectedContact(null);
       setIsEditing(false);
       router.refresh();
     } catch (err: unknown) {
-      setEditError(err instanceof Error ? err.message : "Failed to update contact");
+      setEditError(err instanceof Error ? err.message : t("failedToUpdateContact"));
     } finally {
       setUpdating(false);
     }
@@ -232,14 +236,14 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete contact");
+        throw new Error(data.error || t("failedToDeleteContact"));
       }
 
       setSelectedContact(null);
       setShowDeleteConfirm(false);
       router.refresh();
     } catch (err: unknown) {
-      setEditError(err instanceof Error ? err.message : "Failed to delete contact");
+      setEditError(err instanceof Error ? err.message : t("failedToDeleteContact"));
       setShowDeleteConfirm(false);
     } finally {
       setDeleting(false);
@@ -260,7 +264,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
       body: JSON.stringify({ entity: "contacts", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -270,19 +274,19 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
       {/* Header */}
       <div className="people-header">
         <div>
-          <h2>People Directory</h2>
+          <h2>{t("peopleDirectory")}</h2>
           <p className="people-header-sub">
-            Manage employees, subcontractors, vendors, and contacts.
+            {t("peopleDirectoryDescription")}
           </p>
         </div>
         <div className="people-header-actions">
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            Add Contact
+            {t("addContact")}
           </button>
         </div>
       </div>
@@ -301,7 +305,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
               type="text"
               name="search"
               className="people-search-input"
-              placeholder="Search by name, email, or company..."
+              placeholder={t("searchPlaceholder")}
               defaultValue={searchFilter || ""}
             />
           </form>
@@ -327,13 +331,13 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
           <div className="people-empty-icon">
             <Users size={48} />
           </div>
-          <div className="people-empty-title">No contacts found</div>
+          <div className="people-empty-title">{t("noContactsFound")}</div>
           <p className="people-empty-desc">
             {searchFilter
-              ? `No results for "${searchFilter}". Try a different search term.`
+              ? t("noSearchResults", { search: searchFilter })
               : typeFilter
-                ? `No ${typeLabels[typeFilter]?.toLowerCase() || typeFilter}s in your directory yet.`
-                : "Start building your directory by adding team members, subcontractors, and vendors."}
+                ? t("noTypeResults", { type: typeLabels[typeFilter]?.toLowerCase() || typeFilter })
+                : t("emptyDirectoryMessage")}
           </p>
         </div>
       ) : (
@@ -343,6 +347,8 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
               key={contact.id}
               contact={contact}
               onClick={() => handleCardClick(contact)}
+              typeLabels={TYPE_LABELS_LOCAL}
+              t={t}
             />
           ))}
         </div>
@@ -353,7 +359,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Add New Contact</h3>
+              <h3>{t("addNewContact")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}>
                 <X size={18} />
               </button>
@@ -363,62 +369,62 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Type *</label>
+                <label className="ticket-form-label">{t("typeRequired")}</label>
                 <select
                   className="ticket-form-select"
                   value={createFormData.contact_type}
                   onChange={(e) => setCreateFormData({ ...createFormData, contact_type: e.target.value })}
                 >
-                  <option value="employee">Employee</option>
-                  <option value="subcontractor">Subcontractor</option>
-                  <option value="vendor">Vendor</option>
-                  <option value="client">Client</option>
-                  <option value="tenant">Tenant</option>
+                  <option value="employee">{t("typeEmployee")}</option>
+                  <option value="subcontractor">{t("typeSubcontractor")}</option>
+                  <option value="vendor">{t("typeVendor")}</option>
+                  <option value="client">{t("typeClient")}</option>
+                  <option value="tenant">{t("typeTenant")}</option>
                 </select>
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">First Name *</label>
-                  <input type="text" className="ticket-form-input" value={createFormData.first_name} onChange={(e) => setCreateFormData({ ...createFormData, first_name: e.target.value })} placeholder="First name" required />
+                  <label className="ticket-form-label">{t("firstNameRequired")}</label>
+                  <input type="text" className="ticket-form-input" value={createFormData.first_name} onChange={(e) => setCreateFormData({ ...createFormData, first_name: e.target.value })} placeholder={t("firstNamePlaceholder")} required />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Last Name *</label>
-                  <input type="text" className="ticket-form-input" value={createFormData.last_name} onChange={(e) => setCreateFormData({ ...createFormData, last_name: e.target.value })} placeholder="Last name" required />
-                </div>
-              </div>
-
-              <div className="ticket-form-row">
-                <div className="ticket-form-group">
-                  <label className="ticket-form-label">Email</label>
-                  <input type="email" className="ticket-form-input" value={createFormData.email} onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })} placeholder="email@example.com" />
-                </div>
-                <div className="ticket-form-group">
-                  <label className="ticket-form-label">Phone</label>
-                  <input type="text" className="ticket-form-input" value={createFormData.phone} onChange={(e) => setCreateFormData({ ...createFormData, phone: e.target.value })} placeholder="(555) 123-4567" />
+                  <label className="ticket-form-label">{t("lastNameRequired")}</label>
+                  <input type="text" className="ticket-form-input" value={createFormData.last_name} onChange={(e) => setCreateFormData({ ...createFormData, last_name: e.target.value })} placeholder={t("lastNamePlaceholder")} required />
                 </div>
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Company Name</label>
-                  <input type="text" className="ticket-form-input" value={createFormData.company_name} onChange={(e) => setCreateFormData({ ...createFormData, company_name: e.target.value })} placeholder="Company or organization" />
+                  <label className="ticket-form-label">{t("email")}</label>
+                  <input type="email" className="ticket-form-input" value={createFormData.email} onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })} placeholder={t("emailPlaceholder")} />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Title / Position</label>
-                  <input type="text" className="ticket-form-input" value={createFormData.job_title} onChange={(e) => setCreateFormData({ ...createFormData, job_title: e.target.value })} placeholder="Job title or role" />
+                  <label className="ticket-form-label">{t("phone")}</label>
+                  <input type="text" className="ticket-form-input" value={createFormData.phone} onChange={(e) => setCreateFormData({ ...createFormData, phone: e.target.value })} placeholder={t("phonePlaceholder")} />
+                </div>
+              </div>
+
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("companyName")}</label>
+                  <input type="text" className="ticket-form-input" value={createFormData.company_name} onChange={(e) => setCreateFormData({ ...createFormData, company_name: e.target.value })} placeholder={t("companyNamePlaceholder")} />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("titlePosition")}</label>
+                  <input type="text" className="ticket-form-input" value={createFormData.job_title} onChange={(e) => setCreateFormData({ ...createFormData, job_title: e.target.value })} placeholder={t("titlePositionPlaceholder")} />
                 </div>
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Notes</label>
-                <textarea className="ticket-form-textarea" value={createFormData.notes} onChange={(e) => setCreateFormData({ ...createFormData, notes: e.target.value })} placeholder="Optional notes about this contact..." rows={3} />
+                <label className="ticket-form-label">{t("notes")}</label>
+                <textarea className="ticket-form-textarea" value={createFormData.notes} onChange={(e) => setCreateFormData({ ...createFormData, notes: e.target.value })} placeholder={t("notesPlaceholder")} rows={3} />
               </div>
 
               <div className="ticket-form-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>Cancel</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
                 <button type="submit" className="btn-primary" disabled={creating || !createFormData.first_name.trim() || !createFormData.last_name.trim()}>
-                  {creating ? "Adding..." : "Add Contact"}
+                  {creating ? t("adding") : t("addContact")}
                 </button>
               </div>
             </form>
@@ -429,7 +435,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
       {/* Import CSV Modal */}
       {showImport && (
         <ImportModal
-          entityName="Contacts"
+          entityName={t("contactsEntity")}
           columns={contactImportColumns}
           sampleData={contactSampleData}
           onImport={handleContactsImport}
@@ -444,7 +450,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
             <div className="ticket-modal-header">
               <h3>
                 {isEditing
-                  ? "Edit Contact"
+                  ? t("editContact")
                   : `${selectedContact.first_name} ${selectedContact.last_name}`}
               </h3>
               <button className="ticket-modal-close" onClick={closeModal}>
@@ -457,72 +463,70 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
             {showDeleteConfirm ? (
               <div className="ticket-delete-confirm">
                 <p>
-                  Are you sure you want to delete{" "}
-                  <strong>{selectedContact.first_name} {selectedContact.last_name}</strong>?
-                  This action cannot be undone.
+                  {t("deleteContactConfirm", { name: `${selectedContact.first_name} ${selectedContact.last_name}` })}
                 </p>
                 <div className="ticket-delete-actions">
-                  <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>Cancel</button>
+                  <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>{t("cancel")}</button>
                   <button className="btn-danger" onClick={handleDelete} disabled={deleting}>
-                    {deleting ? "Deleting..." : "Delete Contact"}
+                    {deleting ? t("deleting") : t("deleteContact")}
                   </button>
                 </div>
               </div>
             ) : isEditing ? (
               <form onSubmit={handleUpdate} className="ticket-form">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Type *</label>
+                  <label className="ticket-form-label">{t("typeRequired")}</label>
                   <select className="ticket-form-select" value={editFormData.contact_type} onChange={(e) => setEditFormData({ ...editFormData, contact_type: e.target.value })}>
-                    <option value="employee">Employee</option>
-                    <option value="subcontractor">Subcontractor</option>
-                    <option value="vendor">Vendor</option>
-                    <option value="client">Client</option>
-                    <option value="tenant">Tenant</option>
+                    <option value="employee">{t("typeEmployee")}</option>
+                    <option value="subcontractor">{t("typeSubcontractor")}</option>
+                    <option value="vendor">{t("typeVendor")}</option>
+                    <option value="client">{t("typeClient")}</option>
+                    <option value="tenant">{t("typeTenant")}</option>
                   </select>
                 </div>
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">First Name *</label>
+                    <label className="ticket-form-label">{t("firstNameRequired")}</label>
                     <input type="text" className="ticket-form-input" value={editFormData.first_name} onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })} required />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Last Name *</label>
+                    <label className="ticket-form-label">{t("lastNameRequired")}</label>
                     <input type="text" className="ticket-form-input" value={editFormData.last_name} onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })} required />
                   </div>
                 </div>
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Email</label>
+                    <label className="ticket-form-label">{t("email")}</label>
                     <input type="email" className="ticket-form-input" value={editFormData.email} onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })} />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Phone</label>
+                    <label className="ticket-form-label">{t("phone")}</label>
                     <input type="text" className="ticket-form-input" value={editFormData.phone} onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Company Name</label>
+                    <label className="ticket-form-label">{t("companyName")}</label>
                     <input type="text" className="ticket-form-input" value={editFormData.company_name} onChange={(e) => setEditFormData({ ...editFormData, company_name: e.target.value })} />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Title / Position</label>
+                    <label className="ticket-form-label">{t("titlePosition")}</label>
                     <input type="text" className="ticket-form-input" value={editFormData.job_title} onChange={(e) => setEditFormData({ ...editFormData, job_title: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Notes</label>
+                  <label className="ticket-form-label">{t("notes")}</label>
                   <textarea className="ticket-form-textarea" value={editFormData.notes} onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })} rows={3} />
                 </div>
 
                 <div className="ticket-form-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
+                  <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)}>{t("cancel")}</button>
                   <button type="submit" className="btn-primary" disabled={updating || !editFormData.first_name.trim() || !editFormData.last_name.trim()}>
-                    {updating ? "Saving..." : "Save Changes"}
+                    {updating ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </form>
@@ -579,7 +583,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
 
                   {selectedContact.notes && (
                     <div className="people-detail-notes">
-                      <label>Notes</label>
+                      <label>{t("notes")}</label>
                       <p>{selectedContact.notes}</p>
                     </div>
                   )}
@@ -587,7 +591,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                   {(selectedContact.expiring_certs_count ?? 0) > 0 && (
                     <div className="cert-warning-text" style={{ marginTop: 16 }}>
                       <AlertCircle size={14} />
-                      {selectedContact.expiring_certs_count} certification{selectedContact.expiring_certs_count !== 1 ? "s" : ""} expiring soon
+                      {t("certsExpiringSoon", { count: selectedContact.expiring_certs_count! })}
                     </div>
                   )}
                 </div>
@@ -595,11 +599,11 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                 <div className="ticket-form-actions">
                   <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
                     <Trash2 size={16} />
-                    Delete
+                    {t("delete")}
                   </button>
                   <button className="btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>
                     <Edit3 size={16} />
-                    Edit
+                    {t("edit")}
                   </button>
                 </div>
               </>
@@ -612,7 +616,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
 }
 
 // Contact Card Component
-function ContactCard({ contact, onClick }: { contact: Contact; onClick: () => void }) {
+function ContactCard({ contact, onClick, typeLabels, t }: { contact: Contact; onClick: () => void; typeLabels: Record<ContactType, string>; t: ReturnType<typeof useTranslations> }) {
   const initials = (contact.first_name?.[0] || "") + (contact.last_name?.[0] || "");
   const fullName = `${contact.first_name} ${contact.last_name}`.trim();
   const hasCertWarning = (contact.expiring_certs_count ?? 0) > 0;
@@ -625,7 +629,7 @@ function ContactCard({ contact, onClick }: { contact: Contact; onClick: () => vo
         </div>
         <div className="contact-card-info">
           <div className="contact-card-name">
-            {fullName || "Unnamed Contact"}
+            {fullName || t("unnamedContact")}
             {hasCertWarning && <span className="cert-warning" />}
           </div>
           {contact.job_title && <div className="contact-card-title">{contact.job_title}</div>}
@@ -633,7 +637,7 @@ function ContactCard({ contact, onClick }: { contact: Contact; onClick: () => vo
         </div>
         <div className="contact-card-type">
           <span className={`badge ${TYPE_BADGE_CLASS[contact.contact_type] || ""}`}>
-            {TYPE_LABELS_LOCAL[contact.contact_type] || contact.contact_type}
+            {typeLabels[contact.contact_type] || contact.contact_type}
           </span>
         </div>
       </div>
@@ -660,7 +664,7 @@ function ContactCard({ contact, onClick }: { contact: Contact; onClick: () => vo
       {hasCertWarning && (
         <div className="cert-warning-text">
           <AlertCircle size={12} />
-          {contact.expiring_certs_count} cert{(contact.expiring_certs_count ?? 0) !== 1 ? "s" : ""} expiring
+          {t("certsExpiringShort", { count: contact.expiring_certs_count! })}
         </div>
       )}
     </div>

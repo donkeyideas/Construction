@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Target,
   DollarSign,
@@ -63,15 +64,6 @@ interface CRMPipelineClientProps {
 // Constants
 // ---------------------------------------------------------------------------
 
-const STAGE_LABELS: Record<OpportunityStage, string> = {
-  lead: "Lead",
-  qualification: "Qualification",
-  proposal: "Proposal",
-  negotiation: "Negotiation",
-  won: "Won",
-  lost: "Lost",
-};
-
 const STAGE_COLORS: Record<OpportunityStage, string> = {
   lead: "badge-blue",
   qualification: "badge-amber",
@@ -90,25 +82,6 @@ const STAGES: OpportunityStage[] = [
   "lost",
 ];
 
-const SOURCES = [
-  { value: "referral", label: "Referral" },
-  { value: "website", label: "Website" },
-  { value: "cold_call", label: "Cold Call" },
-  { value: "trade_show", label: "Trade Show" },
-  { value: "existing_client", label: "Existing Client" },
-  { value: "other", label: "Other" },
-];
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "name", label: "Opportunity Name", required: true },
-  { key: "client_name", label: "Client Name", required: false },
-  { key: "stage", label: "Stage", required: false },
-  { key: "estimated_value", label: "Estimated Value ($)", required: false, type: "number" },
-  { key: "probability_pct", label: "Probability (%)", required: false, type: "number" },
-  { key: "expected_close_date", label: "Expected Close Date", required: false, type: "date" },
-  { key: "source", label: "Source", required: false },
-];
-
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { name: "Office Tower Renovation", client_name: "Skyline Properties", stage: "proposal", estimated_value: "2500000", probability_pct: "60", expected_close_date: "2026-03-15", source: "referral" },
   { name: "Warehouse Expansion", client_name: "LogiFlow Inc", stage: "lead", estimated_value: "800000", probability_pct: "25", expected_close_date: "2026-05-01", source: "website" },
@@ -124,6 +97,37 @@ export default function CRMPipelineClient({
   summary,
 }: CRMPipelineClientProps) {
   const router = useRouter();
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const STAGE_LABELS: Record<OpportunityStage, string> = {
+    lead: t("stageLead"),
+    qualification: t("stageQualification"),
+    proposal: t("stageProposal"),
+    negotiation: t("stageNegotiation"),
+    won: t("stageWon"),
+    lost: t("stageLost"),
+  };
+
+  const SOURCES = [
+    { value: "referral", label: t("sourceReferral") },
+    { value: "website", label: t("sourceWebsite") },
+    { value: "cold_call", label: t("sourceColdCall") },
+    { value: "trade_show", label: t("sourceTradeShow") },
+    { value: "existing_client", label: t("sourceExistingClient") },
+    { value: "other", label: t("sourceOther") },
+  ];
+
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "name", label: t("opportunityName"), required: true },
+    { key: "client_name", label: t("clientName"), required: false },
+    { key: "stage", label: t("stage"), required: false },
+    { key: "estimated_value", label: t("estimatedValueDollar"), required: false, type: "number" },
+    { key: "probability_pct", label: t("probabilityPercent"), required: false, type: "number" },
+    { key: "expected_close_date", label: t("expectedCloseDate"), required: false, type: "date" },
+    { key: "source", label: t("source"), required: false },
+  ];
 
   const [showImport, setShowImport] = useState(false);
 
@@ -221,7 +225,7 @@ export default function CRMPipelineClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create opportunity");
+        throw new Error(data.error || t("failedToCreateOpportunity"));
       }
 
       resetCreateForm();
@@ -229,7 +233,7 @@ export default function CRMPipelineClient({
       router.refresh();
     } catch (err: unknown) {
       setCreateError(
-        err instanceof Error ? err.message : "Failed to create opportunity"
+        err instanceof Error ? err.message : t("failedToCreateOpportunity")
       );
     } finally {
       setCreating(false);
@@ -302,14 +306,14 @@ export default function CRMPipelineClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update opportunity");
+        throw new Error(data.error || t("failedToUpdateOpportunity"));
       }
 
       closeEdit();
       router.refresh();
     } catch (err: unknown) {
       setEditError(
-        err instanceof Error ? err.message : "Failed to update opportunity"
+        err instanceof Error ? err.message : t("failedToUpdateOpportunity")
       );
     } finally {
       setEditing(false);
@@ -344,14 +348,14 @@ export default function CRMPipelineClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete opportunity");
+        throw new Error(data.error || t("failedToDeleteOpportunity"));
       }
 
       closeDelete();
       router.refresh();
     } catch (err: unknown) {
       setDeleteError(
-        err instanceof Error ? err.message : "Failed to delete opportunity"
+        err instanceof Error ? err.message : t("failedToDeleteOpportunity")
       );
     } finally {
       setDeleting(false);
@@ -369,7 +373,7 @@ export default function CRMPipelineClient({
       body: JSON.stringify({ entity: "opportunities", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -383,19 +387,19 @@ export default function CRMPipelineClient({
       {/* Header with Create Button */}
       <div className="crm-header">
         <div>
-          <h2>Sales Pipeline</h2>
+          <h2>{t("salesPipeline")}</h2>
           <p className="crm-header-sub">
-            Track opportunities from lead to close.
+            {t("trackOpportunitiesFromLeadToClose")}
           </p>
         </div>
         <div className="crm-header-actions">
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New Opportunity
+            {t("newOpportunity")}
           </button>
         </div>
       </div>
@@ -403,22 +407,22 @@ export default function CRMPipelineClient({
       {/* Pipeline Summary */}
       <div className="pipeline-summary">
         <SummaryCard
-          label="Total Pipeline"
+          label={t("totalPipeline")}
           value={formatCompactCurrency(summary.totalPipelineValue)}
           icon={<DollarSign size={20} />}
         />
         <SummaryCard
-          label="Weighted Value"
+          label={t("weightedValue")}
           value={formatCompactCurrency(summary.weightedValue)}
           icon={<TrendingUp size={20} />}
         />
         <SummaryCard
-          label="Win Rate"
+          label={t("winRate")}
           value={formatPercent(summary.winRate)}
           icon={<Target size={20} />}
         />
         <SummaryCard
-          label="Avg Deal Size"
+          label={t("avgDealSize")}
           value={formatCompactCurrency(summary.avgDealSize)}
           icon={<BarChart3 size={20} />}
         />
@@ -438,7 +442,7 @@ export default function CRMPipelineClient({
               marginBottom: 8,
             }}
           >
-            No opportunities yet
+            {t("noOpportunitiesYet")}
           </div>
           <p
             style={{
@@ -449,8 +453,7 @@ export default function CRMPipelineClient({
               lineHeight: 1.5,
             }}
           >
-            Start building your sales pipeline by adding leads and tracking them
-            through each stage to close.
+            {t("startBuildingYourSalesPipeline")}
           </p>
         </div>
       ) : (
@@ -476,13 +479,14 @@ export default function CRMPipelineClient({
                 </div>
                 <div className="pipeline-column-cards">
                   {stageOpps.length === 0 ? (
-                    <div className="pipeline-empty">No items</div>
+                    <div className="pipeline-empty">{t("noItems")}</div>
                   ) : (
                     stageOpps.map((opp) => (
                       <PipelineCard
                         key={opp.id}
                         opportunity={opp}
                         onClick={() => openDetail(opp)}
+                        dateLocale={dateLocale}
                       />
                     ))
                   )}
@@ -504,7 +508,7 @@ export default function CRMPipelineClient({
         >
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>New Opportunity</h3>
+              <h3>{t("newOpportunity")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => {
@@ -522,7 +526,7 @@ export default function CRMPipelineClient({
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Name *</label>
+                <label className="ticket-form-label">{t("nameRequired")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -530,13 +534,13 @@ export default function CRMPipelineClient({
                   onChange={(e) =>
                     setCreateFormData({ ...createFormData, name: e.target.value })
                   }
-                  placeholder="Opportunity name"
+                  placeholder={t("opportunityNamePlaceholder")}
                   required
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Client Name</label>
+                <label className="ticket-form-label">{t("clientName")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -544,26 +548,26 @@ export default function CRMPipelineClient({
                   onChange={(e) =>
                     setCreateFormData({ ...createFormData, client_name: e.target.value })
                   }
-                  placeholder="Client or company name"
+                  placeholder={t("clientOrCompanyNamePlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Notes</label>
+                <label className="ticket-form-label">{t("notes")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   value={createFormData.notes}
                   onChange={(e) =>
                     setCreateFormData({ ...createFormData, notes: e.target.value })
                   }
-                  placeholder="Describe the opportunity..."
+                  placeholder={t("describeTheOpportunityPlaceholder")}
                   rows={3}
                 />
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Stage</label>
+                  <label className="ticket-form-label">{t("stage")}</label>
                   <select
                     className="ticket-form-select"
                     value={createFormData.stage}
@@ -583,7 +587,7 @@ export default function CRMPipelineClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Source</label>
+                  <label className="ticket-form-label">{t("source")}</label>
                   <select
                     className="ticket-form-select"
                     value={createFormData.source}
@@ -591,7 +595,7 @@ export default function CRMPipelineClient({
                       setCreateFormData({ ...createFormData, source: e.target.value })
                     }
                   >
-                    <option value="">Select source...</option>
+                    <option value="">{t("selectSourcePlaceholder")}</option>
                     {SOURCES.map((s) => (
                       <option key={s.value} value={s.value}>
                         {s.label}
@@ -603,7 +607,7 @@ export default function CRMPipelineClient({
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Value ($)</label>
+                  <label className="ticket-form-label">{t("valueDollar")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -614,14 +618,14 @@ export default function CRMPipelineClient({
                         estimated_value: e.target.value,
                       })
                     }
-                    placeholder="Estimated deal value"
+                    placeholder={t("estimatedDealValuePlaceholder")}
                     min="0"
                     step="0.01"
                   />
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Probability (%)</label>
+                  <label className="ticket-form-label">{t("probabilityPercentLabel")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -640,7 +644,7 @@ export default function CRMPipelineClient({
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Expected Close Date</label>
+                <label className="ticket-form-label">{t("expectedCloseDate")}</label>
                 <input
                   type="date"
                   className="ticket-form-input"
@@ -663,14 +667,14 @@ export default function CRMPipelineClient({
                     resetCreateForm();
                   }}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !createFormData.name.trim()}
                 >
-                  {creating ? "Creating..." : "Create Opportunity"}
+                  {creating ? t("creating") : t("createOpportunity")}
                 </button>
               </div>
             </form>
@@ -694,7 +698,7 @@ export default function CRMPipelineClient({
 
             <div className="ticket-detail-body">
               <div className="ticket-detail-row">
-                <span className="ticket-detail-label">Stage</span>
+                <span className="ticket-detail-label">{t("stage")}</span>
                 <span className={`badge ${STAGE_COLORS[selectedOpp.stage]}`}>
                   {STAGE_LABELS[selectedOpp.stage]}
                 </span>
@@ -702,44 +706,44 @@ export default function CRMPipelineClient({
 
               {selectedOpp.client_name && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Client</span>
+                  <span className="ticket-detail-label">{t("client")}</span>
                   <span>{selectedOpp.client_name}</span>
                 </div>
               )}
 
               {selectedOpp.notes && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Notes</span>
+                  <span className="ticket-detail-label">{t("notes")}</span>
                   <span>{selectedOpp.notes}</span>
                 </div>
               )}
 
               {selectedOpp.estimated_value != null && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Estimated Value</span>
+                  <span className="ticket-detail-label">{t("estimatedValue")}</span>
                   <span>{formatCurrency(selectedOpp.estimated_value)}</span>
                 </div>
               )}
 
               {selectedOpp.probability_pct != null && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Probability</span>
+                  <span className="ticket-detail-label">{t("probability")}</span>
                   <span>{selectedOpp.probability_pct}%</span>
                 </div>
               )}
 
               {selectedOpp.expected_close_date && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Expected Close Date</span>
+                  <span className="ticket-detail-label">{t("expectedCloseDate")}</span>
                   <span>
-                    {new Date(selectedOpp.expected_close_date).toLocaleDateString()}
+                    {new Date(selectedOpp.expected_close_date).toLocaleDateString(dateLocale)}
                   </span>
                 </div>
               )}
 
               {selectedOpp.source && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Source</span>
+                  <span className="ticket-detail-label">{t("source")}</span>
                   <span>
                     {SOURCES.find((s) => s.value === selectedOpp.source)?.label ||
                       selectedOpp.source}
@@ -749,7 +753,7 @@ export default function CRMPipelineClient({
 
               {selectedOpp.assigned_user && (
                 <div className="ticket-detail-row">
-                  <span className="ticket-detail-label">Assigned To</span>
+                  <span className="ticket-detail-label">{t("assignedTo")}</span>
                   <span>
                     {selectedOpp.assigned_user.full_name ||
                       selectedOpp.assigned_user.email}
@@ -765,14 +769,14 @@ export default function CRMPipelineClient({
                 onClick={() => openDelete(selectedOpp)}
               >
                 <Trash2 size={16} />
-                Delete
+                {t("delete")}
               </button>
               <button
                 className="btn-primary"
                 onClick={() => openEdit(selectedOpp)}
               >
                 <Edit3 size={16} />
-                Edit
+                {t("edit")}
               </button>
             </div>
           </div>
@@ -787,7 +791,7 @@ export default function CRMPipelineClient({
         >
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Edit Opportunity</h3>
+              <h3>{t("editOpportunity")}</h3>
               <button className="ticket-modal-close" onClick={closeEdit}>
                 <X size={18} />
               </button>
@@ -799,7 +803,7 @@ export default function CRMPipelineClient({
 
             <form onSubmit={handleEdit} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Name *</label>
+                <label className="ticket-form-label">{t("nameRequired")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -807,13 +811,13 @@ export default function CRMPipelineClient({
                   onChange={(e) =>
                     setEditFormData({ ...editFormData, name: e.target.value })
                   }
-                  placeholder="Opportunity name"
+                  placeholder={t("opportunityNamePlaceholder")}
                   required
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Client Name</label>
+                <label className="ticket-form-label">{t("clientName")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -821,26 +825,26 @@ export default function CRMPipelineClient({
                   onChange={(e) =>
                     setEditFormData({ ...editFormData, client_name: e.target.value })
                   }
-                  placeholder="Client or company name"
+                  placeholder={t("clientOrCompanyNamePlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Notes</label>
+                <label className="ticket-form-label">{t("notes")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   value={editFormData.notes}
                   onChange={(e) =>
                     setEditFormData({ ...editFormData, notes: e.target.value })
                   }
-                  placeholder="Additional notes..."
+                  placeholder={t("additionalNotesPlaceholder")}
                   rows={3}
                 />
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Stage</label>
+                  <label className="ticket-form-label">{t("stage")}</label>
                   <select
                     className="ticket-form-select"
                     value={editFormData.stage}
@@ -860,7 +864,7 @@ export default function CRMPipelineClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Source</label>
+                  <label className="ticket-form-label">{t("source")}</label>
                   <select
                     className="ticket-form-select"
                     value={editFormData.source}
@@ -868,7 +872,7 @@ export default function CRMPipelineClient({
                       setEditFormData({ ...editFormData, source: e.target.value })
                     }
                   >
-                    <option value="">Select source...</option>
+                    <option value="">{t("selectSourcePlaceholder")}</option>
                     {SOURCES.map((s) => (
                       <option key={s.value} value={s.value}>
                         {s.label}
@@ -880,7 +884,7 @@ export default function CRMPipelineClient({
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Value ($)</label>
+                  <label className="ticket-form-label">{t("valueDollar")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -891,14 +895,14 @@ export default function CRMPipelineClient({
                         estimated_value: e.target.value,
                       })
                     }
-                    placeholder="Estimated deal value"
+                    placeholder={t("estimatedDealValuePlaceholder")}
                     min="0"
                     step="0.01"
                   />
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Probability (%)</label>
+                  <label className="ticket-form-label">{t("probabilityPercentLabel")}</label>
                   <input
                     type="number"
                     className="ticket-form-input"
@@ -917,7 +921,7 @@ export default function CRMPipelineClient({
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Expected Close Date</label>
+                <label className="ticket-form-label">{t("expectedCloseDate")}</label>
                 <input
                   type="date"
                   className="ticket-form-input"
@@ -937,14 +941,14 @@ export default function CRMPipelineClient({
                   className="btn-secondary"
                   onClick={closeEdit}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={editing || !editFormData.name.trim()}
                 >
-                  {editing ? "Saving..." : "Save Changes"}
+                  {editing ? t("saving") : t("saveChanges")}
                 </button>
               </div>
             </form>
@@ -954,7 +958,7 @@ export default function CRMPipelineClient({
 
       {showImport && (
         <ImportModal
-          entityName="Opportunities"
+          entityName={t("opportunities")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
@@ -970,7 +974,7 @@ export default function CRMPipelineClient({
         >
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Delete Opportunity</h3>
+              <h3>{t("deleteOpportunity")}</h3>
               <button className="ticket-modal-close" onClick={closeDelete}>
                 <X size={18} />
               </button>
@@ -978,9 +982,9 @@ export default function CRMPipelineClient({
 
             <div className="ticket-delete-confirm">
               <p>
-                Are you sure you want to delete <strong>{deletingOpp.name}</strong>?
+                {t("confirmDeleteOpportunity", { name: deletingOpp.name })}
               </p>
-              <p>This action cannot be undone.</p>
+              <p>{t("thisActionCannotBeUndone")}</p>
             </div>
 
             {deleteError && (
@@ -994,7 +998,7 @@ export default function CRMPipelineClient({
                 onClick={closeDelete}
                 disabled={deleting}
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -1002,7 +1006,7 @@ export default function CRMPipelineClient({
                 onClick={handleDelete}
                 disabled={deleting}
               >
-                {deleting ? "Deleting..." : "Delete"}
+                {deleting ? t("deleting") : t("delete")}
               </button>
             </div>
           </div>
@@ -1039,9 +1043,11 @@ function SummaryCard({
 function PipelineCard({
   opportunity,
   onClick,
+  dateLocale,
 }: {
   opportunity: Opportunity;
   onClick: () => void;
+  dateLocale: string;
 }) {
   const assignedName =
     opportunity.assigned_user?.full_name ||
@@ -1079,7 +1085,7 @@ function PipelineCard({
             <Calendar size={12} />
             <span>
               {new Date(opportunity.expected_close_date).toLocaleDateString(
-                "en-US",
+                dateLocale,
                 { month: "short", day: "numeric" }
               )}
             </span>

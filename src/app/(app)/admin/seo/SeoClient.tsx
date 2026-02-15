@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   FileText,
   MapPin,
@@ -65,6 +66,9 @@ export default function SeoClient({
   seoIssues,
   geoPresence,
 }: SeoClientProps) {
+  const t = useTranslations("adminPanel");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const [activeTab, setActiveTab] = useState<"seo" | "geo">("seo");
 
   return (
@@ -75,13 +79,13 @@ export default function SeoClient({
           className={`seo-tab ${activeTab === "seo" ? "active" : ""}`}
           onClick={() => setActiveTab("seo")}
         >
-          SEO Audit
+          {t("seoAudit")}
         </button>
         <button
           className={`seo-tab ${activeTab === "geo" ? "active" : ""}`}
           onClick={() => setActiveTab("geo")}
         >
-          Geographic Presence
+          {t("geographicPresence")}
         </button>
       </div>
 
@@ -101,27 +105,27 @@ export default function SeoClient({
             >
               <SeoScoreRing score={seoOverview.seoScore} />
               <div>
-                <span className="content-stat-label">SEO Score</span>
+                <span className="content-stat-label">{t("seoScore")}</span>
                 <span
                   className="content-stat-value"
                   style={{ fontSize: "1rem" }}
                 >
                   {seoOverview.seoScore >= 70
-                    ? "Good"
+                    ? t("good")
                     : seoOverview.seoScore >= 40
-                      ? "Needs Work"
-                      : "Poor"}
+                      ? t("needsWork")
+                      : t("poor")}
                 </span>
               </div>
             </div>
             <div className="content-stat-card">
-              <span className="content-stat-label">Pages Audited</span>
+              <span className="content-stat-label">{t("pagesAudited")}</span>
               <span className="content-stat-value blue">
                 {seoOverview.totalPages}
               </span>
             </div>
             <div className="content-stat-card">
-              <span className="content-stat-label">Missing Meta Titles</span>
+              <span className="content-stat-label">{t("missingMetaTitles")}</span>
               <span
                 className={`content-stat-value ${seoOverview.missingMetaTitle > 0 ? "red" : "green"}`}
               >
@@ -130,7 +134,7 @@ export default function SeoClient({
             </div>
             <div className="content-stat-card">
               <span className="content-stat-label">
-                Missing Meta Descriptions
+                {t("missingMetaDescriptions")}
               </span>
               <span
                 className={`content-stat-value ${seoOverview.missingMetaDescription > 0 ? "red" : "green"}`}
@@ -146,11 +150,11 @@ export default function SeoClient({
               <table className="seo-issues-table">
                 <thead>
                   <tr>
-                    <th>Page</th>
-                    <th>Issue</th>
-                    <th>Severity</th>
-                    <th>Recommendation</th>
-                    <th>Action</th>
+                    <th>{t("page")}</th>
+                    <th>{t("issue")}</th>
+                    <th>{t("severity")}</th>
+                    <th>{t("recommendation")}</th>
+                    <th>{t("action")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -163,8 +167,8 @@ export default function SeoClient({
                           className={`status-badge ${issue.severity}`}
                         >
                           {issue.severity === "critical"
-                            ? "Critical"
-                            : "Warning"}
+                            ? t("critical")
+                            : t("warning")}
                         </span>
                       </td>
                       <td
@@ -181,7 +185,7 @@ export default function SeoClient({
                           href={`/admin/content/${issue.pageSlug}`}
                           className="seo-issue-link"
                         >
-                          Fix
+                          {t("fix")}
                         </Link>
                       </td>
                     </tr>
@@ -196,13 +200,13 @@ export default function SeoClient({
               </div>
               <h3>
                 {seoOverview.totalPages === 0
-                  ? "No Pages to Audit"
-                  : "All Clear"}
+                  ? t("noPagesToAudit")
+                  : t("allClear")}
               </h3>
               <p>
                 {seoOverview.totalPages === 0
-                  ? "Create some CMS pages to start your SEO audit."
-                  : "No SEO issues found. All pages have proper meta data."}
+                  ? t("createCmsPagesForSeoAudit")
+                  : t("noSeoIssuesFound")}
               </p>
             </div>
           )}
@@ -215,13 +219,13 @@ export default function SeoClient({
           {/* GEO Summary Cards */}
           <div className="geo-stats">
             <div className="geo-stat-card">
-              <span className="geo-stat-label">Cities Active</span>
+              <span className="geo-stat-label">{t("citiesActive")}</span>
               <span className="geo-stat-value">
                 {geoPresence.totalCities}
               </span>
             </div>
             <div className="geo-stat-card">
-              <span className="geo-stat-label">States Active</span>
+              <span className="geo-stat-label">{t("statesActive")}</span>
               <span className="geo-stat-value">
                 {geoPresence.totalStates}
               </span>
@@ -230,7 +234,7 @@ export default function SeoClient({
               <span className="geo-stat-label">
                 <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <HardHat size={14} />
-                  Total Projects
+                  {t("totalProjects")}
                 </span>
               </span>
               <span className="geo-stat-value">
@@ -241,7 +245,7 @@ export default function SeoClient({
               <span className="geo-stat-label">
                 <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <Building2 size={14} />
-                  Total Properties
+                  {t("totalProperties")}
                 </span>
               </span>
               <span className="geo-stat-value">
@@ -256,11 +260,11 @@ export default function SeoClient({
               <table className="geo-table">
                 <thead>
                   <tr>
-                    <th>City</th>
-                    <th>State</th>
-                    <th>Projects</th>
-                    <th>Properties</th>
-                    <th style={{ textAlign: "right" }}>Total Value</th>
+                    <th>{t("city")}</th>
+                    <th>{t("state")}</th>
+                    <th>{t("projects")}</th>
+                    <th>{t("properties")}</th>
+                    <th style={{ textAlign: "right" }}>{t("totalValue")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -300,10 +304,9 @@ export default function SeoClient({
               <div className="content-empty-icon">
                 <MapPin size={32} />
               </div>
-              <h3>No Geographic Data</h3>
+              <h3>{t("noGeographicData")}</h3>
               <p>
-                Add city and state information to your projects and properties to
-                see your geographic presence.
+                {t("addCityStateInfoDescription")}
               </p>
             </div>
           )}

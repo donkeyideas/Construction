@@ -1,28 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getStripeInstance } from "@/lib/stripe/config";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // ---------------------------------------------------------------------------
 // POST /api/stripe/checkout - Create a Stripe Checkout session
 // ---------------------------------------------------------------------------
 
-const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY;
-
-// Price IDs from Stripe Dashboard — set these in .env
-const PRICE_MAP: Record<string, string | undefined> = {
-  professional: process.env.STRIPE_PRICE_PROFESSIONAL,
-  enterprise: process.env.STRIPE_PRICE_ENTERPRISE,
-};
-
 export async function POST(request: NextRequest) {
-  if (!STRIPE_SECRET) {
-    return NextResponse.json(
-      { error: "Stripe is not configured. Add STRIPE_SECRET_KEY to environment variables." },
-      { status: 503 }
-    );
-  }
-
   try {
+    const stripe = await getStripeInstance();
+    if (!stripe) {
+      return NextResponse.json(
+        { error: "Stripe is not configured. Add keys in Super Admin > Stripe Settings." },
+        { status: 503 }
+      );
+    }
+
     const supabase = await createClient();
     const userCtx = await getCurrentUserCompany(supabase);
 
@@ -32,11 +27,22 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const plan = body.plan as string;
-    const priceId = PRICE_MAP[plan];
+
+    // Look up Stripe price ID from pricing_tiers table, fallback to env vars
+    const admin = createAdminClient();
+    const { data: tier } = await admin
+      .from("pricing_tiers")
+      .select("stripe_price_id_monthly")
+      .eq("name", plan)
+      .single();
+
+    const priceId = tier?.stripe_price_id_monthly
+      || (plan === "professional" ? process.env.STRIPE_PRICE_PROFESSIONAL : undefined)
+      || (plan === "enterprise" ? process.env.STRIPE_PRICE_ENTERPRISE : undefined);
 
     if (!priceId) {
       return NextResponse.json(
-        { error: `No Stripe price configured for plan: ${plan}. Set STRIPE_PRICE_${plan.toUpperCase()} in env.` },
+        { error: `No Stripe price configured for plan: ${plan}. Set it in Super Admin > Pricing Tiers.` },
         { status: 400 }
       );
     }
@@ -47,9 +53,6 @@ export async function POST(request: NextRequest) {
       .select("stripe_customer_id, name")
       .eq("id", userCtx.companyId)
       .single();
-
-    const Stripe = (await import("stripe")).default;
-    const stripe = new Stripe(STRIPE_SECRET);
 
     let customerId = company?.stripe_customer_id;
 

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
   LayoutGrid,
@@ -43,39 +44,6 @@ const IMPORT_SAMPLE: Record<string, string>[] = [
   { name: "Riverside Apartments", code: "RSA-002", status: "pre_construction", project_type: "residential", address: "456 River Rd", city: "Austin", state: "TX", zip: "78741", client_name: "Riverside Dev Corp", client_email: "dev@riverside.com", client_phone: "512-555-0200", budget: "12000000", estimated_cost: "11500000", start_date: "2026-04-01", end_date: "2028-03-31", description: "200-unit luxury apartment complex", completion_pct: "0" },
 ];
 
-const STATUS_LABELS: Record<string, string> = {
-  all: "All",
-  pre_construction: "Pre-Construction",
-  active: "Active",
-  on_hold: "On Hold",
-  completed: "Completed",
-  closed: "Closed",
-};
-
-function formatCurrency(amount: number | null) {
-  if (amount == null) return "--";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  const [year, month, day] = dateStr.slice(0, 10).split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function statusLabel(status: string) {
-  return STATUS_LABELS[status] ?? status.replace(/_/g, " ");
-}
-
 function completionClass(pct: number) {
   if (pct >= 75) return "high";
   if (pct <= 25) return "low";
@@ -94,6 +62,10 @@ interface ProjectListClientProps {
 }
 
 export default function ProjectListClient({ projects, memberOptions }: ProjectListClientProps) {
+  const t = useTranslations("projects");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const router = useRouter();
   const [view, setView] = useState<"card" | "list">("card");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -106,6 +78,39 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
   const [bulkField, setBulkField] = useState<"project_manager_id" | "superintendent_id">("project_manager_id");
   const [bulkUserId, setBulkUserId] = useState("");
   const [bulkSaving, setBulkSaving] = useState(false);
+
+  const STATUS_LABELS: Record<string, string> = {
+    all: t("statusAll"),
+    pre_construction: t("statusPreConstruction"),
+    active: t("statusActive"),
+    on_hold: t("statusOnHold"),
+    completed: t("statusCompleted"),
+    closed: t("statusClosed"),
+  };
+
+  function formatCurrency(amount: number | null) {
+    if (amount == null) return "--";
+    return new Intl.NumberFormat(dateLocale, {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    const [year, month, day] = dateStr.slice(0, 10).split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function statusLabel(status: string) {
+    return STATUS_LABELS[status] ?? status.replace(/_/g, " ");
+  }
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
@@ -142,13 +147,13 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Bulk assign failed");
+      if (!res.ok) throw new Error(data.error || t("bulkAssignFailed"));
       setShowBulkAssign(false);
       setSelectedIds(new Set());
       setBulkUserId("");
       router.refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Bulk assign failed");
+      alert(err instanceof Error ? err.message : t("bulkAssignFailed"));
     } finally {
       setBulkSaving(false);
     }
@@ -161,7 +166,7 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
       body: JSON.stringify({ entity: "projects", rows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -190,19 +195,19 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
       {/* Header */}
       <div className="projects-header">
         <div>
-          <h2>Projects</h2>
+          <h2>{t("title")}</h2>
           <p className="projects-header-sub">
-            {projects.length} project{projects.length !== 1 ? "s" : ""} in your portfolio
+            {t("projectCount", { count: projects.length })}
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("importCsv")}
           </button>
           <Link href="/projects/new" className="btn-primary">
             <Plus size={16} />
-            New Project
+            {t("newProject")}
           </Link>
         </div>
       </div>
@@ -213,7 +218,7 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
           <Search size={16} className="projects-search-icon" />
           <input
             type="text"
-            placeholder="Search projects..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -235,14 +240,14 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
           <button
             className={`view-toggle-btn ${view === "card" ? "active" : ""}`}
             onClick={() => setView("card")}
-            title="Card view"
+            title={t("cardView")}
           >
             <LayoutGrid size={16} />
           </button>
           <button
             className={`view-toggle-btn ${view === "list" ? "active" : ""}`}
             onClick={() => setView("list")}
-            title="List view"
+            title={t("listView")}
           >
             <List size={16} />
           </button>
@@ -254,9 +259,9 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
         <div className="bulk-toolbar">
           <div className="bulk-toolbar-left">
             <CheckSquare size={16} />
-            <span>{selectedIds.size} project{selectedIds.size !== 1 ? "s" : ""} selected</span>
+            <span>{t("projectsSelected", { count: selectedIds.size })}</span>
             <button className="bulk-toolbar-clear" onClick={clearSelection}>
-              <X size={14} /> Clear
+              <X size={14} /> {t("clear")}
             </button>
           </div>
           <button
@@ -264,7 +269,7 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
             onClick={() => setShowBulkAssign(true)}
           >
             <Users size={16} />
-            Assign PM / Superintendent
+            {t("assignPmSuperintendent")}
           </button>
         </div>
       )}
@@ -277,16 +282,16 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
           </div>
           {projects.length === 0 ? (
             <>
-              <h3>No projects yet</h3>
-              <p>Create your first project to get started.</p>
+              <h3>{t("noProjectsYet")}</h3>
+              <p>{t("createFirstProject")}</p>
               <Link href="/projects/new" className="btn-primary">
-                New Project
+                {t("newProject")}
               </Link>
             </>
           ) : (
             <>
-              <h3>No matching projects</h3>
-              <p>Try adjusting your search or filter criteria.</p>
+              <h3>{t("noMatchingProjects")}</h3>
+              <p>{t("adjustSearchOrFilter")}</p>
             </>
           )}
         </div>
@@ -332,9 +337,9 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
                     />
                   </div>
                   <div className="completion-info">
-                    <span>{project.completion_pct}% complete</span>
+                    <span>{t("percentComplete", { pct: project.completion_pct })}</span>
                     {project.project_manager?.full_name && (
-                      <span>PM: {project.project_manager.full_name}</span>
+                      <span>{t("pmLabel", { name: project.project_manager.full_name })}</span>
                     )}
                   </div>
                 </div>
@@ -356,14 +361,14 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
                     onChange={toggleSelectAll}
                   />
                 </th>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Client</th>
-                <th>Status</th>
-                <th>Contract Value</th>
-                <th>Completion</th>
-                <th>PM</th>
-                <th>End Date</th>
+                <th>{t("columnCode")}</th>
+                <th>{t("columnName")}</th>
+                <th>{t("columnClient")}</th>
+                <th>{t("columnStatus")}</th>
+                <th>{t("columnContractValue")}</th>
+                <th>{t("columnCompletion")}</th>
+                <th>{t("columnPm")}</th>
+                <th>{t("columnEndDate")}</th>
               </tr>
             </thead>
             <tbody>
@@ -419,7 +424,7 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
 
       {showImport && (
         <ImportModal
-          entityName="Projects"
+          entityName={t("title")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
@@ -432,33 +437,33 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
         <div className="modal-overlay" onClick={() => setShowBulkAssign(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Bulk Assign - {selectedIds.size} Project{selectedIds.size !== 1 ? "s" : ""}</h3>
+              <h3>{t("bulkAssignTitle", { count: selectedIds.size })}</h3>
               <button className="modal-close" onClick={() => setShowBulkAssign(false)}>&times;</button>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div className="form-group">
-                <label className="form-label">Assignment Type</label>
+                <label className="form-label">{t("assignmentType")}</label>
                 <select
                   className="form-select"
                   value={bulkField}
                   onChange={(e) => setBulkField(e.target.value as "project_manager_id" | "superintendent_id")}
                 >
-                  <option value="project_manager_id">Project Manager</option>
-                  <option value="superintendent_id">Superintendent</option>
+                  <option value="project_manager_id">{t("projectManager")}</option>
+                  <option value="superintendent_id">{t("superintendent")}</option>
                 </select>
               </div>
 
               <div className="form-group">
                 <label className="form-label">
-                  {bulkField === "project_manager_id" ? "Project Manager" : "Superintendent"}
+                  {bulkField === "project_manager_id" ? t("projectManager") : t("superintendent")}
                 </label>
                 <select
                   className="form-select"
                   value={bulkUserId}
                   onChange={(e) => setBulkUserId(e.target.value)}
                 >
-                  <option value="">-- Select a team member --</option>
+                  <option value="">{t("selectTeamMember")}</option>
                   {memberOptions.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.name} ({m.role})
@@ -468,7 +473,7 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
               </div>
 
               <div className="bulk-assign-projects-list">
-                <label className="form-label">Selected Projects</label>
+                <label className="form-label">{t("selectedProjects")}</label>
                 <ul className="bulk-project-names">
                   {filtered
                     .filter((p) => selectedIds.has(p.id))
@@ -481,14 +486,14 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
 
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setShowBulkAssign(false)}>
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="btn-primary"
                 disabled={!bulkUserId || bulkSaving}
                 onClick={handleBulkAssign}
               >
-                {bulkSaving ? "Saving..." : `Assign to ${selectedIds.size} Project${selectedIds.size !== 1 ? "s" : ""}`}
+                {bulkSaving ? t("saving") : t("assignToProjects", { count: selectedIds.size })}
               </button>
             </div>
           </div>

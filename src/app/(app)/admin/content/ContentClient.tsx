@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Pencil,
   Trash2,
@@ -16,22 +17,25 @@ interface ContentClientProps {
   pages: CmsPageRow[];
 }
 
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 export default function ContentClient({ pages }: ContentClientProps) {
   const router = useRouter();
+  const t = useTranslations("adminPanel");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
+
+  function formatDate(dateStr: string | null) {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
 
   async function handleTogglePublish(page: CmsPageRow) {
     setLoadingId(page.id);
@@ -48,19 +52,21 @@ export default function ContentClient({ pages }: ContentClientProps) {
         const data = await res.json();
         setNotification({
           type: "error",
-          message: data.error || "Failed to update page status.",
+          message: data.error || t("failedToUpdatePageStatus"),
         });
       } else {
         setNotification({
           type: "success",
-          message: `"${page.title}" ${page.is_published ? "unpublished" : "published"} successfully.`,
+          message: page.is_published
+            ? t("pageUnpublishedSuccessfully", { title: page.title })
+            : t("pagePublishedSuccessfully", { title: page.title }),
         });
         router.refresh();
       }
     } catch {
       setNotification({
         type: "error",
-        message: "Network error. Please try again.",
+        message: t("networkErrorPleaseTryAgain"),
       });
     } finally {
       setLoadingId(null);
@@ -69,7 +75,7 @@ export default function ContentClient({ pages }: ContentClientProps) {
 
   async function handleDelete(page: CmsPageRow) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${page.title}"? This action cannot be undone.`
+      t("confirmDeletePage", { title: page.title })
     );
     if (!confirmed) return;
 
@@ -85,19 +91,19 @@ export default function ContentClient({ pages }: ContentClientProps) {
         const data = await res.json();
         setNotification({
           type: "error",
-          message: data.error || "Failed to delete page.",
+          message: data.error || t("failedToDeletePage"),
         });
       } else {
         setNotification({
           type: "success",
-          message: `"${page.title}" deleted successfully.`,
+          message: t("pageDeletedSuccessfully", { title: page.title }),
         });
         router.refresh();
       }
     } catch {
       setNotification({
         type: "error",
-        message: "Network error. Please try again.",
+        message: t("networkErrorPleaseTryAgain"),
       });
     } finally {
       setLoadingId(null);
@@ -110,15 +116,15 @@ export default function ContentClient({ pages }: ContentClientProps) {
         <div className="content-empty-icon">
           <FileText size={32} />
         </div>
-        <h3>No Pages Yet</h3>
+        <h3>{t("noPagesYet")}</h3>
         <p>
-          Create your first CMS page to start managing your website content.
+          {t("createFirstCmsPage")}
         </p>
         <Link
           href="/admin/content/new"
           className="ui-btn ui-btn-primary ui-btn-md"
         >
-          Create First Page
+          {t("createFirstPage")}
         </Link>
       </div>
     );
@@ -136,12 +142,12 @@ export default function ContentClient({ pages }: ContentClientProps) {
         <table className="content-table">
           <thead>
             <tr>
-              <th>Title</th>
-              <th>Slug</th>
-              <th>Status</th>
-              <th>Meta Title</th>
-              <th>Last Updated</th>
-              <th>Actions</th>
+              <th>{t("title")}</th>
+              <th>{t("slug")}</th>
+              <th>{t("status")}</th>
+              <th>{t("metaTitle")}</th>
+              <th>{t("lastUpdated")}</th>
+              <th>{t("actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -157,13 +163,13 @@ export default function ContentClient({ pages }: ContentClientProps) {
                   <span
                     className={`status-badge ${page.is_published ? "published" : "draft"}`}
                   >
-                    {page.is_published ? "Published" : "Draft"}
+                    {page.is_published ? t("published") : t("draft")}
                   </span>
                 </td>
                 <td className="meta-cell">
                   {page.meta_title || (
                     <span style={{ color: "var(--color-red)", fontSize: "0.8rem" }}>
-                      Missing
+                      {t("missing")}
                     </span>
                   )}
                 </td>
@@ -173,13 +179,13 @@ export default function ContentClient({ pages }: ContentClientProps) {
                     <Link
                       href={`/admin/content/${page.slug}`}
                       className="action-btn"
-                      title="Edit page"
+                      title={t("editPage")}
                     >
                       <Pencil size={14} />
                     </Link>
                     <button
                       className="action-btn"
-                      title={page.is_published ? "Unpublish" : "Publish"}
+                      title={page.is_published ? t("unpublish") : t("publish")}
                       onClick={() => handleTogglePublish(page)}
                       disabled={loadingId === page.id}
                     >
@@ -191,7 +197,7 @@ export default function ContentClient({ pages }: ContentClientProps) {
                     </button>
                     <button
                       className="action-btn danger"
-                      title="Delete page"
+                      title={t("deletePage")}
                       onClick={() => handleDelete(page)}
                       disabled={loadingId === page.id}
                     >

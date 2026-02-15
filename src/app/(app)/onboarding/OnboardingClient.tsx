@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Building2,
   Users,
@@ -50,6 +51,10 @@ export default function OnboardingClient({
   memberCount,
   userRole,
 }: OnboardingClientProps) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -180,13 +185,13 @@ export default function OnboardingClient({
         {/* Step 0: Company Profile */}
         {step === 0 && (
           <div>
-            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>Welcome to Buildwrk!</h2>
+            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>{t("onboardingWelcome")}</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: "24px" }}>
-              Let&apos;s get your company set up. You can always change these later in Settings.
+              {t("onboardingWelcomeDesc")}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div>
-                <label className="settings-field-label">Company Name</label>
+                <label className="settings-field-label">{t("onboardingCompanyName")}</label>
                 <input
                   type="text"
                   className="settings-field-input"
@@ -195,32 +200,32 @@ export default function OnboardingClient({
                 />
               </div>
               <div>
-                <label className="settings-field-label">Industry</label>
+                <label className="settings-field-label">{t("onboardingIndustry")}</label>
                 <select
                   className="settings-field-select"
                   value={editIndustry}
                   onChange={(e) => setEditIndustry(e.target.value)}
                 >
-                  <option value="">Select industry...</option>
-                  <option value="General Contracting">General Contracting</option>
-                  <option value="Residential Construction">Residential Construction</option>
-                  <option value="Commercial Construction">Commercial Construction</option>
-                  <option value="Heavy Civil">Heavy Civil</option>
-                  <option value="Specialty Trade">Specialty Trade</option>
-                  <option value="Real Estate Development">Real Estate Development</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Architecture">Architecture</option>
-                  <option value="Other">Other</option>
+                  <option value="">{t("onboardingSelectIndustry")}</option>
+                  <option value="General Contracting">{t("onboardingIndustryGeneralContracting")}</option>
+                  <option value="Residential Construction">{t("onboardingIndustryResidential")}</option>
+                  <option value="Commercial Construction">{t("onboardingIndustryCommercial")}</option>
+                  <option value="Heavy Civil">{t("onboardingIndustryHeavyCivil")}</option>
+                  <option value="Specialty Trade">{t("onboardingIndustrySpecialtyTrade")}</option>
+                  <option value="Real Estate Development">{t("onboardingIndustryRealEstate")}</option>
+                  <option value="Engineering">{t("onboardingIndustryEngineering")}</option>
+                  <option value="Architecture">{t("onboardingIndustryArchitecture")}</option>
+                  <option value="Other">{t("onboardingIndustryOther")}</option>
                 </select>
               </div>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
               <button onClick={nextStep} className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
-                <SkipForward size={14} /> Skip
+                <SkipForward size={14} /> {t("skip")}
               </button>
               <button onClick={handleSaveProfile} disabled={saving} className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
                 {saving ? <Loader2 size={14} className="spin-icon" /> : <ArrowRight size={14} />}
-                Save &amp; Continue
+                {t("onboardingSaveAndContinue")}
               </button>
             </div>
           </div>
@@ -229,33 +234,32 @@ export default function OnboardingClient({
         {/* Step 1: Invite Team */}
         {step === 1 && (
           <div>
-            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>Invite Your Team</h2>
+            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>{t("onboardingInviteTeam")}</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: "8px" }}>
-              You currently have {memberCount} team member{memberCount !== 1 ? "s" : ""}.
-              Add email addresses below to invite more.
+              {t("onboardingInviteTeamDesc", { count: memberCount })}
             </p>
             <textarea
               className="ticket-form-textarea"
-              placeholder="Enter email addresses, separated by commas or new lines..."
+              placeholder={t("onboardingInvitePlaceholder")}
               value={inviteEmails}
               onChange={(e) => setInviteEmails(e.target.value)}
               rows={4}
               style={{ width: "100%", marginBottom: "8px" }}
             />
             <p style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
-              Team members will receive an invitation email to join {editName || companyName}.
+              {t("onboardingInviteNote", { company: editName || companyName })}
             </p>
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "24px" }}>
               <button onClick={prevStep} className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
-                <ArrowLeft size={14} /> Back
+                <ArrowLeft size={14} /> {t("back")}
               </button>
               <div style={{ display: "flex", gap: "10px" }}>
                 <button onClick={nextStep} className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
-                  <SkipForward size={14} /> Skip
+                  <SkipForward size={14} /> {t("skip")}
                 </button>
                 <button onClick={handleInvite} disabled={saving} className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
                   {saving ? <Loader2 size={14} className="spin-icon" /> : <ArrowRight size={14} />}
-                  {inviteEmails.trim() ? "Invite & Continue" : "Continue"}
+                  {inviteEmails.trim() ? t("onboardingInviteAndContinue") : t("continue")}
                 </button>
               </div>
             </div>
@@ -265,10 +269,9 @@ export default function OnboardingClient({
         {/* Step 2: Import Data */}
         {step === 2 && (
           <div>
-            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>Import Existing Data</h2>
+            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>{t("onboardingImportData")}</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: "24px" }}>
-              If you have existing data, you can import it via CSV/XLSX on any page using the Import button.
-              You can also do this later from the individual module pages.
+              {t("onboardingImportDataDesc")}
             </p>
             <div style={{
               display: "grid",
@@ -276,10 +279,10 @@ export default function OnboardingClient({
               gap: "12px",
             }}>
               {[
-                { label: "Projects", href: "/projects" },
-                { label: "Properties", href: "/properties" },
-                { label: "Contacts", href: "/people" },
-                { label: "Financial Data", href: "/financial" },
+                { label: t("onboardingImportProjects"), href: "/projects" },
+                { label: t("onboardingImportProperties"), href: "/properties" },
+                { label: t("onboardingImportContacts"), href: "/people" },
+                { label: t("onboardingImportFinancial"), href: "/financial" },
               ].map((item) => (
                 <button
                   key={item.label}
@@ -288,16 +291,16 @@ export default function OnboardingClient({
                   style={{ padding: "16px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", fontSize: "0.85rem" }}
                 >
                   <Upload size={20} />
-                  Import {item.label}
+                  {t("onboardingImportLabel", { name: item.label })}
                 </button>
               ))}
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "24px" }}>
               <button onClick={prevStep} className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
-                <ArrowLeft size={14} /> Back
+                <ArrowLeft size={14} /> {t("back")}
               </button>
               <button onClick={nextStep} className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
-                <ArrowRight size={14} /> Continue
+                <ArrowRight size={14} /> {t("continue")}
               </button>
             </div>
           </div>
@@ -306,10 +309,9 @@ export default function OnboardingClient({
         {/* Step 3: Choose Modules */}
         {step === 3 && (
           <div>
-            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>Choose Your Modules</h2>
+            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>{t("onboardingChooseModules")}</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: "24px" }}>
-              Select the modules you plan to use. All modules are included in your plan.
-              You can enable or disable them at any time.
+              {t("onboardingChooseModulesDesc")}
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
               {MODULES.map((m) => {
@@ -346,10 +348,10 @@ export default function OnboardingClient({
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "24px" }}>
               <button onClick={prevStep} className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
-                <ArrowLeft size={14} /> Back
+                <ArrowLeft size={14} /> {t("back")}
               </button>
               <button onClick={nextStep} className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
-                <ArrowRight size={14} /> Continue
+                <ArrowRight size={14} /> {t("continue")}
               </button>
             </div>
           </div>
@@ -371,17 +373,17 @@ export default function OnboardingClient({
             }}>
               <CheckCircle2 size={32} />
             </div>
-            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>You&apos;re All Set!</h2>
+            <h2 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>{t("onboardingAllSet")}</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: "24px", maxWidth: "400px", margin: "0 auto 24px" }}>
-              Your company is configured and ready to go. Head to the dashboard to start managing your projects, properties, and finances.
+              {t("onboardingAllSetDesc")}
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
               <button onClick={prevStep} className="btn-secondary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}>
-                <ArrowLeft size={14} /> Back
+                <ArrowLeft size={14} /> {t("back")}
               </button>
               <button onClick={handleComplete} disabled={saving} className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.9rem", padding: "10px 24px" }}>
                 {saving ? <Loader2 size={16} className="spin-icon" /> : <Sparkles size={16} />}
-                Go to Dashboard
+                {t("onboardingGoToDashboard")}
               </button>
             </div>
           </div>
