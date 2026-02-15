@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
           </tbody>
         </table>
         <div class="footer">
-          Buildwrk Construction ERP &middot; ${data.length} records &middot; ${now}
+          Buildwrk Buildwrk &middot; ${data.length} records &middot; ${now}
         </div>
       </body>
       </html>

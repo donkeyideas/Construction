@@ -78,7 +78,7 @@ export default async function HomePage() {
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
         description:
-          "All-in-one construction ERP and real estate management platform for general contractors, developers, and property managers.",
+          "All-in-one Buildwrk and real estate management platform for general contractors, developers, and property managers.",
         offers: [
           { "@type": "Offer", name: "Starter", price: "79", priceCurrency: "USD", priceValidUntil: "2027-12-31" },
           { "@type": "Offer", name: "Professional", price: "199", priceCurrency: "USD", priceValidUntil: "2027-12-31" },

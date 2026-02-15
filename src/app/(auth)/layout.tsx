@@ -12,7 +12,7 @@ interface PortalBrand {
 
 const portalBrands: Record<string, PortalBrand> = {
   default: {
-    name: "Construction\nERP",
+    name: "Buildwrk",
     tagline:
       "Building smarter from blueprint to closeout. A unified platform for general contractors, developers, and property managers.",
     features: [

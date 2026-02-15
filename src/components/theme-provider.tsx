@@ -24,7 +24,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem("construction-erp-theme") as Theme | null;
+    const stored = localStorage.getItem("buildwrk-theme") as Theme | null;
     if (stored) {
       setTheme(stored);
       document.documentElement.setAttribute("data-theme", stored);
@@ -38,7 +38,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
     document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("construction-erp-theme", next);
+    localStorage.setItem("buildwrk-theme", next);
   }, [theme]);
 
   if (!mounted) {

@@ -5,7 +5,7 @@
  * row is empty and as the initial seed when editing for the first time.
  *
  * Content is SEO / GEO-optimised for organic discovery around
- * "construction management software", "construction ERP", "general
+ * "construction management software", "Buildwrk", "general
  * contractor software", "property management for contractors", etc.
  */
 
@@ -20,7 +20,7 @@ export const DEFAULT_META_TITLE =
   "Buildwrk | Construction Management Software & Property Management Platform";
 
 export const DEFAULT_META_DESCRIPTION =
-  "All-in-one construction ERP for general contractors, developers & property managers. Job costing, Gantt scheduling, lease management & AI analytics. 14-day free trial — no credit card required.";
+  "All-in-one Buildwrk for general contractors, developers & property managers. Job costing, Gantt scheduling, lease management & AI analytics. 14-day free trial — no credit card required.";
 
 export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
   {
@@ -31,7 +31,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
       title:
         "Construction Management Software That Runs Your Entire Business",
       subtitle:
-        "The all-in-one construction ERP platform for general contractors, real estate developers, and property managers. Gantt scheduling, job costing, document control, property operations, and AI-powered analytics — unified in one system your whole team can use.",
+        "The all-in-one Buildwrk platform for general contractors, real estate developers, and property managers. Gantt scheduling, job costing, document control, property operations, and AI-powered analytics — unified in one system your whole team can use.",
       cta_text: "Start Free 14-Day Trial",
       cta_link: "/register",
       secondary_text: "See How It Works →",
@@ -256,9 +256,9 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
       title: "Frequently Asked Questions",
       items: [
         {
-          question: "What is construction ERP software?",
+          question: "What is Buildwrk software?",
           answer:
-            "Construction ERP (Enterprise Resource Planning) software is a unified platform that integrates project management, financial tracking, document control, workforce management, and business operations into a single system. Instead of juggling separate tools for scheduling, accounting, and document storage, construction ERP brings everything together so teams can work faster with complete visibility across all projects.",
+            "Buildwrk (Enterprise Resource Planning) software is a unified platform that integrates project management, financial tracking, document control, workforce management, and business operations into a single system. Instead of juggling separate tools for scheduling, accounting, and document storage, Buildwrk brings everything together so teams can work faster with complete visibility across all projects.",
         },
         {
           question: "Who is Buildwrk built for?",

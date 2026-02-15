@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 
 // ============================================================
 // Seed API - Creates test accounts and realistic demo data
-// POST /api/seed?key=construction-erp-seed-2026
+// POST /api/seed?key=buildwrk-seed-2026
 // ============================================================
 
-const SEED_KEY = "construction-erp-seed-2026";
+const SEED_KEY = "buildwrk-seed-2026";
 const DEFAULT_PASSWORD = "Demo1234!";
 
 interface UserSeed {

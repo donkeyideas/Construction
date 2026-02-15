@@ -19,11 +19,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Buildwrk | Construction ERP Software for Contractors and Developers",
+  title: "Buildwrk | Buildwrk Software for Contractors and Developers",
   description:
-    "All-in-one construction ERP software for general contractors, real estate developers, and property managers. Project management, job costing, property operations, document control, and AI-powered analytics. Start free.",
+    "All-in-one Buildwrk software for general contractors, real estate developers, and property managers. Project management, job costing, property operations, document control, and AI-powered analytics. Start free.",
   keywords: [
-    "construction ERP software",
+    "Buildwrk software",
     "construction project management",
     "contractor management platform",
     "job costing software",
@@ -47,16 +47,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Buildwrk | One Platform for Every Project, Every Property, Every Dollar",
     description:
-      "Modern construction ERP software that unifies project management, financial tracking, property operations, and AI analytics. Replace Procore + Yardi + QuickBooks with one platform. Free 14-day trial.",
+      "Modern Buildwrk software that unifies project management, financial tracking, property operations, and AI analytics. Replace Procore + Yardi + QuickBooks with one platform. Free 14-day trial.",
     type: "website",
     locale: "en_US",
     siteName: "Buildwrk",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Buildwrk | Construction ERP Software",
+    title: "Buildwrk | Buildwrk Software",
     description:
-      "All-in-one construction ERP for contractors and developers. Project management, job costing, property management, and AI -- one platform. Start free.",
+      "All-in-one Buildwrk for contractors and developers. Project management, job costing, property management, and AI -- one platform. Start free.",
   },
   robots: {
     index: true,

@@ -1,5 +1,5 @@
 /**
- * Formatting utilities for the Construction ERP dashboard.
+ * Formatting utilities for the Buildwrk dashboard.
  */
 
 const currencyFull = new Intl.NumberFormat("en-US", {
