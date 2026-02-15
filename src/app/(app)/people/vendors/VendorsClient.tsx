@@ -690,7 +690,7 @@ export default function VendorsClient({
                         }}
                         onSave={async (data) => {
                           try {
-                            await fetch(`/api/contacts/${selectedVendor.id}`, {
+                            await fetch(`/api/people/contacts/${selectedVendor.id}`, {
                               method: "PATCH",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify(data),

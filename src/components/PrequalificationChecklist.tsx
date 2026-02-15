@@ -99,7 +99,7 @@ export default function PrequalificationChecklist({
 
     setSaving(true);
     try {
-      const res = await fetch(`/api/contacts/${contactId}`, {
+      const res = await fetch(`/api/people/contacts/${contactId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(saveData),

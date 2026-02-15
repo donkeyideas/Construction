@@ -68,6 +68,10 @@ export async function PATCH(
     if (body.contact_type !== undefined) updateData.contact_type = body.contact_type;
     if (body.notes !== undefined) updateData.notes = body.notes;
     if (body.is_active !== undefined) updateData.is_active = body.is_active;
+    if (body.emr_rate !== undefined) updateData.emr_rate = body.emr_rate;
+    if (body.bonding_capacity !== undefined) updateData.bonding_capacity = body.bonding_capacity;
+    if (body.prequalification_score !== undefined) updateData.prequalification_score = body.prequalification_score;
+    if (body.prequalification_notes !== undefined) updateData.prequalification_notes = body.prequalification_notes;
 
     const { data: updated, error } = await supabase
       .from("contacts")
