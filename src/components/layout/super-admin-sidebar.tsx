@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, FileText,
-  Globe, ArrowLeft, ChevronRight,
+  Globe, ArrowLeft, ChevronRight, CreditCard,
 } from "lucide-react";
 import {
   superAdminNavigation,
@@ -19,6 +19,7 @@ const iconMap: Record<string, React.ElementType> = {
   users: Users,
   "file-text": FileText,
   globe: Globe,
+  "credit-card": CreditCard,
   "arrow-left": ArrowLeft,
 };
 

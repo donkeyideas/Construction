@@ -1,10 +1,10 @@
 -- ============================================================
--- 011: Admin-Manageable Pricing Tiers
+-- 011: Platform-Wide Pricing Tiers
+-- Managed by platform admins (Super Admin portal)
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS pricing_tiers (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  company_id uuid NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   name text NOT NULL,
   monthly_price numeric(10,2) NOT NULL DEFAULT 0,
   annual_price numeric(10,2) NOT NULL DEFAULT 0,
@@ -28,34 +28,35 @@ CREATE TRIGGER set_pricing_tiers_updated_at
 
 -- ============================================================
 -- RLS Policies
+-- Everyone can read (public pricing page)
+-- Only platform admins can modify
 -- ============================================================
 
 ALTER TABLE pricing_tiers ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "pricing_tiers_select" ON pricing_tiers FOR SELECT
-  USING (company_id IN (SELECT public.get_company_ids()));
+  USING (true);
 
 CREATE POLICY "pricing_tiers_insert" ON pricing_tiers FOR INSERT
   WITH CHECK (
-    company_id IN (SELECT public.get_company_ids())
-    AND public.has_role(company_id, ARRAY['owner','admin'])
+    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_platform_admin = true)
   );
 
 CREATE POLICY "pricing_tiers_update" ON pricing_tiers FOR UPDATE
   USING (
-    company_id IN (SELECT public.get_company_ids())
-    AND public.has_role(company_id, ARRAY['owner','admin'])
+    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_platform_admin = true)
   );
 
 CREATE POLICY "pricing_tiers_delete" ON pricing_tiers FOR DELETE
   USING (
-    company_id IN (SELECT public.get_company_ids())
-    AND public.has_role(company_id, ARRAY['owner','admin'])
+    EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_platform_admin = true)
   );
 
 -- ============================================================
--- Indexes
+-- Seed default tiers
 -- ============================================================
 
-CREATE INDEX IF NOT EXISTS idx_pricing_tiers_company
-  ON pricing_tiers(company_id);
+INSERT INTO pricing_tiers (name, monthly_price, annual_price, features, is_popular, sort_order, max_users, max_projects, max_properties, max_storage_gb) VALUES
+  ('Starter', 99, 79, '["Up to 10 users", "Up to 5 projects", "Up to 10 properties", "10 GB storage", "Email support"]'::jsonb, false, 0, 10, 5, 10, 10),
+  ('Professional', 299, 249, '["Up to 50 users", "Up to 25 projects", "Up to 50 properties", "50 GB storage", "Priority support", "API access", "Automation rules"]'::jsonb, true, 1, 50, 25, 50, 50),
+  ('Enterprise', 599, 499, '["Unlimited users", "Unlimited projects", "Unlimited properties", "250 GB storage", "Dedicated support", "SSO & SAML", "Custom integrations", "All 4 portals"]'::jsonb, false, 2, null, null, null, 250);

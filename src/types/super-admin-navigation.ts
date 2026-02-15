@@ -35,6 +35,14 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
     ],
   },
   {
+    label: "Billing",
+    icon: "credit-card",
+    children: [
+      { label: "Pricing Tiers", href: "/super-admin/pricing" },
+      { label: "Subscriptions", href: "/super-admin/subscriptions" },
+    ],
+  },
+  {
     label: "SEO & GEO",
     href: "/super-admin/seo",
     icon: "globe",

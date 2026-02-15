@@ -1,27 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUserCompany } from "@/lib/queries/user";
+import { isPlatformAdmin } from "@/lib/queries/super-admin";
 
 /**
- * GET /api/admin/pricing - Fetch pricing tiers for the company
- * POST /api/admin/pricing - Create or update pricing tiers
- *
- * Pricing tiers are stored in a `pricing_tiers` table.
- * Only owners and admins can manage pricing.
+ * GET /api/super-admin/pricing - Fetch platform pricing tiers
+ * POST /api/super-admin/pricing - Save pricing tiers (platform admin only)
  */
 
 export async function GET() {
   const supabase = await createClient();
-  const userCompany = await getCurrentUserCompany(supabase);
-
-  if (!userCompany) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
   const { data, error } = await supabase
     .from("pricing_tiers")
     .select("*")
-    .eq("company_id", userCompany.companyId)
     .order("sort_order", { ascending: true });
 
   if (error) {
@@ -33,14 +24,10 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
-  const userCompany = await getCurrentUserCompany(supabase);
 
-  if (!userCompany) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!["owner", "admin"].includes(userCompany.role)) {
-    return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
+  const isAdmin = await isPlatformAdmin(supabase);
+  if (!isAdmin) {
+    return NextResponse.json({ error: "Unauthorized - platform admin required" }, { status: 403 });
   }
 
   const body = await req.json();
@@ -50,18 +37,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "tiers must be an array" }, { status: 400 });
   }
 
-  // Delete existing tiers for this company, then insert new ones
+  // Delete all existing tiers, then insert new ones
   const { error: delError } = await supabase
     .from("pricing_tiers")
     .delete()
-    .eq("company_id", userCompany.companyId);
+    .neq("id", "00000000-0000-0000-0000-000000000000"); // delete all rows
 
   if (delError) {
     return NextResponse.json({ error: delError.message }, { status: 500 });
   }
 
   const rows = tiers.map((t, i) => ({
-    company_id: userCompany.companyId,
     name: t.name,
     monthly_price: t.monthly_price,
     annual_price: t.annual_price,
