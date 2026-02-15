@@ -75,11 +75,11 @@ export const styles = StyleSheet.create({
   },
   coverTitle: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 36,
+    fontSize: 28,
     color: "white",
     textAlign: "center",
     marginBottom: 12,
-    maxWidth: 420,
+    maxWidth: 500,
   },
   coverSubtitle: {
     fontSize: 13,
@@ -324,6 +324,71 @@ export const styles = StyleSheet.create({
   fieldValueValue: {
     fontSize: 9,
     width: "65%",
+  },
+
+  // --- Sensitivity grid ---
+  sensitivityGrid: {
+    marginVertical: 12,
+  },
+  sensitivityRow: {
+    flexDirection: "row",
+  },
+  sensitivityHeaderCell: {
+    flex: 1,
+    fontSize: 7,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "center",
+    paddingVertical: 5,
+    paddingHorizontal: 3,
+    backgroundColor: "#F0F0F0",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#D0D0D0",
+    borderRightWidth: 0.5,
+    borderRightColor: "#D0D0D0",
+  },
+  sensitivityRowHeader: {
+    flex: 1,
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    paddingVertical: 5,
+    paddingHorizontal: 4,
+    backgroundColor: "#F0F0F0",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#D0D0D0",
+    borderRightWidth: 0.5,
+    borderRightColor: "#D0D0D0",
+  },
+  sensitivityCell: {
+    flex: 1,
+    fontSize: 8,
+    textAlign: "center",
+    paddingVertical: 5,
+    paddingHorizontal: 3,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#E0E0E0",
+    borderRightWidth: 0.5,
+    borderRightColor: "#E0E0E0",
+  },
+  sensitivityHighlight: {
+    flex: 1,
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "center",
+    paddingVertical: 5,
+    paddingHorizontal: 3,
+    backgroundColor: "#EBF5FF",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#E0E0E0",
+    borderRightWidth: 0.5,
+    borderRightColor: "#E0E0E0",
+  },
+
+  // --- Placeholder for empty sections ---
+  placeholder: {
+    fontSize: 9,
+    color: "#999999",
+    fontStyle: "italic",
+    marginTop: 14,
   },
 
   // --- Cover accent line under company name ---

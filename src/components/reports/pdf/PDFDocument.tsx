@@ -73,6 +73,44 @@ function CoverPage({
   );
 }
 
+/** Renders a sensitivity analysis grid (rent vs occupancy scenarios) */
+function SensitivityTable({ tableData }: { tableData: Record<string, unknown>[] }) {
+  const occScenarios = [-10, -5, 0, 5, 10];
+
+  return (
+    <View style={styles.sensitivityGrid}>
+      {/* Header row */}
+      <View style={styles.sensitivityRow}>
+        <Text style={styles.sensitivityHeaderCell}>{" "}</Text>
+        {occScenarios.map((occ) => (
+          <Text key={occ} style={styles.sensitivityHeaderCell}>
+            {occ >= 0 ? "+" : ""}{occ}% Occ
+          </Text>
+        ))}
+      </View>
+      {/* Data rows */}
+      {tableData.map((row, ri) => (
+        <View key={ri} style={styles.sensitivityRow}>
+          <Text style={styles.sensitivityRowHeader}>
+            {String(row.rent_change ?? "")}
+          </Text>
+          {occScenarios.map((occ) => {
+            const isCenter = occ === 0 && String(row.rent_change).includes("+0");
+            return (
+              <Text
+                key={occ}
+                style={isCenter ? styles.sensitivityHighlight : styles.sensitivityCell}
+              >
+                {String(row[`occ_${occ}`] ?? "")}
+              </Text>
+            );
+          })}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function SectionPage({
   reportType,
   sectionNumber,
@@ -80,6 +118,7 @@ function SectionPage({
   data,
   watermark,
   companyName,
+  isAiGenerated,
   children,
 }: {
   reportType: ReportType;
@@ -88,9 +127,11 @@ function SectionPage({
   data?: SectionData;
   watermark: WatermarkType;
   companyName: string;
+  isAiGenerated?: boolean;
   children?: React.ReactNode;
 }) {
   const theme = getTheme(reportType);
+  const hasAnyContent = data?.narrative || data?.kpis || data?.tableData;
 
   return (
     <Page size="LETTER" style={styles.page} wrap>
@@ -140,11 +181,15 @@ function SectionPage({
       />
 
       {/* Narrative text */}
-      {data?.narrative && (
+      {data?.narrative ? (
         <Text style={[styles.narrative, { marginTop: 14 }]}>
           {data.narrative}
         </Text>
-      )}
+      ) : isAiGenerated && !hasAnyContent ? (
+        <Text style={styles.placeholder}>
+          AI-generated narrative not available. Configure an AI provider in Admin &gt; AI Providers to enable auto-generated content for this section.
+        </Text>
+      ) : null}
 
       {/* KPIs */}
       {data?.kpis && (
@@ -210,6 +255,11 @@ function SectionPage({
             </View>
           ))}
         </View>
+      )}
+
+      {/* Sensitivity table (rent vs occupancy grid) */}
+      {data?.tableData && !data.tableColumns && data.tableData.length > 0 && "rent_change" in data.tableData[0] && (
+        <SensitivityTable tableData={data.tableData as Record<string, unknown>[]} />
       )}
 
       {/* Field/Value table (definition-list style, no tableColumns) */}
@@ -303,6 +353,7 @@ export function MarketFeasibilityPDF({
           data={sectionsData[section.id]}
           watermark={watermark}
           companyName={companyName}
+          isAiGenerated={section.aiGenerated}
         />
       ))}
     </Document>
@@ -349,6 +400,7 @@ export function OfferingMemorandumPDF({
           data={sectionsData[section.id]}
           watermark={watermark}
           companyName={companyName}
+          isAiGenerated={section.aiGenerated}
         />
       ))}
     </Document>
@@ -395,6 +447,7 @@ export function BasisOfDesignPDF({
           data={sectionsData[section.id]}
           watermark={watermark}
           companyName={companyName}
+          isAiGenerated={section.aiGenerated}
         />
       ))}
     </Document>
