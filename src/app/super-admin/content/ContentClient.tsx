@@ -158,9 +158,17 @@ export default function ContentClient({ pages }: Props) {
       const data: CmsPageFull = await res.json();
 
       const defaults = getDefaults(slug);
+
+      // Detect stale seed data: if homepage sections lack our expected
+      // types (about, steps, modules, pricing) they are from the old
+      // seed and should be replaced with the SEO-optimised defaults.
+      const dbSections = data.sections as CmsSection[] | null;
+      const hasExpectedTypes = dbSections?.some((s) =>
+        ["about", "steps", "modules", "pricing"].includes(s.type)
+      );
       const loadedSections =
-        data.sections && data.sections.length > 0
-          ? data.sections
+        dbSections && dbSections.length > 0 && hasExpectedTypes
+          ? dbSections
           : defaults.sections;
 
       setEditingPage(data);
@@ -252,6 +260,16 @@ export default function ContentClient({ pages }: Props) {
 
   function expandAll() {
     setExpandedSections(new Set(sections.map((_, i) => i)));
+  }
+
+  function resetToDefaults() {
+    if (!editingPage) return;
+    const defaults = getDefaults(editingPage.page_slug);
+    if (defaults.sections.length === 0) return;
+    setSections(defaults.sections);
+    setMetaTitle(defaults.metaTitle);
+    setMetaDescription(defaults.metaDescription);
+    setNotification({ type: "success", message: "Sections reset to SEO-optimised defaults. Click Save to persist." });
   }
 
   /* ---- Section-type editors ---- */
@@ -664,8 +682,16 @@ export default function ContentClient({ pages }: Props) {
             </div>
           </div>
 
-          {/* Expand all */}
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+          {/* Section toolbar */}
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+            {editingPage?.page_slug === "homepage" && (
+              <button
+                onClick={resetToDefaults}
+                style={{ fontSize: "0.78rem", color: "var(--color-amber)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)" }}
+              >
+                Reset to Defaults
+              </button>
+            )}
             <button
               onClick={expandAll}
               style={{ fontSize: "0.78rem", color: "var(--color-blue)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)" }}

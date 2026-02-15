@@ -224,14 +224,14 @@ function HeroSection({ c }: { c: any }) {
       </div>
       <div className="hp-hero-content">
         <div className="hp-hero-accent" />
-        <h1>{c.title}</h1>
-        <p>{c.subtitle}</p>
+        <h1>{c.title || c.headline}</h1>
+        <p>{c.subtitle || c.subheadline}</p>
         <div className="hp-hero-actions">
-          <Link href={c.cta_link || "/register"} className="hp-btn-blue">
+          <Link href={c.cta_link || c.cta_url || "/register"} className="hp-btn-blue">
             {c.cta_text || "Start Free Trial"}
           </Link>
-          <a href={c.secondary_link || "#about"} className="hp-link-arrow">
-            {c.secondary_text || "See How It Works →"}
+          <a href={c.secondary_link || c.secondary_cta_url || "#about"} className="hp-link-arrow">
+            {c.secondary_text || c.secondary_cta_text || "See How It Works →"}
           </a>
         </div>
       </div>
