@@ -433,27 +433,6 @@ export default function SeoClient({
                 </div>
               </div>
 
-              <div className="sa-kpi-card">
-                <div className="sa-kpi-info">
-                  <span className="sa-kpi-label">
-                    {t("seoCriticalIssues")}
-                  </span>
-                  <span
-                    className="sa-kpi-value"
-                    style={{
-                      color:
-                        overview.criticalIssues > 0
-                          ? "var(--color-red)"
-                          : "var(--color-green)",
-                    }}
-                  >
-                    {overview.criticalIssues}
-                  </span>
-                </div>
-                <div className="sa-kpi-icon">
-                  <AlertTriangle size={20} />
-                </div>
-              </div>
             </div>
 
             {/* Charts: position distribution + intent pie */}
@@ -1106,11 +1085,11 @@ export default function SeoClient({
                   </div>
 
                   {/* Daily traffic line chart */}
-                  {trafficData.daily && trafficData.daily.length > 0 && (
-                    <div className="sa-card">
-                      <div className="sa-card-title">
-                        {t("seoDailyTraffic")}
-                      </div>
+                  <div className="sa-card">
+                    <div className="sa-card-title">
+                      {t("seoDailyTraffic")}
+                    </div>
+                    {trafficData.daily && trafficData.daily.length > 0 ? (
                       <div className="seo-chart-wrap">
                         <ResponsiveContainer width="100%" height={300}>
                           <LineChart data={trafficData.daily}>
@@ -1138,16 +1117,22 @@ export default function SeoClient({
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="sa-empty" style={{ padding: "40px 0" }}>
+                        <TrendingUp size={32} style={{ color: "var(--muted)" }} />
+                        <div className="sa-empty-title">No traffic data yet</div>
+                        <div className="sa-empty-desc">Daily page views and sessions will appear here as your site receives traffic.</div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="sa-two-col">
                     {/* Top pages table */}
-                    {trafficData.topPages && trafficData.topPages.length > 0 && (
-                      <div className="sa-card">
-                        <div className="sa-card-title">
-                          {t("seoTopPages")}
-                        </div>
+                    <div className="sa-card">
+                      <div className="sa-card-title">
+                        {t("seoTopPages")}
+                      </div>
+                      {trafficData.topPages && trafficData.topPages.length > 0 ? (
                         <div className="sa-table-wrap">
                           <table className="sa-table">
                             <thead>
@@ -1180,15 +1165,21 @@ export default function SeoClient({
                             </tbody>
                           </table>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="sa-empty" style={{ padding: "32px 0" }}>
+                          <FileText size={28} style={{ color: "var(--muted)" }} />
+                          <div className="sa-empty-title">No page data yet</div>
+                          <div className="sa-empty-desc">Top pages by views will appear here.</div>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Traffic sources bar chart */}
-                    {trafficData.sources && trafficData.sources.length > 0 && (
-                      <div className="sa-card">
-                        <div className="sa-card-title">
-                          {t("seoTrafficSources")}
-                        </div>
+                    <div className="sa-card">
+                      <div className="sa-card-title">
+                        {t("seoTrafficSources")}
+                      </div>
+                      {trafficData.sources && trafficData.sources.length > 0 ? (
                         <div className="seo-chart-wrap">
                           <ResponsiveContainer width="100%" height={300}>
                             <BarChart
@@ -1211,8 +1202,14 @@ export default function SeoClient({
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="sa-empty" style={{ padding: "32px 0" }}>
+                          <BarChart3 size={28} style={{ color: "var(--muted)" }} />
+                          <div className="sa-empty-title">No source data yet</div>
+                          <div className="sa-empty-desc">Traffic sources (organic, direct, referral) will appear here.</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </>
               )}
@@ -1438,11 +1435,11 @@ export default function SeoClient({
                 </div>
 
                 {/* Daily clicks + impressions line chart */}
-                {gscData.daily && gscData.daily.length > 0 && (
-                  <div className="sa-card">
-                    <div className="sa-card-title">
-                      {t("seoDailySearchPerformance")}
-                    </div>
+                <div className="sa-card">
+                  <div className="sa-card-title">
+                    {t("seoDailySearchPerformance")}
+                  </div>
+                  {gscData.daily && gscData.daily.length > 0 ? (
                     <div className="seo-chart-wrap">
                       <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={gscData.daily}>
@@ -1473,16 +1470,22 @@ export default function SeoClient({
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="sa-empty" style={{ padding: "40px 0" }}>
+                      <Search size={32} style={{ color: "var(--muted)" }} />
+                      <div className="sa-empty-title">No search data yet</div>
+                      <div className="sa-empty-desc">Daily clicks and impressions will appear here as Google indexes your site.</div>
+                    </div>
+                  )}
+                </div>
 
                 <div className="sa-two-col">
                   {/* Top queries table */}
-                  {gscData.topQueries && gscData.topQueries.length > 0 && (
-                    <div className="sa-card">
-                      <div className="sa-card-title">
-                        {t("seoTopQueries")}
-                      </div>
+                  <div className="sa-card">
+                    <div className="sa-card-title">
+                      {t("seoTopQueries")}
+                    </div>
+                    {gscData.topQueries && gscData.topQueries.length > 0 ? (
                       <div className="sa-table-wrap">
                         <table className="sa-table">
                           <thead>
@@ -1524,15 +1527,21 @@ export default function SeoClient({
                           </tbody>
                         </table>
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="sa-empty" style={{ padding: "32px 0" }}>
+                        <Search size={28} style={{ color: "var(--muted)" }} />
+                        <div className="sa-empty-title">No queries yet</div>
+                        <div className="sa-empty-desc">Top search queries will appear as your site gets impressions.</div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Top pages table */}
-                  {gscData.topPages && gscData.topPages.length > 0 && (
-                    <div className="sa-card">
-                      <div className="sa-card-title">
-                        {t("seoTopPages")}
-                      </div>
+                  <div className="sa-card">
+                    <div className="sa-card-title">
+                      {t("seoTopPages")}
+                    </div>
+                    {gscData.topPages && gscData.topPages.length > 0 ? (
                       <div className="sa-table-wrap">
                         <table className="sa-table">
                           <thead>
@@ -1576,8 +1585,14 @@ export default function SeoClient({
                           </tbody>
                         </table>
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="sa-empty" style={{ padding: "32px 0" }}>
+                        <FileText size={28} style={{ color: "var(--muted)" }} />
+                        <div className="sa-empty-title">No page data yet</div>
+                        <div className="sa-empty-desc">Top pages from search will appear here.</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             )}
