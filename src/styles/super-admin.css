@@ -351,6 +351,26 @@
   background: rgba(220, 38, 38, 0.15);
 }
 
+.sa-badge-purple {
+  background: rgba(147, 51, 234, 0.1);
+  color: #7c3aed;
+}
+
+[data-theme="dark"] .sa-badge-purple {
+  background: rgba(147, 51, 234, 0.15);
+  color: #a78bfa;
+}
+
+.sa-badge-gray {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+[data-theme="dark"] .sa-badge-gray {
+  background: rgba(107, 114, 128, 0.15);
+  color: #9ca3af;
+}
+
 /* ===== Announcement Items ===== */
 .sa-announcement-item {
   display: flex;

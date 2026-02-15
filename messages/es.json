@@ -543,6 +543,16 @@
     "promoCodes": "Códigos Promo",
     "stripeSettings": "Configuración Stripe",
     "seoGeo": "SEO & GEO",
+    "operations": "Operaciones",
+    "supportTickets": "Tickets de Soporte",
+    "auditLogs": "Registro de Auditoría",
+    "systemHealth": "Estado del Sistema",
+    "tools": "Herramientas",
+    "emailTemplates": "Plantillas de Email",
+    "featureFlags": "Banderas de Funciones",
+    "onboarding": "Incorporación",
+    "dataExport": "Exportar Datos",
+    "settings": "Configuración",
     "backToApp": "Volver a la App"
   },
   "superAdmin": {

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, FileText,
-  Globe, ChevronRight, CreditCard,
+  Globe, ChevronRight, CreditCard, Settings,
+  Shield, Wrench,
 } from "lucide-react";
 import {
   superAdminNavigation,
@@ -20,6 +21,9 @@ const iconMap: Record<string, React.ElementType> = {
   "file-text": FileText,
   globe: Globe,
   "credit-card": CreditCard,
+  shield: Shield,
+  wrench: Wrench,
+  settings: Settings,
 };
 
 function NavItemComponent({ item, t }: { item: SuperAdminNavItem; t: (key: string) => string }) {

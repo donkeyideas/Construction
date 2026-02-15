@@ -50,12 +50,28 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
     href: "/super-admin/seo",
     icon: "globe",
   },
-];
-
-export const superAdminBottomNav: SuperAdminNavItem[] = [
   {
-    label: "backToApp",
-    href: "/dashboard",
-    icon: "arrow-left",
+    label: "operations",
+    icon: "shield",
+    children: [
+      { label: "supportTickets", href: "/super-admin/support-tickets" },
+      { label: "auditLogs", href: "/super-admin/audit-logs" },
+      { label: "systemHealth", href: "/super-admin/system-health" },
+    ],
+  },
+  {
+    label: "tools",
+    icon: "wrench",
+    children: [
+      { label: "emailTemplates", href: "/super-admin/email-templates" },
+      { label: "featureFlags", href: "/super-admin/feature-flags" },
+      { label: "onboarding", href: "/super-admin/onboarding" },
+      { label: "dataExport", href: "/super-admin/data-export" },
+    ],
+  },
+  {
+    label: "settings",
+    href: "/super-admin/settings",
+    icon: "settings",
   },
 ];

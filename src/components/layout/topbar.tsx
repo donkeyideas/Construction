@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
 import { Search, Bell, Sun, Moon, Menu, LogOut, Settings } from "lucide-react";
 import {
@@ -35,6 +35,8 @@ function getInitials(name: string | null, email: string | null): string {
 export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
+  const isSuperAdmin = pathname.startsWith("/super-admin");
   const [searchOpen, setSearchOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<{ name: string | null; email: string | null }>({
     name: null,
@@ -145,7 +147,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
                 )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push("/admin/settings")}>
+              <DropdownMenuItem onSelect={() => router.push(isSuperAdmin ? "/super-admin/settings" : "/admin/settings")}>
                 <Settings size={14} style={{ marginRight: 8 }} />
                 Settings
               </DropdownMenuItem>

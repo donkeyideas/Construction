@@ -543,6 +543,16 @@
     "promoCodes": "Promo Codes",
     "stripeSettings": "Stripe Settings",
     "seoGeo": "SEO & GEO",
+    "operations": "Operations",
+    "supportTickets": "Support Tickets",
+    "auditLogs": "Audit Logs",
+    "systemHealth": "System Health",
+    "tools": "Tools",
+    "emailTemplates": "Email Templates",
+    "featureFlags": "Feature Flags",
+    "onboarding": "Onboarding",
+    "dataExport": "Data Export",
+    "settings": "Settings",
     "backToApp": "Back to App"
   },
   "superAdmin": {
