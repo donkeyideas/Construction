@@ -13,6 +13,9 @@ import {
   Truck,
   Plus,
   Shield,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import PrequalificationChecklist from "@/components/PrequalificationChecklist";
@@ -344,6 +347,48 @@ export default function VendorsClient({
                         {v.phone}
                       </a>
                     </div>
+                  )}
+                </div>
+
+                {/* Prequalification Score */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderTop: "1px solid var(--border)",
+                  paddingTop: "10px",
+                  marginTop: "10px",
+                  fontSize: "0.8rem",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--muted)" }}>
+                    <Shield size={13} />
+                    <span>Prequalification</span>
+                  </div>
+                  {v.prequalification_score != null ? (
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      fontWeight: 600,
+                      color: v.prequalification_score >= 80
+                        ? "var(--color-green)"
+                        : v.prequalification_score >= 60
+                          ? "var(--color-amber)"
+                          : "var(--color-red)",
+                    }}>
+                      {v.prequalification_score >= 80 ? (
+                        <CheckCircle2 size={13} />
+                      ) : v.prequalification_score >= 60 ? (
+                        <AlertTriangle size={13} />
+                      ) : (
+                        <XCircle size={13} />
+                      )}
+                      {v.prequalification_score}/100
+                    </div>
+                  ) : (
+                    <span style={{ color: "var(--muted)", fontStyle: "italic", fontSize: "0.75rem" }}>
+                      Not evaluated
+                    </span>
                   )}
                 </div>
               </div>
