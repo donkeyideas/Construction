@@ -11,14 +11,7 @@ import {
 } from "lucide-react";
 import type { TenantDashboard } from "@/lib/queries/tenant-portal";
 import { formatCurrency } from "@/lib/utils/format";
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { useTranslations, useLocale } from "next-intl";
 
 function formatFileSize(bytes: number | null): string {
   if (!bytes) return "--";
@@ -58,8 +51,20 @@ export default function TenantDashboardClient({
 }: {
   dashboard: TenantDashboard;
 }) {
+  const t = useTranslations("tenant");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const [paymentAlert, setPaymentAlert] = useState("");
   const [nextDueDate, setNextDueDate] = useState("--");
+
+  function formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
 
   useEffect(() => {
     const now = new Date();
@@ -69,16 +74,16 @@ export default function TenantDashboardClient({
       next = new Date(now.getFullYear(), now.getMonth() + 1, day);
     }
     setNextDueDate(
-      next.toLocaleDateString("en-US", {
+      next.toLocaleDateString(dateLocale, {
         month: "short",
         day: "numeric",
         year: "numeric",
       })
     );
-  }, []);
+  }, [dateLocale]);
 
   function handlePayNow() {
-    setPaymentAlert("Online payment processing coming soon. Please contact your property manager.");
+    setPaymentAlert(t("paymentComingSoon"));
     setTimeout(() => setPaymentAlert(""), 5000);
   }
 
@@ -87,12 +92,12 @@ export default function TenantDashboardClient({
       const res = await fetch(`/api/tenant/documents/${documentId}/download`);
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Failed to get download link");
+        alert(data.error || t("failedDownload"));
         return;
       }
       window.open(data.url, "_blank");
     } catch {
-      alert("Something went wrong. Please try again.");
+      alert(t("downloadError"));
     }
   }
 
@@ -102,11 +107,11 @@ export default function TenantDashboardClient({
     <div>
       {/* Welcome Banner */}
       <div className="tenant-welcome">
-        <h2>Welcome, {dashboard.fullName ?? "Tenant"}</h2>
+        <h2>{t("welcomeName", { name: dashboard.fullName ?? t("defaultTenant") })}</h2>
         {lease ? (
           <>
             <p>
-              Unit {lease.unit_name} at {lease.property_name}
+              {t("unitAt", { unit: lease.unit_name, property: lease.property_name })}
             </p>
             <div className="tenant-welcome-details">
               <div className="tenant-welcome-detail">
@@ -115,7 +120,7 @@ export default function TenantDashboardClient({
               </div>
               <div className="tenant-welcome-detail">
                 <Calendar size={16} />
-                Lease Active
+                {t("leaseActive")}
               </div>
               <span className="tenant-welcome-badge">
                 {statusLabel(lease.status)}
@@ -123,7 +128,7 @@ export default function TenantDashboardClient({
             </div>
           </>
         ) : (
-          <p>No active lease on file.</p>
+          <p>{t("noActiveLeaseMsg")}</p>
         )}
       </div>
 
@@ -135,7 +140,7 @@ export default function TenantDashboardClient({
             style={{ color: "var(--muted)", marginBottom: 12 }}
           />
           <h3 style={{ margin: "0 0 8px 0", fontSize: "1rem" }}>
-            No Active Lease
+            {t("noActiveLeaseTitle")}
           </h3>
           <p
             style={{
@@ -144,8 +149,7 @@ export default function TenantDashboardClient({
               margin: 0,
             }}
           >
-            You do not have an active lease on file. Please contact your
-            property manager for assistance.
+            {t("noActiveLeaseDesc")}
           </p>
         </div>
       ) : (
@@ -154,29 +158,29 @@ export default function TenantDashboardClient({
           <div>
             {/* Lease Details */}
             <div className="card" style={{ marginBottom: 24 }}>
-              <div className="card-title">Lease Details</div>
+              <div className="card-title">{t("leaseDetails")}</div>
               <div className="tenant-detail-grid">
                 <div>
-                  <div className="tenant-detail-item-label">Move-in Date</div>
+                  <div className="tenant-detail-item-label">{t("moveInDate")}</div>
                   <div className="tenant-detail-item-value">
                     {formatDate(lease.lease_start)}
                   </div>
                 </div>
                 <div>
-                  <div className="tenant-detail-item-label">Lease End</div>
+                  <div className="tenant-detail-item-label">{t("leaseEnd")}</div>
                   <div className="tenant-detail-item-value">
                     {formatDate(lease.lease_end)}
                   </div>
                 </div>
                 <div>
-                  <div className="tenant-detail-item-label">Monthly Rent</div>
+                  <div className="tenant-detail-item-label">{t("monthlyRent")}</div>
                   <div className="tenant-detail-item-value highlight">
                     {formatCurrency(lease.monthly_rent)}
                   </div>
                 </div>
                 <div>
                   <div className="tenant-detail-item-label">
-                    Security Deposit
+                    {t("securityDeposit")}
                   </div>
                   <div className="tenant-detail-item-value">
                     {lease.security_deposit != null
@@ -186,7 +190,7 @@ export default function TenantDashboardClient({
                 </div>
                 <div style={{ gridColumn: "span 2" }}>
                   <div className="tenant-detail-item-label">
-                    Next Payment Due
+                    {t("nextPaymentDue")}
                   </div>
                   <div
                     className="tenant-detail-item-value"
@@ -203,14 +207,14 @@ export default function TenantDashboardClient({
 
             {/* Payment History */}
             <div className="card" style={{ marginBottom: 24 }}>
-              <div className="card-title">Payment History</div>
+              <div className="card-title">{t("paymentHistory")}</div>
               {dashboard.recentPayments.length > 0 ? (
                 <table className="tenant-data-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Amount</th>
-                      <th>Status</th>
+                      <th>{t("thDate")}</th>
+                      <th>{t("thAmount")}</th>
+                      <th>{t("thStatus")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -236,21 +240,21 @@ export default function TenantDashboardClient({
                     padding: "16px 0",
                   }}
                 >
-                  No payments recorded yet.
+                  {t("noPaymentsYet")}
                 </p>
               )}
             </div>
 
             {/* Make a Payment */}
             <div className="card" style={{ marginBottom: 24 }}>
-              <div className="card-title">Make a Payment</div>
+              <div className="card-title">{t("makePayment")}</div>
               {paymentAlert && (
                 <div className="tenant-alert tenant-alert-success">
                   {paymentAlert}
                 </div>
               )}
               <div className="tenant-field">
-                <label className="tenant-label">Amount</label>
+                <label className="tenant-label">{t("amount")}</label>
                 <input
                   type="text"
                   className="tenant-form-input"
@@ -259,11 +263,11 @@ export default function TenantDashboardClient({
                 />
               </div>
               <div className="tenant-field">
-                <label className="tenant-label">Payment Method</label>
+                <label className="tenant-label">{t("paymentMethod")}</label>
                 <select className="tenant-form-select">
-                  <option>Bank Transfer (ACH)</option>
-                  <option>Credit Card</option>
-                  <option>Check</option>
+                  <option>{t("bankTransfer")}</option>
+                  <option>{t("creditCard")}</option>
+                  <option>{t("check")}</option>
                 </select>
               </div>
               <button
@@ -271,7 +275,7 @@ export default function TenantDashboardClient({
                 style={{ marginTop: 8 }}
                 onClick={handlePayNow}
               >
-                Pay Now
+                {t("payNow")}
               </button>
             </div>
           </div>
@@ -281,10 +285,10 @@ export default function TenantDashboardClient({
             {/* Maintenance Requests */}
             <div className="card" style={{ marginBottom: 24 }}>
               <div className="card-title">
-                Maintenance Requests
+                {t("maintenanceRequests")}
                 {dashboard.openMaintenanceCount > 0 && (
                   <span className="badge badge-amber">
-                    {dashboard.openMaintenanceCount} Active
+                    {t("activeCount", { count: dashboard.openMaintenanceCount })}
                   </span>
                 )}
               </div>
@@ -297,7 +301,7 @@ export default function TenantDashboardClient({
                     <div className="tenant-request-info">
                       <div className="tenant-request-title">{req.title}</div>
                       <div className="tenant-request-meta">
-                        Submitted {formatDate(req.created_at)}
+                        {t("submittedDate", { date: formatDate(req.created_at) })}
                       </div>
                     </div>
                     <span className={statusBadgeClass(req.status)}>
@@ -314,7 +318,7 @@ export default function TenantDashboardClient({
                     padding: "16px 0",
                   }}
                 >
-                  No requests submitted.
+                  {t("noRequestsSubmitted")}
                 </p>
               )}
               <Link
@@ -328,13 +332,13 @@ export default function TenantDashboardClient({
                   textDecoration: "none",
                 }}
               >
-                + New Request
+                {t("newRequest")}
               </Link>
             </div>
 
             {/* Documents */}
             <div className="card" style={{ marginBottom: 24 }}>
-              <div className="card-title">Documents</div>
+              <div className="card-title">{t("documents")}</div>
               {dashboard.documents.length > 0 ? (
                 <>
                   {dashboard.documents.map((doc) => (
@@ -358,7 +362,7 @@ export default function TenantDashboardClient({
                         onClick={() => handleDocDownload(doc.document_id)}
                       >
                         <Download size={14} style={{ marginRight: 4 }} />
-                        Download
+                        {t("download")}
                       </button>
                     </div>
                   ))}
@@ -372,7 +376,7 @@ export default function TenantDashboardClient({
                         marginTop: 12,
                       }}
                     >
-                      View All Documents
+                      {t("viewAllDocuments")}
                     </Link>
                   )}
                 </>
@@ -385,14 +389,14 @@ export default function TenantDashboardClient({
                     padding: "16px 0",
                   }}
                 >
-                  No documents shared yet.
+                  {t("noDocumentsShared")}
                 </p>
               )}
             </div>
 
             {/* Building Announcements */}
             <div className="card" style={{ marginBottom: 24 }}>
-              <div className="card-title">Building Announcements</div>
+              <div className="card-title">{t("buildingAnnouncements")}</div>
               {dashboard.announcements.length > 0 ? (
                 dashboard.announcements.map((ann) => (
                   <div key={ann.id} className="tenant-announce-item">
@@ -413,7 +417,7 @@ export default function TenantDashboardClient({
                     padding: "16px 0",
                   }}
                 >
-                  No announcements.
+                  {t("noAnnouncements")}
                 </p>
               )}
             </div>

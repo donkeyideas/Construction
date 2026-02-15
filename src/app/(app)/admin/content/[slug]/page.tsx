@@ -14,10 +14,10 @@ export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
 
   if (slug === "new") {
-    return { title: "New Page - ConstructionERP" };
+    return { title: "New Page - Buildwrk" };
   }
 
-  return { title: `Edit Page - ConstructionERP` };
+  return { title: `Edit Page - Buildwrk` };
 }
 
 export default async function ContentEditorPage({ params }: PageProps) {

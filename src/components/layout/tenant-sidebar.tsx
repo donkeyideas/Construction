@@ -13,6 +13,7 @@ import {
   User,
   ChevronRight,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { tenantNavigation } from "@/types/tenant-navigation";
 import type { NavItem } from "@/types/navigation";
 
@@ -26,7 +27,7 @@ const iconMap: Record<string, React.ElementType> = {
   user: User,
 };
 
-function NavItemComponent({ item }: { item: NavItem }) {
+function NavItemComponent({ item, t }: { item: NavItem; t: (key: string) => string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const Icon = iconMap[item.icon] || LayoutDashboard;
@@ -42,7 +43,7 @@ function NavItemComponent({ item }: { item: NavItem }) {
           className={`nav-link ${isActive ? "active" : ""}`}
         >
           <Icon />
-          <span className="label">{item.label}</span>
+          <span className="label">{(t as any)(item.label)}</span>
           <ChevronRight
             className="chevron"
             style={{ transform: open ? "rotate(90deg)" : undefined }}
@@ -56,7 +57,7 @@ function NavItemComponent({ item }: { item: NavItem }) {
                 href={child.href}
                 className={`nav-child ${pathname === child.href ? "active" : ""}`}
               >
-                {child.label}
+                {(t as any)(child.label)}
               </Link>
             ))}
           </div>
@@ -69,7 +70,7 @@ function NavItemComponent({ item }: { item: NavItem }) {
     <div className="nav-item">
       <Link href={item.href!} className={`nav-link ${isActive ? "active" : ""}`}>
         <Icon />
-        <span className="label">{item.label}</span>
+        <span className="label">{(t as any)(item.label)}</span>
       </Link>
     </div>
   );
@@ -81,17 +82,19 @@ interface SidebarProps {
 }
 
 export function TenantSidebar({ isOpen, onClose }: SidebarProps) {
+  const t = useTranslations("tenantNav");
+
   return (
     <>
       {isOpen && <div className="overlay active" onClick={onClose} />}
       <aside className={`sidebar ${isOpen ? "open" : ""}`}>
         <div className="sidebar-brand">
-          <h1>Tenant Portal</h1>
+          <h1>{t("tenantPortal")}</h1>
           <div className="accent-line" />
         </div>
         <nav className="sidebar-nav">
           {tenantNavigation.map((item) => (
-            <NavItemComponent key={item.label} item={item} />
+            <NavItemComponent key={item.label} item={item} t={t as any} />
           ))}
         </nav>
       </aside>

@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import CertificationsClient from "./CertificationsClient";
 
 export const metadata = {
-  title: "Certifications - ConstructionERP",
+  title: "Certifications - Buildwrk",
 };
 
 interface PageProps {

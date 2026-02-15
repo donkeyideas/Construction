@@ -15,7 +15,7 @@ import { getProperties } from "@/lib/queries/properties";
 import DocumentsClient from "./DocumentsClient";
 
 export const metadata = {
-  title: "Document Library - ConstructionERP",
+  title: "Document Library - Buildwrk",
 };
 
 export default async function DocumentsPage({

@@ -3,40 +3,13 @@
 import { useState } from "react";
 import { FolderOpen, FileText, Download, X, ExternalLink } from "lucide-react";
 import type { TenantDocument } from "@/lib/queries/tenant-portal";
+import { useTranslations, useLocale } from "next-intl";
 
 function formatFileSize(bytes: number | null): string {
   if (!bytes) return "--";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function getCategoryLabel(cat: string | null): string {
-  switch (cat) {
-    case "plan":
-      return "Plan / Drawing";
-    case "spec":
-      return "Specification";
-    case "contract":
-      return "Contract";
-    case "photo":
-      return "Photo";
-    case "report":
-      return "Report";
-    case "correspondence":
-      return "Correspondence";
-    default:
-      return cat || "General";
-  }
 }
 
 function getFileIcon(fileType: string | null): string {
@@ -61,9 +34,41 @@ export default function DocumentsClient({
 }: {
   documents: TenantDocument[];
 }) {
+  const t = useTranslations("tenant");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const [selected, setSelected] = useState<TenantDocument | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState("");
+
+  function formatDate(dateStr: string | null): string {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function getCategoryLabel(cat: string | null): string {
+    switch (cat) {
+      case "plan":
+        return t("catPlan");
+      case "spec":
+        return t("catSpec");
+      case "contract":
+        return t("catContract");
+      case "photo":
+        return t("catPhoto");
+      case "report":
+        return t("catReport");
+      case "correspondence":
+        return t("catCorrespondence");
+      default:
+        return cat || t("catGeneralDoc");
+    }
+  }
 
   function closeModal() {
     setSelected(null);
@@ -81,13 +86,13 @@ export default function DocumentsClient({
       const data = await res.json();
 
       if (!res.ok) {
-        setDownloadError(data.error || "Failed to get download link");
+        setDownloadError(data.error || t("failedDownload"));
         return;
       }
 
       window.open(data.url, "_blank");
     } catch {
-      setDownloadError("Something went wrong. Please try again.");
+      setDownloadError(t("downloadError"));
     } finally {
       setDownloading(false);
     }
@@ -97,9 +102,9 @@ export default function DocumentsClient({
     <div>
       <div className="fin-header">
         <div>
-          <h2>Documents</h2>
+          <h2>{t("documentsTitle")}</h2>
           <p className="fin-header-sub">
-            Access documents shared with you by your property manager.
+            {t("documentsSubtitle")}
           </p>
         </div>
       </div>
@@ -165,7 +170,7 @@ export default function DocumentsClient({
                     >
                       <span>{getCategoryLabel(doc.category)}</span>
                       <span>{formatFileSize(doc.file_size)}</span>
-                      <span>Shared {formatDate(doc.shared_at)}</span>
+                      <span>{t("shared", { date: formatDate(doc.shared_at) })}</span>
                     </div>
                   </div>
                 </div>
@@ -184,7 +189,7 @@ export default function DocumentsClient({
                   disabled={downloading}
                 >
                   <Download size={14} />
-                  Download
+                  {t("download")}
                 </button>
               </div>
             </div>
@@ -196,10 +201,9 @@ export default function DocumentsClient({
             <div className="fin-empty-icon">
               <FolderOpen size={48} />
             </div>
-            <div className="fin-empty-title">No Documents</div>
+            <div className="fin-empty-title">{t("noDocuments")}</div>
             <div className="fin-empty-desc">
-              No documents have been shared with you yet. Documents from your
-              property manager will appear here.
+              {t("noDocumentsDesc")}
             </div>
           </div>
         </div>
@@ -251,26 +255,26 @@ export default function DocumentsClient({
             )}
 
             <div className="tenant-detail-row">
-              <span className="tenant-detail-label">File Name</span>
+              <span className="tenant-detail-label">{t("fileName")}</span>
               <span>{selected.doc_name}</span>
             </div>
             <div className="tenant-detail-row">
-              <span className="tenant-detail-label">Type</span>
+              <span className="tenant-detail-label">{t("type")}</span>
               <span>{selected.file_type?.toUpperCase() || "--"}</span>
             </div>
             <div className="tenant-detail-row">
-              <span className="tenant-detail-label">Category</span>
+              <span className="tenant-detail-label">{t("category")}</span>
               <span>{getCategoryLabel(selected.category)}</span>
             </div>
             <div className="tenant-detail-row">
-              <span className="tenant-detail-label">File Size</span>
+              <span className="tenant-detail-label">{t("fileSize")}</span>
               <span>{formatFileSize(selected.file_size)}</span>
             </div>
             <div className="tenant-detail-row">
-              <span className="tenant-detail-label">Shared On</span>
+              <span className="tenant-detail-label">{t("sharedOn")}</span>
               <span>
                 {selected.shared_at
-                  ? new Date(selected.shared_at).toLocaleDateString("en-US", {
+                  ? new Date(selected.shared_at).toLocaleDateString(dateLocale, {
                       weekday: "short",
                       month: "short",
                       day: "numeric",
@@ -283,7 +287,7 @@ export default function DocumentsClient({
               className="tenant-detail-row"
               style={{ borderBottom: "none" }}
             >
-              <span className="tenant-detail-label">Created</span>
+              <span className="tenant-detail-label">{t("created")}</span>
               <span>{formatDate(selected.doc_created_at)}</span>
             </div>
 
@@ -301,7 +305,7 @@ export default function DocumentsClient({
                 className="ui-btn ui-btn-md ui-btn-outline"
                 onClick={closeModal}
               >
-                Close
+                {t("close")}
               </button>
               <button
                 className="ui-btn ui-btn-md ui-btn-primary"
@@ -314,11 +318,11 @@ export default function DocumentsClient({
                 }}
               >
                 {downloading ? (
-                  "Downloading..."
+                  t("downloading")
                 ) : (
                   <>
                     <ExternalLink size={15} />
-                    Open / Download
+                    {t("openDownload")}
                   </>
                 )}
               </button>

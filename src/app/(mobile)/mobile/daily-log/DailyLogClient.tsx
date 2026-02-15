@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface DailyLogClientProps {
   projects: Array<{ id: string; name: string; code: string }>;
@@ -21,8 +22,24 @@ const weatherConditions = [
   "Cold",
 ];
 
+const weatherKeyMap: Record<string, string> = {
+  Clear: "weatherClear",
+  "Partly Cloudy": "weatherPartlyCloudy",
+  Overcast: "weatherOvercast",
+  Rain: "weatherRain",
+  "Heavy Rain": "weatherHeavyRain",
+  Snow: "weatherSnow",
+  Sleet: "weatherSleet",
+  Fog: "weatherFog",
+  Windy: "weatherWindy",
+  Hot: "weatherHot",
+  Cold: "weatherCold",
+};
+
 export default function DailyLogClient({ projects }: DailyLogClientProps) {
   const router = useRouter();
+  const t = useTranslations("mobile.dailyLog");
+  const tc = useTranslations("common");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +66,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
     setSuccess(false);
 
     if (!projectId) {
-      setError("Please select a project.");
+      setError(t("pleaseSelectProject"));
       setLoading(false);
       return;
     }
@@ -80,12 +97,11 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to submit daily log.");
+        setError(data.error || t("failedSubmit"));
         return;
       }
 
       setSuccess(true);
-      // Reset form
       setWorkPerformed("");
       setWeatherCondition("");
       setWeatherTempHigh("");
@@ -96,7 +112,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
       setVisitors("");
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(tc("networkError"));
     } finally {
       setLoading(false);
     }
@@ -108,7 +124,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
         {/* Date */}
         <div className="mobile-form-field">
           <label className="mobile-form-label" htmlFor="log-date">
-            Date
+            {t("date")}
           </label>
           <input
             id="log-date"
@@ -123,7 +139,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
         {/* Project */}
         <div className="mobile-form-field">
           <label className="mobile-form-label" htmlFor="log-project">
-            Project
+            {tc("project")}
           </label>
           <select
             id="log-project"
@@ -132,7 +148,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
             onChange={(e) => setProjectId(e.target.value)}
             required
           >
-            <option value="">Select a project</option>
+            <option value="">{tc("selectProject")}</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} ({p.code})
@@ -143,12 +159,12 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
 
         {/* Weather */}
         <div className="mobile-section-title" style={{ marginTop: "8px" }}>
-          Weather Conditions
+          {t("weatherConditions")}
         </div>
 
         <div className="mobile-form-field">
           <label className="mobile-form-label" htmlFor="weather-condition">
-            Condition
+            {t("condition")}
           </label>
           <select
             id="weather-condition"
@@ -156,10 +172,10 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
             value={weatherCondition}
             onChange={(e) => setWeatherCondition(e.target.value)}
           >
-            <option value="">Select condition</option>
+            <option value="">{t("selectCondition")}</option>
             {weatherConditions.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {(t as any)(weatherKeyMap[c])}
               </option>
             ))}
           </select>
@@ -168,7 +184,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
         <div style={{ display: "flex", gap: "10px" }}>
           <div className="mobile-form-field" style={{ flex: 1 }}>
             <label className="mobile-form-label" htmlFor="temp-high">
-              High (F)
+              {t("highF")}
             </label>
             <input
               id="temp-high"
@@ -181,7 +197,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
           </div>
           <div className="mobile-form-field" style={{ flex: 1 }}>
             <label className="mobile-form-label" htmlFor="temp-low">
-              Low (F)
+              {t("lowF")}
             </label>
             <input
               id="temp-low"
@@ -197,7 +213,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
         {/* Workforce */}
         <div className="mobile-form-field">
           <label className="mobile-form-label" htmlFor="workforce-count">
-            Workforce Count
+            {t("workforceCount")}
           </label>
           <input
             id="workforce-count"
@@ -205,21 +221,21 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
             className="mobile-form-input"
             value={workforceCount}
             onChange={(e) => setWorkforceCount(e.target.value)}
-            placeholder="Number of workers on site"
+            placeholder={t("workersPlaceholder")}
           />
         </div>
 
         {/* Work Performed */}
         <div className="mobile-form-field">
           <label className="mobile-form-label" htmlFor="work-performed">
-            Work Performed
+            {t("workPerformed")}
           </label>
           <textarea
             id="work-performed"
             className="mobile-form-textarea"
             value={workPerformed}
             onChange={(e) => setWorkPerformed(e.target.value)}
-            placeholder="Describe work performed today..."
+            placeholder={t("workPerformedPlaceholder")}
           />
         </div>
 
@@ -241,21 +257,21 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
               onChange={(e) => setSafetyIncident(e.target.checked)}
               style={{ width: "18px", height: "18px" }}
             />
-            Safety Incident Occurred
+            {t("safetyIncident")}
           </label>
         </div>
 
         {safetyIncident && (
           <div className="mobile-form-field">
             <label className="mobile-form-label" htmlFor="safety-notes">
-              Incident Details
+              {t("incidentDetails")}
             </label>
             <textarea
               id="safety-notes"
               className="mobile-form-textarea"
               value={safetyNotes}
               onChange={(e) => setSafetyNotes(e.target.value)}
-              placeholder="Describe the incident..."
+              placeholder={t("incidentPlaceholder")}
               style={{ minHeight: "80px" }}
             />
           </div>
@@ -264,7 +280,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
         {/* Visitors */}
         <div className="mobile-form-field">
           <label className="mobile-form-label" htmlFor="visitors">
-            Visitors
+            {t("visitors")}
           </label>
           <input
             id="visitors"
@@ -272,7 +288,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
             className="mobile-form-input"
             value={visitors}
             onChange={(e) => setVisitors(e.target.value)}
-            placeholder="Names of visitors on site (if any)"
+            placeholder={t("visitorsPlaceholder")}
           />
         </div>
 
@@ -282,7 +298,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
           className="mobile-submit-btn"
           disabled={loading}
         >
-          {loading ? "Submitting..." : "Submit Daily Log"}
+          {loading ? t("submitting") : t("submitDailyLog")}
         </button>
 
         {error && (
@@ -307,7 +323,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
               marginTop: "8px",
             }}
           >
-            Daily log submitted successfully.
+            {t("submitSuccess")}
           </p>
         )}
       </div>

@@ -4,20 +4,12 @@ import { useState } from "react";
 import { SuperAdminSidebar } from "@/components/layout/super-admin-sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import "@/styles/app-shell.css";
 import "@/styles/admin.css";
 import "@/styles/super-admin.css";
 import "@/styles/tickets.css";
 import "@/styles/content.css";
-
-function getBreadcrumb(pathname: string): string {
-  const segments = pathname.split("/").filter(Boolean);
-  if (segments.length <= 1) return "Platform Overview";
-  return segments
-    .slice(1)
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " "))
-    .join(" / ");
-}
 
 export default function SuperAdminLayout({
   children,
@@ -26,6 +18,16 @@ export default function SuperAdminLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const t = useTranslations("saNav");
+
+  function getBreadcrumb(path: string): string {
+    const segments = path.split("/").filter(Boolean);
+    if (segments.length <= 1) return t("platformOverview");
+    return segments
+      .slice(1)
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " "))
+      .join(" / ");
+  }
 
   return (
     <>
@@ -34,7 +36,7 @@ export default function SuperAdminLayout({
         onClose={() => setSidebarOpen(false)}
       />
       <Topbar
-        breadcrumb={`Super Admin / ${getBreadcrumb(pathname)}`}
+        breadcrumb={`${t("superAdmin")} / ${getBreadcrumb(pathname)}`}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
       <main className="main">{children}</main>

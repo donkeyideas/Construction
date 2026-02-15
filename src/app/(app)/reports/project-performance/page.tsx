@@ -8,7 +8,7 @@ import { formatCurrency, formatPercent } from "@/lib/utils/format";
 import ExportButton from "@/components/reports/ExportButton";
 
 export const metadata = {
-  title: "Project Performance Report - ConstructionERP",
+  title: "Project Performance Report - Buildwrk",
 };
 
 function getVarianceClass(variancePct: number): string {

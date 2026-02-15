@@ -4,8 +4,9 @@ import { FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getVendorContracts } from "@/lib/queries/vendor-portal";
 import { formatCurrency } from "@/lib/utils/format";
+import { getTranslations, getLocale } from "next-intl/server";
 
-export const metadata = { title: "My Contracts - ConstructionERP" };
+export const metadata = { title: "My Contracts - Buildwrk" };
 
 export default async function VendorContractsPage() {
   const supabase = await createClient();
@@ -13,13 +14,16 @@ export default async function VendorContractsPage() {
   if (!user) { redirect("/login/vendor"); }
 
   const contracts = await getVendorContracts(supabase, user.id);
+  const t = await getTranslations("vendor");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   return (
     <div>
       <div className="fin-header">
         <div>
-          <h2>My Contracts</h2>
-          <p className="fin-header-sub">View all your active and past contracts.</p>
+          <h2>{t("contractsTitle")}</h2>
+          <p className="fin-header-sub">{t("contractsSubtitle")}</p>
         </div>
       </div>
 
@@ -29,10 +33,10 @@ export default async function VendorContractsPage() {
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Project</th>
-                  <th style={{ textAlign: "right" }}>Contract Amount</th>
-                  <th>Status</th>
-                  <th>Start Date</th>
+                  <th>{t("thProject")}</th>
+                  <th style={{ textAlign: "right" }}>{t("thContractAmount")}</th>
+                  <th>{t("thStatus")}</th>
+                  <th>{t("thStartDate")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -45,7 +49,7 @@ export default async function VendorContractsPage() {
                           href={`/vendor/contracts/${contract.id}`}
                           style={{ color: "var(--color-blue)", textDecoration: "none" }}
                         >
-                          {project?.name ?? "Unknown Project"}
+                          {project?.name ?? t("unknownProject")}
                         </Link>
                       </td>
                       <td className="amount-col">
@@ -58,7 +62,7 @@ export default async function VendorContractsPage() {
                       </td>
                       <td>
                         {contract.start_date
-                          ? new Date(contract.start_date as string).toLocaleDateString("en-US", {
+                          ? new Date(contract.start_date as string).toLocaleDateString(dateLocale, {
                               month: "short",
                               day: "numeric",
                               year: "numeric",
@@ -76,8 +80,8 @@ export default async function VendorContractsPage() {
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><FileText size={48} /></div>
-            <div className="fin-empty-title">No Contracts Found</div>
-            <div className="fin-empty-desc">You do not have any contracts yet.</div>
+            <div className="fin-empty-title">{t("noContractsFound")}</div>
+            <div className="fin-empty-desc">{t("noContractsDesc")}</div>
           </div>
         </div>
       )}

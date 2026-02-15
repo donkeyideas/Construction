@@ -23,9 +23,10 @@ import {
 } from "@/lib/utils/format";
 import DashboardFilter from "@/components/DashboardFilter";
 import CashFlowChart from "@/components/CashFlowChart";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = {
-  title: "Dashboard - ConstructionERP",
+  title: "Dashboard - Buildwrk",
 };
 
 // Which dashboard sections each role can see
@@ -39,14 +40,14 @@ const ROLE_SECTIONS: Record<string, { kpis: boolean; charts: boolean; financials
   viewer:          { kpis: true,  charts: false, financials: false, approvals: false, activity: true,  insights: false },
 };
 
-const ROLE_GREETING: Record<string, string> = {
-  owner: "Here is your company overview.",
-  admin: "Here is your company overview.",
-  project_manager: "Here are your project updates.",
-  superintendent: "Here are your field operations.",
-  accountant: "Here is your financial overview.",
-  field_worker: "Here are your assignments for today.",
-  viewer: "Here is a snapshot of current activity.",
+const ROLE_GREETING_KEY: Record<string, string> = {
+  owner: "greetingOwner",
+  admin: "greetingAdmin",
+  project_manager: "greetingProjectManager",
+  superintendent: "greetingSuperintendent",
+  accountant: "greetingAccountant",
+  field_worker: "greetingFieldWorker",
+  viewer: "greetingViewer",
 };
 
 interface PageProps {
@@ -62,9 +63,15 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     redirect("/register");
   }
 
+  const t = await getTranslations("dashboard");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const { companyId, companyName, role: userRole } = userCompany;
   const sections = ROLE_SECTIONS[userRole] || ROLE_SECTIONS.viewer;
-  const greeting = ROLE_GREETING[userRole] || "Welcome back.";
+  const greetingKey = ROLE_GREETING_KEY[userRole] || "welcomeBack";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const greeting = (t as any)(greetingKey);
 
   const selectedProjectId = params.project || undefined;
 
@@ -124,32 +131,32 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     recentActivity.length === 0;
 
   if (isNewCompany && !selectedProjectId) {
-    return <WelcomeState companyName={companyName} />;
+    return <WelcomeState companyName={companyName} t={t} />;
   }
 
   // Compute donut chart percentages
   const total = projectStatus.total || 1; // avoid division by zero
   const donutSegments = [
     {
-      label: "Complete",
+      labelKey: "complete" as const,
       count: projectStatus.completed,
       pct: Math.round((projectStatus.completed / total) * 100),
       color: "var(--color-blue)",
     },
     {
-      label: "In Progress",
+      labelKey: "inProgress" as const,
       count: projectStatus.active,
       pct: Math.round((projectStatus.active / total) * 100),
       color: "#3b82f6",
     },
     {
-      label: "Pre-Construction",
+      labelKey: "preConstruction" as const,
       count: projectStatus.pre_construction,
       pct: Math.round((projectStatus.pre_construction / total) * 100),
       color: "var(--color-amber)",
     },
     {
-      label: "On Hold",
+      labelKey: "onHold" as const,
       count: projectStatus.on_hold,
       pct: Math.round((projectStatus.on_hold / total) * 100),
       color: "var(--color-red)",
@@ -184,10 +191,10 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       {/* Header */}
       <div className="dash-header">
         <div>
-          <h2>Dashboard</h2>
+          <h2>{t("title")}</h2>
           <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: "2px" }}>
             {selectedProjectName
-              ? `Showing data for ${selectedProjectName}`
+              ? t("showingDataFor", { projectName: selectedProjectName })
               : greeting}
           </p>
         </div>
@@ -208,7 +215,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             }}
           >
             <span>
-              {new Date().toLocaleDateString("en-US", {
+              {new Date().toLocaleDateString(dateLocale, {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
@@ -223,25 +230,25 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       {sections.kpis && (
         <div className="kpi-grid">
           <KpiCard
-            label={selectedProjectId ? "Project Value" : "Active Projects"}
+            label={selectedProjectId ? t("projectValue") : t("activeProjects")}
             value={formatCompactCurrency(kpis.activeProjectsValue)}
             icon={<Briefcase size={22} />}
           />
           {sections.financials && (
             <KpiCard
-              label="Cash Position"
+              label={t("cashPosition")}
               value={formatCompactCurrency(kpis.cashPosition)}
               icon={<DollarSign size={22} />}
             />
           )}
           <KpiCard
-            label="Open Change Orders"
+            label={t("openChangeOrders")}
             value={String(kpis.openChangeOrders)}
             amber={kpis.openChangeOrders > 0}
             icon={<FileWarning size={22} />}
           />
           <KpiCard
-            label="Schedule Performance"
+            label={t("schedulePerformance")}
             value={formatPercent(kpis.schedulePerformance)}
             icon={<Clock size={22} />}
           />
@@ -251,33 +258,31 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       {/* Charts Row */}
       {sections.charts && (
         <div className="charts-row">
-          {/* Cash Flow Chart - only for financial roles */}
           {sections.financials && (
             <div className="card">
-              <div className="card-title">Cash Flow</div>
+              <div className="card-title">{t("cashFlow")}</div>
               {!hasCashFlowData ? (
-                <EmptyState message="No cash flow data yet" />
+                <EmptyState message={t("noCashFlowData")} />
               ) : (
                 <CashFlowChart data={cashFlow} />
               )}
             </div>
           )}
 
-          {/* Project Status Donut */}
           <div className="card">
-            <div className="card-title">Project Status</div>
+            <div className="card-title">{t("projectStatus")}</div>
             <div className="donut-wrap">
               <div className="donut" style={{ background: conicGradient }}>
                 <div className="donut-hole">
                   <strong>{projectStatus.total}</strong>
-                  <span>{projectStatus.total === 1 ? "Project" : "Projects"}</span>
+                  <span>{projectStatus.total === 1 ? t("project") : t("projects")}</span>
                 </div>
               </div>
               <div className="legend">
                 {donutSegments.map((seg) => (
-                  <div key={seg.label} className="legend-item">
+                  <div key={seg.labelKey} className="legend-item">
                     <span className="legend-dot" style={{ background: seg.color }} />
-                    {seg.label} {seg.pct}%
+                    {t(seg.labelKey)} {seg.pct}%
                   </div>
                 ))}
               </div>
@@ -288,17 +293,16 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
       {/* Three Cards Row */}
       <div className="three-row">
-        {/* Pending Approvals */}
         {sections.approvals && (
           <div className="card">
             <div className="card-title">
-              Pending Approvals{" "}
+              {t("pendingApprovals")}{" "}
               {pendingApprovalsTotal > 0 && (
                 <span className="badge badge-blue">{pendingApprovalsTotal}</span>
               )}
             </div>
             {pendingApprovals.length === 0 ? (
-              <EmptyState message="No pending approvals" />
+              <EmptyState message={t("noPendingApprovals")} />
             ) : (
               pendingApprovals.map((item) => {
                 const href =
@@ -341,12 +345,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           </div>
         )}
 
-        {/* Recent Activity */}
         {sections.activity && (
           <div className="card">
-            <div className="card-title">Recent Activity</div>
+            <div className="card-title">{t("recentActivity")}</div>
             {recentActivity.length === 0 ? (
-              <EmptyState message="No recent activity" />
+              <EmptyState message={t("noRecentActivity")} />
             ) : (
               recentActivity.slice(0, 5).map((item, i) => {
                 const activityHref = getActivityHref(item.entityType, item.entityId);
@@ -377,13 +380,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           </div>
         )}
 
-        {/* Insights */}
         {sections.insights && (
           <div className="card">
-            <div className="card-title">
-              Insights
-            </div>
+            <div className="card-title">{t("insights")}</div>
             <DashboardInsights
+              t={t}
               kpis={kpis}
               projectStatus={projectStatus}
               pendingApprovals={pendingApprovalsTotal}
@@ -397,52 +398,22 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function getActivityHref(
-  entityType: string | null,
-  entityId: string | null
-): string | null {
+function getActivityHref(entityType: string | null, entityId: string | null): string | null {
   if (!entityType) return null;
   switch (entityType) {
-    case "project":
-      return entityId ? `/projects/${entityId}` : "/projects";
-    case "invoice":
-      return entityId ? `/financial/invoices/${entityId}` : "/financial/invoices";
-    case "change_order":
-      return "/projects/change-orders";
-    case "rfi":
-      return "/projects/rfis";
-    case "submittal":
-      return "/projects/submittals";
-    case "daily_log":
-      return "/projects/daily-logs";
-    case "document":
-      return "/documents";
-    case "payment":
-      return "/financial";
-    default:
-      return null;
+    case "project": return entityId ? `/projects/${entityId}` : "/projects";
+    case "invoice": return entityId ? `/financial/invoices/${entityId}` : "/financial/invoices";
+    case "change_order": return "/projects/change-orders";
+    case "rfi": return "/projects/rfis";
+    case "submittal": return "/projects/submittals";
+    case "daily_log": return "/projects/daily-logs";
+    case "document": return "/documents";
+    case "payment": return "/financial";
+    default: return null;
   }
 }
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-function KpiCard({
-  label,
-  value,
-  amber,
-  icon,
-}: {
-  label: string;
-  value: string;
-  amber?: boolean;
-  icon: React.ReactNode;
-}) {
+function KpiCard({ label, value, amber, icon }: { label: string; value: string; amber?: boolean; icon: React.ReactNode }) {
   return (
     <div className="card kpi">
       <div className="kpi-info">
@@ -456,93 +427,43 @@ function KpiCard({
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div
-      style={{
-        textAlign: "center",
-        padding: "32px 16px",
-        color: "var(--muted)",
-        fontSize: "0.85rem",
-      }}
-    >
+    <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--muted)", fontSize: "0.85rem" }}>
       {message}
     </div>
   );
 }
 
-function WelcomeState({ companyName }: { companyName: string }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function WelcomeState({ companyName, t }: { companyName: string; t: any }) {
   return (
     <div>
       <div className="dash-header">
         <div>
-          <h2>Welcome to ConstructionERP</h2>
+          <h2>{t("welcomeTitle")}</h2>
           <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: "2px" }}>
-            Let&apos;s get {companyName} set up.
+            {t("welcomeSetup", { companyName })}
           </p>
         </div>
       </div>
-
       <div className="card" style={{ maxWidth: 640, margin: "40px auto", textAlign: "center" }}>
         <div style={{ marginBottom: 16 }}>
           <Rocket size={48} style={{ color: "var(--color-amber)" }} />
         </div>
-        <h3
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: "1.4rem",
-            fontWeight: 700,
-            marginBottom: 8,
-          }}
-        >
-          Your dashboard is ready
+        <h3 style={{ fontFamily: "var(--font-serif)", fontSize: "1.4rem", fontWeight: 700, marginBottom: 8 }}>
+          {t("dashboardReady")}
         </h3>
         <p style={{ color: "var(--muted)", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: 24 }}>
-          Start by creating your first project, adding bank accounts, or inviting team members.
-          Your KPIs, charts, and activity feed will populate automatically as you add data.
+          {t("welcomeMessage")}
         </p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <a
-            href="/projects"
-            style={{
-              padding: "10px 20px",
-              background: "var(--color-blue)",
-              color: "#fff",
-              borderRadius: 8,
-              textDecoration: "none",
-              fontSize: "0.85rem",
-              fontWeight: 600,
-            }}
-          >
-            Create a Project
+          <a href="/projects" style={{ padding: "10px 20px", background: "var(--color-blue)", color: "#fff", borderRadius: 8, textDecoration: "none", fontSize: "0.85rem", fontWeight: 600 }}>
+            {t("createProject")}
           </a>
-          <a
-            href="/financial"
-            style={{
-              padding: "10px 20px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              textDecoration: "none",
-              fontSize: "0.85rem",
-              fontWeight: 500,
-              color: "var(--text)",
-            }}
-          >
-            Set Up Financials
+          <a href="/financial" style={{ padding: "10px 20px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, textDecoration: "none", fontSize: "0.85rem", fontWeight: 500, color: "var(--text)" }}>
+            {t("setUpFinancials")}
           </a>
-          <a
-            href="/people"
-            style={{
-              padding: "10px 20px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              textDecoration: "none",
-              fontSize: "0.85rem",
-              fontWeight: 500,
-              color: "var(--text)",
-            }}
-          >
-            Invite Team
+          <a href="/people" style={{ padding: "10px 20px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, textDecoration: "none", fontSize: "0.85rem", fontWeight: 500, color: "var(--text)" }}>
+            {t("inviteTeam")}
           </a>
         </div>
       </div>
@@ -550,143 +471,70 @@ function WelcomeState({ companyName }: { companyName: string }) {
   );
 }
 
-/**
- * Generate contextual insights based on real dashboard data.
- * These are deterministic rules, not LLM calls -- instant and free.
- */
-function DashboardInsights({
-  kpis,
-  projectStatus,
-  pendingApprovals,
-  outstandingAP,
-  outstandingAR,
-}: {
-  kpis: {
-    activeProjectsValue: number;
-    cashPosition: number;
-    openChangeOrders: number;
-    schedulePerformance: number;
-  };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function DashboardInsights({ t, kpis, projectStatus, pendingApprovals, outstandingAP, outstandingAR }: {
+  t: any;
+  kpis: { activeProjectsValue: number; cashPosition: number; openChangeOrders: number; schedulePerformance: number };
   projectStatus: { on_hold: number; total: number };
-  pendingApprovals: number;
-  outstandingAP: number;
-  outstandingAR: number;
+  pendingApprovals: number; outstandingAP: number; outstandingAR: number;
 }) {
-  const insights: {
-    severity: string;
-    label: string;
-    title: string;
-    desc: string;
-  }[] = [];
+  const insights: { severity: string; label: string; title: string; desc: string }[] = [];
 
-  // Cash coverage: can we cover outstanding payables?
   if (outstandingAP > 0 && kpis.cashPosition > 0) {
     const coverageRatio = kpis.cashPosition / outstandingAP;
     if (coverageRatio < 1) {
-      insights.push({
-        severity: "badge-red",
-        label: "Critical",
-        title: "Cash Below Outstanding Payables",
-        desc: `Cash (${formatCompactCurrency(kpis.cashPosition)}) does not cover outstanding payables (${formatCompactCurrency(outstandingAP)}). Accelerate collections or arrange bridge financing.`,
-      });
+      insights.push({ severity: "badge-red", label: t("insightCritical"), title: t("insightCashBelowPayables"),
+        desc: t("insightCashBelowPayablesDesc", { cash: formatCompactCurrency(kpis.cashPosition), payables: formatCompactCurrency(outstandingAP) }) });
     } else if (coverageRatio < 2) {
-      insights.push({
-        severity: "badge-amber",
-        label: "Warning",
-        title: "Cash Reserves Tightening",
-        desc: `Cash covers ${coverageRatio.toFixed(1)}x of outstanding payables (${formatCompactCurrency(outstandingAP)}). Monitor closely and consider accelerating receivable collections.`,
-      });
+      insights.push({ severity: "badge-amber", label: t("insightWarning"), title: t("insightCashReservesTightening"),
+        desc: t("insightCashReservesTighteningDesc", { ratio: coverageRatio.toFixed(1), payables: formatCompactCurrency(outstandingAP) }) });
     }
   }
 
-  // Outstanding receivables alert
   if (outstandingAR > 0 && kpis.cashPosition > 0) {
     const arRatio = outstandingAR / (outstandingAR + kpis.cashPosition);
     if (arRatio > 0.7) {
-      insights.push({
-        severity: "badge-amber",
-        label: "Action",
-        title: "High Receivables Outstanding",
-        desc: `${formatCompactCurrency(outstandingAR)} in outstanding receivables. Follow up on aging invoices to improve cash flow.`,
-      });
+      insights.push({ severity: "badge-amber", label: t("insightAction"), title: t("insightHighReceivables"),
+        desc: t("insightHighReceivablesDesc", { amount: formatCompactCurrency(outstandingAR) }) });
     }
   }
 
-  // Schedule performance
   if (kpis.schedulePerformance > 0 && kpis.schedulePerformance < 50) {
-    insights.push({
-      severity: "badge-red",
-      label: "Critical",
-      title: "Schedule Performance Below Target",
-      desc: `Average completion across active projects is ${formatPercent(kpis.schedulePerformance)}. Review project timelines and resource allocation.`,
-    });
+    insights.push({ severity: "badge-red", label: t("insightCritical"), title: t("insightScheduleBelowTarget"),
+      desc: t("insightScheduleBelowTargetDesc", { percent: formatPercent(kpis.schedulePerformance) }) });
   } else if (kpis.schedulePerformance >= 50 && kpis.schedulePerformance < 75) {
-    insights.push({
-      severity: "badge-amber",
-      label: "Monitor",
-      title: "Schedule Performance Needs Attention",
-      desc: `Average completion is ${formatPercent(kpis.schedulePerformance)}. Projects are progressing -- monitor for delays on critical path items.`,
-    });
+    insights.push({ severity: "badge-amber", label: t("insightMonitor"), title: t("insightScheduleNeedsAttention"),
+      desc: t("insightScheduleNeedsAttentionDesc", { percent: formatPercent(kpis.schedulePerformance) }) });
   }
 
-  // Too many open change orders
   if (kpis.openChangeOrders > 10) {
-    insights.push({
-      severity: "badge-amber",
-      label: "Warning",
-      title: "High Change Order Volume",
-      desc: `${kpis.openChangeOrders} open change orders pending review. Consider scheduling a dedicated review session to clear the backlog.`,
-    });
+    insights.push({ severity: "badge-amber", label: t("insightWarning"), title: t("insightHighChangeOrders"),
+      desc: t("insightHighChangeOrdersDesc", { count: kpis.openChangeOrders }) });
   }
 
-  // On-hold projects
   if (projectStatus.on_hold > 0) {
-    insights.push({
-      severity: "badge-amber",
-      label: "Warning",
-      title: `${projectStatus.on_hold} Project${projectStatus.on_hold > 1 ? "s" : ""} On Hold`,
-      desc: "On-hold projects may tie up committed resources and affect cash flow forecasting. Review for reactivation or closure.",
-    });
+    insights.push({ severity: "badge-amber", label: t("insightWarning"),
+      title: projectStatus.on_hold > 1 ? t("insightProjectsOnHoldPlural", { count: projectStatus.on_hold }) : t("insightProjectsOnHold", { count: projectStatus.on_hold }),
+      desc: t("insightProjectsOnHoldDesc") });
   }
 
-  // Pending approvals backlog
   if (pendingApprovals >= 5) {
-    insights.push({
-      severity: "badge-amber",
-      label: "Action",
-      title: "Approval Queue Backlog",
-      desc: `${pendingApprovals} items awaiting approval. Delayed approvals can bottleneck subcontractor payments and project progress.`,
-    });
+    insights.push({ severity: "badge-amber", label: t("insightAction"), title: t("insightApprovalBacklog"),
+      desc: t("insightApprovalBacklogDesc", { count: pendingApprovals }) });
   }
 
-  // Good news: high schedule performance
   if (kpis.schedulePerformance >= 90) {
-    insights.push({
-      severity: "badge-green",
-      label: "Opportunity",
-      title: "Strong Schedule Performance",
-      desc: `Projects are averaging ${formatPercent(kpis.schedulePerformance)} completion. Team execution is on track -- consider pursuing new opportunities.`,
-    });
+    insights.push({ severity: "badge-green", label: t("insightOpportunity"), title: t("insightStrongSchedule"),
+      desc: t("insightStrongScheduleDesc", { percent: formatPercent(kpis.schedulePerformance) }) });
   }
 
-  // Good news: strong cash position
   if (outstandingAP > 0 && kpis.cashPosition / outstandingAP >= 3) {
-    insights.push({
-      severity: "badge-green",
-      label: "Good",
-      title: "Strong Cash Position",
-      desc: `Cash reserves (${formatCompactCurrency(kpis.cashPosition)}) provide ${(kpis.cashPosition / outstandingAP).toFixed(1)}x coverage of outstanding obligations.`,
-    });
+    insights.push({ severity: "badge-green", label: t("insightGood"), title: t("insightStrongCash"),
+      desc: t("insightStrongCashDesc", { cash: formatCompactCurrency(kpis.cashPosition), ratio: (kpis.cashPosition / outstandingAP).toFixed(1) }) });
   }
 
-  // Fallback if nothing triggered
   if (insights.length === 0) {
-    insights.push({
-      severity: "badge-green",
-      label: "Good",
-      title: "All Systems Normal",
-      desc: "No critical issues detected. Continue monitoring your projects and financials from this dashboard.",
-    });
+    insights.push({ severity: "badge-green", label: t("insightGood"), title: t("insightAllNormal"), desc: t("insightAllNormalDesc") });
   }
 
   return (

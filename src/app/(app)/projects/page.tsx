@@ -7,7 +7,7 @@ import {
 import ProjectListClient from "./ProjectListClient";
 
 export const metadata = {
-  title: "Projects - ConstructionERP",
+  title: "Projects - Buildwrk",
 };
 
 export default async function ProjectsPage() {

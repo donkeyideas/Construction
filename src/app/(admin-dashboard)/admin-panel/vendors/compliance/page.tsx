@@ -1,6 +1,6 @@
 import { ShieldCheck } from "lucide-react";
 
-export const metadata = { title: "Vendor Compliance - ConstructionERP" };
+export const metadata = { title: "Vendor Compliance - Buildwrk" };
 
 export default function VendorCompliancePage() {
   return (

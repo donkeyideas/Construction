@@ -7,7 +7,7 @@ import {
 import AnnouncementsClient from "./AnnouncementsClient";
 
 export const metadata = {
-  title: "Announcements - Super Admin - ConstructionERP",
+  title: "Announcements - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminAnnouncementsPage() {

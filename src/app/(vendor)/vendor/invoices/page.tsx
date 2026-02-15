@@ -3,8 +3,9 @@ import { Receipt } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getVendorInvoices } from "@/lib/queries/vendor-portal";
 import { formatCurrency } from "@/lib/utils/format";
+import { getTranslations, getLocale } from "next-intl/server";
 
-export const metadata = { title: "My Invoices - ConstructionERP" };
+export const metadata = { title: "My Invoices - Buildwrk" };
 
 export default async function VendorInvoicesPage() {
   const supabase = await createClient();
@@ -12,13 +13,16 @@ export default async function VendorInvoicesPage() {
   if (!user) { redirect("/login/vendor"); }
 
   const invoices = await getVendorInvoices(supabase, user.id);
+  const t = await getTranslations("vendor");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   return (
     <div>
       <div className="fin-header">
         <div>
-          <h2>My Invoices</h2>
-          <p className="fin-header-sub">View and track your submitted invoices.</p>
+          <h2>{t("invoicesTitle")}</h2>
+          <p className="fin-header-sub">{t("invoicesSubtitle")}</p>
         </div>
       </div>
 
@@ -28,11 +32,11 @@ export default async function VendorInvoicesPage() {
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Invoice #</th>
-                  <th>Date</th>
-                  <th style={{ textAlign: "right" }}>Amount</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: "right" }}>Balance Due</th>
+                  <th>{t("thInvoiceNumber")}</th>
+                  <th>{t("thDate")}</th>
+                  <th style={{ textAlign: "right" }}>{t("thAmount")}</th>
+                  <th>{t("thStatus")}</th>
+                  <th style={{ textAlign: "right" }}>{t("thBalanceDue")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -48,7 +52,7 @@ export default async function VendorInvoicesPage() {
                     </td>
                     <td>
                       {inv.invoice_date
-                        ? new Date(inv.invoice_date as string).toLocaleDateString("en-US", {
+                        ? new Date(inv.invoice_date as string).toLocaleDateString(dateLocale, {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
@@ -76,8 +80,8 @@ export default async function VendorInvoicesPage() {
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><Receipt size={48} /></div>
-            <div className="fin-empty-title">No Invoices Found</div>
-            <div className="fin-empty-desc">You have not submitted any invoices yet.</div>
+            <div className="fin-empty-title">{t("noInvoicesFound")}</div>
+            <div className="fin-empty-desc">{t("noInvoicesDesc")}</div>
           </div>
         </div>
       )}

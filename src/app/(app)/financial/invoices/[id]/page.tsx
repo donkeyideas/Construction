@@ -14,7 +14,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
-  return { title: `Invoice ${id.substring(0, 8)} - ConstructionERP` };
+  return { title: `Invoice ${id.substring(0, 8)} - Buildwrk` };
 }
 
 export default async function InvoiceDetailPage({ params }: PageProps) {

@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import APClient from "./APClient";
 
 export const metadata = {
-  title: "Accounts Payable - ConstructionERP",
+  title: "Accounts Payable - Buildwrk",
 };
 
 interface PageProps {

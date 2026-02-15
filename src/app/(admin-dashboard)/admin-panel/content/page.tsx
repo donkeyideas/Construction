@@ -1,6 +1,6 @@
 import { FileText } from "lucide-react";
 
-export const metadata = { title: "Content Manager - ConstructionERP" };
+export const metadata = { title: "Content Manager - Buildwrk" };
 
 export default function ContentManagerPage() {
   return (

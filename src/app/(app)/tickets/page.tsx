@@ -5,7 +5,7 @@ import TicketListClient from "./TicketListClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Tickets - ConstructionERP",
+  title: "Tickets - Buildwrk",
 };
 
 export default async function TicketsPage() {

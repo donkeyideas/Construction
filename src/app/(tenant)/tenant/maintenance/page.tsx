@@ -4,7 +4,7 @@ import { getTenantMaintenanceRequests } from "@/lib/queries/tenant-portal";
 import MaintenanceClient from "./MaintenanceClient";
 
 export const metadata = {
-  title: "Maintenance Requests - ConstructionERP",
+  title: "Maintenance Requests - Buildwrk",
 };
 
 export default async function TenantMaintenancePage() {

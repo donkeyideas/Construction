@@ -8,7 +8,7 @@ import {
 import JobCostingClient from "./JobCostingClient";
 
 export const metadata = {
-  title: "Job Costing - ConstructionERP",
+  title: "Job Costing - Buildwrk",
 };
 
 interface PageProps {

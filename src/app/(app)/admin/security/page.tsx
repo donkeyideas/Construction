@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getSecuritySettings } from "@/lib/queries/security";
 import SecurityClient from "./SecurityClient";
 
-export const metadata = { title: "Security & Audit - ConstructionERP" };
+export const metadata = { title: "Security & Audit - Buildwrk" };
 
 export default async function SecurityPage() {
   const supabase = await createClient();

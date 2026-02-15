@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import SubmittalsClient from "./SubmittalsClient";
 
-export const metadata = { title: "Submittals - ConstructionERP" };
+export const metadata = { title: "Submittals - Buildwrk" };
 
 interface PageProps {
   searchParams: Promise<{ status?: string }>;

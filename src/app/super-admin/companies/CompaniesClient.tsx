@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Building2,
   Search,
@@ -26,8 +27,8 @@ interface Props {
   membersByCompany: Record<string, CompanyMember[]>;
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+function formatDate(dateStr: string, loc: string): string {
+  return new Date(dateStr).toLocaleDateString(loc, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -87,6 +88,10 @@ function getStatusBadgeClass(status: string): string {
 
 export default function CompaniesClient({ companies, membersByCompany }: Props) {
   const router = useRouter();
+  const t = useTranslations("superAdmin");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -138,7 +143,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `Failed to save (${res.status})`);
+        throw new Error(body.error || `${t("failedSave")} (${res.status})`);
       }
       setSelected({
         ...selected,
@@ -148,7 +153,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
       setIsEditing(false);
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Unknown error");
+      setSaveError(err instanceof Error ? err.message : t("failedSave"));
     } finally {
       setSaving(false);
     }
@@ -166,11 +171,11 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "Failed to send reset email");
+        throw new Error(body.error || t("failedSendReset"));
       }
-      setActionMessage(`Password reset email sent to ${email}`);
+      setActionMessage(t("passwordResetSent", { email }));
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to reset password");
+      setSaveError(err instanceof Error ? err.message : t("failedSendReset"));
     } finally {
       setSaving(false);
     }
@@ -197,9 +202,9 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
     <>
       <div className="admin-header">
         <div>
-          <h2>Companies</h2>
+          <h2>{t("companiesTitle")}</h2>
           <p className="admin-header-sub">
-            All registered companies on the platform
+            {t("allRegistered")}
           </p>
         </div>
       </div>
@@ -209,28 +214,28 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
           <div className="admin-stat-icon blue">
             <Building2 size={18} />
           </div>
-          <div className="admin-stat-label">Total Companies</div>
+          <div className="admin-stat-label">{t("totalCompanies")}</div>
           <div className="admin-stat-value">{companies.length}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon green">
             <Building2 size={18} />
           </div>
-          <div className="admin-stat-label">Active</div>
+          <div className="admin-stat-label">{t("active")}</div>
           <div className="admin-stat-value">{totalActive}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon amber">
             <Building2 size={18} />
           </div>
-          <div className="admin-stat-label">Trial</div>
+          <div className="admin-stat-label">{t("trial")}</div>
           <div className="admin-stat-value">{totalTrial}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon blue">
             <Building2 size={18} />
           </div>
-          <div className="admin-stat-label">Total Users</div>
+          <div className="admin-stat-label">{t("totalUsers")}</div>
           <div className="admin-stat-value">{totalUsers}</div>
         </div>
       </div>
@@ -246,7 +251,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
           />
           <input
             type="text"
-            placeholder="Search companies..."
+            placeholder={t("searchCompanies")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="invite-form-input"
@@ -258,21 +263,21 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
           onChange={(e) => setPlanFilter(e.target.value)}
           className="invite-form-select"
         >
-          <option value="all">All Plans</option>
-          <option value="starter">Starter</option>
-          <option value="professional">Professional</option>
-          <option value="enterprise">Enterprise</option>
+          <option value="all">{t("allPlans")}</option>
+          <option value="starter">{t("starter")}</option>
+          <option value="professional">{t("professional")}</option>
+          <option value="enterprise">{t("enterprise")}</option>
         </select>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="invite-form-select"
         >
-          <option value="all">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="trial">Trial</option>
-          <option value="past_due">Past Due</option>
-          <option value="canceled">Canceled</option>
+          <option value="all">{t("allStatuses")}</option>
+          <option value="active">{t("active")}</option>
+          <option value="trial">{t("trial")}</option>
+          <option value="past_due">{t("pastDue")}</option>
+          <option value="canceled">{t("canceled")}</option>
         </select>
       </div>
 
@@ -280,20 +285,20 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
         <table className="sa-table">
           <thead>
             <tr>
-              <th>Company</th>
-              <th>Slug</th>
-              <th>Plan</th>
-              <th>Status</th>
-              <th>Users</th>
-              <th>Industry</th>
-              <th>Created</th>
+              <th>{t("company")}</th>
+              <th>{t("slug")}</th>
+              <th>{t("plan")}</th>
+              <th>{t("status")}</th>
+              <th>{t("users")}</th>
+              <th>{t("industry")}</th>
+              <th>{t("created")}</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: "center", padding: "40px", color: "var(--muted)" }}>
-                  No companies found
+                  {t("noCompaniesFound")}
                 </td>
               </tr>
             ) : (
@@ -317,7 +322,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                   <td>{company.member_count}</td>
                   <td style={{ color: "var(--muted)" }}>{company.industry_type || "-"}</td>
                   <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
-                    {formatDate(company.created_at)}
+                    {formatDate(company.created_at, dateLocale)}
                   </td>
                 </tr>
               ))
@@ -344,7 +349,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
               </h3>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 {!isEditing && (
-                  <button className="ticket-modal-close" onClick={startEditing} title="Edit Subscription">
+                  <button className="ticket-modal-close" onClick={startEditing} title={t("editSubscription")}>
                     <Pencil size={16} />
                   </button>
                 )}
@@ -373,36 +378,36 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
             {isEditing && (
               <div style={{ padding: "1.2rem" }}>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Plan</label>
+                  <label className="ticket-form-label">{t("plan")}</label>
                   <select
                     className="ticket-form-select"
                     value={editData.subscription_plan}
                     onChange={(e) => setEditData({ ...editData, subscription_plan: e.target.value })}
                   >
-                    <option value="starter">Starter</option>
-                    <option value="professional">Professional</option>
-                    <option value="enterprise">Enterprise</option>
+                    <option value="starter">{t("starter")}</option>
+                    <option value="professional">{t("professional")}</option>
+                    <option value="enterprise">{t("enterprise")}</option>
                   </select>
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Status</label>
+                  <label className="ticket-form-label">{t("status")}</label>
                   <select
                     className="ticket-form-select"
                     value={editData.subscription_status}
                     onChange={(e) => setEditData({ ...editData, subscription_status: e.target.value })}
                   >
-                    <option value="active">Active</option>
-                    <option value="trial">Trial</option>
-                    <option value="past_due">Past Due</option>
-                    <option value="canceled">Canceled</option>
+                    <option value="active">{t("active")}</option>
+                    <option value="trial">{t("trial")}</option>
+                    <option value="past_due">{t("pastDue")}</option>
+                    <option value="canceled">{t("canceled")}</option>
                   </select>
                 </div>
                 <div className="ticket-form-actions">
                   <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)} disabled={saving}>
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button type="button" className="btn-primary" onClick={handleSave} disabled={saving}>
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </div>
@@ -414,11 +419,11 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                 {/* Company Info */}
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Slug</label>
+                    <label className="detail-label">{t("slug")}</label>
                     <div className="detail-value">{selected.slug}</div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Industry</label>
+                    <label className="detail-label">{t("industry")}</label>
                     <div className="detail-value">{selected.industry_type || "—"}</div>
                   </div>
                 </div>
@@ -427,7 +432,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                   <div className="detail-group">
                     <label className="detail-label">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <DollarSign size={12} /> Plan
+                        <DollarSign size={12} /> {t("plan")}
                       </span>
                     </label>
                     <div className="detail-value">
@@ -439,17 +444,17 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                   <div className="detail-group">
                     <label className="detail-label">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <Calendar size={12} /> Created
+                        <Calendar size={12} /> {t("created")}
                       </span>
                     </label>
-                    <div className="detail-value">{formatDate(selected.created_at)}</div>
+                    <div className="detail-value">{formatDate(selected.created_at, dateLocale)}</div>
                   </div>
                 </div>
 
                 {selected.trial_ends_at && (
                   <div className="detail-group">
-                    <label className="detail-label">Trial Ends</label>
-                    <div className="detail-value">{formatDate(selected.trial_ends_at)}</div>
+                    <label className="detail-label">{t("trialEnds")}</label>
+                    <div className="detail-value">{formatDate(selected.trial_ends_at, dateLocale)}</div>
                   </div>
                 )}
 
@@ -463,14 +468,14 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                   marginTop: 16,
                   marginBottom: 8,
                 }}>
-                  Contact & Location
+                  {t("contactLocation")}
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
                     <label className="detail-label">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <Phone size={12} /> Phone
+                        <Phone size={12} /> {t("phone")}
                       </span>
                     </label>
                     <div className="detail-value">{selected.phone || "—"}</div>
@@ -478,7 +483,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                   <div className="detail-group">
                     <label className="detail-label">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <Globe size={12} /> Website
+                        <Globe size={12} /> {t("website")}
                       </span>
                     </label>
                     <div className="detail-value">
@@ -494,7 +499,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                 <div className="detail-group">
                   <label className="detail-label">
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <MapPin size={12} /> Address
+                      <MapPin size={12} /> {t("address")}
                     </span>
                   </label>
                   <div className="detail-value" style={{ whiteSpace: "pre-line" }}>
@@ -512,14 +517,14 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                   marginTop: 16,
                   marginBottom: 8,
                 }}>
-                  Settings
+                  {t("settings")}
                 </div>
 
                 <div className="detail-row">
                   <div className="detail-group">
                     <label className="detail-label">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <DollarSign size={12} /> Currency
+                        <DollarSign size={12} /> {t("currency")}
                       </span>
                     </label>
                     <div className="detail-value">{selected.currency || "USD"}</div>
@@ -527,7 +532,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                   <div className="detail-group">
                     <label className="detail-label">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <Clock size={12} /> Timezone
+                        <Clock size={12} /> {t("timezone")}
                       </span>
                     </label>
                     <div className="detail-value">{selected.timezone || "America/Chicago"}</div>
@@ -547,7 +552,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                   alignItems: "center",
                   gap: 4,
                 }}>
-                  <Users size={12} /> Members ({members.length})
+                  <Users size={12} /> {t("members", { count: members.length })}
                 </div>
 
                 <div style={{
@@ -557,22 +562,22 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                 }}>
                   {members.length === 0 ? (
                     <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)", fontSize: "0.85rem" }}>
-                      No members found
+                      {t("noMembers")}
                     </div>
                   ) : (
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
                       <thead>
                         <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>User</th>
-                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Role</th>
-                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Actions</th>
+                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("user")}</th>
+                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("role")}</th>
+                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("actions")}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {members.map((m) => (
                           <tr key={m.user_id} style={{ borderBottom: "1px solid var(--border)" }}>
                             <td style={{ padding: "10px 12px" }}>
-                              <div style={{ fontWeight: 500 }}>{m.full_name || "No name"}</div>
+                              <div style={{ fontWeight: 500 }}>{m.full_name || t("noName")}</div>
                               <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
                                 <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
                                   <Mail size={10} /> {m.email}
@@ -603,7 +608,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                                   background: "var(--surface)",
                                   color: "var(--muted)",
                                 }}>
-                                  Inactive
+                                  {t("inactive")}
                                 </span>
                               )}
                             </td>
@@ -627,7 +632,7 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
                                     whiteSpace: "nowrap",
                                   }}
                                 >
-                                  <KeyRound size={11} /> Reset PW
+                                  <KeyRound size={11} /> {t("resetPw")}
                                 </button>
                               </div>
                             </td>
@@ -640,10 +645,10 @@ export default function CompaniesClient({ companies, membersByCompany }: Props) 
 
                 <div className="ticket-form-actions" style={{ marginTop: 16 }}>
                   <button type="button" className="btn-secondary" onClick={closeDetail}>
-                    Close
+                    {t("close")}
                   </button>
                   <button type="button" className="btn-primary" onClick={startEditing}>
-                    <Pencil size={14} /> Edit Subscription
+                    <Pencil size={14} /> {t("editSubscription")}
                   </button>
                 </div>
               </div>

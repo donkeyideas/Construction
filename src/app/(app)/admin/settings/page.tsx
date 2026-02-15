@@ -5,7 +5,7 @@ import { getCompanyDetails, getAuditLog, getCompanyMembers } from "@/lib/queries
 import SettingsClient from "./SettingsClient";
 
 export const metadata = {
-  title: "Company Settings - ConstructionERP",
+  title: "Company Settings - Buildwrk",
 };
 
 export default async function AdminSettingsPage() {

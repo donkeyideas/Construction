@@ -5,7 +5,7 @@ import { Map } from "lucide-react";
 import PlanRoomClient from "./PlanRoomClient";
 
 export const metadata = {
-  title: "Plan Room - ConstructionERP",
+  title: "Plan Room - Buildwrk",
 };
 
 export default async function PlanRoomPage() {

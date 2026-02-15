@@ -15,6 +15,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useRealtimeNotifications } from "@/lib/supabase/realtime";
 import { SearchModal } from "./SearchModal";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 interface TopbarProps {
   breadcrumb: string;
@@ -139,6 +140,10 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
                 <Settings size={14} style={{ marginRight: 8 }} />
                 Settings
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <div style={{ padding: "4px 8px" }}>
+                <LanguageSwitcher />
+              </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem danger onSelect={handleLogout}>
                 <LogOut size={14} style={{ marginRight: 8 }} />

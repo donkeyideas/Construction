@@ -10,7 +10,7 @@ import {
 import PeopleClient from "./PeopleClient";
 
 export const metadata = {
-  title: "People Directory - ConstructionERP",
+  title: "People Directory - Buildwrk",
 };
 
 const TYPE_LABELS: Record<ContactType, string> = {

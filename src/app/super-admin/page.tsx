@@ -11,7 +11,7 @@ import {
 import SuperAdminDashboardClient from "./SuperAdminDashboardClient";
 
 export const metadata = {
-  title: "Platform Overview - Super Admin - ConstructionERP",
+  title: "Platform Overview - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminDashboardPage() {

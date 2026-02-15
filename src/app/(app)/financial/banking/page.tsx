@@ -5,7 +5,7 @@ import BankingClient from "./BankingClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Banking - ConstructionERP",
+  title: "Banking - Buildwrk",
 };
 
 export default async function BankingPage() {

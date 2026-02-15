@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface PhotosClientProps {
   projects: Array<{ id: string; name: string; code: string }>;
@@ -10,6 +11,8 @@ interface PhotosClientProps {
 
 export default function PhotosClient({ projects }: PhotosClientProps) {
   const router = useRouter();
+  const t = useTranslations("mobile.photos");
+  const tc = useTranslations("common");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedProject, setSelectedProject] = useState(
     projects.length > 0 ? projects[0].id : ""
@@ -27,7 +30,6 @@ export default function PhotosClient({ projects }: PhotosClientProps) {
     setSuccess(null);
 
     try {
-      // Upload to Supabase Storage via API
       const formData = new FormData();
       formData.append("file", file);
       formData.append("category", "photo");
@@ -42,17 +44,16 @@ export default function PhotosClient({ projects }: PhotosClientProps) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to upload photo.");
+        setError(data.error || t("failedUpload"));
         return;
       }
 
-      setSuccess("Photo uploaded successfully.");
+      setSuccess(t("uploadSuccess"));
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(tc("networkError"));
     } finally {
       setLoading(false);
-      // Reset the input so the same file can be re-selected
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -65,7 +66,7 @@ export default function PhotosClient({ projects }: PhotosClientProps) {
       {projects.length > 0 && (
         <div className="mobile-form-field">
           <label className="mobile-form-label" htmlFor="photo-project">
-            Tag to Project
+            {t("tagToProject")}
           </label>
           <select
             id="photo-project"
@@ -73,7 +74,7 @@ export default function PhotosClient({ projects }: PhotosClientProps) {
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
           >
-            <option value="">No project</option>
+            <option value="">{tc("noProject")}</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} ({p.code})
@@ -88,12 +89,12 @@ export default function PhotosClient({ projects }: PhotosClientProps) {
         {loading ? (
           <>
             <Upload size={28} />
-            Uploading...
+            {t("uploading")}
           </>
         ) : (
           <>
             <Camera size={28} />
-            Take Photo or Choose from Gallery
+            {t("takePhotoOrChoose")}
           </>
         )}
         <input

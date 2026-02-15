@@ -9,7 +9,7 @@ import {
 import SeoClient from "./SeoClient";
 
 export const metadata = {
-  title: "SEO & GEO Management - ConstructionERP",
+  title: "SEO & GEO Management - Buildwrk",
 };
 
 export default async function SeoGeoPage() {

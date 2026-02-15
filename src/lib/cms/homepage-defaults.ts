@@ -17,7 +17,7 @@ export interface CmsSection {
 }
 
 export const DEFAULT_META_TITLE =
-  "ConstructionERP | Construction Management Software & Property Management Platform";
+  "Buildwrk | Construction Management Software & Property Management Platform";
 
 export const DEFAULT_META_DESCRIPTION =
   "All-in-one construction ERP for general contractors, developers & property managers. Job costing, Gantt scheduling, lease management & AI analytics. 14-day free trial — no credit card required.";
@@ -48,7 +48,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
     visible: true,
     content: {
       title: "Built for Builders, by People Who Understand Construction",
-      body: "General contractors and real estate developers deserve better than disconnected spreadsheets, overpriced legacy platforms, and duct-taped tool stacks. ConstructionERP is the modern, AI-native construction management software that covers the full project lifecycle — from preconstruction bidding and estimating through project execution, financial closeout, and into long-term property management. Every project, every dollar, every document — one place.",
+      body: "General contractors and real estate developers deserve better than disconnected spreadsheets, overpriced legacy platforms, and duct-taped tool stacks. Buildwrk is the modern, AI-native construction management software that covers the full project lifecycle — from preconstruction bidding and estimating through project execution, financial closeout, and into long-term property management. Every project, every dollar, every document — one place.",
     },
   },
   {
@@ -154,7 +154,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
     content: {
       title: "Everything Else You Need",
       subtitle:
-        "Beyond the core modules, ConstructionERP includes tools for every part of your construction business.",
+        "Beyond the core modules, Buildwrk includes tools for every part of your construction business.",
       cards: [
         {
           icon: "C",
@@ -261,14 +261,14 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
             "Construction ERP (Enterprise Resource Planning) software is a unified platform that integrates project management, financial tracking, document control, workforce management, and business operations into a single system. Instead of juggling separate tools for scheduling, accounting, and document storage, construction ERP brings everything together so teams can work faster with complete visibility across all projects.",
         },
         {
-          question: "Who is ConstructionERP built for?",
+          question: "Who is Buildwrk built for?",
           answer:
-            "ConstructionERP is designed for general contractors, real estate developers, property managers, specialty subcontractors, design-build firms, and owner-builders who need a single platform to manage construction projects and real estate assets. Whether you run 3 projects or 300, the platform scales with your business.",
+            "Buildwrk is designed for general contractors, real estate developers, property managers, specialty subcontractors, design-build firms, and owner-builders who need a single platform to manage construction projects and real estate assets. Whether you run 3 projects or 300, the platform scales with your business.",
         },
         {
           question: "How does this compare to Procore or Buildertrend?",
           answer:
-            "Unlike legacy platforms, ConstructionERP is built on modern cloud infrastructure with AI capabilities from day one. It combines construction project management AND property management in one platform — so you do not need separate systems for building and managing real estate. Pricing starts at $79/month versus the $375+ typical of enterprise construction software.",
+            "Unlike legacy platforms, Buildwrk is built on modern cloud infrastructure with AI capabilities from day one. It combines construction project management AND property management in one platform — so you do not need separate systems for building and managing real estate. Pricing starts at $79/month versus the $375+ typical of enterprise construction software.",
         },
         {
           question: "What AI features are included?",
@@ -284,7 +284,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
           question:
             "Can I manage both construction projects and rental properties?",
           answer:
-            "Yes. ConstructionERP is one of the few platforms that covers the full lifecycle — from pre-construction bidding through project execution, then into property management with unit tracking, lease management, tenant communications, and maintenance workflows. One platform, one login, one source of truth.",
+            "Yes. Buildwrk is one of the few platforms that covers the full lifecycle — from pre-construction bidding through project execution, then into property management with unit tracking, lease management, tenant communications, and maintenance workflows. One platform, one login, one source of truth.",
         },
         {
           question: "How secure is my data?",
@@ -294,17 +294,17 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
         {
           question: "Can my field team use it on mobile?",
           answer:
-            "Yes. ConstructionERP includes dedicated mobile views for field workers (GPS clock-in, daily logs, photo capture, safety checklists) and executives (KPI dashboards, approval queues, AI queries). Works on any smartphone or tablet browser — no app store download needed.",
+            "Yes. Buildwrk includes dedicated mobile views for field workers (GPS clock-in, daily logs, photo capture, safety checklists) and executives (KPI dashboards, approval queues, AI queries). Works on any smartphone or tablet browser — no app store download needed.",
         },
         {
-          question: "Does ConstructionERP work for my region?",
+          question: "Does Buildwrk work for my region?",
           answer:
-            "Yes. ConstructionERP is used by general contractors, real estate developers, and property managers across the United States, Canada, and internationally. The platform supports multiple currencies, tax configurations, and regional compliance requirements including certified payroll and prevailing wage tracking.",
+            "Yes. Buildwrk is used by general contractors, real estate developers, and property managers across the United States, Canada, and internationally. The platform supports multiple currencies, tax configurations, and regional compliance requirements including certified payroll and prevailing wage tracking.",
         },
         {
-          question: "What types of construction companies use ConstructionERP?",
+          question: "What types of construction companies use Buildwrk?",
           answer:
-            "ConstructionERP serves general contractors, specialty subcontractors, real estate developers, design-build firms, owner-builders, and property management companies. Whether you build commercial offices, residential subdivisions, industrial facilities, or mixed-use developments — the platform adapts to your project types and workflows.",
+            "Buildwrk serves general contractors, specialty subcontractors, real estate developers, design-build firms, owner-builders, and property management companies. Whether you build commercial offices, residential subdivisions, industrial facilities, or mixed-use developments — the platform adapts to your project types and workflows.",
         },
       ],
     },

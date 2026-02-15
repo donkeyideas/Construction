@@ -2,9 +2,10 @@ import { redirect } from "next/navigation";
 import { Megaphone } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantAnnouncements } from "@/lib/queries/tenant-portal";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = {
-  title: "Announcements - ConstructionERP",
+  title: "Announcements - Buildwrk",
 };
 
 export default async function TenantAnnouncementsPage() {
@@ -14,7 +15,13 @@ export default async function TenantAnnouncementsPage() {
     redirect("/login/tenant");
   }
 
-  const announcements = await getTenantAnnouncements(supabase, user.id);
+  const [announcements, t, locale] = await Promise.all([
+    getTenantAnnouncements(supabase, user.id),
+    getTranslations("tenant"),
+    getLocale(),
+  ]);
+
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   function getCategoryBadge(category: string | null): string {
     switch (category) {
@@ -36,9 +43,9 @@ export default async function TenantAnnouncementsPage() {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Announcements</h2>
+          <h2>{t("announcementsTitle")}</h2>
           <p className="fin-header-sub">
-            Stay informed with the latest announcements from your property management.
+            {t("announcementsSubtitle")}
           </p>
         </div>
       </div>
@@ -54,7 +61,7 @@ export default async function TenantAnnouncementsPage() {
                   fontWeight: 600,
                   margin: 0,
                 }}>
-                  {announcement.title ?? "Untitled"}
+                  {announcement.title ?? t("untitled")}
                 </h3>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
                   {announcement.category && (
@@ -77,14 +84,15 @@ export default async function TenantAnnouncementsPage() {
                 </div>
               )}
               <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
-                Published{" "}
-                {announcement.published_at
-                  ? new Date(announcement.published_at).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })
-                  : "--"}
+                {t("published", {
+                  date: announcement.published_at
+                    ? new Date(announcement.published_at).toLocaleDateString(dateLocale, {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "--",
+                })}
               </div>
             </div>
           ))}
@@ -93,9 +101,9 @@ export default async function TenantAnnouncementsPage() {
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><Megaphone size={48} /></div>
-            <div className="fin-empty-title">No Announcements</div>
+            <div className="fin-empty-title">{t("noAnnouncementsTitle")}</div>
             <div className="fin-empty-desc">
-              There are no announcements at this time. Check back later for updates from your property management.
+              {t("noAnnouncementsDesc")}
             </div>
           </div>
         </div>

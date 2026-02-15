@@ -9,7 +9,7 @@ import ContractDetailClient from "./ContractDetailClient";
 import { redirect, notFound } from "next/navigation";
 
 export const metadata = {
-  title: "Contract Detail - ConstructionERP",
+  title: "Contract Detail - Buildwrk",
 };
 
 export default async function ContractDetailPage({

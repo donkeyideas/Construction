@@ -1,6 +1,6 @@
 import { Shield } from "lucide-react";
 
-export const metadata = { title: "Role Permissions - ConstructionERP" };
+export const metadata = { title: "Role Permissions - Buildwrk" };
 
 export default function PermissionsPage() {
   return (

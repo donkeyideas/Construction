@@ -1,6 +1,6 @@
 import { CreditCard } from "lucide-react";
 
-export const metadata = { title: "Billing & Subscription - ConstructionERP" };
+export const metadata = { title: "Billing & Subscription - Buildwrk" };
 
 export default function BillingPage() {
   return (

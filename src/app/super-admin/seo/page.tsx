@@ -4,7 +4,7 @@ import { isPlatformAdmin } from "@/lib/queries/super-admin";
 import SeoClient from "./SeoClient";
 
 export const metadata = {
-  title: "SEO & GEO - Super Admin - ConstructionERP",
+  title: "SEO & GEO - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminSeoPage() {

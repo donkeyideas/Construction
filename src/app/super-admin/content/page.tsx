@@ -4,7 +4,7 @@ import { isPlatformAdmin, getCmsPages } from "@/lib/queries/super-admin";
 import ContentClient from "./ContentClient";
 
 export const metadata = {
-  title: "CMS Pages - Super Admin - ConstructionERP",
+  title: "CMS Pages - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminContentPage() {

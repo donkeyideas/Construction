@@ -24,7 +24,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 
 export const metadata = {
-  title: "Reports Center - ConstructionERP",
+  title: "Reports Center - Buildwrk",
 };
 
 interface ReportItem {

@@ -3,9 +3,10 @@ import { FileText, Building2, CalendarDays, DollarSign } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantLease } from "@/lib/queries/tenant-portal";
 import { formatCurrency } from "@/lib/utils/format";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = {
-  title: "My Lease - ConstructionERP",
+  title: "My Lease - Buildwrk",
 };
 
 export default async function TenantLeasePage() {
@@ -16,6 +17,9 @@ export default async function TenantLeasePage() {
   }
 
   const leases = await getTenantLease(supabase, user.id);
+  const t = await getTranslations("tenant");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   function getStatusBadge(status: string): string {
     switch (status) {
@@ -32,12 +36,11 @@ export default async function TenantLeasePage() {
 
   return (
     <div>
-      {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>My Lease</h2>
+          <h2>{t("myLease")}</h2>
           <p className="fin-header-sub">
-            View your lease details, property information, and terms.
+            {t("leaseSubtitle")}
           </p>
         </div>
       </div>
@@ -65,24 +68,23 @@ export default async function TenantLeasePage() {
             <div key={lease.id} className="card" style={{ marginBottom: 20 }}>
               <div className="card-title">
                 <FileText size={18} />
-                Lease Agreement
+                {t("leaseAgreement")}
                 <span className={getStatusBadge(lease.status)}>{lease.status}</span>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
-                {/* Property Info */}
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                     <Building2 size={16} style={{ color: "var(--color-blue)" }} />
                     <span style={{ fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted)" }}>
-                      Property
+                      {t("property")}
                     </span>
                   </div>
                   <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                    {property?.name ?? "Unknown Property"}
+                    {property?.name ?? t("unknownProperty")}
                   </div>
                   <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
-                    Unit: {unit?.unit_number ?? "Unknown Unit"}
+                    {t("unitLabel", { unit: unit?.unit_number ?? "?" })}
                   </div>
                   {address && (
                     <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginTop: 4 }}>
@@ -91,49 +93,47 @@ export default async function TenantLeasePage() {
                   )}
                 </div>
 
-                {/* Lease Dates */}
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                     <CalendarDays size={16} style={{ color: "var(--color-amber)" }} />
                     <span style={{ fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted)" }}>
-                      Lease Period
+                      {t("leasePeriod")}
                     </span>
                   </div>
                   <div style={{ fontSize: "0.85rem", marginBottom: 4 }}>
-                    <span style={{ color: "var(--muted)" }}>Start: </span>
+                    <span style={{ color: "var(--muted)" }}>{t("startLabel")}</span>
                     <span style={{ fontWeight: 600 }}>
                       {lease.lease_start
-                        ? new Date(lease.lease_start).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+                        ? new Date(lease.lease_start).toLocaleDateString(dateLocale, { month: "long", day: "numeric", year: "numeric" })
                         : "--"}
                     </span>
                   </div>
                   <div style={{ fontSize: "0.85rem" }}>
-                    <span style={{ color: "var(--muted)" }}>End: </span>
+                    <span style={{ color: "var(--muted)" }}>{t("endLabel")}</span>
                     <span style={{ fontWeight: 600 }}>
                       {lease.lease_end
-                        ? new Date(lease.lease_end).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+                        ? new Date(lease.lease_end).toLocaleDateString(dateLocale, { month: "long", day: "numeric", year: "numeric" })
                         : "--"}
                     </span>
                   </div>
                 </div>
 
-                {/* Financials */}
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                     <DollarSign size={16} style={{ color: "var(--color-green)" }} />
                     <span style={{ fontSize: "0.82rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted)" }}>
-                      Financials
+                      {t("financials")}
                     </span>
                   </div>
                   <div style={{ fontSize: "0.85rem", marginBottom: 4 }}>
-                    <span style={{ color: "var(--muted)" }}>Monthly Rent: </span>
+                    <span style={{ color: "var(--muted)" }}>{t("monthlyRentLabel")}</span>
                     <span style={{ fontWeight: 600 }}>
                       {lease.monthly_rent != null ? formatCurrency(lease.monthly_rent) : "--"}
                     </span>
                   </div>
                   {lease.security_deposit != null && (
                     <div style={{ fontSize: "0.85rem" }}>
-                      <span style={{ color: "var(--muted)" }}>Security Deposit: </span>
+                      <span style={{ color: "var(--muted)" }}>{t("securityDepositLabel")}</span>
                       <span style={{ fontWeight: 600 }}>
                         {formatCurrency(lease.security_deposit)}
                       </span>
@@ -148,9 +148,9 @@ export default async function TenantLeasePage() {
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><FileText size={48} /></div>
-            <div className="fin-empty-title">No Leases Found</div>
+            <div className="fin-empty-title">{t("noLeasesFound")}</div>
             <div className="fin-empty-desc">
-              You do not have any leases on file. Please contact your property manager if you believe this is an error.
+              {t("noLeasesDesc")}
             </div>
           </div>
         </div>

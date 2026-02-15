@@ -5,7 +5,7 @@ import { getCashFlowStatement } from "@/lib/queries/financial";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 
 export const metadata = {
-  title: "Cash Flow - ConstructionERP",
+  title: "Cash Flow - Buildwrk",
 };
 
 interface BankAccount {

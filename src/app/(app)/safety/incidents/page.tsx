@@ -7,7 +7,7 @@ import SafetyIncidentsClient from "./SafetyIncidentsClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Safety Incidents - ConstructionERP",
+  title: "Safety Incidents - Buildwrk",
 };
 
 export default async function SafetyIncidentsPage() {

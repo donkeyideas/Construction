@@ -5,7 +5,7 @@ import { getFinancialKPIs } from "@/lib/queries/financial";
 import KPIDashboardClient from "./KPIDashboardClient";
 
 export const metadata = {
-  title: "Financial KPIs - ConstructionERP",
+  title: "Financial KPIs - Buildwrk",
 };
 
 export default async function KPIDashboardPage() {

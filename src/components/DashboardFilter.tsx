@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Filter } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ProjectOption {
   id: string;
@@ -18,6 +19,7 @@ export default function DashboardFilter({
   selectedProjectId,
 }: DashboardFilterProps) {
   const router = useRouter();
+  const t = useTranslations("dashboard");
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const val = e.target.value;
@@ -36,7 +38,7 @@ export default function DashboardFilter({
         value={selectedProjectId || ""}
         onChange={handleChange}
       >
-        <option value="">All Projects</option>
+        <option value="">{t("allProjects")}</option>
         {projects.map((p) => (
           <option key={p.id} value={p.id}>
             {p.name}

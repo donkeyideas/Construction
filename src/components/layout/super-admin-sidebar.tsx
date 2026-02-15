@@ -12,6 +12,7 @@ import {
   superAdminBottomNav,
   type SuperAdminNavItem,
 } from "@/types/super-admin-navigation";
+import { useTranslations } from "next-intl";
 
 const iconMap: Record<string, React.ElementType> = {
   "layout-dashboard": LayoutDashboard,
@@ -23,7 +24,7 @@ const iconMap: Record<string, React.ElementType> = {
   "arrow-left": ArrowLeft,
 };
 
-function NavItemComponent({ item }: { item: SuperAdminNavItem }) {
+function NavItemComponent({ item, t }: { item: SuperAdminNavItem; t: (key: string) => string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const Icon = iconMap[item.icon] || LayoutDashboard;
@@ -39,7 +40,7 @@ function NavItemComponent({ item }: { item: SuperAdminNavItem }) {
           className={`nav-link ${isActive ? "active" : ""}`}
         >
           <Icon />
-          <span className="label">{item.label}</span>
+          <span className="label">{(t as any)(item.label)}</span>
           <ChevronRight
             className="chevron"
             style={{ transform: open ? "rotate(90deg)" : undefined }}
@@ -53,7 +54,7 @@ function NavItemComponent({ item }: { item: SuperAdminNavItem }) {
                 href={child.href}
                 className={`nav-child ${pathname === child.href ? "active" : ""}`}
               >
-                {child.label}
+                {(t as any)(child.label)}
               </Link>
             ))}
           </div>
@@ -66,7 +67,7 @@ function NavItemComponent({ item }: { item: SuperAdminNavItem }) {
     <div className="nav-item">
       <Link href={item.href!} className={`nav-link ${isActive ? "active" : ""}`}>
         <Icon />
-        <span className="label">{item.label}</span>
+        <span className="label">{(t as any)(item.label)}</span>
       </Link>
     </div>
   );
@@ -78,23 +79,25 @@ interface SuperAdminSidebarProps {
 }
 
 export function SuperAdminSidebar({ isOpen, onClose }: SuperAdminSidebarProps) {
+  const t = useTranslations("saNav");
+
   return (
     <>
       {isOpen && <div className="overlay active" onClick={onClose} />}
       <aside className={`sidebar ${isOpen ? "open" : ""}`}>
         <div className="sidebar-brand">
-          <h1>ConstructionERP</h1>
+          <h1>Buildwrk</h1>
           <div className="accent-line" />
-          <span className="sa-badge">Platform Admin</span>
+          <span className="sa-badge">{t("platformAdmin")}</span>
         </div>
         <nav className="sidebar-nav">
           {superAdminNavigation.map((item) => (
-            <NavItemComponent key={item.label} item={item} />
+            <NavItemComponent key={item.label} item={item} t={t as any} />
           ))}
         </nav>
         <div className="sidebar-bottom">
           {superAdminBottomNav.map((item) => (
-            <NavItemComponent key={item.label} item={item} />
+            <NavItemComponent key={item.label} item={item} t={t as any} />
           ))}
         </div>
       </aside>

@@ -1,6 +1,6 @@
 import { Sparkles } from "lucide-react";
 
-export const metadata = { title: "AI Provider Configuration - ConstructionERP" };
+export const metadata = { title: "AI Provider Configuration - Buildwrk" };
 
 export default function AIProvidersPage() {
   return (

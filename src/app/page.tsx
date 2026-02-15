@@ -51,7 +51,11 @@ export default async function HomePage() {
       .single();
 
     if (data?.sections && Array.isArray(data.sections) && data.sections.length > 0) {
-      sections = data.sections as CmsSection[];
+      const dbSections = data.sections as CmsSection[];
+      // Detect stale seed data (old format had features/stats/testimonials instead of about/steps/modules/pricing)
+      const types = dbSections.map((s) => s.type);
+      const hasNewFormat = ["about", "steps", "modules", "pricing"].some((t) => types.includes(t));
+      sections = hasNewFormat ? dbSections : DEFAULT_HOMEPAGE_SECTIONS;
     }
   } catch {
     // Use defaults if DB is unreachable
@@ -70,7 +74,7 @@ export default async function HomePage() {
     "@graph": [
       {
         "@type": "SoftwareApplication",
-        name: "ConstructionERP",
+        name: "Buildwrk",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
         description:
@@ -120,7 +124,7 @@ export default async function HomePage() {
       <nav className="hp-nav">
         <div className="hp-nav-inner">
           <Link href="/" className="hp-nav-logo">
-            ConstructionERP
+            Buildwrk
           </Link>
           <ul className="hp-nav-links">
             <li><a href="#about">About</a></li>
@@ -186,7 +190,7 @@ export default async function HomePage() {
               <li><a href="#about">About</a></li>
               <li><a href="#pricing">Plans</a></li>
               <li><Link href="/login">Sign In</Link></li>
-              <li><a href="mailto:support@constructionerp.com">Contact</a></li>
+              <li><a href="mailto:support@buildwrk.com">Contact</a></li>
             </ul>
           </div>
           <div>
@@ -200,7 +204,7 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="hp-footer-bottom">
-          2026 ConstructionERP. All rights reserved.
+          2026 Buildwrk. All rights reserved.
         </div>
       </footer>
     </div>

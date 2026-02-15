@@ -1,6 +1,6 @@
 import { Globe } from "lucide-react";
 
-export const metadata = { title: "SEO & GEO Management - ConstructionERP" };
+export const metadata = { title: "SEO & GEO Management - Buildwrk" };
 
 export default function SEOManagementPage() {
   return (

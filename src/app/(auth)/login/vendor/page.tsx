@@ -1,7 +1,7 @@
 import PortalLoginForm from "@/components/auth/portal-login-form";
 
 export const metadata = {
-  title: "Vendor Portal Login - ConstructionERP",
+  title: "Vendor Portal Login - Buildwrk",
 };
 
 export default function VendorLoginPage() {

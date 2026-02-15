@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import ARClient from "./ARClient";
 
 export const metadata = {
-  title: "Accounts Receivable - ConstructionERP",
+  title: "Accounts Receivable - Buildwrk",
 };
 
 interface PageProps {

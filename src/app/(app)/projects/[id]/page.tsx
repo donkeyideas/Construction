@@ -17,10 +17,10 @@ export async function generateMetadata({
   const supabase = await createClient();
   const result = await getProjectById(supabase, id);
   if (!result) {
-    return { title: "Project Not Found - ConstructionERP" };
+    return { title: "Project Not Found - Buildwrk" };
   }
   return {
-    title: `${result.project.name} - ConstructionERP`,
+    title: `${result.project.name} - Buildwrk`,
   };
 }
 

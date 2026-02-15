@@ -4,7 +4,7 @@ import { isPlatformAdmin, getAllUsers } from "@/lib/queries/super-admin";
 import UsersClient from "./UsersClient";
 
 export const metadata = {
-  title: "Users - Super Admin - ConstructionERP",
+  title: "Users - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminUsersPage() {

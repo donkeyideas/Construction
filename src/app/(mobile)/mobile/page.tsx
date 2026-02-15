@@ -12,9 +12,10 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getUserDisplayName } from "@/lib/queries/user";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = {
-  title: "Mobile Home - ConstructionERP",
+  title: "Mobile Home - Buildwrk",
 };
 
 export default async function MobileHomePage() {
@@ -28,10 +29,13 @@ export default async function MobileHomePage() {
   const { userId, companyId } = userCompany;
   const userName = await getUserDisplayName(supabase, userId);
   const firstName = userName.split(" ")[0];
+  const t = await getTranslations("mobile.dashboard");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   const today = new Date().toISOString().slice(0, 10);
   const now = new Date();
-  const dateDisplay = now.toLocaleDateString("en-US", {
+  const dateDisplay = now.toLocaleDateString(dateLocale, {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -40,7 +44,6 @@ export default async function MobileHomePage() {
   // Fetch today's data in parallel
   const [timeEntriesRes, projectsRes, tasksRes, activityRes] =
     await Promise.all([
-      // Today's time entries for this user
       supabase
         .from("time_entries")
         .select("id, clock_in, clock_out, hours, project_id, projects(name)")
@@ -49,7 +52,6 @@ export default async function MobileHomePage() {
         .eq("entry_date", today)
         .order("clock_in", { ascending: false }),
 
-      // Active projects where user is PM, superintendent, or has time entries
       supabase
         .from("projects")
         .select("id, name, code, address_line1, city, state, status")
@@ -57,7 +59,6 @@ export default async function MobileHomePage() {
         .in("status", ["active", "pre_construction"])
         .order("name", { ascending: true }),
 
-      // Today's tasks assigned to this user across all projects
       supabase
         .from("project_tasks")
         .select(
@@ -69,7 +70,6 @@ export default async function MobileHomePage() {
         .order("priority", { ascending: true })
         .limit(5),
 
-      // Recent audit log for notifications
       supabase
         .from("audit_log")
         .select("id, action, entity_type, details, created_at")
@@ -83,14 +83,12 @@ export default async function MobileHomePage() {
   const tasks = tasksRes.data ?? [];
   const activity = activityRes.data ?? [];
 
-  // Determine clock-in status
   const openEntry = timeEntries.find(
     (e: { clock_in: string | null; clock_out: string | null }) =>
       e.clock_in && !e.clock_out
   );
   const isClockedIn = !!openEntry;
 
-  // Calculate today's hours
   const todayHours = timeEntries.reduce(
     (sum: number, e: { hours: number | null }) => sum + (e.hours ?? 0),
     0
@@ -101,17 +99,17 @@ export default async function MobileHomePage() {
       {/* Header */}
       <div className="mobile-header">
         <div>
-          <h2>Hello, {firstName}</h2>
+          <h2>{t("hello", { name: firstName })}</h2>
           <div className="mobile-header-date">{dateDisplay}</div>
         </div>
         <div>
           {isClockedIn ? (
             <span className="mobile-status mobile-status-clocked-in">
-              <CheckCircle size={14} /> Clocked In
+              <CheckCircle size={14} /> {t("clockedIn")}
             </span>
           ) : (
             <span className="mobile-status mobile-status-clocked-out">
-              <AlertCircle size={14} /> Clocked Out
+              <AlertCircle size={14} /> {t("clockedOut")}
             </span>
           )}
         </div>
@@ -120,19 +118,20 @@ export default async function MobileHomePage() {
       {/* Clock-In Status Card */}
       <div className="mobile-card">
         <div className="mobile-card-title">
-          {isClockedIn ? "Currently Working" : "Not Clocked In"}
+          {isClockedIn ? t("currentlyWorking") : t("notClockedIn")}
         </div>
         {isClockedIn && openEntry ? (
           <p style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
-            Clocked in at{" "}
-            {new Date(openEntry.clock_in).toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "2-digit",
+            {t("clockedInAt", {
+              time: new Date(openEntry.clock_in).toLocaleTimeString(dateLocale, {
+                hour: "numeric",
+                minute: "2-digit",
+              }),
             })}
           </p>
         ) : (
           <p style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
-            Tap Clock In to start tracking your time
+            {t("tapClockIn")}
           </p>
         )}
         <div style={{ marginTop: "10px" }}>
@@ -141,7 +140,7 @@ export default async function MobileHomePage() {
             className={`clock-btn ${isClockedIn ? "clock-btn-out" : "clock-btn-in"}`}
             style={{ display: "block", textAlign: "center", textDecoration: "none" }}
           >
-            {isClockedIn ? "Clock Out" : "Clock In"}
+            {isClockedIn ? t("clockOut") : t("clockIn")}
           </Link>
         </div>
         {todayHours > 0 && (
@@ -153,7 +152,7 @@ export default async function MobileHomePage() {
               marginTop: "8px",
             }}
           >
-            Today: {todayHours.toFixed(1)} hours logged
+            {t("todayHoursLogged", { hours: todayHours.toFixed(1) })}
           </p>
         )}
       </div>
@@ -161,7 +160,7 @@ export default async function MobileHomePage() {
       {/* Active Project Cards */}
       {projects.length > 0 && (
         <>
-          <div className="mobile-section-title">Active Projects</div>
+          <div className="mobile-section-title">{t("activeProjects")}</div>
           {projects.slice(0, 3).map(
             (project: {
               id: string;
@@ -185,7 +184,7 @@ export default async function MobileHomePage() {
                   <MapPin size={12} />
                   {[project.address_line1, project.city, project.state]
                     .filter(Boolean)
-                    .join(", ") || "No address"}
+                    .join(", ") || t("noAddress")}
                 </div>
                 <div
                   style={{
@@ -194,7 +193,7 @@ export default async function MobileHomePage() {
                     marginTop: "4px",
                   }}
                 >
-                  Code: {project.code}
+                  {t("projectCode", { code: project.code })}
                 </div>
               </div>
             )
@@ -203,30 +202,30 @@ export default async function MobileHomePage() {
       )}
 
       {/* Quick Actions */}
-      <div className="mobile-section-title">Quick Actions</div>
+      <div className="mobile-section-title">{t("quickActions")}</div>
       <div className="quick-actions">
         <Link href="/mobile/clock" className="quick-action">
           <Clock size={22} />
-          Clock In
+          {t("clockIn")}
         </Link>
         <Link href="/mobile/daily-log" className="quick-action">
           <ClipboardList size={22} />
-          Daily Log
+          {t("dailyLog")}
         </Link>
         <Link href="/mobile/photos" className="quick-action">
           <Camera size={22} />
-          Take Photo
+          {t("takePhoto")}
         </Link>
         <Link href="/mobile/daily-log" className="quick-action">
           <ShieldCheck size={22} />
-          Safety Check
+          {t("safetyCheck")}
         </Link>
       </div>
 
       {/* Today's Tasks */}
       {tasks.length > 0 && (
         <>
-          <div className="mobile-section-title">Your Tasks</div>
+          <div className="mobile-section-title">{t("yourTasks")}</div>
           <div className="mobile-card">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {tasks.map(
@@ -239,7 +238,7 @@ export default async function MobileHomePage() {
                     <div className="mobile-task-name">{task.name}</div>
                     <div className="mobile-task-meta">
                       {(task.projects as { name: string } | null)?.name ??
-                        "Unassigned"}{" "}
+                        t("unassigned")}{" "}
                       -- {task.priority}
                     </div>
                   </div>
@@ -253,7 +252,7 @@ export default async function MobileHomePage() {
       {/* Recent Notifications */}
       {activity.length > 0 && (
         <>
-          <div className="mobile-section-title">Recent Activity</div>
+          <div className="mobile-section-title">{t("recentActivity")}</div>
           <div className="mobile-card">
             {activity.map(
               (item: {
@@ -280,7 +279,7 @@ export default async function MobileHomePage() {
                         {item.action.replace(/_/g, " ")} {refName}
                       </div>
                       <div className="mobile-notif-time">
-                        {new Date(item.created_at).toLocaleTimeString("en-US", {
+                        {new Date(item.created_at).toLocaleTimeString(dateLocale, {
                           hour: "numeric",
                           minute: "2-digit",
                         })}

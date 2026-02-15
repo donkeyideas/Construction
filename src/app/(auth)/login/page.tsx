@@ -6,7 +6,7 @@ export default function LoginPage() {
       portalType="executive"
       defaultRedirect="/dashboard"
       title="Welcome back"
-      subtitle="Sign in to your ConstructionERP account to continue."
+      subtitle="Sign in to your Buildwrk account to continue."
       showRegisterLink
     />
   );

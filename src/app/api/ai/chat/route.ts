@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   const today = new Date().toISOString().slice(0, 10);
 
   // Rich system prompt with formatting + analysis instructions
-  const systemPrompt = `You are the AI assistant for ConstructionERP, a comprehensive construction and real estate management platform. You serve as an expert analyst for **${userCompany.companyName}**.
+  const systemPrompt = `You are the AI assistant for Buildwrk, a comprehensive construction and real estate management platform. You serve as an expert analyst for **${userCompany.companyName}**.
 
 Today's date: ${today}
 User role: ${userCompany.role}

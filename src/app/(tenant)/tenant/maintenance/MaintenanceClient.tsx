@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus, Wrench, X, Pencil } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 
 interface MaintenanceRequest {
   id: string;
@@ -17,19 +18,19 @@ interface MaintenanceRequest {
 }
 
 const CATEGORIES = [
-  { value: "plumbing", label: "Plumbing" },
-  { value: "electrical", label: "Electrical" },
-  { value: "hvac", label: "HVAC / Heating & Cooling" },
-  { value: "appliance", label: "Appliance" },
-  { value: "structural", label: "Structural" },
-  { value: "general", label: "General / Other" },
+  { value: "plumbing", labelKey: "catPlumbing" },
+  { value: "electrical", labelKey: "catElectrical" },
+  { value: "hvac", labelKey: "catHvac" },
+  { value: "appliance", labelKey: "catAppliance" },
+  { value: "structural", labelKey: "catStructural" },
+  { value: "general", labelKey: "catGeneral" },
 ];
 
 const PRIORITIES = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "emergency", label: "Emergency" },
+  { value: "low", labelKey: "priLow" },
+  { value: "medium", labelKey: "priMedium" },
+  { value: "high", labelKey: "priHigh" },
+  { value: "emergency", labelKey: "priEmergency" },
 ];
 
 function getStatusBadge(status: string): string {
@@ -63,12 +64,6 @@ function getPriorityBadge(priority: string): string {
   }
 }
 
-function getCategoryLabel(value: string | null): string {
-  return (
-    CATEGORIES.find((c) => c.value === value)?.label ?? value ?? "General"
-  );
-}
-
 function isEditable(status: string): boolean {
   return status === "submitted" || status === "assigned";
 }
@@ -78,6 +73,10 @@ export default function MaintenanceClient({
 }: {
   requests: MaintenanceRequest[];
 }) {
+  const t = useTranslations("tenant");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const router = useRouter();
   const [selected, setSelected] = useState<MaintenanceRequest | null>(null);
   const [editing, setEditing] = useState(false);
@@ -87,6 +86,11 @@ export default function MaintenanceClient({
   const [editPriority, setEditPriority] = useState("medium");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  function getCategoryLabel(value: string | null): string {
+    const found = CATEGORIES.find((c) => c.value === value);
+    return found ? t(found.labelKey) : (value ?? t("catGeneral"));
+  }
 
   function openModal(req: MaintenanceRequest) {
     setSelected(req);
@@ -114,7 +118,7 @@ export default function MaintenanceClient({
     e.preventDefault();
     if (!selected) return;
     if (!editTitle.trim()) {
-      setError("Title is required.");
+      setError(t("titleRequired"));
       return;
     }
 
@@ -136,13 +140,13 @@ export default function MaintenanceClient({
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to update request");
+        throw new Error(data.error || t("failedUpdate"));
       }
 
       closeModal();
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("somethingWentWrong"));
     } finally {
       setSaving(false);
     }
@@ -152,9 +156,9 @@ export default function MaintenanceClient({
     <div>
       <div className="fin-header">
         <div>
-          <h2>Maintenance Requests</h2>
+          <h2>{t("maintenanceTitle")}</h2>
           <p className="fin-header-sub">
-            Track your maintenance requests and their progress.
+            {t("maintenanceSubtitle")}
           </p>
         </div>
         <Link
@@ -162,7 +166,7 @@ export default function MaintenanceClient({
           className="ui-btn ui-btn-md ui-btn-primary"
         >
           <Plus size={16} />
-          Submit Request
+          {t("submitRequest")}
         </Link>
       </div>
 
@@ -192,7 +196,7 @@ export default function MaintenanceClient({
                       marginBottom: 6,
                     }}
                   >
-                    {request.title ?? "Untitled Request"}
+                    {request.title ?? t("untitledRequest")}
                   </div>
                   {request.description && (
                     <div
@@ -217,17 +221,18 @@ export default function MaintenanceClient({
                     }}
                   >
                     <span>
-                      Submitted{" "}
-                      {request.created_at
-                        ? new Date(request.created_at).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            }
-                          )
-                        : "--"}
+                      {t("submittedDate", {
+                        date: request.created_at
+                          ? new Date(request.created_at).toLocaleDateString(
+                              dateLocale,
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )
+                          : "--",
+                      })}
                     </span>
                     <span>{getCategoryLabel(request.category)}</span>
                   </div>
@@ -252,10 +257,9 @@ export default function MaintenanceClient({
             <div className="fin-empty-icon">
               <Wrench size={48} />
             </div>
-            <div className="fin-empty-title">No Maintenance Requests</div>
+            <div className="fin-empty-title">{t("noMaintenanceRequests")}</div>
             <div className="fin-empty-desc">
-              You have not submitted any maintenance requests. Use the button
-              above to report an issue.
+              {t("noMaintenanceDesc")}
             </div>
           </div>
         </div>
@@ -270,7 +274,7 @@ export default function MaintenanceClient({
           >
             <div className="tenant-modal-header">
               <h3 style={{ margin: 0, fontSize: "1.05rem" }}>
-                {editing ? "Edit Request" : "Request Details"}
+                {editing ? t("editRequest") : t("requestDetails")}
               </h3>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {!editing && isEditable(selected.status) && (
@@ -284,7 +288,7 @@ export default function MaintenanceClient({
                     }}
                   >
                     <Pencil size={13} />
-                    Edit
+                    {t("edit")}
                   </button>
                 )}
                 <button
@@ -304,7 +308,7 @@ export default function MaintenanceClient({
             {editing ? (
               <form onSubmit={handleSave}>
                 <div className="tenant-field">
-                  <label className="tenant-label">Issue Title *</label>
+                  <label className="tenant-label">{t("issueTitle")}</label>
                   <input
                     type="text"
                     className="invite-form-input"
@@ -323,7 +327,7 @@ export default function MaintenanceClient({
                   }}
                 >
                   <div className="tenant-field">
-                    <label className="tenant-label">Category</label>
+                    <label className="tenant-label">{t("category")}</label>
                     <select
                       className="invite-form-select"
                       value={editCategory}
@@ -332,13 +336,13 @@ export default function MaintenanceClient({
                     >
                       {CATEGORIES.map((c) => (
                         <option key={c.value} value={c.value}>
-                          {c.label}
+                          {t(c.labelKey)}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div className="tenant-field">
-                    <label className="tenant-label">Priority</label>
+                    <label className="tenant-label">{t("priority")}</label>
                     <select
                       className="invite-form-select"
                       value={editPriority}
@@ -347,7 +351,7 @@ export default function MaintenanceClient({
                     >
                       {PRIORITIES.map((p) => (
                         <option key={p.value} value={p.value}>
-                          {p.label}
+                          {t(p.labelKey)}
                         </option>
                       ))}
                     </select>
@@ -355,7 +359,7 @@ export default function MaintenanceClient({
                 </div>
 
                 <div className="tenant-field">
-                  <label className="tenant-label">Description</label>
+                  <label className="tenant-label">{t("description")}</label>
                   <textarea
                     className="invite-form-input"
                     value={editDescription}
@@ -380,31 +384,31 @@ export default function MaintenanceClient({
                     onClick={() => setEditing(false)}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     type="submit"
                     className="ui-btn ui-btn-md ui-btn-primary"
                     disabled={saving}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("saving") : t("saveChanges")}
                   </button>
                 </div>
               </form>
             ) : (
               <div>
                 <div className="tenant-detail-row">
-                  <span className="tenant-detail-label">Title</span>
-                  <span>{selected.title ?? "Untitled"}</span>
+                  <span className="tenant-detail-label">{t("title")}</span>
+                  <span>{selected.title ?? t("untitled")}</span>
                 </div>
                 <div className="tenant-detail-row">
-                  <span className="tenant-detail-label">Status</span>
+                  <span className="tenant-detail-label">{t("status")}</span>
                   <span className={getStatusBadge(selected.status)}>
                     {selected.status?.replace("_", " ")}
                   </span>
                 </div>
                 <div className="tenant-detail-row">
-                  <span className="tenant-detail-label">Priority</span>
+                  <span className="tenant-detail-label">{t("priority")}</span>
                   {selected.priority ? (
                     <span className={getPriorityBadge(selected.priority)}>
                       {selected.priority}
@@ -414,15 +418,15 @@ export default function MaintenanceClient({
                   )}
                 </div>
                 <div className="tenant-detail-row">
-                  <span className="tenant-detail-label">Category</span>
+                  <span className="tenant-detail-label">{t("category")}</span>
                   <span>{getCategoryLabel(selected.category)}</span>
                 </div>
                 <div className="tenant-detail-row">
-                  <span className="tenant-detail-label">Submitted</span>
+                  <span className="tenant-detail-label">{t("submitted")}</span>
                   <span>
                     {selected.created_at
                       ? new Date(selected.created_at).toLocaleDateString(
-                          "en-US",
+                          dateLocale,
                           {
                             weekday: "short",
                             month: "short",
@@ -438,10 +442,10 @@ export default function MaintenanceClient({
                 {selected.updated_at &&
                   selected.updated_at !== selected.created_at && (
                     <div className="tenant-detail-row">
-                      <span className="tenant-detail-label">Last Updated</span>
+                      <span className="tenant-detail-label">{t("lastUpdated")}</span>
                       <span>
                         {new Date(selected.updated_at).toLocaleDateString(
-                          "en-US",
+                          dateLocale,
                           {
                             weekday: "short",
                             month: "short",
@@ -456,7 +460,7 @@ export default function MaintenanceClient({
                   )}
 
                 <div style={{ marginTop: 16 }}>
-                  <span className="tenant-detail-label">Description</span>
+                  <span className="tenant-detail-label">{t("description")}</span>
                   <div
                     style={{
                       marginTop: 6,
@@ -472,7 +476,7 @@ export default function MaintenanceClient({
                           fontStyle: "italic",
                         }}
                       >
-                        No description provided.
+                        {t("noDescription")}
                       </span>
                     )}
                   </div>
@@ -489,9 +493,7 @@ export default function MaintenanceClient({
                       color: "var(--muted)",
                     }}
                   >
-                    This request is{" "}
-                    <strong>{selected.status?.replace("_", " ")}</strong> and
-                    can no longer be edited.
+                    {t("requestClosed", { status: selected.status?.replace("_", " ") })}
                   </div>
                 )}
               </div>

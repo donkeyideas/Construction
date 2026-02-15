@@ -8,7 +8,7 @@ import BankTransactionsClient from "./BankTransactionsClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Bank Transactions - ConstructionERP",
+  title: "Bank Transactions - Buildwrk",
 };
 
 export default async function BankTransactionsPage({

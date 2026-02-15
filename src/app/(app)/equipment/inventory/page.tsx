@@ -6,7 +6,7 @@ import EquipmentInventoryClient from "./EquipmentInventoryClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Equipment Inventory - ConstructionERP",
+  title: "Equipment Inventory - Buildwrk",
 };
 
 export default async function EquipmentInventoryPage() {

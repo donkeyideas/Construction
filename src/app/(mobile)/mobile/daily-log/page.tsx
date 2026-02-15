@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getTranslations, getLocale } from "next-intl/server";
 import DailyLogClient from "./DailyLogClient";
 
 export const metadata = {
-  title: "Daily Log - ConstructionERP",
+  title: "Daily Log - Buildwrk",
 };
 
 export default async function DailyLogPage() {
@@ -16,8 +17,10 @@ export default async function DailyLogPage() {
   }
 
   const { companyId } = userCompany;
+  const t = await getTranslations("mobile.dailyLog");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
-  // Fetch active projects for dropdown
   const { data: projects } = await supabase
     .from("projects")
     .select("id, name, code")
@@ -25,7 +28,6 @@ export default async function DailyLogPage() {
     .in("status", ["active", "pre_construction"])
     .order("name", { ascending: true });
 
-  // Fetch recent daily logs for this company
   const { data: recentLogs } = await supabase
     .from("daily_logs")
     .select(
@@ -50,13 +52,28 @@ export default async function DailyLogPage() {
     projectName: (log.projects as { name: string } | null)?.name ?? null,
   }));
 
+  // Weather condition translation map
+  const weatherKeyMap: Record<string, string> = {
+    Clear: "weatherClear",
+    "Partly Cloudy": "weatherPartlyCloudy",
+    Overcast: "weatherOvercast",
+    Rain: "weatherRain",
+    "Heavy Rain": "weatherHeavyRain",
+    Snow: "weatherSnow",
+    Sleet: "weatherSleet",
+    Fog: "weatherFog",
+    Windy: "weatherWindy",
+    Hot: "weatherHot",
+    Cold: "weatherCold",
+  };
+
   return (
     <div>
       <div className="mobile-header">
         <div>
-          <h2>Daily Log</h2>
+          <h2>{t("title")}</h2>
           <div className="mobile-header-date">
-            {new Date().toLocaleDateString("en-US", {
+            {new Date().toLocaleDateString(dateLocale, {
               weekday: "long",
               month: "long",
               day: "numeric",
@@ -70,7 +87,7 @@ export default async function DailyLogPage() {
       {/* Recent Logs */}
       {logList.length > 0 && (
         <>
-          <div className="mobile-section-title">Recent Logs</div>
+          <div className="mobile-section-title">{t("recentLogs")}</div>
           {logList.map(
             (log: {
               id: string;
@@ -93,7 +110,7 @@ export default async function DailyLogPage() {
                       fontSize: "0.85rem",
                     }}
                   >
-                    {log.projectName ?? "No Project"}
+                    {log.projectName ?? t("noProjectLabel")}
                   </span>
                   <span
                     style={{
@@ -102,7 +119,7 @@ export default async function DailyLogPage() {
                     }}
                   >
                     {new Date(log.logDate + "T00:00:00").toLocaleDateString(
-                      "en-US",
+                      dateLocale,
                       {
                         month: "short",
                         day: "numeric",
@@ -118,7 +135,11 @@ export default async function DailyLogPage() {
                       marginBottom: "4px",
                     }}
                   >
-                    Weather: {log.weatherCondition}
+                    {t("weatherPrefix", {
+                      condition: weatherKeyMap[log.weatherCondition]
+                        ? (t as any)(weatherKeyMap[log.weatherCondition])
+                        : log.weatherCondition,
+                    })}
                   </div>
                 )}
                 {log.workPerformed && (

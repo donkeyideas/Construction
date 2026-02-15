@@ -6,7 +6,7 @@ import EquipmentAssignmentsClient from "./EquipmentAssignmentsClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Equipment Assignments - ConstructionERP",
+  title: "Equipment Assignments - Buildwrk",
 };
 
 export default async function EquipmentAssignmentsPage() {

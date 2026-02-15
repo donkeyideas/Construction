@@ -6,7 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import ChangeOrdersClient from "./ChangeOrdersClient";
 
 export const metadata = {
-  title: "Change Orders - ConstructionERP",
+  title: "Change Orders - Buildwrk",
 };
 
 interface PageProps {

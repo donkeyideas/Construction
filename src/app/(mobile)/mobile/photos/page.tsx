@@ -2,10 +2,11 @@ import { redirect } from "next/navigation";
 import { Camera } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getTranslations, getLocale } from "next-intl/server";
 import PhotosClient from "./PhotosClient";
 
 export const metadata = {
-  title: "Photos - ConstructionERP",
+  title: "Photos - Buildwrk",
 };
 
 export default async function PhotosPage() {
@@ -17,8 +18,10 @@ export default async function PhotosPage() {
   }
 
   const { companyId } = userCompany;
+  const t = await getTranslations("mobile.photos");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
-  // Fetch active projects for tagging
   const { data: projects } = await supabase
     .from("projects")
     .select("id, name, code")
@@ -26,7 +29,6 @@ export default async function PhotosPage() {
     .in("status", ["active", "pre_construction"])
     .order("name", { ascending: true });
 
-  // Fetch recent photos (documents where category is 'photo')
   const { data: photos } = await supabase
     .from("documents")
     .select(
@@ -58,9 +60,9 @@ export default async function PhotosPage() {
     <div>
       <div className="mobile-header">
         <div>
-          <h2>Photos</h2>
+          <h2>{t("title")}</h2>
           <div className="mobile-header-date">
-            {new Date().toLocaleDateString("en-US", {
+            {new Date().toLocaleDateString(dateLocale, {
               weekday: "long",
               month: "long",
               day: "numeric",
@@ -69,12 +71,10 @@ export default async function PhotosPage() {
         </div>
       </div>
 
-      {/* Camera Capture */}
       <PhotosClient projects={projectList} />
 
-      {/* Photo Gallery */}
       <div className="mobile-section-title">
-        Recent Photos ({photoList.length})
+        {t("recentPhotos", { count: photoList.length })}
       </div>
 
       {photoList.length === 0 ? (
@@ -84,9 +84,9 @@ export default async function PhotosPage() {
               size={32}
               style={{ marginBottom: "8px", color: "var(--muted)" }}
             />
-            <div>No photos yet</div>
+            <div>{t("noPhotosYet")}</div>
             <div style={{ fontSize: "0.75rem", marginTop: "4px" }}>
-              Take a photo using the capture button above
+              {t("captureHint")}
             </div>
           </div>
         </div>
@@ -106,10 +106,10 @@ export default async function PhotosPage() {
                   <div className="photo-thumb-meta">
                     {photo.projectName
                       ? photo.projectName.slice(0, 12)
-                      : "Untagged"}
+                      : t("untagged")}
                   </div>
                   <div className="photo-thumb-meta">
-                    {new Date(photo.createdAt).toLocaleDateString("en-US", {
+                    {new Date(photo.createdAt).toLocaleDateString(dateLocale, {
                       month: "short",
                       day: "numeric",
                     })}

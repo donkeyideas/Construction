@@ -10,7 +10,7 @@ import type { CompanyMember } from "@/lib/queries/super-admin";
 import CompaniesClient from "./CompaniesClient";
 
 export const metadata = {
-  title: "Companies - Super Admin - ConstructionERP",
+  title: "Companies - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminCompaniesPage() {

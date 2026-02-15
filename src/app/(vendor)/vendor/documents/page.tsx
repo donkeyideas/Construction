@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import { FolderOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getVendorDocuments } from "@/lib/queries/vendor-portal";
+import { getTranslations, getLocale } from "next-intl/server";
 
-export const metadata = { title: "Documents - ConstructionERP" };
+export const metadata = { title: "Documents - Buildwrk" };
 
 export default async function VendorDocumentsPage() {
   const supabase = await createClient();
@@ -11,13 +12,16 @@ export default async function VendorDocumentsPage() {
   if (!user) { redirect("/login/vendor"); }
 
   const vendorDocs = await getVendorDocuments(supabase, user.id);
+  const t = await getTranslations("vendor");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   return (
     <div>
       <div className="fin-header">
         <div>
-          <h2>Documents</h2>
-          <p className="fin-header-sub">Documents shared with you by the company.</p>
+          <h2>{t("documentsTitle")}</h2>
+          <p className="fin-header-sub">{t("documentsSubtitle")}</p>
         </div>
       </div>
 
@@ -27,9 +31,9 @@ export default async function VendorDocumentsPage() {
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Date Shared</th>
+                  <th>{t("thName")}</th>
+                  <th>{t("thType")}</th>
+                  <th>{t("thDateShared")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -52,10 +56,10 @@ export default async function VendorDocumentsPage() {
                             rel="noopener noreferrer"
                             style={{ color: "var(--color-blue)", textDecoration: "none" }}
                           >
-                            {document.name ?? "Untitled"}
+                            {document.name ?? t("untitled")}
                           </a>
                         ) : (
-                          document?.name ?? "Untitled"
+                          document?.name ?? t("untitled")
                         )}
                       </td>
                       <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
@@ -63,7 +67,7 @@ export default async function VendorDocumentsPage() {
                       </td>
                       <td>
                         {doc.shared_at
-                          ? new Date(doc.shared_at as string).toLocaleDateString("en-US", {
+                          ? new Date(doc.shared_at as string).toLocaleDateString(dateLocale, {
                               month: "short",
                               day: "numeric",
                               year: "numeric",
@@ -81,8 +85,8 @@ export default async function VendorDocumentsPage() {
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><FolderOpen size={48} /></div>
-            <div className="fin-empty-title">No Documents Found</div>
-            <div className="fin-empty-desc">No documents have been shared with you yet.</div>
+            <div className="fin-empty-title">{t("noDocumentsFound")}</div>
+            <div className="fin-empty-desc">{t("noDocumentsDesc")}</div>
           </div>
         </div>
       )}

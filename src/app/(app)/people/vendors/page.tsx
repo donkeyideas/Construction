@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import VendorsClient from "./VendorsClient";
 
 export const metadata = {
-  title: "Vendors & Subcontractors - ConstructionERP",
+  title: "Vendors & Subcontractors - Buildwrk",
 };
 
 export default async function VendorsPage() {

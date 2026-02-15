@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   FileText,
   Eye,
@@ -57,25 +58,13 @@ interface Props {
   pages: CmsPage[];
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+function formatDate(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
-
-const SECTION_LABELS: Record<string, string> = {
-  hero: "Hero Banner",
-  about: "About / Story",
-  steps: "Getting Started Steps",
-  modules: "Feature Modules",
-  value_props: "Value Propositions",
-  modules_grid: "Additional Modules Grid",
-  pricing: "Pricing Plans",
-  faq: "FAQ",
-  cta: "Call to Action",
-};
 
 function getSectionIcon(type: string) {
   switch (type) {
@@ -104,7 +93,23 @@ function getDefaults(slug: string): { sections: CmsSection[]; metaTitle: string;
 }
 
 export default function ContentClient({ pages }: Props) {
+  const t = useTranslations("superAdmin");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const router = useRouter();
+
+  const SECTION_LABELS: Record<string, string> = {
+    hero: t("heroLabel"),
+    about: t("aboutLabel"),
+    steps: t("stepsLabel"),
+    modules: t("modulesLabel"),
+    value_props: t("valuePropsLabel"),
+    modules_grid: t("modulesGridLabel"),
+    pricing: t("pricingLabel"),
+    faq: t("faqLabel"),
+    cta: t("ctaLabel"),
+  };
 
   // List view state
   const [updating, setUpdating] = useState<string | null>(null);
@@ -138,12 +143,12 @@ export default function ContentClient({ pages }: Props) {
       });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to update.");
+        setError(data.error || t("failedUpdate"));
         return;
       }
       router.refresh();
     } catch {
-      setError("Network error.");
+      setError(t("networkError"));
     } finally {
       setUpdating(null);
     }
@@ -180,7 +185,7 @@ export default function ContentClient({ pages }: Props) {
       setExpandedSections(new Set());
       setView("editor");
     } catch {
-      setError("Failed to load page data.");
+      setError(t("failedSaveContent"));
     } finally {
       setLoading(false);
     }
@@ -213,9 +218,9 @@ export default function ContentClient({ pages }: Props) {
         }
       );
       if (!res.ok) throw new Error("Failed to save");
-      setNotification({ type: "success", message: "Content saved successfully! Changes are now live." });
+      setNotification({ type: "success", message: t("contentSaved") });
     } catch {
-      setNotification({ type: "error", message: "Failed to save changes. Please try again." });
+      setNotification({ type: "error", message: t("failedSaveContent") });
     } finally {
       setSaving(false);
     }
@@ -280,32 +285,32 @@ export default function ContentClient({ pages }: Props) {
       case "hero":
         return (
           <div className="content-section-fields">
-            <Field label="Headline" hint="Primary H1 — include target keyword">
+            <Field label={t("headline")} hint={t("headlineHint")}>
               <input value={c.title || ""} onChange={(e) => updateSectionContent(idx, "title", e.target.value)} />
             </Field>
-            <Field label="Subtitle" hint="Supporting text under the headline">
+            <Field label={t("subtitle")} hint={t("subtitleHint")}>
               <textarea rows={3} value={c.subtitle || ""} onChange={(e) => updateSectionContent(idx, "subtitle", e.target.value)} />
             </Field>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label="CTA Button Text">
+              <Field label={t("ctaButtonText")}>
                 <input value={c.cta_text || ""} onChange={(e) => updateSectionContent(idx, "cta_text", e.target.value)} />
               </Field>
-              <Field label="CTA Button Link">
+              <Field label={t("ctaButtonLink")}>
                 <input value={c.cta_link || ""} onChange={(e) => updateSectionContent(idx, "cta_link", e.target.value)} />
               </Field>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label="Secondary Link Text">
+              <Field label={t("secondaryLinkText")}>
                 <input value={c.secondary_text || ""} onChange={(e) => updateSectionContent(idx, "secondary_text", e.target.value)} />
               </Field>
-              <Field label="Secondary Link URL">
+              <Field label={t("secondaryLinkUrl")}>
                 <input value={c.secondary_link || ""} onChange={(e) => updateSectionContent(idx, "secondary_link", e.target.value)} />
               </Field>
             </div>
-            <Field label="Image URL">
+            <Field label={t("imageUrl")}>
               <input value={c.image_url || ""} onChange={(e) => updateSectionContent(idx, "image_url", e.target.value)} />
             </Field>
-            <Field label="Image Alt Text" hint="Describe the image for SEO and accessibility">
+            <Field label={t("imageAlt")} hint={t("imageAltHint")}>
               <input value={c.image_alt || ""} onChange={(e) => updateSectionContent(idx, "image_alt", e.target.value)} />
             </Field>
           </div>
@@ -314,10 +319,10 @@ export default function ContentClient({ pages }: Props) {
       case "about":
         return (
           <div className="content-section-fields">
-            <Field label="Section Title">
+            <Field label={t("sectionTitle")}>
               <input value={c.title || ""} onChange={(e) => updateSectionContent(idx, "title", e.target.value)} />
             </Field>
-            <Field label="Body Text" hint="Use natural language with target keywords">
+            <Field label={t("bodyText")} hint={t("bodyTextHint")}>
               <textarea rows={5} value={c.body || ""} onChange={(e) => updateSectionContent(idx, "body", e.target.value)} />
             </Field>
           </div>
@@ -326,16 +331,16 @@ export default function ContentClient({ pages }: Props) {
       case "steps":
         return (
           <div className="content-section-fields">
-            <Field label="Section Title">
+            <Field label={t("sectionTitle")}>
               <input value={c.title || ""} onChange={(e) => updateSectionContent(idx, "title", e.target.value)} />
             </Field>
             {(c.steps || []).map((step: any, si: number) => (
               <div key={si} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: 14, marginTop: 10 }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--color-amber)", marginBottom: 8 }}>Step {si + 1}</div>
-                <Field label="Title">
+                <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--color-amber)", marginBottom: 8 }}>{t("step", { number: si + 1 })}</div>
+                <Field label={t("title")}>
                   <input value={step.title || ""} onChange={(e) => updateArrayItem(idx, "steps", si, "title", e.target.value)} />
                 </Field>
-                <Field label="Description">
+                <Field label={t("description")}>
                   <textarea rows={2} value={step.body || ""} onChange={(e) => updateArrayItem(idx, "steps", si, "body", e.target.value)} />
                 </Field>
               </div>
@@ -349,23 +354,23 @@ export default function ContentClient({ pages }: Props) {
             {(c.modules || []).map((mod: any, mi: number) => (
               <div key={mi} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: 14, marginTop: mi > 0 ? 10 : 0 }}>
                 <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--color-blue)", marginBottom: 8 }}>{mod.title || `Module ${mi + 1}`}</div>
-                <Field label="Label">
+                <Field label={t("label")}>
                   <input value={mod.label || ""} onChange={(e) => updateArrayItem(idx, "modules", mi, "label", e.target.value)} />
                 </Field>
-                <Field label="Title">
+                <Field label={t("title")}>
                   <input value={mod.title || ""} onChange={(e) => updateArrayItem(idx, "modules", mi, "title", e.target.value)} />
                 </Field>
-                <Field label="Description">
+                <Field label={t("description")}>
                   <textarea rows={3} value={mod.body || ""} onChange={(e) => updateArrayItem(idx, "modules", mi, "body", e.target.value)} />
                 </Field>
-                <Field label="CTA Text">
+                <Field label={t("ctaText")}>
                   <input value={mod.cta_text || ""} onChange={(e) => updateArrayItem(idx, "modules", mi, "cta_text", e.target.value)} />
                 </Field>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <Field label="Image URL">
+                  <Field label={t("imageUrl")}>
                     <input value={mod.image_url || ""} onChange={(e) => updateArrayItem(idx, "modules", mi, "image_url", e.target.value)} />
                   </Field>
-                  <Field label="Image Alt">
+                  <Field label={t("imageAlt")}>
                     <input value={mod.image_alt || ""} onChange={(e) => updateArrayItem(idx, "modules", mi, "image_alt", e.target.value)} />
                   </Field>
                 </div>
@@ -379,10 +384,10 @@ export default function ContentClient({ pages }: Props) {
           <div className="content-section-fields">
             {(c.items || []).map((item: any, ii: number) => (
               <div key={ii} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: 14, marginTop: ii > 0 ? 10 : 0 }}>
-                <Field label="Title">
+                <Field label={t("title")}>
                   <input value={item.title || ""} onChange={(e) => updateArrayItem(idx, "items", ii, "title", e.target.value)} />
                 </Field>
-                <Field label="Description">
+                <Field label={t("description")}>
                   <textarea rows={2} value={item.body || ""} onChange={(e) => updateArrayItem(idx, "items", ii, "body", e.target.value)} />
                 </Field>
               </div>
@@ -393,23 +398,23 @@ export default function ContentClient({ pages }: Props) {
       case "modules_grid":
         return (
           <div className="content-section-fields">
-            <Field label="Section Title">
+            <Field label={t("sectionTitle")}>
               <input value={c.title || ""} onChange={(e) => updateSectionContent(idx, "title", e.target.value)} />
             </Field>
-            <Field label="Subtitle">
+            <Field label={t("subtitle")}>
               <input value={c.subtitle || ""} onChange={(e) => updateSectionContent(idx, "subtitle", e.target.value)} />
             </Field>
             {(c.cards || []).map((card: any, ci: number) => (
               <div key={ci} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: 14, marginTop: 10 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "60px 1fr", gap: 12 }}>
-                  <Field label="Icon">
+                  <Field label={t("icon")}>
                     <input value={card.icon || ""} onChange={(e) => updateArrayItem(idx, "cards", ci, "icon", e.target.value)} />
                   </Field>
-                  <Field label="Title">
+                  <Field label={t("title")}>
                     <input value={card.title || ""} onChange={(e) => updateArrayItem(idx, "cards", ci, "title", e.target.value)} />
                   </Field>
                 </div>
-                <Field label="Description">
+                <Field label={t("description")}>
                   <textarea rows={2} value={card.body || ""} onChange={(e) => updateArrayItem(idx, "cards", ci, "body", e.target.value)} />
                 </Field>
               </div>
@@ -420,10 +425,10 @@ export default function ContentClient({ pages }: Props) {
       case "pricing":
         return (
           <div className="content-section-fields">
-            <Field label="Section Title">
+            <Field label={t("sectionTitle")}>
               <input value={c.title || ""} onChange={(e) => updateSectionContent(idx, "title", e.target.value)} />
             </Field>
-            <Field label="Subtitle">
+            <Field label={t("subtitle")}>
               <textarea rows={2} value={c.subtitle || ""} onChange={(e) => updateSectionContent(idx, "subtitle", e.target.value)} />
             </Field>
             {(c.plans || []).map((plan: any, pi: number) => (
@@ -437,25 +442,25 @@ export default function ContentClient({ pages }: Props) {
                   )}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <Field label="Plan Name">
+                  <Field label={t("planName")}>
                     <input value={plan.name || ""} onChange={(e) => updateArrayItem(idx, "plans", pi, "name", e.target.value)} />
                   </Field>
-                  <Field label="Badge (optional)">
+                  <Field label={t("badge")}>
                     <input value={plan.badge || ""} onChange={(e) => updateArrayItem(idx, "plans", pi, "badge", e.target.value)} />
                   </Field>
                 </div>
-                <Field label="Description">
+                <Field label={t("description")}>
                   <input value={plan.description || ""} onChange={(e) => updateArrayItem(idx, "plans", pi, "description", e.target.value)} />
                 </Field>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <Field label="Price">
+                  <Field label={t("price")}>
                     <input value={plan.price || ""} onChange={(e) => updateArrayItem(idx, "plans", pi, "price", e.target.value)} />
                   </Field>
-                  <Field label="Period">
+                  <Field label={t("period")}>
                     <input value={plan.period || ""} onChange={(e) => updateArrayItem(idx, "plans", pi, "period", e.target.value)} />
                   </Field>
                 </div>
-                <Field label="Features (one per line)">
+                <Field label={t("featuresPerLine")}>
                   <textarea
                     rows={6}
                     value={(plan.features || []).join("\n")}
@@ -470,16 +475,16 @@ export default function ContentClient({ pages }: Props) {
       case "faq":
         return (
           <div className="content-section-fields">
-            <Field label="Section Title">
+            <Field label={t("sectionTitle")}>
               <input value={c.title || ""} onChange={(e) => updateSectionContent(idx, "title", e.target.value)} />
             </Field>
             {(c.items || []).map((item: any, ii: number) => (
               <div key={ii} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: 14, marginTop: 10 }}>
-                <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", marginBottom: 6 }}>Q{ii + 1}</div>
-                <Field label="Question">
+                <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", marginBottom: 6 }}>{t("question", { number: ii + 1 })}</div>
+                <Field label={t("questionLabel")}>
                   <input value={item.question || ""} onChange={(e) => updateArrayItem(idx, "items", ii, "question", e.target.value)} />
                 </Field>
-                <Field label="Answer">
+                <Field label={t("answer")}>
                   <textarea rows={3} value={item.answer || ""} onChange={(e) => updateArrayItem(idx, "items", ii, "answer", e.target.value)} />
                 </Field>
               </div>
@@ -490,17 +495,17 @@ export default function ContentClient({ pages }: Props) {
       case "cta":
         return (
           <div className="content-section-fields">
-            <Field label="Headline">
+            <Field label={t("headline")}>
               <input value={c.title || ""} onChange={(e) => updateSectionContent(idx, "title", e.target.value)} />
             </Field>
-            <Field label="Subtitle">
+            <Field label={t("subtitle")}>
               <textarea rows={2} value={c.subtitle || ""} onChange={(e) => updateSectionContent(idx, "subtitle", e.target.value)} />
             </Field>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label="Button Text">
+              <Field label={t("buttonText")}>
                 <input value={c.cta_text || ""} onChange={(e) => updateSectionContent(idx, "cta_text", e.target.value)} />
               </Field>
-              <Field label="Button Link">
+              <Field label={t("buttonLink")}>
                 <input value={c.cta_link || ""} onChange={(e) => updateSectionContent(idx, "cta_link", e.target.value)} />
               </Field>
             </div>
@@ -517,16 +522,16 @@ export default function ContentClient({ pages }: Props) {
   }
 
   /* ================================================================
-   *  RENDER — LIST VIEW
+   *  RENDER -- LIST VIEW
    * ================================================================ */
   if (view === "list") {
     return (
       <>
         <div className="admin-header">
           <div>
-            <h2>CMS Pages</h2>
+            <h2>{t("cmsTitle")}</h2>
             <p className="admin-header-sub">
-              Manage marketing pages for the platform website
+              {t("cmsDesc")}
             </p>
           </div>
         </div>
@@ -534,17 +539,17 @@ export default function ContentClient({ pages }: Props) {
         <div className="admin-stats" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
           <div className="admin-stat-card">
             <div className="admin-stat-icon blue"><FileText size={18} /></div>
-            <div className="admin-stat-label">Total Pages</div>
+            <div className="admin-stat-label">{t("totalPages")}</div>
             <div className="admin-stat-value">{pages.length}</div>
           </div>
           <div className="admin-stat-card">
             <div className="admin-stat-icon green"><Eye size={18} /></div>
-            <div className="admin-stat-label">Published</div>
+            <div className="admin-stat-label">{t("published")}</div>
             <div className="admin-stat-value">{publishedCount}</div>
           </div>
           <div className="admin-stat-card">
             <div className="admin-stat-icon amber"><EyeOff size={18} /></div>
-            <div className="admin-stat-label">Draft</div>
+            <div className="admin-stat-label">{t("draft")}</div>
             <div className="admin-stat-value">{draftCount}</div>
           </div>
         </div>
@@ -555,19 +560,19 @@ export default function ContentClient({ pages }: Props) {
           <table className="sa-table">
             <thead>
               <tr>
-                <th>Page</th>
-                <th>Slug</th>
-                <th>Status</th>
-                <th>Published</th>
-                <th>Last Updated</th>
-                <th>Actions</th>
+                <th>{t("page")}</th>
+                <th>{t("slug")}</th>
+                <th>{t("status")}</th>
+                <th>{t("published")}</th>
+                <th>{t("lastUpdated")}</th>
+                <th>{t("actions")}</th>
               </tr>
             </thead>
             <tbody>
               {pages.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ textAlign: "center", padding: 40, color: "var(--muted)" }}>
-                    No CMS pages found
+                    {t("noCmsPages")}
                   </td>
                 </tr>
               ) : (
@@ -587,10 +592,10 @@ export default function ContentClient({ pages }: Props) {
                       </span>
                     </td>
                     <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
-                      {page.published_at ? formatDate(page.published_at) : "-"}
+                      {page.published_at ? formatDate(page.published_at, dateLocale) : "-"}
                     </td>
                     <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
-                      {formatDate(page.updated_at)}
+                      {formatDate(page.updated_at, dateLocale)}
                     </td>
                     <td>
                       <button
@@ -599,7 +604,7 @@ export default function ContentClient({ pages }: Props) {
                         disabled={updating === page.page_slug}
                         style={{ fontSize: "0.78rem", padding: "4px 10px" }}
                       >
-                        {page.status === "published" ? "Unpublish" : "Publish"}
+                        {page.status === "published" ? t("unpublish") : t("publish")}
                       </button>
                     </td>
                   </tr>
@@ -613,7 +618,7 @@ export default function ContentClient({ pages }: Props) {
   }
 
   /* ================================================================
-   *  RENDER — EDITOR VIEW
+   *  RENDER -- EDITOR VIEW
    * ================================================================ */
   return (
     <>
@@ -624,7 +629,7 @@ export default function ContentClient({ pages }: Props) {
           className="btn-secondary"
           style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
         >
-          <ArrowLeft size={14} /> Back to Pages
+          <ArrowLeft size={14} /> {t("backToPages")}
         </button>
         <div style={{ flex: 1 }}>
           <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.5rem", fontWeight: 700 }}>
@@ -641,7 +646,7 @@ export default function ContentClient({ pages }: Props) {
           className="btn-secondary"
           style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}
         >
-          <ExternalLink size={14} /> Preview
+          <ExternalLink size={14} /> {t("preview")}
         </a>
         <button
           onClick={handleSave}
@@ -649,7 +654,7 @@ export default function ContentClient({ pages }: Props) {
           disabled={saving}
           style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
         >
-          <Save size={14} /> {saving ? "Saving..." : "Save Changes"}
+          <Save size={14} /> {saving ? t("saving") : t("saveChanges")}
         </button>
       </div>
 
@@ -661,23 +666,23 @@ export default function ContentClient({ pages }: Props) {
 
       {/* Editor Layout */}
       <div className="content-editor">
-        {/* Main — Sections */}
+        {/* Main -- Sections */}
         <div className="content-editor-main">
           {/* Page title field */}
           <div className="content-editor-section">
-            <div className="content-editor-section-title">Page Settings</div>
+            <div className="content-editor-section-title">{t("pageSettings")}</div>
             <div className="content-field">
-              <label>Page Title</label>
+              <label>{t("pageTitle")}</label>
               <input
                 value={pageTitle}
                 onChange={(e) => setPageTitle(e.target.value)}
               />
             </div>
             <div className="content-field">
-              <label>Status</label>
+              <label>{t("status")}</label>
               <select value={pageStatus} onChange={(e) => setPageStatus(e.target.value)}>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
+                <option value="published">{t("published")}</option>
+                <option value="draft">{t("draft")}</option>
               </select>
             </div>
           </div>
@@ -696,7 +701,7 @@ export default function ContentClient({ pages }: Props) {
               onClick={expandAll}
               style={{ fontSize: "0.78rem", color: "var(--color-blue)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)" }}
             >
-              Expand All Sections
+              {t("expandAll")}
             </button>
           </div>
 
@@ -746,28 +751,28 @@ export default function ContentClient({ pages }: Props) {
           ))}
         </div>
 
-        {/* Sidebar — SEO */}
+        {/* Sidebar -- SEO */}
         <div className="content-editor-sidebar">
           <div className="content-editor-section">
-            <div className="content-editor-section-title">SEO Settings</div>
+            <div className="content-editor-section-title">{t("seoSettings")}</div>
             <div className="content-field">
-              <label>Meta Title</label>
+              <label>{t("metaTitle")}</label>
               <input
                 value={metaTitle}
                 onChange={(e) => setMetaTitle(e.target.value)}
-                placeholder="Page title for search engines"
+                placeholder={t("metaTitleHint")}
               />
               <span className={`char-count ${metaTitle.length > 60 ? "over" : ""}`}>
                 {metaTitle.length}/60
               </span>
             </div>
             <div className="content-field">
-              <label>Meta Description</label>
+              <label>{t("metaDescription")}</label>
               <textarea
                 rows={4}
                 value={metaDescription}
                 onChange={(e) => setMetaDescription(e.target.value)}
-                placeholder="Description shown in search results"
+                placeholder={t("metaDescHint")}
               />
               <span className={`char-count ${metaDescription.length > 160 ? "over" : ""}`}>
                 {metaDescription.length}/160
@@ -776,23 +781,23 @@ export default function ContentClient({ pages }: Props) {
           </div>
 
           <div className="content-editor-section">
-            <div className="content-editor-section-title">SEO Tips</div>
+            <div className="content-editor-section-title">{t("seoTips")}</div>
             <ul style={{ fontSize: "0.8rem", color: "var(--muted)", paddingLeft: 16, display: "flex", flexDirection: "column", gap: 6, lineHeight: 1.5 }}>
-              <li>Keep meta title under 60 characters</li>
-              <li>Meta description: 120-160 characters</li>
-              <li>Include primary keyword in H1 (hero title)</li>
-              <li>Use natural language, avoid keyword stuffing</li>
-              <li>Every image needs descriptive alt text</li>
-              <li>FAQ section helps capture featured snippets</li>
+              <li>{t("seoTip1")}</li>
+              <li>{t("seoTip2")}</li>
+              <li>{t("seoTip3")}</li>
+              <li>{t("seoTip4")}</li>
+              <li>{t("seoTip5")}</li>
+              <li>{t("seoTip6")}</li>
             </ul>
           </div>
 
           <div className="content-editor-section">
-            <div className="content-editor-section-title">Quick Info</div>
+            <div className="content-editor-section-title">{t("quickInfo")}</div>
             <div style={{ fontSize: "0.82rem", color: "var(--muted)", display: "flex", flexDirection: "column", gap: 6 }}>
-              <div><strong>Sections:</strong> {sections.length}</div>
-              <div><strong>Visible:</strong> {sections.filter((s) => s.visible).length}</div>
-              <div><strong>Last saved:</strong> {editingPage ? formatDate(editingPage.updated_at) : "-"}</div>
+              <div><strong>{t("sections")}</strong> {sections.length}</div>
+              <div><strong>{t("visible")}</strong> {sections.filter((s) => s.visible).length}</div>
+              <div><strong>{t("lastSaved")}</strong> {editingPage ? formatDate(editingPage.updated_at, dateLocale) : "-"}</div>
             </div>
           </div>
         </div>

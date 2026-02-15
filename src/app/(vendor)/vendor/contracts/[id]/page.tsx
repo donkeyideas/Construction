@@ -6,7 +6,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
-  return { title: `Contract ${id.substring(0, 8)} - ConstructionERP` };
+  return { title: `Contract ${id.substring(0, 8)} - Buildwrk` };
 }
 
 export default async function ContractDetailPage({ params }: PageProps) {

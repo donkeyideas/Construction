@@ -156,7 +156,7 @@ export default function RegisterPage() {
     <div className="auth-card">
       <h1 className="auth-title">Create your account</h1>
       <p className="auth-subtitle">
-        Get started with ConstructionERP in two quick steps.
+        Get started with Buildwrk in two quick steps.
       </p>
 
       {/* Step Indicator */}
@@ -352,7 +352,7 @@ export default function RegisterPage() {
             />
             {companySlug && (
               <div className="auth-slug-preview">
-                Your workspace: <code>app.constructionerp.com/{companySlug}</code>
+                Your workspace: <code>app.Buildwrk.com/{companySlug}</code>
               </div>
             )}
           </div>

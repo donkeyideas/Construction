@@ -4,7 +4,7 @@ import { getTenantDashboard } from "@/lib/queries/tenant-portal";
 import TenantDashboardClient from "./TenantDashboardClient";
 
 export const metadata = {
-  title: "Tenant Portal - ConstructionERP",
+  title: "Tenant Portal - Buildwrk",
 };
 
 export default async function TenantDashboardPage() {

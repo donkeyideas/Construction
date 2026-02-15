@@ -7,7 +7,7 @@ import ToolboxTalksClient from "./ToolboxTalksClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Toolbox Talks - ConstructionERP",
+  title: "Toolbox Talks - Buildwrk",
 };
 
 export default async function ToolboxTalksPage() {

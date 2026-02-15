@@ -7,7 +7,7 @@ import { formatCurrency, formatPercent } from "@/lib/utils/format";
 import PropertiesImport from "./PropertiesImport";
 
 export const metadata = {
-  title: "Properties - ConstructionERP",
+  title: "Properties - Buildwrk",
 };
 
 function OccupancyRing({ rate }: { rate: number }) {

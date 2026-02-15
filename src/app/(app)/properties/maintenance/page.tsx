@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import MaintenanceClient from "./MaintenanceClient";
 
-export const metadata = { title: "Maintenance - ConstructionERP" };
+export const metadata = { title: "Maintenance - Buildwrk" };
 
 export default async function MaintenancePage() {
   const supabase = await createClient();

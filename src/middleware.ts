@@ -64,6 +64,7 @@ export async function middleware(request: NextRequest) {
     publicRoutes.some((route) => pathname === route) ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/seed") ||
+    pathname.startsWith("/api/locale") ||
     pathname.startsWith("/api/stripe/webhook");
 
   // If no user and trying to access protected route, redirect to correct login

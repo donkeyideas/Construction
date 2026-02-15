@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import IntegrationsClient from "./IntegrationsClient";
 
 export const metadata = {
-  title: "Integrations - ConstructionERP",
+  title: "Integrations - Buildwrk",
 };
 
 export default async function AdminIntegrationsPage() {

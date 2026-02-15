@@ -5,7 +5,7 @@ import { BookOpen } from "lucide-react";
 import GeneralLedgerClient from "./GeneralLedgerClient";
 
 export const metadata = {
-  title: "General Ledger - ConstructionERP",
+  title: "General Ledger - Buildwrk",
 };
 
 export default async function GeneralLedgerPage() {

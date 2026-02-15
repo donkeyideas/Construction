@@ -1,6 +1,6 @@
 import { Megaphone } from "lucide-react";
 
-export const metadata = { title: "Tenant Announcements - ConstructionERP" };
+export const metadata = { title: "Tenant Announcements - Buildwrk" };
 
 export default function TenantAnnouncementsPage() {
   return (

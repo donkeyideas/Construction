@@ -5,7 +5,7 @@ import SafetyDashboardClient from "./SafetyDashboardClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Safety - ConstructionERP",
+  title: "Safety - Buildwrk",
 };
 
 export default async function SafetyPage() {

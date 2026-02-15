@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAutomationRules, getAutomationStats } from "@/lib/queries/automation";
 import AutomationClient from "./AutomationClient";
 
-export const metadata = { title: "Automation - ConstructionERP" };
+export const metadata = { title: "Automation - Buildwrk" };
 
 export default async function AutomationPage() {
   const supabase = await createClient();

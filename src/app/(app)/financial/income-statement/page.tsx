@@ -5,7 +5,7 @@ import { getIncomeStatement } from "@/lib/queries/financial";
 import IncomeStatementClient from "./IncomeStatementClient";
 
 export const metadata = {
-  title: "Income Statement - ConstructionERP",
+  title: "Income Statement - Buildwrk",
 };
 
 export default async function IncomeStatementPage({

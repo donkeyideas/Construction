@@ -1,6 +1,6 @@
 import { Settings } from "lucide-react";
 
-export const metadata = { title: "Company Settings - ConstructionERP" };
+export const metadata = { title: "Company Settings - Buildwrk" };
 
 export default function CompanySettingsPage() {
   return (

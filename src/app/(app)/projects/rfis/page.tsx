@@ -6,7 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import RfisClient from "./RfisClient";
 
 export const metadata = {
-  title: "RFIs - ConstructionERP",
+  title: "RFIs - Buildwrk",
 };
 
 interface PageProps {

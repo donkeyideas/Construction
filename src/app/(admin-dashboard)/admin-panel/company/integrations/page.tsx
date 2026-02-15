@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getIntegrations, getIntegrationStats } from "@/lib/queries/integrations";
 import IntegrationsClient from "./IntegrationsClient";
 
-export const metadata = { title: "Integrations - ConstructionERP" };
+export const metadata = { title: "Integrations - Buildwrk" };
 
 export default async function IntegrationsPage() {
   const supabase = await createClient();

@@ -1,7 +1,7 @@
 import PortalLoginForm from "@/components/auth/portal-login-form";
 
 export const metadata = {
-  title: "Tenant Portal Login - ConstructionERP",
+  title: "Tenant Portal Login - Buildwrk",
 };
 
 export default function TenantLoginPage() {

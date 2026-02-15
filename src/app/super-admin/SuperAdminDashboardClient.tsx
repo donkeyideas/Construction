@@ -5,6 +5,7 @@ import {
   DollarSign, Building2, Users, Activity,
 } from "lucide-react";
 import type { PlatformStats, PlatformCompany } from "@/lib/queries/super-admin";
+import { useTranslations, useLocale } from "next-intl";
 
 interface Props {
   stats: PlatformStats;
@@ -29,8 +30,8 @@ interface Props {
   }>;
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+function formatDate(dateStr: string, loc: string): string {
+  return new Date(dateStr).toLocaleDateString(loc, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -69,6 +70,10 @@ export default function SuperAdminDashboardClient({
   announcements,
   subscriptionEvents,
 }: Props) {
+  const t = useTranslations("superAdmin");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const recentCompanies = companies.slice(0, 5);
   const activeAnnouncements = announcements.filter((a) => a.is_active);
 
@@ -86,14 +91,14 @@ export default function SuperAdminDashboardClient({
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>Platform Overview</h2>
+          <h2>{t("platformOverview")}</h2>
           <p className="admin-header-sub">
-            ConstructionERP SaaS Management
+            {t("saasManagement")}
           </p>
         </div>
         <div className="admin-header-actions">
           <span style={{ fontSize: "0.85rem", color: "var(--muted)" }} suppressHydrationWarning>
-            {new Date().toLocaleDateString("en-US", {
+            {new Date().toLocaleDateString(dateLocale, {
               weekday: "long",
               month: "long",
               day: "numeric",
@@ -107,10 +112,10 @@ export default function SuperAdminDashboardClient({
       <div className="sa-kpi-grid">
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
-            <span className="sa-kpi-label">Total Companies</span>
+            <span className="sa-kpi-label">{t("totalCompanies")}</span>
             <span className="sa-kpi-value">{stats.totalCompanies}</span>
             <span className="sa-kpi-trend up">
-              {stats.activeCompanies} active
+              {stats.activeCompanies} {t("active")}
             </span>
           </div>
           <div className="sa-kpi-icon">
@@ -119,9 +124,9 @@ export default function SuperAdminDashboardClient({
         </div>
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
-            <span className="sa-kpi-label">Total Users</span>
+            <span className="sa-kpi-label">{t("totalUsers")}</span>
             <span className="sa-kpi-value">{stats.totalUsers}</span>
-            <span className="sa-kpi-trend up">Across all companies</span>
+            <span className="sa-kpi-trend up">{t("acrossAllCompanies")}</span>
           </div>
           <div className="sa-kpi-icon">
             <Users size={22} />
@@ -129,10 +134,10 @@ export default function SuperAdminDashboardClient({
         </div>
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
-            <span className="sa-kpi-label">Trial Companies</span>
+            <span className="sa-kpi-label">{t("trialCompanies")}</span>
             <span className="sa-kpi-value">{stats.trialCompanies}</span>
             <span className="sa-kpi-trend" style={{ color: "var(--color-amber)" }}>
-              Pending conversion
+              {t("pendingConversion")}
             </span>
           </div>
           <div className="sa-kpi-icon">
@@ -141,10 +146,10 @@ export default function SuperAdminDashboardClient({
         </div>
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
-            <span className="sa-kpi-label">Enterprise Accounts</span>
+            <span className="sa-kpi-label">{t("enterpriseAccounts")}</span>
             <span className="sa-kpi-value">{totalEnterprise}</span>
             <span className="sa-kpi-trend up">
-              {enterprisePct}% of total
+              {t("ofTotal", { pct: enterprisePct })}
             </span>
           </div>
           <div className="sa-kpi-icon">
@@ -156,7 +161,7 @@ export default function SuperAdminDashboardClient({
       {/* Plan Distribution + Announcements */}
       <div className="sa-two-col">
         <div className="sa-card">
-          <div className="sa-card-title">Plan Distribution</div>
+          <div className="sa-card-title">{t("planDistribution")}</div>
           <div className="sa-stacked-bar">
             {totalPlans > 0 && (
               <>
@@ -184,26 +189,26 @@ export default function SuperAdminDashboardClient({
           <div className="sa-stacked-legend">
             <div className="sa-legend-item">
               <span className="sa-legend-dot" style={{ background: "var(--color-blue)" }} />
-              Enterprise ({totalEnterprise})
+              {`${t("enterprise")} (${totalEnterprise})`}
             </div>
             <div className="sa-legend-item">
               <span className="sa-legend-dot" style={{ background: "#3b82f6" }} />
-              Professional ({totalProfessional})
+              {`${t("professional")} (${totalProfessional})`}
             </div>
             <div className="sa-legend-item">
               <span className="sa-legend-dot" style={{ background: "var(--color-amber)" }} />
-              Starter ({totalStarter})
+              {`${t("starter")} (${totalStarter})`}
             </div>
           </div>
 
           {/* Subscription Events */}
           <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border)" }}>
             <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "10px" }}>
-              Recent Subscription Events
+              {t("recentSubEvents")}
             </div>
             {subscriptionEvents.length === 0 ? (
               <div style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-                No subscription events yet.
+                {t("noSubEventsYet")}
               </div>
             ) : (
               subscriptionEvents.slice(0, 5).map((event) => (
@@ -216,7 +221,7 @@ export default function SuperAdminDashboardClient({
                     <span style={{ color: "var(--muted)", marginLeft: "8px" }}>{event.event_type}</span>
                   </div>
                   <span style={{ color: "var(--muted)", fontSize: "0.75rem" }}>
-                    {formatDate(event.created_at)}
+                    {formatDate(event.created_at, dateLocale)}
                   </span>
                 </div>
               ))
@@ -226,14 +231,14 @@ export default function SuperAdminDashboardClient({
 
         <div className="sa-card">
           <div className="sa-card-title">
-            Active Announcements
+            {t("activeAnnouncements")}
             <span className="sa-badge sa-badge-green">{activeAnnouncements.length}</span>
           </div>
           {announcements.length === 0 ? (
             <div className="sa-empty">
-              <div className="sa-empty-title">No Announcements</div>
+              <div className="sa-empty-title">{t("noAnnouncements")}</div>
               <div className="sa-empty-desc">
-                Create announcements to notify platform users.
+                {t("createAnnouncementsHint")}
               </div>
             </div>
           ) : (
@@ -243,26 +248,26 @@ export default function SuperAdminDashboardClient({
                 <div className="sa-announcement-info">
                   <div className="sa-announcement-title">{a.title}</div>
                   <div className="sa-announcement-meta">
-                    {a.target_audience === "all" ? "All users" : a.target_audience} &middot; {formatDate(a.created_at)}
+                    {a.target_audience === "all" ? t("allUsers") : a.target_audience} &middot; {formatDate(a.created_at, dateLocale)}
                   </div>
                 </div>
               </div>
             ))
           )}
           <Link href="/super-admin/announcements" className="sa-view-all">
-            Manage Announcements &rarr;
+            {`${t("manageAnnouncements")} \u2192`}
           </Link>
         </div>
       </div>
 
       {/* Company Activity Table */}
       <div className="sa-card" style={{ marginBottom: "24px" }}>
-        <div className="sa-card-title">Company Activity</div>
+        <div className="sa-card-title">{t("companyActivity")}</div>
         {recentCompanies.length === 0 ? (
           <div className="sa-empty">
-            <div className="sa-empty-title">No Companies Yet</div>
+            <div className="sa-empty-title">{t("noCompaniesYet")}</div>
             <div className="sa-empty-desc">
-              Companies will appear here once users register.
+              {t("companiesWillAppear")}
             </div>
           </div>
         ) : (
@@ -270,12 +275,12 @@ export default function SuperAdminDashboardClient({
             <table className="sa-table">
               <thead>
                 <tr>
-                  <th>Company</th>
-                  <th>Plan</th>
-                  <th>Status</th>
-                  <th>Users</th>
-                  <th>Industry</th>
-                  <th>Created</th>
+                  <th>{t("company")}</th>
+                  <th>{t("plan")}</th>
+                  <th>{t("status")}</th>
+                  <th>{t("users")}</th>
+                  <th>{t("industry")}</th>
+                  <th>{t("created")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -298,7 +303,7 @@ export default function SuperAdminDashboardClient({
                       {company.industry_type || "-"}
                     </td>
                     <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
-                      {formatDate(company.created_at)}
+                      {formatDate(company.created_at, dateLocale)}
                     </td>
                   </tr>
                 ))}
@@ -307,7 +312,7 @@ export default function SuperAdminDashboardClient({
           </div>
         )}
         <Link href="/super-admin/companies" className="sa-view-all">
-          View All Companies &rarr;
+          {`${t("viewAllCompanies")} \u2192`}
         </Link>
       </div>
     </>

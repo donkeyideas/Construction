@@ -3,8 +3,9 @@ import { LayoutDashboard, FileText, Receipt, DollarSign, ShieldCheck } from "luc
 import { createClient } from "@/lib/supabase/server";
 import { getVendorDashboard } from "@/lib/queries/vendor-portal";
 import { formatCurrency } from "@/lib/utils/format";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = { title: "Vendor Dashboard - ConstructionERP" };
+export const metadata = { title: "Vendor Dashboard - Buildwrk" };
 
 export default async function VendorDashboardPage() {
   const supabase = await createClient();
@@ -12,23 +13,23 @@ export default async function VendorDashboardPage() {
   if (!user) { redirect("/login/vendor"); }
 
   const dashboard = await getVendorDashboard(supabase, user.id);
+  const t = await getTranslations("vendor");
 
   if (!dashboard.contactId) {
     return (
       <div>
         <div className="fin-header">
           <div>
-            <h2>Vendor Dashboard</h2>
-            <p className="fin-header-sub">Welcome to the Vendor Portal.</p>
+            <h2>{t("dashboardTitle")}</h2>
+            <p className="fin-header-sub">{t("welcomeSubtitle")}</p>
           </div>
         </div>
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><LayoutDashboard size={48} /></div>
-            <div className="fin-empty-title">No Vendor Profile Found</div>
+            <div className="fin-empty-title">{t("noVendorProfile")}</div>
             <div className="fin-empty-desc">
-              Your account is not linked to a vendor or subcontractor contact.
-              Please contact the company administrator to set up your vendor profile.
+              {t("noVendorProfileDesc")}
             </div>
           </div>
         </div>
@@ -40,8 +41,8 @@ export default async function VendorDashboardPage() {
     <div>
       <div className="fin-header">
         <div>
-          <h2>Vendor Dashboard</h2>
-          <p className="fin-header-sub">Overview of your contracts, invoices, and compliance status.</p>
+          <h2>{t("dashboardTitle")}</h2>
+          <p className="fin-header-sub">{t("dashboardSubtitle")}</p>
         </div>
       </div>
 
@@ -50,7 +51,7 @@ export default async function VendorDashboardPage() {
           <div className="fin-kpi-icon blue">
             <FileText size={18} />
           </div>
-          <span className="fin-kpi-label">Total Contract Value</span>
+          <span className="fin-kpi-label">{t("totalContractValue")}</span>
           <span className="fin-kpi-value">{formatCurrency(dashboard.totalContractValue)}</span>
         </div>
 
@@ -58,7 +59,7 @@ export default async function VendorDashboardPage() {
           <div className="fin-kpi-icon amber">
             <Receipt size={18} />
           </div>
-          <span className="fin-kpi-label">Outstanding Invoices</span>
+          <span className="fin-kpi-label">{t("outstandingInvoices")}</span>
           <span className="fin-kpi-value">{dashboard.outstandingInvoices}</span>
         </div>
 
@@ -66,7 +67,7 @@ export default async function VendorDashboardPage() {
           <div className="fin-kpi-icon red">
             <DollarSign size={18} />
           </div>
-          <span className="fin-kpi-label">Outstanding Amount</span>
+          <span className="fin-kpi-label">{t("outstandingAmount")}</span>
           <span className={`fin-kpi-value ${dashboard.outstandingAmount > 0 ? "negative" : ""}`}>
             {formatCurrency(dashboard.outstandingAmount)}
           </span>
@@ -76,7 +77,7 @@ export default async function VendorDashboardPage() {
           <div className="fin-kpi-icon green">
             <ShieldCheck size={18} />
           </div>
-          <span className="fin-kpi-label">Expiring Certifications</span>
+          <span className="fin-kpi-label">{t("expiringCertifications")}</span>
           <span className={`fin-kpi-value ${dashboard.expiringCertifications > 0 ? "negative" : ""}`}>
             {dashboard.expiringCertifications}
           </span>

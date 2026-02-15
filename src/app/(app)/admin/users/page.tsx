@@ -8,7 +8,7 @@ import {
 import AdminUsersClient from "./AdminUsersClient";
 
 export const metadata = {
-  title: "Users & Roles - ConstructionERP",
+  title: "Users & Roles - Buildwrk",
 };
 
 export default async function AdminUsersPage() {

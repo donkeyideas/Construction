@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/queries/tenant-portal";
 import ProfileClient from "./ProfileClient";
 
-export const metadata = { title: "My Profile - ConstructionERP" };
+export const metadata = { title: "My Profile - Buildwrk" };
 
 export default async function TenantProfilePage() {
   const supabase = await createClient();

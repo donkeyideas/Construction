@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function ExecutiveAiInput() {
   const router = useRouter();
+  const t = useTranslations("mobile.executive");
   const [query, setQuery] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
@@ -21,7 +23,7 @@ export default function ExecutiveAiInput() {
     <form onSubmit={handleSubmit} className="mobile-ai-input">
       <input
         type="text"
-        placeholder="Ask about projects, finances..."
+        placeholder={t("askPlaceholder")}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />

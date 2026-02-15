@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getTeamMembers } from "@/lib/queries/admin-dashboard";
 
-export const metadata = { title: "Team Members - ConstructionERP" };
+export const metadata = { title: "Team Members - Buildwrk" };
 
 export default async function TeamMembersPage() {
   const supabase = await createClient();

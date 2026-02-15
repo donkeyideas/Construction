@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAdminOverview } from "@/lib/queries/admin-dashboard";
 
-export const metadata = { title: "Admin Panel - ConstructionERP" };
+export const metadata = { title: "Admin Panel - Buildwrk" };
 
 export default async function AdminPanelOverviewPage() {
   const supabase = await createClient();

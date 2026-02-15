@@ -3,9 +3,10 @@ import { CreditCard } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantPayments } from "@/lib/queries/tenant-portal";
 import { formatCurrency } from "@/lib/utils/format";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = {
-  title: "Payments - ConstructionERP",
+  title: "Payments - Buildwrk",
 };
 
 export default async function TenantPaymentsPage() {
@@ -15,7 +16,13 @@ export default async function TenantPaymentsPage() {
     redirect("/login/tenant");
   }
 
-  const payments = await getTenantPayments(supabase, user.id);
+  const [payments, t, locale] = await Promise.all([
+    getTenantPayments(supabase, user.id),
+    getTranslations("tenant"),
+    getLocale(),
+  ]);
+
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   function getStatusBadge(status: string): string {
     switch (status) {
@@ -37,9 +44,9 @@ export default async function TenantPaymentsPage() {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Payment History</h2>
+          <h2>{t("paymentsTitle")}</h2>
           <p className="fin-header-sub">
-            View your rent payment history and transaction details.
+            {t("paymentsSubtitle")}
           </p>
         </div>
       </div>
@@ -50,10 +57,10 @@ export default async function TenantPaymentsPage() {
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th style={{ textAlign: "right" }}>Amount</th>
-                  <th>Status</th>
-                  <th>Method</th>
+                  <th>{t("thDate")}</th>
+                  <th style={{ textAlign: "right" }}>{t("thAmount")}</th>
+                  <th>{t("thStatus")}</th>
+                  <th>{t("thMethod")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -61,7 +68,7 @@ export default async function TenantPaymentsPage() {
                   <tr key={payment.id}>
                     <td>
                       {payment.payment_date
-                        ? new Date(payment.payment_date).toLocaleDateString("en-US", {
+                        ? new Date(payment.payment_date).toLocaleDateString(dateLocale, {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
@@ -87,9 +94,9 @@ export default async function TenantPaymentsPage() {
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><CreditCard size={48} /></div>
-            <div className="fin-empty-title">No Payments Found</div>
+            <div className="fin-empty-title">{t("noPaymentsFound")}</div>
             <div className="fin-empty-desc">
-              You do not have any payment records yet. Payment history will appear here once transactions are recorded.
+              {t("noPaymentsDesc")}
             </div>
           </div>
         </div>

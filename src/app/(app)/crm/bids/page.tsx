@@ -5,7 +5,7 @@ import { getBids, type BidStatus } from "@/lib/queries/crm";
 import BidsClient from "./BidsClient";
 
 export const metadata = {
-  title: "Bid Management - ConstructionERP",
+  title: "Bid Management - Buildwrk",
 };
 
 export default async function BidManagementPage({

@@ -10,7 +10,7 @@ import { getCmsPages } from "@/lib/queries/content";
 import ContentClient from "./ContentClient";
 
 export const metadata = {
-  title: "Content Manager - ConstructionERP",
+  title: "Content Manager - Buildwrk",
 };
 
 export default async function ContentManagerPage() {

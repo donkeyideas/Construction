@@ -9,7 +9,7 @@ import {
 import CRMPipelineClient from "./CRMPipelineClient";
 
 export const metadata = {
-  title: "Sales Pipeline - ConstructionERP",
+  title: "Sales Pipeline - Buildwrk",
 };
 
 export default async function CRMPipelinePage() {

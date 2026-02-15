@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import { HardHat } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getVendorProjects } from "@/lib/queries/vendor-portal";
+import { getTranslations, getLocale } from "next-intl/server";
 
-export const metadata = { title: "My Projects - ConstructionERP" };
+export const metadata = { title: "My Projects - Buildwrk" };
 
 export default async function VendorProjectsPage() {
   const supabase = await createClient();
@@ -11,13 +12,16 @@ export default async function VendorProjectsPage() {
   if (!user) { redirect("/login/vendor"); }
 
   const contractProjects = await getVendorProjects(supabase, user.id);
+  const t = await getTranslations("vendor");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   return (
     <div>
       <div className="fin-header">
         <div>
-          <h2>My Projects</h2>
-          <p className="fin-header-sub">Projects where you have active contracts.</p>
+          <h2>{t("projectsTitle")}</h2>
+          <p className="fin-header-sub">{t("projectsSubtitle")}</p>
         </div>
       </div>
 
@@ -27,10 +31,10 @@ export default async function VendorProjectsPage() {
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Project Name</th>
-                  <th>Status</th>
-                  <th>Start Date</th>
-                  <th>End Date</th>
+                  <th>{t("thProjectName")}</th>
+                  <th>{t("thStatus")}</th>
+                  <th>{t("thStartDate")}</th>
+                  <th>{t("thEndDate")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -61,7 +65,7 @@ export default async function VendorProjectsPage() {
                       </td>
                       <td>
                         {project.start_date
-                          ? new Date(project.start_date).toLocaleDateString("en-US", {
+                          ? new Date(project.start_date).toLocaleDateString(dateLocale, {
                               month: "short",
                               day: "numeric",
                               year: "numeric",
@@ -70,7 +74,7 @@ export default async function VendorProjectsPage() {
                       </td>
                       <td>
                         {project.end_date
-                          ? new Date(project.end_date).toLocaleDateString("en-US", {
+                          ? new Date(project.end_date).toLocaleDateString(dateLocale, {
                               month: "short",
                               day: "numeric",
                               year: "numeric",
@@ -88,8 +92,8 @@ export default async function VendorProjectsPage() {
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon"><HardHat size={48} /></div>
-            <div className="fin-empty-title">No Projects Found</div>
-            <div className="fin-empty-desc">You do not have any active project assignments yet.</div>
+            <div className="fin-empty-title">{t("noProjectsFound")}</div>
+            <div className="fin-empty-desc">{t("noProjectsDesc")}</div>
           </div>
         </div>
       )}

@@ -1,27 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Globe } from "lucide-react";
-import {
-  SUPPORTED_LOCALES,
-  getLocaleFromCookie,
-  setLocaleCookie,
-  type Locale,
-} from "@/lib/i18n";
+
+type Locale = "en" | "es";
+
+const SUPPORTED_LOCALES: { code: Locale; label: string; flag: string }[] = [
+  { code: "en", label: "English", flag: "\u{1F1FA}\u{1F1F8}" },
+  { code: "es", label: "Espa\u00F1ol", flag: "\u{1F1EA}\u{1F1F8}" },
+];
 
 export default function LanguageSwitcher() {
   const router = useRouter();
-  const [locale, setLocale] = useState<Locale>("en");
+  const locale = useLocale() as Locale;
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    setLocale(getLocaleFromCookie());
-  }, []);
-
-  function switchLocale(newLocale: Locale) {
-    setLocaleCookie(newLocale);
-    setLocale(newLocale);
+  async function switchLocale(newLocale: Locale) {
+    await fetch("/api/locale", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locale: newLocale }),
+    });
     setOpen(false);
     router.refresh();
   }

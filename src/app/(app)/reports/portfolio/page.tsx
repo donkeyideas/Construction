@@ -8,7 +8,7 @@ import { formatCurrency, formatPercent, formatCompactCurrency } from "@/lib/util
 import ExportButton from "@/components/reports/ExportButton";
 
 export const metadata = {
-  title: "Property Portfolio Report - ConstructionERP",
+  title: "Property Portfolio Report - Buildwrk",
 };
 
 export default async function PortfolioReportPage() {

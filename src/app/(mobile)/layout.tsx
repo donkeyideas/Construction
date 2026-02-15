@@ -3,15 +3,16 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Home, Clock, ClipboardList, Camera, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import "@/styles/mobile.css";
 
 const tabs = [
-  { href: "/mobile", icon: Home, label: "Home" },
-  { href: "/mobile/clock", icon: Clock, label: "Clock" },
-  { href: "/mobile/daily-log", icon: ClipboardList, label: "Log" },
-  { href: "/mobile/photos", icon: Camera, label: "Photos" },
-  { href: "/mobile/profile", icon: User, label: "Profile" },
+  { href: "/mobile", icon: Home, labelKey: "home" },
+  { href: "/mobile/clock", icon: Clock, labelKey: "clock" },
+  { href: "/mobile/daily-log", icon: ClipboardList, labelKey: "log" },
+  { href: "/mobile/photos", icon: Camera, labelKey: "photos" },
+  { href: "/mobile/profile", icon: User, labelKey: "profile" },
 ];
 
 export default function MobileLayout({
@@ -20,6 +21,7 @@ export default function MobileLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const t = useTranslations("mobile.tabs");
 
   return (
     <div className="mobile-shell">
@@ -36,7 +38,7 @@ export default function MobileLayout({
               className={`mobile-tab ${isActive ? "active" : ""}`}
             >
               <Icon size={20} />
-              <span>{tab.label}</span>
+              <span>{(t as any)(tab.labelKey)}</span>
             </Link>
           );
         })}

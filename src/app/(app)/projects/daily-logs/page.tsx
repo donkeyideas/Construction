@@ -6,7 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import DailyLogsClient from "./DailyLogsClient";
 
 export const metadata = {
-  title: "Daily Logs - ConstructionERP",
+  title: "Daily Logs - Buildwrk",
 };
 
 interface PageProps {

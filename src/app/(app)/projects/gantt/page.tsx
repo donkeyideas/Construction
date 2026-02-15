@@ -6,7 +6,7 @@ import { formatPercent } from "@/lib/utils/format";
 import GanttActions from "./GanttActions";
 
 export const metadata = {
-  title: "Gantt Schedule - ConstructionERP",
+  title: "Gantt Schedule - Buildwrk",
 };
 
 interface PageProps {

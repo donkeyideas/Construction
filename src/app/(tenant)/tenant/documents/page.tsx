@@ -4,7 +4,7 @@ import { getTenantDocuments } from "@/lib/queries/tenant-portal";
 import DocumentsClient from "./DocumentsClient";
 
 export const metadata = {
-  title: "Documents - ConstructionERP",
+  title: "Documents - Buildwrk",
 };
 
 export default async function TenantDocumentsPage() {

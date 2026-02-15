@@ -1,6 +1,6 @@
 import { UserPlus } from "lucide-react";
 
-export const metadata = { title: "Invite Tenant - ConstructionERP" };
+export const metadata = { title: "Invite Tenant - Buildwrk" };
 
 export default function InviteTenantPage() {
   return (

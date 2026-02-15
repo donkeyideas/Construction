@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import EstimatingClient from "./EstimatingClient";
 
 export const metadata = {
-  title: "Estimating - ConstructionERP",
+  title: "Estimating - Buildwrk",
 };
 
 export default async function EstimatingPage() {

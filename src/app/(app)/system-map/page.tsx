@@ -5,7 +5,7 @@ import { systemMap } from "@/lib/config/system-map";
 import SystemMapClient from "./SystemMapClient";
 
 export const metadata = {
-  title: "System Map - ConstructionERP",
+  title: "System Map - Buildwrk",
 };
 
 export default async function SystemMapPage() {

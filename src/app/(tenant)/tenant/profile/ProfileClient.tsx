@@ -14,28 +14,33 @@ import {
   X,
 } from "lucide-react";
 import type { TenantProfile } from "@/lib/queries/tenant-portal";
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
+import { useTranslations, useLocale } from "next-intl";
 
 export default function ProfileClient({
   profile,
 }: {
   profile: TenantProfile;
 }) {
+  const t = useTranslations("tenant");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatCurrency(amount: number): string {
+    return new Intl.NumberFormat(dateLocale, {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  }
+
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState(profile.full_name ?? "");
@@ -71,14 +76,14 @@ export default function ProfileClient({
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to update profile");
+        throw new Error(data.error || t("failedUpdateProfile"));
       }
 
       setEditing(false);
-      setSuccess("Profile updated successfully.");
+      setSuccess(t("profileUpdated"));
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("somethingWentWrong"));
     } finally {
       setSaving(false);
     }
@@ -88,9 +93,9 @@ export default function ProfileClient({
     <div>
       <div className="fin-header">
         <div>
-          <h2>My Profile</h2>
+          <h2>{t("profileTitle")}</h2>
           <p className="fin-header-sub">
-            Manage your personal information and preferences.
+            {t("profileSubtitle")}
           </p>
         </div>
         {!editing && (
@@ -100,7 +105,7 @@ export default function ProfileClient({
             style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
           >
             <Pencil size={15} />
-            Edit Profile
+            {t("editProfile")}
           </button>
         )}
       </div>
@@ -132,25 +137,25 @@ export default function ProfileClient({
             }}
           >
             <User size={18} style={{ color: "var(--color-amber)" }} />
-            Personal Information
+            {t("personalInfo")}
           </h3>
 
           {editing ? (
             <form onSubmit={handleSave}>
               <div className="tenant-field">
-                <label className="tenant-label">Full Name</label>
+                <label className="tenant-label">{t("fullName")}</label>
                 <input
                   type="text"
                   className="invite-form-input"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Enter your full name"
+                  placeholder={t("enterFullName")}
                   disabled={saving}
                 />
               </div>
 
               <div className="tenant-field">
-                <label className="tenant-label">Email</label>
+                <label className="tenant-label">{t("email")}</label>
                 <input
                   type="email"
                   className="invite-form-input"
@@ -165,18 +170,18 @@ export default function ProfileClient({
                     marginTop: 4,
                   }}
                 >
-                  Contact your property manager to change your email.
+                  {t("emailChangeNote")}
                 </div>
               </div>
 
               <div className="tenant-field">
-                <label className="tenant-label">Phone</label>
+                <label className="tenant-label">{t("phone")}</label>
                 <input
                   type="tel"
                   className="invite-form-input"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="(555) 123-4567"
+                  placeholder={t("phonePlaceholder")}
                   disabled={saving}
                 />
               </div>
@@ -201,7 +206,7 @@ export default function ProfileClient({
                   }}
                 >
                   <X size={14} />
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -214,7 +219,7 @@ export default function ProfileClient({
                   }}
                 >
                   <Check size={14} />
-                  {saving ? "Saving..." : "Save"}
+                  {saving ? t("saving") : t("saveChanges")}
                 </button>
               </div>
             </form>
@@ -223,13 +228,13 @@ export default function ProfileClient({
               <div className="tenant-profile-row">
                 <User size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="tenant-profile-row-label">Full Name</div>
+                  <div className="tenant-profile-row-label">{t("fullName")}</div>
                   <div className="tenant-profile-row-value">
                     {profile.full_name || (
                       <span
                         style={{ color: "var(--muted)", fontStyle: "italic" }}
                       >
-                        Not set
+                        {t("notSet")}
                       </span>
                     )}
                   </div>
@@ -239,7 +244,7 @@ export default function ProfileClient({
               <div className="tenant-profile-row">
                 <Mail size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="tenant-profile-row-label">Email</div>
+                  <div className="tenant-profile-row-label">{t("email")}</div>
                   <div className="tenant-profile-row-value">
                     {profile.email}
                   </div>
@@ -252,13 +257,13 @@ export default function ProfileClient({
               >
                 <Phone size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="tenant-profile-row-label">Phone</div>
+                  <div className="tenant-profile-row-label">{t("phone")}</div>
                   <div className="tenant-profile-row-value">
                     {profile.phone || (
                       <span
                         style={{ color: "var(--muted)", fontStyle: "italic" }}
                       >
-                        Not set
+                        {t("notSet")}
                       </span>
                     )}
                   </div>
@@ -280,7 +285,7 @@ export default function ProfileClient({
             }}
           >
             <Home size={18} style={{ color: "var(--color-amber)" }} />
-            Lease Information
+            {t("leaseInfo")}
           </h3>
 
           {profile.lease ? (
@@ -288,7 +293,7 @@ export default function ProfileClient({
               <div className="tenant-profile-row">
                 <Home size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="tenant-profile-row-label">Property</div>
+                  <div className="tenant-profile-row-label">{t("property")}</div>
                   <div className="tenant-profile-row-value">
                     {profile.lease.property_name}
                   </div>
@@ -298,7 +303,7 @@ export default function ProfileClient({
               <div className="tenant-profile-row">
                 <Home size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="tenant-profile-row-label">Unit</div>
+                  <div className="tenant-profile-row-label">{t("unitLabel", { unit: profile.lease.unit_name })}</div>
                   <div className="tenant-profile-row-value">
                     {profile.lease.unit_name}
                   </div>
@@ -308,7 +313,7 @@ export default function ProfileClient({
               <div className="tenant-profile-row">
                 <Calendar size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="tenant-profile-row-label">Lease Period</div>
+                  <div className="tenant-profile-row-label">{t("leasePeriod")}</div>
                   <div className="tenant-profile-row-value">
                     {formatDate(profile.lease.lease_start)} &mdash;{" "}
                     {formatDate(profile.lease.lease_end)}
@@ -319,7 +324,7 @@ export default function ProfileClient({
               <div className="tenant-profile-row">
                 <DollarSign size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="tenant-profile-row-label">Monthly Rent</div>
+                  <div className="tenant-profile-row-label">{t("monthlyRent")}</div>
                   <div className="tenant-profile-row-value">
                     {formatCurrency(profile.lease.monthly_rent)}
                   </div>
@@ -332,7 +337,7 @@ export default function ProfileClient({
               >
                 <Check size={15} style={{ color: "var(--color-green)" }} />
                 <div>
-                  <div className="tenant-profile-row-label">Status</div>
+                  <div className="tenant-profile-row-label">{t("status")}</div>
                   <div className="tenant-profile-row-value">
                     <span className="badge badge-green">
                       {profile.lease.status}
@@ -350,7 +355,7 @@ export default function ProfileClient({
                 fontSize: "0.85rem",
               }}
             >
-              No active lease found.
+              {t("noActiveLeaseProfile")}
             </div>
           )}
         </div>

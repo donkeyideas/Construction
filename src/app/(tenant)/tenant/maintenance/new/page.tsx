@@ -4,24 +4,10 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-
-const CATEGORIES = [
-  { value: "plumbing", label: "Plumbing" },
-  { value: "electrical", label: "Electrical" },
-  { value: "hvac", label: "HVAC / Heating & Cooling" },
-  { value: "appliance", label: "Appliance" },
-  { value: "structural", label: "Structural" },
-  { value: "general", label: "General / Other" },
-];
-
-const PRIORITIES = [
-  { value: "low", label: "Low — Cosmetic or minor issue" },
-  { value: "medium", label: "Medium — Needs attention soon" },
-  { value: "high", label: "High — Affects daily living" },
-  { value: "emergency", label: "Emergency — Safety hazard or no water/heat" },
-];
+import { useTranslations } from "next-intl";
 
 export default function SubmitMaintenanceRequestPage() {
+  const t = useTranslations("tenant");
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -30,10 +16,26 @@ export default function SubmitMaintenanceRequestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const CATEGORIES = [
+    { value: "plumbing", label: t("catPlumbing") },
+    { value: "electrical", label: t("catElectrical") },
+    { value: "hvac", label: t("catHvac") },
+    { value: "appliance", label: t("catAppliance") },
+    { value: "structural", label: t("catStructural") },
+    { value: "general", label: t("catGeneral") },
+  ];
+
+  const PRIORITIES = [
+    { value: "low", label: t("priLowDesc") },
+    { value: "medium", label: t("priMediumDesc") },
+    { value: "high", label: t("priHighDesc") },
+    { value: "emergency", label: t("priEmergencyDesc") },
+  ];
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!title.trim()) {
-      setError("Please enter a title for your request.");
+      setError(t("titleRequiredError"));
       return;
     }
 
@@ -50,13 +52,13 @@ export default function SubmitMaintenanceRequestPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to submit request");
+        throw new Error(data.error || t("failedSubmitRequest"));
       }
 
       router.push("/tenant/maintenance");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("somethingWentWrong"));
       setSubmitting(false);
     }
   }
@@ -65,9 +67,9 @@ export default function SubmitMaintenanceRequestPage() {
     <div>
       <div className="fin-header">
         <div>
-          <h2>Submit Maintenance Request</h2>
+          <h2>{t("submitMaintenanceTitle")}</h2>
           <p className="fin-header-sub">
-            Report a maintenance issue for your unit.
+            {t("submitMaintenanceSubtitle")}
           </p>
         </div>
       </div>
@@ -86,7 +88,7 @@ export default function SubmitMaintenanceRequestPage() {
           }}
         >
           <ArrowLeft size={14} />
-          Back to Requests
+          {t("backToRequests")}
         </Link>
 
         {error && (
@@ -96,13 +98,13 @@ export default function SubmitMaintenanceRequestPage() {
         <form onSubmit={handleSubmit}>
           <div className="tenant-field">
             <label htmlFor="title" className="tenant-label">
-              Issue Title *
+              {t("issueTitle")}
             </label>
             <input
               id="title"
               type="text"
               className="invite-form-input"
-              placeholder="e.g., Leaking faucet in bathroom"
+              placeholder={t("issuePlaceholder")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -119,7 +121,7 @@ export default function SubmitMaintenanceRequestPage() {
           >
             <div className="tenant-field">
               <label htmlFor="category" className="tenant-label">
-                Category
+                {t("category")}
               </label>
               <select
                 id="category"
@@ -138,7 +140,7 @@ export default function SubmitMaintenanceRequestPage() {
 
             <div className="tenant-field">
               <label htmlFor="priority" className="tenant-label">
-                Priority
+                {t("priority")}
               </label>
               <select
                 id="priority"
@@ -158,12 +160,12 @@ export default function SubmitMaintenanceRequestPage() {
 
           <div className="tenant-field">
             <label htmlFor="description" className="tenant-label">
-              Description
+              {t("description")}
             </label>
             <textarea
               id="description"
               className="invite-form-input"
-              placeholder="Describe the issue in detail — what happened, where exactly, when it started..."
+              placeholder={t("descriptionPlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
@@ -185,14 +187,14 @@ export default function SubmitMaintenanceRequestPage() {
               className="ui-btn ui-btn-md ui-btn-outline"
               style={{ textDecoration: "none" }}
             >
-              Cancel
+              {t("cancel")}
             </Link>
             <button
               type="submit"
               className="ui-btn ui-btn-md ui-btn-primary"
               disabled={submitting}
             >
-              {submitting ? "Submitting..." : "Submit Request"}
+              {submitting ? t("submitting") : t("submitRequestBtn")}
             </button>
           </div>
         </form>

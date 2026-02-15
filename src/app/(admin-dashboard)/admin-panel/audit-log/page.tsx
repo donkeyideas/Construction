@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAuditLog } from "@/lib/queries/admin-dashboard";
 
-export const metadata = { title: "Audit Log - ConstructionERP" };
+export const metadata = { title: "Audit Log - Buildwrk" };
 
 export default async function AuditLogPage() {
   const supabase = await createClient();

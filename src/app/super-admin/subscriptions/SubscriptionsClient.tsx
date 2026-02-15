@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import {
   CreditCard,
   Building2,
@@ -36,16 +37,16 @@ interface Props {
   events: SubEvent[];
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+function formatDate(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-function formatDateTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+function formatDateTime(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -78,6 +79,10 @@ const EVENT_ICONS: Record<string, React.ReactNode> = {
 };
 
 export default function SubscriptionsClient({ companies, events }: Props) {
+  const t = useTranslations("superAdmin");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
 
@@ -103,9 +108,9 @@ export default function SubscriptionsClient({ companies, events }: Props) {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>Subscriptions</h2>
+          <h2>{t("subscriptionsTitle")}</h2>
           <p className="admin-header-sub">
-            Manage subscription plans and billing events across all companies
+            {t("subscriptionsDesc")}
           </p>
         </div>
       </div>
@@ -116,21 +121,21 @@ export default function SubscriptionsClient({ companies, events }: Props) {
           <div className="admin-stat-icon blue">
             <Building2 size={18} />
           </div>
-          <div className="admin-stat-label">Total Companies</div>
+          <div className="admin-stat-label">{t("totalCompanies")}</div>
           <div className="admin-stat-value">{companies.length}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon green">
             <CheckCircle2 size={18} />
           </div>
-          <div className="admin-stat-label">Active</div>
+          <div className="admin-stat-label">{t("active")}</div>
           <div className="admin-stat-value">{statusCounts["active"] || 0}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon amber">
             <Clock size={18} />
           </div>
-          <div className="admin-stat-label">Trialing</div>
+          <div className="admin-stat-label">{t("trialing")}</div>
           <div className="admin-stat-value">
             {statusCounts["trialing"] || 0}
           </div>
@@ -139,7 +144,7 @@ export default function SubscriptionsClient({ companies, events }: Props) {
           <div className="admin-stat-icon red">
             <CreditCard size={18} />
           </div>
-          <div className="admin-stat-label">Past Due</div>
+          <div className="admin-stat-label">{t("pastDue")}</div>
           <div className="admin-stat-value">
             {statusCounts["past_due"] || 0}
           </div>
@@ -169,7 +174,7 @@ export default function SubscriptionsClient({ companies, events }: Props) {
           />
           <input
             type="text"
-            placeholder="Search companies..."
+            placeholder={t("searchCompanies")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="invite-form-input"
@@ -181,7 +186,7 @@ export default function SubscriptionsClient({ companies, events }: Props) {
           value={planFilter}
           onChange={(e) => setPlanFilter(e.target.value)}
         >
-          <option value="all">All Plans</option>
+          <option value="all">{t("allPlans")}</option>
           {uniquePlans.map((p) => (
             <option key={p} value={p}>
               {p.charAt(0).toUpperCase() + p.slice(1)} ({planCounts[p] || 0})
@@ -195,17 +200,17 @@ export default function SubscriptionsClient({ companies, events }: Props) {
         <table className="members-table">
           <thead>
             <tr>
-              <th>Company</th>
-              <th>Plan</th>
-              <th>Status</th>
-              <th>Joined</th>
+              <th>{t("company")}</th>
+              <th>{t("plan")}</th>
+              <th>{t("status")}</th>
+              <th>{t("joined")}</th>
             </tr>
           </thead>
           <tbody>
             {filteredCompanies.length === 0 ? (
               <tr>
                 <td colSpan={4} style={{ textAlign: "center", padding: 32, color: "var(--muted)" }}>
-                  No companies match your filters
+                  {t("noCompaniesMatch")}
                 </td>
               </tr>
             ) : (
@@ -237,7 +242,7 @@ export default function SubscriptionsClient({ companies, events }: Props) {
                     </span>
                   </td>
                   <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
-                    {formatDate(c.created_at)}
+                    {formatDate(c.created_at, dateLocale)}
                   </td>
                 </tr>
               ))
@@ -248,12 +253,12 @@ export default function SubscriptionsClient({ companies, events }: Props) {
 
       {/* Recent Events */}
       <div className="permissions-section">
-        <h3 className="permissions-section-title">Recent Subscription Events</h3>
+        <h3 className="permissions-section-title">{t("recentSubEventsTitle")}</h3>
         {events.length === 0 ? (
           <div className="admin-empty" style={{ padding: "32px 16px" }}>
-            <div className="admin-empty-title">No subscription events yet</div>
+            <div className="admin-empty-title">{t("noSubEvents")}</div>
             <div className="admin-empty-desc">
-              Events will appear here as companies subscribe, upgrade, or cancel plans.
+              {t("eventsWillAppear")}
             </div>
           </div>
         ) : (
@@ -261,10 +266,10 @@ export default function SubscriptionsClient({ companies, events }: Props) {
             <table className="members-table">
               <thead>
                 <tr>
-                  <th>Event</th>
-                  <th>Company</th>
-                  <th>Details</th>
-                  <th>Date</th>
+                  <th>{t("event")}</th>
+                  <th>{t("company")}</th>
+                  <th>{t("details")}</th>
+                  <th>{t("date")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -286,7 +291,7 @@ export default function SubscriptionsClient({ companies, events }: Props) {
                           .join(" ")}
                       </span>
                     </td>
-                    <td>{evt.company_name || "Unknown"}</td>
+                    <td>{evt.company_name || t("unknown")}</td>
                     <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
                       {evt.plan_from && evt.plan_to
                         ? `${evt.plan_from} → ${evt.plan_to}`
@@ -298,7 +303,7 @@ export default function SubscriptionsClient({ companies, events }: Props) {
                       {evt.amount != null && ` ($${evt.amount.toFixed(2)})`}
                     </td>
                     <td style={{ color: "var(--muted)", fontSize: "0.82rem", whiteSpace: "nowrap" }}>
-                      {formatDateTime(evt.created_at)}
+                      {formatDateTime(evt.created_at, dateLocale)}
                     </td>
                   </tr>
                 ))}

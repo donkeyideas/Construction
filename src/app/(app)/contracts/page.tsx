@@ -5,7 +5,7 @@ import ContractsClient from "./ContractsClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Contracts - ConstructionERP",
+  title: "Contracts - Buildwrk",
 };
 
 export default async function ContractsPage() {

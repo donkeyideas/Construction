@@ -5,7 +5,7 @@ import { getBalanceSheet } from "@/lib/queries/financial";
 import BalanceSheetClient from "./BalanceSheetClient";
 
 export const metadata = {
-  title: "Balance Sheet - ConstructionERP",
+  title: "Balance Sheet - Buildwrk",
 };
 
 export default async function BalanceSheetPage({

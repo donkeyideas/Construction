@@ -4,7 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { AIChatClient } from "./AIChatClient";
 
 export const metadata = {
-  title: "AI Assistant - ConstructionERP",
+  title: "AI Assistant - Buildwrk",
 };
 
 export default async function AIAssistantPage() {

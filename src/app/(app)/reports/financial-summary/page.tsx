@@ -8,7 +8,7 @@ import { formatCurrency } from "@/lib/utils/format";
 import ExportButton from "@/components/reports/ExportButton";
 
 export const metadata = {
-  title: "Financial Summary Report - ConstructionERP",
+  title: "Financial Summary Report - Buildwrk",
 };
 
 export default async function FinancialSummaryPage({

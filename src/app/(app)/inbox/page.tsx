@@ -9,7 +9,7 @@ import {
 import InboxClient from "./InboxClient";
 
 export const metadata = {
-  title: "Inbox - ConstructionERP",
+  title: "Inbox - Buildwrk",
 };
 
 export default async function InboxPage() {

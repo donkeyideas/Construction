@@ -6,7 +6,7 @@ import type { BudgetLineRow } from "@/lib/queries/financial";
 import BudgetClient from "./BudgetClient";
 
 export const metadata = {
-  title: "Budget vs Actual - ConstructionERP",
+  title: "Budget vs Actual - Buildwrk",
 };
 
 interface PageProps {

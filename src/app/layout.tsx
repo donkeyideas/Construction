@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -17,7 +19,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ConstructionERP | Construction ERP Software for Contractors and Developers",
+  title: "Buildwrk | Construction ERP Software for Contractors and Developers",
   description:
     "All-in-one construction ERP software for general contractors, real estate developers, and property managers. Project management, job costing, property operations, document control, and AI-powered analytics. Start free.",
   keywords: [
@@ -43,16 +45,16 @@ export const metadata: Metadata = {
     "Buildertrend alternative",
   ],
   openGraph: {
-    title: "ConstructionERP | One Platform for Every Project, Every Property, Every Dollar",
+    title: "Buildwrk | One Platform for Every Project, Every Property, Every Dollar",
     description:
       "Modern construction ERP software that unifies project management, financial tracking, property operations, and AI analytics. Replace Procore + Yardi + QuickBooks with one platform. Free 14-day trial.",
     type: "website",
     locale: "en_US",
-    siteName: "ConstructionERP",
+    siteName: "Buildwrk",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ConstructionERP | Construction ERP Software",
+    title: "Buildwrk | Construction ERP Software",
     description:
       "All-in-one construction ERP for contractors and developers. Project management, job costing, property management, and AI -- one platform. Start free.",
   },
@@ -72,13 +74,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang={locale} className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3b82f6" />
@@ -87,7 +92,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ThemeProvider>{children}</ThemeProvider>
+        </NextIntlClientProvider>
         <Analytics />
       </body>
     </html>

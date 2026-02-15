@@ -1,6 +1,6 @@
 import { Mail } from "lucide-react";
 
-export const metadata = { title: "Invitations - ConstructionERP" };
+export const metadata = { title: "Invitations - Buildwrk" };
 
 export default function InvitationsPage() {
   return (

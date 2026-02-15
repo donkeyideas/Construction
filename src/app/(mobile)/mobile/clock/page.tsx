@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getTranslations, getLocale } from "next-intl/server";
 import ClockClient from "./ClockClient";
 
 export const metadata = {
-  title: "Clock In/Out - ConstructionERP",
+  title: "Clock In/Out - Buildwrk",
 };
 
 export default async function ClockPage() {
@@ -17,10 +18,13 @@ export default async function ClockPage() {
 
   const { userId, companyId } = userCompany;
   const today = new Date().toISOString().slice(0, 10);
+  const t = await getTranslations("mobile.clock");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
   // Calculate start of the current week (Monday)
   const now = new Date();
-  const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ...
+  const dayOfWeek = now.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const monday = new Date(now);
   monday.setDate(now.getDate() + mondayOffset);
@@ -28,7 +32,6 @@ export default async function ClockPage() {
 
   // Fetch data in parallel
   const [todayEntriesRes, weekEntriesRes, projectsRes] = await Promise.all([
-    // Today's time entries
     supabase
       .from("time_entries")
       .select("id, clock_in, clock_out, hours, project_id, projects(name)")
@@ -37,7 +40,6 @@ export default async function ClockPage() {
       .eq("entry_date", today)
       .order("clock_in", { ascending: false }),
 
-    // This week's time entries
     supabase
       .from("time_entries")
       .select("id, entry_date, clock_in, clock_out, hours")
@@ -47,7 +49,6 @@ export default async function ClockPage() {
       .lte("entry_date", today)
       .order("entry_date", { ascending: true }),
 
-    // Active projects for the dropdown
     supabase
       .from("projects")
       .select("id, name, code")
@@ -64,19 +65,16 @@ export default async function ClockPage() {
     code: string;
   }>;
 
-  // Determine if currently clocked in
   const openEntry = todayEntries.find(
     (e: { clock_in: string | null; clock_out: string | null }) =>
       e.clock_in && !e.clock_out
   );
 
-  // Calculate today's total hours
   const todayHours = todayEntries.reduce(
     (sum: number, e: { hours: number | null }) => sum + (e.hours ?? 0),
     0
   );
 
-  // Build weekly summary by day
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const weeklyData: Array<{ day: string; hours: number }> = [];
 
@@ -98,7 +96,6 @@ export default async function ClockPage() {
   const weekTotalHours = weeklyData.reduce((sum, d) => sum + d.hours, 0);
   const maxDayHours = Math.max(...weeklyData.map((d) => d.hours), 1);
 
-  // Recent entries
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recentEntries = todayEntries.slice(0, 5).map((e: any) => ({
     id: e.id as string,
@@ -112,9 +109,9 @@ export default async function ClockPage() {
     <div>
       <div className="mobile-header">
         <div>
-          <h2>Time Clock</h2>
+          <h2>{t("title")}</h2>
           <div className="mobile-header-date">
-            {now.toLocaleDateString("en-US", {
+            {now.toLocaleDateString(dateLocale, {
               weekday: "long",
               month: "long",
               day: "numeric",
@@ -123,7 +120,6 @@ export default async function ClockPage() {
         </div>
       </div>
 
-      {/* Client-side clock component */}
       <ClockClient
         isClockedIn={!!openEntry}
         openEntryId={openEntry?.id ?? null}
@@ -135,7 +131,7 @@ export default async function ClockPage() {
       {/* Weekly Summary */}
       <div className="mobile-card" style={{ marginTop: "12px" }}>
         <div className="mobile-card-title">
-          This Week ({weekTotalHours.toFixed(1)}h)
+          {t("thisWeek", { hours: weekTotalHours.toFixed(1) })}
         </div>
         <div className="weekly-hours">
           {weeklyData.map((d) => (
@@ -160,7 +156,7 @@ export default async function ClockPage() {
       {/* Recent Entries */}
       {recentEntries.length > 0 && (
         <div className="mobile-card">
-          <div className="mobile-card-title">Today&apos;s Entries</div>
+          <div className="mobile-card-title">{t("todaysEntries")}</div>
           {recentEntries.map(
             (entry: {
               id: string;
@@ -182,18 +178,18 @@ export default async function ClockPage() {
                 <div>
                   <div style={{ fontWeight: 500 }}>
                     {entry.clockIn
-                      ? new Date(entry.clockIn).toLocaleTimeString("en-US", {
+                      ? new Date(entry.clockIn).toLocaleTimeString(dateLocale, {
                           hour: "numeric",
                           minute: "2-digit",
                         })
                       : "--"}{" "}
                     -{" "}
                     {entry.clockOut
-                      ? new Date(entry.clockOut).toLocaleTimeString("en-US", {
+                      ? new Date(entry.clockOut).toLocaleTimeString(dateLocale, {
                           hour: "numeric",
                           minute: "2-digit",
                         })
-                      : "Active"}
+                      : t("active")}
                   </div>
                   {entry.projectName && (
                     <div style={{ color: "var(--muted)", fontSize: "0.7rem" }}>

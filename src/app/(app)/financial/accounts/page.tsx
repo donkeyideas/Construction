@@ -5,7 +5,7 @@ import { getChartOfAccounts } from "@/lib/queries/financial";
 import AccountsClient from "./AccountsClient";
 
 export const metadata = {
-  title: "Chart of Accounts - ConstructionERP",
+  title: "Chart of Accounts - Buildwrk",
 };
 
 export default async function ChartOfAccountsPage() {

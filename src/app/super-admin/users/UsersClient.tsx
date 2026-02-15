@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Users,
   Shield,
@@ -25,8 +26,8 @@ interface Props {
   users: UserRow[];
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+function formatDate(dateStr: string, loc: string): string {
+  return new Date(dateStr).toLocaleDateString(loc, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -84,6 +85,17 @@ function getDashboardBadgeStyle(label: string): React.CSSProperties {
 
 export default function UsersClient({ users }: Props) {
   const router = useRouter();
+  const t = useTranslations("superAdmin");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const dashboardLabels: Record<string, string> = {
+    "Super Admin": t("superAdminLabel"),
+    "Tenant": t("tenant"),
+    "Vendor": t("vendor"),
+    "App": t("app"),
+  };
+
   const [search, setSearch] = useState("");
   const [adminFilter, setAdminFilter] = useState("all");
   const [dashboardFilter, setDashboardFilter] = useState("all");
@@ -137,12 +149,12 @@ export default function UsersClient({ users }: Props) {
         body: JSON.stringify({ is_platform_admin: newStatus }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update user");
+      if (!res.ok) throw new Error(data.error || t("failedUpdateUser"));
       setSelectedUser({ ...selectedUser, is_platform_admin: newStatus });
-      setActionMessage(newStatus ? "User granted platform admin access" : "Platform admin access revoked");
+      setActionMessage(newStatus ? t("grantedAdmin") : t("revokedAdmin"));
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to update");
+      setSaveError(err instanceof Error ? err.message : t("failedUpdateUser"));
     } finally {
       setSaving(false);
     }
@@ -161,11 +173,11 @@ export default function UsersClient({ users }: Props) {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "Failed to send reset email");
+        throw new Error(body.error || t("failedSendReset"));
       }
-      setActionMessage(`Password reset email sent to ${selectedUser.email}`);
+      setActionMessage(t("passwordResetSent", { email: selectedUser.email }));
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to reset password");
+      setSaveError(err instanceof Error ? err.message : t("failedResetPassword"));
     } finally {
       setSaving(false);
     }
@@ -175,9 +187,9 @@ export default function UsersClient({ users }: Props) {
     <>
       <div className="admin-header">
         <div>
-          <h2>Platform Users</h2>
+          <h2>{t("platformUsers")}</h2>
           <p className="admin-header-sub">
-            All users across all companies on the platform
+            {t("allUsersDesc")}
           </p>
         </div>
       </div>
@@ -187,28 +199,28 @@ export default function UsersClient({ users }: Props) {
           <div className="admin-stat-icon blue">
             <Users size={18} />
           </div>
-          <div className="admin-stat-label">Total Users</div>
+          <div className="admin-stat-label">{t("totalUsers")}</div>
           <div className="admin-stat-value">{totalUsers}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon blue">
             <LayoutDashboard size={18} />
           </div>
-          <div className="admin-stat-label">App Users</div>
+          <div className="admin-stat-label">{t("appUsers")}</div>
           <div className="admin-stat-value">{appUsers}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon green">
             <Home size={18} />
           </div>
-          <div className="admin-stat-label">Tenants</div>
+          <div className="admin-stat-label">{t("tenants")}</div>
           <div className="admin-stat-value">{tenantUsers}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon" style={{ background: "rgba(139, 92, 246, 0.08)", color: "#8b5cf6" }}>
             <Truck size={18} />
           </div>
-          <div className="admin-stat-label">Vendors</div>
+          <div className="admin-stat-label">{t("vendors")}</div>
           <div className="admin-stat-value">{vendorUsers}</div>
         </div>
       </div>
@@ -224,7 +236,7 @@ export default function UsersClient({ users }: Props) {
           />
           <input
             type="text"
-            placeholder="Search users..."
+            placeholder={t("searchUsers")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="invite-form-input"
@@ -236,20 +248,20 @@ export default function UsersClient({ users }: Props) {
           onChange={(e) => setDashboardFilter(e.target.value)}
           className="invite-form-select"
         >
-          <option value="all">All Dashboards</option>
-          <option value="App">App</option>
-          <option value="Tenant">Tenant</option>
-          <option value="Vendor">Vendor</option>
-          <option value="Super Admin">Super Admin</option>
+          <option value="all">{t("allDashboards")}</option>
+          <option value="App">{t("app")}</option>
+          <option value="Tenant">{t("tenant")}</option>
+          <option value="Vendor">{t("vendor")}</option>
+          <option value="Super Admin">{t("superAdminLabel")}</option>
         </select>
         <select
           value={adminFilter}
           onChange={(e) => setAdminFilter(e.target.value)}
           className="invite-form-select"
         >
-          <option value="all">All Roles</option>
-          <option value="admin">Platform Admins</option>
-          <option value="user">Regular Users</option>
+          <option value="all">{t("allRoles")}</option>
+          <option value="admin">{t("platformAdmins")}</option>
+          <option value="user">{t("regularUsers")}</option>
         </select>
       </div>
 
@@ -257,19 +269,19 @@ export default function UsersClient({ users }: Props) {
         <table className="sa-table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Email</th>
-              <th>Dashboard</th>
-              <th>Companies</th>
-              <th>Platform Admin</th>
-              <th>Joined</th>
+              <th>{t("user")}</th>
+              <th>{t("email")}</th>
+              <th>{t("dashboard")}</th>
+              <th>{t("companies2")}</th>
+              <th>{t("platformAdmin")}</th>
+              <th>{t("joined")}</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: "center", padding: "40px", color: "var(--muted)" }}>
-                  No users found
+                  {t("noUsersFound")}
                 </td>
               </tr>
             ) : (
@@ -284,7 +296,7 @@ export default function UsersClient({ users }: Props) {
                         </div>
                         <div>
                           <div className="member-name">
-                            {user.full_name || "No name"}
+                            {user.full_name || t("noName")}
                           </div>
                         </div>
                       </div>
@@ -299,12 +311,12 @@ export default function UsersClient({ users }: Props) {
                         fontWeight: 600,
                         ...getDashboardBadgeStyle(dashLabel),
                       }}>
-                        {dashLabel}
+                        {dashboardLabels[dashLabel] || dashLabel}
                       </span>
                     </td>
                     <td>
                       {user.memberships.length === 0 ? (
-                        <span style={{ color: "var(--muted)" }}>None</span>
+                        <span style={{ color: "var(--muted)" }}>{t("none")}</span>
                       ) : (
                         user.memberships
                           .filter((m) => m.is_active)
@@ -318,13 +330,13 @@ export default function UsersClient({ users }: Props) {
                     </td>
                     <td>
                       {user.is_platform_admin ? (
-                        <span className="sa-badge sa-badge-amber">Admin</span>
+                        <span className="sa-badge sa-badge-amber">{t("admin")}</span>
                       ) : (
                         <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>-</span>
                       )}
                     </td>
                     <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
-                      {formatDate(user.created_at)}
+                      {formatDate(user.created_at, dateLocale)}
                     </td>
                   </tr>
                 );
@@ -348,7 +360,7 @@ export default function UsersClient({ users }: Props) {
                       className="sa-badge sa-badge-amber"
                       style={{ marginLeft: 10, fontSize: "0.72rem" }}
                     >
-                      Platform Admin
+                      {t("platformAdmin")}
                     </span>
                   )}
                 </h3>
@@ -376,13 +388,13 @@ export default function UsersClient({ users }: Props) {
                 {/* Profile Info */}
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Full Name</label>
+                    <label className="detail-label">{t("fullName")}</label>
                     <div className="detail-value">{selectedUser.full_name || "—"}</div>
                   </div>
                   <div className="detail-group">
                     <label className="detail-label">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <LayoutDashboard size={12} /> Dashboard
+                        <LayoutDashboard size={12} /> {t("dashboard")}
                       </span>
                     </label>
                     <div className="detail-value">
@@ -394,7 +406,7 @@ export default function UsersClient({ users }: Props) {
                         fontWeight: 600,
                         ...getDashboardBadgeStyle(dashLabel),
                       }}>
-                        {dashLabel}
+                        {dashboardLabels[dashLabel] || dashLabel}
                       </span>
                     </div>
                   </div>
@@ -403,7 +415,7 @@ export default function UsersClient({ users }: Props) {
                 <div className="detail-group">
                   <label className="detail-label">
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <Mail size={12} /> Email
+                      <Mail size={12} /> {t("email")}
                     </span>
                   </label>
                   <div className="detail-value">{selectedUser.email}</div>
@@ -413,7 +425,7 @@ export default function UsersClient({ users }: Props) {
                   <div className="detail-group">
                     <label className="detail-label">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <Phone size={12} /> Phone
+                        <Phone size={12} /> {t("phone")}
                       </span>
                     </label>
                     <div className="detail-value">{selectedUser.phone || "—"}</div>
@@ -421,7 +433,7 @@ export default function UsersClient({ users }: Props) {
                   <div className="detail-group">
                     <label className="detail-label">
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <Briefcase size={12} /> Job Title
+                        <Briefcase size={12} /> {t("jobTitle")}
                       </span>
                     </label>
                     <div className="detail-value">{selectedUser.job_title || "—"}</div>
@@ -431,10 +443,10 @@ export default function UsersClient({ users }: Props) {
                 <div className="detail-group">
                   <label className="detail-label">
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <Calendar size={12} /> Joined
+                      <Calendar size={12} /> {t("joined")}
                     </span>
                   </label>
-                  <div className="detail-value">{formatDate(selectedUser.created_at)}</div>
+                  <div className="detail-value">{formatDate(selectedUser.created_at, dateLocale)}</div>
                 </div>
 
                 {/* Company Memberships */}
@@ -450,7 +462,7 @@ export default function UsersClient({ users }: Props) {
                   alignItems: "center",
                   gap: 4,
                 }}>
-                  <Building2 size={12} /> Company Memberships ({selectedUser.memberships.length})
+                  <Building2 size={12} /> {t("companyMemberships", { count: selectedUser.memberships.length })}
                 </div>
 
                 <div style={{
@@ -460,15 +472,15 @@ export default function UsersClient({ users }: Props) {
                 }}>
                   {selectedUser.memberships.length === 0 ? (
                     <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)", fontSize: "0.85rem" }}>
-                      No company memberships
+                      {t("noCompanyMemberships")}
                     </div>
                   ) : (
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
                       <thead>
                         <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Company</th>
-                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Role</th>
-                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Joined</th>
+                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("company")}</th>
+                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("role")}</th>
+                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("joined")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -485,7 +497,7 @@ export default function UsersClient({ users }: Props) {
                                   background: "var(--surface)",
                                   color: "var(--muted)",
                                 }}>
-                                  Inactive
+                                  {t("inactive")}
                                 </span>
                               )}
                             </td>
@@ -502,7 +514,7 @@ export default function UsersClient({ users }: Props) {
                               </span>
                             </td>
                             <td style={{ padding: "10px 12px", color: "var(--muted)", fontSize: "0.8rem" }}>
-                              {m.joined_at ? formatDate(m.joined_at) : "—"}
+                              {m.joined_at ? formatDate(m.joined_at, dateLocale) : "—"}
                             </td>
                           </tr>
                         ))}
@@ -521,7 +533,7 @@ export default function UsersClient({ users }: Props) {
                   marginTop: 16,
                   marginBottom: 8,
                 }}>
-                  Actions
+                  {t("actions")}
                 </div>
 
                 <div style={{
@@ -537,7 +549,7 @@ export default function UsersClient({ users }: Props) {
                     disabled={saving}
                     style={{ fontSize: "0.82rem" }}
                   >
-                    <KeyRound size={14} /> Reset Password
+                    <KeyRound size={14} /> {t("resetPassword")}
                   </button>
                   {selectedUser.is_platform_admin ? (
                     <button
@@ -547,7 +559,7 @@ export default function UsersClient({ users }: Props) {
                       onClick={handleToggleAdmin}
                       disabled={saving}
                     >
-                      <Shield size={14} /> {saving ? "Saving..." : "Revoke Admin"}
+                      <Shield size={14} /> {saving ? t("saving") : t("revokeAdmin")}
                     </button>
                   ) : (
                     <button
@@ -557,14 +569,14 @@ export default function UsersClient({ users }: Props) {
                       disabled={saving}
                       style={{ fontSize: "0.82rem" }}
                     >
-                      <Shield size={14} /> {saving ? "Saving..." : "Grant Admin"}
+                      <Shield size={14} /> {saving ? t("saving") : t("grantAdmin")}
                     </button>
                   )}
                 </div>
 
                 <div className="ticket-form-actions">
                   <button type="button" className="btn-secondary" onClick={closeModal}>
-                    Close
+                    {t("close")}
                   </button>
                 </div>
               </div>

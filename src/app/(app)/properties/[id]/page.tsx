@@ -8,7 +8,7 @@ import {
 import PropertyDetailClient from "./PropertyDetailClient";
 
 export const metadata = {
-  title: "Property Detail - ConstructionERP",
+  title: "Property Detail - Buildwrk",
 };
 
 interface PageProps {

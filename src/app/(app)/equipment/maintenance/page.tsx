@@ -5,7 +5,7 @@ import EquipmentMaintenanceClient from "./EquipmentMaintenanceClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Equipment Maintenance - ConstructionERP",
+  title: "Equipment Maintenance - Buildwrk",
 };
 
 export default async function EquipmentMaintenancePage() {

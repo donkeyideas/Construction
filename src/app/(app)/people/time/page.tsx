@@ -5,7 +5,7 @@ import { getTimeEntries, type TimeEntry } from "@/lib/queries/people";
 import TimeClient from "./TimeClient";
 
 export const metadata = {
-  title: "Time & Attendance - ConstructionERP",
+  title: "Time & Attendance - Buildwrk",
 };
 
 // ---------------------------------------------------------------------------

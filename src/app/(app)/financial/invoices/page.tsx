@@ -6,7 +6,7 @@ import type { InvoiceFilters } from "@/lib/queries/financial";
 import InvoicesClient from "./InvoicesClient";
 
 export const metadata = {
-  title: "Invoices - ConstructionERP",
+  title: "Invoices - Buildwrk",
 };
 
 interface PageProps {

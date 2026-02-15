@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface ClockClientProps {
   isClockedIn: boolean;
@@ -19,6 +20,8 @@ export default function ClockClient({
   projects,
 }: ClockClientProps) {
   const router = useRouter();
+  const t = useTranslations("mobile.clock");
+  const tc = useTranslations("common");
   const [clockedIn, setClockedIn] = useState(initialClockedIn);
   const [selectedProject, setSelectedProject] = useState(
     projects.length > 0 ? projects[0].id : ""
@@ -27,7 +30,6 @@ export default function ClockClient({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate elapsed time
   const updateElapsed = useCallback(() => {
     if (!clockedIn || !openEntryClockIn) {
       setElapsed("00:00:00");
@@ -86,14 +88,14 @@ export default function ClockClient({
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to clock in");
+        setError(data.error || t("failedClockIn"));
         return;
       }
 
       setClockedIn(true);
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(tc("networkError"));
     } finally {
       setLoading(false);
     }
@@ -118,14 +120,14 @@ export default function ClockClient({
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to clock out");
+        setError(data.error || t("failedClockOut"));
         return;
       }
 
       setClockedIn(false);
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(tc("networkError"));
     } finally {
       setLoading(false);
     }
@@ -138,7 +140,7 @@ export default function ClockClient({
         <div className="timer-display">
           <div className="timer-time">{elapsed}</div>
           <div className="timer-label">
-            {clockedIn ? "Time on the clock" : "Ready to start"}
+            {clockedIn ? t("timeOnClock") : t("readyToStart")}
           </div>
         </div>
 
@@ -146,7 +148,7 @@ export default function ClockClient({
         {!clockedIn && projects.length > 0 && (
           <div className="mobile-form-field" style={{ marginBottom: "12px" }}>
             <label className="mobile-form-label" htmlFor="project-select">
-              Project
+              {tc("project")}
             </label>
             <select
               id="project-select"
@@ -154,7 +156,7 @@ export default function ClockClient({
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
             >
-              <option value="">No project</option>
+              <option value="">{tc("noProject")}</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name} ({p.code})
@@ -171,7 +173,7 @@ export default function ClockClient({
             onClick={handleClockOut}
             disabled={loading}
           >
-            {loading ? "Clocking Out..." : "Clock Out"}
+            {loading ? t("clockingOut") : t("clockOut")}
           </button>
         ) : (
           <button
@@ -179,7 +181,7 @@ export default function ClockClient({
             onClick={handleClockIn}
             disabled={loading}
           >
-            {loading ? "Clocking In..." : "Clock In"}
+            {loading ? t("clockingIn") : t("clockIn")}
           </button>
         )}
 
@@ -205,7 +207,7 @@ export default function ClockClient({
               marginTop: "8px",
             }}
           >
-            Total today: {todayHours.toFixed(1)} hours
+            {t("totalToday", { hours: todayHours.toFixed(1) })}
           </p>
         )}
       </div>

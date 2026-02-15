@@ -8,7 +8,7 @@ import {
 import SubscriptionsClient from "./SubscriptionsClient";
 
 export const metadata = {
-  title: "Subscriptions - Super Admin - ConstructionERP",
+  title: "Subscriptions - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminSubscriptionsPage() {

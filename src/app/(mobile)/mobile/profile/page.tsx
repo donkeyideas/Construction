@@ -4,9 +4,10 @@ import { Monitor, Settings, LogOut, ChevronRight, BarChart3 } from "lucide-react
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getUserDisplayName } from "@/lib/queries/user";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
-  title: "Profile - ConstructionERP",
+  title: "Profile - Buildwrk",
 };
 
 export default async function ProfilePage() {
@@ -19,10 +20,11 @@ export default async function ProfilePage() {
 
   const { userId, companyId, role, companyName } = userCompany;
   const fullName = await getUserDisplayName(supabase, userId);
+  const t = await getTranslations("mobile.profile");
+  const tc = await getTranslations("common");
 
   const today = new Date().toISOString().slice(0, 10);
 
-  // Calculate start of current week (Monday)
   const now = new Date();
   const dayOfWeek = now.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -30,9 +32,7 @@ export default async function ProfilePage() {
   monday.setDate(now.getDate() + mondayOffset);
   const weekStart = monday.toISOString().slice(0, 10);
 
-  // Fetch data in parallel
   const [todayEntriesRes, weekEntriesRes, projectsRes] = await Promise.all([
-    // Today's hours
     supabase
       .from("time_entries")
       .select("hours")
@@ -40,7 +40,6 @@ export default async function ProfilePage() {
       .eq("user_id", userId)
       .eq("entry_date", today),
 
-    // Week's hours
     supabase
       .from("time_entries")
       .select("hours")
@@ -49,7 +48,6 @@ export default async function ProfilePage() {
       .gte("entry_date", weekStart)
       .lte("entry_date", today),
 
-    // Current project assignments (where user is PM or superintendent)
     supabase
       .from("projects")
       .select("id, name")
@@ -74,7 +72,6 @@ export default async function ProfilePage() {
     name: string;
   }>;
 
-  // Get user initials for avatar
   const initials = fullName
     .split(" ")
     .map((n: string) => n[0])
@@ -89,18 +86,21 @@ export default async function ProfilePage() {
         <div className="mobile-avatar">{initials}</div>
         <div className="mobile-profile-name">{fullName}</div>
         <div className="mobile-profile-role">
-          {role.charAt(0).toUpperCase() + role.slice(1)} at {companyName}
+          {t("roleAt", {
+            role: role.charAt(0).toUpperCase() + role.slice(1),
+            company: companyName,
+          })}
         </div>
       </div>
 
       {/* Stats */}
       <div className="mobile-profile-stats">
         <div className="mobile-kpi">
-          <div className="mobile-kpi-label">Today</div>
+          <div className="mobile-kpi-label">{t("today")}</div>
           <div className="mobile-kpi-value">{todayHours.toFixed(1)}h</div>
         </div>
         <div className="mobile-kpi">
-          <div className="mobile-kpi-label">This Week</div>
+          <div className="mobile-kpi-label">{t("thisWeek")}</div>
           <div className="mobile-kpi-value">{weekHours.toFixed(1)}h</div>
         </div>
       </div>
@@ -108,7 +108,7 @@ export default async function ProfilePage() {
       {/* Current Assignments */}
       {assignedProjects.length > 0 && (
         <>
-          <div className="mobile-section-title">Your Projects</div>
+          <div className="mobile-section-title">{t("yourProjects")}</div>
           <div className="mobile-card">
             {assignedProjects.map((project) => (
               <div
@@ -128,35 +128,35 @@ export default async function ProfilePage() {
       )}
 
       {/* Menu */}
-      <div className="mobile-section-title">Options</div>
+      <div className="mobile-section-title">{t("options")}</div>
       <div className="mobile-menu">
         <Link href="/dashboard" className="mobile-menu-item">
           <Monitor size={18} />
-          <span style={{ flex: 1 }}>Switch to Desktop View</span>
+          <span style={{ flex: 1 }}>{t("switchToDesktop")}</span>
           <ChevronRight size={16} style={{ color: "var(--muted)" }} />
         </Link>
         {(role === "admin" || role === "owner") && (
           <Link href="/mobile/executive" className="mobile-menu-item">
             <BarChart3 size={18} />
-            <span style={{ flex: 1 }}>Executive Dashboard</span>
+            <span style={{ flex: 1 }}>{t("executiveDashboard")}</span>
             <ChevronRight size={16} style={{ color: "var(--muted)" }} />
           </Link>
         )}
         <Link href="/admin" className="mobile-menu-item">
           <Settings size={18} />
-          <span style={{ flex: 1 }}>Settings</span>
+          <span style={{ flex: 1 }}>{tc("settings")}</span>
           <ChevronRight size={16} style={{ color: "var(--muted)" }} />
         </Link>
-        <SignOutButton />
+        <SignOutButton label={t("signOut")} />
       </div>
 
       {/* Version */}
-      <div className="mobile-version">ConstructionERP v1.0.0</div>
+      <div className="mobile-version">{t("version")}</div>
     </div>
   );
 }
 
-function SignOutButton() {
+function SignOutButton({ label }: { label: string }) {
   return (
     <form action="/api/auth/signout" method="POST">
       <button
@@ -170,7 +170,7 @@ function SignOutButton() {
         }}
       >
         <LogOut size={18} />
-        <span style={{ flex: 1, textAlign: "left" }}>Sign Out</span>
+        <span style={{ flex: 1, textAlign: "left" }}>{label}</span>
       </button>
     </form>
   );

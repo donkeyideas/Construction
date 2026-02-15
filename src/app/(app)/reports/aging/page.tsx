@@ -8,7 +8,7 @@ import { formatCurrency } from "@/lib/utils/format";
 import ExportButton from "@/components/reports/ExportButton";
 
 export const metadata = {
-  title: "Aging Report - ConstructionERP",
+  title: "Aging Report - Buildwrk",
 };
 
 export default async function AgingReportPage({

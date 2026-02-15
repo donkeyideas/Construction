@@ -19,10 +19,11 @@ import {
   formatCurrency,
   formatPercent,
 } from "@/lib/utils/format";
+import { getTranslations, getLocale } from "next-intl/server";
 import ExecutiveAiInput from "./ExecutiveAiInput";
 
 export const metadata = {
-  title: "Executive Dashboard - ConstructionERP",
+  title: "Executive Dashboard - Buildwrk",
 };
 
 export default async function ExecutiveMobilePage() {
@@ -34,8 +35,11 @@ export default async function ExecutiveMobilePage() {
   }
 
   const { companyId } = userCompany;
+  const t = await getTranslations("mobile.executive");
+  const tc = await getTranslations("common");
+  const locale = await getLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
 
-  // Fetch dashboard data in parallel
   const [kpis, projectStatus, pendingApprovalsResult] = await Promise.all([
     getDashboardKPIs(supabase, companyId),
     getProjectStatusBreakdown(supabase, companyId),
@@ -47,9 +51,9 @@ export default async function ExecutiveMobilePage() {
     <div>
       <div className="mobile-header">
         <div>
-          <h2>Executive View</h2>
+          <h2>{t("title")}</h2>
           <div className="mobile-header-date">
-            {new Date().toLocaleDateString("en-US", {
+            {new Date().toLocaleDateString(dateLocale, {
               weekday: "long",
               month: "long",
               day: "numeric",
@@ -64,7 +68,7 @@ export default async function ExecutiveMobilePage() {
             textDecoration: "none",
           }}
         >
-          Back
+          {tc("back")}
         </Link>
       </div>
 
@@ -80,7 +84,7 @@ export default async function ExecutiveMobilePage() {
                 marginRight: "4px",
               }}
             />
-            Active Projects
+            {t("activeProjects")}
           </div>
           <div className="mobile-kpi-value">
             {formatCompactCurrency(kpis.activeProjectsValue)}
@@ -96,7 +100,7 @@ export default async function ExecutiveMobilePage() {
                 marginRight: "4px",
               }}
             />
-            Cash Position
+            {t("cashPosition")}
           </div>
           <div className="mobile-kpi-value">
             {formatCompactCurrency(kpis.cashPosition)}
@@ -112,7 +116,7 @@ export default async function ExecutiveMobilePage() {
                 marginRight: "4px",
               }}
             />
-            Open COs
+            {t("openCOs")}
           </div>
           <div
             className="mobile-kpi-value"
@@ -136,7 +140,7 @@ export default async function ExecutiveMobilePage() {
                 marginRight: "4px",
               }}
             />
-            Schedule
+            {t("schedule")}
           </div>
           <div className="mobile-kpi-value">
             {formatPercent(kpis.schedulePerformance)}
@@ -146,7 +150,7 @@ export default async function ExecutiveMobilePage() {
 
       {/* Project Counts */}
       <div className="mobile-card">
-        <div className="mobile-card-title">Project Status</div>
+        <div className="mobile-card-title">{t("projectStatus")}</div>
         <div
           style={{
             display: "grid",
@@ -154,24 +158,24 @@ export default async function ExecutiveMobilePage() {
             gap: "8px",
           }}
         >
-          <StatusItem label="Active" count={projectStatus.active} color="var(--color-blue)" />
+          <StatusItem label={t("statusActive")} count={projectStatus.active} color="var(--color-blue)" />
           <StatusItem
-            label="Pre-Construction"
+            label={t("preConstruction")}
             count={projectStatus.pre_construction}
             color="var(--color-amber)"
           />
-          <StatusItem label="Completed" count={projectStatus.completed} color="var(--color-green)" />
-          <StatusItem label="On Hold" count={projectStatus.on_hold} color="var(--color-red)" />
+          <StatusItem label={t("completed")} count={projectStatus.completed} color="var(--color-green)" />
+          <StatusItem label={t("onHold")} count={projectStatus.on_hold} color="var(--color-red)" />
         </div>
       </div>
 
       {/* Pending Approvals */}
       <div className="mobile-card">
         <div className="mobile-card-title">
-          Pending Approvals ({pendingApprovalsTotal})
+          {t("pendingApprovals", { count: pendingApprovalsTotal })}
         </div>
         {pendingApprovals.length === 0 ? (
-          <div className="mobile-empty">No pending approvals</div>
+          <div className="mobile-empty">{t("noPendingApprovals")}</div>
         ) : (
           pendingApprovals.map((item) => (
             <div key={item.entityId} className="mobile-approval">
@@ -212,7 +216,7 @@ export default async function ExecutiveMobilePage() {
               marginRight: "6px",
             }}
           />
-          Ask AI
+          {t("askAi")}
         </div>
         <ExecutiveAiInput />
       </div>

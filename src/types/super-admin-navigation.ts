@@ -12,38 +12,38 @@ export interface SuperAdminNavItem {
 
 export const superAdminNavigation: SuperAdminNavItem[] = [
   {
-    label: "Overview",
+    label: "overview",
     href: "/super-admin",
     icon: "layout-dashboard",
   },
   {
-    label: "Companies",
+    label: "companies",
     href: "/super-admin/companies",
     icon: "building-2",
   },
   {
-    label: "Users",
+    label: "users",
     href: "/super-admin/users",
     icon: "users",
   },
   {
-    label: "Content",
+    label: "content",
     icon: "file-text",
     children: [
-      { label: "CMS Pages", href: "/super-admin/content" },
-      { label: "Announcements", href: "/super-admin/announcements" },
+      { label: "cmsPages", href: "/super-admin/content" },
+      { label: "announcements", href: "/super-admin/announcements" },
     ],
   },
   {
-    label: "Billing",
+    label: "billing",
     icon: "credit-card",
     children: [
-      { label: "Pricing Tiers", href: "/super-admin/pricing" },
-      { label: "Subscriptions", href: "/super-admin/subscriptions" },
+      { label: "pricingTiers", href: "/super-admin/pricing" },
+      { label: "subscriptions", href: "/super-admin/subscriptions" },
     ],
   },
   {
-    label: "SEO & GEO",
+    label: "seoGeo",
     href: "/super-admin/seo",
     icon: "globe",
   },
@@ -51,7 +51,7 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
 
 export const superAdminBottomNav: SuperAdminNavItem[] = [
   {
-    label: "Back to App",
+    label: "backToApp",
     href: "/dashboard",
     icon: "arrow-left",
   },

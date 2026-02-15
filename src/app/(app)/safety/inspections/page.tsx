@@ -5,7 +5,7 @@ import InspectionsClient from "./InspectionsClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Safety Inspections - ConstructionERP",
+  title: "Safety Inspections - Buildwrk",
 };
 
 export default async function SafetyInspectionsPage() {

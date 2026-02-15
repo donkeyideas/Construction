@@ -4,22 +4,24 @@ import { useState } from "react";
 import { VendorSidebar } from "@/components/layout/vendor-sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import "@/styles/app-shell.css";
 import "@/styles/components.css";
 import "@/styles/financial.css";
 import "@/styles/vendor-portal.css";
 
-function getBreadcrumb(pathname: string): string {
-  const segments = pathname.split("/").filter(Boolean);
-  if (segments.length <= 1) return "Vendor Portal";
-  return "Vendor / " + segments.slice(1)
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " "))
-    .join(" / ");
-}
-
 export default function VendorLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const t = useTranslations("vendorNav");
+
+  function getBreadcrumb(path: string): string {
+    const segments = path.split("/").filter(Boolean);
+    if (segments.length <= 1) return t("vendorPortal");
+    return t("vendorPortal") + " / " + segments.slice(1)
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " "))
+      .join(" / ");
+  }
 
   return (
     <>

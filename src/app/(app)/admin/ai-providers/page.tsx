@@ -5,7 +5,7 @@ import { getAIProviders, getAIUsageSummary, maskApiKey } from "@/lib/queries/ai"
 import AIProvidersClient from "./AIProvidersClient";
 
 export const metadata = {
-  title: "AI Provider Configuration - ConstructionERP",
+  title: "AI Provider Configuration - Buildwrk",
 };
 
 export default async function AIProvidersPage() {

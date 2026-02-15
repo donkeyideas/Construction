@@ -26,7 +26,7 @@ import {
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 
 export const metadata = {
-  title: "Financial Overview - ConstructionERP",
+  title: "Financial Overview - Buildwrk",
 };
 
 export default async function FinancialDashboardPage() {

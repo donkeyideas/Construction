@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { Globe, Plus, X, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface Keyword {
@@ -41,6 +42,10 @@ function getIntentBadgeClass(intent: string | null): string {
 }
 
 export default function SeoClient({ keywords }: Props) {
+  const t = useTranslations("superAdmin");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -74,7 +79,7 @@ export default function SeoClient({ keywords }: Props) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to add keyword.");
+        setError(data.error || t("failedSave"));
         return;
       }
 
@@ -86,7 +91,7 @@ export default function SeoClient({ keywords }: Props) {
       setShowAdd(false);
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -105,14 +110,14 @@ export default function SeoClient({ keywords }: Props) {
     <>
       <div className="admin-header">
         <div>
-          <h2>SEO & GEO</h2>
+          <h2>{t("seoTitle")}</h2>
           <p className="admin-header-sub">
-            Track keyword rankings and organic search performance
+            {t("seoDesc")}
           </p>
         </div>
         <div className="admin-header-actions">
           <button className="sa-action-btn primary" onClick={() => setShowAdd(true)}>
-            <Plus size={14} /> Add Keyword
+            <Plus size={14} /> {t("addKeyword")}
           </button>
         </div>
       </div>
@@ -122,14 +127,14 @@ export default function SeoClient({ keywords }: Props) {
           <div className="admin-stat-icon blue">
             <Globe size={18} />
           </div>
-          <div className="admin-stat-label">Tracked Keywords</div>
+          <div className="admin-stat-label">{t("trackedKeywords")}</div>
           <div className="admin-stat-value">{tracked}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon amber">
             <Globe size={18} />
           </div>
-          <div className="admin-stat-label">Avg Position</div>
+          <div className="admin-stat-label">{t("avgPosition")}</div>
           <div className="admin-stat-value">{avgPosition}</div>
         </div>
       </div>
@@ -140,20 +145,20 @@ export default function SeoClient({ keywords }: Props) {
         <table className="sa-table">
           <thead>
             <tr>
-              <th>Keyword</th>
-              <th>Volume</th>
-              <th>Position</th>
-              <th>Trend</th>
-              <th>Difficulty</th>
-              <th>Intent</th>
-              <th>Target URL</th>
+              <th>{t("keyword")}</th>
+              <th>{t("volume")}</th>
+              <th>{t("position")}</th>
+              <th>{t("trend")}</th>
+              <th>{t("difficulty")}</th>
+              <th>{t("intent")}</th>
+              <th>{t("targetUrl")}</th>
             </tr>
           </thead>
           <tbody>
             {keywords.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: "center", padding: "40px", color: "var(--muted)" }}>
-                  No keywords tracked yet. Add your first keyword to start monitoring.
+                  {t("noKeywordsYet")}
                 </td>
               </tr>
             ) : (
@@ -217,17 +222,17 @@ export default function SeoClient({ keywords }: Props) {
             <button className="invite-modal-close" onClick={() => setShowAdd(false)}>
               <X size={18} />
             </button>
-            <div className="invite-modal-title">Add Keyword</div>
+            <div className="invite-modal-title">{t("addKeyword")}</div>
             <div className="invite-modal-desc">
-              Track a new keyword for SEO monitoring.
+              {t("trackKeywordDesc")}
             </div>
             <form onSubmit={handleAdd}>
               <div className="invite-form-group">
-                <label className="invite-form-label">Keyword</label>
+                <label className="invite-form-label">{t("keyword")}</label>
                 <input
                   type="text"
                   className="invite-form-input"
-                  placeholder="e.g., construction project management software"
+                  placeholder={t("keywordPlaceholder")}
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   required
@@ -235,21 +240,21 @@ export default function SeoClient({ keywords }: Props) {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div className="invite-form-group">
-                  <label className="invite-form-label">Search Volume</label>
+                  <label className="invite-form-label">{t("searchVolume")}</label>
                   <input
                     type="number"
                     className="invite-form-input"
-                    placeholder="e.g., 1200"
+                    placeholder={t("volumePlaceholder")}
                     value={searchVolume}
                     onChange={(e) => setSearchVolume(e.target.value)}
                   />
                 </div>
                 <div className="invite-form-group">
-                  <label className="invite-form-label">Difficulty (0-100)</label>
+                  <label className="invite-form-label">{t("difficultyLabel")}</label>
                   <input
                     type="number"
                     className="invite-form-input"
-                    placeholder="e.g., 45"
+                    placeholder={t("difficultyPlaceholder")}
                     min="0"
                     max="100"
                     value={difficulty}
@@ -258,34 +263,34 @@ export default function SeoClient({ keywords }: Props) {
                 </div>
               </div>
               <div className="invite-form-group">
-                <label className="invite-form-label">Intent</label>
+                <label className="invite-form-label">{t("intent")}</label>
                 <select
                   className="invite-form-select"
                   value={intent}
                   onChange={(e) => setIntent(e.target.value)}
                 >
-                  <option value="informational">Informational</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="transactional">Transactional</option>
-                  <option value="navigational">Navigational</option>
+                  <option value="informational">{t("informational")}</option>
+                  <option value="commercial">{t("commercial")}</option>
+                  <option value="transactional">{t("transactional")}</option>
+                  <option value="navigational">{t("navigational")}</option>
                 </select>
               </div>
               <div className="invite-form-group">
-                <label className="invite-form-label">Target URL</label>
+                <label className="invite-form-label">{t("targetUrl")}</label>
                 <input
                   type="text"
                   className="invite-form-input"
-                  placeholder="e.g., /features"
+                  placeholder={t("targetUrlPlaceholder")}
                   value={targetUrl}
                   onChange={(e) => setTargetUrl(e.target.value)}
                 />
               </div>
               <div className="invite-modal-footer">
                 <button type="button" className="sa-action-btn" onClick={() => setShowAdd(false)}>
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button type="submit" className="sa-action-btn primary" disabled={saving}>
-                  {saving ? "Adding..." : "Add Keyword"}
+                  {saving ? t("adding") : t("addKeyword")}
                 </button>
               </div>
             </form>

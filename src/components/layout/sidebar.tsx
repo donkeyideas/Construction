@@ -11,6 +11,7 @@ import {
 import { appNavigation, appBottomNav, type NavItem } from "@/types/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CompanySwitcher from "@/components/CompanySwitcher";
+import { useTranslations } from "next-intl";
 
 const iconMap: Record<string, React.ElementType> = {
   "layout-dashboard": LayoutDashboard,
@@ -67,7 +68,7 @@ function filterNavByRole(items: NavItem[], role: string | null): NavItem[] {
   return items.filter((item) => allowed.includes(item.label));
 }
 
-function NavItemComponent({ item }: { item: NavItem }) {
+function NavItemComponent({ item, t }: { item: NavItem; t: any }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const Icon = iconMap[item.icon] || LayoutDashboard;
@@ -83,7 +84,7 @@ function NavItemComponent({ item }: { item: NavItem }) {
           className={`nav-link ${isActive ? "active" : ""}`}
         >
           <Icon />
-          <span className="label">{item.label}</span>
+          <span className="label">{t(item.label)}</span>
           <ChevronRight
             className="chevron"
             style={{ transform: open ? "rotate(90deg)" : undefined }}
@@ -97,7 +98,7 @@ function NavItemComponent({ item }: { item: NavItem }) {
                 href={child.href}
                 className={`nav-child ${pathname === child.href ? "active" : ""}`}
               >
-                {child.label}
+                {t(child.label)}
               </Link>
             ))}
           </div>
@@ -110,7 +111,7 @@ function NavItemComponent({ item }: { item: NavItem }) {
     <div className="nav-item">
       <Link href={item.href!} className={`nav-link ${isActive ? "active" : ""}`}>
         <Icon />
-        <span className="label">{item.label}</span>
+        <span className="label">{t(item.label)}</span>
       </Link>
     </div>
   );
@@ -122,6 +123,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const t = useTranslations("nav");
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -214,12 +216,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <CompanySwitcher />
         <nav className="sidebar-nav">
           {filteredNav.map((item) => (
-            <NavItemComponent key={item.label} item={item} />
+            <NavItemComponent key={item.label} item={item} t={t} />
           ))}
         </nav>
         <div className="sidebar-bottom">
           {filteredBottomNav.map((item) => (
-            <NavItemComponent key={item.label} item={item} />
+            <NavItemComponent key={item.label} item={item} t={t} />
           ))}
         </div>
       </aside>

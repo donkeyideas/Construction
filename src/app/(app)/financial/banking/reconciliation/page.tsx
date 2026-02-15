@@ -8,7 +8,7 @@ import ReconciliationClient from "./ReconciliationClient";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Bank Reconciliation - ConstructionERP",
+  title: "Bank Reconciliation - Buildwrk",
 };
 
 export default async function ReconciliationPage() {

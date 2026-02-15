@@ -5,7 +5,7 @@ import { getCalendarEventsByMonth } from "@/lib/queries/calendar";
 import CalendarClient from "./CalendarClient";
 
 export const metadata = {
-  title: "Calendar - ConstructionERP",
+  title: "Calendar - Buildwrk",
 };
 
 export default async function CalendarPage() {

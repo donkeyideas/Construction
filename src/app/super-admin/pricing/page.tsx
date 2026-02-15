@@ -4,7 +4,7 @@ import { isPlatformAdmin } from "@/lib/queries/super-admin";
 import PricingClient from "./PricingClient";
 
 export const metadata = {
-  title: "Pricing Tiers - Super Admin - ConstructionERP",
+  title: "Pricing Tiers - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminPricingPage() {
