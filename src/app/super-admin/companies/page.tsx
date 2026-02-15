@@ -4,7 +4,9 @@ import {
   isPlatformAdmin,
   getAllCompanies,
   getCompanyMemberCounts,
+  getCompanyMembers,
 } from "@/lib/queries/super-admin";
+import type { CompanyMember } from "@/lib/queries/super-admin";
 import CompaniesClient from "./CompaniesClient";
 
 export const metadata = {
@@ -24,10 +26,19 @@ export default async function SuperAdminCompaniesPage() {
     getCompanyMemberCounts(supabase),
   ]);
 
+  // Fetch members for all companies in parallel
+  const membersByCompany: Record<string, CompanyMember[]> = {};
+  const memberResults = await Promise.all(
+    companies.map((c) => getCompanyMembers(supabase, c.id))
+  );
+  companies.forEach((c, i) => {
+    membersByCompany[c.id] = memberResults[i];
+  });
+
   const enrichedCompanies = companies.map((c) => ({
     ...c,
     member_count: memberCounts[c.id] || 0,
   }));
 
-  return <CompaniesClient companies={enrichedCompanies} />;
+  return <CompaniesClient companies={enrichedCompanies} membersByCompany={membersByCompany} />;
 }

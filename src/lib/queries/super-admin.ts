@@ -16,8 +16,33 @@ export interface PlatformCompany {
   subscription_plan: string;
   subscription_status: string;
   created_at: string;
+  updated_at: string;
+  phone: string | null;
+  website: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  country: string | null;
+  currency: string | null;
+  timezone: string | null;
+  fiscal_year_start: number | null;
+  trial_ends_at: string | null;
+  logo_url: string | null;
   member_count?: number;
   project_count?: number;
+}
+
+export interface CompanyMember {
+  user_id: string;
+  role: string;
+  is_active: boolean;
+  joined_at: string | null;
+  full_name: string | null;
+  email: string;
+  phone: string | null;
+  job_title: string | null;
 }
 
 export interface PlatformStats {
@@ -80,7 +105,7 @@ export async function getAllCompanies(
 ): Promise<PlatformCompany[]> {
   const { data, error } = await supabase
     .from("companies")
-    .select("id, name, slug, industry_type, subscription_plan, subscription_status, created_at")
+    .select("id, name, slug, industry_type, subscription_plan, subscription_status, created_at, updated_at, phone, website, address_line1, address_line2, city, state, zip, country, currency, timezone, fiscal_year_start, trial_ends_at, logo_url")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -89,6 +114,36 @@ export async function getAllCompanies(
   }
 
   return (data ?? []) as PlatformCompany[];
+}
+
+/**
+ * Get members for a specific company with user profile info.
+ */
+export async function getCompanyMembers(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<CompanyMember[]> {
+  const { data, error } = await supabase
+    .from("company_members")
+    .select("user_id, role, is_active, joined_at, user_profiles(full_name, email, phone, job_title)")
+    .eq("company_id", companyId)
+    .order("joined_at", { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((m) => {
+    const profile = m.user_profiles as unknown as { full_name: string | null; email: string; phone: string | null; job_title: string | null } | null;
+    return {
+      user_id: m.user_id,
+      role: m.role,
+      is_active: m.is_active,
+      joined_at: m.joined_at,
+      full_name: profile?.full_name ?? null,
+      email: profile?.email ?? "",
+      phone: profile?.phone ?? null,
+      job_title: profile?.job_title ?? null,
+    };
+  });
 }
 
 /**
