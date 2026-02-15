@@ -8,6 +8,7 @@ import "@/styles/app-shell.css";
 import "@/styles/admin.css";
 import "@/styles/super-admin.css";
 import "@/styles/tickets.css";
+import "@/styles/content.css";
 
 function getBreadcrumb(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);

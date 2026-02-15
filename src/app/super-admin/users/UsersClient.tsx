@@ -108,11 +108,9 @@ export default function UsersClient({ users }: Props) {
   });
 
   const totalUsers = users.length;
-  const platformAdmins = users.filter((u) => u.is_platform_admin).length;
   const appUsers = users.filter((u) => !u.portal_type && !u.is_platform_admin).length;
   const tenantUsers = users.filter((u) => u.portal_type === "tenant").length;
   const vendorUsers = users.filter((u) => u.portal_type === "vendor").length;
-  const noCompany = users.filter((u) => u.memberships.length === 0).length;
 
   function openModal(user: UserRow) {
     setSelectedUser(user);
@@ -212,20 +210,6 @@ export default function UsersClient({ users }: Props) {
           </div>
           <div className="admin-stat-label">Vendors</div>
           <div className="admin-stat-value">{vendorUsers}</div>
-        </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-icon amber">
-            <Shield size={18} />
-          </div>
-          <div className="admin-stat-label">Platform Admins</div>
-          <div className="admin-stat-value">{platformAdmins}</div>
-        </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-icon" style={{ background: "var(--surface)", color: "var(--muted)" }}>
-            <Users size={18} />
-          </div>
-          <div className="admin-stat-label">No Company</div>
-          <div className="admin-stat-value">{noCompany}</div>
         </div>
       </div>
 
