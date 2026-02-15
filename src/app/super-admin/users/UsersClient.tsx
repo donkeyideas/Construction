@@ -1,14 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Shield, Search, X, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { PlatformUser } from "@/lib/queries/super-admin";
+import {
+  Users,
+  Shield,
+  Search,
+  X,
+  Mail,
+  Phone,
+  Briefcase,
+  Calendar,
+  Building2,
+  KeyRound,
+} from "lucide-react";
+import type { PlatformUser, UserMembership } from "@/lib/queries/super-admin";
 
-type UserWithCompanies = PlatformUser & { companies: string[] };
+type UserRow = PlatformUser & { memberships: UserMembership[] };
 
 interface Props {
-  users: UserWithCompanies[];
+  users: UserRow[];
 }
 
 function formatDate(dateStr: string): string {
@@ -31,33 +42,64 @@ function getInitials(name: string | null, email: string): string {
   return email.substring(0, 2).toUpperCase();
 }
 
+function getRoleBadgeStyle(role: string): React.CSSProperties {
+  switch (role) {
+    case "owner":
+      return { background: "rgba(220, 38, 38, 0.1)", color: "var(--color-red)" };
+    case "admin":
+      return { background: "rgba(180, 83, 9, 0.1)", color: "var(--color-amber)" };
+    case "project_manager":
+      return { background: "rgba(29, 78, 216, 0.1)", color: "var(--color-blue)" };
+    default:
+      return { background: "var(--surface)", color: "var(--muted)" };
+  }
+}
+
+function formatRole(role: string): string {
+  return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default function UsersClient({ users }: Props) {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [selectedUser, setSelectedUser] = useState<UserWithCompanies | null>(null);
+  const [adminFilter, setAdminFilter] = useState("all");
+  const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const filtered = users.filter((u) => {
     const matchesSearch =
       search === "" ||
       u.email.toLowerCase().includes(search.toLowerCase()) ||
       (u.full_name && u.full_name.toLowerCase().includes(search.toLowerCase()));
-    return matchesSearch;
+    const matchesAdmin =
+      adminFilter === "all" ||
+      (adminFilter === "admin" && u.is_platform_admin) ||
+      (adminFilter === "user" && !u.is_platform_admin);
+    return matchesSearch && matchesAdmin;
   });
 
   const totalUsers = users.length;
   const platformAdmins = users.filter((u) => u.is_platform_admin).length;
 
+  function openModal(user: UserRow) {
+    setSelectedUser(user);
+    setSaveError(null);
+    setActionMessage(null);
+  }
+
   function closeModal() {
     setSelectedUser(null);
     setSaveError(null);
+    setActionMessage(null);
   }
 
   async function handleToggleAdmin() {
     if (!selectedUser) return;
     setSaving(true);
     setSaveError(null);
+    setActionMessage(null);
     try {
       const newStatus = !selectedUser.is_platform_admin;
       const res = await fetch(`/api/super-admin/users/${selectedUser.id}`, {
@@ -68,9 +110,33 @@ export default function UsersClient({ users }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update user");
       setSelectedUser({ ...selectedUser, is_platform_admin: newStatus });
+      setActionMessage(newStatus ? "User granted platform admin access" : "Platform admin access revoked");
       router.refresh();
     } catch (err: unknown) {
       setSaveError(err instanceof Error ? err.message : "Failed to update");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!selectedUser) return;
+    setSaving(true);
+    setActionMessage(null);
+    setSaveError(null);
+    try {
+      const res = await fetch("/api/super-admin/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: selectedUser.id }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to send reset email");
+      }
+      setActionMessage(`Password reset email sent to ${selectedUser.email}`);
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : "Failed to reset password");
     } finally {
       setSaving(false);
     }
@@ -104,19 +170,33 @@ export default function UsersClient({ users }: Props) {
         </div>
       </div>
 
-      <div style={{ marginBottom: "20px", maxWidth: "320px", position: "relative" }}>
-        <Search
-          size={14}
-          style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }}
-        />
-        <input
-          type="text"
-          placeholder="Search users..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="invite-form-input"
-          style={{ paddingLeft: "32px", width: "100%" }}
-        />
+      <div style={{
+        display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap",
+        alignItems: "center",
+      }}>
+        <div style={{ position: "relative", flex: "1 1 200px", maxWidth: "320px" }}>
+          <Search
+            size={14}
+            style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }}
+          />
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="invite-form-input"
+            style={{ paddingLeft: "32px", width: "100%" }}
+          />
+        </div>
+        <select
+          value={adminFilter}
+          onChange={(e) => setAdminFilter(e.target.value)}
+          className="invite-form-select"
+        >
+          <option value="all">All Users</option>
+          <option value="admin">Platform Admins</option>
+          <option value="user">Regular Users</option>
+        </select>
       </div>
 
       <div className="sa-table-wrap">
@@ -139,7 +219,7 @@ export default function UsersClient({ users }: Props) {
               </tr>
             ) : (
               filtered.map((user) => (
-                <tr key={user.id} onClick={() => setSelectedUser(user)} style={{ cursor: "pointer" }}>
+                <tr key={user.id} onClick={() => openModal(user)} style={{ cursor: "pointer" }}>
                   <td>
                     <div className="member-info">
                       <div className="member-avatar">
@@ -154,15 +234,17 @@ export default function UsersClient({ users }: Props) {
                   </td>
                   <td style={{ color: "var(--muted)" }}>{user.email}</td>
                   <td>
-                    {user.companies.length === 0 ? (
+                    {user.memberships.length === 0 ? (
                       <span style={{ color: "var(--muted)" }}>None</span>
                     ) : (
-                      user.companies.map((name, i) => (
-                        <span key={i}>
-                          {i > 0 && ", "}
-                          {name}
-                        </span>
-                      ))
+                      user.memberships
+                        .filter((m) => m.is_active)
+                        .map((m, i) => (
+                          <span key={m.company_id}>
+                            {i > 0 && ", "}
+                            {m.company_name}
+                          </span>
+                        ))
                     )}
                   </td>
                   <td>
@@ -185,68 +267,195 @@ export default function UsersClient({ users }: Props) {
       {/* User Detail Modal */}
       {selectedUser && (
         <div className="ticket-modal-overlay" onClick={closeModal}>
-          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 540 }}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640 }}>
             <div className="ticket-modal-header">
-              <h3>{selectedUser.full_name || selectedUser.email}</h3>
+              <h3>
+                {selectedUser.full_name || selectedUser.email}
+                {selectedUser.is_platform_admin && (
+                  <span
+                    className="sa-badge sa-badge-amber"
+                    style={{ marginLeft: 10, fontSize: "0.72rem" }}
+                  >
+                    Platform Admin
+                  </span>
+                )}
+              </h3>
               <button className="ticket-modal-close" onClick={closeModal}>
                 <X size={18} />
               </button>
             </div>
 
-            {saveError && (
-              <div className="ticket-form-error">{saveError}</div>
+            {saveError && <div className="ticket-form-error">{saveError}</div>}
+            {actionMessage && (
+              <div style={{
+                background: "rgba(22, 163, 74, 0.06)",
+                border: "1px solid rgba(22, 163, 74, 0.2)",
+                borderRadius: 8,
+                padding: "10px 14px",
+                color: "var(--color-green)",
+                fontSize: "0.85rem",
+                margin: "0 0 12px",
+              }}>
+                {actionMessage}
+              </div>
             )}
 
-            <div style={{ padding: "1.2rem" }}>
-              <div className="detail-group" style={{ marginBottom: 4 }}>
-                <label className="detail-label">Full Name</label>
-                <div className="detail-value">{selectedUser.full_name || "No name"}</div>
-              </div>
-
-              <div className="detail-group" style={{ marginBottom: 4 }}>
-                <label className="detail-label">Email</label>
-                <div className="detail-value">{selectedUser.email}</div>
-              </div>
-
+            <div style={{ padding: "1.25rem" }}>
+              {/* Profile Info */}
               <div className="detail-row">
                 <div className="detail-group">
-                  <label className="detail-label">Platform Admin</label>
-                  <div className="detail-value">
-                    {selectedUser.is_platform_admin ? (
-                      <span className="sa-badge sa-badge-amber">Yes</span>
-                    ) : (
-                      <span className="sa-badge" style={{ background: "var(--surface)", color: "var(--muted)" }}>No</span>
-                    )}
-                  </div>
+                  <label className="detail-label">Full Name</label>
+                  <div className="detail-value">{selectedUser.full_name || "—"}</div>
                 </div>
                 <div className="detail-group">
-                  <label className="detail-label">Joined</label>
+                  <label className="detail-label">
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <Calendar size={12} /> Joined
+                    </span>
+                  </label>
                   <div className="detail-value">{formatDate(selectedUser.created_at)}</div>
                 </div>
               </div>
 
               <div className="detail-group">
-                <label className="detail-label">Companies</label>
-                <div className="detail-value" style={{ borderBottom: "none" }}>
-                  {selectedUser.companies.length === 0
-                    ? "None"
-                    : selectedUser.companies.join(", ")}
+                <label className="detail-label">
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <Mail size={12} /> Email
+                  </span>
+                </label>
+                <div className="detail-value">{selectedUser.email}</div>
+              </div>
+
+              <div className="detail-row">
+                <div className="detail-group">
+                  <label className="detail-label">
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <Phone size={12} /> Phone
+                    </span>
+                  </label>
+                  <div className="detail-value">{selectedUser.phone || "—"}</div>
+                </div>
+                <div className="detail-group">
+                  <label className="detail-label">
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <Briefcase size={12} /> Job Title
+                    </span>
+                  </label>
+                  <div className="detail-value">{selectedUser.job_title || "—"}</div>
                 </div>
               </div>
 
-              <div className="ticket-form-actions">
-                <button type="button" className="btn-secondary" onClick={closeModal} disabled={saving}>
-                  Close
+              {/* Company Memberships */}
+              <div style={{
+                fontSize: "0.78rem",
+                fontWeight: 600,
+                color: "var(--muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+                marginTop: 16,
+                marginBottom: 8,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}>
+                <Building2 size={12} /> Company Memberships ({selectedUser.memberships.length})
+              </div>
+
+              <div style={{
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                overflow: "hidden",
+              }}>
+                {selectedUser.memberships.length === 0 ? (
+                  <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)", fontSize: "0.85rem" }}>
+                    No company memberships
+                  </div>
+                ) : (
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                        <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Company</th>
+                        <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Role</th>
+                        <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Joined</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedUser.memberships.map((m) => (
+                        <tr key={m.company_id} style={{ borderBottom: "1px solid var(--border)" }}>
+                          <td style={{ padding: "10px 12px", fontWeight: 500 }}>
+                            {m.company_name}
+                            {!m.is_active && (
+                              <span style={{
+                                marginLeft: 6,
+                                padding: "2px 6px",
+                                borderRadius: 6,
+                                fontSize: "0.7rem",
+                                background: "var(--surface)",
+                                color: "var(--muted)",
+                              }}>
+                                Inactive
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: "10px 12px" }}>
+                            <span style={{
+                              display: "inline-block",
+                              padding: "2px 8px",
+                              borderRadius: 6,
+                              fontSize: "0.72rem",
+                              fontWeight: 600,
+                              ...getRoleBadgeStyle(m.role),
+                            }}>
+                              {formatRole(m.role)}
+                            </span>
+                          </td>
+                          <td style={{ padding: "10px 12px", color: "var(--muted)", fontSize: "0.8rem" }}>
+                            {m.joined_at ? formatDate(m.joined_at) : "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div style={{
+                fontSize: "0.78rem",
+                fontWeight: 600,
+                color: "var(--muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+                marginTop: 16,
+                marginBottom: 8,
+              }}>
+                Actions
+              </div>
+
+              <div style={{
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+                marginBottom: 8,
+              }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={handleResetPassword}
+                  disabled={saving}
+                  style={{ fontSize: "0.82rem" }}
+                >
+                  <KeyRound size={14} /> Reset Password
                 </button>
                 {selectedUser.is_platform_admin ? (
                   <button
                     type="button"
                     className="btn-primary"
-                    style={{ backgroundColor: "var(--color-red)" }}
+                    style={{ backgroundColor: "var(--color-red)", fontSize: "0.82rem" }}
                     onClick={handleToggleAdmin}
                     disabled={saving}
                   >
-                    {saving ? "Saving..." : "Revoke Admin"}
+                    <Shield size={14} /> {saving ? "Saving..." : "Revoke Admin"}
                   </button>
                 ) : (
                   <button
@@ -254,10 +463,17 @@ export default function UsersClient({ users }: Props) {
                     className="btn-primary"
                     onClick={handleToggleAdmin}
                     disabled={saving}
+                    style={{ fontSize: "0.82rem" }}
                   >
-                    {saving ? "Saving..." : "Grant Admin"}
+                    <Shield size={14} /> {saving ? "Saving..." : "Grant Admin"}
                   </button>
                 )}
+              </div>
+
+              <div className="ticket-form-actions">
+                <button type="button" className="btn-secondary" onClick={closeModal}>
+                  Close
+                </button>
               </div>
             </div>
           </div>

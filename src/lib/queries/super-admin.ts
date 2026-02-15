@@ -6,6 +6,17 @@ export interface PlatformUser {
   full_name: string | null;
   is_platform_admin: boolean;
   created_at: string;
+  phone: string | null;
+  job_title: string | null;
+  avatar_url: string | null;
+}
+
+export interface UserMembership {
+  company_id: string;
+  company_name: string;
+  role: string;
+  is_active: boolean;
+  joined_at: string | null;
 }
 
 export interface PlatformCompany {
@@ -171,33 +182,36 @@ export async function getCompanyMemberCounts(
  */
 export async function getAllUsers(
   supabase: SupabaseClient
-): Promise<Array<PlatformUser & { companies: string[] }>> {
+): Promise<Array<PlatformUser & { memberships: UserMembership[] }>> {
   const { data: profiles, error } = await supabase
     .from("user_profiles")
-    .select("id, email, full_name, is_platform_admin, created_at")
+    .select("id, email, full_name, is_platform_admin, created_at, phone, job_title, avatar_url")
     .order("created_at", { ascending: false });
 
   if (error || !profiles) return [];
 
   const { data: members } = await supabase
     .from("company_members")
-    .select("user_id, companies(name)")
-    .eq("is_active", true);
+    .select("user_id, company_id, role, is_active, joined_at, companies(name)")
 
-  const userCompanies: Record<string, string[]> = {};
+  const userMemberships: Record<string, UserMembership[]> = {};
   if (members) {
     for (const m of members) {
-      const companyName = (m.companies as unknown as { name: string } | null)?.name;
-      if (companyName) {
-        if (!userCompanies[m.user_id]) userCompanies[m.user_id] = [];
-        userCompanies[m.user_id].push(companyName);
-      }
+      const companyName = (m.companies as unknown as { name: string } | null)?.name ?? "Unknown";
+      if (!userMemberships[m.user_id]) userMemberships[m.user_id] = [];
+      userMemberships[m.user_id].push({
+        company_id: m.company_id,
+        company_name: companyName,
+        role: m.role,
+        is_active: m.is_active,
+        joined_at: m.joined_at,
+      });
     }
   }
 
   return profiles.map((p) => ({
     ...p,
-    companies: userCompanies[p.id] || [],
+    memberships: userMemberships[p.id] || [],
   }));
 }
 
