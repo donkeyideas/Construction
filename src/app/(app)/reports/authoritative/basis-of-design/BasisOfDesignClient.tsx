@@ -291,23 +291,10 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
     }
   }, [fetchData, generateNarrative, sections]);
 
-  const handleDownloadPDF = useCallback(async () => {
-    setIsDownloading(true);
-    try {
-      const { pdf } = await import("@react-pdf/renderer");
-      const { BasisOfDesignPDF } = await import("@/components/reports/pdf/PDFDocument");
-      const blob = await pdf(
-        BasisOfDesignPDF({ companyName, reportData: reportData!, sections, sectionsData, watermark })
-      ).toBlob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Basis-of-Design-${selectedProjects[0]?.name ?? "Report"}-${new Date().toISOString().split("T")[0]}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) { console.error("PDF generation failed:", err); }
-    setIsDownloading(false);
-  }, [companyName, reportData, sections, sectionsData, watermark, selectedProjects]);
+  const handleDownloadPDF = useCallback(() => {
+    setShowPreviewModal(true);
+    setTimeout(() => window.print(), 400);
+  }, []);
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);

@@ -29,12 +29,7 @@ export function NarrativeEditor({
   }
 
   if (!text) {
-    return (
-      <div className="generating-indicator" style={{ color: "var(--muted)" }}>
-        Click &quot;Generate Report&quot; to create AI-powered narrative for this
-        section.
-      </div>
-    );
+    return null;
   }
 
   if (isEditing) {

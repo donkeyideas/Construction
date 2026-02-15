@@ -335,37 +335,12 @@ export function MarketFeasibilityClient({
     setIsGenerating(false);
   }, [fetchData]);
 
-  // Download PDF
-  const handleDownloadPDF = useCallback(async () => {
-    setIsDownloading(true);
-    try {
-      // Dynamic import to avoid SSR issues
-      const { pdf } = await import("@react-pdf/renderer");
-      const { MarketFeasibilityPDF } = await import(
-        "@/components/reports/pdf/PDFDocument"
-      );
-
-      const blob = await pdf(
-        MarketFeasibilityPDF({
-          companyName,
-          reportData: reportData!,
-          sections,
-          sectionsData,
-          watermark,
-        })
-      ).toBlob();
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Market-Feasibility-Study-${selectedProperties[0]?.name ?? "Report"}-${new Date().toISOString().split("T")[0]}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    }
-    setIsDownloading(false);
-  }, [companyName, reportData, sections, sectionsData, watermark, selectedProperties]);
+  // Download PDF via browser print
+  const handleDownloadPDF = useCallback(() => {
+    setShowPreviewModal(true);
+    // Wait for modal to render, then trigger print
+    setTimeout(() => window.print(), 400);
+  }, []);
 
   // Save draft
   const handleSave = useCallback(async () => {
