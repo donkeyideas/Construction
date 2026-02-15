@@ -224,6 +224,24 @@ export function useAnnotations({ companyId, userId, userName }: UseAnnotationsOp
     }
   }, [redoStack]);
 
+  // Remote sync methods (for realtime events from other users)
+  const mergeRemoteAnnotation = useCallback((annotation: AnnotationRow) => {
+    setAnnotations((prev) => {
+      if (prev.some((a) => a.id === annotation.id)) return prev;
+      return [...prev, annotation];
+    });
+  }, []);
+
+  const removeRemoteAnnotation = useCallback((annotationId: string) => {
+    setAnnotations((prev) => prev.filter((a) => a.id !== annotationId));
+  }, []);
+
+  const updateRemoteAnnotation = useCallback((annotation: AnnotationRow) => {
+    setAnnotations((prev) =>
+      prev.map((a) => (a.id === annotation.id ? { ...a, ...annotation } : a))
+    );
+  }, []);
+
   return {
     annotations,
     selectedId,
@@ -236,5 +254,8 @@ export function useAnnotations({ companyId, userId, userName }: UseAnnotationsOp
     redo,
     canUndo: undoStack.length > 0,
     canRedo: redoStack.length > 0,
+    mergeRemoteAnnotation,
+    removeRemoteAnnotation,
+    updateRemoteAnnotation,
   };
 }

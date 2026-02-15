@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
+import { useRealtimeNotifications } from "@/lib/supabase/realtime";
 import { SearchModal } from "./SearchModal";
 
 interface TopbarProps {
@@ -40,11 +41,16 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   });
 
   const [unreadCount, setUnreadCount] = useState(0);
+  const [userId, setUserId] = useState("");
+
+  // Real-time: increment badge when new messages arrive
+  const { count: realtimeNewCount } = useRealtimeNotifications(userId);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
+        setUserId(data.user.id);
         setUserInfo({
           name: data.user.user_metadata?.full_name ?? null,
           email: data.user.email ?? null,
@@ -60,6 +66,8 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
       }
     });
   }, []);
+
+  const totalUnread = unreadCount + realtimeNewCount;
 
   // Ctrl+K / Cmd+K shortcut
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -109,7 +117,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           </button>
           <button className="notif-btn" onClick={() => router.push("/inbox")} title="Inbox">
             <Bell size={20} />
-            {unreadCount > 0 && <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>}
+            {totalUnread > 0 && <span className="notif-badge">{totalUnread > 99 ? "99+" : totalUnread}</span>}
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

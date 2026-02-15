@@ -29,6 +29,8 @@ import BottomBar from "./components/BottomBar";
 // Hooks
 import { usePdfViewer } from "./hooks/usePdfViewer";
 import { useAnnotations } from "./hooks/useAnnotations";
+import type { AnnotationRow } from "./hooks/useAnnotations";
+import { usePresence, useRealtimeSubscription } from "@/lib/supabase/realtime";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -112,6 +114,40 @@ export default function PlanRoomClient({
 
   // ------- Annotations Hook -------
   const annotationsHook = useAnnotations({ companyId, userId, userName });
+
+  // ------- Presence: show who's viewing -------
+  const presenceUsers = usePresence(
+    selectedId ? `plan-room:${selectedId}` : "plan-room:lobby",
+    { userId, name: userName }
+  );
+
+  // ------- Real-time annotation sync -------
+  useRealtimeSubscription<Record<string, unknown>>(
+    "plan_room_annotations",
+    { column: "document_id", value: selectedId || "" },
+    useCallback(
+      (newRow: Record<string, unknown>) => {
+        if (newRow.created_by !== userId) {
+          annotationsHook.mergeRemoteAnnotation(newRow as unknown as AnnotationRow);
+        }
+      },
+      [userId, annotationsHook.mergeRemoteAnnotation]
+    ),
+    useCallback(
+      (updatedRow: Record<string, unknown>) => {
+        if (updatedRow.created_by !== userId) {
+          annotationsHook.updateRemoteAnnotation(updatedRow as unknown as AnnotationRow);
+        }
+      },
+      [userId, annotationsHook.updateRemoteAnnotation]
+    ),
+    useCallback(
+      (deletedRow: Record<string, unknown>) => {
+        annotationsHook.removeRemoteAnnotation(deletedRow.id as string);
+      },
+      [annotationsHook.removeRemoteAnnotation]
+    )
+  );
 
   // ------- Filtered documents -------
   const filtered = useMemo(() => {
@@ -327,6 +363,7 @@ export default function PlanRoomClient({
           selectedProjectId={projectFilter}
           onProjectChange={setProjectFilter}
           onUploadClick={() => setShowUploadModal(true)}
+          presenceUsers={presenceUsers}
         />
         <div className="plan-room-body">
           <div className="plan-room-empty-state">
@@ -372,6 +409,7 @@ export default function PlanRoomClient({
         selectedProjectId={projectFilter}
         onProjectChange={setProjectFilter}
         onUploadClick={() => setShowUploadModal(true)}
+        presenceUsers={presenceUsers}
       />
 
       {/* Toolbar */}

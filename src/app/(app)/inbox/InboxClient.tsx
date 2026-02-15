@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useRealtimeSubscription } from "@/lib/supabase/realtime";
 import {
   Search,
   Mail,
@@ -94,6 +95,68 @@ export default function InboxClient({
   // Reply form state
   const [replyBody, setReplyBody] = useState("");
   const [replySending, setReplySending] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // Real-time: incoming messages
+  // ---------------------------------------------------------------------------
+
+  useRealtimeSubscription<Record<string, unknown>>(
+    "messages",
+    { column: "recipient_id", value: userId },
+    useCallback(
+      (newMsg: Record<string, unknown>) => {
+        if (newMsg.sender_id === userId) return;
+        const sender = members.find((m) => m.user_id === newMsg.sender_id);
+        const senderName = sender?.full_name || sender?.email || "Team member";
+        const newItem: InboxItem = {
+          id: newMsg.id as string,
+          kind: "message",
+          title: (newMsg.subject as string) || "(No subject)",
+          preview: ((newMsg.body as string) || "").slice(0, 120),
+          sender_name: senderName,
+          is_read: false,
+          created_at: newMsg.created_at as string,
+          entity_type: null,
+          entity_id: null,
+          message: newMsg as unknown as InboxItem["message"],
+        };
+        setItems((prev) => {
+          if (prev.some((i) => i.id === newItem.id)) return prev;
+          return [newItem, ...prev];
+        });
+        setUnreadCount((prev) => prev + 1);
+      },
+      [userId, members]
+    )
+  );
+
+  // Real-time: incoming notifications
+  useRealtimeSubscription<Record<string, unknown>>(
+    "notifications",
+    { column: "user_id", value: userId },
+    useCallback(
+      (newNotif: Record<string, unknown>) => {
+        const newItem: InboxItem = {
+          id: newNotif.id as string,
+          kind: "notification",
+          title: (newNotif.title as string) || "Notification",
+          preview: ((newNotif.body as string) || "").slice(0, 120),
+          sender_name: "System",
+          is_read: false,
+          created_at: newNotif.created_at as string,
+          entity_type: (newNotif.entity_type as string) || null,
+          entity_id: (newNotif.entity_id as string) || null,
+          notification: newNotif as unknown as InboxItem["notification"],
+        };
+        setItems((prev) => {
+          if (prev.some((i) => i.id === newItem.id)) return prev;
+          return [newItem, ...prev];
+        });
+        setUnreadCount((prev) => prev + 1);
+      },
+      []
+    )
+  );
 
   // ---------------------------------------------------------------------------
   // Filtered items

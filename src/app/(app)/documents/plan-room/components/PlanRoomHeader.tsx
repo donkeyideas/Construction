@@ -1,6 +1,14 @@
 "use client";
 
 import type { DocumentRow } from "@/lib/queries/documents";
+import PresenceIndicator from "@/components/PresenceIndicator";
+
+interface PresenceUser {
+  userId: string;
+  name: string;
+  avatar?: string;
+  online_at: string;
+}
 
 interface PlanRoomHeaderProps {
   selectedDoc: DocumentRow | null;
@@ -8,6 +16,7 @@ interface PlanRoomHeaderProps {
   selectedProjectId: string;
   onProjectChange: (projectId: string) => void;
   onUploadClick: () => void;
+  presenceUsers?: PresenceUser[];
 }
 
 export default function PlanRoomHeader({
@@ -16,6 +25,7 @@ export default function PlanRoomHeader({
   selectedProjectId,
   onProjectChange,
   onUploadClick,
+  presenceUsers,
 }: PlanRoomHeaderProps) {
   const projectName = selectedProjectId
     ? projectList.find((p) => p.id === selectedProjectId)?.name
@@ -42,6 +52,9 @@ export default function PlanRoomHeader({
         )}
       </div>
       <div className="plan-room-page-header-right">
+        {presenceUsers && presenceUsers.length > 0 && (
+          <PresenceIndicator users={presenceUsers} maxShow={4} />
+        )}
         <select
           className="plan-room-filter-select"
           value={selectedProjectId}
