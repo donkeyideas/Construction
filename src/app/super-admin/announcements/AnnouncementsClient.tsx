@@ -526,17 +526,16 @@ export default function AnnouncementsClient({ announcements }: Props) {
                 <div className="detail-row">
                   <div className="detail-group">
                     <label className="detail-label">Created</label>
-                    <div className="detail-value">{formatDate(selectedAnn.created_at)}</div>
+                    <div className="detail-value" style={{ borderBottom: "none" }}>{formatDate(selectedAnn.created_at)}</div>
                   </div>
                   <div className="detail-group">
                     <label className="detail-label">Published</label>
-                    <div className="detail-value">
+                    <div className="detail-value" style={{ borderBottom: "none" }}>
                       {selectedAnn.published_at ? formatDate(selectedAnn.published_at) : "---"}
                     </div>
                   </div>
                 </div>
 
-                {/* Footer actions */}
                 <div className="ticket-form-actions">
                   <button type="button" className="btn-secondary" onClick={closeDetail}>
                     Close

@@ -227,38 +227,38 @@ export default function UsersClient({ users }: Props) {
 
               <div className="detail-group">
                 <label className="detail-label">Companies</label>
-                <div className="detail-value">
+                <div className="detail-value" style={{ borderBottom: "none" }}>
                   {selectedUser.companies.length === 0
                     ? "None"
                     : selectedUser.companies.join(", ")}
                 </div>
               </div>
-            </div>
 
-            <div className="ticket-form-actions" style={{ padding: "0 1.2rem 1.2rem" }}>
-              <button type="button" className="btn-secondary" onClick={closeModal} disabled={saving}>
-                Close
-              </button>
-              {selectedUser.is_platform_admin ? (
-                <button
-                  type="button"
-                  className="btn"
-                  style={{ backgroundColor: "var(--color-red)", color: "#fff" }}
-                  onClick={handleToggleAdmin}
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Revoke Admin"}
+              <div className="ticket-form-actions">
+                <button type="button" className="btn-secondary" onClick={closeModal} disabled={saving}>
+                  Close
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={handleToggleAdmin}
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Grant Admin"}
-                </button>
-              )}
+                {selectedUser.is_platform_admin ? (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ backgroundColor: "var(--color-red)" }}
+                    onClick={handleToggleAdmin}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Revoke Admin"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handleToggleAdmin}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Grant Admin"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -227,7 +227,7 @@ export default function ContentClient({ pages }: Props) {
               <div style={{ padding: "1.25rem" }}>
                 <div className="detail-group">
                   <label className="detail-label">Slug</label>
-                  <div className="detail-value" style={{ fontFamily: "monospace", fontSize: "0.85rem" }}>
+                  <div className="detail-value">
                     /{selectedPage.page_slug}
                   </div>
                 </div>
@@ -247,7 +247,7 @@ export default function ContentClient({ pages }: Props) {
                 </div>
                 <div className="detail-group">
                   <label className="detail-label">Last Updated</label>
-                  <div className="detail-value">{formatDate(selectedPage.updated_at)}</div>
+                  <div className="detail-value" style={{ borderBottom: "none" }}>{formatDate(selectedPage.updated_at)}</div>
                 </div>
 
                 <div className="ticket-form-actions">

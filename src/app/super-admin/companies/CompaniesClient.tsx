@@ -324,7 +324,7 @@ export default function CompaniesClient({ companies }: Props) {
               <div style={{ padding: "1.25rem" }}>
                 <div className="detail-group">
                   <label className="detail-label">Slug</label>
-                  <div className="detail-value" style={{ fontFamily: "monospace", fontSize: "0.85rem" }}>
+                  <div className="detail-value">
                     {selected.slug}
                   </div>
                 </div>
@@ -362,7 +362,7 @@ export default function CompaniesClient({ companies }: Props) {
 
                 <div className="detail-group">
                   <label className="detail-label">Created</label>
-                  <div className="detail-value">{formatDate(selected.created_at)}</div>
+                  <div className="detail-value" style={{ borderBottom: "none" }}>{formatDate(selected.created_at)}</div>
                 </div>
 
                 <div className="ticket-form-actions">
