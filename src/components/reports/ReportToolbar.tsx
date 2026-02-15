@@ -93,10 +93,11 @@ export function ReportToolbar({
           <button
             className="report-toolbar-btn primary"
             onClick={onDownloadPDF}
+            disabled={isDownloading}
             type="button"
           >
             <Download size={14} />
-            Print / Save PDF
+            {isDownloading ? "Preparing PDF..." : "Download PDF"}
           </button>
         </>
       )}

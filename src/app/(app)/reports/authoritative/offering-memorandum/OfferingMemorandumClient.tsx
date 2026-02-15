@@ -284,10 +284,23 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
     }
   }, [fetchData, generateNarrative, sections]);
 
-  const handleDownloadPDF = useCallback(() => {
-    setShowPreviewModal(true);
-    setTimeout(() => window.print(), 400);
-  }, []);
+  const handleDownloadPDF = useCallback(async () => {
+    setIsDownloading(true);
+    try {
+      const { pdf } = await import("@react-pdf/renderer");
+      const { OfferingMemorandumPDF } = await import("@/components/reports/pdf/PDFDocument");
+      const blob = await pdf(
+        OfferingMemorandumPDF({ companyName, reportData: reportData!, sections, sectionsData, watermark })
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Offering-Memorandum-${selectedProperties[0]?.name ?? "Report"}-${new Date().toISOString().split("T")[0]}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { console.error("PDF generation failed:", err); }
+    setIsDownloading(false);
+  }, [companyName, reportData, sections, sectionsData, watermark, selectedProperties]);
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
