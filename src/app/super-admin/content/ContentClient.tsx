@@ -170,17 +170,24 @@ export default function ContentClient({ pages }: Props) {
 
       const defaults = getDefaults(slug);
 
-      // Detect stale seed data: if homepage sections lack our expected
-      // types (about, steps, modules, pricing) they are from the old
-      // seed and should be replaced with the SEO-optimised defaults.
+      // For homepage: detect stale seed data and replace with defaults
+      // if the sections lack the expected homepage types.
+      // For other pages: always use the database sections as-is.
       const dbSections = data.sections as CmsSection[] | null;
-      const hasExpectedTypes = dbSections?.some((s) =>
-        ["about", "steps", "modules", "pricing"].includes(s.type)
-      );
-      const loadedSections =
-        dbSections && dbSections.length > 0 && hasExpectedTypes
+      let loadedSections: CmsSection[];
+      if (slug === "homepage") {
+        const hasExpectedTypes = dbSections?.some((s) =>
+          ["about", "steps", "modules", "pricing"].includes(s.type)
+        );
+        loadedSections =
+          dbSections && dbSections.length > 0 && hasExpectedTypes
+            ? dbSections
+            : defaults.sections;
+      } else {
+        loadedSections = dbSections && dbSections.length > 0
           ? dbSections
           : defaults.sections;
+      }
 
       setEditingPage(data);
       setSections(loadedSections);
