@@ -304,7 +304,7 @@
 
 .subject-card.selected {
   border-color: var(--color-blue);
-  background: var(--color-blue-bg, #eff6ff);
+  background: rgba(74, 144, 217, 0.12);
 }
 
 .subject-card-name {
