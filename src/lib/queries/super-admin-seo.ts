@@ -103,7 +103,7 @@ interface CmsPageRow {
 
 interface SectionItem {
   type?: string;
-  content?: string;
+  content?: unknown; // Can be string or complex JSON object
   order?: number;
   visible?: boolean;
 }
@@ -140,12 +140,22 @@ function freshness(daysSinceUpdate: number): "fresh" | "aging" | "stale" {
   return "stale";
 }
 
+/** Recursively extract all string values from a nested object/array */
+function extractText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map(extractText).join(" ");
+  if (value && typeof value === "object") {
+    return Object.values(value).map(extractText).join(" ");
+  }
+  return "";
+}
+
 function estimateWordCount(sections: SectionItem[] | null): number {
   if (!sections || !Array.isArray(sections)) return 0;
   let totalChars = 0;
   for (const section of sections) {
-    if (section.content && typeof section.content === "string") {
-      totalChars += section.content.length;
+    if (section.content) {
+      totalChars += extractText(section.content).length;
     }
   }
   // Average word length ~5 characters
@@ -158,7 +168,7 @@ function countEmptyOrHidden(sections: SectionItem[] | null): number {
   for (const section of sections) {
     if (section.visible === false) {
       count++;
-    } else if (!section.content || section.content.trim().length === 0) {
+    } else if (!section.content || extractText(section.content).trim().length === 0) {
       count++;
     }
   }
