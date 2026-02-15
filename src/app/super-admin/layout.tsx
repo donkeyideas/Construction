@@ -6,6 +6,7 @@ import { Topbar } from "@/components/layout/topbar";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import "@/styles/app-shell.css";
+import "@/styles/components.css";
 import "@/styles/admin.css";
 import "@/styles/super-admin.css";
 import "@/styles/tickets.css";

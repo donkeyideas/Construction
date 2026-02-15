@@ -5,11 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, FileText,
-  Globe, ArrowLeft, ChevronRight, CreditCard,
+  Globe, ChevronRight, CreditCard,
 } from "lucide-react";
 import {
   superAdminNavigation,
-  superAdminBottomNav,
   type SuperAdminNavItem,
 } from "@/types/super-admin-navigation";
 import { useTranslations } from "next-intl";
@@ -21,7 +20,6 @@ const iconMap: Record<string, React.ElementType> = {
   "file-text": FileText,
   globe: Globe,
   "credit-card": CreditCard,
-  "arrow-left": ArrowLeft,
 };
 
 function NavItemComponent({ item, t }: { item: SuperAdminNavItem; t: (key: string) => string }) {
@@ -95,11 +93,7 @@ export function SuperAdminSidebar({ isOpen, onClose }: SuperAdminSidebarProps) {
             <NavItemComponent key={item.label} item={item} t={t as any} />
           ))}
         </nav>
-        <div className="sidebar-bottom">
-          {superAdminBottomNav.map((item) => (
-            <NavItemComponent key={item.label} item={item} t={t as any} />
-          ))}
-        </div>
+        <div className="sidebar-bottom" />
       </aside>
     </>
   );
