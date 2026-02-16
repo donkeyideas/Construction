@@ -4,18 +4,100 @@ import { useState, FormEvent, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const INDUSTRY_TYPES = [
-  "General Contracting",
-  "Residential Construction",
-  "Commercial Construction",
-  "Heavy / Civil Engineering",
+const COMPANY_TYPES = [
+  "General Contractor",
+  "Developer",
+  "Property Manager",
+  "Owner-Builder",
+  "Subcontractor",
   "Specialty Trade",
-  "Real Estate Development",
-  "Property Management",
   "Architecture / Engineering",
-  "Renovation / Remodeling",
   "Other",
 ] as const;
+
+const COMPANY_SIZES = [
+  "1-10 employees",
+  "11-50 employees",
+  "51-200 employees",
+  "201-500 employees",
+  "500+ employees",
+] as const;
+
+interface ModuleOption {
+  key: string;
+  name: string;
+  description: string;
+  color: string;
+  emoji: string;
+  defaultChecked: boolean;
+}
+
+const MODULES: ModuleOption[] = [
+  {
+    key: "project_management",
+    name: "Project Management",
+    description: "Scheduling, tasks, timelines",
+    color: "#2563eb",
+    emoji: "\u{1F4CB}",
+    defaultChecked: true,
+  },
+  {
+    key: "property_management",
+    name: "Property Management",
+    description: "Tenants, leases, maintenance",
+    color: "#059669",
+    emoji: "\u{1F3E2}",
+    defaultChecked: false,
+  },
+  {
+    key: "financial_management",
+    name: "Financial Management",
+    description: "Budgets, invoices, payments",
+    color: "#d97706",
+    emoji: "\u{1F4B0}",
+    defaultChecked: true,
+  },
+  {
+    key: "document_management",
+    name: "Document Management",
+    description: "Files, contracts, blueprints",
+    color: "#7c3aed",
+    emoji: "\u{1F4C1}",
+    defaultChecked: false,
+  },
+  {
+    key: "people_workforce",
+    name: "People & Workforce",
+    description: "Crew tracking, HR, timesheets",
+    color: "#dc2626",
+    emoji: "\u{1F477}",
+    defaultChecked: false,
+  },
+  {
+    key: "crm_business_dev",
+    name: "CRM & Business Dev",
+    description: "Leads, clients, proposals",
+    color: "#0891b2",
+    emoji: "\u{1F91D}",
+    defaultChecked: false,
+  },
+  {
+    key: "ai_intelligence",
+    name: "AI Intelligence",
+    description: "Smart insights, predictions",
+    color: "#9333ea",
+    emoji: "\u{1F9E0}",
+    defaultChecked: true,
+  },
+  {
+    key: "reporting_analytics",
+    name: "Reporting & Analytics",
+    description: "Dashboards, KPIs, exports",
+    color: "#0d9488",
+    emoji: "\u{1F4CA}",
+    defaultChecked: false,
+  },
+];
 
 function generateSlug(name: string): string {
   return name
@@ -49,16 +131,24 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Step 2 fields
   const [companyName, setCompanyName] = useState("");
   const [companySlug, setCompanySlug] = useState("");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [industryType, setIndustryType] = useState("");
+  const [companySize, setCompanySize] = useState("");
   const [phone, setPhone] = useState("");
+  const [website, setWebsite] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const [promoValidating, setPromoValidating] = useState(false);
   const [promoStatus, setPromoStatus] = useState<"idle" | "valid" | "invalid">("idle");
+
+  // Step 3 fields
+  const [selectedModules, setSelectedModules] = useState<string[]>(
+    MODULES.filter((m) => m.defaultChecked).map((m) => m.key)
+  );
 
   const passwordStrength = getPasswordStrength(password);
 
@@ -72,9 +162,10 @@ export default function RegisterPage() {
     [slugManuallyEdited]
   );
 
-  function handleSlugChange(value: string) {
-    setSlugManuallyEdited(true);
-    setCompanySlug(generateSlug(value));
+  function toggleModule(key: string) {
+    setSelectedModules((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
   }
 
   function validateStep1(): boolean {
@@ -94,6 +185,30 @@ export default function RegisterPage() {
       setError("Passwords do not match.");
       return false;
     }
+    if (!acceptedTerms) {
+      setError("You must agree to the Terms of Service and Privacy Policy.");
+      return false;
+    }
+    return true;
+  }
+
+  function validateStep2(): boolean {
+    if (!companyName.trim()) {
+      setError("Please enter your company name.");
+      return false;
+    }
+    if (!companySlug.trim()) {
+      setError("Company slug is required.");
+      return false;
+    }
+    if (!industryType) {
+      setError("Please select a company type.");
+      return false;
+    }
+    if (!companySize) {
+      setError("Please select a company size.");
+      return false;
+    }
     return true;
   }
 
@@ -102,6 +217,14 @@ export default function RegisterPage() {
     setError("");
     if (validateStep1()) {
       setStep(2);
+    }
+  }
+
+  function handleStep2Next(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (validateStep2()) {
+      setStep(3);
     }
   }
 
@@ -126,20 +249,6 @@ export default function RegisterPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
-
-    if (!companyName.trim()) {
-      setError("Please enter your company name.");
-      return;
-    }
-    if (!companySlug.trim()) {
-      setError("Company slug is required.");
-      return;
-    }
-    if (!industryType) {
-      setError("Please select an industry type.");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -153,7 +262,11 @@ export default function RegisterPage() {
           company_name: companyName,
           company_slug: companySlug,
           industry_type: industryType,
+          company_size: companySize,
           phone: phone || null,
+          website: website || null,
+          selected_modules: selectedModules,
+          accepted_terms: true,
           promo_code: promoCode.trim() || null,
         }),
       });
@@ -166,7 +279,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // Redirect to login with success message
       router.push("/login?registered=true");
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -174,11 +286,26 @@ export default function RegisterPage() {
     }
   }
 
+  const checkIcon = (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+
   return (
     <div className="auth-card">
       <h1 className="auth-title">Create your account</h1>
       <p className="auth-subtitle">
-        Get started with Buildwrk in two quick steps.
+        Get started with Buildwrk in three quick steps.
       </p>
 
       {/* Step Indicator */}
@@ -187,30 +314,23 @@ export default function RegisterPage() {
           className={`auth-step ${step === 1 ? "auth-step-active" : ""} ${step > 1 ? "auth-step-done" : ""}`}
         >
           <span className="auth-step-number">
-            {step > 1 ? (
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            ) : (
-              "1"
-            )}
+            {step > 1 ? checkIcon : "1"}
           </span>
           <span className="auth-step-label">Account</span>
         </div>
         <div
-          className={`auth-step ${step === 2 ? "auth-step-active" : ""}`}
+          className={`auth-step ${step === 2 ? "auth-step-active" : ""} ${step > 2 ? "auth-step-done" : ""}`}
         >
-          <span className="auth-step-number">2</span>
+          <span className="auth-step-number">
+            {step > 2 ? checkIcon : "2"}
+          </span>
           <span className="auth-step-label">Company</span>
+        </div>
+        <div
+          className={`auth-step ${step === 3 ? "auth-step-active" : ""}`}
+        >
+          <span className="auth-step-number">3</span>
+          <span className="auth-step-label">Modules</span>
         </div>
       </div>
 
@@ -236,12 +356,12 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* Step 1: Account Info */}
+      {/* Step 1: Account Details */}
       {step === 1 && (
         <form onSubmit={handleStep1Next}>
           <div className="auth-field">
             <label htmlFor="fullName" className="auth-label">
-              Full name
+              Full Name
             </label>
             <input
               id="fullName"
@@ -257,7 +377,7 @@ export default function RegisterPage() {
 
           <div className="auth-field">
             <label htmlFor="regEmail" className="auth-label">
-              Email address
+              Email Address
             </label>
             <input
               id="regEmail"
@@ -319,7 +439,7 @@ export default function RegisterPage() {
 
           <div className="auth-field">
             <label htmlFor="confirmPassword" className="auth-label">
-              Confirm password
+              Confirm Password
             </label>
             <input
               id="confirmPassword"
@@ -333,6 +453,43 @@ export default function RegisterPage() {
             />
           </div>
 
+          <div className="auth-field">
+            <label
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "10px",
+                fontSize: "0.82rem",
+                color: "var(--text)",
+                lineHeight: 1.5,
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                style={{
+                  marginTop: "3px",
+                  accentColor: "var(--color-blue)",
+                  width: "16px",
+                  height: "16px",
+                  flexShrink: 0,
+                }}
+              />
+              <span>
+                I agree to the{" "}
+                <Link href="/terms" style={{ color: "var(--color-amber)", textDecoration: "none", fontWeight: 500 }}>
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" style={{ color: "var(--color-amber)", textDecoration: "none", fontWeight: 500 }}>
+                  Privacy Policy
+                </Link>
+              </span>
+            </label>
+          </div>
+
           <button type="submit" className="auth-btn">
             Continue
           </button>
@@ -341,10 +498,10 @@ export default function RegisterPage() {
 
       {/* Step 2: Company Setup */}
       {step === 2 && (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleStep2Next}>
           <div className="auth-field">
             <label htmlFor="companyName" className="auth-label">
-              Company name
+              Company Name
             </label>
             <input
               id="companyName"
@@ -354,23 +511,6 @@ export default function RegisterPage() {
               value={companyName}
               onChange={(e) => handleCompanyNameChange(e.target.value)}
               required
-              disabled={loading}
-            />
-          </div>
-
-          <div className="auth-field">
-            <label htmlFor="companySlug" className="auth-label">
-              Company URL slug
-            </label>
-            <input
-              id="companySlug"
-              type="text"
-              className="auth-input"
-              placeholder="acme-construction-llc"
-              value={companySlug}
-              onChange={(e) => handleSlugChange(e.target.value)}
-              required
-              disabled={loading}
             />
             {companySlug && (
               <div className="auth-slug-preview">
@@ -381,7 +521,7 @@ export default function RegisterPage() {
 
           <div className="auth-field">
             <label htmlFor="industryType" className="auth-label">
-              Industry type
+              Company Type
             </label>
             <select
               id="industryType"
@@ -389,10 +529,9 @@ export default function RegisterPage() {
               value={industryType}
               onChange={(e) => setIndustryType(e.target.value)}
               required
-              disabled={loading}
             >
-              <option value="">Select an industry...</option>
-              {INDUSTRY_TYPES.map((type) => (
+              <option value="">Select a company type...</option>
+              {COMPANY_TYPES.map((type) => (
                 <option key={type} value={type}>
                   {type}
                 </option>
@@ -401,8 +540,28 @@ export default function RegisterPage() {
           </div>
 
           <div className="auth-field">
+            <label htmlFor="companySize" className="auth-label">
+              Company Size
+            </label>
+            <select
+              id="companySize"
+              className="auth-select"
+              value={companySize}
+              onChange={(e) => setCompanySize(e.target.value)}
+              required
+            >
+              <option value="">Select company size...</option>
+              {COMPANY_SIZES.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="auth-field">
             <label htmlFor="phone" className="auth-label">
-              Phone number{" "}
+              Phone Number{" "}
               <span style={{ color: "var(--muted)", fontWeight: 400 }}>
                 (optional)
               </span>
@@ -415,13 +574,30 @@ export default function RegisterPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               autoComplete="tel"
-              disabled={loading}
+            />
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="website" className="auth-label">
+              Company Website{" "}
+              <span style={{ color: "var(--muted)", fontWeight: 400 }}>
+                (optional)
+              </span>
+            </label>
+            <input
+              id="website"
+              type="url"
+              className="auth-input"
+              placeholder="https://www.example.com"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              autoComplete="url"
             />
           </div>
 
           <div className="auth-field">
             <label htmlFor="promoCode" className="auth-label">
-              Promo code{" "}
+              Promo Code{" "}
               <span style={{ color: "var(--muted)", fontWeight: 400 }}>
                 (optional)
               </span>
@@ -437,7 +613,6 @@ export default function RegisterPage() {
                   setPromoCode(e.target.value.toUpperCase());
                   setPromoStatus("idle");
                 }}
-                disabled={loading}
                 style={{ flex: 1, textTransform: "uppercase", letterSpacing: "0.05em" }}
               />
               {promoCode.trim() && (
@@ -445,7 +620,7 @@ export default function RegisterPage() {
                   type="button"
                   className="auth-btn-secondary"
                   onClick={validatePromo}
-                  disabled={promoValidating || loading}
+                  disabled={promoValidating}
                   style={{ width: "auto", padding: "0 16px", flex: "0 0 auto" }}
                 >
                   {promoValidating ? "..." : "Verify"}
@@ -471,6 +646,151 @@ export default function RegisterPage() {
               onClick={() => {
                 setError("");
                 setStep(1);
+              }}
+              style={{ flex: "0 0 auto", width: "auto", padding: "0 24px" }}
+            >
+              Back
+            </button>
+            <button
+              type="submit"
+              className="auth-btn"
+              style={{ flex: 1 }}
+            >
+              Continue
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Step 3: Select Modules */}
+      {step === 3 && (
+        <form onSubmit={handleSubmit}>
+          <p style={{
+            fontSize: "0.85rem",
+            color: "var(--muted)",
+            marginBottom: "20px",
+            lineHeight: 1.5,
+          }}>
+            Choose the modules you need. You can always change these later.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "12px",
+              marginBottom: "24px",
+            }}
+          >
+            {MODULES.map((mod) => {
+              const isSelected = selectedModules.includes(mod.key);
+              return (
+                <label
+                  key={mod.key}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "10px",
+                    padding: "14px 12px",
+                    borderRadius: "10px",
+                    border: `1.5px solid ${isSelected ? "var(--color-blue)" : "var(--border)"}`,
+                    background: isSelected ? "rgba(37, 99, 235, 0.04)" : "var(--bg)",
+                    cursor: "pointer",
+                    transition: "border-color 0.15s, background 0.15s",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleModule(mod.key)}
+                    style={{
+                      position: "absolute",
+                      opacity: 0,
+                      width: 0,
+                      height: 0,
+                      pointerEvents: "none",
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: "34px",
+                      height: "34px",
+                      borderRadius: "8px",
+                      background: `${mod.color}18`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1.1rem",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {mod.emoji}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        color: "var(--text)",
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {mod.name}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--muted)",
+                        lineHeight: 1.4,
+                        marginTop: "2px",
+                      }}
+                    >
+                      {mod.description}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      borderRadius: "4px",
+                      border: `1.5px solid ${isSelected ? "var(--color-blue)" : "var(--border)"}`,
+                      background: isSelected ? "var(--color-blue)" : "transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      marginLeft: "auto",
+                      marginTop: "2px",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {isSelected && (
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#fff"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", gap: "12px" }}>
+            <button
+              type="button"
+              className="auth-btn-secondary"
+              onClick={() => {
+                setError("");
+                setStep(2);
               }}
               disabled={loading}
               style={{ flex: "0 0 auto", width: "auto", padding: "0 24px" }}

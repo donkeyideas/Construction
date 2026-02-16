@@ -10,6 +10,7 @@ export interface PlatformUser {
   job_title: string | null;
   avatar_url: string | null;
   portal_type: string | null;
+  accepted_terms_at: string | null;
 }
 
 export interface UserMembership {
@@ -18,6 +19,10 @@ export interface UserMembership {
   role: string;
   is_active: boolean;
   joined_at: string | null;
+  company_industry?: string | null;
+  company_size?: string | null;
+  company_website?: string | null;
+  selected_modules?: string[] | null;
 }
 
 export interface PlatformCompany {
@@ -186,26 +191,36 @@ export async function getAllUsers(
 ): Promise<Array<PlatformUser & { memberships: UserMembership[] }>> {
   const { data: profiles, error } = await supabase
     .from("user_profiles")
-    .select("id, email, full_name, is_platform_admin, created_at, phone, job_title, avatar_url, portal_type")
+    .select("id, email, full_name, is_platform_admin, created_at, phone, job_title, avatar_url, portal_type, accepted_terms_at")
     .order("created_at", { ascending: false });
 
   if (error || !profiles) return [];
 
   const { data: members } = await supabase
     .from("company_members")
-    .select("user_id, company_id, role, is_active, joined_at, companies(name)")
+    .select("user_id, company_id, role, is_active, joined_at, companies(name, industry_type, company_size, website, selected_modules)")
 
   const userMemberships: Record<string, UserMembership[]> = {};
   if (members) {
     for (const m of members) {
-      const companyName = (m.companies as unknown as { name: string } | null)?.name ?? "Unknown";
+      const company = m.companies as unknown as {
+        name: string;
+        industry_type: string | null;
+        company_size: string | null;
+        website: string | null;
+        selected_modules: string[] | null;
+      } | null;
       if (!userMemberships[m.user_id]) userMemberships[m.user_id] = [];
       userMemberships[m.user_id].push({
         company_id: m.company_id,
-        company_name: companyName,
+        company_name: company?.name ?? "Unknown",
         role: m.role,
         is_active: m.is_active,
         joined_at: m.joined_at,
+        company_industry: company?.industry_type ?? null,
+        company_size: company?.company_size ?? null,
+        company_website: company?.website ?? null,
+        selected_modules: company?.selected_modules ?? null,
       });
     }
   }

@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   Home,
   Truck,
+  Globe,
 } from "lucide-react";
 import type { PlatformUser, UserMembership } from "@/lib/queries/super-admin";
 
@@ -449,6 +450,16 @@ export default function UsersClient({ users }: Props) {
                   <div className="detail-value">{formatDate(selectedUser.created_at, dateLocale)}</div>
                 </div>
 
+                <div style={{ fontSize: "0.8rem", marginTop: 4, marginBottom: 8 }}>
+                  {selectedUser.accepted_terms_at ? (
+                    <span style={{ color: "var(--color-green)" }}>
+                      Terms accepted on {formatDate(selectedUser.accepted_terms_at, dateLocale)}
+                    </span>
+                  ) : (
+                    <span style={{ color: "var(--muted)" }}>Terms not accepted</span>
+                  )}
+                </div>
+
                 {/* Company Memberships */}
                 <div style={{
                   fontSize: "0.78rem",
@@ -522,6 +533,103 @@ export default function UsersClient({ users }: Props) {
                     </table>
                   )}
                 </div>
+
+                {/* Company Details */}
+                {(() => {
+                  const activeMembership = selectedUser.memberships.find((m) => m.is_active);
+                  if (!activeMembership) return null;
+                  const hasAnyDetail =
+                    activeMembership.company_industry ||
+                    activeMembership.company_size ||
+                    activeMembership.company_website ||
+                    (activeMembership.selected_modules && activeMembership.selected_modules.length > 0);
+                  if (!hasAnyDetail) return null;
+                  return (
+                    <>
+                      <div style={{
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                        color: "var(--muted)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                        marginTop: 16,
+                        marginBottom: 8,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}>
+                        <Building2 size={12} /> COMPANY DETAILS
+                      </div>
+
+                      <div className="detail-row">
+                        {activeMembership.company_industry && (
+                          <div className="detail-group">
+                            <label className="detail-label">
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                <Building2 size={12} /> Industry
+                              </span>
+                            </label>
+                            <div className="detail-value">{activeMembership.company_industry}</div>
+                          </div>
+                        )}
+                        {activeMembership.company_size && (
+                          <div className="detail-group">
+                            <label className="detail-label">
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                <Users size={12} /> Company Size
+                              </span>
+                            </label>
+                            <div className="detail-value">{activeMembership.company_size}</div>
+                          </div>
+                        )}
+                      </div>
+
+                      {activeMembership.company_website && (
+                        <div className="detail-group">
+                          <label className="detail-label">
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <Globe size={12} /> Website
+                            </span>
+                          </label>
+                          <div className="detail-value">
+                            <a
+                              href={activeMembership.company_website.startsWith("http") ? activeMembership.company_website : `https://${activeMembership.company_website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: "var(--color-blue, #3b82f6)", textDecoration: "underline" }}
+                            >
+                              {activeMembership.company_website}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeMembership.selected_modules && activeMembership.selected_modules.length > 0 && (
+                        <div className="detail-group">
+                          <label className="detail-label">Selected Modules</label>
+                          <div className="detail-value" style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                            {activeMembership.selected_modules.map((mod) => (
+                              <span
+                                key={mod}
+                                style={{
+                                  display: "inline-block",
+                                  padding: "2px 8px",
+                                  borderRadius: 6,
+                                  fontSize: "0.72rem",
+                                  fontWeight: 600,
+                                  background: "rgba(59, 130, 246, 0.1)",
+                                  color: "var(--color-blue, #3b82f6)",
+                                }}
+                              >
+                                {mod.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {/* Actions */}
                 <div style={{

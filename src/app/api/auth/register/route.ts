@@ -11,6 +11,10 @@ interface RegisterBody {
   industry_type?: string;
   phone?: string | null;
   promo_code?: string | null;
+  company_size?: string | null;
+  website?: string | null;
+  selected_modules?: string[] | null;
+  accepted_terms?: boolean;
 }
 
 export async function POST(request: Request) {
@@ -119,6 +123,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Update accepted_terms_at if user accepted terms
+    if (body.accepted_terms) {
+      await supabase
+        .from("user_profiles")
+        .update({ accepted_terms_at: new Date().toISOString() })
+        .eq("id", userId);
+    }
+
     // Step 3: Create company record
     const { data: companyData, error: companyError } = await supabase
       .from("companies")
@@ -127,6 +139,9 @@ export async function POST(request: Request) {
         slug: company_slug,
         industry_type: industry_type || null,
         created_by: userId,
+        company_size: body.company_size || null,
+        website: body.website || null,
+        selected_modules: body.selected_modules || [],
       })
       .select("id")
       .single();
