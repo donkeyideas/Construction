@@ -28,7 +28,7 @@ interface ModuleOption {
   name: string;
   description: string;
   color: string;
-  emoji: string;
+  icon: string;
   defaultChecked: boolean;
 }
 
@@ -38,7 +38,7 @@ const MODULES: ModuleOption[] = [
     name: "Project Management",
     description: "Scheduling, tasks, timelines",
     color: "#2563eb",
-    emoji: "\u{1F4CB}",
+    icon: "PM",
     defaultChecked: true,
   },
   {
@@ -46,7 +46,7 @@ const MODULES: ModuleOption[] = [
     name: "Property Management",
     description: "Tenants, leases, maintenance",
     color: "#059669",
-    emoji: "\u{1F3E2}",
+    icon: "PR",
     defaultChecked: false,
   },
   {
@@ -54,7 +54,7 @@ const MODULES: ModuleOption[] = [
     name: "Financial Management",
     description: "Budgets, invoices, payments",
     color: "#d97706",
-    emoji: "\u{1F4B0}",
+    icon: "FM",
     defaultChecked: true,
   },
   {
@@ -62,7 +62,7 @@ const MODULES: ModuleOption[] = [
     name: "Document Management",
     description: "Files, contracts, blueprints",
     color: "#7c3aed",
-    emoji: "\u{1F4C1}",
+    icon: "DM",
     defaultChecked: false,
   },
   {
@@ -70,7 +70,7 @@ const MODULES: ModuleOption[] = [
     name: "People & Workforce",
     description: "Crew tracking, HR, timesheets",
     color: "#dc2626",
-    emoji: "\u{1F477}",
+    icon: "PW",
     defaultChecked: false,
   },
   {
@@ -78,7 +78,7 @@ const MODULES: ModuleOption[] = [
     name: "CRM & Business Dev",
     description: "Leads, clients, proposals",
     color: "#0891b2",
-    emoji: "\u{1F91D}",
+    icon: "CR",
     defaultChecked: false,
   },
   {
@@ -86,7 +86,7 @@ const MODULES: ModuleOption[] = [
     name: "AI Intelligence",
     description: "Smart insights, predictions",
     color: "#9333ea",
-    emoji: "\u{1F9E0}",
+    icon: "AI",
     defaultChecked: true,
   },
   {
@@ -94,7 +94,7 @@ const MODULES: ModuleOption[] = [
     name: "Reporting & Analytics",
     description: "Dashboards, KPIs, exports",
     color: "#0d9488",
-    emoji: "\u{1F4CA}",
+    icon: "RA",
     defaultChecked: false,
   },
 ];
@@ -586,9 +586,9 @@ export default function RegisterPage() {
             </label>
             <input
               id="website"
-              type="url"
+              type="text"
               className="auth-input"
-              placeholder="https://www.example.com"
+              placeholder="www.example.com"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               autoComplete="url"
@@ -717,14 +717,17 @@ export default function RegisterPage() {
                       height: "34px",
                       borderRadius: "8px",
                       background: `${mod.color}18`,
+                      color: mod.color,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "1.1rem",
+                      fontSize: "0.7rem",
+                      fontWeight: 700,
+                      letterSpacing: "0.02em",
                       flexShrink: 0,
                     }}
                   >
-                    {mod.emoji}
+                    {mod.icon}
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <div
