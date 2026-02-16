@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
@@ -96,6 +96,11 @@ export default function BudgetClient({
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
   const [lines, setLines] = useState<BudgetLineRow[]>(initialLines);
+
+  // Sync state when server re-renders after import/refresh
+  useEffect(() => {
+    setLines(initialLines);
+  }, [initialLines]);
 
   // Import modal
   const [showImport, setShowImport] = useState(false);
@@ -278,7 +283,7 @@ export default function BudgetClient({
 
           {/* Add Budget Line / Import Buttons */}
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 16 }}>
-            <button className="btn btn-ghost" onClick={() => setShowImport(true)}>
+            <button className="ui-btn ui-btn-secondary ui-btn-md" onClick={() => setShowImport(true)}>
               <Upload size={16} />
               {t("importCsv")}
             </button>
