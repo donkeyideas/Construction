@@ -18,6 +18,7 @@ import {
   Home,
   Truck,
   Globe,
+  Trash2,
 } from "lucide-react";
 import type { PlatformUser, UserMembership } from "@/lib/queries/super-admin";
 
@@ -104,6 +105,7 @@ export default function UsersClient({ users }: Props) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const filtered = users.filter((u) => {
     const matchesSearch =
@@ -135,6 +137,7 @@ export default function UsersClient({ users }: Props) {
     setSelectedUser(null);
     setSaveError(null);
     setActionMessage(null);
+    setConfirmDelete(false);
   }
 
   async function handleToggleAdmin() {
@@ -179,6 +182,26 @@ export default function UsersClient({ users }: Props) {
       setActionMessage(t("passwordResetSent", { email: selectedUser.email }));
     } catch (err: unknown) {
       setSaveError(err instanceof Error ? err.message : t("failedResetPassword"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteUser() {
+    if (!selectedUser) return;
+    setSaving(true);
+    setSaveError(null);
+    setActionMessage(null);
+    try {
+      const res = await fetch(`/api/super-admin/users/${selectedUser.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete user.");
+      closeModal();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : "Failed to delete user.");
     } finally {
       setSaving(false);
     }
@@ -680,7 +703,53 @@ export default function UsersClient({ users }: Props) {
                       <Shield size={14} /> {saving ? t("saving") : t("grantAdmin")}
                     </button>
                   )}
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setConfirmDelete(true)}
+                    disabled={saving}
+                    style={{ fontSize: "0.82rem", color: "var(--color-red)", borderColor: "rgba(220,38,38,0.3)" }}
+                  >
+                    <Trash2 size={14} /> Delete Account
+                  </button>
                 </div>
+
+                {confirmDelete && (
+                  <div style={{
+                    background: "rgba(220, 38, 38, 0.06)",
+                    border: "1px solid rgba(220, 38, 38, 0.25)",
+                    borderRadius: 8,
+                    padding: "12px 14px",
+                    marginBottom: 12,
+                  }}>
+                    <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--color-red)", marginBottom: 6 }}>
+                      Are you sure you want to delete this account?
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 10, lineHeight: 1.5 }}>
+                      This will permanently remove <strong>{selectedUser.email}</strong>, their profile, company memberships, and any companies they created that have no other members. This action cannot be undone.
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        style={{ backgroundColor: "var(--color-red)", fontSize: "0.82rem" }}
+                        onClick={handleDeleteUser}
+                        disabled={saving}
+                      >
+                        {saving ? "Deleting..." : "Yes, Delete Account"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => setConfirmDelete(false)}
+                        disabled={saving}
+                        style={{ fontSize: "0.82rem" }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="ticket-form-actions">
                   <button type="button" className="btn-secondary" onClick={closeModal}>
