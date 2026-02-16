@@ -1,0 +1,16 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms,project_name
+8400 Edgewater - Residential GMP,subcontractor,Pacific General Contractors,david@edgewaterGC.com,80222447,2026-11-01,2028-10-31,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Studio Build-Out,subcontractor,Pacific General Contractors,david@edgewaterGC.com,15000000,2027-07-01,2028-06-30,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - FF&E Package,vendor,Volkov Interior Finishes,nina@volkov-interiors.com,2000000,2028-04-01,2028-09-30,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Architecture & Engineering,professional_services,Yamamoto Architecture + Design,linda@yamamoto-arch.com,6900000,2026-03-01,2028-10-31,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Structural Engineering,professional_services,Bay Area Structural Engineers,robert@bayareastructural.com,1800000,2026-03-01,2028-06-30,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - MEP Engineering,professional_services,Nguyen MEP Engineering,karen@nguyen-mep.com,1200000,2026-05-01,2028-08-31,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Concrete & Foundation,subcontractor,Bradley Concrete & Foundation,tom@bradleyconcrete.com,18000000,2026-12-01,2027-10-31,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Structural Steel,subcontractor,Johansson Structural Steel,eric@johansson-steel.com,14000000,2027-04-01,2028-02-28,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Electrical Systems,subcontractor,Reyes Electrical Systems,maria@reyeselectric.com,9500000,2027-06-01,2028-08-31,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Mechanical & Plumbing,subcontractor,Park Mechanical & Plumbing,chris@parkplumbing.com,8200000,2027-06-01,2028-08-31,net_45,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Curtain Wall & Glazing,subcontractor,Wright Glass & Curtain Wall,jason@wrightglazing.com,7500000,2027-08-01,2028-06-30,net_45,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Interior Finishes,subcontractor,Volkov Interior Finishes,nina@volkov-interiors.com,5800000,2027-12-01,2028-09-30,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Landscaping & Hardscape,subcontractor,Torres Landscape Architecture,amy@torreslandscape.com,2200000,2028-04-01,2028-09-30,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Testing & Inspection,professional_services,Hartman Testing & Inspection,paul@hartmantesting.com,800000,2026-11-01,2028-10-31,net_30,8400 Edgewater Mixed-Use Development
+8400 Edgewater - Construction Loan,vendor,Wells Fargo Construction Lending,loans@wellsfargo.com,64797000,2026-11-01,2030-10-31,net_30,8400 Edgewater Mixed-Use Development

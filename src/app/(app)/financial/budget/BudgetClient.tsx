@@ -15,9 +15,26 @@ import {
   Pencil,
   Trash2,
   Eye,
+  Upload,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency, formatPercent } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type { BudgetLineRow } from "@/lib/queries/financial";
+
+const budgetImportColumns: ImportColumn[] = [
+  { key: "csi_code", label: "CSI Code", required: true },
+  { key: "description", label: "Description", required: true },
+  { key: "budgeted_amount", label: "Budgeted Amount", required: false, type: "number" },
+  { key: "committed_amount", label: "Committed Amount", required: false, type: "number" },
+  { key: "actual_amount", label: "Actual Amount", required: false, type: "number" },
+];
+
+const budgetSampleData = [
+  { csi_code: "01-00", description: "General Requirements", budgeted_amount: "320000", committed_amount: "310000", actual_amount: "285000" },
+  { csi_code: "02-00", description: "Hard Costs - Concrete", budgeted_amount: "1500000", committed_amount: "1500000", actual_amount: "0" },
+  { csi_code: "03-10", description: "Architecture & Engineering", budgeted_amount: "450000", committed_amount: "450000", actual_amount: "180000" },
+];
 
 interface Project {
   id: string;
@@ -79,6 +96,9 @@ export default function BudgetClient({
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
   const [lines, setLines] = useState<BudgetLineRow[]>(initialLines);
+
+  // Import modal
+  const [showImport, setShowImport] = useState(false);
 
   // Create modal
   const [showCreate, setShowCreate] = useState(false);
@@ -256,8 +276,12 @@ export default function BudgetClient({
             </div>
           </div>
 
-          {/* Add Budget Line Button */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+          {/* Add Budget Line / Import Buttons */}
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 16 }}>
+            <button className="btn btn-ghost" onClick={() => setShowImport(true)}>
+              <Upload size={16} />
+              {t("importCsv")}
+            </button>
             <button className="ui-btn ui-btn-primary ui-btn-md" onClick={() => { setCreateError(""); setShowCreate(true); }}>
               <Plus size={16} />
               {t("addBudgetLine")}
@@ -503,6 +527,31 @@ export default function BudgetClient({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Import CSV Modal */}
+      {showImport && selectedProjectId && (
+        <ImportModal
+          entityName="Budget Lines"
+          columns={budgetImportColumns}
+          sampleData={budgetSampleData}
+          onImport={async (rows) => {
+            const res = await fetch("/api/import", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                entity: "project_budget_lines",
+                rows,
+                project_id: selectedProjectId,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Import failed");
+            router.refresh();
+            return { success: data.success, errors: data.errors };
+          }}
+          onClose={() => setShowImport(false)}
+        />
       )}
 
       {/* Edit Modal */}

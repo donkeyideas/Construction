@@ -1,0 +1,60 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+payable,2026-03-15,690000,0,2026-04-15,A&E Invoice #1 - Schematic Design 10%,draft,,Yamamoto Architecture + Design,8400 Edgewater Mixed-Use Development
+payable,2026-05-01,1380000,0,2026-06-01,A&E Invoice #2 - Design Development 20%,draft,,Yamamoto Architecture + Design,8400 Edgewater Mixed-Use Development
+payable,2026-07-01,2070000,0,2026-08-01,A&E Invoice #3 - Construction Documents 30%,draft,,Yamamoto Architecture + Design,8400 Edgewater Mixed-Use Development
+payable,2026-05-15,360000,0,2026-06-15,Structural Engineering - SD Phase,draft,,Bay Area Structural Engineers,8400 Edgewater Mixed-Use Development
+payable,2026-07-15,720000,0,2026-08-15,Structural Engineering - DD/CD Phase,draft,,Bay Area Structural Engineers,8400 Edgewater Mixed-Use Development
+payable,2026-06-01,360000,0,2026-07-01,MEP Engineering - SD Phase,draft,,Nguyen MEP Engineering,8400 Edgewater Mixed-Use Development
+payable,2026-08-01,600000,0,2026-09-01,MEP Engineering - DD/CD Phase,draft,,Nguyen MEP Engineering,8400 Edgewater Mixed-Use Development
+payable,2026-10-01,2112500,0,2026-11-01,Finance & Legal - Loan origination and closing costs,draft,,Wells Fargo Construction Lending,8400 Edgewater Mixed-Use Development
+payable,2026-10-15,2112767,0,2026-11-15,Finance & Legal - Legal fees and title insurance,draft,,Wells Fargo Construction Lending,8400 Edgewater Mixed-Use Development
+payable,2026-11-01,800000,0,2026-12-01,Testing & Inspection - Construction start mobilization,draft,,Hartman Testing & Inspection,8400 Edgewater Mixed-Use Development
+payable,2026-11-15,4011122,0,2026-12-15,GMP Draw #1 - Mobilization and site prep 5%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2026-12-15,4011122,0,2027-01-15,GMP Draw #2 - Demolition and earthwork 5%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-01-15,4011122,0,2027-02-15,GMP Draw #3 - Shoring and excavation 5%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-02-15,6016684,0,2027-03-15,GMP Draw #4 - Foundation piles and mat slab 7.5%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-03-15,6016684,0,2027-04-15,GMP Draw #5 - Underground utilities and waterproofing 7.5%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-04-15,6418863,0,2027-05-15,GMP Draw #6 - Core walls and structural start 8%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-05-15,6418863,0,2027-06-15,GMP Draw #7 - Structural steel floors 1-5 8%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-06-15,6418863,0,2027-07-15,GMP Draw #8 - Structural steel floors 6-10 8%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-07-15,1500000,0,2027-08-15,Studio Draw #1 - Soundstage shells 1&2 foundation 10%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-08-15,6016684,0,2027-09-15,GMP Draw #9 - Structural complete and deck 7.5%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-09-15,2250000,0,2027-10-15,Studio Draw #2 - Soundstage 3 and production offices 15%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-10-15,5614502,0,2027-11-15,GMP Draw #10 - Curtain wall and envelope start 7%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-11-15,5614502,0,2027-12-15,GMP Draw #11 - MEP rough-in floors 1-5 7%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-12-15,3000000,0,2028-01-15,Studio Draw #3 - Support facilities and MEP 20%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-01-15,5614502,0,2028-02-15,GMP Draw #12 - MEP rough-in floors 6-10 and drywall start 7%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-02-15,4811002,0,2028-03-15,GMP Draw #13 - Interior finishes floors 1-5 6%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-03-15,3750000,0,2028-04-15,Studio Draw #4 - Tenant improvements and acoustics 25%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-04-15,4811002,0,2028-05-15,GMP Draw #14 - Interior finishes floors 6-10 6%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-05-15,4007502,0,2028-06-15,GMP Draw #15 - Appliances fixtures and unit turnover 5%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-06-15,2500000,0,2028-07-15,Studio Draw #5 - Studio commissioning and final 16.67%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-07-15,3205133,0,2028-08-15,GMP Draw #16 - Punch list amenities and site work 4%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-08-15,2403849,0,2028-09-15,GMP Draw #17 - Final completion and CO 3%,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-04-01,500000,0,2028-05-01,FF&E - Lobby and common area furnishings,draft,,Volkov Interior Finishes,8400 Edgewater Mixed-Use Development
+payable,2028-06-01,800000,0,2028-07-01,FF&E - Unit appliance packages 250 units,draft,,Volkov Interior Finishes,8400 Edgewater Mixed-Use Development
+payable,2028-08-01,700000,0,2028-09-01,FF&E - Amenity and fitness center furnishings,draft,,Volkov Interior Finishes,8400 Edgewater Mixed-Use Development
+payable,2026-11-01,1700000,0,2026-12-01,Taxes & Insurance - Year 1 first half,draft,,First Republic Bank,8400 Edgewater Mixed-Use Development
+payable,2027-05-01,1700000,0,2027-06-01,Taxes & Insurance - Year 1 second half,draft,,First Republic Bank,8400 Edgewater Mixed-Use Development
+payable,2027-11-01,1700000,0,2027-12-01,Taxes & Insurance - Year 2 first half,draft,,First Republic Bank,8400 Edgewater Mixed-Use Development
+payable,2028-05-01,1700000,0,2028-06-01,Taxes & Insurance - Year 2 second half,draft,,First Republic Bank,8400 Edgewater Mixed-Use Development
+payable,2026-11-01,1050000,0,2026-12-01,Permits & PM - Building permits,draft,,City of Oakland,8400 Edgewater Mixed-Use Development
+payable,2027-01-01,787500,0,2027-02-01,Permits & PM - Project management Q1 2027,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-04-01,787500,0,2027-05-01,Permits & PM - Project management Q2 2027,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-07-01,787500,0,2027-08-01,Permits & PM - Project management Q3 2027,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2027-10-01,787500,0,2027-11-01,Permits & PM - Project management Q4 2027,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-07-01,100000,0,2028-08-01,Marketing - Pre-leasing marketing campaign,draft,,Grit and Turtle Ventures,8400 Edgewater Mixed-Use Development
+payable,2028-09-01,100000,0,2028-10-01,Marketing - Grand opening and lease-up marketing,draft,,Grit and Turtle Ventures,8400 Edgewater Mixed-Use Development
+payable,2028-06-01,1850000,0,2028-07-01,Studio TI - Soundstage 1&2 tenant improvements,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+payable,2028-08-01,1850000,0,2028-09-01,Studio TI - Soundstage 3 and offices tenant improvements,draft,,Pacific General Contractors,8400 Edgewater Mixed-Use Development
+receivable,2026-11-01,6479693,0,2026-11-15,Equity Draw #1 - GP contribution at construction start,draft,,,8400 Edgewater Mixed-Use Development
+receivable,2026-11-01,19439080,0,2026-11-15,Equity Draw #2 - LP contribution Phase 1 (33%),draft,,,8400 Edgewater Mixed-Use Development
+receivable,2027-05-01,19439080,0,2027-05-15,Equity Draw #3 - LP contribution Phase 2 (33%),draft,,,8400 Edgewater Mixed-Use Development
+receivable,2027-11-01,19439080,0,2027-11-15,Equity Draw #4 - LP contribution Phase 3 (34%),draft,,,8400 Edgewater Mixed-Use Development
+receivable,2026-11-15,12959400,0,2026-12-15,Loan Draw #1 - Construction loan first draw 20%,draft,,,8400 Edgewater Mixed-Use Development
+receivable,2027-02-15,9719550,0,2027-03-15,Loan Draw #2 - Construction loan draw 15%,draft,,,8400 Edgewater Mixed-Use Development
+receivable,2027-05-15,9719550,0,2027-06-15,Loan Draw #3 - Construction loan draw 15%,draft,,,8400 Edgewater Mixed-Use Development
+receivable,2027-08-15,9719550,0,2027-09-15,Loan Draw #4 - Construction loan draw 15%,draft,,,8400 Edgewater Mixed-Use Development
+receivable,2027-11-15,9719550,0,2027-12-15,Loan Draw #5 - Construction loan draw 15%,draft,,,8400 Edgewater Mixed-Use Development
+receivable,2028-02-15,6479700,0,2028-03-15,Loan Draw #6 - Construction loan draw 10%,draft,,,8400 Edgewater Mixed-Use Development
+receivable,2028-05-15,6479700,0,2028-06-15,Loan Draw #7 - Construction loan final draw 10%,draft,,,8400 Edgewater Mixed-Use Development

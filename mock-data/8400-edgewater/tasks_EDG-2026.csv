@@ -1,0 +1,54 @@
+name,phase_name,start_date,end_date,status,assigned_to,project_name
+Entitlements & Zoning Approval,Pre-Development & Design,2026-03-01,2026-05-31,not_started,,8400 Edgewater Mixed-Use Development
+Environmental Review (CEQA),Pre-Development & Design,2026-03-15,2026-06-30,not_started,,8400 Edgewater Mixed-Use Development
+Architectural Design Development,Pre-Development & Design,2026-04-01,2026-07-31,not_started,,8400 Edgewater Mixed-Use Development
+Structural Engineering Design,Pre-Development & Design,2026-04-15,2026-08-15,not_started,,8400 Edgewater Mixed-Use Development
+MEP Engineering Design,Pre-Development & Design,2026-05-01,2026-08-31,not_started,,8400 Edgewater Mixed-Use Development
+Building Permit Submission,Pre-Development & Design,2026-07-01,2026-07-31,not_started,,8400 Edgewater Mixed-Use Development
+GMP Buyout & Subcontracts,Pre-Development & Design,2026-08-01,2026-10-31,not_started,,8400 Edgewater Mixed-Use Development
+Construction Loan Closing,Pre-Development & Design,2026-09-01,2026-10-15,not_started,,8400 Edgewater Mixed-Use Development
+Mobilization & Temp Facilities,Site Preparation & Demolition,2026-11-01,2026-11-30,not_started,,8400 Edgewater Mixed-Use Development
+Existing Structure Demolition,Site Preparation & Demolition,2026-11-15,2026-12-31,not_started,,8400 Edgewater Mixed-Use Development
+Environmental Remediation,Site Preparation & Demolition,2026-12-01,2027-01-15,not_started,,8400 Edgewater Mixed-Use Development
+Mass Grading & Earthwork,Site Preparation & Demolition,2027-01-01,2027-01-31,not_started,,8400 Edgewater Mixed-Use Development
+Utility Relocations,Site Preparation & Demolition,2026-12-15,2027-01-31,not_started,,8400 Edgewater Mixed-Use Development
+Shoring & Excavation,Foundation & Underground,2027-02-01,2027-03-15,not_started,,8400 Edgewater Mixed-Use Development
+Deep Foundations - Piles,Foundation & Underground,2027-02-15,2027-04-30,not_started,,8400 Edgewater Mixed-Use Development
+Mat Slab Foundation Pour,Foundation & Underground,2027-04-01,2027-05-31,not_started,,8400 Edgewater Mixed-Use Development
+Underground Utilities & Storm,Foundation & Underground,2027-03-01,2027-05-15,not_started,,8400 Edgewater Mixed-Use Development
+Waterproofing & Dampproofing,Foundation & Underground,2027-05-15,2027-06-30,not_started,,8400 Edgewater Mixed-Use Development
+Concrete Core Walls,Structural Frame - Residential,2027-04-01,2027-07-31,not_started,,8400 Edgewater Mixed-Use Development
+Structural Steel Erection,Structural Frame - Residential,2027-06-01,2027-10-31,not_started,,8400 Edgewater Mixed-Use Development
+Metal Deck & Concrete Floors,Structural Frame - Residential,2027-07-01,2027-11-30,not_started,,8400 Edgewater Mixed-Use Development
+Roof Structure & Framing,Structural Frame - Residential,2027-11-01,2027-12-31,not_started,,8400 Edgewater Mixed-Use Development
+Soundstage 1 & 2 Shell,Studio Build-Out,2027-07-01,2027-12-31,not_started,,8400 Edgewater Mixed-Use Development
+Soundstage 3 Shell,Studio Build-Out,2027-09-01,2028-02-28,not_started,,8400 Edgewater Mixed-Use Development
+Production Offices Build-Out,Studio Build-Out,2027-10-01,2028-03-31,not_started,,8400 Edgewater Mixed-Use Development
+Support Facilities & Backlot,Studio Build-Out,2027-11-01,2028-04-30,not_started,,8400 Edgewater Mixed-Use Development
+Studio MEP & Acoustics,Studio Build-Out,2028-01-01,2028-05-31,not_started,,8400 Edgewater Mixed-Use Development
+Studio Tenant Improvements,Studio Build-Out,2028-03-01,2028-06-30,not_started,,8400 Edgewater Mixed-Use Development
+Curtain Wall Installation,Building Envelope & MEP Rough-In,2027-10-01,2028-03-31,not_started,,8400 Edgewater Mixed-Use Development
+Window & Storefront Glazing,Building Envelope & MEP Rough-In,2027-12-01,2028-04-30,not_started,,8400 Edgewater Mixed-Use Development
+Roofing & Waterproofing,Building Envelope & MEP Rough-In,2028-01-01,2028-03-31,not_started,,8400 Edgewater Mixed-Use Development
+Electrical Rough-In,Building Envelope & MEP Rough-In,2027-10-15,2028-05-31,not_started,,8400 Edgewater Mixed-Use Development
+Plumbing Rough-In,Building Envelope & MEP Rough-In,2027-10-15,2028-05-31,not_started,,8400 Edgewater Mixed-Use Development
+HVAC Ductwork & Equipment,Building Envelope & MEP Rough-In,2027-11-01,2028-06-30,not_started,,8400 Edgewater Mixed-Use Development
+Fire Sprinkler System,Building Envelope & MEP Rough-In,2027-12-01,2028-05-31,not_started,,8400 Edgewater Mixed-Use Development
+Drywall & Framing,Interior Finishes - Residential,2028-01-01,2028-04-30,not_started,,8400 Edgewater Mixed-Use Development
+Flooring Installation,Interior Finishes - Residential,2028-03-01,2028-06-30,not_started,,8400 Edgewater Mixed-Use Development
+Cabinetry & Countertops,Interior Finishes - Residential,2028-04-01,2028-07-31,not_started,,8400 Edgewater Mixed-Use Development
+Paint & Wall Finishes,Interior Finishes - Residential,2028-04-15,2028-07-15,not_started,,8400 Edgewater Mixed-Use Development
+Appliance & Fixture Install,Interior Finishes - Residential,2028-06-01,2028-08-15,not_started,,8400 Edgewater Mixed-Use Development
+Unit Turnover & Punch,Interior Finishes - Residential,2028-07-01,2028-08-31,not_started,,8400 Edgewater Mixed-Use Development
+Parking Structure Foundation,Parking Structure,2027-03-01,2027-05-31,not_started,,8400 Edgewater Mixed-Use Development
+Parking Structure Concrete,Parking Structure,2027-05-01,2027-09-30,not_started,,8400 Edgewater Mixed-Use Development
+Parking MEP & Lighting,Parking Structure,2027-09-01,2027-11-30,not_started,,8400 Edgewater Mixed-Use Development
+Parking Striping & Signage,Parking Structure,2027-11-15,2027-12-31,not_started,,8400 Edgewater Mixed-Use Development
+Hardscape & Paving,Landscaping & Site Work,2028-04-01,2028-06-30,not_started,,8400 Edgewater Mixed-Use Development
+Planting & Irrigation,Landscaping & Site Work,2028-05-01,2028-08-31,not_started,,8400 Edgewater Mixed-Use Development
+Amenity Deck & Pool,Landscaping & Site Work,2028-06-01,2028-09-30,not_started,,8400 Edgewater Mixed-Use Development
+Site Lighting & Furniture,Landscaping & Site Work,2028-07-01,2028-09-30,not_started,,8400 Edgewater Mixed-Use Development
+Systems Commissioning,Punch List & Closeout,2028-07-01,2028-09-30,not_started,,8400 Edgewater Mixed-Use Development
+Final Inspections & CO,Punch List & Closeout,2028-08-01,2028-10-15,not_started,,8400 Edgewater Mixed-Use Development
+Punch List Completion,Punch List & Closeout,2028-08-15,2028-10-31,not_started,,8400 Edgewater Mixed-Use Development
+As-Built Documentation,Punch List & Closeout,2028-09-01,2028-10-31,not_started,,8400 Edgewater Mixed-Use Development

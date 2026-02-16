@@ -1,0 +1,7 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+Project Operating Account,First Republic Bank,checking,4401,7712,250000.00
+Construction Loan Account,Wells Fargo,checking,4402,4489,0.00
+GP Equity Account,First Republic Bank,checking,4403,7712,6479693.00
+LP Equity Account,First Republic Bank,checking,4404,7712,58317240.00
+Retainage Trust,Comerica Bank,checking,4405,8812,0.00
+Interest Reserve,Wells Fargo,savings,4406,4489,1011237.00
