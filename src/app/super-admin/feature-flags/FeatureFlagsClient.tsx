@@ -36,6 +36,12 @@ const PLANS = [
   { value: "enterprise", label: "Enterprise" },
 ];
 
+function formatName(name: string): string {
+  return name
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 const PLAN_COLORS: Record<string, { bg: string; color: string }> = {
   starter: { bg: "rgba(59, 130, 246, 0.1)", color: "var(--color-blue, #3b82f6)" },
   professional: { bg: "rgba(245, 158, 11, 0.1)", color: "var(--color-amber, #f59e0b)" },
@@ -77,9 +83,10 @@ export default function FeatureFlagsClient({ flags }: Props) {
   const disabledFlags = flags.filter((f) => !f.is_enabled).length;
 
   // Filtered flags
-  const filtered = flags.filter((f) =>
-    f.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = flags.filter((f) => {
+    const q = search.toLowerCase();
+    return f.name.toLowerCase().includes(q) || formatName(f.name).toLowerCase().includes(q);
+  });
 
   // --- Handlers ---
 
@@ -403,7 +410,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
               {deletingId === flag.id ? (
                 <div style={{ padding: 20 }}>
                   <p style={{ marginBottom: 16, fontWeight: 500 }}>
-                    Are you sure you want to delete &quot;{flag.name}&quot;? This action cannot be undone.
+                    Are you sure you want to delete &quot;{formatName(flag.name)}&quot;? This action cannot be undone.
                   </p>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button
@@ -443,7 +450,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                       style={{ color: "var(--primary)", flexShrink: 0 }}
                     />
                     <span style={{ fontWeight: 600, fontSize: "1rem" }}>
-                      {flag.name}
+                      {formatName(flag.name)}
                     </span>
                   </div>
 
@@ -552,7 +559,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                             fontSize: "0.95rem",
                           }}
                         >
-                          {flag.name}
+                          {formatName(flag.name)}
                         </span>
                       </div>
                       {flag.description && (
