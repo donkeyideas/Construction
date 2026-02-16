@@ -3,6 +3,15 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import {
+  ClipboardList,
+  CheckCircle,
+  Zap,
+  AlertCircle,
+  Trash2,
+  X,
+  Plus,
+} from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Types matching the actual DB schema                                */
@@ -227,18 +236,18 @@ export default function AutomationClient({
   const failedLogs = logs.filter((l) => l.status === "failed").length;
 
   return (
-    <div className="page-container">
+    <div>
       {/* Header */}
-      <div className="automation-header">
+      <div className="dash-header">
         <div>
           <h2>{t("automationTitle")}</h2>
-          <p className="automation-header-sub">
+          <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: "2px" }}>
             {t("automationRulesConfigured", { count: rules.length })}
           </p>
         </div>
-        <div className="automation-header-actions">
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-            + {t("automationCreateRule")}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button className="ui-btn ui-btn-primary ui-btn-md" onClick={() => setShowCreate(true)}>
+            <Plus size={16} /> {t("automationCreateRule")}
           </button>
         </div>
       </div>
@@ -248,48 +257,66 @@ export default function AutomationClient({
         <div className={`automation-message ${message.type}`}>{message.text}</div>
       )}
 
-      {/* Stats */}
-      <div className="automation-stats">
-        <div className="automation-stat-card">
-          <div className="automation-stat-icon blue">
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+      {/* KPI Stats */}
+      <div className="kpi-grid">
+        <div className="card" style={{ padding: 20 }}>
+          <div className="kpi">
+            <div className="kpi-info">
+              <span className="kpi-label">{t("automationTotalRules")}</span>
+              <span className="kpi-value">{rules.length}</span>
+            </div>
+            <div className="kpi-icon" style={{ color: "var(--color-blue)" }}>
+              <ClipboardList size={20} />
+            </div>
           </div>
-          <span className="automation-stat-label">{t("automationTotalRules")}</span>
-          <span className="automation-stat-value">{rules.length}</span>
         </div>
-        <div className="automation-stat-card">
-          <div className="automation-stat-icon green">
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7" /></svg>
+        <div className="card" style={{ padding: 20 }}>
+          <div className="kpi">
+            <div className="kpi-info">
+              <span className="kpi-label">{t("automationActive")}</span>
+              <span className="kpi-value">{activeCount}</span>
+            </div>
+            <div className="kpi-icon" style={{ color: "var(--color-green)" }}>
+              <CheckCircle size={20} />
+            </div>
           </div>
-          <span className="automation-stat-label">{t("automationActive")}</span>
-          <span className="automation-stat-value">{activeCount}</span>
         </div>
-        <div className="automation-stat-card">
-          <div className="automation-stat-icon amber">
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        <div className="card" style={{ padding: 20 }}>
+          <div className="kpi">
+            <div className="kpi-info">
+              <span className="kpi-label">{t("automationExecutions")}</span>
+              <span className="kpi-value">{totalExecutions}</span>
+            </div>
+            <div className="kpi-icon" style={{ color: "var(--color-amber)" }}>
+              <Zap size={20} />
+            </div>
           </div>
-          <span className="automation-stat-label">{t("automationExecutions")}</span>
-          <span className="automation-stat-value">{totalExecutions}</span>
         </div>
-        <div className="automation-stat-card">
-          <div className="automation-stat-icon red">
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <div className="card" style={{ padding: 20 }}>
+          <div className="kpi">
+            <div className="kpi-info">
+              <span className="kpi-label">{t("automationFailed")}</span>
+              <span className="kpi-value" style={{ color: failedLogs > 0 ? "var(--color-red)" : undefined }}>
+                {failedLogs}
+              </span>
+            </div>
+            <div className="kpi-icon" style={{ color: "var(--color-red)" }}>
+              <AlertCircle size={20} />
+            </div>
           </div>
-          <span className="automation-stat-label">{t("automationFailed")}</span>
-          <span className="automation-stat-value">{failedLogs}</span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+      <div className="automation-tabs">
         <button
-          className={`tab-btn ${tab === "rules" ? "tab-btn-active" : ""}`}
+          className={`automation-tab ${tab === "rules" ? "active" : ""}`}
           onClick={() => setTab("rules")}
         >
           {t("automationRulesTab", { count: rules.length })}
         </button>
         <button
-          className={`tab-btn ${tab === "logs" ? "tab-btn-active" : ""}`}
+          className={`automation-tab ${tab === "logs" ? "active" : ""}`}
           onClick={() => setTab("logs")}
         >
           {t("automationActivityLogTab", { count: logs.length })}
@@ -301,18 +328,16 @@ export default function AutomationClient({
         <>
           {rules.length === 0 ? (
             <div className="automation-empty">
-              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" style={{ color: "var(--muted)", marginBottom: 8 }}>
-                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+              <Zap size={48} style={{ color: "var(--muted)", marginBottom: 8 }} />
               <p className="automation-empty-title">{t("automationNoRulesTitle")}</p>
               <p className="automation-empty-desc">
                 {t("automationNoRulesDesc")}
               </p>
               <button
-                className="btn btn-primary"
+                className="ui-btn ui-btn-primary ui-btn-md"
                 onClick={() => setShowCreate(true)}
               >
-                + {t("automationCreateFirstRule")}
+                <Plus size={16} /> {t("automationCreateFirstRule")}
               </button>
             </div>
           ) : (
@@ -354,7 +379,7 @@ export default function AutomationClient({
                         </span>
                       </td>
                       <td className="automation-muted">
-                        {r.trigger_entity?.replace(/_/g, " ") ?? "—"}
+                        {r.trigger_entity?.replace(/_/g, " ") ?? "\u2014"}
                       </td>
                       <td className="automation-muted">
                         {r.trigger_count || 0}
@@ -372,16 +397,14 @@ export default function AutomationClient({
                           {confirmDelete === r.id ? (
                             <>
                               <button
-                                className="btn btn-sm"
-                                style={{ fontSize: "0.75rem" }}
+                                className="ui-btn ui-btn-sm ui-btn-ghost"
                                 onClick={() => setConfirmDelete(null)}
                               >
                                 {t("cancel")}
                               </button>
                               <button
-                                className="btn btn-sm"
+                                className="ui-btn ui-btn-sm"
                                 style={{
-                                  fontSize: "0.75rem",
                                   background: "var(--color-red)",
                                   color: "#fff",
                                   borderColor: "var(--color-red)",
@@ -398,16 +421,7 @@ export default function AutomationClient({
                               title={t("automationDeleteRule")}
                               onClick={() => setConfirmDelete(r.id)}
                             >
-                              <svg
-                                width="16"
-                                height="16"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
+                              <Trash2 size={16} />
                             </button>
                           )}
                         </div>
@@ -422,7 +436,7 @@ export default function AutomationClient({
           {/* Preset Suggestions */}
           <div className="automation-templates-section">
             <h3 className="automation-section-title">
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              <Zap size={18} />
               {t("automationQuickStartTemplates")}
             </h3>
             <div className="automation-templates-grid">
@@ -431,7 +445,7 @@ export default function AutomationClient({
                   <div className="automation-template-name">{p.name}</div>
                   <div className="automation-template-desc">{p.description}</div>
                   <button
-                    className="btn btn-sm automation-template-btn"
+                    className="ui-btn ui-btn-sm ui-btn-secondary automation-template-btn"
                     onClick={() => handlePreset(p)}
                   >
                     {t("automationUseTemplate")}
@@ -465,7 +479,7 @@ export default function AutomationClient({
                     style={{
                       textAlign: "center",
                       padding: "2rem",
-                      color: "var(--text-secondary)",
+                      color: "var(--muted)",
                     }}
                   >
                     {t("automationNoActivity")}
@@ -478,10 +492,10 @@ export default function AutomationClient({
                       {new Date(l.created_at).toLocaleString(dateLocale)}
                     </td>
                     <td>
-                      {l.automation_rules?.name ?? l.rule_name ?? "—"}
+                      {l.automation_rules?.name ?? l.rule_name ?? "\u2014"}
                     </td>
                     <td className="automation-muted">
-                      {l.trigger_entity?.replace(/_/g, " ") ?? "—"}
+                      {l.trigger_entity?.replace(/_/g, " ") ?? "\u2014"}
                     </td>
                     <td>
                       <span
@@ -493,10 +507,10 @@ export default function AutomationClient({
                     <td className="automation-muted">
                       {l.execution_time_ms != null
                         ? `${l.execution_time_ms}ms`
-                        : "—"}
+                        : "\u2014"}
                     </td>
                     <td style={{ color: "var(--color-red)", fontSize: "0.82rem" }}>
-                      {l.error_message ?? "—"}
+                      {l.error_message ?? "\u2014"}
                     </td>
                   </tr>
                 ))
@@ -524,7 +538,7 @@ export default function AutomationClient({
                 resetForm();
               }}
             >
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
+              <X size={18} />
             </button>
             <h3 className="automation-modal-title">{t("automationCreateRuleTitle")}</h3>
             <p className="automation-modal-desc">
@@ -585,7 +599,7 @@ export default function AutomationClient({
 
             <div className="automation-modal-footer">
               <button
-                className="btn"
+                className="ui-btn ui-btn-md ui-btn-ghost"
                 onClick={() => {
                   setShowCreate(false);
                   resetForm();
@@ -594,7 +608,7 @@ export default function AutomationClient({
                 {t("cancel")}
               </button>
               <button
-                className="btn btn-primary"
+                className="ui-btn ui-btn-md ui-btn-primary"
                 disabled={!formName.trim() || !formTriggerType || saving}
                 onClick={handleCreate}
               >
