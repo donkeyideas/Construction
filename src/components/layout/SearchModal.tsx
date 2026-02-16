@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -16,6 +16,13 @@ import {
   Handshake,
   DollarSign,
   ArrowRight,
+  LayoutDashboard,
+  CalendarDays,
+  Inbox,
+  BarChart3,
+  Settings,
+  Sparkles,
+  Map,
 } from "lucide-react";
 
 interface SearchResult {
@@ -27,6 +34,7 @@ interface SearchResult {
 }
 
 const TYPE_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  page: { label: "Page", icon: <LayoutDashboard size={14} />, color: "var(--color-blue)" },
   project: { label: "Project", icon: <HardHat size={14} />, color: "var(--color-blue)" },
   contact: { label: "Contact", icon: <Users size={14} />, color: "var(--color-amber)" },
   invoice: { label: "Invoice", icon: <DollarSign size={14} />, color: "var(--color-green)" },
@@ -43,6 +51,64 @@ const TYPE_META: Record<string, { label: string; icon: React.ReactNode; color: s
   ticket: { label: "Ticket", icon: <Ticket size={14} />, color: "var(--color-amber)" },
 };
 
+// All navigable pages for instant client-side search
+const NAV_PAGES: { title: string; href: string; keywords: string[] }[] = [
+  { title: "Dashboard", href: "/dashboard", keywords: ["home", "overview"] },
+  { title: "Calendar", href: "/calendar", keywords: ["schedule", "events", "dates"] },
+  { title: "Inbox", href: "/inbox", keywords: ["messages", "notifications", "mail"] },
+  { title: "Tickets", href: "/tickets", keywords: ["support", "issues", "help"] },
+  { title: "Active Projects", href: "/projects", keywords: ["jobs", "work"] },
+  { title: "Gantt Schedule", href: "/projects/gantt", keywords: ["timeline", "chart", "gantt"] },
+  { title: "Daily Logs", href: "/projects/daily-logs", keywords: ["journal", "log", "diary"] },
+  { title: "RFIs", href: "/projects/rfis", keywords: ["request for information"] },
+  { title: "Submittals", href: "/projects/submittals", keywords: ["submittal"] },
+  { title: "Change Orders", href: "/projects/change-orders", keywords: ["co", "changes"] },
+  { title: "Contracts", href: "/contracts", keywords: ["agreements"] },
+  { title: "Properties", href: "/properties", keywords: ["portfolio", "buildings", "real estate"] },
+  { title: "Leases", href: "/properties/leases", keywords: ["tenants", "rent"] },
+  { title: "Property Maintenance", href: "/properties/maintenance", keywords: ["repairs", "work orders"] },
+  { title: "Safety Dashboard", href: "/safety", keywords: ["osha", "compliance"] },
+  { title: "Incidents", href: "/safety/incidents", keywords: ["accidents", "injury"] },
+  { title: "Inspections", href: "/safety/inspections", keywords: ["audit", "check"] },
+  { title: "Toolbox Talks", href: "/safety/toolbox-talks", keywords: ["training", "safety meeting"] },
+  { title: "Equipment Dashboard", href: "/equipment", keywords: ["machinery", "tools"] },
+  { title: "Equipment Inventory", href: "/equipment/inventory", keywords: ["assets", "tools", "list"] },
+  { title: "Equipment Assignments", href: "/equipment/assignments", keywords: ["allocate"] },
+  { title: "Equipment Maintenance", href: "/equipment/maintenance", keywords: ["service", "repair"] },
+  { title: "Financial Overview", href: "/financial", keywords: ["money", "finance", "accounting"] },
+  { title: "Invoices", href: "/financial/invoices", keywords: ["bills", "billing", "payment"] },
+  { title: "Accounts Receivable", href: "/financial/ar", keywords: ["ar", "collections", "receivables"] },
+  { title: "Accounts Payable", href: "/financial/ap", keywords: ["ap", "bills", "payables"] },
+  { title: "General Ledger", href: "/financial/general-ledger", keywords: ["gl", "ledger", "journal"] },
+  { title: "Chart of Accounts", href: "/financial/accounts", keywords: ["coa", "accounts", "chart"] },
+  { title: "Income Statement", href: "/financial/income-statement", keywords: ["profit", "loss", "p&l", "revenue"] },
+  { title: "Balance Sheet", href: "/financial/balance-sheet", keywords: ["assets", "liabilities", "equity"] },
+  { title: "Cash Flow", href: "/financial/cash-flow", keywords: ["cash", "flow", "liquidity"] },
+  { title: "Banking", href: "/financial/banking", keywords: ["bank", "transactions", "reconcile"] },
+  { title: "Budget vs Actual", href: "/financial/budget", keywords: ["budget", "variance", "spending"] },
+  { title: "Job Costing", href: "/financial/job-costing", keywords: ["costs", "labor", "materials"] },
+  { title: "KPI Dashboard", href: "/financial/kpi", keywords: ["metrics", "performance", "indicators"] },
+  { title: "Document Library", href: "/documents", keywords: ["files", "uploads"] },
+  { title: "Plan Room", href: "/documents/plan-room", keywords: ["blueprints", "drawings", "plans"] },
+  { title: "People Directory", href: "/people", keywords: ["contacts", "team", "employees", "staff"] },
+  { title: "Time & Attendance", href: "/people/time", keywords: ["timesheets", "hours", "clock"] },
+  { title: "Certifications", href: "/people/certifications", keywords: ["licenses", "credentials"] },
+  { title: "Vendors", href: "/people/vendors", keywords: ["suppliers", "subcontractors", "subs"] },
+  { title: "CRM Pipeline", href: "/crm", keywords: ["leads", "sales", "opportunities", "clients"] },
+  { title: "Bid Management", href: "/crm/bids", keywords: ["proposals", "tenders"] },
+  { title: "Estimating", href: "/estimating", keywords: ["estimate", "quote", "pricing"] },
+  { title: "AI Assistant", href: "/ai-assistant", keywords: ["chat", "ai", "help"] },
+  { title: "Automation", href: "/automation", keywords: ["workflows", "rules", "auto"] },
+  { title: "Reports Center", href: "/reports", keywords: ["analytics", "data", "export"] },
+  { title: "Authoritative Reports", href: "/reports/authoritative", keywords: ["official", "compliance"] },
+  { title: "System Map", href: "/system-map", keywords: ["sitemap", "navigation", "overview"] },
+  { title: "Users & Roles", href: "/admin/users", keywords: ["team", "permissions", "admin"] },
+  { title: "Company Settings", href: "/admin/settings", keywords: ["configuration", "preferences", "admin"] },
+  { title: "AI Providers", href: "/admin/ai-providers", keywords: ["openai", "anthropic", "llm", "admin"] },
+  { title: "Integrations", href: "/admin/integrations", keywords: ["connect", "api", "sync", "admin"] },
+  { title: "Security", href: "/admin/security", keywords: ["password", "2fa", "auth", "admin"] },
+];
+
 interface SearchModalProps {
   open: boolean;
   onClose: () => void;
@@ -52,16 +118,40 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [dbResults, setDbResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Instant client-side page search
+  const pageResults = useMemo((): SearchResult[] => {
+    if (query.length < 2) return [];
+    const lower = query.toLowerCase();
+    return NAV_PAGES.filter((p) =>
+      p.title.toLowerCase().includes(lower) ||
+      p.keywords.some((k) => k.includes(lower))
+    )
+      .slice(0, 8)
+      .map((p) => ({
+        id: `page-${p.href}`,
+        type: "page",
+        title: p.title,
+        subtitle: p.href,
+        href: p.href,
+      }));
+  }, [query]);
+
+  // Combined results: pages first, then DB results
+  const results = useMemo(
+    () => [...pageResults, ...dbResults],
+    [pageResults, dbResults]
+  );
 
   // Focus input when modal opens
   useEffect(() => {
     if (open) {
       setQuery("");
-      setResults([]);
+      setDbResults([]);
       setActiveIndex(0);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
@@ -70,7 +160,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
   // Search with debounce
   const doSearch = useCallback(async (term: string) => {
     if (term.length < 2) {
-      setResults([]);
+      setDbResults([]);
       setLoading(false);
       return;
     }
@@ -79,7 +169,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
       const res = await fetch(`/api/search?q=${encodeURIComponent(term)}&limit=20`);
       if (res.ok) {
         const data = await res.json();
-        setResults(data.results || []);
+        setDbResults(data.results || []);
       }
     } catch {
       // silent
@@ -141,7 +231,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
             ref={inputRef}
             type="text"
             className="search-modal-input"
-            placeholder="Search projects, invoices, contacts, documents..."
+            placeholder="Search pages, projects, invoices, contacts..."
             value={query}
             onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -153,7 +243,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
 
         {/* Results */}
         <div className="search-modal-results">
-          {loading && query.length >= 2 && (
+          {loading && query.length >= 2 && pageResults.length === 0 && (
             <div className="search-modal-status">Searching...</div>
           )}
 
@@ -175,7 +265,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
               <div key={type} className="search-group">
                 <div className="search-group-label">
                   <span style={{ color: meta.color }}>{meta.icon}</span>
-                  {meta.label}s
+                  {meta.label}{type !== "page" ? "s" : "s"}
                 </div>
                 {items.map((item) => {
                   const idx = flatIndex++;
