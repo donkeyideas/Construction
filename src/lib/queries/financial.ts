@@ -111,6 +111,9 @@ export interface InvoiceCreateData {
   line_items: LineItem[];
   notes?: string;
   status?: string;
+  gl_account_id?: string;
+  retainage_pct?: number;
+  retainage_held?: number;
 }
 
 export interface AccountCreateData {
@@ -361,6 +364,9 @@ export async function createInvoice(
       line_items: data.line_items,
       notes: data.notes ?? null,
       status: data.status ?? "draft",
+      gl_account_id: data.gl_account_id ?? null,
+      retainage_pct: data.retainage_pct ?? 0,
+      retainage_held: data.retainage_held ?? 0,
     })
     .select("id")
     .single();
@@ -1521,13 +1527,78 @@ export async function getCashFlowStatement(
   ];
   const netOperating = operating.reduce((s, i) => s + i.amount, 0);
 
-  // Investing activities (placeholder — would need equipment/asset purchase tracking)
+  // Investing activities — pull from journal entries hitting fixed asset accounts (1500-1999 range)
   const investing: CashFlowSection[] = [];
-  const netInvesting = 0;
+  let netInvesting = 0;
 
-  // Financing activities (placeholder — would need loan tracking)
+  // Financing activities — pull from journal entries hitting debt (2100-2399) and equity (3000-3299) accounts
   const financing: CashFlowSection[] = [];
-  const netFinancing = 0;
+  let netFinancing = 0;
+
+  // Query journal entry lines for investing and financing activities during the period
+  const { data: cfEntries } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("status", "posted")
+    .gte("entry_date", startDate)
+    .lte("entry_date", endDate);
+
+  const cfEntryIds = (cfEntries ?? []).map((e: { id: string }) => e.id);
+  if (cfEntryIds.length > 0) {
+    const { data: cfLines } = await supabase
+      .from("journal_entry_lines")
+      .select("debit, credit, chart_of_accounts(account_number, name, account_type, sub_type)")
+      .in("journal_entry_id", cfEntryIds);
+
+    const investingMap = new Map<string, number>();
+    const financingMap = new Map<string, number>();
+
+    for (const line of cfLines ?? []) {
+      const account = (line as Record<string, unknown>).chart_of_accounts as {
+        account_number: string; name: string; account_type: string; sub_type: string;
+      } | null;
+      if (!account) continue;
+
+      const num = parseInt(account.account_number);
+      const netAmount = (line.debit ?? 0) - (line.credit ?? 0);
+
+      // Fixed assets (investing): accounts 1500-1999 or sub_type 'fixed_asset'/'contra_asset'
+      if (account.sub_type === "fixed_asset" || account.sub_type === "contra_asset" ||
+          (num >= 1500 && num < 2000)) {
+        const label = account.name;
+        investingMap.set(label, (investingMap.get(label) ?? 0) + netAmount);
+      }
+
+      // Debt accounts (financing): accounts 2100-2399 or sub_type 'long_term_liability'
+      if (account.sub_type === "long_term_liability" || (num >= 2100 && num < 2400)) {
+        const label = account.name;
+        // Credit to liability = cash inflow (loan draw), Debit = cash outflow (repayment)
+        financingMap.set(label, (financingMap.get(label) ?? 0) - netAmount);
+      }
+
+      // Equity accounts (financing): accounts 3000-3299 excluding retained earnings
+      if (account.account_type === "equity" && num >= 3000 && num < 3200) {
+        const label = account.name;
+        financingMap.set(label, (financingMap.get(label) ?? 0) - netAmount);
+      }
+    }
+
+    for (const [label, amount] of investingMap) {
+      if (Math.abs(amount) > 0.01) {
+        // Investing: asset purchase is DR to asset (positive netAmount) = cash outflow (negative)
+        investing.push({ label, amount: -amount });
+        netInvesting -= amount;
+      }
+    }
+    for (const [label, amount] of financingMap) {
+      if (Math.abs(amount) > 0.01) {
+        financing.push({ label, amount });
+        netFinancing += amount;
+      }
+    }
+  }
+
 
   const netChange = netOperating + netInvesting + netFinancing;
 

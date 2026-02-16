@@ -1,61 +1,61 @@
-invoice_number,invoice_type,vendor_name,client_name,amount,invoice_date,due_date,status,description,project_name
-INV-0001,payable,Yamamoto Architecture + Design,,230000,2025-06-01,2025-07-01,paid,A&E Services - Progress Billing #1,8400 Edgewater Mixed-Use Development
-INV-0002,payable,Yamamoto Architecture + Design,,230000,2025-07-01,2025-07-31,paid,A&E Services - Progress Billing #2,8400 Edgewater Mixed-Use Development
-INV-0003,payable,Yamamoto Architecture + Design,,230000,2025-07-31,2025-08-30,paid,A&E Services - Progress Billing #3,8400 Edgewater Mixed-Use Development
-INV-0004,payable,Yamamoto Architecture + Design,,230000,2025-08-30,2025-09-29,paid,A&E Services - Progress Billing #4,8400 Edgewater Mixed-Use Development
-INV-0005,payable,Yamamoto Architecture + Design,,230000,2025-09-29,2025-10-29,paid,A&E Services - Progress Billing #5,8400 Edgewater Mixed-Use Development
-INV-0006,payable,Yamamoto Architecture + Design,,230000,2025-10-29,2025-11-28,paid,A&E Services - Progress Billing #6,8400 Edgewater Mixed-Use Development
-INV-0007,payable,Yamamoto Architecture + Design,,230000,2025-11-28,2025-12-28,paid,A&E Services - Progress Billing #7,8400 Edgewater Mixed-Use Development
-INV-0008,payable,Yamamoto Architecture + Design,,230000,2025-12-28,2026-01-27,paid,A&E Services - Progress Billing #8,8400 Edgewater Mixed-Use Development
-INV-0009,payable,Yamamoto Architecture + Design,,230000,2026-02-01,2026-03-03,approved,A&E Services - Progress Billing #9,8400 Edgewater Mixed-Use Development
-INV-0010,payable,Bay Area Structural Engineers,,120000,2025-09-01,2025-10-01,paid,Structural Engineering - Progress Billing #1,8400 Edgewater Mixed-Use Development
-INV-0011,payable,Bay Area Structural Engineers,,120000,2025-10-01,2025-10-31,paid,Structural Engineering - Progress Billing #2,8400 Edgewater Mixed-Use Development
-INV-0012,payable,Bay Area Structural Engineers,,120000,2025-10-31,2025-11-30,paid,Structural Engineering - Progress Billing #3,8400 Edgewater Mixed-Use Development
-INV-0013,payable,Bay Area Structural Engineers,,120000,2025-11-30,2025-12-30,paid,Structural Engineering - Progress Billing #4,8400 Edgewater Mixed-Use Development
-INV-0014,payable,Bay Area Structural Engineers,,120000,2025-12-30,2026-01-29,paid,Structural Engineering - Progress Billing #5,8400 Edgewater Mixed-Use Development
-INV-0015,payable,Bay Area Structural Engineers,,120000,2026-02-01,2026-03-03,approved,Structural Engineering - Progress Billing #6,8400 Edgewater Mixed-Use Development
-INV-0016,payable,Nguyen MEP Engineering,,93333,2025-09-01,2025-10-01,paid,MEP Engineering - Progress Billing #1,8400 Edgewater Mixed-Use Development
-INV-0017,payable,Nguyen MEP Engineering,,93333,2025-10-01,2025-10-31,paid,MEP Engineering - Progress Billing #2,8400 Edgewater Mixed-Use Development
-INV-0018,payable,Nguyen MEP Engineering,,93333,2025-10-31,2025-11-30,paid,MEP Engineering - Progress Billing #3,8400 Edgewater Mixed-Use Development
-INV-0019,payable,Nguyen MEP Engineering,,93333,2025-11-30,2025-12-30,paid,MEP Engineering - Progress Billing #4,8400 Edgewater Mixed-Use Development
-INV-0020,payable,Nguyen MEP Engineering,,93333,2025-12-30,2026-01-29,paid,MEP Engineering - Progress Billing #5,8400 Edgewater Mixed-Use Development
-INV-0021,payable,Nguyen MEP Engineering,,93333,2026-02-01,2026-03-03,approved,MEP Engineering - Progress Billing #6,8400 Edgewater Mixed-Use Development
-INV-0022,payable,Wells Fargo Construction Lending,,350000,2025-06-15,2025-07-15,paid,Loan origination fee,8400 Edgewater Mixed-Use Development
-INV-0023,payable,Wells Fargo Construction Lending,,125000,2025-08-01,2025-08-31,paid,Legal documentation & closing costs,8400 Edgewater Mixed-Use Development
-INV-0024,payable,Wells Fargo Construction Lending,,85000,2025-10-01,2025-10-31,paid,Appraisal & environmental reports,8400 Edgewater Mixed-Use Development
-INV-0025,payable,Wells Fargo Construction Lending,,95000,2025-12-01,2025-12-31,paid,Loan administration - Q4 2025,8400 Edgewater Mixed-Use Development
-INV-0026,payable,Wells Fargo Construction Lending,,95000,2026-01-15,2026-02-14,approved,Loan administration - Q1 2026,8400 Edgewater Mixed-Use Development
-INV-0027,payable,Pacific General Contractors,,300000,2025-12-01,2025-12-31,paid,Pre-Construction PM & Permits - Month 1,8400 Edgewater Mixed-Use Development
-INV-0028,payable,Pacific General Contractors,,300000,2025-12-31,2026-01-30,paid,Pre-Construction PM & Permits - Month 2,8400 Edgewater Mixed-Use Development
-INV-0029,payable,Pacific General Contractors,,300000,2026-01-30,2026-03-01,approved,Pre-Construction PM & Permits - Month 3,8400 Edgewater Mixed-Use Development
-INV-0030,payable,Torres Landscape Architecture,,15000,2025-11-01,2025-12-01,paid,Marketing materials - renderings and brochures,8400 Edgewater Mixed-Use Development
-INV-0031,payable,Torres Landscape Architecture,,20000,2026-01-15,2026-02-14,approved,Pre-leasing website and collateral,8400 Edgewater Mixed-Use Development
-INV-0032,payable,Hartman Testing & Inspection,,45000,2025-10-15,2025-11-14,paid,Geotechnical investigation,8400 Edgewater Mixed-Use Development
-INV-0033,payable,Hartman Testing & Inspection,,28000,2025-12-01,2025-12-31,paid,Environmental Phase I & II,8400 Edgewater Mixed-Use Development
-INV-0034,payable,Hartman Testing & Inspection,,18000,2026-01-20,2026-02-19,approved,Materials testing - pre-construction,8400 Edgewater Mixed-Use Development
-INV-0035,payable,Pacific Insurance Group,,850000,2026-02-01,2026-03-03,draft,Builder's Risk Insurance - Year 1 premium,8400 Edgewater Mixed-Use Development
-INV-0036,payable,Pacific General Contractors,,500000,2026-08-01,2026-08-31,draft,Pre-construction services & mobilization deposit,8400 Edgewater Mixed-Use Development
-INV-0037,payable,Pacific General Contractors,,250000,2026-09-01,2026-10-01,draft,Site preparation & utility coordination,8400 Edgewater Mixed-Use Development
-INV-0038,payable,Pacific General Contractors,,750000,2026-10-01,2026-10-31,draft,Construction mobilization & temporary facilities,8400 Edgewater Mixed-Use Development
-INV-0039,receivable,,Bay Area Film Studios LLC,58333.33,2029-01-01,2029-01-31,draft,Studio Lease - Soundstage A - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development
-INV-0040,receivable,,Bay Area Film Studios LLC,58333.33,2029-01-01,2029-01-31,draft,Studio Lease - Soundstage B - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development
-INV-0041,receivable,,Pinnacle Productions,58333.33,2029-01-01,2029-01-31,draft,Studio Lease - Soundstage C - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development
-INV-0042,receivable,,Pinnacle Productions,35000.0,2029-01-01,2029-01-31,draft,Studio Lease - Production Office 1 - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development
-INV-0043,receivable,,Pacific Post-Production,23333.33,2029-01-01,2029-01-31,draft,Studio Lease - Production Office 2 - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development
-INV-0044,receivable,,Pacific Post-Production,36666.67,2029-01-01,2029-01-31,draft,Studio Lease - Support Facilities - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development
-INV-0045,receivable,,Backlot Events & Rentals,22500.0,2029-01-01,2029-01-31,draft,Studio Lease - Backlot / Exterior - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development
-INV-0046,receivable,,Bay Area Film Studios LLC,15000,2029-01-01,2029-01-31,draft,Equipment Rental Revenue - January 2029,8400 Edgewater Mixed-Use Development
-INV-0047,receivable,,Various,10000,2029-01-01,2029-01-31,draft,Catering Services Revenue - January 2029,8400 Edgewater Mixed-Use Development
-INV-0048,receivable,,Various,20833,2029-01-01,2029-01-31,draft,Studio Tours Revenue - January 2029,8400 Edgewater Mixed-Use Development
-INV-0049,payable,Bay Area Utilities Co.,,1666.67,2028-05-01,2028-05-31,draft,Resi OpEx - Utilities - May 2028 (20 units),8400 Edgewater Mixed-Use Development
-INV-0050,payable,Pacific General Contractors,,1833.33,2028-05-01,2028-05-31,draft,Resi OpEx - Repairs & Maintenance - May 2028 (20 units),8400 Edgewater Mixed-Use Development
-INV-0051,payable,Apex Property Management,,1250.0,2028-05-01,2028-05-31,draft,Resi OpEx - Contract Services - May 2028 (20 units),8400 Edgewater Mixed-Use Development
-INV-0052,payable,Torres Landscape Architecture,,500.0,2028-05-01,2028-05-31,draft,Resi OpEx - Marketing - May 2028 (20 units),8400 Edgewater Mixed-Use Development
-INV-0053,payable,Apex Property Management,,1666.67,2028-05-01,2028-05-31,draft,Resi OpEx - General & Administrative - May 2028 (20 units),8400 Edgewater Mixed-Use Development
-INV-0054,payable,Apex Property Management,,2625.0,2028-05-01,2028-05-31,draft,Resi OpEx - Personnel - May 2028 (20 units),8400 Edgewater Mixed-Use Development
-INV-0055,payable,Pacific Insurance Group,,1666.67,2028-05-01,2028-05-31,draft,Resi OpEx - Insurance - May 2028 (20 units),8400 Edgewater Mixed-Use Development
-INV-0056,payable,Bay Area Utilities Co.,,4166.67,2028-05-01,2028-05-31,draft,Resi OpEx - Property Taxes - May 2028 (20 units),8400 Edgewater Mixed-Use Development
-INV-0057,payable,Apex Property Management,,1563.64,2028-05-01,2028-05-31,draft,Resi OpEx - Management Fee (3%) - May 2028,8400 Edgewater Mixed-Use Development
-INV-0058,payable,Guardian Security Services,,10000.0,2028-10-01,2028-10-31,draft,Studio OpEx - Security - Oct 2028,8400 Edgewater Mixed-Use Development
-INV-0059,payable,Bay Area Utilities Co.,,27500.0,2028-10-01,2028-10-31,draft,Studio OpEx - Utilities - Oct 2028,8400 Edgewater Mixed-Use Development
-INV-0060,payable,Pacific Insurance Group,,12500.0,2028-10-01,2028-10-31,draft,Studio OpEx - Insurance - Oct 2028,8400 Edgewater Mixed-Use Development
+invoice_number,invoice_type,vendor_name,client_name,amount,invoice_date,due_date,status,description,project_name,gl_account
+INV-0001,payable,Yamamoto Architecture + Design,,230000,2025-06-01,2025-07-01,paid,A&E Services - Progress Billing #1,8400 Edgewater Mixed-Use Development,6000
+INV-0002,payable,Yamamoto Architecture + Design,,230000,2025-07-01,2025-07-31,paid,A&E Services - Progress Billing #2,8400 Edgewater Mixed-Use Development,6000
+INV-0003,payable,Yamamoto Architecture + Design,,230000,2025-07-31,2025-08-30,paid,A&E Services - Progress Billing #3,8400 Edgewater Mixed-Use Development,6000
+INV-0004,payable,Yamamoto Architecture + Design,,230000,2025-08-30,2025-09-29,paid,A&E Services - Progress Billing #4,8400 Edgewater Mixed-Use Development,6000
+INV-0005,payable,Yamamoto Architecture + Design,,230000,2025-09-29,2025-10-29,paid,A&E Services - Progress Billing #5,8400 Edgewater Mixed-Use Development,6000
+INV-0006,payable,Yamamoto Architecture + Design,,230000,2025-10-29,2025-11-28,paid,A&E Services - Progress Billing #6,8400 Edgewater Mixed-Use Development,6000
+INV-0007,payable,Yamamoto Architecture + Design,,230000,2025-11-28,2025-12-28,paid,A&E Services - Progress Billing #7,8400 Edgewater Mixed-Use Development,6000
+INV-0008,payable,Yamamoto Architecture + Design,,230000,2025-12-28,2026-01-27,paid,A&E Services - Progress Billing #8,8400 Edgewater Mixed-Use Development,6000
+INV-0009,payable,Yamamoto Architecture + Design,,230000,2026-02-01,2026-03-03,approved,A&E Services - Progress Billing #9,8400 Edgewater Mixed-Use Development,6000
+INV-0010,payable,Bay Area Structural Engineers,,120000,2025-09-01,2025-10-01,paid,Structural Engineering - Progress Billing #1,8400 Edgewater Mixed-Use Development,6000
+INV-0011,payable,Bay Area Structural Engineers,,120000,2025-10-01,2025-10-31,paid,Structural Engineering - Progress Billing #2,8400 Edgewater Mixed-Use Development,6000
+INV-0012,payable,Bay Area Structural Engineers,,120000,2025-10-31,2025-11-30,paid,Structural Engineering - Progress Billing #3,8400 Edgewater Mixed-Use Development,6000
+INV-0013,payable,Bay Area Structural Engineers,,120000,2025-11-30,2025-12-30,paid,Structural Engineering - Progress Billing #4,8400 Edgewater Mixed-Use Development,6000
+INV-0014,payable,Bay Area Structural Engineers,,120000,2025-12-30,2026-01-29,paid,Structural Engineering - Progress Billing #5,8400 Edgewater Mixed-Use Development,6000
+INV-0015,payable,Bay Area Structural Engineers,,120000,2026-02-01,2026-03-03,approved,Structural Engineering - Progress Billing #6,8400 Edgewater Mixed-Use Development,6000
+INV-0016,payable,Nguyen MEP Engineering,,93333,2025-09-01,2025-10-01,paid,MEP Engineering - Progress Billing #1,8400 Edgewater Mixed-Use Development,6000
+INV-0017,payable,Nguyen MEP Engineering,,93333,2025-10-01,2025-10-31,paid,MEP Engineering - Progress Billing #2,8400 Edgewater Mixed-Use Development,6000
+INV-0018,payable,Nguyen MEP Engineering,,93333,2025-10-31,2025-11-30,paid,MEP Engineering - Progress Billing #3,8400 Edgewater Mixed-Use Development,6000
+INV-0019,payable,Nguyen MEP Engineering,,93333,2025-11-30,2025-12-30,paid,MEP Engineering - Progress Billing #4,8400 Edgewater Mixed-Use Development,6000
+INV-0020,payable,Nguyen MEP Engineering,,93333,2025-12-30,2026-01-29,paid,MEP Engineering - Progress Billing #5,8400 Edgewater Mixed-Use Development,6000
+INV-0021,payable,Nguyen MEP Engineering,,93333,2026-02-01,2026-03-03,approved,MEP Engineering - Progress Billing #6,8400 Edgewater Mixed-Use Development,6000
+INV-0022,payable,Wells Fargo Construction Lending,,350000,2025-06-15,2025-07-15,paid,Loan origination fee,8400 Edgewater Mixed-Use Development,6010
+INV-0023,payable,Wells Fargo Construction Lending,,125000,2025-08-01,2025-08-31,paid,Legal documentation & closing costs,8400 Edgewater Mixed-Use Development,6010
+INV-0024,payable,Wells Fargo Construction Lending,,85000,2025-10-01,2025-10-31,paid,Appraisal & environmental reports,8400 Edgewater Mixed-Use Development,6010
+INV-0025,payable,Wells Fargo Construction Lending,,95000,2025-12-01,2025-12-31,paid,Loan administration - Q4 2025,8400 Edgewater Mixed-Use Development,6010
+INV-0026,payable,Wells Fargo Construction Lending,,95000,2026-01-15,2026-02-14,approved,Loan administration - Q1 2026,8400 Edgewater Mixed-Use Development,6010
+INV-0027,payable,Pacific General Contractors,,300000,2025-12-01,2025-12-31,paid,Pre-Construction PM & Permits - Month 1,8400 Edgewater Mixed-Use Development,6030
+INV-0028,payable,Pacific General Contractors,,300000,2025-12-31,2026-01-30,paid,Pre-Construction PM & Permits - Month 2,8400 Edgewater Mixed-Use Development,6030
+INV-0029,payable,Pacific General Contractors,,300000,2026-01-30,2026-03-01,approved,Pre-Construction PM & Permits - Month 3,8400 Edgewater Mixed-Use Development,6030
+INV-0030,payable,Torres Landscape Architecture,,15000,2025-11-01,2025-12-01,paid,Marketing materials - renderings and brochures,8400 Edgewater Mixed-Use Development,5040
+INV-0031,payable,Torres Landscape Architecture,,20000,2026-01-15,2026-02-14,approved,Pre-leasing website and collateral,8400 Edgewater Mixed-Use Development,5040
+INV-0032,payable,Hartman Testing & Inspection,,45000,2025-10-15,2025-11-14,paid,Geotechnical investigation,8400 Edgewater Mixed-Use Development,6030
+INV-0033,payable,Hartman Testing & Inspection,,28000,2025-12-01,2025-12-31,paid,Environmental Phase I & II,8400 Edgewater Mixed-Use Development,6030
+INV-0034,payable,Hartman Testing & Inspection,,18000,2026-01-20,2026-02-19,approved,Materials testing - pre-construction,8400 Edgewater Mixed-Use Development,6030
+INV-0035,payable,Pacific Insurance Group,,850000,2026-02-01,2026-03-03,draft,Builder's Risk Insurance - Year 1 premium,8400 Edgewater Mixed-Use Development,5080
+INV-0036,payable,Pacific General Contractors,,500000,2026-08-01,2026-08-31,draft,Pre-construction services & mobilization deposit,8400 Edgewater Mixed-Use Development,6030
+INV-0037,payable,Pacific General Contractors,,250000,2026-09-01,2026-10-01,draft,Site preparation & utility coordination,8400 Edgewater Mixed-Use Development,6030
+INV-0038,payable,Pacific General Contractors,,750000,2026-10-01,2026-10-31,draft,Construction mobilization & temporary facilities,8400 Edgewater Mixed-Use Development,6030
+INV-0039,receivable,,Bay Area Film Studios LLC,58333.33,2029-01-01,2029-01-31,draft,Studio Lease - Soundstage A - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development,4010
+INV-0040,receivable,,Bay Area Film Studios LLC,58333.33,2029-01-01,2029-01-31,draft,Studio Lease - Soundstage B - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development,4010
+INV-0041,receivable,,Pinnacle Productions,58333.33,2029-01-01,2029-01-31,draft,Studio Lease - Soundstage C - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development,4010
+INV-0042,receivable,,Pinnacle Productions,35000.0,2029-01-01,2029-01-31,draft,Studio Lease - Production Office 1 - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development,4010
+INV-0043,receivable,,Pacific Post-Production,23333.33,2029-01-01,2029-01-31,draft,Studio Lease - Production Office 2 - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development,4010
+INV-0044,receivable,,Pacific Post-Production,36666.67,2029-01-01,2029-01-31,draft,Studio Lease - Support Facilities - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development,4010
+INV-0045,receivable,,Backlot Events & Rentals,22500.0,2029-01-01,2029-01-31,draft,Studio Lease - Backlot / Exterior - Jan 2029 (first billing month),8400 Edgewater Mixed-Use Development,4010
+INV-0046,receivable,,Bay Area Film Studios LLC,15000,2029-01-01,2029-01-31,draft,Equipment Rental Revenue - January 2029,8400 Edgewater Mixed-Use Development,4030
+INV-0047,receivable,,Various,10000,2029-01-01,2029-01-31,draft,Catering Services Revenue - January 2029,8400 Edgewater Mixed-Use Development,4040
+INV-0048,receivable,,Various,20833,2029-01-01,2029-01-31,draft,Studio Tours Revenue - January 2029,8400 Edgewater Mixed-Use Development,4050
+INV-0049,payable,Bay Area Utilities Co.,,1666.67,2028-05-01,2028-05-31,draft,Resi OpEx - Utilities - May 2028 (20 units),8400 Edgewater Mixed-Use Development,5000
+INV-0050,payable,Pacific General Contractors,,1833.33,2028-05-01,2028-05-31,draft,Resi OpEx - Repairs & Maintenance - May 2028 (20 units),8400 Edgewater Mixed-Use Development,5020
+INV-0051,payable,Apex Property Management,,1250.0,2028-05-01,2028-05-31,draft,Resi OpEx - Contract Services - May 2028 (20 units),8400 Edgewater Mixed-Use Development,5030
+INV-0052,payable,Torres Landscape Architecture,,500.0,2028-05-01,2028-05-31,draft,Resi OpEx - Marketing - May 2028 (20 units),8400 Edgewater Mixed-Use Development,5040
+INV-0053,payable,Apex Property Management,,1666.67,2028-05-01,2028-05-31,draft,Resi OpEx - General & Administrative - May 2028 (20 units),8400 Edgewater Mixed-Use Development,5050
+INV-0054,payable,Apex Property Management,,2625.0,2028-05-01,2028-05-31,draft,Resi OpEx - Personnel - May 2028 (20 units),8400 Edgewater Mixed-Use Development,5060
+INV-0055,payable,Pacific Insurance Group,,1666.67,2028-05-01,2028-05-31,draft,Resi OpEx - Insurance - May 2028 (20 units),8400 Edgewater Mixed-Use Development,5080
+INV-0056,payable,Bay Area Utilities Co.,,4166.67,2028-05-01,2028-05-31,draft,Resi OpEx - Property Taxes - May 2028 (20 units),8400 Edgewater Mixed-Use Development,5090
+INV-0057,payable,Apex Property Management,,1563.64,2028-05-01,2028-05-31,draft,Resi OpEx - Management Fee (3%) - May 2028,8400 Edgewater Mixed-Use Development,5070
+INV-0058,payable,Guardian Security Services,,10000.0,2028-10-01,2028-10-31,draft,Studio OpEx - Security - Oct 2028,8400 Edgewater Mixed-Use Development,5250
+INV-0059,payable,Bay Area Utilities Co.,,27500.0,2028-10-01,2028-10-31,draft,Studio OpEx - Utilities - Oct 2028,8400 Edgewater Mixed-Use Development,5210
+INV-0060,payable,Pacific Insurance Group,,12500.0,2028-10-01,2028-10-31,draft,Studio OpEx - Insurance - Oct 2028,8400 Edgewater Mixed-Use Development,5230

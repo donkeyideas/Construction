@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { syncPropertyFinancials } from "@/lib/queries/properties";
-import { generateBulkInvoiceJournalEntries } from "@/lib/utils/invoice-accounting";
+import {
+  generateBulkInvoiceJournalEntries,
+  generateBulkPaymentJournalEntries,
+  buildCompanyAccountMap,
+  inferGLAccountFromDescription,
+} from "@/lib/utils/invoice-accounting";
 
 // ---------------------------------------------------------------------------
 // POST /api/import — Generic bulk import endpoint
@@ -777,13 +782,33 @@ export async function POST(request: NextRequest) {
       }
 
       case "invoices": {
+        // Build account map once for GL account resolution
+        const accountMap = await buildCompanyAccountMap(supabase, companyId);
+
         const insertedInvoices: Array<{
           id: string;
           invoice_number: string;
           invoice_type: "payable" | "receivable";
           total_amount: number;
+          subtotal: number;
+          tax_amount: number;
           invoice_date: string;
           status?: string;
+          project_id?: string | null;
+          vendor_name?: string | null;
+          client_name?: string | null;
+          gl_account_id?: string | null;
+          retainage_pct?: number;
+          retainage_held?: number;
+        }> = [];
+
+        // Track paid invoices for payment JE generation (Phase 2: CRITICAL-3 fix)
+        const paidInvoices: Array<{
+          invoiceId: string;
+          invoice_number: string;
+          invoice_type: "payable" | "receivable";
+          total_amount: number;
+          due_date: string;
           project_id?: string | null;
           vendor_name?: string | null;
           client_name?: string | null;
@@ -795,8 +820,38 @@ export async function POST(request: NextRequest) {
           const invoiceDate = r.invoice_date || new Date().toISOString().split("T")[0];
           const projectId = resolveProjectId(r);
           const invoiceType = (r.invoice_type || "receivable") as "payable" | "receivable";
-          const totalAmount = r.amount ? parseFloat(r.amount) + (r.tax_amount ? parseFloat(r.tax_amount) : 0) : 0;
+          const subtotal = r.amount ? parseFloat(r.amount) : 0;
+          const taxAmount = r.tax_amount ? parseFloat(r.tax_amount) : 0;
+          const totalAmount = subtotal + taxAmount;
           const status = r.status || "draft";
+
+          // Resolve GL account: explicit column > auto-infer from description > null
+          let glAccountId: string | null = null;
+          if (r.gl_account) {
+            // Explicit account number in CSV → resolve to account ID
+            glAccountId = accountMap.byNumber[r.gl_account] || null;
+          }
+          if (!glAccountId) {
+            // Auto-infer from description and vendor name
+            const inferredNumber = inferGLAccountFromDescription(
+              r.description || "",
+              invoiceType,
+              r.vendor_name
+            );
+            if (inferredNumber) {
+              glAccountId = accountMap.byNumber[inferredNumber] || null;
+            }
+          }
+
+          // Retainage fields
+          const retainagePct = r.retainage_pct ? parseFloat(r.retainage_pct) : 0;
+          const retainageHeld = r.retainage_held
+            ? parseFloat(r.retainage_held)
+            : retainagePct > 0 ? totalAmount * (retainagePct / 100) : 0;
+
+          // For paid invoices: set amount_paid = total_amount
+          const isPaid = status === "paid";
+          const amountPaid = isPaid ? totalAmount : 0;
 
           const { data: inserted, error } = await supabase.from("invoices").insert({
             company_id: companyId,
@@ -806,12 +861,16 @@ export async function POST(request: NextRequest) {
             invoice_type: invoiceType,
             vendor_name: r.vendor_name || null,
             client_name: r.client_name || null,
-            subtotal: r.amount ? parseFloat(r.amount) : 0,
+            subtotal,
             total_amount: totalAmount,
-            tax_amount: r.tax_amount ? parseFloat(r.tax_amount) : 0,
+            tax_amount: taxAmount,
             due_date: r.due_date || null,
             notes: r.description || null,
             status,
+            amount_paid: amountPaid,
+            gl_account_id: glAccountId,
+            retainage_pct: retainagePct,
+            retainage_held: retainageHeld,
           }).select("id").single();
 
           if (error) {
@@ -824,17 +883,36 @@ export async function POST(request: NextRequest) {
                 invoice_number: invoiceNumber,
                 invoice_type: invoiceType,
                 total_amount: totalAmount,
+                subtotal,
+                tax_amount: taxAmount,
                 invoice_date: invoiceDate,
                 status,
                 project_id: projectId,
                 vendor_name: r.vendor_name || null,
                 client_name: r.client_name || null,
+                gl_account_id: glAccountId,
+                retainage_pct: retainagePct,
+                retainage_held: retainageHeld,
               });
+
+              // Track paid invoices for payment generation
+              if (isPaid) {
+                paidInvoices.push({
+                  invoiceId: inserted.id,
+                  invoice_number: invoiceNumber,
+                  invoice_type: invoiceType,
+                  total_amount: totalAmount,
+                  due_date: r.due_date || invoiceDate,
+                  project_id: projectId,
+                  vendor_name: r.vendor_name || null,
+                  client_name: r.client_name || null,
+                });
+              }
             }
           }
         }
 
-        // Auto-generate journal entries for all imported invoices
+        // Auto-generate invoice journal entries
         if (insertedInvoices.length > 0) {
           try {
             const jeResult = await generateBulkInvoiceJournalEntries(
@@ -845,6 +923,93 @@ export async function POST(request: NextRequest) {
             }
           } catch (jeErr) {
             console.warn("Bulk JE generation failed:", jeErr);
+          }
+        }
+
+        // Phase 2: Generate payment records + payment JEs for paid invoices
+        if (paidInvoices.length > 0) {
+          const paymentRecords: Array<{
+            paymentId: string;
+            amount: number;
+            payment_date: string;
+            method: string;
+            invoice: {
+              id: string;
+              invoice_number: string;
+              invoice_type: "payable" | "receivable";
+              project_id?: string | null;
+              vendor_name?: string | null;
+              client_name?: string | null;
+            };
+          }> = [];
+
+          for (const pi of paidInvoices) {
+            // Create a payment record
+            const { data: payment, error: pmtErr } = await supabase.from("payments").insert({
+              company_id: companyId,
+              invoice_id: pi.invoiceId,
+              payment_date: pi.due_date,
+              amount: pi.total_amount,
+              method: "imported",
+              notes: "Auto-generated from paid invoice import",
+            }).select("id").single();
+
+            if (pmtErr) {
+              console.warn(`Payment record failed for ${pi.invoice_number}:`, pmtErr.message);
+            } else if (payment) {
+              paymentRecords.push({
+                paymentId: payment.id,
+                amount: pi.total_amount,
+                payment_date: pi.due_date,
+                method: "imported",
+                invoice: {
+                  id: pi.invoiceId,
+                  invoice_number: pi.invoice_number,
+                  invoice_type: pi.invoice_type,
+                  project_id: pi.project_id,
+                  vendor_name: pi.vendor_name,
+                  client_name: pi.client_name,
+                },
+              });
+            }
+          }
+
+          // Generate payment JEs (DR AP / CR Cash for payables, DR Cash / CR AR for receivables)
+          if (paymentRecords.length > 0) {
+            try {
+              const pmtJeResult = await generateBulkPaymentJournalEntries(
+                supabase, companyId, userId, paymentRecords
+              );
+              if (pmtJeResult.errors.length > 0) {
+                console.warn("Some payment JEs skipped:", pmtJeResult.errors);
+              }
+            } catch (pmtJeErr) {
+              console.warn("Bulk payment JE generation failed:", pmtJeErr);
+            }
+          }
+
+          // Sync bank balance: net cash impact of all paid invoices
+          try {
+            const { data: defaultBank } = await supabase
+              .from("bank_accounts")
+              .select("id, current_balance")
+              .eq("company_id", companyId)
+              .eq("is_default", true)
+              .single();
+
+            if (defaultBank) {
+              let cashAdjustment = 0;
+              for (const pi of paidInvoices) {
+                // Payable payment = cash out, Receivable payment = cash in
+                cashAdjustment += pi.invoice_type === "payable" ? -pi.total_amount : pi.total_amount;
+              }
+              await supabase
+                .from("bank_accounts")
+                .update({ current_balance: defaultBank.current_balance + cashAdjustment })
+                .eq("id", defaultBank.id);
+            }
+          } catch (bankErr) {
+            console.warn("Bank balance sync failed during import:", bankErr);
           }
         }
         break;

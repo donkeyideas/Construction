@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoices, createInvoice } from "@/lib/queries/financial";
 import type { InvoiceFilters, InvoiceCreateData } from "@/lib/queries/financial";
-import { buildAccountLookup, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
+import { buildCompanyAccountMap, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
 
 export async function GET(request: NextRequest) {
   try {
@@ -91,6 +91,9 @@ export async function POST(request: NextRequest) {
       line_items: body.line_items ?? [],
       notes: body.notes,
       status: body.status ?? "draft",
+      gl_account_id: body.gl_account_id,
+      retainage_pct: body.retainage_pct ?? 0,
+      retainage_held: body.retainage_held ?? 0,
     };
 
     const result = await createInvoice(supabase, userCompany.companyId, data);
@@ -104,7 +107,7 @@ export async function POST(request: NextRequest) {
 
     // Auto-generate journal entry (non-blocking — invoice succeeds regardless)
     try {
-      const accountLookup = await buildAccountLookup(supabase, userCompany.companyId);
+      const accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
       await generateInvoiceJournalEntry(
         supabase,
         userCompany.companyId,
@@ -114,13 +117,18 @@ export async function POST(request: NextRequest) {
           invoice_number: data.invoice_number,
           invoice_type: data.invoice_type,
           total_amount: data.total_amount,
+          subtotal: data.subtotal,
+          tax_amount: data.tax_amount,
           invoice_date: data.invoice_date,
           status: data.status,
           project_id: data.project_id,
           vendor_name: data.vendor_name,
           client_name: data.client_name,
+          gl_account_id: data.gl_account_id,
+          retainage_pct: data.retainage_pct,
+          retainage_held: data.retainage_held,
         },
-        accountLookup
+        accountMap
       );
     } catch (jeErr) {
       console.warn("Journal entry generation failed for invoice:", result.id, jeErr);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { buildCompanyAccountMap, generateChangeOrderJournalEntry } from "@/lib/utils/invoice-accounting";
 
 // ---------------------------------------------------------------------------
 // POST /api/projects/change-orders — Create a new change order
@@ -138,6 +139,29 @@ export async function PATCH(request: NextRequest) {
         { error: error.message },
         { status: 400 }
       );
+    }
+
+    // Auto-generate journal entry when change order is approved (Phase 5)
+    if (body.status === "approved" && changeOrder && changeOrder.amount !== 0) {
+      try {
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generateChangeOrderJournalEntry(
+          supabase,
+          userCtx.companyId,
+          userCtx.userId,
+          {
+            id: changeOrder.id,
+            co_number: changeOrder.co_number,
+            amount: changeOrder.amount,
+            reason: changeOrder.reason || "design_change",
+            project_id: changeOrder.project_id,
+            title: changeOrder.title,
+          },
+          accountMap
+        );
+      } catch (jeErr) {
+        console.warn("Change order JE generation failed:", changeOrder.id, jeErr);
+      }
     }
 
     return NextResponse.json(changeOrder);

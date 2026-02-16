@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { recordPayment, getPayments } from "@/lib/queries/financial";
 import type { PaymentCreateData } from "@/lib/queries/financial";
-import { buildAccountLookup, generatePaymentJournalEntry } from "@/lib/utils/invoice-accounting";
+import { buildCompanyAccountMap, generatePaymentJournalEntry } from "@/lib/utils/invoice-accounting";
 
 export async function GET(request: NextRequest) {
   try {
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (invoice) {
-        const accountLookup = await buildAccountLookup(supabase, userCompany.companyId);
+        const accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
         await generatePaymentJournalEntry(
           supabase,
           userCompany.companyId,
@@ -103,11 +103,52 @@ export async function POST(request: NextRequest) {
             vendor_name: invoice.vendor_name,
             client_name: invoice.client_name,
           },
-          accountLookup
+          accountMap
         );
       }
     } catch (jeErr) {
       console.warn("Journal entry generation failed for payment:", result.id, jeErr);
+    }
+
+    // Sync bank account balance (Phase 4: CRITICAL-6 fix)
+    try {
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("invoice_type")
+        .eq("id", data.invoice_id)
+        .single();
+
+      // Determine bank account to update
+      let bankAccountId = data.bank_account_id;
+      if (!bankAccountId) {
+        // Use default bank account
+        const { data: defaultBank } = await supabase
+          .from("bank_accounts")
+          .select("id")
+          .eq("company_id", userCompany.companyId)
+          .eq("is_default", true)
+          .single();
+        bankAccountId = defaultBank?.id;
+      }
+
+      if (bankAccountId && invoice) {
+        // Payable payment: cash goes out (subtract). Receivable payment: cash comes in (add).
+        const adjustment = invoice.invoice_type === "payable" ? -data.amount : data.amount;
+        const { data: bank } = await supabase
+          .from("bank_accounts")
+          .select("current_balance")
+          .eq("id", bankAccountId)
+          .single();
+
+        if (bank) {
+          await supabase
+            .from("bank_accounts")
+            .update({ current_balance: bank.current_balance + adjustment })
+            .eq("id", bankAccountId);
+        }
+      }
+    } catch (bankErr) {
+      console.warn("Bank balance sync failed for payment:", result.id, bankErr);
     }
 
     return NextResponse.json({ id: result.id }, { status: 201 });
