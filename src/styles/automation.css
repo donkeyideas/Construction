@@ -57,10 +57,221 @@
   color: var(--text);
 }
 
+.automation-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .automation-tab.active {
   color: var(--text);
   border-bottom-color: var(--color-blue);
   font-weight: 600;
+}
+
+/* ===== Rule Cards (Mockup style) ===== */
+.automation-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.automation-rule-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: box-shadow 0.2s;
+}
+
+.automation-rule-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .automation-rule-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.automation-rule-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.automation-rule-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.automation-rule-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.automation-rule-icon.blue {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+}
+
+.automation-rule-icon.green {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+.automation-rule-icon.amber {
+  background: var(--color-amber-light);
+  color: var(--color-amber);
+}
+
+.automation-rule-icon.red {
+  background: var(--color-red-light);
+  color: var(--color-red);
+}
+
+.automation-rule-icon.purple {
+  background: rgba(147, 51, 234, 0.08);
+  color: #a855f7;
+}
+
+[data-theme="dark"] .automation-rule-icon.blue {
+  background: rgba(29, 78, 216, 0.15);
+}
+
+[data-theme="dark"] .automation-rule-icon.green {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+[data-theme="dark"] .automation-rule-icon.amber {
+  background: rgba(180, 83, 9, 0.15);
+}
+
+[data-theme="dark"] .automation-rule-icon.red {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+[data-theme="dark"] .automation-rule-icon.purple {
+  background: rgba(147, 51, 234, 0.15);
+}
+
+.automation-rule-card-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.automation-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-family: var(--font-sans);
+}
+
+.automation-active-badge.active {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+.automation-active-badge.inactive {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+[data-theme="dark"] .automation-active-badge.active {
+  background: rgba(22, 163, 74, 0.15);
+}
+
+.automation-active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.automation-rule-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.automation-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s;
+}
+
+.automation-icon-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.automation-rule-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.automation-rule-card-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.automation-rule-card-value {
+  font-size: 0.8rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .automation-rule-card-value {
+  color: var(--muted);
+}
+
+.automation-rule-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.automation-rule-card-footer strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .automation-rule-card-footer strong {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.automation-rule-card-sep {
+  color: var(--border);
 }
 
 /* ===== Section Title ===== */
@@ -687,5 +898,10 @@
 
   .automation-tabs {
     overflow-x: auto;
+  }
+
+  .automation-rule-card-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }

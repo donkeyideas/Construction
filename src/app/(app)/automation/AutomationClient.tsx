@@ -11,10 +11,17 @@ import {
   Trash2,
   X,
   Plus,
+  Pencil,
+  MoreVertical,
+  FileScan,
+  ShieldAlert,
+  CalendarClock,
+  BadgeAlert,
+  Award,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
-/*  Types matching the actual DB schema                                */
+/*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
 interface Rule {
@@ -53,30 +60,40 @@ const PRESETS: {
   description: string;
   trigger_type: string;
   trigger_entity: string;
+  icon: string;
+  color: string;
 }[] = [
   {
-    name: "Overdue Invoice Alert",
-    description: "Notify when an invoice is past due date",
+    name: "Auto-Process Invoices",
+    description: "Extract data via AI when documents are uploaded to AP folder",
     trigger_type: "field_change",
     trigger_entity: "invoices",
+    icon: "file-scan",
+    color: "blue",
   },
   {
-    name: "Change Order Submitted",
-    description: "Alert team when a new change order is submitted",
+    name: "Safety Score Alert",
+    description: "Alert when safety inspection score falls below threshold",
     trigger_type: "record_created",
-    trigger_entity: "change_orders",
+    trigger_entity: "inspections",
+    icon: "shield-alert",
+    color: "amber",
   },
   {
-    name: "Certificate Expiring Soon",
-    description: "Warn when a safety certificate is about to expire",
+    name: "Lease Expiration Reminder",
+    description: "Daily check for leases expiring within 60 days",
     trigger_type: "schedule",
     trigger_entity: "certifications",
+    icon: "calendar-clock",
+    color: "purple",
   },
   {
-    name: "Safety Inspection Overdue",
-    description: "Alert when a scheduled inspection is past due",
-    trigger_type: "schedule",
-    trigger_entity: "inspections",
+    name: "Budget Threshold Alert",
+    description: "Notify when cost code spending exceeds 90% of budget",
+    trigger_type: "threshold",
+    trigger_entity: "projects",
+    icon: "badge-alert",
+    color: "red",
   },
 ];
 
@@ -99,6 +116,45 @@ const TRIGGER_ENTITIES = [
   { value: "safety_incidents", label: "Safety Incidents" },
   { value: "payments", label: "Payments" },
 ];
+
+const TRIGGER_TYPE_LABELS: Record<string, string> = {
+  record_created: "Record Created",
+  field_change: "Field Changed",
+  schedule: "Scheduled",
+  threshold: "Threshold Reached",
+};
+
+const ENTITY_LABELS: Record<string, string> = {
+  projects: "Projects",
+  invoices: "Invoices",
+  change_orders: "Change Orders",
+  rfis: "RFIs",
+  submittals: "Submittals",
+  daily_logs: "Daily Logs",
+  inspections: "Inspections",
+  certifications: "Certifications",
+  safety_incidents: "Safety Incidents",
+  payments: "Payments",
+};
+
+/* ------------------------------------------------------------------ */
+/*  Icon map for rule cards                                            */
+/* ------------------------------------------------------------------ */
+const ENTITY_ICON: Record<string, typeof FileScan> = {
+  invoices: FileScan,
+  inspections: ShieldAlert,
+  certifications: Award,
+  projects: BadgeAlert,
+  change_orders: CalendarClock,
+};
+
+const ENTITY_COLOR: Record<string, string> = {
+  invoices: "blue",
+  inspections: "amber",
+  certifications: "green",
+  projects: "red",
+  change_orders: "purple",
+};
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
@@ -235,6 +291,21 @@ export default function AutomationClient({
   const totalExecutions = rules.reduce((sum, r) => sum + (r.trigger_count || 0), 0);
   const failedLogs = logs.filter((l) => l.status === "failed").length;
 
+  /* ---------- Format last triggered ---------- */
+  const formatLastTriggered = (dateStr: string | null) => {
+    if (!dateStr) return t("automationNever");
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffHours < 1) return "Just now";
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    return d.toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
+  };
+
   return (
     <div>
       {/* Header */}
@@ -313,12 +384,14 @@ export default function AutomationClient({
           className={`automation-tab ${tab === "rules" ? "active" : ""}`}
           onClick={() => setTab("rules")}
         >
+          <Zap size={14} />
           {t("automationRulesTab", { count: rules.length })}
         </button>
         <button
           className={`automation-tab ${tab === "logs" ? "active" : ""}`}
           onClick={() => setTab("logs")}
         >
+          <ClipboardList size={14} />
           {t("automationActivityLogTab", { count: logs.length })}
         </button>
       </div>
@@ -328,7 +401,7 @@ export default function AutomationClient({
         <>
           {rules.length === 0 ? (
             <div className="automation-empty">
-              <Zap size={48} style={{ color: "var(--muted)", marginBottom: 8 }} />
+              <Zap size={48} style={{ color: "var(--muted)" }} />
               <p className="automation-empty-title">{t("automationNoRulesTitle")}</p>
               <p className="automation-empty-desc">
                 {t("automationNoRulesDesc")}
@@ -341,99 +414,107 @@ export default function AutomationClient({
               </button>
             </div>
           ) : (
-            <div className="automation-table-wrap">
-              <table className="automation-table">
-                <thead>
-                  <tr>
-                    <th>{t("automationColStatus")}</th>
-                    <th>{t("automationColName")}</th>
-                    <th>{t("automationColTrigger")}</th>
-                    <th>{t("automationColEntity")}</th>
-                    <th>{t("automationColExecutions")}</th>
-                    <th>{t("automationColLastTriggered")}</th>
-                    <th style={{ textAlign: "right" }}>{t("automationColActions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rules.map((r) => (
-                    <tr key={r.id}>
-                      <td>
+            <div className="automation-rules-list">
+              {rules.map((r) => {
+                const IconComp = (r.trigger_entity && ENTITY_ICON[r.trigger_entity]) || Zap;
+                const iconColor = (r.trigger_entity && ENTITY_COLOR[r.trigger_entity]) || "blue";
+                return (
+                  <div key={r.id} className="automation-rule-card">
+                    {/* Card Header */}
+                    <div className="automation-rule-card-header">
+                      <div className="automation-rule-card-left">
+                        <div className={`automation-rule-icon ${iconColor}`}>
+                          <IconComp size={20} />
+                        </div>
+                        <div>
+                          <h3 className="automation-rule-card-name">{r.name}</h3>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                            <span className={`automation-active-badge ${r.is_enabled ? "active" : "inactive"}`}>
+                              <span className="automation-active-dot" />
+                              {r.is_enabled ? "ACTIVE" : "INACTIVE"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="automation-rule-card-actions">
                         <button
-                          className={`automation-toggle ${r.is_enabled ? "on" : ""}`}
+                          className="automation-icon-btn"
                           onClick={() => handleToggle(r)}
                           disabled={toggling === r.id}
                           title={r.is_enabled ? t("automationDisableRule") : t("automationEnableRule")}
-                        />
-                      </td>
-                      <td>
-                        <div className="automation-rule-name">{r.name}</div>
-                        {r.description && (
-                          <div className="automation-rule-desc">
-                            {r.description}
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <span className="automation-trigger-badge">
-                          {r.trigger_type?.replace(/_/g, " ")}
-                        </span>
-                      </td>
-                      <td className="automation-muted">
-                        {r.trigger_entity?.replace(/_/g, " ") ?? "\u2014"}
-                      </td>
-                      <td className="automation-muted">
-                        {r.trigger_count || 0}
-                      </td>
-                      <td className="automation-muted">
-                        {r.last_triggered_at
-                          ? new Date(r.last_triggered_at).toLocaleDateString(dateLocale)
-                          : t("automationNever")}
-                      </td>
-                      <td>
-                        <div
-                          className="automation-actions"
-                          style={{ justifyContent: "flex-end" }}
                         >
-                          {confirmDelete === r.id ? (
-                            <>
-                              <button
-                                className="ui-btn ui-btn-sm ui-btn-ghost"
-                                onClick={() => setConfirmDelete(null)}
-                              >
-                                {t("cancel")}
-                              </button>
-                              <button
-                                className="ui-btn ui-btn-sm"
-                                style={{
-                                  background: "var(--color-red)",
-                                  color: "#fff",
-                                  borderColor: "var(--color-red)",
-                                }}
-                                onClick={() => handleDelete(r.id)}
-                                disabled={deleting === r.id}
-                              >
-                                {deleting === r.id ? "..." : t("confirm")}
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              className="automation-action-btn danger"
-                              title={t("automationDeleteRule")}
-                              onClick={() => setConfirmDelete(r.id)}
-                            >
-                              <Trash2 size={16} />
+                          <Pencil size={16} />
+                        </button>
+                        {confirmDelete === r.id ? (
+                          <div style={{ display: "flex", gap: 4 }}>
+                            <button className="ui-btn ui-btn-sm ui-btn-ghost" onClick={() => setConfirmDelete(null)}>
+                              {t("cancel")}
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                            <button
+                              className="ui-btn ui-btn-sm"
+                              style={{ background: "var(--color-red)", color: "#fff", borderColor: "var(--color-red)" }}
+                              onClick={() => handleDelete(r.id)}
+                              disabled={deleting === r.id}
+                            >
+                              {deleting === r.id ? "..." : t("confirm")}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="automation-icon-btn"
+                            onClick={() => setConfirmDelete(r.id)}
+                            title={t("automationDeleteRule")}
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Body - 3-column grid */}
+                    <div className="automation-rule-card-grid">
+                      <div>
+                        <p className="automation-rule-card-label">TRIGGER</p>
+                        <p className="automation-rule-card-value">
+                          {TRIGGER_TYPE_LABELS[r.trigger_type] || r.trigger_type?.replace(/_/g, " ")}
+                          {r.trigger_entity ? ` on ${ENTITY_LABELS[r.trigger_entity] || r.trigger_entity}` : ""}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="automation-rule-card-label">CONDITION</p>
+                        <p className="automation-rule-card-value">
+                          {r.conditions && r.conditions.length > 0
+                            ? `${r.conditions.length} condition${r.conditions.length > 1 ? "s" : ""} configured`
+                            : "No conditions"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="automation-rule-card-label">ACTION</p>
+                        <p className="automation-rule-card-value">
+                          {r.actions && r.actions.length > 0
+                            ? `${r.actions.length} action${r.actions.length > 1 ? "s" : ""} configured`
+                            : r.description || "No actions"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Card Footer */}
+                    <div className="automation-rule-card-footer">
+                      <span>
+                        Runs: <strong>{r.trigger_count || 0} times</strong> total
+                      </span>
+                      <span className="automation-rule-card-sep">|</span>
+                      <span>
+                        Last: <strong>{formatLastTriggered(r.last_triggered_at)}</strong>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
-          {/* Preset Suggestions */}
+          {/* Preset Templates */}
           <div className="automation-templates-section">
             <h3 className="automation-section-title">
               <Zap size={18} />
@@ -445,8 +526,9 @@ export default function AutomationClient({
                   <div className="automation-template-name">{p.name}</div>
                   <div className="automation-template-desc">{p.description}</div>
                   <button
-                    className="ui-btn ui-btn-sm ui-btn-secondary automation-template-btn"
+                    className="ui-btn ui-btn-sm ui-btn-secondary"
                     onClick={() => handlePreset(p)}
+                    style={{ alignSelf: "flex-start", marginTop: "auto" }}
                   >
                     {t("automationUseTemplate")}
                   </button>
@@ -498,9 +580,7 @@ export default function AutomationClient({
                       {l.trigger_entity?.replace(/_/g, " ") ?? "\u2014"}
                     </td>
                     <td>
-                      <span
-                        className={`automation-status-badge ${l.status}`}
-                      >
+                      <span className={`automation-status-badge ${l.status}`}>
                         {l.status}
                       </span>
                     </td>
