@@ -35,6 +35,7 @@ export const appNavigation: NavItem[] = [
     label: "Projects",
     icon: "hard-hat",
     children: [
+      { label: "Overview", href: "/projects/overview" },
       { label: "Active Projects", href: "/projects" },
       { label: "Gantt Schedule", href: "/projects/gantt" },
       { label: "Daily Logs", href: "/projects/daily-logs" },
@@ -48,6 +49,7 @@ export const appNavigation: NavItem[] = [
     label: "Properties",
     icon: "building-2",
     children: [
+      { label: "Overview", href: "/properties/overview" },
       { label: "Portfolio", href: "/properties" },
       { label: "Leases", href: "/properties/leases" },
       { label: "Maintenance", href: "/properties/maintenance" },
@@ -57,6 +59,7 @@ export const appNavigation: NavItem[] = [
     label: "Safety",
     icon: "shield-check",
     children: [
+      { label: "Overview", href: "/safety/overview" },
       { label: "Dashboard", href: "/safety" },
       { label: "Incidents", href: "/safety/incidents" },
       { label: "Inspections", href: "/safety/inspections" },
@@ -67,6 +70,7 @@ export const appNavigation: NavItem[] = [
     label: "Equipment",
     icon: "wrench",
     children: [
+      { label: "Overview", href: "/equipment/overview" },
       { label: "Dashboard", href: "/equipment" },
       { label: "Inventory", href: "/equipment/inventory" },
       { label: "Assignments", href: "/equipment/assignments" },
@@ -96,6 +100,7 @@ export const appNavigation: NavItem[] = [
     label: "Documents",
     icon: "folder-open",
     children: [
+      { label: "Overview", href: "/documents/overview" },
       { label: "Library", href: "/documents" },
       { label: "Plan Room", href: "/documents/plan-room" },
     ],
@@ -104,6 +109,7 @@ export const appNavigation: NavItem[] = [
     label: "People",
     icon: "users",
     children: [
+      { label: "Overview", href: "/people/overview" },
       { label: "Directory", href: "/people" },
       { label: "Time & Attendance", href: "/people/time" },
       { label: "Certifications", href: "/people/certifications" },
@@ -114,6 +120,7 @@ export const appNavigation: NavItem[] = [
     label: "CRM & Bids",
     icon: "handshake",
     children: [
+      { label: "Overview", href: "/crm/overview" },
       { label: "Pipeline", href: "/crm" },
       { label: "Bid Management", href: "/crm/bids" },
       { label: "Estimating", href: "/estimating" },
