@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoices, createInvoice } from "@/lib/queries/financial";
 import type { InvoiceFilters, InvoiceCreateData } from "@/lib/queries/financial";
+import { buildAccountLookup, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
 
 export async function GET(request: NextRequest) {
   try {
@@ -99,6 +100,30 @@ export async function POST(request: NextRequest) {
         { error: "Failed to create invoice" },
         { status: 500 }
       );
+    }
+
+    // Auto-generate journal entry (non-blocking — invoice succeeds regardless)
+    try {
+      const accountLookup = await buildAccountLookup(supabase, userCompany.companyId);
+      await generateInvoiceJournalEntry(
+        supabase,
+        userCompany.companyId,
+        userCompany.userId,
+        {
+          id: result.id,
+          invoice_number: data.invoice_number,
+          invoice_type: data.invoice_type,
+          total_amount: data.total_amount,
+          invoice_date: data.invoice_date,
+          status: data.status,
+          project_id: data.project_id,
+          vendor_name: data.vendor_name,
+          client_name: data.client_name,
+        },
+        accountLookup
+      );
+    } catch (jeErr) {
+      console.warn("Journal entry generation failed for invoice:", result.id, jeErr);
     }
 
     return NextResponse.json({ id: result.id }, { status: 201 });

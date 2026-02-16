@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { recordPayment, getPayments } from "@/lib/queries/financial";
 import type { PaymentCreateData } from "@/lib/queries/financial";
+import { buildAccountLookup, generatePaymentJournalEntry } from "@/lib/utils/invoice-accounting";
 
 export async function GET(request: NextRequest) {
   try {
@@ -72,6 +73,41 @@ export async function POST(request: NextRequest) {
 
     if (!result) {
       return NextResponse.json({ error: "Failed to record payment" }, { status: 500 });
+    }
+
+    // Auto-generate journal entry for the payment (non-blocking)
+    try {
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("id, invoice_number, invoice_type, project_id, vendor_name, client_name")
+        .eq("id", data.invoice_id)
+        .single();
+
+      if (invoice) {
+        const accountLookup = await buildAccountLookup(supabase, userCompany.companyId);
+        await generatePaymentJournalEntry(
+          supabase,
+          userCompany.companyId,
+          userCompany.userId,
+          {
+            id: result.id,
+            amount: data.amount,
+            payment_date: data.payment_date,
+            method: data.method,
+          },
+          {
+            id: invoice.id,
+            invoice_number: invoice.invoice_number,
+            invoice_type: invoice.invoice_type,
+            project_id: invoice.project_id,
+            vendor_name: invoice.vendor_name,
+            client_name: invoice.client_name,
+          },
+          accountLookup
+        );
+      }
+    } catch (jeErr) {
+      console.warn("Journal entry generation failed for payment:", result.id, jeErr);
     }
 
     return NextResponse.json({ id: result.id }, { status: 201 });

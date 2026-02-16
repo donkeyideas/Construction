@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { syncPropertyFinancials } from "@/lib/queries/properties";
+import { generateBulkInvoiceJournalEntries } from "@/lib/utils/invoice-accounting";
 
 // ---------------------------------------------------------------------------
 // POST /api/import — Generic bulk import endpoint
@@ -776,27 +777,74 @@ export async function POST(request: NextRequest) {
       }
 
       case "invoices": {
+        const insertedInvoices: Array<{
+          id: string;
+          invoice_number: string;
+          invoice_type: "payable" | "receivable";
+          total_amount: number;
+          invoice_date: string;
+          status?: string;
+          project_id?: string | null;
+          vendor_name?: string | null;
+          client_name?: string | null;
+        }> = [];
+
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
-          const { error } = await supabase.from("invoices").insert({
+          const invoiceNumber = r.invoice_number || `INV-${String(i + 1).padStart(4, "0")}`;
+          const invoiceDate = r.invoice_date || new Date().toISOString().split("T")[0];
+          const projectId = resolveProjectId(r);
+          const invoiceType = (r.invoice_type || "receivable") as "payable" | "receivable";
+          const totalAmount = r.amount ? parseFloat(r.amount) + (r.tax_amount ? parseFloat(r.tax_amount) : 0) : 0;
+          const status = r.status || "draft";
+
+          const { data: inserted, error } = await supabase.from("invoices").insert({
             company_id: companyId,
-            invoice_number: r.invoice_number || `INV-${String(i + 1).padStart(4, "0")}`,
-            invoice_date: r.invoice_date || new Date().toISOString().split("T")[0],
-            project_id: resolveProjectId(r),
-            invoice_type: r.invoice_type || "receivable",
+            invoice_number: invoiceNumber,
+            invoice_date: invoiceDate,
+            project_id: projectId,
+            invoice_type: invoiceType,
             vendor_name: r.vendor_name || null,
             client_name: r.client_name || null,
             subtotal: r.amount ? parseFloat(r.amount) : 0,
-            total_amount: r.amount ? parseFloat(r.amount) + (r.tax_amount ? parseFloat(r.tax_amount) : 0) : 0,
+            total_amount: totalAmount,
             tax_amount: r.tax_amount ? parseFloat(r.tax_amount) : 0,
             due_date: r.due_date || null,
             notes: r.description || null,
-            status: r.status || "draft",
-          });
+            status,
+          }).select("id").single();
+
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
           } else {
             successCount++;
+            if (inserted) {
+              insertedInvoices.push({
+                id: inserted.id,
+                invoice_number: invoiceNumber,
+                invoice_type: invoiceType,
+                total_amount: totalAmount,
+                invoice_date: invoiceDate,
+                status,
+                project_id: projectId,
+                vendor_name: r.vendor_name || null,
+                client_name: r.client_name || null,
+              });
+            }
+          }
+        }
+
+        // Auto-generate journal entries for all imported invoices
+        if (insertedInvoices.length > 0) {
+          try {
+            const jeResult = await generateBulkInvoiceJournalEntries(
+              supabase, companyId, userId, insertedInvoices
+            );
+            if (jeResult.errors.length > 0) {
+              console.warn("Some invoice JEs skipped:", jeResult.errors);
+            }
+          } catch (jeErr) {
+            console.warn("Bulk JE generation failed:", jeErr);
           }
         }
         break;

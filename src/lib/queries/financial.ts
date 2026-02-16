@@ -1014,6 +1014,71 @@ export async function createJournalEntry(
   return { id: entry.id };
 }
 
+/**
+ * Creates a journal entry directly in "posted" status.
+ * Used for system-generated entries (invoice/payment accounting)
+ * where the draft→post workflow is not needed.
+ */
+export async function createPostedJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  data: JournalEntryCreateData
+): Promise<{ id: string } | null> {
+  const totalDebit = data.lines.reduce((sum, l) => sum + (l.debit ?? 0), 0);
+  const totalCredit = data.lines.reduce((sum, l) => sum + (l.credit ?? 0), 0);
+
+  if (Math.abs(totalDebit - totalCredit) > 0.01) {
+    console.error("Posted journal entry not balanced:", { totalDebit, totalCredit });
+    return null;
+  }
+
+  const { data: entry, error: entryErr } = await supabase
+    .from("journal_entries")
+    .insert({
+      company_id: companyId,
+      entry_number: data.entry_number,
+      entry_date: data.entry_date,
+      description: data.description,
+      reference: data.reference ?? null,
+      project_id: data.project_id ?? null,
+      status: "posted",
+      created_by: userId,
+      posted_by: userId,
+      posted_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+
+  if (entryErr || !entry) {
+    console.error("Error creating posted journal entry:", entryErr);
+    return null;
+  }
+
+  const lineInserts = data.lines.map((line) => ({
+    company_id: companyId,
+    journal_entry_id: entry.id,
+    account_id: line.account_id,
+    debit: line.debit ?? 0,
+    credit: line.credit ?? 0,
+    description: line.description ?? null,
+    project_id: line.project_id ?? null,
+    property_id: line.property_id ?? null,
+  }));
+
+  const { error: linesErr } = await supabase
+    .from("journal_entry_lines")
+    .insert(lineInserts);
+
+  if (linesErr) {
+    console.error("Error creating posted JE lines:", linesErr);
+    await supabase.from("journal_entries").delete().eq("id", entry.id);
+    return null;
+  }
+
+  return { id: entry.id };
+}
+
 export async function postJournalEntry(
   supabase: SupabaseClient,
   entryId: string,
