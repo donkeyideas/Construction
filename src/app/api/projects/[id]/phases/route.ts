@@ -77,6 +77,28 @@ export async function DELETE(
     const { id: projectId } = await params;
     const body = await request.json();
 
+    // Delete ALL phases & tasks for this project
+    if (body.deleteAll) {
+      // Delete tasks first (they reference phases via phase_id)
+      const { error: taskErr } = await supabase
+        .from("project_tasks")
+        .delete()
+        .eq("project_id", projectId)
+        .eq("company_id", userCtx.companyId);
+      if (taskErr) {
+        return NextResponse.json({ error: taskErr.message }, { status: 500 });
+      }
+      const { error: phaseErr } = await supabase
+        .from("project_phases")
+        .delete()
+        .eq("project_id", projectId)
+        .eq("company_id", userCtx.companyId);
+      if (phaseErr) {
+        return NextResponse.json({ error: phaseErr.message }, { status: 500 });
+      }
+      return NextResponse.json({ success: true });
+    }
+
     if (!body.id) {
       return NextResponse.json({ error: "Phase id is required." }, { status: 400 });
     }

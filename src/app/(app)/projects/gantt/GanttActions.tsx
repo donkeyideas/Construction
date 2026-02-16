@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Upload } from "lucide-react";
+import { Plus, X, Upload, Trash2 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import { type ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -26,6 +26,7 @@ const PHASE_IMPORT_COLUMNS: ImportColumn[] = [
   { key: "color", label: "Color (hex)", required: false },
   { key: "start_date", label: "Start Date", required: false, type: "date" },
   { key: "end_date", label: "End Date", required: false, type: "date" },
+  { key: "project_name", label: "Project Name", required: false },
 ];
 
 const PHASE_IMPORT_SAMPLE: Record<string, string>[] = [
@@ -43,6 +44,7 @@ const TASK_IMPORT_COLUMNS: ImportColumn[] = [
   { key: "completion_pct", label: "Completion %", required: false, type: "number" },
   { key: "is_milestone", label: "Milestone (true/false)", required: false },
   { key: "is_critical_path", label: "Critical Path (true/false)", required: false },
+  { key: "project_name", label: "Project Name", required: false },
 ];
 
 const TASK_IMPORT_SAMPLE: Record<string, string>[] = [
@@ -86,6 +88,7 @@ export default function GanttActions({ projectId, phases }: Props) {
 
   const [showImportPhases, setShowImportPhases] = useState(false);
   const [showImportTasks, setShowImportTasks] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   function closeAllForms() {
     setShowPhaseForm(false);
@@ -185,6 +188,27 @@ export default function GanttActions({ projectId, phases }: Props) {
     return { success: data.success, errors: data.errors };
   }
 
+  async function handleDeleteAll() {
+    if (!confirm("Delete ALL phases and tasks for this project? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/phases`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deleteAll: true }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        alert(d.error || "Delete failed");
+      }
+      router.refresh();
+    } catch {
+      alert("Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div style={{ marginBottom: 16 }}>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -212,6 +236,16 @@ export default function GanttActions({ projectId, phases }: Props) {
         >
           <Upload size={16} /> Import Tasks
         </button>
+        {phases.length > 0 && (
+          <button
+            className="btn-secondary"
+            style={{ color: "var(--danger)", borderColor: "var(--danger)" }}
+            onClick={handleDeleteAll}
+            disabled={deleting}
+          >
+            <Trash2 size={16} /> {deleting ? "Deleting..." : "Delete All"}
+          </button>
+        )}
       </div>
 
       {/* Add Phase Form */}

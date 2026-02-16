@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const PROJECT_SCOPED: AllowedEntity[] = [
       "daily_logs", "rfis", "change_orders", "contracts", "safety_incidents",
       "toolbox_talks", "equipment_assignments", "time_entries",
-      "safety_inspections", "invoices", "submittals",
+      "safety_inspections", "invoices", "submittals", "phases", "tasks",
     ];
     let projLookup: Record<string, string> = {};
     if (PROJECT_SCOPED.includes(entity as AllowedEntity)) {
@@ -941,11 +941,11 @@ export async function POST(request: NextRequest) {
       }
 
       case "phases": {
-        // Requires project_id in body
-        const projId = body.project_id;
+        // Resolve project_id from body picker OR from CSV project_name column
+        const projId = body.project_id || (rows[0] ? resolveProjectId(rows[0]) : null);
         if (!projId) {
           return NextResponse.json(
-            { error: "project_id is required for phases import" },
+            { error: "project_id is required for phases import (select a project or include project_name in CSV)" },
             { status: 400 }
           );
         }
@@ -996,11 +996,11 @@ export async function POST(request: NextRequest) {
       }
 
       case "tasks": {
-        // Requires project_id in body
-        const taskProjId = body.project_id;
+        // Resolve project_id from body picker OR from CSV project_name column
+        const taskProjId = body.project_id || (rows[0] ? resolveProjectId(rows[0]) : null);
         if (!taskProjId) {
           return NextResponse.json(
-            { error: "project_id is required for tasks import" },
+            { error: "project_id is required for tasks import (select a project or include project_name in CSV)" },
             { status: 400 }
           );
         }
