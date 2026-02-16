@@ -3,6 +3,7 @@
 import { useState, FormEvent, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 const COMPANY_TYPES = [
   "General Contractor",
@@ -279,7 +280,20 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/login?registered=true");
+      // Auto sign-in after successful registration
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        // Fallback: send to login if auto sign-in fails
+        router.push("/login?registered=true");
+        return;
+      }
+
+      router.push("/dashboard");
     } catch {
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
