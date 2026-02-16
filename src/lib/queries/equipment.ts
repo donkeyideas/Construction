@@ -592,3 +592,125 @@ export async function returnEquipment(
 
   return { assignment: updated, error: null };
 }
+
+// ---------------------------------------------------------------------------
+// getEquipmentOverview - Overview dashboard data
+// ---------------------------------------------------------------------------
+
+export interface EquipmentOverviewData {
+  stats: EquipmentStats;
+  utilizationRate: number;
+  totalAssetValue: number;
+  overdueMaintenanceCount: number;
+  statusBreakdown: { status: string; count: number }[];
+  typeBreakdown: { type: string; count: number }[];
+  maintenanceAlerts: (EquipmentRow & { daysOverdue: number })[];
+  activeAssignments: {
+    id: string;
+    equipment_name: string;
+    project_name: string;
+    assigned_to_name: string;
+    assigned_date: string;
+  }[];
+}
+
+export async function getEquipmentOverview(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<EquipmentOverviewData> {
+  const now = new Date();
+  const fourteenDaysOut = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const [equipRes, statsRes, assignRes] = await Promise.all([
+    supabase
+      .from("equipment")
+      .select("*")
+      .eq("company_id", companyId)
+      .order("name"),
+    getEquipmentStats(supabase, companyId),
+    supabase
+      .from("equipment_assignments")
+      .select("id, assigned_date, equipment:equipment!equipment_assignments_equipment_id_fkey(name), project:projects!equipment_assignments_project_id_fkey(name), assignee:user_profiles!equipment_assignments_assigned_to_fkey(full_name)")
+      .eq("company_id", companyId)
+      .eq("status", "active")
+      .order("assigned_date", { ascending: false })
+      .limit(6),
+  ]);
+
+  const equipment = (equipRes.data ?? []) as EquipmentRow[];
+  const stats = statsRes;
+  const assignments = assignRes.data ?? [];
+
+  const nonRetired = stats.total - stats.retired;
+  const utilizationRate = nonRetired > 0 ? (stats.in_use / nonRetired) * 100 : 0;
+
+  const totalAssetValue = equipment
+    .filter((e) => e.status !== "retired")
+    .reduce((sum, e) => sum + (e.purchase_cost ?? 0), 0);
+
+  // Status breakdown for chart
+  const statusBreakdown = [
+    { status: "available", count: stats.available },
+    { status: "in_use", count: stats.in_use },
+    { status: "maintenance", count: stats.maintenance },
+    { status: "retired", count: stats.retired },
+  ].filter((s) => s.count > 0);
+
+  // Type breakdown
+  const typeMap = new Map<string, number>();
+  for (const e of equipment) {
+    const t = e.equipment_type || "other";
+    typeMap.set(t, (typeMap.get(t) ?? 0) + 1);
+  }
+  const typeBreakdown = Array.from(typeMap.entries()).map(([type, count]) => ({
+    type,
+    count,
+  }));
+
+  // Maintenance alerts (overdue + upcoming)
+  const todayStr = now.toISOString().slice(0, 10);
+  const maintenanceAlerts = equipment
+    .filter(
+      (e) =>
+        e.status !== "retired" &&
+        e.next_maintenance_date &&
+        e.next_maintenance_date <= fourteenDaysOut
+    )
+    .map((e) => ({
+      ...e,
+      daysOverdue: Math.floor(
+        (now.getTime() - new Date(e.next_maintenance_date!).getTime()) /
+          (1000 * 60 * 60 * 24)
+      ),
+    }))
+    .sort((a, b) => b.daysOverdue - a.daysOverdue)
+    .slice(0, 8);
+
+  const overdueMaintenanceCount = equipment.filter(
+    (e) =>
+      e.status !== "retired" &&
+      e.next_maintenance_date &&
+      e.next_maintenance_date < todayStr
+  ).length;
+
+  const activeAssignments = assignments.map((a: Record<string, unknown>) => ({
+    id: a.id as string,
+    equipment_name: (a.equipment as { name?: string } | null)?.name ?? "Unknown",
+    project_name: (a.project as { name?: string } | null)?.name ?? "Unassigned",
+    assigned_to_name: (a.assignee as { full_name?: string } | null)?.full_name ?? "Unknown",
+    assigned_date: a.assigned_date as string,
+  }));
+
+  return {
+    stats,
+    utilizationRate,
+    totalAssetValue,
+    overdueMaintenanceCount,
+    statusBreakdown,
+    typeBreakdown,
+    maintenanceAlerts,
+    activeAssignments,
+  };
+}

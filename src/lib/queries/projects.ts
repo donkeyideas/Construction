@@ -508,3 +508,150 @@ export async function getCompanyMembers(
 
   return data ?? [];
 }
+
+// ---------------------------------------------------------------------------
+// getProjectsOverview - Overview dashboard data
+// ---------------------------------------------------------------------------
+
+export interface ProjectsOverviewData {
+  projects: ProjectRow[];
+  activeCount: number;
+  totalContractValue: number;
+  avgCompletion: number;
+  openRFICount: number;
+  openCOCount: number;
+  statusBreakdown: { status: string; count: number }[];
+  budgetProjects: { name: string; estimated: number; actual: number }[];
+  attentionProjects: {
+    id: string;
+    name: string;
+    status: ProjectStatus;
+    completion_pct: number;
+    openRFIs: number;
+    openCOs: number;
+  }[];
+  upcomingMilestones: {
+    id: string;
+    name: string;
+    project_name: string;
+    project_id: string;
+    end_date: string;
+  }[];
+}
+
+export async function getProjectsOverview(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<ProjectsOverviewData> {
+  const [projectsRes, rfisRes, cosRes, phasesRes] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("id, name, code, status, contract_amount, estimated_cost, actual_cost, completion_pct, start_date, estimated_end_date")
+      .eq("company_id", companyId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("rfis")
+      .select("id, project_id, status")
+      .eq("company_id", companyId)
+      .in("status", ["open", "submitted"]),
+    supabase
+      .from("change_orders")
+      .select("id, project_id, status")
+      .eq("company_id", companyId)
+      .in("status", ["draft", "submitted", "pending"]),
+    supabase
+      .from("project_phases")
+      .select("id, name, project_id, end_date")
+      .eq("company_id", companyId)
+      .not("end_date", "is", null)
+      .gte("end_date", new Date().toISOString().slice(0, 10))
+      .order("end_date", { ascending: true })
+      .limit(6),
+  ]);
+
+  const projects = (projectsRes.data ?? []) as ProjectRow[];
+  const rfis = rfisRes.data ?? [];
+  const cos = cosRes.data ?? [];
+  const phases = phasesRes.data ?? [];
+
+  const activeProjects = projects.filter((p) => p.status === "active");
+  const activeCount = activeProjects.length;
+  const totalContractValue = activeProjects.reduce(
+    (sum, p) => sum + (p.contract_amount ?? 0),
+    0
+  );
+  const avgCompletion =
+    activeProjects.length > 0
+      ? activeProjects.reduce((sum, p) => sum + (p.completion_pct ?? 0), 0) /
+        activeProjects.length
+      : 0;
+
+  // Status breakdown
+  const statusMap = new Map<string, number>();
+  for (const p of projects) {
+    statusMap.set(p.status, (statusMap.get(p.status) ?? 0) + 1);
+  }
+  const statusBreakdown = Array.from(statusMap.entries()).map(([status, count]) => ({
+    status,
+    count,
+  }));
+
+  // RFI/CO counts per project
+  const rfiByProject = new Map<string, number>();
+  for (const r of rfis) {
+    rfiByProject.set(r.project_id, (rfiByProject.get(r.project_id) ?? 0) + 1);
+  }
+  const coByProject = new Map<string, number>();
+  for (const c of cos) {
+    coByProject.set(c.project_id, (coByProject.get(c.project_id) ?? 0) + 1);
+  }
+
+  // Budget vs actual (top 8 by contract value)
+  const budgetProjects = projects
+    .filter((p) => (p.estimated_cost ?? 0) > 0 || (p.actual_cost ?? 0) > 0)
+    .sort((a, b) => (b.contract_amount ?? 0) - (a.contract_amount ?? 0))
+    .slice(0, 8)
+    .map((p) => ({
+      name: p.name.length > 20 ? p.name.slice(0, 18) + "…" : p.name,
+      estimated: p.estimated_cost ?? 0,
+      actual: p.actual_cost ?? 0,
+    }));
+
+  // Projects needing attention
+  const attentionProjects = projects
+    .filter((p) => p.status !== "completed" && p.status !== "closed")
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      status: p.status,
+      completion_pct: p.completion_pct ?? 0,
+      openRFIs: rfiByProject.get(p.id) ?? 0,
+      openCOs: coByProject.get(p.id) ?? 0,
+    }))
+    .filter((p) => p.openRFIs > 0 || p.openCOs > 0)
+    .sort((a, b) => (b.openRFIs + b.openCOs) - (a.openRFIs + a.openCOs))
+    .slice(0, 8);
+
+  // Upcoming milestones
+  const projectNameMap = new Map(projects.map((p) => [p.id, p.name]));
+  const upcomingMilestones = phases.map((ph) => ({
+    id: ph.id,
+    name: ph.name,
+    project_name: projectNameMap.get(ph.project_id) ?? "Unknown",
+    project_id: ph.project_id,
+    end_date: ph.end_date!,
+  }));
+
+  return {
+    projects,
+    activeCount,
+    totalContractValue,
+    avgCompletion,
+    openRFICount: rfis.length,
+    openCOCount: cos.length,
+    statusBreakdown,
+    budgetProjects,
+    attentionProjects,
+    upcomingMilestones,
+  };
+}

@@ -365,3 +365,131 @@ export async function getPipelineSummary(
     stageBreakdown,
   };
 }
+
+// ---------------------------------------------------------------------------
+// getCRMOverview - Overview dashboard data
+// ---------------------------------------------------------------------------
+
+export interface CRMOverviewData {
+  summary: PipelineSummary;
+  activeBidCount: number;
+  bidsDueThisWeek: number;
+  hotOpportunities: Opportunity[];
+  bidsDueSoon: Bid[];
+  stageData: { stage: string; value: number; count: number }[];
+  monthlyBidTrend: {
+    month: string;
+    won: number;
+    lost: number;
+    submitted: number;
+    in_progress: number;
+  }[];
+}
+
+export async function getCRMOverview(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<CRMOverviewData> {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const weekEnd = new Date(now);
+  weekEnd.setDate(now.getDate() + (7 - dayOfWeek));
+  const weekEndStr = weekEnd.toISOString().slice(0, 10);
+  const thirtyDaysOut = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+    .toISOString()
+    .slice(0, 10);
+
+  const [oppsRes, bidsRes, summaryRes] = await Promise.all([
+    getOpportunities(supabase, companyId),
+    getBids(supabase, companyId),
+    getPipelineSummary(supabase, companyId),
+  ]);
+
+  const opportunities = oppsRes;
+  const bids = bidsRes;
+  const summary = summaryRes;
+
+  const activeBidCount = bids.filter(
+    (b) => b.status === "in_progress" || b.status === "submitted"
+  ).length;
+
+  const bidsDueThisWeek = bids.filter(
+    (b) =>
+      b.due_date &&
+      b.due_date >= now.toISOString().slice(0, 10) &&
+      b.due_date <= weekEndStr &&
+      (b.status === "in_progress" || b.status === "submitted")
+  ).length;
+
+  // Hot opportunities
+  const hotOpportunities = opportunities
+    .filter((o) => o.stage !== "won" && o.stage !== "lost")
+    .sort(
+      (a, b) =>
+        (Number(b.weighted_value) || 0) - (Number(a.weighted_value) || 0)
+    )
+    .slice(0, 8);
+
+  // Bids due soon
+  const bidsDueSoon = bids
+    .filter(
+      (b) =>
+        b.due_date &&
+        b.due_date <= thirtyDaysOut &&
+        b.due_date >= now.toISOString().slice(0, 10) &&
+        (b.status === "in_progress" || b.status === "submitted")
+    )
+    .sort((a, b) => (a.due_date ?? "").localeCompare(b.due_date ?? ""))
+    .slice(0, 6);
+
+  // Stage data for chart
+  const stageData = summary.stageBreakdown
+    .filter((s) => s.stage !== "lost")
+    .map((s) => ({
+      stage: s.stage.charAt(0).toUpperCase() + s.stage.slice(1),
+      value: s.value,
+      count: s.count,
+    }));
+
+  // Monthly bid trend (6 months)
+  const monthlyBidMap = new Map<
+    string,
+    { won: number; lost: number; submitted: number; in_progress: number }
+  >();
+  for (let m = 5; m >= 0; m--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
+    const key = d.toLocaleDateString("en-US", {
+      month: "short",
+      year: "2-digit",
+    });
+    monthlyBidMap.set(key, { won: 0, lost: 0, submitted: 0, in_progress: 0 });
+  }
+  for (const bid of bids) {
+    const d = new Date(bid.created_at);
+    if (d.toISOString().slice(0, 10) < sixMonthsAgo) continue;
+    const key = d.toLocaleDateString("en-US", {
+      month: "short",
+      year: "2-digit",
+    });
+    const entry = monthlyBidMap.get(key);
+    if (entry && bid.status in entry) {
+      (entry as Record<string, number>)[bid.status]++;
+    }
+  }
+  const monthlyBidTrend = Array.from(monthlyBidMap.entries()).map(
+    ([month, data]) => ({ month, ...data })
+  );
+
+  return {
+    summary,
+    activeBidCount,
+    bidsDueThisWeek,
+    hotOpportunities,
+    bidsDueSoon,
+    stageData,
+    monthlyBidTrend,
+  };
+}

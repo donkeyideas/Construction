@@ -356,3 +356,126 @@ export async function getContactsWithCertAlerts(
     expiring_certs_count: alertMap.get(c.id) || 0,
   }));
 }
+
+// ---------------------------------------------------------------------------
+// getPeopleOverview - Overview dashboard data
+// ---------------------------------------------------------------------------
+
+export interface PeopleOverviewData {
+  totalActive: number;
+  employeeCount: number;
+  subcontractorCount: number;
+  expiringCertCount: number;
+  hoursThisWeek: number;
+  pendingTimesheets: number;
+  typeBreakdown: { type: string; count: number }[];
+  hoursByProject: { projectName: string; hours: number }[];
+  expiringCerts: (Certification & { contact_name: string })[];
+  pendingEntries: TimeEntry[];
+}
+
+export async function getPeopleOverview(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<PeopleOverviewData> {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - dayOfWeek);
+  weekStart.setHours(0, 0, 0, 0);
+  const weekStartStr = weekStart.toISOString().slice(0, 10);
+
+  const [contactsRes, certsRes, timeRes, pendingRes] = await Promise.all([
+    supabase
+      .from("contacts")
+      .select("id, contact_type, is_active")
+      .eq("company_id", companyId)
+      .eq("is_active", true),
+    getCertificationAlerts(supabase, companyId),
+    supabase
+      .from("time_entries")
+      .select("id, hours, project_id, project:projects!time_entries_project_id_fkey(name)")
+      .eq("company_id", companyId)
+      .gte("entry_date", weekStartStr),
+    supabase
+      .from("time_entries")
+      .select("*, user_profile:user_profiles!time_entries_user_id_fkey(full_name, email), project:projects!time_entries_project_id_fkey(name, code)")
+      .eq("company_id", companyId)
+      .eq("status", "pending")
+      .order("entry_date", { ascending: false })
+      .limit(6),
+  ]);
+
+  const contacts = contactsRes.data ?? [];
+  const certs = certsRes;
+  const timeEntries = timeRes.data ?? [];
+  const pendingEntries = (pendingRes.data ?? []) as TimeEntry[];
+
+  const totalActive = contacts.length;
+  const employeeCount = contacts.filter(
+    (c) => c.contact_type === "employee"
+  ).length;
+  const subcontractorCount = contacts.filter(
+    (c) => c.contact_type === "subcontractor"
+  ).length;
+  const expiringCertCount = certs.length;
+
+  const hoursThisWeek = timeEntries.reduce(
+    (sum, t) => sum + (t.hours ?? 0),
+    0
+  );
+  const pendingTimesheets = pendingEntries.length;
+
+  // Type breakdown
+  const typeMap = new Map<string, number>();
+  for (const c of contacts) {
+    typeMap.set(c.contact_type, (typeMap.get(c.contact_type) ?? 0) + 1);
+  }
+  const typeBreakdown = Array.from(typeMap.entries()).map(([type, count]) => ({
+    type,
+    count,
+  }));
+
+  // Hours by project
+  const projectHoursMap = new Map<string, number>();
+  for (const t of timeEntries) {
+    const projName = (t.project as { name?: string } | null)?.name ?? "Unassigned";
+    projectHoursMap.set(
+      projName,
+      (projectHoursMap.get(projName) ?? 0) + (t.hours ?? 0)
+    );
+  }
+  const hoursByProject = Array.from(projectHoursMap.entries())
+    .map(([projectName, hours]) => ({ projectName, hours }))
+    .sort((a, b) => b.hours - a.hours)
+    .slice(0, 8);
+
+  // Expiring certs with contact names
+  const { data: contactNames } = await supabase
+    .from("contacts")
+    .select("id, first_name, last_name")
+    .eq("company_id", companyId);
+  const nameMap = new Map(
+    (contactNames ?? []).map((c) => [
+      c.id,
+      `${c.first_name} ${c.last_name}`.trim(),
+    ])
+  );
+  const expiringCerts = certs.slice(0, 8).map((c) => ({
+    ...c,
+    contact_name: nameMap.get(c.contact_id) ?? "Unknown",
+  }));
+
+  return {
+    totalActive,
+    employeeCount,
+    subcontractorCount,
+    expiringCertCount,
+    hoursThisWeek,
+    pendingTimesheets,
+    typeBreakdown,
+    hoursByProject,
+    expiringCerts,
+    pendingEntries,
+  };
+}

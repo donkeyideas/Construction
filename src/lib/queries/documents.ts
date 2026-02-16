@@ -477,3 +477,111 @@ export async function getDocumentSignedUrl(
 
   return { url: data?.signedUrl ?? null, error: null };
 }
+
+// ---------------------------------------------------------------------------
+// getDocumentsOverview - Overview dashboard data
+// ---------------------------------------------------------------------------
+
+export interface DocumentsOverviewData {
+  totalCount: number;
+  planSpecCount: number;
+  drawingSetCount: number;
+  recentUploadCount: number;
+  categoryBreakdown: { category: string; count: number }[];
+  weeklyUploads: { week: string; count: number }[];
+  recentDocuments: DocumentRow[];
+}
+
+export async function getDocumentsOverview(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<DocumentsOverviewData> {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    .toISOString();
+  const twelveWeeksAgo = new Date(now.getTime() - 12 * 7 * 24 * 60 * 60 * 1000)
+    .toISOString();
+
+  const [allDocsRes, recentDocsRes, drawingSetsRes, docsForTrendRes] =
+    await Promise.all([
+      supabase
+        .from("documents")
+        .select("id, category")
+        .eq("company_id", companyId),
+      supabase
+        .from("documents")
+        .select("*, uploader:user_profiles!documents_uploaded_by_fkey(full_name, email), project:projects!documents_project_id_fkey(id, name, code)")
+        .eq("company_id", companyId)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabase
+        .from("drawing_sets")
+        .select("id")
+        .eq("company_id", companyId),
+      supabase
+        .from("documents")
+        .select("id, created_at")
+        .eq("company_id", companyId)
+        .gte("created_at", twelveWeeksAgo),
+    ]);
+
+  const allDocs = allDocsRes.data ?? [];
+  const recentDocuments = (recentDocsRes.data ?? []) as DocumentRow[];
+  const drawingSets = drawingSetsRes.data ?? [];
+  const docsForTrend = docsForTrendRes.data ?? [];
+
+  const totalCount = allDocs.length;
+  const planSpecCount = allDocs.filter(
+    (d) => d.category === "plan" || d.category === "spec"
+  ).length;
+  const drawingSetCount = drawingSets.length;
+  const recentUploadCount = docsForTrend.filter(
+    (d) => new Date(d.created_at) >= new Date(sevenDaysAgo)
+  ).length;
+
+  // Category breakdown
+  const catMap = new Map<string, number>();
+  for (const d of allDocs) {
+    const cat = d.category || "other";
+    catMap.set(cat, (catMap.get(cat) ?? 0) + 1);
+  }
+  const categoryBreakdown = Array.from(catMap.entries()).map(
+    ([category, count]) => ({ category, count })
+  );
+
+  // Weekly uploads (12 weeks)
+  const weeklyMap = new Map<string, number>();
+  for (let w = 11; w >= 0; w--) {
+    const weekStart = new Date(now.getTime() - w * 7 * 24 * 60 * 60 * 1000);
+    const label = weekStart.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    weeklyMap.set(label, 0);
+  }
+  const weekLabels = Array.from(weeklyMap.keys());
+  for (const d of docsForTrend) {
+    const docDate = new Date(d.created_at);
+    const weeksAgo = Math.floor(
+      (now.getTime() - docDate.getTime()) / (7 * 24 * 60 * 60 * 1000)
+    );
+    const idx = 11 - weeksAgo;
+    if (idx >= 0 && idx < weekLabels.length) {
+      const label = weekLabels[idx];
+      weeklyMap.set(label, (weeklyMap.get(label) ?? 0) + 1);
+    }
+  }
+  const weeklyUploads = Array.from(weeklyMap.entries()).map(
+    ([week, count]) => ({ week, count })
+  );
+
+  return {
+    totalCount,
+    planSpecCount,
+    drawingSetCount,
+    recentUploadCount,
+    categoryBreakdown,
+    weeklyUploads,
+    recentDocuments,
+  };
+}

@@ -810,3 +810,110 @@ export async function syncPropertyFinancials(
 
   return { rentPaymentsCreated, invoicesCreated, propertiesUpdated };
 }
+
+// ---------------------------------------------------------------------------
+// getPropertiesOverview - Overview dashboard data
+// ---------------------------------------------------------------------------
+
+export interface PropertiesOverviewData {
+  properties: PropertyRow[];
+  totalProperties: number;
+  totalUnits: number;
+  totalOccupied: number;
+  avgOccupancy: number;
+  totalRevenue: number;
+  totalNOI: number;
+  openMaintenanceCount: number;
+  occupancyByProperty: { name: string; rate: number }[];
+  revenueByType: { type: string; revenue: number }[];
+  expiringLeases: (LeaseRow & { property_name?: string; unit_number?: string })[];
+  openMaintenance: (MaintenanceRequestRow & { property_name?: string })[];
+}
+
+export async function getPropertiesOverview(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<PropertiesOverviewData> {
+  const now = new Date();
+  const sixtyDaysOut = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const [propsRes, maintRes, leasesRes] = await Promise.all([
+    supabase
+      .from("properties")
+      .select("*")
+      .eq("company_id", companyId)
+      .order("name"),
+    supabase
+      .from("maintenance_requests")
+      .select("*, property:properties!maintenance_requests_property_id_fkey(name)")
+      .eq("company_id", companyId)
+      .in("status", ["submitted", "assigned", "in_progress"])
+      .order("priority", { ascending: true })
+      .limit(10),
+    supabase
+      .from("leases")
+      .select("*, property:properties!leases_property_id_fkey(name), units!leases_unit_id_fkey(unit_number)")
+      .eq("company_id", companyId)
+      .eq("status", "active")
+      .lte("lease_end", sixtyDaysOut)
+      .gte("lease_end", now.toISOString().slice(0, 10))
+      .order("lease_end", { ascending: true })
+      .limit(8),
+  ]);
+
+  const properties = (propsRes.data ?? []) as PropertyRow[];
+  const maint = maintRes.data ?? [];
+  const leases = leasesRes.data ?? [];
+
+  const totalProperties = properties.length;
+  const totalUnits = properties.reduce((s, p) => s + (p.total_units ?? 0), 0);
+  const totalOccupied = properties.reduce((s, p) => s + (p.occupied_units ?? 0), 0);
+  const avgOccupancy = totalUnits > 0 ? (totalOccupied / totalUnits) * 100 : 0;
+  const totalRevenue = properties.reduce((s, p) => s + (p.monthly_revenue ?? 0), 0);
+  const totalNOI = properties.reduce((s, p) => s + (p.noi ?? 0), 0);
+
+  const occupancyByProperty = properties.map((p) => ({
+    name: p.name.length > 18 ? p.name.slice(0, 16) + "…" : p.name,
+    rate: p.total_units > 0
+      ? (p.occupied_units / p.total_units) * 100
+      : 0,
+  }));
+
+  const typeMap = new Map<string, number>();
+  for (const p of properties) {
+    const t = p.property_type || "other";
+    typeMap.set(t, (typeMap.get(t) ?? 0) + (p.monthly_revenue ?? 0));
+  }
+  const revenueByType = Array.from(typeMap.entries()).map(([type, revenue]) => ({
+    type,
+    revenue,
+  }));
+
+  const expiringLeases = leases.map((l: Record<string, unknown>) => ({
+    ...l,
+    property_name: (l.property as { name?: string } | null)?.name ?? "",
+    unit_number: (l.units as { unit_number?: string } | null)?.unit_number ?? "",
+  })) as (LeaseRow & { property_name?: string; unit_number?: string })[];
+
+  const openMaintenance = maint.map((m: Record<string, unknown>) => ({
+    ...m,
+    property_name: (m.property as { name?: string } | null)?.name ?? "",
+  })) as (MaintenanceRequestRow & { property_name?: string })[];
+
+  return {
+    properties,
+    totalProperties,
+    totalUnits,
+    totalOccupied,
+    avgOccupancy,
+    totalRevenue,
+    totalNOI,
+    openMaintenanceCount: maint.length,
+    occupancyByProperty,
+    revenueByType,
+    expiringLeases,
+    openMaintenance,
+  };
+}
