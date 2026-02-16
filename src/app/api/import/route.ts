@@ -72,6 +72,38 @@ export async function POST(request: NextRequest) {
     let successCount = 0;
     const errors: string[] = [];
 
+    // -----------------------------------------------------------------------
+    // Shared project lookup — resolves project_name / project_code → project_id
+    // Built once, reused by every project-scoped entity so CSVs can include a
+    // "project_name" column instead of requiring a single target project picker.
+    // -----------------------------------------------------------------------
+    const PROJECT_SCOPED: AllowedEntity[] = [
+      "daily_logs", "rfis", "change_orders", "contracts", "safety_incidents",
+      "toolbox_talks", "equipment_assignments", "time_entries",
+      "safety_inspections", "invoices", "submittals",
+    ];
+    let projLookup: Record<string, string> = {};
+    if (PROJECT_SCOPED.includes(entity as AllowedEntity)) {
+      const { data: companyProjects } = await supabase
+        .from("projects")
+        .select("id, name, code")
+        .eq("company_id", companyId);
+      projLookup = (companyProjects || []).reduce((acc, p) => {
+        acc[p.name.trim().toLowerCase()] = p.id;
+        if (p.code) acc[p.code.trim().toLowerCase()] = p.id;
+        return acc;
+      }, {} as Record<string, string>);
+    }
+
+    /** Resolve a row's project_id from project_name/project_code or body fallback */
+    function resolveProjectId(r: Record<string, string>): string | null {
+      if (r.project_id) return r.project_id;
+      if (body.project_id) return body.project_id as string;
+      if (r.project_name) return projLookup[r.project_name.trim().toLowerCase()] || null;
+      if (r.project_code) return projLookup[r.project_code.trim().toLowerCase()] || null;
+      return null;
+    }
+
     // Process based on entity type
     switch (entity as AllowedEntity) {
       case "contacts": {
@@ -194,12 +226,11 @@ export async function POST(request: NextRequest) {
       }
 
       case "daily_logs": {
-        const projectId = body.project_id as string;
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
           const { error } = await supabase.from("daily_logs").insert({
             company_id: companyId,
-            project_id: r.project_id || projectId || null,
+            project_id: resolveProjectId(r),
             log_date: r.log_date || new Date().toISOString().split("T")[0],
             status: r.status || "draft",
             weather_conditions: r.weather_conditions || null,
@@ -223,7 +254,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("rfis").insert({
             company_id: companyId,
-            project_id: r.project_id || body.project_id || null,
+            project_id: resolveProjectId(r),
             rfi_number: r.rfi_number || `RFI-${String(i + 1).padStart(3, "0")}`,
             subject: r.subject || "",
             question: r.question || "",
@@ -246,7 +277,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("change_orders").insert({
             company_id: companyId,
-            project_id: r.project_id || body.project_id || null,
+            project_id: resolveProjectId(r),
             co_number: r.co_number || `CO-${String(i + 1).padStart(3, "0")}`,
             title: r.title || "",
             description: r.description || null,
@@ -280,7 +311,7 @@ export async function POST(request: NextRequest) {
             end_date: r.end_date || null,
             payment_terms: r.payment_terms || null,
             scope_of_work: r.scope_of_work || null,
-            project_id: r.project_id || body.project_id || null,
+            project_id: resolveProjectId(r),
             status: r.status || "draft",
             created_by: userId,
           });
@@ -455,7 +486,7 @@ export async function POST(request: NextRequest) {
             description: r.description || null,
             incident_type: r.incident_type || "near_miss",
             severity: r.severity || "medium",
-            project_id: r.project_id || body.project_id || null,
+            project_id: resolveProjectId(r),
             incident_date: r.incident_date || new Date().toISOString().split("T")[0],
             location: r.location || null,
             osha_recordable: r.osha_recordable === "true" || r.osha_recordable === "yes",
@@ -481,7 +512,7 @@ export async function POST(request: NextRequest) {
             description: r.description || null,
             topic: r.topic || null,
             conducted_date: r.scheduled_date || r.conducted_date || new Date().toISOString().split("T")[0],
-            project_id: r.project_id || body.project_id || null,
+            project_id: resolveProjectId(r),
             attendee_count: r.attendees_count ? parseInt(r.attendees_count) : null,
             notes: r.notes || null,
             status: r.status || "scheduled",
@@ -502,7 +533,7 @@ export async function POST(request: NextRequest) {
           const { error } = await supabase.from("equipment_assignments").insert({
             company_id: companyId,
             equipment_id: r.equipment_id || null,
-            project_id: r.project_id || body.project_id || null,
+            project_id: resolveProjectId(r),
             assigned_to: r.assigned_to || null,
             assigned_date: r.assigned_date || new Date().toISOString().split("T")[0],
             returned_date: r.return_date || null,
@@ -588,7 +619,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("time_entries").insert({
             company_id: companyId,
-            project_id: r.project_id || body.project_id || null,
+            project_id: resolveProjectId(r),
             user_id: r.user_id || userId,
             entry_date: r.entry_date || new Date().toISOString().split("T")[0],
             hours: r.hours ? parseFloat(r.hours) : 0,
@@ -736,28 +767,13 @@ export async function POST(request: NextRequest) {
       }
 
       case "invoices": {
-        // Pre-fetch projects to resolve project_name to project_id
-        const { data: companyProjects } = await supabase
-          .from("projects")
-          .select("id, name")
-          .eq("company_id", companyId);
-        const projLookup = (companyProjects || []).reduce((acc, p) => {
-          acc[p.name.trim().toLowerCase()] = p.id;
-          return acc;
-        }, {} as Record<string, string>);
-
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
-          // Resolve project_id from project_name if no UUID provided
-          let projectId = r.project_id || body.project_id || null;
-          if (!projectId && r.project_name) {
-            projectId = projLookup[r.project_name.trim().toLowerCase()] || null;
-          }
           const { error } = await supabase.from("invoices").insert({
             company_id: companyId,
             invoice_number: r.invoice_number || `INV-${String(i + 1).padStart(4, "0")}`,
             invoice_date: r.invoice_date || new Date().toISOString().split("T")[0],
-            project_id: projectId,
+            project_id: resolveProjectId(r),
             invoice_type: r.invoice_type || "receivable",
             vendor_name: r.vendor_name || null,
             client_name: r.client_name || null,
@@ -782,7 +798,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("safety_inspections").insert({
             company_id: companyId,
-            project_id: r.project_id || body.project_id || null,
+            project_id: resolveProjectId(r),
             inspection_type: r.inspection_type || "site_safety",
             inspection_date: r.inspection_date || new Date().toISOString().split("T")[0],
             score: r.score ? parseInt(r.score) : null,
@@ -801,26 +817,8 @@ export async function POST(request: NextRequest) {
       }
 
       case "submittals": {
-        // Pre-fetch projects to resolve project_name to project_id
-        const { data: subProjects } = await supabase
-          .from("projects")
-          .select("id, name, code")
-          .eq("company_id", companyId);
-        const subProjLookup = (subProjects || []).reduce((acc, p) => {
-          acc[p.name.trim().toLowerCase()] = p.id;
-          if (p.code) acc[p.code.trim().toLowerCase()] = p.id;
-          return acc;
-        }, {} as Record<string, string>);
-
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
-          let projectId = r.project_id || body.project_id || null;
-          if (!projectId && r.project_name) {
-            projectId = subProjLookup[r.project_name.trim().toLowerCase()] || null;
-          }
-          if (!projectId && r.project_code) {
-            projectId = subProjLookup[r.project_code.trim().toLowerCase()] || null;
-          }
 
           // Auto-generate submittal number
           const { count: subCount } = await supabase
@@ -831,7 +829,7 @@ export async function POST(request: NextRequest) {
 
           const { error } = await supabase.from("submittals").insert({
             company_id: companyId,
-            project_id: projectId,
+            project_id: resolveProjectId(r),
             submittal_number: r.submittal_number || `SUB-${String(subNum).padStart(3, "0")}`,
             title: r.title || "",
             spec_section: r.spec_section || null,

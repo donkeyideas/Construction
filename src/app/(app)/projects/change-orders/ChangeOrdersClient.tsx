@@ -120,6 +120,7 @@ const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "reason", label: "Reason", required: false },
   { key: "amount", label: "Amount ($)", required: false, type: "number" },
   { key: "schedule_impact_days", label: "Schedule Impact (days)", required: false, type: "number" },
+  { key: "project_name", label: "Project Name", required: false },
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [

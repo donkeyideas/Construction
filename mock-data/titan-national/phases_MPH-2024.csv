@@ -1,0 +1,10 @@
+name,color,start_date,end_date
+Preconstruction & Permitting,#6b7280,2023-04-01,2023-09-30
+Excavation & Foundation,#92400e,2023-10-01,2024-06-30
+Tower A Structure,#1d4ed8,2024-03-01,2025-03-30
+Tower B Structure,#7c3aed,2024-06-01,2025-06-30
+Exterior Envelope,#0891b2,2024-10-01,2025-12-30
+MEP Rough-In,#059669,2024-06-01,2025-09-30
+Interior Finishes,#d97706,2025-03-01,2026-06-30
+Amenities & Common Areas,#dc2626,2025-09-01,2026-06-30
+Commissioning & Turnover,#16a34a,2026-03-01,2026-08-30

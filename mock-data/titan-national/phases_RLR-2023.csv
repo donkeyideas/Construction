@@ -1,0 +1,13 @@
+name,color,start_date,end_date
+Preconstruction & Permits,#6b7280,2022-03-01,2022-08-30
+Site Preparation & Excavation,#92400e,2022-09-01,2023-02-28
+Foundation & Mat Slab,#b45309,2023-03-01,2023-10-30
+Core Structure & Podium,#0369a1,2023-11-01,2024-08-30
+Tower Structure (Floors 1-20),#1d4ed8,2024-09-01,2025-04-30
+Tower Structure (Floors 21-42),#7c3aed,2025-05-01,2025-12-30
+Curtain Wall & Exterior,#0891b2,2025-06-01,2026-06-30
+MEP Rough-In,#059669,2024-06-01,2025-10-30
+Interior Build-Out,#d97706,2025-03-01,2026-09-30
+Specialty Systems (Pool Spa Kitchen),#dc2626,2025-08-01,2026-06-30
+Commissioning & Punch List,#4338ca,2026-04-01,2026-09-30
+Final Inspections & Turnover,#16a34a,2026-08-01,2026-12-30

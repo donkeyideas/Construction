@@ -1,0 +1,58 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-001,2026-01-05,Santos Foundations - Progress Payment #6 Terminal,AP-SF-006,5010,3200000,,Subcontractor costs - terminal earthwork
+JE-001,2026-01-05,Santos Foundations - Progress Payment #6 Terminal,AP-SF-006,2000,,3200000,Accounts payable - Santos Foundations
+JE-002,2026-01-08,Houston Steel - January structural steel delivery,PO-STL-44821,5020,185000,,Materials - structural steel
+JE-002,2026-01-08,Houston Steel - January structural steel delivery,PO-STL-44821,2070,15725,,Sales tax on materials
+JE-002,2026-01-08,Houston Steel - January structural steel delivery,PO-STL-44821,1000,,200725,Cash payment - Houston Steel
+JE-003,2026-01-10,Texas Concrete - January concrete deliveries,PO-TCA-9201,5020,142000,,Materials - concrete 850 CY
+JE-003,2026-01-10,Texas Concrete - January concrete deliveries,PO-TCA-9201,2070,12070,,Sales tax on materials
+JE-003,2026-01-10,Texas Concrete - January concrete deliveries,PO-TCA-9201,1000,,154070,Cash payment - Texas Concrete
+JE-004,2026-01-15,Energy Corridor Tower C - Progress billing #19,AR-ECC-019,1010,1450000,,Accounts receivable - Chen Investment
+JE-004,2026-01-15,Energy Corridor Tower C - Progress billing #19,AR-ECC-019,4000,,1450000,Contract revenue - Tower C
+JE-005,2026-01-15,Reid Luxury Resort - Progress billing #15,AR-RLR-015,1010,5800000,,Accounts receivable - Reid Hospitality
+JE-005,2026-01-15,Reid Luxury Resort - Progress billing #15,AR-RLR-015,4000,,5800000,Contract revenue - Reid Resort
+JE-006,2026-01-15,Port Container Terminal - Progress billing #9,AR-PCT-009,1010,6200000,,Accounts receivable - Port of Houston
+JE-006,2026-01-15,Port Container Terminal - Progress billing #9,AR-PCT-009,4000,,6200000,Contract revenue - Port Terminal
+JE-007,2026-01-15,Bi-weekly payroll - Period 1,PR-2026-01,5000,485000,,Direct labor - field workers
+JE-007,2026-01-15,Bi-weekly payroll - Period 1,PR-2026-01,6000,186000,,Office salaries - admin staff
+JE-007,2026-01-15,Bi-weekly payroll - Period 1,PR-2026-01,2020,,671000,Accrued payroll
+JE-008,2026-01-20,Monthly equipment depreciation - January,DEP-2026-01,7010,42000,,Depreciation expense - January
+JE-008,2026-01-20,Monthly equipment depreciation - January,DEP-2026-01,1110,,42000,Accumulated depreciation - equipment
+JE-009,2026-01-20,Monthly building depreciation - January,DEP-2026-01B,7010,8500,,Depreciation expense - buildings January
+JE-009,2026-01-20,Monthly building depreciation - January,DEP-2026-01B,1130,,8500,Accumulated depreciation - buildings
+JE-010,2026-01-25,Kowalski Steel - Payment Application #12,AP-KS-012,5010,1250000,,Subcontractor costs - structural steel Tower C
+JE-010,2026-01-25,Kowalski Steel - Payment Application #12,AP-KS-012,2000,,1250000,Accounts payable - Kowalski Steel
+JE-011,2026-01-30,Monthly office rent and utilities,RENT-2026-01,6010,48000,,Office rent and utilities - January
+JE-011,2026-01-30,Monthly office rent and utilities,RENT-2026-01,1000,,48000,Cash payment - rent
+JE-012,2026-01-30,Insurance premium - monthly GL and WC,INS-2026-01,6020,35000,,Workers comp and GL insurance - January
+JE-012,2026-01-30,Insurance premium - monthly GL and WC,INS-2026-01,1040,,35000,Prepaid insurance - monthly amortization
+JE-013,2026-01-30,Bonding costs - Reid Resort and Port Terminal,BOND-2026-01,5050,18500,,Surety bond premiums - January
+JE-013,2026-01-30,Bonding costs - Reid Resort and Port Terminal,BOND-2026-01,1000,,18500,Cash payment - bonding
+JE-014,2026-01-31,Bi-weekly payroll - Period 2,PR-2026-02,5000,498000,,Direct labor - field workers
+JE-014,2026-01-31,Bi-weekly payroll - Period 2,PR-2026-02,6000,186000,,Office salaries - admin staff
+JE-014,2026-01-31,Bi-weekly payroll - Period 2,PR-2026-02,2020,,684000,Accrued payroll
+JE-015,2026-01-31,Revenue received - Chen Investment Partners,CR-CIP-019,1000,2850000,,Cash received - Tower C payment #18
+JE-015,2026-01-31,Revenue received - Chen Investment Partners,CR-CIP-019,1010,,2850000,Accounts receivable - collected
+JE-016,2026-01-31,Revenue received - Port of Houston,CR-POH-008,1000,8500000,,Cash received - Terminal payment #8
+JE-016,2026-01-31,Revenue received - Port of Houston,CR-POH-008,1010,,8500000,Accounts receivable - collected
+JE-017,2026-01-31,Revenue received - Reid Hospitality,CR-RHG-014,1000,4200000,,Cash received - Resort payment #14
+JE-017,2026-01-31,Revenue received - Reid Hospitality,CR-RHG-014,1010,,4200000,Accounts receivable - collected
+JE-018,2026-02-01,Franklin Equipment - January crane rentals,AP-FER-JAN,5030,68000,,Equipment rental costs - January
+JE-018,2026-02-01,Franklin Equipment - January crane rentals,AP-FER-JAN,2070,5780,,Sales tax on rentals
+JE-018,2026-02-01,Franklin Equipment - January crane rentals,AP-FER-JAN,2000,,73780,Accounts payable - Franklin Equipment
+JE-019,2026-02-01,Novak Safety - Q1 PPE and safety equipment,AP-NSS-Q1,5060,42000,,Safety equipment and PPE
+JE-019,2026-02-01,Novak Safety - Q1 PPE and safety equipment,AP-NSS-Q1,2070,3570,,Sales tax on supplies
+JE-019,2026-02-01,Novak Safety - Q1 PPE and safety equipment,AP-NSS-Q1,2000,,45570,Accounts payable - Novak Safety
+JE-020,2026-02-05,Santos Foundations - Payment Application #8 Resort,AP-SF-008,5010,2800000,,Subcontractor costs - Resort foundation
+JE-020,2026-02-05,Santos Foundations - Payment Application #8 Resort,AP-SF-008,2000,,2800000,Accounts payable - Santos Foundations
+JE-021,2026-02-10,Bad debt write-off - Greenspoint Office Renovation,BD-GOR-2019,7020,2100000,,Bad debt expense - Greenspoint project
+JE-021,2026-02-10,Bad debt write-off - Greenspoint Office Renovation,BD-GOR-2019,1010,,2100000,Accounts receivable - written off
+JE-022,2026-02-15,Museum Park Residences - Progress billing #13,AR-MPH-013,1010,2800000,,Accounts receivable - Bayou City REIT
+JE-022,2026-02-15,Museum Park Residences - Progress billing #13,AR-MPH-013,4000,,2800000,Contract revenue - Museum Park
+JE-023,2026-02-15,Foster Medical Center - Progress billing #3,AR-FRM-003,1010,8500000,,Accounts receivable - Foster Medical
+JE-023,2026-02-15,Foster Medical Center - Progress billing #3,AR-FRM-003,4000,,8500000,Contract revenue - Foster Medical
+JE-024,2026-02-15,Bi-weekly payroll - Period 3,PR-2026-03,5000,510000,,Direct labor - field workers
+JE-024,2026-02-15,Bi-weekly payroll - Period 3,PR-2026-03,6000,186000,,Office salaries - admin staff
+JE-024,2026-02-15,Bi-weekly payroll - Period 3,PR-2026-03,2020,,696000,Accrued payroll
+JE-025,2026-02-15,Litigation settlement - Second Midtown Hotel,LIT-SMH-2015,7040,3500000,,Litigation costs - SMH settlement
+JE-025,2026-02-15,Litigation settlement - Second Midtown Hotel,LIT-SMH-2015,1000,,3500000,Cash payment - legal settlement

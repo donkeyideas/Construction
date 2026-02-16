@@ -1,0 +1,31 @@
+cert_name,cert_type,issuing_authority,cert_number,issued_date,expiry_date,contact_name
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2022-88104,2022-06-15,2027-06-15,Victor Castellano
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2023-44290,2023-03-10,2028-03-10,Derek Washington
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2021-72104,2021-09-20,2026-09-20,Ray Gutierrez
+OSHA 500 Trainer Authorization,safety,OSHA Training Institute,OSHA500-2022-11804,2022-01-15,2026-01-15,Ray Gutierrez
+OSHA 10-Hour Construction Safety,safety,OSHA Training Institute,OSHA10-2024-55182,2024-04-01,2029-04-01,Hector Fuentes
+OSHA 10-Hour Construction Safety,safety,OSHA Training Institute,OSHA10-2024-55183,2024-04-01,2029-04-01,Daniel Obi
+OSHA 10-Hour Construction Safety,safety,OSHA Training Institute,OSHA10-2025-18204,2025-02-15,2030-02-15,Kevin Park
+NCCCO Mobile Crane Operator,certification,NCCCO,NCCCO-MCO-88142,2021-11-01,2026-11-01,Craig Ellison
+NCCCO Tower Crane Operator,certification,NCCCO,NCCCO-TCO-44281,2023-05-15,2028-05-15,Craig Ellison
+CDL Class A Commercial Driver License,license,Texas DPS,TX-CDL-A-991204,2023-08-01,2027-08-01,Hector Fuentes
+CDL Class A Commercial Driver License,license,Texas DPS,TX-CDL-A-991205,2024-01-15,2028-01-15,Daniel Obi
+PMP Project Management Professional,certification,PMI,PMP-2891042,2022-04-01,2025-04-01,Mike Sloan
+PMP Project Management Professional,certification,PMI,PMP-2891043,2023-06-15,2026-06-15,Terri McAllister
+PMP Project Management Professional,certification,PMI,PMP-3104822,2024-01-10,2027-01-10,Luis Reyes
+LEED AP Building Design + Construction,certification,GBCI,LEED-AP-10892041,2020-09-01,2026-09-01,Sandra Kim
+LEED AP Building Design + Construction,certification,GBCI,LEED-AP-10892042,2022-03-15,2028-03-15,Amanda Foster
+First Aid / CPR / AED,safety,American Red Cross,ARC-FA-2025-88104,2025-06-01,2027-06-01,Ray Gutierrez
+First Aid / CPR / AED,safety,American Red Cross,ARC-FA-2025-88105,2025-06-01,2027-06-01,Kevin Park
+First Aid / CPR / AED,safety,American Red Cross,ARC-FA-2025-88106,2025-06-01,2027-06-01,Roberto Sandoval
+AWS Certified Welding Inspector,certification,American Welding Society,AWS-CWI-55104,2023-07-01,2026-07-01,Nathan Whitfield
+HAZWOPER 40-Hour,safety,OSHA Training Institute,HAZ40-2024-22104,2024-03-15,2025-03-15,Kevin Park
+HAZWOPER 40-Hour,safety,OSHA Training Institute,HAZ40-2023-18840,2023-08-01,2024-08-01,Ray Gutierrez
+EPA Lead Renovator (RRP),certification,EPA,EPA-LR-TX-88104,2023-05-20,2028-05-20,Frank Petrov
+Texas General Contractor License,license,TDLR,TDLR-GC-449201,2020-01-01,2026-01-01,Victor Castellano
+Texas Master Electrician License,license,TDLR,TDLR-ME-228104,2022-09-01,2026-09-01,Rosa Delgado
+Texas Master Plumber License,license,TSBPE,TSBPE-MP-118841,2023-04-15,2026-04-15,George Pappas
+Confined Space Entry Competent Person,safety,National Safety Council,NSC-CS-2024-44182,2024-06-01,2026-06-01,Roberto Sandoval
+Scaffold Competent Person,safety,National Safety Council,NSC-SC-2024-44183,2024-06-01,2026-06-01,Tony DiMarco
+Rigging and Signal Person Qualified,certification,NCCCO,NCCCO-RSP-22104,2024-09-01,2029-09-01,Craig Ellison
+Asbestos Supervisor License,license,TDSHS,TDSHS-AS-88441,2024-02-01,2026-02-01,Frank Petrov

@@ -1,0 +1,18 @@
+amount,tax_amount,due_date,description,status,client_name,project_name
+1450000,0,2026-01-15,Progress Payment #19 - Tower C curtain wall floors 1-8,pending,Chen Investment Partners,Energy Corridor Campus Tower C
+5800000,0,2026-01-30,Progress Payment #15 - Resort core structure floors 1-18,pending,Reid Hospitality Group,Reid Luxury Resort & Spa
+3500000,0,2026-02-15,Progress Payment #16 - Resort curtain wall and MEP rough-in,draft,Reid Hospitality Group,Reid Luxury Resort & Spa
+6200000,0,2026-02-15,Progress Payment #9 - Terminal electrical and controls,pending,Port of Houston Authority,Port Container Terminal Automation
+2800000,0,2026-02-28,Progress Payment #13 - Museum Park Tower B floors 15-22,pending,Bayou City REIT,Museum Park High-Rise Residences
+1850000,0,2026-01-30,Progress Payment #6 - Sugar Land retail building shell,pending,Woodward Retail Development,Sugar Land Town Square Expansion
+1200000,0,2026-02-15,Milestone 4 - Hardy Toll Road segment 2 paving complete,approved,Texas DOT Houston District,Hardy Toll Road Widening Segment 3
+850000,0,2026-02-28,Progress Payment #4 - HISD Magnet School MEP rough-in,pending,Houston ISD Facilities,HISD Magnet School Renovation
+4500000,0,2026-01-31,Progress Payment #3 - Woodlands Village site prep and foundation,pending,Chen Investment Partners,Woodlands Mixed-Use Village
+3200000,0,2026-02-28,Progress Payment #4 - Drake Waterfront mat slab and core walls,pending,Drake Properties LLC,Drake Waterfront Condominiums
+8500000,0,2026-02-15,Progress Payment #3 - Foster Medical Center foundation,pending,Foster Medical Systems,Foster Regional Medical Center
+2200000,0,2026-03-15,Progress Payment #4 - Kemp Petrochemical tank foundations,draft,Kemp Industrial Partners,Kemp Petrochemical Storage Facility
+125000,0,2026-02-28,Change Order #3 - Tower C upgraded lobby finishes,approved,Chen Investment Partners,Energy Corridor Campus Tower C
+340000,0,2026-03-15,Change Order #5 - Resort pool deck expansion,draft,Reid Hospitality Group,Reid Luxury Resort & Spa
+2100000,0,2025-11-15,Progress Payment #11 - Museum Park Tower A floors 20-28 OVERDUE,overdue,Bayou City REIT,Museum Park High-Rise Residences
+1800000,0,2025-10-30,Progress Payment #5 - Sugar Land site infrastructure OVERDUE,overdue,Woodward Retail Development,Sugar Land Town Square Expansion
+680000,0,2025-12-15,Progress Payment #3 - HISD Magnet demolition complete OVERDUE,overdue,Houston ISD Facilities,HISD Magnet School Renovation

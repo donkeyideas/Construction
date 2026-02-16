@@ -98,6 +98,7 @@ export default function ToolboxTalksClient({
     { key: "scheduled_date", label: t("scheduledDate"), required: false, type: "date" },
     { key: "attendees_count", label: t("attendeesCount"), required: false, type: "number" },
     { key: "notes", label: t("notes"), required: false },
+    { key: "project_name", label: "Project Name", required: false },
   ];
 
   const IMPORT_SAMPLE: Record<string, string>[] = [

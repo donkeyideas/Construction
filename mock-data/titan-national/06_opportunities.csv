@@ -1,0 +1,13 @@
+name,client_name,stage,estimated_value,probability_pct,expected_close_date,source
+Port LNG Export Terminal Phase 1,Port of Houston Authority,negotiation,450000000,85,2026-04-15,existing_client
+Katy Grand Parkway Town Center,Woodward Retail Development,proposal,120000000,65,2026-06-01,existing_client
+HISD Stadium & Athletic Complex,Houston ISD Facilities,proposal,75000000,55,2026-07-15,trade_show
+Brazos River Flood Control Phase A,Harris County Flood Control,negotiation,180000000,75,2026-05-30,existing_client
+Bayou City Supertall Tower,Harper Development Group,qualification,650000000,35,2027-03-01,referral
+Drake Sustainable Community,Drake Properties LLC,lead,180000000,25,2027-06-01,existing_client
+NASA Artemis Training Facility,Foster Medical Systems,proposal,95000000,45,2026-09-15,cold_call
+Memorial Park Conservancy Pavilion,Harris County Flood Control,qualification,28000000,40,2026-08-01,website
+Galveston Island State Park Rebuild,Texas DOT Houston District,lead,35000000,20,2027-01-15,trade_show
+ExxonMobil Baytown Expansion,Kemp Industrial Partners,proposal,220000000,50,2026-10-01,referral
+Texas Children's Hospital West Campus,Foster Medical Systems,qualification,165000000,30,2027-04-01,cold_call
+Hobby Airport Terminal Expansion,Harris County Flood Control,lead,340000000,15,2027-09-01,trade_show

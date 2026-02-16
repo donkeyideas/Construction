@@ -1,0 +1,19 @@
+amount,tax_amount,due_date,description,status,vendor_name,project_name
+890000,0,2026-02-05,Payment Application #13 - Tower C electrical floors 1-10,approved,Delgado Electrical Corp,Energy Corridor Campus Tower C
+1850000,0,2026-02-15,Payment Application #4 - Resort curtain wall Phases 1-3,pending,Chen Glass & Glazing Corp,Reid Luxury Resort & Spa
+1200000,0,2026-02-10,Payment Application #6 - Resort elevator cabs 1-4,pending,Moreno Elevator Services,Reid Luxury Resort & Spa
+2400000,0,2026-02-15,Payment Application #4 - Terminal electrical and controls,pending,Delgado Electrical Corp,Port Container Terminal Automation
+1450000,0,2026-02-05,Payment Application #5 - Museum Park concrete floors 18-22,approved,Petrov Ready Mix & Pumping,Museum Park High-Rise Residences
+680000,0,2026-02-10,Payment Application #3 - Sugar Land masonry exterior,pending,McBride Masonry LLC,Sugar Land Town Square Expansion
+850000,0,2026-02-15,Payment Application #4 - Hardy paving segment 2,approved,Santos Foundations Inc,Hardy Toll Road Widening Segment 3
+4500000,0,2026-02-20,Payment Application #2 - Foster Medical foundation piles,pending,Santos Foundations Inc,Foster Regional Medical Center
+2800000,0,2026-02-28,Payment Application #2 - Kemp tank steel fabrication,pending,Kowalski Structural Steel,Kemp Petrochemical Storage Facility
+1800000,0,2026-02-15,Payment Application #3 - Drake Waterfront concrete core walls,pending,Petrov Ready Mix & Pumping,Drake Waterfront Condominiums
+95000,8075,2026-02-10,Invoice #GCL-28104 - February lumber and framing materials,pending,Gulf Coast Lumber & Hardware,Museum Park High-Rise Residences
+68000,5780,2026-02-01,Invoice #FER-7704 - January crane and lift rentals,approved,Franklin Equipment Rental,Reid Luxury Resort & Spa
+42000,3570,2026-02-01,Invoice #NSS-3381 - Q1 safety equipment and PPE,approved,Novak Safety Supply Inc,
+28000,0,2026-02-15,Invoice #GCT-1204 - January testing and inspection,pending,Gulf Coast Testing Lab,Foster Regional Medical Center
+85000,0,2026-02-10,Invoice #LSC-5521 - January crane services 320 hours,approved,Lone Star Crane Service,Port Container Terminal Automation
+125000,10625,2026-01-15,Invoice #STL-44102 - December steel deliveries OVERDUE,overdue,Houston Steel Distributors,Reid Luxury Resort & Spa
+78000,6630,2025-12-30,Invoice #TCA-8804 - December concrete 420 CY OVERDUE,overdue,Texas Concrete & Aggregate,Museum Park High-Rise Residences
+35000,2975,2025-12-15,Invoice #SPV-2204 - December pipe and valve OVERDUE,overdue,Sutton Pipe & Valve Supply,Foster Regional Medical Center

@@ -87,6 +87,7 @@ export default function SafetyIncidentsClient({
     { key: "incident_date", label: t("incidentDate"), required: false, type: "date" },
     { key: "location", label: t("location"), required: false },
     { key: "osha_recordable", label: t("oshaRecordable"), required: false },
+    { key: "project_name", label: "Project Name", required: false },
   ];
 
   const IMPORT_SAMPLE: Record<string, string>[] = [

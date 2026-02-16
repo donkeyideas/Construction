@@ -121,6 +121,7 @@ export default function InspectionsClient({
     { key: "findings", label: t("findings"), required: false },
     { key: "corrective_actions", label: t("correctiveActions"), required: false },
     { key: "status", label: t("status"), required: false },
+    { key: "project_name", label: "Project Name", required: false },
   ];
 
   const IMPORT_SAMPLE: Record<string, string>[] = [

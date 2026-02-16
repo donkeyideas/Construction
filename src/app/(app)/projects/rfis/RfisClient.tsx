@@ -98,6 +98,7 @@ const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "question", label: "Question", required: true },
   { key: "priority", label: "Priority", required: false },
   { key: "due_date", label: "Due Date", required: false, type: "date" },
+  { key: "project_name", label: "Project Name", required: false },
 ];
 
 const IMPORT_SAMPLE: Record<string, string>[] = [

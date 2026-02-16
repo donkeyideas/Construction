@@ -145,7 +145,17 @@ export default function ImportModal({
     (c) => c.required && columnMapping[c.key] === undefined
   );
 
-  const projectRequired = projects && projects.length > 0 && onProjectChange && !selectedProjectId;
+  // Project picker is only *required* when projects are passed AND the CSV
+  // does NOT contain a "project_name" or "project_code" column that the API
+  // can resolve automatically. This lets users import multi-project CSVs in
+  // one shot without selecting a single target project.
+  const csvHasProjectColumn = headers.some(
+    (h) => {
+      const norm = h.trim().toLowerCase().replace(/[\s_-]+/g, "");
+      return norm === "projectname" || norm === "projectcode";
+    }
+  );
+  const projectRequired = projects && projects.length > 0 && onProjectChange && !selectedProjectId && !csvHasProjectColumn;
 
   return (
     <div
@@ -237,7 +247,9 @@ export default function ImportModal({
             {projects && projects.length > 0 && onProjectChange && (
               <div style={{ marginBottom: "16px" }}>
                 <div style={{ fontWeight: 600, marginBottom: "8px", fontSize: "0.9rem" }}>
-                  Target Project <span style={{ color: "var(--color-red)" }}>*</span>
+                  Target Project {csvHasProjectColumn
+                    ? <span style={{ color: "var(--muted)", fontWeight: 400, fontSize: "0.8rem" }}>(optional — CSV has project_name column)</span>
+                    : <span style={{ color: "var(--color-red)" }}>*</span>}
                 </div>
                 <select
                   className="ticket-form-select"

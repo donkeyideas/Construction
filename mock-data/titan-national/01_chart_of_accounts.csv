@@ -1,0 +1,60 @@
+account_number,name,account_type,sub_type,description
+1000,Cash & Equivalents,asset,Current Asset,Operating cash and short-term deposits
+1010,Accounts Receivable,asset,Current Asset,Amounts owed by clients for completed work
+1020,Retainage Receivable,asset,Current Asset,Retainage held by clients pending project completion
+1030,Work in Progress,asset,Current Asset,Costs incurred on uncompleted contracts
+1040,Prepaid Expenses,asset,Current Asset,Insurance premiums and deposits paid in advance
+1050,Short-Term Investments,asset,Current Asset,Money market and CD holdings under 12 months
+1060,Notes Receivable,asset,Current Asset,Short-term promissory notes from clients
+1100,Equipment & Vehicles,asset,Fixed Asset,Construction equipment and fleet vehicles
+1110,Accumulated Depreciation - Equipment,asset,Fixed Asset,Depreciation on equipment and vehicles
+1120,Buildings & Improvements,asset,Fixed Asset,Owned office and warehouse buildings
+1130,Accumulated Depreciation - Buildings,asset,Fixed Asset,Depreciation on buildings
+1200,Office Furniture & Fixtures,asset,Fixed Asset,Office equipment and furnishings
+1210,Land,asset,Fixed Asset,Owned land parcels
+1220,Leasehold Improvements,asset,Fixed Asset,Improvements to leased spaces
+1300,Goodwill,asset,Intangible Asset,Acquisition goodwill from company purchases
+1310,Contractor Licenses,asset,Intangible Asset,Value of licenses and permits
+2000,Accounts Payable,liability,Current Liability,Amounts owed to vendors and subcontractors
+2010,Retainage Payable,liability,Current Liability,Retainage held from subcontractors
+2020,Accrued Payroll,liability,Current Liability,Wages and salaries earned but not yet paid
+2030,Accrued Taxes,liability,Current Liability,Payroll taxes and income taxes payable
+2040,Short-Term Loans,liability,Current Liability,Line of credit and short-term borrowings
+2050,Deferred Revenue,liability,Current Liability,Payments received before work performed
+2060,Current Portion Long-Term Debt,liability,Current Liability,LTD payments due within 12 months
+2070,Sales Tax Payable,liability,Current Liability,Collected sales tax pending remittance
+2100,Long-Term Debt,liability,Long-Term Liability,Equipment loans and mortgages
+2110,Bonds Payable,liability,Long-Term Liability,Performance and payment bonds
+2120,Lease Obligations,liability,Long-Term Liability,Operating and finance lease liabilities
+3000,Owner's Equity,equity,Owner's Equity,Capital contributed by company owners
+3010,Retained Earnings,equity,Retained Earnings,Accumulated net income from prior years
+3020,Treasury Stock,equity,Owner's Equity,Repurchased company shares
+4000,Contract Revenue,revenue,Operating Revenue,Revenue earned from construction contracts
+4010,Change Order Revenue,revenue,Operating Revenue,Revenue from approved change orders
+4020,T&M Revenue,revenue,Operating Revenue,Time and materials billing revenue
+4030,Property Management Revenue,revenue,Operating Revenue,Income from managed properties
+4040,Equipment Rental Revenue,revenue,Operating Revenue,Revenue from renting owned equipment
+4050,Consulting Revenue,revenue,Operating Revenue,Pre-construction and consulting fees
+5000,Direct Labor,expense,Cost of Revenue,Wages for field workers and tradespeople
+5010,Subcontractor Costs,expense,Cost of Revenue,Payments to subcontractors
+5020,Materials,expense,Cost of Revenue,Lumber cement steel and supplies
+5030,Equipment Costs,expense,Cost of Revenue,Equipment rental fuel and maintenance
+5040,Permits & Fees,expense,Cost of Revenue,Building permits and inspection fees
+5050,Bonding Costs,expense,Cost of Revenue,Surety bond premiums
+5060,Temporary Facilities,expense,Cost of Revenue,Job trailers temp power and fencing
+5070,Waste Disposal,expense,Cost of Revenue,Dumpsters and debris hauling
+6000,Office Salaries,expense,Operating Expense,Administrative and office staff wages
+6010,Rent & Utilities,expense,Operating Expense,Office rent and utility bills
+6020,Insurance,expense,Operating Expense,General liability and workers compensation
+6030,Professional Fees,expense,Operating Expense,Legal and accounting services
+6040,Vehicle Expense,expense,Operating Expense,Fleet fuel maintenance and insurance
+6050,Office Supplies,expense,Operating Expense,General office supplies and software
+6060,Marketing & Advertising,expense,Operating Expense,Business development and marketing costs
+6070,Travel & Entertainment,expense,Operating Expense,Business travel meals and client entertainment
+6080,Technology & Software,expense,Operating Expense,Software licenses IT services and hardware
+6090,Training & Development,expense,Operating Expense,Employee training and continuing education
+7000,Interest Expense,expense,Other Expense,Interest on loans and credit lines
+7010,Depreciation Expense,expense,Other Expense,Monthly depreciation on fixed assets
+7020,Bad Debt Expense,expense,Other Expense,Uncollectible receivables written off
+7030,Loss on Asset Disposal,expense,Other Expense,Losses from equipment and asset sales
+7040,Litigation Costs,expense,Other Expense,Legal settlements and dispute resolution

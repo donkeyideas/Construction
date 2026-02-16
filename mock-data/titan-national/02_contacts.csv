@@ -1,0 +1,67 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Victor,Castellano,employee,v.castellano@titannational.com,713-555-0101,,CEO & Founder
+Margaret,Thornton,employee,m.thornton@titannational.com,713-555-0102,,CFO
+Derek,Washington,employee,d.washington@titannational.com,713-555-0103,,VP of Operations
+Sandra,Kim,employee,s.kim@titannational.com,713-555-0104,,VP of Preconstruction
+Ray,Gutierrez,employee,r.gutierrez@titannational.com,713-555-0105,,Director of Safety
+Brenda,Okafor,employee,b.okafor@titannational.com,713-555-0106,,Director of HR
+Mike,Sloan,employee,m.sloan@titannational.com,713-555-0107,,Senior Project Manager
+Terri,McAllister,employee,t.mcallister@titannational.com,713-555-0108,,Senior Project Manager
+Luis,Reyes,employee,l.reyes@titannational.com,713-555-0109,,Project Manager
+Amanda,Foster,employee,a.foster@titannational.com,713-555-0110,,Project Manager
+Keith,Nakamura,employee,k.nakamura@titannational.com,713-555-0111,,Project Manager
+Denise,Watts,employee,d.watts@titannational.com,713-555-0112,,Senior Estimator
+Charlie,Brennan,employee,c.brennan@titannational.com,713-555-0113,,Estimator
+Roberto,Sandoval,employee,r.sandoval@titannational.com,713-555-0114,,General Superintendent
+Frank,Petrov,employee,f.petrov@titannational.com,713-555-0115,,Superintendent
+Janet,Mosley,employee,j.mosley@titannational.com,713-555-0116,,Superintendent
+Tony,DiMarco,employee,t.dimarco@titannational.com,713-555-0117,,Superintendent
+Craig,Ellison,employee,c.ellison@titannational.com,713-555-0118,,Equipment Manager
+Lori,Chambers,employee,l.chambers@titannational.com,713-555-0119,,Office Manager
+Hector,Fuentes,employee,h.fuentes@titannational.com,713-555-0120,,Site Foreman
+Daniel,Obi,employee,d.obi@titannational.com,713-555-0121,,Site Foreman
+Kevin,Park,employee,k.park@titannational.com,713-555-0122,,Safety Officer
+Yolanda,Tran,employee,y.tran@titannational.com,713-555-0123,,Accounting Manager
+Nathan,Whitfield,employee,n.whitfield@titannational.com,713-555-0124,,QC Manager
+Rosa,Jimenez,employee,r.jimenez@titannational.com,713-555-0125,,Project Coordinator
+Miguel,Santos,subcontractor,miguel@santos-foundations.com,713-555-0201,Santos Foundations Inc,President
+Eddie,Kowalski,subcontractor,eddie@kowalski-steel.com,713-555-0202,Kowalski Structural Steel,Owner
+Bill,Tanner,subcontractor,bill@tanner-framing.com,713-555-0203,Tanner Framing Systems,Owner
+Rosa,Delgado,subcontractor,rosa@delgado-electric.com,713-555-0204,Delgado Electrical Corp,President
+George,Pappas,subcontractor,george@pappas-plumbing.com,713-555-0205,Pappas Plumbing & Mechanical,Owner
+Donna,Blackwell,subcontractor,donna@blackwell-hvac.com,713-555-0206,Blackwell Climate Systems,VP Operations
+Curtis,Yamamoto,subcontractor,curtis@yamamoto-roofing.com,713-555-0207,Yamamoto Commercial Roofing,Owner
+Ivan,Petrov,subcontractor,ivan@petrov-concrete.com,713-555-0208,Petrov Ready Mix & Pumping,Operations Manager
+Shawn,McBride,subcontractor,shawn@mcbride-masonry.com,713-555-0209,McBride Masonry LLC,Owner
+Angela,Ruiz,subcontractor,angela@ruiz-painting.com,713-555-0210,Ruiz Industrial Coatings,President
+Raymond,Cho,subcontractor,raymond@cho-drywall.com,713-555-0211,Cho Interior Systems,Owner
+Tammy,Wallace,subcontractor,tammy@wallace-landscaping.com,713-555-0212,Wallace Landscape & Irrigation,Owner
+Paul,Fitzgerald,subcontractor,paul@fitzgerald-demolition.com,713-555-0213,Fitzgerald Demolition Inc,President
+Wayne,Okonkwo,subcontractor,wayne@okonkwo-fire.com,713-555-0214,Okonkwo Fire Protection,Owner
+Jake,Moreno,subcontractor,jake@moreno-elevator.com,713-555-0215,Moreno Elevator Services,Operations
+Natalie,Chen,subcontractor,natalie@chen-glass.com,713-555-0216,Chen Glass & Glazing Corp,VP Sales
+Larry,Webb,vendor,larry@webb-supply.com,713-555-0301,Webb Building Materials,Regional Sales
+Karen,Duffy,vendor,karen@gulfcoast-lumber.com,713-555-0302,Gulf Coast Lumber & Hardware,Account Manager
+Steve,Ramos,vendor,steve@txconcrete-supply.com,713-555-0303,Texas Concrete & Aggregate,Territory Manager
+Beth,Novak,vendor,beth@novak-safety.com,713-555-0304,Novak Safety Supply Inc,Branch Manager
+Dennis,Franklin,vendor,dennis@franklin-rental.com,713-555-0305,Franklin Equipment Rental,VP Sales
+Phil,Sutton,vendor,phil@sutton-pipe.com,713-555-0306,Sutton Pipe & Valve Supply,Sales Engineer
+Maria,Torres,vendor,maria@torres-fasteners.com,713-555-0307,Torres Fastener & Supply,Owner
+Greg,Baldwin,vendor,greg@baldwin-electrical.com,713-555-0308,Baldwin Electrical Supply,Branch Manager
+Alan,Harper,client,alan@harperdev.com,713-555-0401,Harper Development Group,CEO
+Christine,Monroe,client,christine@bayoucity-reit.com,713-555-0402,Bayou City REIT,VP Development
+Walter,Chen,client,walter@chen-investments.com,713-555-0403,Chen Investment Partners,Managing Partner
+Patricia,Simmons,client,patricia@txdot-houston.gov,713-555-0404,Texas DOT Houston District,Project Engineer
+Robert,Drake,client,robert@drakeproperties.com,713-555-0405,Drake Properties LLC,Owner
+Sharon,Banks,client,sharon@hcfcd.org,713-555-0406,Harris County Flood Control,Program Manager
+Marcus,Reid,client,marcus@reid-hospitality.com,713-555-0407,Reid Hospitality Group,VP Construction
+Linda,Ochoa,client,linda@hisd.edu,713-555-0408,Houston ISD Facilities,Director of Construction
+Daniel,Foster,client,daniel@foster-medical.com,713-555-0409,Foster Medical Systems,Facilities Director
+Angela,Woodward,client,angela@woodward-retail.com,713-555-0410,Woodward Retail Development,SVP Development
+Raymond,Kemp,client,raymond@kemp-industrial.com,713-555-0411,Kemp Industrial Partners,Managing Director
+Sylvia,Grant,client,sylvia@porthouston.com,713-555-0412,Port of Houston Authority,Engineering Manager
+Nicole,Barrett,tenant,nicole.barrett@email.com,713-555-0501,,Tenant
+David,Okafor,tenant,david.okafor@email.com,713-555-0502,,Tenant
+Lisa,Huang,tenant,lisa.huang@email.com,713-555-0503,,Tenant
+Marcus,Johnson,tenant,marcus.johnson@email.com,713-555-0504,,Tenant
+Emily,Rodriguez,tenant,emily.rodriguez@email.com,713-555-0505,,Tenant
