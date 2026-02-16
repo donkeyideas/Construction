@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Map a protected path to the correct login URL */
@@ -18,6 +19,41 @@ function isLoginPage(pathname: string): boolean {
     pathname === "/login/admin" ||
     pathname === "/register"
   );
+}
+
+/* ─── Platform settings cache (60s TTL) ─── */
+let cachedFlags: { maintenance_mode: boolean; registration_enabled: boolean } | null = null;
+let cacheTs = 0;
+const CACHE_TTL = 60_000;
+
+async function getPlatformFlags(): Promise<{ maintenance_mode: boolean; registration_enabled: boolean }> {
+  const now = Date.now();
+  if (cachedFlags && now - cacheTs < CACHE_TTL) return cachedFlags;
+
+  try {
+    const admin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { data } = await admin
+      .from("platform_settings")
+      .select("key, value")
+      .in("key", ["maintenance_mode", "company_registration_enabled"]);
+
+    const map: Record<string, string> = {};
+    for (const row of data || []) map[row.key] = row.value;
+
+    cachedFlags = {
+      maintenance_mode: map.maintenance_mode === "true",
+      registration_enabled: map.company_registration_enabled !== "false",
+    };
+    cacheTs = now;
+    return cachedFlags;
+  } catch {
+    return { maintenance_mode: false, registration_enabled: true };
+  }
 }
 
 export async function middleware(request: NextRequest) {
@@ -59,6 +95,7 @@ export async function middleware(request: NextRequest) {
     "/login/admin",
     "/register",
     "/forgot-password",
+    "/maintenance",
   ];
   const isPublicRoute =
     publicRoutes.some((route) => pathname === route) ||
@@ -67,6 +104,48 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/seed") ||
     pathname.startsWith("/api/locale") ||
     pathname.startsWith("/api/stripe/webhook");
+
+  // ─── Platform flags: maintenance mode + registration gate ───
+  const flags = await getPlatformFlags();
+
+  if (flags.maintenance_mode) {
+    // Allow: maintenance page itself, login pages, super-admin, and API routes
+    const maintenanceAllowed =
+      pathname === "/maintenance" ||
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/super-admin") ||
+      pathname.startsWith("/api/");
+
+    if (!maintenanceAllowed) {
+      // If user is logged in, check if they're a platform admin
+      if (user) {
+        const { data: adminCheck } = await supabase
+          .from("user_profiles")
+          .select("is_platform_admin")
+          .eq("id", user.id)
+          .single();
+
+        if (!adminCheck?.is_platform_admin) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/maintenance";
+          return NextResponse.redirect(url);
+        }
+      } else {
+        // Not logged in → maintenance page
+        const url = request.nextUrl.clone();
+        url.pathname = "/maintenance";
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
+  // Registration gate: block /register when disabled
+  if (!flags.registration_enabled && pathname === "/register") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("registration", "closed");
+    return NextResponse.redirect(url);
+  }
 
   // If no user and trying to access protected route, redirect to correct login
   if (!user && !isPublicRoute) {

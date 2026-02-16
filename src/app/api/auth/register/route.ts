@@ -15,6 +15,21 @@ interface RegisterBody {
 
 export async function POST(request: Request) {
   try {
+    // Check if company registration is enabled
+    const checkAdmin = createAdminClient();
+    const { data: regSetting } = await checkAdmin
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "company_registration_enabled")
+      .single();
+
+    if (regSetting?.value === "false") {
+      return NextResponse.json(
+        { error: "Registration is currently closed. Please contact the platform administrator." },
+        { status: 403 }
+      );
+    }
+
     const body: RegisterBody = await request.json();
 
     const { email, password, full_name, company_name, company_slug, industry_type, phone } = body;
