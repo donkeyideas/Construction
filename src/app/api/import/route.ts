@@ -95,12 +95,21 @@ export async function POST(request: NextRequest) {
       }, {} as Record<string, string>);
     }
 
-    /** Resolve a row's project_id from project_name/project_code or body fallback */
+    /** Resolve a row's project_id from project_name/project_code or body fallback.
+     *  CSV columns (project_name / project_code) take PRIORITY over the body
+     *  picker so that multi-project CSV files route rows to the correct project
+     *  regardless of which tab the user happens to be viewing. */
     function resolveProjectId(r: Record<string, string>): string | null {
       if (r.project_id) return r.project_id;
+      if (r.project_name) {
+        const found = projLookup[r.project_name.trim().toLowerCase()];
+        if (found) return found;
+      }
+      if (r.project_code) {
+        const found = projLookup[r.project_code.trim().toLowerCase()];
+        if (found) return found;
+      }
       if (body.project_id) return body.project_id as string;
-      if (r.project_name) return projLookup[r.project_name.trim().toLowerCase()] || null;
-      if (r.project_code) return projLookup[r.project_code.trim().toLowerCase()] || null;
       return null;
     }
 
@@ -941,8 +950,8 @@ export async function POST(request: NextRequest) {
       }
 
       case "phases": {
-        // Resolve project_id from body picker OR from CSV project_name column
-        const projId = body.project_id || (rows[0] ? resolveProjectId(rows[0]) : null);
+        // CSV project_name takes priority over body picker (current Gantt tab)
+        const projId = (rows[0] ? resolveProjectId(rows[0]) : null) || body.project_id;
         if (!projId) {
           return NextResponse.json(
             { error: "project_id is required for phases import (select a project or include project_name in CSV)" },
@@ -996,8 +1005,8 @@ export async function POST(request: NextRequest) {
       }
 
       case "tasks": {
-        // Resolve project_id from body picker OR from CSV project_name column
-        const taskProjId = body.project_id || (rows[0] ? resolveProjectId(rows[0]) : null);
+        // CSV project_name takes priority over body picker (current Gantt tab)
+        const taskProjId = (rows[0] ? resolveProjectId(rows[0]) : null) || body.project_id;
         if (!taskProjId) {
           return NextResponse.json(
             { error: "project_id is required for tasks import (select a project or include project_name in CSV)" },
