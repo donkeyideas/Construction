@@ -1,17 +1,17 @@
 csi_code,description,budgeted_amount,committed_amount,actual_amount
-01-00,Land Acquisition,0,0,0
-02-00,Residential GMP - Hard Costs,80222447,80222447,0
-02-10,Studio Build-Out,15000000,15000000,0
-02-20,Furniture Fixtures & Equipment,2000000,2000000,0
-02-90,Hard Cost Contingency (3%),2916673,0,0
-03-10,Architecture & Engineering,6900000,6900000,0
-03-20,Finance & Legal Costs,4225267,4225267,0
-03-30,Construction Interest Reserve,1011237,1011237,0
-03-40,Marketing & Pre-Leasing,200000,0,0
-03-50,Operating Deficits Reserve,1014017,0,0
-03-60,Taxes & Insurance (Construction),6800000,6800000,0
-03-70,Permits & Project Management,4200000,4200000,0
-03-80,Developer Fees,0,0,0
-03-90,Soft Cost Contingency (5%),1217526,0,0
-04-10,Studio Tenant Improvements,3700000,3700000,0
-04-20,Studio Leasing Commissions,186700,186700,0
+00-00,Land Acquisition,0,0,0
+01-00,Residential GMP - General Construction,80222447,80222447,0
+01-10,Studio Build-Out,15000000,15000000,0
+01-20,"Furniture, Fixtures & Equipment",2000000,2000000,0
+01-90,Hard Cost Contingency (3%),2916673,0,0
+02-10,Architecture & Engineering,6900000,6900000,2760000
+02-20,Finance & Legal Costs,4225267,4225267,845053
+02-30,Construction Interest Reserve,1011237,1011237,0
+02-40,Marketing & Pre-Leasing,200000,0,35000
+02-50,Operating Deficits Reserve,1014017,0,0
+02-60,Taxes & Insurance (Construction),6800000,6800000,0
+02-70,Permits & Project Management,4200000,4200000,840000
+02-80,Developer Fees,0,0,0
+02-90,Soft Cost Contingency (5%),1217526,0,0
+03-10,Studio Tenant Improvements,3700000,3700000,0
+03-20,Studio Leasing Commissions,186700,186700,0

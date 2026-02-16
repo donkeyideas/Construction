@@ -1,2 +1,2 @@
-name,code,status,project_type,address,city,state,zip,client_name,client_email,client_phone,budget,estimated_cost,start_date,end_date,description,completion_pct
-8400 Edgewater Mixed-Use Development,EDG-2026,pre_construction,Mixed Use,8400 Edgewater Dr,Oakland,CA,94621,Grit and Turtle Ventures,info@gritandturtle.com,510-555-0100,129594000,129594000,2026-11-01,2028-10-31,250-unit residential with 120000 SF movie studio facilities parking and future retail. 23-month construction. $80.2M residential GMP plus $15M studio build-out,0
+name,code,status,project_type,description,address_line1,city,state,zip,client_name,client_contact,contract_amount,start_date,estimated_end_date
+8400 Edgewater Mixed-Use Development,EDG-2026,pre_construction,mixed_use,"250-unit residential + 120,000 SF movie studio + 476-space parking",8400 Edgewater Drive,Oakland,CA,94621,Grit and Turtle Ventures,Managing Partner,129593867,2026-11-01,2028-09-30

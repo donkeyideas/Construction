@@ -1,20 +1,26 @@
-first_name,last_name,contact_type,email,phone,company_name,job_title
-James,Mitchell,client,james@gritandturtle.com,510-555-0101,Grit and Turtle Ventures,Managing Partner
-Sarah,Chen,client,sarah@gritandturtle.com,510-555-0102,Grit and Turtle Ventures,Director of Development
-Marcus,Beltrami,employee,marcus@gritandturtle.com,510-555-0103,,Project Principal
-David,Kowalski,subcontractor,david@edgewaterGC.com,510-555-0201,Pacific General Contractors,President
-Linda,Yamamoto,subcontractor,linda@yamamoto-arch.com,510-555-0202,Yamamoto Architecture + Design,Principal
-Robert,Santos,subcontractor,robert@bayareastructural.com,510-555-0203,Bay Area Structural Engineers,Senior Partner
-Karen,Nguyen,subcontractor,karen@nguyen-mep.com,510-555-0204,Nguyen MEP Engineering,Principal
-Tom,Bradley,subcontractor,tom@bradleyconcrete.com,510-555-0205,Bradley Concrete & Foundation,Owner
-Eric,Johansson,subcontractor,eric@johansson-steel.com,510-555-0206,Johansson Structural Steel,VP Operations
-Maria,Reyes,subcontractor,maria@reyeselectric.com,510-555-0207,Reyes Electrical Systems,President
-Chris,Park,subcontractor,chris@parkplumbing.com,510-555-0208,Park Mechanical & Plumbing,Owner
-Nina,Volkov,subcontractor,nina@volkov-interiors.com,510-555-0209,Volkov Interior Finishes,Principal
-Jason,Wright,subcontractor,jason@wrightglazing.com,510-555-0210,Wright Glass & Curtain Wall,Operations Manager
-Amy,Torres,subcontractor,amy@torreslandscape.com,510-555-0211,Torres Landscape Architecture,Owner
-Mike,Henderson,vendor,mike@pacificlumber.com,510-555-0301,Pacific Lumber & Supply,Account Manager
-Rachel,Kim,vendor,rachel@baysteelsupply.com,510-555-0302,Bay Steel Distributors,Territory Rep
-Steve,Gomez,vendor,steve@westcoastconcrete.com,510-555-0303,West Coast Concrete Supply,Sales Manager
-Diane,Fischer,vendor,diane@fischerequip.com,510-555-0304,Fischer Equipment Rental,Branch Manager
-Paul,Hartman,vendor,paul@hartmantesting.com,510-555-0305,Hartman Testing & Inspection,Lab Director
+contact_type,first_name,last_name,company_name,job_title,email,phone
+subcontractor,David,Kowalski,Pacific General Contractors,President,david@edgewaterGC.com,510-555-0201
+subcontractor,Linda,Yamamoto,Yamamoto Architecture + Design,Principal,linda@yamamoto-arch.com,510-555-0202
+subcontractor,Robert,Santos,Bay Area Structural Engineers,Senior Partner,robert@bayareastructural.com,510-555-0203
+subcontractor,Karen,Nguyen,Nguyen MEP Engineering,Principal,karen@nguyen-mep.com,510-555-0204
+subcontractor,Tom,Bradley,Bradley Concrete & Foundation,Owner,tom@bradleyconcrete.com,510-555-0205
+subcontractor,Eric,Johansson,Johansson Structural Steel,VP Operations,eric@johansson-steel.com,510-555-0206
+subcontractor,Maria,Reyes,Reyes Electrical Systems,President,maria@reyeselectric.com,510-555-0207
+subcontractor,Chris,Park,Park Mechanical & Plumbing,Owner,chris@parkplumbing.com,510-555-0208
+subcontractor,Nina,Volkov,Volkov Interior Finishes,Principal,nina@volkov-interiors.com,510-555-0209
+subcontractor,Jason,Wright,Wright Glass & Curtain Wall,Ops Manager,jason@wrightglazing.com,510-555-0210
+subcontractor,Amy,Torres,Torres Landscape Architecture,Owner,amy@torreslandscape.com,510-555-0211
+vendor,Mike,Henderson,Pacific Lumber & Supply,Account Manager,mike@pacificlumber.com,510-555-0301
+vendor,Rachel,Kim,Bay Steel Distributors,Territory Rep,rachel@baysteelsupply.com,510-555-0302
+vendor,Steve,Gomez,West Coast Concrete Supply,Sales Manager,steve@westcoastconcrete.com,510-555-0303
+vendor,Diane,Fischer,Fischer Equipment Rental,Branch Manager,diane@fischerequip.com,510-555-0304
+vendor,Paul,Hartman,Hartman Testing & Inspection,Lab Director,paul@hartmantesting.com,510-555-0305
+client,Jennifer,Walsh,Wells Fargo Construction Lending,Senior VP,jennifer@wellsfargo.com,415-555-0401
+client,Marcus,Chen,Bay Area Film Studios LLC,CEO,marcus@bayfilmstudios.com,510-555-0501
+client,Sarah,Blackwell,Pinnacle Productions,VP Operations,sarah@pinnacleproductions.com,510-555-0502
+client,Derek,Tanaka,Pacific Post-Production,Managing Director,derek@pacificpost.com,510-555-0503
+client,Lisa,Moreno,Backlot Events & Rentals,General Manager,lisa@backlotevents.com,510-555-0504
+vendor,James,Porter,Apex Property Management,Regional Director,james@apexpm.com,510-555-0601
+vendor,Anna,Sullivan,Guardian Security Services,Account Exec,anna@guardiansec.com,510-555-0602
+vendor,Robert,Chang,Bay Area Utilities Co.,Commercial Accts,robert@bayutilities.com,510-555-0603
+vendor,Patricia,Dean,Pacific Insurance Group,Commercial Lines,patricia@pacificinsurance.com,510-555-0604

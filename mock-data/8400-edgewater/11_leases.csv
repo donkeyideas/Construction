@@ -1,0 +1,8 @@
+property_name,unit_number,unit_type,tenant_name,tenant_email,tenant_phone,monthly_rent,security_deposit,lease_start,lease_end,status
+8400 Edgewater,Soundstage A,warehouse,Bay Area Film Studios LLC,marcus@bayfilmstudios.com,510-555-0501,58333.33,116666.66,2028-10-01,2036-08-20,active
+8400 Edgewater,Soundstage B,warehouse,Bay Area Film Studios LLC,marcus@bayfilmstudios.com,510-555-0501,58333.33,116666.66,2028-10-01,2036-08-20,active
+8400 Edgewater,Soundstage C,warehouse,Pinnacle Productions,sarah@pinnacleproductions.com,510-555-0502,58333.33,116666.66,2028-10-01,2036-08-20,active
+8400 Edgewater,Production Office 1,warehouse,Pinnacle Productions,sarah@pinnacleproductions.com,510-555-0502,35000.0,70000.0,2028-10-01,2033-09-05,active
+8400 Edgewater,Production Office 2,warehouse,Pacific Post-Production,derek@pacificpost.com,510-555-0503,23333.33,46666.66,2028-10-01,2033-09-05,active
+8400 Edgewater,Support Facilities,warehouse,Pacific Post-Production,derek@pacificpost.com,510-555-0503,36666.67,73333.34,2028-10-01,2033-09-05,active
+8400 Edgewater,Backlot / Exterior,warehouse,Backlot Events & Rentals,lisa@backlotevents.com,510-555-0504,22500.0,45000.0,2028-10-01,2031-09-16,active

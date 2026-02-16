@@ -1,51 +1,59 @@
 account_number,name,account_type,sub_type,description
-1000,Cash & Equivalents,asset,Current Asset,Operating cash and project funds
-1010,Accounts Receivable,asset,Current Asset,Amounts due from equity draws and loan draws
-1020,Retainage Receivable,asset,Current Asset,Retainage held on subcontractor work
-1030,Work in Progress,asset,Current Asset,Construction costs incurred on project
-1040,Prepaid Expenses,asset,Current Asset,Insurance premiums and deposits paid in advance
-1100,Land,asset,Fixed Asset,Land or ground lease value
-1110,Buildings Under Construction,asset,Fixed Asset,Capitalized construction costs
-1120,Equipment & Vehicles,asset,Fixed Asset,Project equipment and vehicles
-1130,Accumulated Depreciation,asset,Fixed Asset,Depreciation on equipment
-1200,Tenant Improvements,asset,Fixed Asset,Studio tenant improvement costs
-1210,Leasing Commissions,asset,Fixed Asset,Capitalized leasing commissions
-2000,Accounts Payable,liability,Current Liability,Amounts owed to subs and vendors
-2010,Retainage Payable,liability,Current Liability,Retainage held from subcontractors
-2020,Accrued Expenses,liability,Current Liability,Accrued interest and operating costs
-2030,Construction Loan Payable,liability,Current Liability,Construction loan draws outstanding
-2040,Accrued Interest,liability,Current Liability,Accrued construction loan interest
-2100,Construction Loan,liability,Long-Term Liability,Construction loan facility - 50% LTC
-2110,Permanent Loan,liability,Long-Term Liability,Permanent financing post-stabilization
-3000,GP Equity,equity,Owner's Equity,General partner equity contribution (10%)
-3010,LP Equity,equity,Owner's Equity,Limited partner equity contribution (90%)
-3020,Landowner Equity,equity,Owner's Equity,Landowner contributed equity
-3030,Retained Earnings,equity,Retained Earnings,Accumulated project earnings
-4000,Residential Rental Revenue,revenue,Operating Revenue,Residential unit rental income
-4010,Studio Rental Revenue,revenue,Operating Revenue,Studio facility rental income
-4020,Ancillary Revenue,revenue,Operating Revenue,Equipment rental and catering and tours
-4030,Parking Revenue,revenue,Operating Revenue,Parking operations income
-4040,Other Income,revenue,Operating Revenue,Late fees and application fees
-5000,Residential GMP - Hard Costs,expense,Cost of Revenue,General contractor GMP for residential
-5010,Studio Build-Out Costs,expense,Cost of Revenue,Studio facility construction costs
-5020,FF&E,expense,Cost of Revenue,Furniture fixtures and equipment
-5030,Hard Cost Contingency,expense,Cost of Revenue,3% contingency on hard costs
-5040,Architecture & Engineering,expense,Cost of Revenue,Design and engineering fees
-5050,Finance & Legal,expense,Cost of Revenue,Loan fees legal and closing costs
-5060,Construction Interest,expense,Cost of Revenue,Interest during construction period
-5070,Marketing & Leasing,expense,Cost of Revenue,Pre-leasing marketing costs
-5080,Operating Deficits,expense,Cost of Revenue,Pre-stabilization operating shortfalls
-5090,Taxes & Insurance,expense,Cost of Revenue,Construction period taxes and insurance
-5100,Permits & Project Management,expense,Cost of Revenue,Building permits and PM fees
-5110,Soft Cost Contingency,expense,Cost of Revenue,5% contingency on soft costs
-5120,Studio TI Costs,expense,Cost of Revenue,Studio tenant improvement allowances
-5130,Studio Leasing Commissions,expense,Cost of Revenue,Studio leasing commissions
-6000,Property Management,expense,Operating Expense,Management fees at 3% of revenue
-6010,Utilities,expense,Operating Expense,Building utilities
-6020,Repairs & Maintenance,expense,Operating Expense,Building maintenance costs
-6030,Insurance - Operations,expense,Operating Expense,Property and liability insurance
-6040,Property Taxes - Operations,expense,Operating Expense,Annual property taxes
-6050,Personnel,expense,Operating Expense,On-site staff payroll
-6060,General & Administrative,expense,Operating Expense,Office and admin expenses
-7000,Interest Expense,expense,Other Expense,Loan interest payments
-7010,Depreciation Expense,expense,Other Expense,Building and equipment depreciation
+1000,Cash & Cash Equivalents,asset,current_asset,Operating cash accounts
+1010,Accounts Receivable,asset,current_asset,Tenant and client receivables
+1020,Prepaid Expenses,asset,current_asset,"Prepaid insurance, taxes, etc."
+1030,Construction Escrow,asset,current_asset,Funds held for construction draws
+1100,Land,asset,fixed_asset,Land cost
+1110,Building - Residential,asset,fixed_asset,Residential construction costs
+1120,Building - Studio,asset,fixed_asset,Studio build-out costs
+1130,"Furniture, Fixtures & Equipment",asset,fixed_asset,FF&E
+1140,Tenant Improvements,asset,fixed_asset,Studio tenant improvements
+1200,Accumulated Depreciation,asset,fixed_asset,Accumulated depreciation on fixed assets
+1300,Construction in Progress,asset,fixed_asset,CIP - costs before project completion
+2000,Accounts Payable,liability,current_liability,Trade payables to vendors/subs
+2010,Accrued Expenses,liability,current_liability,Accrued but unpaid expenses
+2020,Security Deposits Held,liability,current_liability,Tenant security deposits
+2030,Prepaid Rent,liability,current_liability,Advance rent received
+2100,Construction Loan,liability,long_term_liability,"Construction loan (SOFR + 275bps, 50% LTC)"
+2110,Permanent Loan,liability,long_term_liability,"Perm loan (Treasury + 200bps, 30yr amort)"
+2120,Accrued Interest,liability,current_liability,Interest accrued on loans
+3000,Owner's Equity - GP,equity,equity,General Partner equity (10%)
+3010,Owner's Equity - LP,equity,equity,Limited Partner equity (90%)
+3020,Retained Earnings,equity,equity,Accumulated profits
+3030,Distributions,equity,equity,Distributions to partners
+4000,Residential Rental Revenue,revenue,operating_revenue,Gross potential rent - residential
+4010,Studio Lease Revenue,revenue,operating_revenue,Studio facility lease income
+4020,Parking Revenue,revenue,operating_revenue,Parking income
+4030,Ancillary Revenue - Equipment,revenue,operating_revenue,Studio equipment rental
+4040,Ancillary Revenue - Catering,revenue,operating_revenue,On-site catering services
+4050,Ancillary Revenue - Tours,revenue,operating_revenue,Studio tour income
+4090,Vacancy Adjustment,revenue,operating_revenue,Vacancy loss (contra-revenue)
+4100,Concessions,revenue,operating_revenue,Lease concessions (contra-revenue)
+5000,Utilities Expense,expense,operating_expense,"Electric, water, gas, sewer"
+5010,Turnover / Make-Ready,expense,operating_expense,Unit turnover and make-ready costs
+5020,Repairs & Maintenance,expense,operating_expense,Building and unit R&M
+5030,Contract Services,expense,operating_expense,"Janitorial, landscaping, pest control"
+5040,Marketing & Advertising,expense,operating_expense,Leasing marketing and advertising
+5050,General & Administrative,expense,operating_expense,"Office supplies, legal, accounting"
+5060,Personnel / Payroll,expense,operating_expense,On-site staff salaries and benefits
+5070,Management Fees,expense,operating_expense,Property management fee (3% of revenue)
+5080,Insurance Expense,expense,operating_expense,Property and liability insurance
+5090,Property Taxes,expense,operating_expense,Real estate taxes
+5100,Replacement Reserves,expense,operating_expense,Capital replacement reserves
+5200,Studio Personnel,expense,operating_expense,Studio operations staff
+5210,Studio Utilities,expense,operating_expense,Studio power and utilities
+5220,Studio Repairs & Maintenance,expense,operating_expense,Studio facility maintenance
+5230,Studio Insurance,expense,operating_expense,Studio-specific insurance
+5240,Studio Taxes,expense,operating_expense,Studio property taxes
+5250,Studio Security,expense,operating_expense,Studio security services
+5260,Studio G&A,expense,operating_expense,Studio general & administrative
+6000,Architecture & Engineering,expense,development_cost,A&E professional fees
+6010,Finance & Legal Costs,expense,development_cost,"Loan fees, legal, accounting"
+6020,Construction Interest,expense,development_cost,Capitalized interest during construction
+6030,Permits & Project Management,expense,development_cost,Permit fees and PM costs
+6040,Leasing Commissions,expense,development_cost,Broker commissions
+6050,Developer Fees,expense,development_cost,Developer overhead and profit
+7000,Interest Expense - Construction Loan,expense,interest_expense,Interest on construction loan
+7010,Interest Expense - Permanent Loan,expense,interest_expense,Interest on permanent loan
+8000,Depreciation Expense,expense,depreciation,Annual depreciation on buildings and improvements
+9000,Gain on Sale of Property,revenue,other_income,Gain from property disposition
