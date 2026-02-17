@@ -1,0 +1,28 @@
+section,line_item,annual_amount,notes
+INCOME STATEMENT,,,"Fire Protection Specialty: Higher margins, licensed trade, recurring service revenue"
+Revenue,New Construction Contracts,7000000,Sprinkler + fire alarm installs
+Revenue,Service & Inspections,850000,"Annual inspections, T&M repairs"
+Revenue,Service Agreements (Recurring),320000,Monthly monitoring + maintenance
+Revenue,TOTAL REVENUE,8170000,
+Cost of Revenue,Technician Labor,2800000,Licensed fitters + helpers
+Cost of Revenue,Materials,1600000,"Pipe, heads, panels, wire"
+Cost of Revenue,Licensing & Certs,45000,"C-16 license, NICET certs"
+Cost of Revenue,TOTAL COST OF REVENUE,4445000,
+Gross Profit,GROSS PROFIT,3725000,45.6% gross margin — premium trade
+Operating Expenses,Office & Admin,580000,
+Operating Expenses,Insurance,480000,Fire protection is lower risk
+Operating Expenses,Vehicle Fleet,220000,Service vans
+Net Income,NET INCOME,2445000,29.9% net margin — excellent
+BALANCE SHEET,,,
+Assets,Cash,680000,
+Assets,Accounts Receivable,1100000,
+Assets,Inventory,180000,Common sprinkler parts
+Assets,Vehicles & Equipment (net),420000,Service fleet
+Assets,TOTAL ASSETS,2380000,
+Liabilities,AP + Accrued,480000,
+Equity,Owner's Equity,1900000,
+KEY METRICS,,,
+Metrics,Gross Margin,45.6%,Licensed specialty premium
+Metrics,Recurring Revenue %,14.3%,Service + agreements — growing
+Metrics,Revenue per Tech,467000,18 techs (field)
+Metrics,Backlog,4200000,

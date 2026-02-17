@@ -1,0 +1,25 @@
+account_number,name,account_type,sub_type
+1000,Cash,asset,current_asset
+1010,Accounts Receivable - Billings,asset,current_asset
+1020,Unbilled Revenue (WIP),asset,current_asset
+1030,Prepaid Expenses,asset,current_asset
+1100,Office Equipment & FF&E,asset,fixed_asset
+2000,Accounts Payable,liability,current_liability
+2010,Accrued Payroll & Benefits,liability,current_liability
+2020,Deferred Revenue (Advance Billings),liability,current_liability
+3000,Partners' Equity,equity,equity
+3010,Retained Earnings,equity,equity
+4000,Design Fee Revenue,revenue,operating_revenue
+4010,Engineering Fee Revenue,revenue,operating_revenue
+4020,Construction Admin Fee Revenue,revenue,operating_revenue
+4030,Reimbursable Revenue,revenue,operating_revenue
+5000,Professional Staff Salaries,expense,cost_of_revenue
+5010,Sub-Consultant Fees,expense,cost_of_revenue
+5020,Benefits & Payroll Taxes,expense,cost_of_revenue
+5030,Direct Project Expenses,expense,cost_of_revenue
+6000,Office Rent & Occupancy,expense,operating_expense
+6010,Software & Technology,expense,operating_expense
+6020,Professional Liability (E&O) Insurance,expense,operating_expense
+6030,Marketing & Proposals,expense,operating_expense
+6040,Professional Development & Licensing,expense,operating_expense
+6050,Admin Staff Salaries,expense,operating_expense

@@ -1,0 +1,5 @@
+name,code,status,project_type,client_name,contract_amount,start_date,estimated_end_date,address_line1,city,state
+Sunrise Tower - 42-Story Mixed Use,SRT-2025,active,commercial,Sunrise Development Group,185000000,2025-03-01,2027-09-30,100 Market St,San Francisco,CA
+Bayview Elementary School Renovation,BVE-2025,active,institutional,SF Unified School District,28500000,2025-06-15,2026-08-15,450 Bayview Blvd,San Francisco,CA
+Tech Campus Phase 2 - Building B,TCP-2026,pre_construction,commercial,Valley Tech Holdings,67000000,2026-04-01,2027-12-31,2200 Innovation Dr,San Jose,CA
+Harbor Point Condominiums,HPC-2024,completed,residential,Harbor Point LLC,42000000,2024-01-15,2025-12-31,800 Harbor Blvd,Oakland,CA

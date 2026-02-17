@@ -1,0 +1,17 @@
+account_number,name,account_type,sub_type
+1000,Cash,asset,current_asset
+1010,Accounts Receivable,asset,current_asset
+1100,Land,asset,fixed_asset
+1110,Construction in Progress,asset,fixed_asset
+1120,Completed Homes - Inventory,asset,fixed_asset
+2000,Accounts Payable,liability,current_liability
+2100,Construction Loan,liability,long_term_liability
+3000,Owner's Equity,equity,equity
+4000,Home Sale Revenue,revenue,operating_revenue
+5000,Subcontractor Costs,expense,cost_of_revenue
+5010,Materials,expense,cost_of_revenue
+5020,Permits & Fees,expense,cost_of_revenue
+5030,Architecture & Design,expense,cost_of_revenue
+6000,Insurance,expense,operating_expense
+6010,Marketing & Staging,expense,operating_expense
+7000,Interest Expense,expense,interest_expense

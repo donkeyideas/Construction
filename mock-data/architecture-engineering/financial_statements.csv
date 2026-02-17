@@ -1,0 +1,40 @@
+section,line_item,annual_amount,notes
+INCOME STATEMENT,,,"A&E Firm: People business, 3x multiplier on salary, 15-25% net profit"
+Revenue,Design Fee Revenue,8200000,"SD, DD, CD phases"
+Revenue,Engineering Fee Revenue,4800000,"Structural, MEP, civil"
+Revenue,Construction Admin Revenue,2400000,CA phase (~15% of fees)
+Revenue,Reimbursable Revenue,600000,"Travel, printing, models"
+Revenue,TOTAL REVENUE,16000000,
+Direct Costs,Professional Staff Salaries,5800000,"Architects, engineers, designers"
+Direct Costs,Benefits & Payroll Taxes,1740000,30% of direct labor
+Direct Costs,Sub-Consultant Fees,2200000,"MEP, geotech, landscape subs"
+Direct Costs,Direct Project Expenses,480000,"Printing, models, travel"
+Direct Costs,TOTAL DIRECT COSTS,10220000,
+Gross Profit,GROSS PROFIT,5780000,36.1% gross margin
+Overhead,Office Rent & Occupancy,720000,Creative studio space
+Overhead,Software & Technology,480000,"Revit, AutoCAD, Rhino, render farm"
+Overhead,E&O Insurance,320000,2% of revenue — CRITICAL
+Overhead,Marketing & Proposals,240000,"Awards, competitions, PR"
+Overhead,Professional Development,120000,"Licenses, conferences, AIA dues"
+Overhead,Admin Staff,420000,"HR, accounting, receptionist"
+Overhead,TOTAL OVERHEAD,2300000,
+Net Income,NET INCOME,3480000,21.8% net margin
+BALANCE SHEET,,,"A&E: Asset-light, WIP is key"
+Assets,Cash,1800000,3 months of overhead
+Assets,Accounts Receivable,2400000,~55 day DSO (slow-paying clients)
+Assets,Unbilled Revenue (WIP),1200000,"Hours worked, not yet billed"
+Assets,TOTAL ASSETS,5400000,
+Liabilities,Accounts Payable (sub-consultants),680000,
+Liabilities,Accrued Payroll,480000,
+Liabilities,Deferred Revenue,360000,Retainers from clients
+Liabilities,TOTAL LIABILITIES,1520000,
+Equity,Partners' Equity,3880000,3 partners
+KEY METRICS,,,
+Metrics,Net Multiplier,2.76x,Revenue / direct labor (target: 2.8-3.2x)
+Metrics,Utilization Rate,68%,Billable hours / total hours
+Metrics,Revenue per Employee,228000,70 total staff
+Metrics,Net Profit Margin,21.8%,Target: 15-25%
+Metrics,Backlog,12400000,Contracted unearned fees
+Metrics,Win Rate,32%,Proposals won / submitted
+Metrics,Avg Bill Rate,195,$/hr blended rate
+Metrics,Overhead Rate,145%,Overhead / direct labor

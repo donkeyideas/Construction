@@ -1,0 +1,4 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+Operating Account,Chase,checking,7721,0021,4850000
+Payroll Account,Chase,checking,7722,0021,1200000
+Equipment Reserve,US Bank,savings,3301,4455,850000

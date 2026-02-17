@@ -1,0 +1,20 @@
+account_number,name,account_type,sub_type
+1000,Cash,asset,current_asset
+1010,Accounts Receivable - Progress Billings,asset,current_asset
+1020,Retention Receivable,asset,current_asset
+1100,Equipment & Vehicles,asset,fixed_asset
+1200,Accumulated Depreciation,asset,fixed_asset
+2000,Accounts Payable - Suppliers,liability,current_liability
+2010,Accrued Payroll,liability,current_liability
+2100,Equipment Loans,liability,long_term_liability
+3000,Owner's Equity,equity,equity
+4000,Contract Revenue,revenue,operating_revenue
+4010,Change Order Revenue,revenue,operating_revenue
+5000,Direct Labor,expense,cost_of_revenue
+5010,"Materials (Concrete, Rebar, Formwork)",expense,cost_of_revenue
+5020,"Equipment Costs (Pumps, Cranes)",expense,cost_of_revenue
+5030,"Sub-tier Subs (Rebar, Post-Tension)",expense,cost_of_revenue
+6000,Office & Admin,expense,operating_expense
+6010,Insurance (WC + GL),expense,operating_expense
+7000,Interest Expense,expense,interest_expense
+8000,Depreciation,expense,depreciation

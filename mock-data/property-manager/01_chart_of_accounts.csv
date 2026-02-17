@@ -1,0 +1,22 @@
+account_number,name,account_type,sub_type
+1000,Cash - Operating,asset,current_asset
+1010,Accounts Receivable - Mgmt Fees,asset,current_asset
+1020,Accounts Receivable - Leasing Commissions,asset,current_asset
+1030,Prepaid Expenses,asset,current_asset
+1100,Office Equipment (net),asset,fixed_asset
+2000,Accounts Payable,liability,current_liability
+2010,Accrued Payroll,liability,current_liability
+3000,Owner's Equity,equity,equity
+3010,Retained Earnings,equity,equity
+4000,Property Management Fees,revenue,operating_revenue
+4010,Leasing Commissions,revenue,operating_revenue
+4020,Construction Mgmt Fees,revenue,operating_revenue
+4030,Maintenance Markup Revenue,revenue,operating_revenue
+5000,Salaries & Benefits - Property Staff,expense,operating_expense
+5010,Salaries & Benefits - Corporate,expense,operating_expense
+5020,Office Rent & Utilities,expense,operating_expense
+5030,Technology & Software,expense,operating_expense
+5040,Insurance - E&O + GL,expense,operating_expense
+5050,Vehicle & Travel,expense,operating_expense
+5060,Marketing & BD,expense,operating_expense
+5070,Professional Fees,expense,operating_expense

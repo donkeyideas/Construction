@@ -1,0 +1,18 @@
+account_number,name,account_type,sub_type
+1000,Cash,asset,current_asset
+1010,Accounts Receivable,asset,current_asset
+1020,Retention Receivable,asset,current_asset
+1030,Inventory - Sprinkler Heads & Pipe,asset,current_asset
+1100,Vehicles & Equipment,asset,fixed_asset
+2000,Accounts Payable,liability,current_liability
+2010,Accrued Payroll,liability,current_liability
+3000,Owner's Equity,equity,equity
+4000,New Construction Revenue,revenue,operating_revenue
+4010,Service & Inspection Revenue,revenue,operating_revenue
+4020,Service Agreement Revenue,revenue,operating_revenue
+5000,Technician Labor,expense,cost_of_revenue
+5010,"Specialty Materials (Pipe, Heads, Panels)",expense,cost_of_revenue
+5020,Licensing & Certifications,expense,cost_of_revenue
+6000,Office & Admin,expense,operating_expense
+6010,Insurance (WC + GL + E&O),expense,operating_expense
+6020,Vehicle Fleet,expense,operating_expense

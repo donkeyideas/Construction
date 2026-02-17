@@ -1,0 +1,33 @@
+section,line_item,annual_amount,notes
+INCOME STATEMENT,,,"Concrete Sub: Labor + materials intensive, 15-25% gross margin"
+Revenue,Contract Revenue,36500000,Multiple projects
+Revenue,Change Orders,2200000,~6% of contract
+Revenue,TOTAL REVENUE,38700000,
+Cost of Revenue,Direct Labor (Union),14800000,38% of revenue — largest cost
+Cost of Revenue,Materials (Concrete/Rebar),9200000,24% of revenue
+Cost of Revenue,Equipment Costs,3100000,"Pumps, cranes, formwork"
+Cost of Revenue,Sub-tier Subcontractors,2400000,"Rebar, post-tension, waterproofing"
+Cost of Revenue,TOTAL COST OF REVENUE,29500000,
+Gross Profit,GROSS PROFIT,9200000,23.8% gross margin
+Operating Expenses,Office & Admin Salaries,1800000,"Estimators, PMs, office"
+Operating Expenses,Insurance (WC + GL),2800000,7.2% of revenue — HIGH for concrete
+Operating Expenses,Vehicles & Fuel,320000,
+Operating Expenses,Depreciation,850000,Heavy equipment
+Net Income,NET INCOME,3430000,8.9% net margin
+BALANCE SHEET,,,"Sub: Equipment-heavy, AR from GC"
+Assets,Cash,1200000,
+Assets,Accounts Receivable,4800000,~45 day DSO from GC
+Assets,Retention Receivable,2400000,5-10% of billings held
+Assets,Equipment (net),4200000,"Pumps, cranes, formwork"
+Assets,TOTAL ASSETS,12600000,
+Liabilities,Accounts Payable,2800000,"Ready-mix, rebar suppliers"
+Liabilities,Accrued Payroll,1200000,Biweekly union payroll
+Liabilities,Equipment Loans,1800000,
+Liabilities,TOTAL LIABILITIES,5800000,
+Equity,Owner's Equity,6800000,
+KEY METRICS,,,
+Metrics,Gross Margin,23.8%,Target: 15-25%
+Metrics,Backlog,18500000,Remaining on contracts
+Metrics,Labor Productivity (CY/hr),1.8,Cubic yards placed per labor hour
+Metrics,Workers Comp Rate,14.2%,% of payroll — concrete is high-risk
+Metrics,Headcount,85,65 field + 20 office

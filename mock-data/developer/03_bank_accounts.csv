@@ -1,0 +1,3 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+Operating Account,First Republic,checking,9901,1100,3200000
+Construction Escrow,Wells Fargo,escrow,4401,0721,42000000

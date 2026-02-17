@@ -1,0 +1,28 @@
+section,line_item,annual_amount,notes
+INCOME STATEMENT,,,"Owner-Builder: Revenue on sale, costs capitalized into CIP"
+Revenue,Home Sales (Spec Home A),4200000,Sold at completion; cost basis $2.8M
+Revenue,TOTAL REVENUE,4200000,Revenue recognized at closing
+Cost of Sales,Land Cost,850000,
+Cost of Sales,Subcontractor Costs,1200000,All trades subbed out
+Cost of Sales,Materials,420000,Owner-purchased materials
+Cost of Sales,Architecture & Design,180000,
+Cost of Sales,Permits & Fees,85000,
+Cost of Sales,TOTAL COST OF SALES,2735000,
+Gross Profit,GROSS PROFIT,1465000,34.9% gross margin on spec
+Operating Expenses,Insurance,42000,Builder's risk + GL
+Operating Expenses,Marketing & Staging,65000,"Staging, photos, broker"
+Operating Expenses,Interest Expense,185000,Construction loan
+Net Income,NET INCOME,1173000,27.9% net — strong for spec
+BALANCE SHEET,,,Owner-Builder: CIP is the main asset
+Assets,Cash,320000,
+Assets,Land (Custom Estate),2200000,
+Assets,Construction in Progress,4800000,Custom Estate WIP
+Assets,TOTAL ASSETS,7320000,
+Liabilities,Accounts Payable,280000,Subs and suppliers
+Liabilities,Construction Loan,3400000,60% LTC
+Liabilities,TOTAL LIABILITIES,3680000,
+Equity,Owner's Equity,3640000,
+KEY METRICS,,,
+Metrics,Gross Margin on Spec,34.9%,Target: 25-40%
+Metrics,Cost per SF (Spec),651,$2.735M / 4200 SF
+Metrics,Sale Price per SF,1000,$4.2M / 4200 SF

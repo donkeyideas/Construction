@@ -1,0 +1,82 @@
+invoice_number,invoice_type,client_name,amount,invoice_date,status,description,project_name,gl_account,vendor_name
+PAY-APP-001,receivable,Sunrise Development Group,4200000,2025-03-01,paid,Pay Application #1 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-002,receivable,Sunrise Development Group,4200000,2025-03-31,paid,Pay Application #2 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-003,receivable,Sunrise Development Group,4200000,2025-04-30,paid,Pay Application #3 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-004,receivable,Sunrise Development Group,4200000,2025-05-30,paid,Pay Application #4 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-005,receivable,Sunrise Development Group,4200000,2025-06-29,paid,Pay Application #5 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-006,receivable,Sunrise Development Group,4200000,2025-07-29,paid,Pay Application #6 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-007,receivable,Sunrise Development Group,4200000,2025-08-28,paid,Pay Application #7 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-008,receivable,Sunrise Development Group,4200000,2025-09-27,paid,Pay Application #8 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-009,receivable,Sunrise Development Group,4200000,2025-10-27,paid,Pay Application #9 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-010,receivable,Sunrise Development Group,4200000,2025-11-26,paid,Pay Application #10 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-011,receivable,Sunrise Development Group,4200000,2025-12-26,approved,Pay Application #11 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-012,receivable,Sunrise Development Group,4200000,2026-01-25,approved,Pay Application #12 - Sunrise Tower,Sunrise Tower - 42-Story Mixed Use,4000,
+PAY-APP-013,receivable,SF Unified School District,2800000,2025-07-01,paid,Pay Application #1 - Bayview School,Bayview Elementary School Renovation,4000,
+PAY-APP-014,receivable,SF Unified School District,2800000,2025-07-31,paid,Pay Application #2 - Bayview School,Bayview Elementary School Renovation,4000,
+PAY-APP-015,receivable,SF Unified School District,2800000,2025-08-30,paid,Pay Application #3 - Bayview School,Bayview Elementary School Renovation,4000,
+PAY-APP-016,receivable,SF Unified School District,2800000,2025-09-29,paid,Pay Application #4 - Bayview School,Bayview Elementary School Renovation,4000,
+PAY-APP-017,receivable,SF Unified School District,2800000,2025-10-29,approved,Pay Application #5 - Bayview School,Bayview Elementary School Renovation,4000,
+PAY-APP-018,receivable,SF Unified School District,2800000,2025-11-28,approved,Pay Application #6 - Bayview School,Bayview Elementary School Renovation,4000,
+AP-0019,payable,,1850000,2025-04-01,paid,Progress Billing #1,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0020,payable,,1850000,2025-05-01,paid,Progress Billing #2,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0021,payable,,1850000,2025-05-31,paid,Progress Billing #3,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0022,payable,,1850000,2025-06-30,paid,Progress Billing #4,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0023,payable,,1850000,2025-07-30,paid,Progress Billing #5,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0024,payable,,1850000,2025-08-29,paid,Progress Billing #6,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0025,payable,,1850000,2025-09-28,paid,Progress Billing #7,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0026,payable,,1850000,2025-10-28,paid,Progress Billing #8,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0027,payable,,1850000,2025-11-27,paid,Progress Billing #9,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0028,payable,,1850000,2025-12-27,paid,Progress Billing #10,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0029,payable,,1850000,2026-01-26,approved,Progress Billing #11,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0030,payable,,1850000,2026-02-25,approved,Progress Billing #12,Sunrise Tower - 42-Story Mixed Use,5000,Titan Concrete Inc.
+AP-0031,payable,,1200000,2025-04-01,paid,Progress Billing #1,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0032,payable,,1200000,2025-05-01,paid,Progress Billing #2,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0033,payable,,1200000,2025-05-31,paid,Progress Billing #3,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0034,payable,,1200000,2025-06-30,paid,Progress Billing #4,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0035,payable,,1200000,2025-07-30,paid,Progress Billing #5,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0036,payable,,1200000,2025-08-29,paid,Progress Billing #6,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0037,payable,,1200000,2025-09-28,paid,Progress Billing #7,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0038,payable,,1200000,2025-10-28,paid,Progress Billing #8,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0039,payable,,1200000,2025-11-27,approved,Progress Billing #9,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0040,payable,,1200000,2025-12-27,approved,Progress Billing #10,Sunrise Tower - 42-Story Mixed Use,5000,Bay Electric Co.
+AP-0041,payable,,1100000,2025-04-01,paid,Progress Billing #1,Sunrise Tower - 42-Story Mixed Use,5000,Pacific Mechanical
+AP-0042,payable,,1100000,2025-05-01,paid,Progress Billing #2,Sunrise Tower - 42-Story Mixed Use,5000,Pacific Mechanical
+AP-0043,payable,,1100000,2025-05-31,paid,Progress Billing #3,Sunrise Tower - 42-Story Mixed Use,5000,Pacific Mechanical
+AP-0044,payable,,1100000,2025-06-30,paid,Progress Billing #4,Sunrise Tower - 42-Story Mixed Use,5000,Pacific Mechanical
+AP-0045,payable,,1100000,2025-07-30,paid,Progress Billing #5,Sunrise Tower - 42-Story Mixed Use,5000,Pacific Mechanical
+AP-0046,payable,,1100000,2025-08-29,paid,Progress Billing #6,Sunrise Tower - 42-Story Mixed Use,5000,Pacific Mechanical
+AP-0047,payable,,1100000,2025-09-28,approved,Progress Billing #7,Sunrise Tower - 42-Story Mixed Use,5000,Pacific Mechanical
+AP-0048,payable,,1100000,2025-10-28,approved,Progress Billing #8,Sunrise Tower - 42-Story Mixed Use,5000,Pacific Mechanical
+AP-0049,payable,,1800000,2025-04-01,paid,Progress Billing #1,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0050,payable,,1800000,2025-05-01,paid,Progress Billing #2,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0051,payable,,1800000,2025-05-31,paid,Progress Billing #3,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0052,payable,,1800000,2025-06-30,paid,Progress Billing #4,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0053,payable,,1800000,2025-07-30,paid,Progress Billing #5,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0054,payable,,1800000,2025-08-29,paid,Progress Billing #6,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0055,payable,,1800000,2025-09-28,paid,Progress Billing #7,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0056,payable,,1800000,2025-10-28,paid,Progress Billing #8,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0057,payable,,1800000,2025-11-27,approved,Progress Billing #9,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0058,payable,,1800000,2025-12-27,approved,Progress Billing #10,Sunrise Tower - 42-Story Mixed Use,5000,Sierra Steel Erectors
+AP-0059,payable,,580000,2025-04-01,paid,Progress Billing #1,Bayview Elementary School Renovation,5000,Titan Concrete Inc.
+AP-0060,payable,,580000,2025-05-01,paid,Progress Billing #2,Bayview Elementary School Renovation,5000,Titan Concrete Inc.
+AP-0061,payable,,580000,2025-05-31,paid,Progress Billing #3,Bayview Elementary School Renovation,5000,Titan Concrete Inc.
+AP-0062,payable,,580000,2025-06-30,approved,Progress Billing #4,Bayview Elementary School Renovation,5000,Titan Concrete Inc.
+AP-0063,payable,,580000,2025-07-30,approved,Progress Billing #5,Bayview Elementary School Renovation,5000,Titan Concrete Inc.
+AP-0064,payable,,185000,2025-04-15,paid,Materials delivery,Sunrise Tower - 42-Story Mixed Use,5010,ABC Supply Co.
+AP-0065,payable,,185000,2025-05-15,paid,Materials delivery,Sunrise Tower - 42-Story Mixed Use,5010,ABC Supply Co.
+AP-0066,payable,,185000,2025-06-14,paid,Materials delivery,Sunrise Tower - 42-Story Mixed Use,5010,ABC Supply Co.
+AP-0067,payable,,185000,2025-07-14,paid,Materials delivery,Sunrise Tower - 42-Story Mixed Use,5010,ABC Supply Co.
+AP-0068,payable,,185000,2025-08-13,paid,Materials delivery,Sunrise Tower - 42-Story Mixed Use,5010,ABC Supply Co.
+AP-0069,payable,,185000,2025-09-12,paid,Materials delivery,Sunrise Tower - 42-Story Mixed Use,5010,ABC Supply Co.
+AP-0070,payable,,185000,2025-10-12,paid,Materials delivery,Sunrise Tower - 42-Story Mixed Use,5010,ABC Supply Co.
+AP-0071,payable,,185000,2025-11-11,paid,Materials delivery,Sunrise Tower - 42-Story Mixed Use,5010,ABC Supply Co.
+AP-0072,payable,,95000,2025-03-15,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals
+AP-0073,payable,,95000,2025-04-14,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals
+AP-0074,payable,,95000,2025-05-14,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals
+AP-0075,payable,,95000,2025-06-13,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals
+AP-0076,payable,,95000,2025-07-13,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals
+AP-0077,payable,,95000,2025-08-12,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals
+AP-0078,payable,,95000,2025-09-11,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals
+AP-0079,payable,,95000,2025-10-11,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals
+AP-0080,payable,,95000,2025-11-10,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals
+AP-0081,payable,,95000,2025-12-10,paid,Crane & equipment rental,Sunrise Tower - 42-Story Mixed Use,5030,United Rentals

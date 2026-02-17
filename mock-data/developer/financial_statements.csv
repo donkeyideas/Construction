@@ -1,0 +1,39 @@
+section,line_item,annual_amount,notes
+INCOME STATEMENT,,,Developer: Revenue from rents + development fees; heavy debt service
+Revenue,Rental Revenue - Residential,7200000,Stabilized portfolio GPR
+Revenue,Rental Revenue - Commercial,3800000,Office/retail leases
+Revenue,Development Fees Earned,2400000,3-5% of project costs on managed deals
+Revenue,Vacancy & Concessions,-550000,~5% of gross rents
+Revenue,TOTAL REVENUE,12850000,
+Operating Expenses,Property Taxes,1800000,Largest single OpEx line
+Operating Expenses,Insurance,420000,
+Operating Expenses,Repairs & Maintenance,650000,
+Operating Expenses,Utilities,380000,Common area only
+Operating Expenses,Management Fees (3%),390000,
+Operating Expenses,Marketing & Leasing,200000,
+Operating Expenses,G&A / Corporate Overhead,1200000,"Salaries, office, legal"
+Operating Expenses,TOTAL OPERATING EXPENSES,5040000,
+NOI,NET OPERATING INCOME,7810000,60.7% NOI margin
+Below NOI,Interest Expense,3200000,Construction + perm debt
+Below NOI,Depreciation,2100000,27.5yr resi / 39yr commercial
+Below NOI,NET INCOME,2510000,
+BALANCE SHEET,,,"Developer: asset-heavy, leveraged"
+Assets,Cash,3200000,
+Assets,Accounts Receivable,850000,Tenant AR
+Assets,Land Held for Development,12000000,Mission Bay site
+Assets,Construction in Progress,42000000,Pacific Heights project
+Assets,Completed Properties (net),58000000,Stabilized portfolio
+Assets,TOTAL ASSETS,116050000,
+Liabilities,Accounts Payable,2800000,
+Liabilities,Construction Loan,32000000,~50% LTC
+Liabilities,Permanent Debt,42000000,~65% LTV on stabilized
+Liabilities,TOTAL LIABILITIES,76800000,
+Equity,GP + LP Equity,39250000,GP 10% / LP 90%
+KEY METRICS,,,
+Metrics,NOI Margin,60.7%,Target: 55-70%
+Metrics,Debt Service Coverage Ratio,1.55x,NOI / annual debt service; min 1.20x
+Metrics,Loan-to-Value,64%,Total debt / property value
+Metrics,Cap Rate (stabilized),5.8%,NOI / property value
+Metrics,Cash-on-Cash Return,11.8%,Annual CF / equity invested
+Metrics,Development Pipeline,240000000,Total project costs in pipeline
+Metrics,IRR (projected),18-22%,Levered IRR on current deals

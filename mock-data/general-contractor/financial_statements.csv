@@ -1,0 +1,48 @@
+section,line_item,annual_amount,notes
+INCOME STATEMENT,,,"Typical GC: 8-12% gross margin, 2-5% net margin"
+Revenue,Contract Revenue,185000000,Recognized on % completion method
+Revenue,Change Order Revenue,8200000,~4-5% of contract value
+Revenue,T&M / Extra Work,1800000,Time & material billings
+Revenue,TOTAL REVENUE,195000000,
+Cost of Revenue,Subcontractor Costs,117000000,60% of revenue - largest cost
+Cost of Revenue,Materials & Supplies,25000000,13% of revenue
+Cost of Revenue,Direct Labor,18500000,"Field supervisors, foremen"
+Cost of Revenue,Equipment Costs,8500000,Owned + rented equipment
+Cost of Revenue,Job Insurance & Bonding,4200000,~2% of revenue
+Cost of Revenue,Permits & Fees,1800000,
+Cost of Revenue,TOTAL COST OF REVENUE,175000000,
+Gross Profit,GROSS PROFIT,20000000,10.3% gross margin
+Operating Expenses,Office Salaries & Benefits,6200000,"Estimators, PMs, admin"
+Operating Expenses,Office Rent & Utilities,480000,
+Operating Expenses,General Liability Insurance,1200000,GL + umbrella
+Operating Expenses,Professional Fees,350000,"Legal, accounting, consulting"
+Operating Expenses,Vehicles & Travel,420000,Fleet + mileage
+Operating Expenses,Technology & Software,280000,"Procore, Bluebeam, etc."
+Operating Expenses,Marketing & BD,180000,
+Operating Expenses,Depreciation,650000,Equipment & vehicles
+Operating Expenses,TOTAL OPERATING EXPENSES,9760000,5% of revenue — keep lean
+Net Income,OPERATING INCOME (EBIT),10240000,5.3% operating margin
+Net Income,Interest Expense,320000,LOC draws
+Net Income,NET INCOME BEFORE TAX,9920000,5.1% net margin — healthy GC
+BALANCE SHEET,,,GC balance sheet is WIP-heavy
+Assets,Cash & Equivalents,4850000,Keep 30-60 days of overhead
+Assets,Accounts Receivable,18500000,~35 days of revenue (DSO)
+Assets,Retention Receivable,9250000,5-10% of billed revenue held back
+Assets,Costs in Excess of Billings,3200000,Under-billed WIP — watch closely
+Assets,Equipment & Vehicles (net),2800000,
+Assets,TOTAL ASSETS,38600000,
+Liabilities,Accounts Payable,14200000,Pay subs within 30 days
+Liabilities,Retention Payable,7800000,Held from subs until final completion
+Liabilities,Billings in Excess of Costs,2400000,Over-billed WIP — revenue to earn
+Liabilities,Accrued Payroll,1200000,
+Liabilities,Line of Credit,1500000,"$5M facility, draw as needed"
+Liabilities,TOTAL LIABILITIES,27100000,
+Equity,Owner's Equity + Retained Earnings,11500000,
+KEY METRICS,,,
+Metrics,Gross Margin,10.3%,Target: 8-15%
+Metrics,Net Margin,5.1%,Target: 2-5%
+Metrics,Backlog,112000000,Contracted but unearned revenue
+Metrics,Current Ratio,1.38,Above 1.1 required by bonding co
+Metrics,Working Capital,10600000,CA - CL
+Metrics,Revenue per Employee,1625000,120 employees
+Metrics,Bonding Capacity,250000000,~10x working capital

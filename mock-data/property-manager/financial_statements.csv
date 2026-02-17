@@ -1,0 +1,32 @@
+section,line_item,annual_amount,notes
+INCOME STATEMENT,,,"PM Firm: Fee-based, light balance sheet, high labor cost ratio"
+Revenue,Management Fees (3-5% of gross rents),1680000,$42M gross rents under management
+Revenue,Leasing Commissions,420000,New leases + renewals
+Revenue,Construction Mgmt Fees,180000,TI oversight for owner
+Revenue,Maintenance Markup,120000,15% markup on vendor invoices
+Revenue,TOTAL REVENUE,2400000,
+Operating Expenses,Property Staff (on-site),680000,"Maintenance techs, leasing agents"
+Operating Expenses,Corporate Staff,520000,"Regional mgr, accounting, admin"
+Operating Expenses,Office Rent & Utilities,96000,
+Operating Expenses,Technology & Software,48000,"Yardi/AppFolio, maintenance SW"
+Operating Expenses,E&O + GL Insurance,85000,Professional liability critical
+Operating Expenses,Vehicle & Travel,36000,Site visits
+Operating Expenses,Marketing,24000,
+Operating Expenses,TOTAL EXPENSES,1489000,
+Net Income,NET INCOME,911000,38% net margin — strong for PM
+BALANCE SHEET,,,"PM: Asset-light, fee business"
+Assets,Cash,480000,
+Assets,Accounts Receivable,210000,~30 days of mgmt fees
+Assets,Office Equipment,45000,
+Assets,TOTAL ASSETS,735000,Very light balance sheet
+Liabilities,Accounts Payable,85000,
+Liabilities,Accrued Payroll,95000,
+Liabilities,TOTAL LIABILITIES,180000,
+Equity,Owner's Equity,555000,
+KEY METRICS,,,
+Metrics,Units Under Management,320,Resi + commercial suites
+Metrics,Gross Rents Managed,42000000,
+Metrics,Revenue per Employee,200000,12 FTEs
+Metrics,Net Margin,38%,Target: 25-40%
+Metrics,Average Occupancy,94.2%,Across portfolio
+Metrics,Tenant Retention Rate,72%,

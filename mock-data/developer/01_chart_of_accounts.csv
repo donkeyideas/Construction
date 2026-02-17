@@ -1,0 +1,35 @@
+account_number,name,account_type,sub_type
+1000,Cash & Cash Equivalents,asset,current_asset
+1010,Accounts Receivable,asset,current_asset
+1100,Land Held for Development,asset,fixed_asset
+1110,Construction in Progress,asset,fixed_asset
+1120,Completed Properties,asset,fixed_asset
+1130,Tenant Improvements,asset,fixed_asset
+1200,Accumulated Depreciation,asset,fixed_asset
+2000,Accounts Payable,liability,current_liability
+2010,Accrued Expenses,liability,current_liability
+2020,Security Deposits Held,liability,current_liability
+2100,Construction Loan,liability,long_term_liability
+2110,Permanent / Mezzanine Debt,liability,long_term_liability
+3000,GP Equity,equity,equity
+3010,LP Equity,equity,equity
+3020,Retained Earnings,equity,equity
+3030,Distributions,equity,equity
+4000,Rental Revenue - Residential,revenue,operating_revenue
+4010,Rental Revenue - Commercial,revenue,operating_revenue
+4020,Development Fees,revenue,operating_revenue
+4030,Property Sales Revenue,revenue,other_income
+4090,Vacancy & Concessions,revenue,operating_revenue
+5000,Property Taxes,expense,operating_expense
+5010,Insurance,expense,operating_expense
+5020,Repairs & Maintenance,expense,operating_expense
+5030,Utilities,expense,operating_expense
+5040,Management Fees,expense,operating_expense
+5050,Marketing & Leasing,expense,operating_expense
+5060,General & Administrative,expense,operating_expense
+6000,A&E / Soft Costs,expense,development_cost
+6010,Finance & Legal,expense,development_cost
+7000,Interest - Construction Loan,expense,interest_expense
+7010,Interest - Permanent Debt,expense,interest_expense
+8000,Depreciation,expense,depreciation
+9000,Gain on Sale,revenue,other_income

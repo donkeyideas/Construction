@@ -1,0 +1,13 @@
+csi_code,description,budgeted_amount,committed_amount,actual_amount
+02-00,Site Work & Demolition,8500000,8200000,7950000
+03-00,Concrete & Foundations,26000000,24500000,18200000
+05-00,Structural Steel,23000000,22000000,16500000
+07-00,Waterproofing & Envelope,12000000,11200000,3200000
+09-00,"Finishes (Drywall, Paint, Flooring)",18500000,16800000,2100000
+22-00,Plumbing,9200000,8800000,4100000
+23-00,HVAC/Mechanical,16500000,15800000,6200000
+26-00,Electrical,19500000,18200000,8400000
+31-00,Earthwork & Piling,6200000,6000000,5800000
+32-00,Exterior Improvements,4500000,0,0
+01-00,General Conditions & Overhead,18500000,18500000,11200000
+01-90,Contingency (3%),5550000,0,0

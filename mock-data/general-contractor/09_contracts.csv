@@ -1,0 +1,7 @@
+contract_number,title,contract_type,party_name,contract_amount,project_name,start_date,end_date,status
+SUB-001,Concrete & Foundations - Sunrise Tower,subcontractor,Titan Concrete Inc.,24500000,Sunrise Tower - 42-Story Mixed Use,2025-03-15,2026-06-30,executed
+SUB-002,Electrical - Sunrise Tower,subcontractor,Bay Electric Co.,18200000,Sunrise Tower - 42-Story Mixed Use,2025-06-01,2027-06-30,executed
+SUB-003,Mechanical/HVAC - Sunrise Tower,subcontractor,Pacific Mechanical,15800000,Sunrise Tower - 42-Story Mixed Use,2025-07-01,2027-06-30,executed
+SUB-004,Structural Steel - Sunrise Tower,subcontractor,Sierra Steel Erectors,22000000,Sunrise Tower - 42-Story Mixed Use,2025-05-01,2026-12-31,executed
+SUB-010,Demo & Site Work - Bayview School,subcontractor,Titan Concrete Inc.,3200000,Bayview Elementary School Renovation,2025-06-15,2025-10-31,executed
+SUB-011,Electrical - Bayview School,subcontractor,Bay Electric Co.,4100000,Bayview Elementary School Renovation,2025-09-01,2026-05-31,executed
