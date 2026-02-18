@@ -727,7 +727,7 @@ export function summarizePayroll(items: PayrollItemCalc[]): PayrollSummary {
   // Round all summary totals
   for (const key of Object.keys(summary) as (keyof PayrollSummary)[]) {
     if (typeof summary[key] === "number") {
-      (summary as Record<string, number>)[key] = roundCents(summary[key] as number);
+      (summary as unknown as Record<string, number>)[key] = roundCents(summary[key] as number);
     }
   }
 
