@@ -319,7 +319,7 @@ export async function getPayrollDeductions(
       employee_name: profile?.full_name ?? "Unknown",
       user_profiles: undefined,
     };
-  }) as PayrollDeduction[];
+  }) as unknown as PayrollDeduction[];
 }
 
 export async function upsertPayrollDeduction(
@@ -418,7 +418,7 @@ export async function getPayrollRuns(
       journal_entry_number: je?.entry_number ?? null,
       journal_entries: undefined,
     };
-  }) as PayrollRun[];
+  }) as unknown as PayrollRun[];
 }
 
 export async function getPayrollRunDetail(
@@ -477,7 +477,7 @@ export async function getPayrollRunDetail(
       employee_email: profile?.email ?? "",
       user_profiles: undefined,
     };
-  }) as PayrollItem[];
+  }) as unknown as PayrollItem[];
 
   return {
     ...(run as Record<string, unknown>),
@@ -486,7 +486,7 @@ export async function getPayrollRunDetail(
     approved_by_name: run.approved_by ? userNameMap.get(run.approved_by) ?? null : null,
     created_by_name: run.created_by ? userNameMap.get(run.created_by) ?? null : null,
     items: mappedItems,
-  } as PayrollRunDetail;
+  } as unknown as PayrollRunDetail;
 }
 
 /* ==================================================================
