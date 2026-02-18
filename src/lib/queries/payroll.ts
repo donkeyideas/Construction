@@ -211,7 +211,7 @@ export async function getEmployeePayRates(
       employee_email: profile?.email ?? "",
       user_profiles: undefined,
     };
-  }) as EmployeePayRate[];
+  }) as unknown as EmployeePayRate[];
 }
 
 export async function upsertEmployeePayRate(
