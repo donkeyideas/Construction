@@ -104,7 +104,16 @@ export async function POST(request: NextRequest) {
 
     // Build pay rate and deduction maps by user_id for the calculator
     const payRateMap = new Map(
-      payRates.map((r) => [r.user_id, r])
+      payRates.map((r) => [r.user_id, {
+        user_id: r.user_id,
+        pay_type: r.pay_type,
+        hourly_rate: r.hourly_rate ?? 0,
+        overtime_rate: r.overtime_rate ?? 0,
+        salary_amount: r.salary_amount ?? 0,
+        filing_status: r.filing_status,
+        federal_allowances: r.federal_allowances,
+        state_code: r.state_code,
+      }])
     );
     const deductionMap = new Map<string, typeof deductions>();
     for (const d of deductions) {
@@ -115,13 +124,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate payroll items for each employee
-    const calculatedItems = calculatePayrollItems({
+    const calculatedItems = calculatePayrollItems(
       timeEntries,
       payRateMap,
       deductionMap,
       ytdGross,
       taxConfig,
-    });
+      26, // bi-weekly = 26 periods per year
+    );
 
     if (calculatedItems.length === 0) {
       return NextResponse.json(
