@@ -41,6 +41,11 @@ interface InvoiceRow {
   projects: { name: string } | null;
 }
 
+interface LinkedJE {
+  id: string;
+  entry_number: string;
+}
+
 interface APClientProps {
   invoices: InvoiceRow[];
   totalApBalance: number;
@@ -48,6 +53,7 @@ interface APClientProps {
   pendingApprovalCount: number;
   paidThisMonth: number;
   activeStatus: string | undefined;
+  linkedJEs?: Record<string, LinkedJE[]>;
 }
 
 /* ------------------------------------------------------------------
@@ -72,6 +78,7 @@ export default function APClient({
   pendingApprovalCount,
   paidThisMonth,
   activeStatus,
+  linkedJEs = {},
 }: APClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
@@ -300,6 +307,7 @@ export default function APClient({
                   <th style={{ textAlign: "right" }}>{t("amount")}</th>
                   <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
                   <th>{t("status")}</th>
+                  <th>JE</th>
                 </tr>
               </thead>
               <tbody>
@@ -342,6 +350,26 @@ export default function APClient({
                         <span className={`inv-status inv-status-${inv.status}`}>
                           {inv.status}
                         </span>
+                      </td>
+                      <td>
+                        {linkedJEs[inv.id]?.length ? (
+                          linkedJEs[inv.id].map((je) => (
+                            <Link
+                              key={je.id}
+                              href={`/financial/general-ledger?entry=${je.entry_number}`}
+                              className="je-link"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {je.entry_number}
+                            </Link>
+                          ))
+                        ) : inv.status !== "draft" && inv.status !== "voided" ? (
+                          <span className="je-missing" title="No journal entry found">
+                            <AlertCircle size={12} />
+                          </span>
+                        ) : (
+                          <span style={{ color: "var(--muted)" }}>--</span>
+                        )}
                       </td>
                     </tr>
                   );

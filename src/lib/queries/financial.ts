@@ -1216,6 +1216,7 @@ export async function getTrialBalance(
    ================================================================== */
 
 export interface IncomeStatementLine {
+  account_id?: string;
   account_number: string;
   name: string;
   amount: number;
@@ -1254,12 +1255,12 @@ export async function getIncomeStatement(
     const num = parseInt(row.account_number);
     // Revenue accounts have credit normal balance, so amount = credit - debit
     if (row.account_type === "revenue" || (num >= 4000 && num < 5000)) {
-      revenue.push({ account_number: row.account_number, name: row.account_name, amount: row.credit - row.debit });
+      revenue.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.credit - row.debit });
     } else if (num >= 5000 && num < 6000) {
       // COGS: debit normal balance, so amount = debit - credit
-      cogs.push({ account_number: row.account_number, name: row.account_name, amount: row.debit - row.credit });
+      cogs.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.debit - row.credit });
     } else if (row.account_type === "expense" || (num >= 6000 && num < 7000)) {
-      opex.push({ account_number: row.account_number, name: row.account_name, amount: row.debit - row.credit });
+      opex.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.debit - row.credit });
     }
   }
 
@@ -1314,7 +1315,7 @@ async function getTrialBalanceDateRange(
   companyId: string,
   startDate: string,
   endDate: string
-): Promise<{ account_number: string; account_name: string; account_type: string; debit: number; credit: number }[]> {
+): Promise<{ account_id: string; account_number: string; account_name: string; account_type: string; debit: number; credit: number }[]> {
   const { data: entries } = await supabase
     .from("journal_entries")
     .select("id")
@@ -1351,7 +1352,10 @@ async function getTrialBalanceDateRange(
     accountMap.set(line.account_id, existing);
   }
 
-  return Array.from(accountMap.values()).sort((a, b) => a.account_number.localeCompare(b.account_number));
+  return Array.from(accountMap.entries()).map(([accountId, data]) => ({
+    account_id: accountId,
+    ...data,
+  })).sort((a, b) => a.account_number.localeCompare(b.account_number));
 }
 
 /* ==================================================================
@@ -1389,12 +1393,12 @@ export async function getBalanceSheet(
   for (const row of trialBalance) {
     if (row.account_type === "asset") {
       // Assets have debit normal balance
-      assets.push({ account_number: row.account_number, name: row.account_name, amount: row.total_debit - row.total_credit });
+      assets.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.total_debit - row.total_credit });
     } else if (row.account_type === "liability") {
       // Liabilities have credit normal balance
-      liabilities.push({ account_number: row.account_number, name: row.account_name, amount: row.total_credit - row.total_debit });
+      liabilities.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.total_credit - row.total_debit });
     } else if (row.account_type === "equity") {
-      equity.push({ account_number: row.account_number, name: row.account_name, amount: row.total_credit - row.total_debit });
+      equity.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.total_credit - row.total_debit });
     } else if (row.account_type === "revenue") {
       // Revenue has credit normal balance
       totalRevenue += row.total_credit - row.total_debit;
@@ -1475,6 +1479,7 @@ export async function getBalanceSheet(
 export interface CashFlowSection {
   label: string;
   amount: number;
+  account_id?: string;
 }
 
 export interface CashFlowStatementData {
@@ -1786,5 +1791,132 @@ export async function getFinancialKPIs(
     workingCapital,
     revenueGrowth,
     burnRate,
+  };
+}
+
+/* ==================================================================
+   ACCOUNT TRANSACTIONS (drill-down from financial reports)
+   ================================================================== */
+
+export interface AccountTransactionRow {
+  id: string;
+  journal_entry_id: string;
+  entry_number: string;
+  entry_date: string;
+  description: string;
+  reference: string | null;
+  debit: number;
+  credit: number;
+  line_description: string | null;
+}
+
+export interface AccountTransactionsResult {
+  transactions: AccountTransactionRow[];
+  totalDebit: number;
+  totalCredit: number;
+  netBalance: number;
+  accountName: string;
+  accountNumber: string;
+  normalBalance: string;
+}
+
+export async function getAccountTransactions(
+  supabase: SupabaseClient,
+  companyId: string,
+  accountId: string,
+  startDate?: string,
+  endDate?: string
+): Promise<AccountTransactionsResult> {
+  // Get account info
+  const { data: accountInfo } = await supabase
+    .from("chart_of_accounts")
+    .select("name, account_number, normal_balance")
+    .eq("id", accountId)
+    .eq("company_id", companyId)
+    .single();
+
+  // Build the journal entries query with optional date filters
+  let entriesQuery = supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("status", "posted");
+
+  if (startDate) entriesQuery = entriesQuery.gte("entry_date", startDate);
+  if (endDate) entriesQuery = entriesQuery.lte("entry_date", endDate);
+
+  const { data: entries } = await entriesQuery;
+  const entryIds = (entries ?? []).map((e: { id: string }) => e.id);
+
+  if (entryIds.length === 0) {
+    return {
+      transactions: [],
+      totalDebit: 0,
+      totalCredit: 0,
+      netBalance: 0,
+      accountName: accountInfo?.name ?? "",
+      accountNumber: accountInfo?.account_number ?? "",
+      normalBalance: accountInfo?.normal_balance ?? "debit",
+    };
+  }
+
+  // Get journal entry lines for this account
+  const { data: lines } = await supabase
+    .from("journal_entry_lines")
+    .select(`
+      id, account_id, debit, credit, description,
+      journal_entries!inner(id, entry_number, entry_date, description, reference, status)
+    `)
+    .eq("account_id", accountId)
+    .in("journal_entry_id", entryIds)
+    .order("created_at", { ascending: true });
+
+  const transactions: AccountTransactionRow[] = [];
+  let totalDebit = 0;
+  let totalCredit = 0;
+
+  for (const line of lines ?? []) {
+    const je = (line as Record<string, unknown>).journal_entries as {
+      id: string;
+      entry_number: string;
+      entry_date: string;
+      description: string;
+      reference: string | null;
+    };
+
+    const debit = line.debit ?? 0;
+    const credit = line.credit ?? 0;
+    totalDebit += debit;
+    totalCredit += credit;
+
+    transactions.push({
+      id: line.id,
+      journal_entry_id: je.id,
+      entry_number: je.entry_number,
+      entry_date: je.entry_date,
+      description: je.description,
+      reference: je.reference,
+      debit,
+      credit,
+      line_description: line.description,
+    });
+  }
+
+  // Sort by entry_date
+  transactions.sort((a, b) => a.entry_date.localeCompare(b.entry_date));
+
+  const normalBalance = accountInfo?.normal_balance ?? "debit";
+  const netBalance = normalBalance === "debit"
+    ? totalDebit - totalCredit
+    : totalCredit - totalDebit;
+
+  return {
+    transactions,
+    totalDebit,
+    totalCredit,
+    netBalance,
+    accountName: accountInfo?.name ?? "",
+    accountNumber: accountInfo?.account_number ?? "",
+    normalBalance,
   };
 }

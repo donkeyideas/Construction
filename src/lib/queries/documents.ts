@@ -32,6 +32,8 @@ export interface DocumentRow {
   discipline?: string | null;
   revision_label?: string | null;
   is_current?: boolean;
+  folder_id?: string | null;
+  thumbnail_url?: string | null;
   // Joined fields
   uploader?: { full_name: string; email: string } | null;
   project?: { id: string; name: string; code: string } | null;
@@ -584,4 +586,134 @@ export async function getDocumentsOverview(
     weeklyUploads,
     recentDocuments,
   };
+}
+
+/* ------------------------------------------------------------------
+   Types for Document Folders & Asset Library
+   ------------------------------------------------------------------ */
+
+export interface DocumentFolderRow {
+  id: string;
+  company_id: string;
+  name: string;
+  parent_id: string | null;
+  color: string;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssetLibraryRow {
+  id: string;
+  company_id: string;
+  name: string;
+  description: string | null;
+  file_path: string;
+  file_type: string | null;
+  file_size: number;
+  thumbnail_url: string | null;
+  asset_type: string;
+  tags: string[];
+  usage_count: number;
+  uploaded_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/* ------------------------------------------------------------------
+   getDocumentFolders - List virtual folders for a company
+   ------------------------------------------------------------------ */
+
+export async function getDocumentFolders(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<DocumentFolderRow[]> {
+  const { data, error } = await supabase
+    .from("document_folders")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("getDocumentFolders error:", error);
+    return [];
+  }
+
+  return (data ?? []) as DocumentFolderRow[];
+}
+
+/* ------------------------------------------------------------------
+   getAssetLibrary - List asset library items for a company
+   ------------------------------------------------------------------ */
+
+export async function getAssetLibrary(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<AssetLibraryRow[]> {
+  const { data, error } = await supabase
+    .from("asset_library")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getAssetLibrary error:", error);
+    return [];
+  }
+
+  return (data ?? []) as AssetLibraryRow[];
+}
+
+/* ------------------------------------------------------------------
+   createDocumentFolder - Create a new virtual folder
+   ------------------------------------------------------------------ */
+
+export async function createDocumentFolder(
+  supabase: SupabaseClient,
+  companyId: string,
+  name: string,
+  parentId?: string | null,
+  color?: string
+): Promise<{ folder: DocumentFolderRow | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("document_folders")
+    .insert({
+      company_id: companyId,
+      name,
+      parent_id: parentId ?? null,
+      color: color ?? "#6366f1",
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("createDocumentFolder error:", error);
+    return { folder: null, error: error.message };
+  }
+
+  return { folder: data as DocumentFolderRow, error: null };
+}
+
+/* ------------------------------------------------------------------
+   moveDocumentsToFolder - Move documents to a folder (or unfiled)
+   ------------------------------------------------------------------ */
+
+export async function moveDocumentsToFolder(
+  supabase: SupabaseClient,
+  documentIds: string[],
+  folderId: string | null
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("documents")
+    .update({ folder_id: folderId })
+    .in("id", documentIds);
+
+  if (error) {
+    console.error("moveDocumentsToFolder error:", error);
+    return { error: error.message };
+  }
+
+  return { error: null };
 }

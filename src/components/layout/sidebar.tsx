@@ -12,6 +12,7 @@ import { appNavigation, appBottomNav, type NavItem } from "@/types/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CompanySwitcher from "@/components/CompanySwitcher";
 import { useTranslations } from "next-intl";
+import { getImportBadges, isImportComplete, type ImportProgress } from "@/lib/utils/import-guide";
 
 const iconMap: Record<string, React.ElementType> = {
   "layout-dashboard": LayoutDashboard,
@@ -68,7 +69,17 @@ function filterNavByRole(items: NavItem[], role: string | null): NavItem[] {
   return items.filter((item) => allowed.includes(item.label));
 }
 
-function NavItemComponent({ item, t, badge }: { item: NavItem; t: any; badge?: number }) {
+function NavItemComponent({
+  item,
+  t,
+  badge,
+  importBadges,
+}: {
+  item: NavItem;
+  t: (key: string) => string;
+  badge?: number;
+  importBadges?: Map<string, number>;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const Icon = iconMap[item.icon] || LayoutDashboard;
@@ -92,15 +103,21 @@ function NavItemComponent({ item, t, badge }: { item: NavItem; t: any; badge?: n
         </button>
         {open && (
           <div className="nav-children">
-            {item.children.map((child) => (
-              <Link
-                key={child.href}
-                href={child.href}
-                className={`nav-child ${pathname === child.href ? "active" : ""}`}
-              >
-                {t(child.label)}
-              </Link>
-            ))}
+            {item.children.map((child) => {
+              const childBadge = importBadges?.get(child.href);
+              return (
+                <Link
+                  key={child.href}
+                  href={child.href}
+                  className={`nav-child ${pathname === child.href ? "active" : ""}`}
+                >
+                  {t(child.label)}
+                  {childBadge != null && (
+                    <span className="nav-import-badge">{childBadge}</span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
@@ -131,6 +148,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [inboxUnread, setInboxUnread] = useState(0);
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
 
   useEffect(() => {
     async function fetchCompanyAndRole() {
@@ -153,13 +171,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         const { data: company } = await supabase
           .from("companies")
-          .select("name, logo_url")
+          .select("name, logo_url, import_progress")
           .eq("id", member.company_id)
           .single();
 
         if (company) {
           setCompanyName(company.name);
           setLogoUrl(company.logo_url);
+          if (company.import_progress) {
+            setImportProgress(company.import_progress as ImportProgress);
+          }
         }
 
         // Fetch unread count for inbox badge
@@ -194,6 +215,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     () => filterNavByRole(appBottomNav, userRole),
     [userRole]
   );
+
+  const importBadgeMap = useMemo(() => {
+    if (isImportComplete(importProgress)) return undefined;
+    return getImportBadges(importProgress);
+  }, [importProgress]);
 
   return (
     <>
@@ -241,6 +267,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               item={item}
               t={t}
               badge={item.label === "Inbox" ? inboxUnread : undefined}
+              importBadges={importBadgeMap}
             />
           ))}
         </nav>

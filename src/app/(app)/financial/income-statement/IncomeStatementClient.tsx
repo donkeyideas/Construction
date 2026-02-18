@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { FileText, Printer, Download } from "lucide-react";
+import { Printer } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
-import type { IncomeStatementData, IncomeStatementSection } from "@/lib/queries/financial";
+import type { IncomeStatementData, IncomeStatementSection, IncomeStatementLine } from "@/lib/queries/financial";
+import AccountTransactionsModal from "@/components/financial/AccountTransactionsModal";
 
 interface Props {
   data: IncomeStatementData;
@@ -16,10 +17,12 @@ function StatementSection({
   section,
   indent = true,
   t,
+  onAccountClick,
 }: {
   section: IncomeStatementSection;
   indent?: boolean;
   t: (key: string, values?: Record<string, string>) => string;
+  onAccountClick?: (account: IncomeStatementLine) => void;
 }) {
   return (
     <>
@@ -30,7 +33,11 @@ function StatementSection({
 
       {/* Account lines */}
       {section.accounts.map((account) => (
-        <tr key={account.account_number} className="fs-account-row">
+        <tr
+          key={account.account_number}
+          className={`fs-account-row ${account.account_id ? "fs-clickable" : ""}`}
+          onClick={() => account.account_id && onAccountClick?.(account)}
+        >
           <td className={indent ? "fs-indent" : ""}>
             <span className="fs-acct-num">{account.account_number}</span>
             {account.name}
@@ -61,6 +68,7 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
   const dateLocale = locale === "es" ? "es" : "en-US";
   const [startDate, setStartDate] = useState(data.startDate);
   const [endDate, setEndDate] = useState(data.endDate);
+  const [selectedAccount, setSelectedAccount] = useState<IncomeStatementLine | null>(null);
 
   function formatDateLabel(dateStr: string): string {
     const d = new Date(dateStr + "T00:00:00");
@@ -73,6 +81,12 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
 
   function handlePrint() {
     window.print();
+  }
+
+  function handleAccountClick(account: IncomeStatementLine) {
+    if (account.account_id) {
+      setSelectedAccount(account);
+    }
   }
 
   return (
@@ -138,13 +152,13 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
             </thead>
             <tbody>
               {/* Revenue */}
-              <StatementSection section={data.revenue} t={t} />
+              <StatementSection section={data.revenue} t={t} onAccountClick={handleAccountClick} />
 
               {/* Spacer */}
               <tr className="fs-spacer"><td colSpan={2} /></tr>
 
               {/* Cost of Construction */}
-              <StatementSection section={data.costOfConstruction} t={t} />
+              <StatementSection section={data.costOfConstruction} t={t} onAccountClick={handleAccountClick} />
 
               {/* Gross Profit */}
               <tr className="fs-spacer"><td colSpan={2} /></tr>
@@ -159,7 +173,7 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
               <tr className="fs-spacer"><td colSpan={2} /></tr>
 
               {/* Operating Expenses */}
-              <StatementSection section={data.operatingExpenses} t={t} />
+              <StatementSection section={data.operatingExpenses} t={t} onAccountClick={handleAccountClick} />
 
               {/* Net Income */}
               <tr className="fs-spacer"><td colSpan={2} /></tr>
@@ -173,6 +187,19 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
           </table>
         </div>
       </div>
+
+      {/* Account Transactions Drill-Down Modal */}
+      {selectedAccount?.account_id && (
+        <AccountTransactionsModal
+          accountId={selectedAccount.account_id}
+          accountName={selectedAccount.name}
+          accountNumber={selectedAccount.account_number}
+          startDate={data.startDate}
+          endDate={data.endDate}
+          isOpen={true}
+          onClose={() => setSelectedAccount(null)}
+        />
+      )}
     </div>
   );
 }

@@ -19,6 +19,7 @@ import {
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type { AccountTreeNode } from "@/lib/queries/financial";
+import AccountTransactionsModal from "@/components/financial/AccountTransactionsModal";
 
 interface AccountsClientProps {
   accounts: AccountTreeNode[];
@@ -73,9 +74,11 @@ function formatCurrency(amount: number): string {
 function AccountNode({
   account,
   depth,
+  onAccountClick,
 }: {
   account: AccountTreeNode;
   depth: number;
+  onAccountClick?: (account: AccountTreeNode) => void;
 }) {
   const hasChildren = account.children.length > 0;
   const indentClass =
@@ -88,7 +91,8 @@ function AccountNode({
   return (
     <>
       <div
-        className={`account-row ${hasChildren ? "account-row-parent" : ""} ${indentClass}`}
+        className={`account-row ${hasChildren ? "account-row-parent" : ""} ${indentClass} account-clickable`}
+        onClick={() => onAccountClick?.(account)}
       >
         {hasChildren ? (
           <span className="account-toggle open">
@@ -113,7 +117,7 @@ function AccountNode({
       </div>
       {hasChildren &&
         account.children.map((child) => (
-          <AccountNode key={child.id} account={child} depth={depth + 1} />
+          <AccountNode key={child.id} account={child} depth={depth + 1} onAccountClick={onAccountClick} />
         ))}
     </>
   );
@@ -129,6 +133,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
   const [loading, setLoading] = useState(false);
   const [loadingDefaults, setLoadingDefaults] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<AccountTreeNode | null>(null);
 
   // Form state
   const [accountNumber, setAccountNumber] = useState("");
@@ -358,6 +363,7 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
                     key={account.id}
                     account={account}
                     depth={0}
+                    onAccountClick={(acct) => setSelectedAccount(acct)}
                   />
                 ))}
               </div>
@@ -433,6 +439,17 @@ export default function AccountsClient({ accounts }: AccountsClientProps) {
             return { success: data.success, errors: data.errors };
           }}
           onClose={() => setShowImport(false)}
+        />
+      )}
+
+      {/* Account Transactions Drill-Down Modal */}
+      {selectedAccount && (
+        <AccountTransactionsModal
+          accountId={selectedAccount.id}
+          accountName={selectedAccount.name}
+          accountNumber={selectedAccount.account_number}
+          isOpen={true}
+          onClose={() => setSelectedAccount(null)}
         />
       )}
 

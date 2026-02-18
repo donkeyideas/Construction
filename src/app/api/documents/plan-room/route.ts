@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
     const projectId = formData.get("project_id") as string | null;
     const discipline = formData.get("discipline") as string | null;
     const drawingSetId = formData.get("drawing_set_id") as string | null;
+    const folderId = formData.get("folder_id") as string | null;
     const revisionLabel = formData.get("revision_label") as string | null;
     const tagsRaw = formData.get("tags") as string | null;
     const tags = tagsRaw ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean) : [];
@@ -122,6 +123,7 @@ export async function POST(request: NextRequest) {
         version: 1,
         discipline: discipline || null,
         drawing_set_id: drawingSetId || null,
+        folder_id: folderId || null,
         revision_label: revisionLabel || null,
         is_current: true,
       })

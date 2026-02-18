@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileText, ArrowLeft, Printer, Download } from "lucide-react";
+import { FileText, ArrowLeft, Printer, Download, BookOpen, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById } from "@/lib/queries/financial";
 import { formatCurrency } from "@/lib/utils/format";
+import { findLinkedJournalEntries } from "@/lib/utils/je-linkage";
 import type { LineItem, PaymentRow } from "@/lib/queries/financial";
 import RecordPaymentButton from "./RecordPaymentButton";
 
@@ -68,6 +69,17 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
   }
 
   const payments: PaymentRow[] = Array.isArray(invoice.payments) ? invoice.payments : [];
+
+  // Fetch linked journal entries for this invoice
+  const linkedJEs = await findLinkedJournalEntries(supabase, userCompany.companyId, "invoice:", id);
+  // Also fetch payment JEs
+  const paymentJEsMap: Record<string, { id: string; entry_number: string }[]> = {};
+  for (const p of payments) {
+    const pJEs = await findLinkedJournalEntries(supabase, userCompany.companyId, "payment:", p.id);
+    if (pJEs.length > 0) {
+      paymentJEsMap[p.id] = pJEs.map((e) => ({ id: e.id, entry_number: e.entry_number }));
+    }
+  }
 
   // Safe currency formatting
   const safeCurrency = (val: unknown) => {
@@ -193,6 +205,57 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* Journal Entries */}
+      <div className="fin-chart-card" style={{ padding: 0, marginBottom: 24 }}>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+          <BookOpen size={16} style={{ color: "var(--color-blue)" }} />
+          <div className="card-title" style={{ marginBottom: 0 }}>Journal Entries</div>
+        </div>
+        {linkedJEs.length > 0 ? (
+          <div style={{ overflowX: "auto" }}>
+            <table className="invoice-table">
+              <thead>
+                <tr>
+                  <th>Entry #</th>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: "right" }}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {linkedJEs.map((je) => (
+                  <tr key={je.id}>
+                    <td>
+                      <Link href={`/financial/general-ledger?entry=${je.entry_number}`} className="je-link">
+                        {je.entry_number}
+                      </Link>
+                    </td>
+                    <td>{safeDate(je.entry_date)}</td>
+                    <td style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{je.description}</td>
+                    <td>
+                      <span className={`inv-status inv-status-${je.status}`}>{je.status}</span>
+                    </td>
+                    <td style={{ textAlign: "right", fontWeight: 600 }}>{safeCurrency(je.total_debit)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ padding: "24px 20px", textAlign: "center", color: "var(--muted)", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            {invoice.status !== "draft" && invoice.status !== "voided" ? (
+              <>
+                <AlertCircle size={14} style={{ color: "var(--color-amber)" }} />
+                No journal entry found for this invoice. This may indicate a posting issue.
+              </>
+            ) : (
+              "Journal entries are created when an invoice is posted."
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Line Items */}
       {lineItems.length > 0 && (
         <div className="fin-chart-card" style={{ padding: 0, marginBottom: 24 }}>
@@ -254,6 +317,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                   <th>Method</th>
                   <th>Reference</th>
                   <th style={{ textAlign: "right" }}>Amount</th>
+                  <th>JE</th>
                 </tr>
               </thead>
               <tbody>
@@ -264,6 +328,17 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                     <td style={{ color: "var(--muted)" }}>{p.reference_number ?? "--"}</td>
                     <td style={{ textAlign: "right", fontWeight: 600, color: "var(--color-green)" }}>
                       {safeCurrency(p.amount)}
+                    </td>
+                    <td>
+                      {paymentJEsMap[p.id]?.length ? (
+                        paymentJEsMap[p.id].map((je) => (
+                          <Link key={je.id} href={`/financial/general-ledger?entry=${je.entry_number}`} className="je-link">
+                            {je.entry_number}
+                          </Link>
+                        ))
+                      ) : (
+                        <span style={{ color: "var(--muted)" }}>--</span>
+                      )}
                     </td>
                   </tr>
                 ))}

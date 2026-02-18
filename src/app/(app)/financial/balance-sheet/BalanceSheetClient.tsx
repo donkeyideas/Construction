@@ -5,14 +5,23 @@ import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Printer, AlertTriangle, CheckCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
-import type { BalanceSheetData, BalanceSheetSection } from "@/lib/queries/financial";
+import type { BalanceSheetData, BalanceSheetSection, IncomeStatementLine } from "@/lib/queries/financial";
+import AccountTransactionsModal from "@/components/financial/AccountTransactionsModal";
 
 interface Props {
   data: BalanceSheetData;
   companyName: string;
 }
 
-function StatementSection({ section, t }: { section: BalanceSheetSection; t: (key: string, values?: Record<string, string>) => string }) {
+function StatementSection({
+  section,
+  t,
+  onAccountClick,
+}: {
+  section: BalanceSheetSection;
+  t: (key: string, values?: Record<string, string>) => string;
+  onAccountClick?: (account: IncomeStatementLine) => void;
+}) {
   return (
     <>
       {/* Section header */}
@@ -22,7 +31,11 @@ function StatementSection({ section, t }: { section: BalanceSheetSection; t: (ke
 
       {/* Account lines */}
       {section.accounts.map((account) => (
-        <tr key={account.account_number} className="fs-account-row">
+        <tr
+          key={account.account_number}
+          className={`fs-account-row ${account.account_id ? "fs-clickable" : ""}`}
+          onClick={() => account.account_id && onAccountClick?.(account)}
+        >
           <td className="fs-indent">
             <span className="fs-acct-num">{account.account_number}</span>
             {account.name}
@@ -52,6 +65,7 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
   const [asOfDate, setAsOfDate] = useState(data.asOfDate);
+  const [selectedAccount, setSelectedAccount] = useState<IncomeStatementLine | null>(null);
 
   function formatDateLabel(dateStr: string): string {
     const d = new Date(dateStr + "T00:00:00");
@@ -64,6 +78,12 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
 
   function handlePrint() {
     window.print();
+  }
+
+  function handleAccountClick(account: IncomeStatementLine) {
+    if (account.account_id) {
+      setSelectedAccount(account);
+    }
   }
 
   return (
@@ -128,17 +148,17 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
             </thead>
             <tbody>
               {/* Assets */}
-              <StatementSection section={data.assets} t={t} />
+              <StatementSection section={data.assets} t={t} onAccountClick={handleAccountClick} />
 
               <tr className="fs-spacer"><td colSpan={2} /></tr>
 
               {/* Liabilities */}
-              <StatementSection section={data.liabilities} t={t} />
+              <StatementSection section={data.liabilities} t={t} onAccountClick={handleAccountClick} />
 
               <tr className="fs-spacer"><td colSpan={2} /></tr>
 
               {/* Equity */}
-              <StatementSection section={data.equity} t={t} />
+              <StatementSection section={data.equity} t={t} onAccountClick={handleAccountClick} />
 
               {/* Total Liabilities + Equity */}
               <tr className="fs-spacer"><td colSpan={2} /></tr>
@@ -170,6 +190,18 @@ export default function BalanceSheetClient({ data, companyName }: Props) {
           </table>
         </div>
       </div>
+
+      {/* Account Transactions Drill-Down Modal */}
+      {selectedAccount?.account_id && (
+        <AccountTransactionsModal
+          accountId={selectedAccount.account_id}
+          accountName={selectedAccount.name}
+          accountNumber={selectedAccount.account_number}
+          endDate={data.asOfDate}
+          isOpen={true}
+          onClose={() => setSelectedAccount(null)}
+        />
+      )}
     </div>
   );
 }

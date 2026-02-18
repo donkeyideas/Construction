@@ -2,11 +2,12 @@
 
 import { useState, useRef } from "react";
 import { Upload, X, FileText } from "lucide-react";
-import type { DrawingSetRow } from "@/lib/queries/documents";
+import type { DrawingSetRow, DocumentFolderRow } from "@/lib/queries/documents";
 
 interface PlanRoomUploadModalProps {
   projectList: { id: string; name: string }[];
   drawingSets: DrawingSetRow[];
+  folders: DocumentFolderRow[];
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -33,6 +34,7 @@ function formatBytes(bytes: number): string {
 export default function PlanRoomUploadModal({
   projectList,
   drawingSets,
+  folders,
   onClose,
   onSuccess,
 }: PlanRoomUploadModalProps) {
@@ -43,6 +45,7 @@ export default function PlanRoomUploadModal({
   const [category, setCategory] = useState("plan");
   const [discipline, setDiscipline] = useState("");
   const [drawingSetId, setDrawingSetId] = useState("");
+  const [folderId, setFolderId] = useState("");
   const [revisionLabel, setRevisionLabel] = useState("");
   const [tags, setTags] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -84,6 +87,7 @@ export default function PlanRoomUploadModal({
         if (projectId) formData.append("project_id", projectId);
         if (discipline) formData.append("discipline", discipline);
         if (drawingSetId) formData.append("drawing_set_id", drawingSetId);
+        if (folderId) formData.append("folder_id", folderId);
         if (revisionLabel) formData.append("revision_label", revisionLabel);
         if (tags) formData.append("tags", tags);
 
@@ -236,6 +240,16 @@ export default function PlanRoomUploadModal({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="plan-room-form-group">
+            <label>Folder</label>
+            <select value={folderId} onChange={(e) => setFolderId(e.target.value)}>
+              <option value="">No Folder</option>
+              {folders.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="plan-room-form-row">

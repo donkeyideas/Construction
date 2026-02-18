@@ -1,6 +1,7 @@
 import { Receipt } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
 import APClient from "./APClient";
 
 export const metadata = {
@@ -94,6 +95,14 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     projects: inv.projects as { name: string } | null,
   }));
 
+  // Batch-fetch linked journal entries
+  const invoiceIds = invoices.map((inv) => inv.id);
+  const jeMap = await findLinkedJournalEntriesBatch(supabase, userCompany.companyId, "invoice:", invoiceIds);
+  const linkedJEs: Record<string, { id: string; entry_number: string }[]> = {};
+  for (const [entityId, entries] of jeMap) {
+    linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
+  }
+
   return (
     <APClient
       invoices={invoices}
@@ -102,6 +111,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       pendingApprovalCount={pendingApprovalCount}
       paidThisMonth={paidThisMonth}
       activeStatus={activeStatus}
+      linkedJEs={linkedJEs}
     />
   );
 }

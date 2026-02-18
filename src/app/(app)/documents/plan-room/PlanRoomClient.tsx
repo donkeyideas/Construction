@@ -11,8 +11,16 @@ import {
   AlertTriangle,
   Download,
   Trash2,
+  LayoutGrid,
+  List,
+  PanelLeftClose,
+  PanelLeft,
+  FolderInput,
+  Package,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import type { DocumentRow, DrawingSetRow } from "@/lib/queries/documents";
+import type { DocumentRow, DrawingSetRow, DocumentFolderRow, AssetLibraryRow } from "@/lib/queries/documents";
 import type { AnnotationTool, MarkupShape } from "./types";
 import { DISCIPLINES } from "./types";
 import PlanRoomUploadModal from "./PlanRoomUploadModal";
@@ -26,6 +34,9 @@ import SheetIndex from "./components/SheetIndex";
 import MarkupsList from "./components/MarkupsList";
 import RevisionsPanel from "./components/RevisionsPanel";
 import BottomBar from "./components/BottomBar";
+import ThumbnailGrid from "./components/ThumbnailGrid";
+import FolderTree from "./components/FolderTree";
+import AssetLibrary from "./components/AssetLibrary";
 
 // Hooks
 import { usePdfViewer } from "./hooks/usePdfViewer";
@@ -44,7 +55,11 @@ interface PlanRoomClientProps {
   companyId: string;
   userId: string;
   userName: string;
+  folders: DocumentFolderRow[];
+  assets: AssetLibraryRow[];
 }
+
+type ViewMode = "list" | "grid";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -69,6 +84,8 @@ export default function PlanRoomClient({
   companyId,
   userId,
   userName,
+  folders: initialFolders,
+  assets: initialAssets,
 }: PlanRoomClientProps) {
   const router = useRouter();
   const t = useTranslations("app");
@@ -81,6 +98,22 @@ export default function PlanRoomClient({
   );
   const [projectFilter, setProjectFilter] = useState("");
   const [search, setSearch] = useState("");
+
+  // ------- View mode & sidebar -------
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [showAssetLibrary, setShowAssetLibrary] = useState(false);
+
+  // ------- Multi-select -------
+  const [multiSelectedIds, setMultiSelectedIds] = useState<Set<string>>(new Set());
+  const [showMoveToFolderModal, setShowMoveToFolderModal] = useState(false);
+  const [moveTargetFolderId, setMoveTargetFolderId] = useState<string | null>(null);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
+  // ------- Folders & Assets -------
+  const [folders, setFolders] = useState<DocumentFolderRow[]>(initialFolders);
+  const [assets, setAssets] = useState<AssetLibraryRow[]>(initialAssets);
 
   // ------- Modal state -------
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -153,14 +186,20 @@ export default function PlanRoomClient({
     )
   );
 
-  // ------- Filtered documents -------
+  // ------- Filtered documents (project, search, folder) -------
   const filtered = useMemo(() => {
     return documents.filter((doc) => {
       if (projectFilter && doc.project_id !== projectFilter) return false;
       if (search && !doc.name.toLowerCase().includes(search.toLowerCase())) return false;
+      // Folder filtering
+      if (selectedFolderId === "unfiled") {
+        if (doc.folder_id) return false;
+      } else if (selectedFolderId) {
+        if (doc.folder_id !== selectedFolderId) return false;
+      }
       return true;
     });
-  }, [documents, projectFilter, search]);
+  }, [documents, projectFilter, search, selectedFolderId]);
 
   const selectedDoc = documents.find((d) => d.id === selectedId) ?? null;
 
@@ -334,6 +373,129 @@ export default function PlanRoomClient({
     [annotationsHook.addAnnotation] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
+  // ------- Multi-select handlers -------
+  const handleToggleMultiSelect = useCallback((docId: string) => {
+    setMultiSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(docId)) {
+        next.delete(docId);
+      } else {
+        next.add(docId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleClearMultiSelect = useCallback(() => {
+    setMultiSelectedIds(new Set());
+  }, []);
+
+  // ------- Folder handlers -------
+  const handleCreateFolder = useCallback(
+    async (name: string, parentId?: string | null, color?: string) => {
+      try {
+        const res = await fetch("/api/documents/folders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, parent_id: parentId ?? null, color: color ?? "#6366f1" }),
+        });
+        if (res.ok) {
+          const newFolder = await res.json();
+          setFolders((prev) => [...prev, newFolder]);
+        }
+      } catch (err) {
+        console.error("Create folder error:", err);
+      }
+    },
+    []
+  );
+
+  const handleMoveToFolder = useCallback(async () => {
+    if (multiSelectedIds.size === 0) return;
+    try {
+      const res = await fetch("/api/documents/plan-room/bulk", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          documentIds: Array.from(multiSelectedIds),
+          folderId: moveTargetFolderId,
+        }),
+      });
+      if (res.ok) {
+        setMultiSelectedIds(new Set());
+        setShowMoveToFolderModal(false);
+        setMoveTargetFolderId(null);
+        router.refresh();
+      }
+    } catch (err) {
+      console.error("Move to folder error:", err);
+    }
+  }, [multiSelectedIds, moveTargetFolderId, router]);
+
+  const handleBulkDelete = useCallback(async () => {
+    if (multiSelectedIds.size === 0) return;
+    try {
+      const res = await fetch("/api/documents/plan-room/bulk", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          documentIds: Array.from(multiSelectedIds),
+        }),
+      });
+      if (res.ok) {
+        setMultiSelectedIds(new Set());
+        setBulkDeleteConfirm(false);
+        setSelectedId(null);
+        router.refresh();
+      }
+    } catch (err) {
+      console.error("Bulk delete error:", err);
+    }
+  }, [multiSelectedIds, router]);
+
+  const handleDownloadZip = useCallback(async () => {
+    if (multiSelectedIds.size === 0) return;
+    try {
+      const res = await fetch("/api/documents/plan-room/download-zip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          documentIds: Array.from(multiSelectedIds),
+        }),
+      });
+      const data = await res.json();
+      if (res.status === 501) {
+        alert(data.message || "ZIP download requires storage setup");
+      }
+    } catch (err) {
+      console.error("Download ZIP error:", err);
+    }
+  }, [multiSelectedIds]);
+
+  // ------- Asset library handlers -------
+  const handleUploadAsset = useCallback(
+    async (file: File, name: string, assetType: string) => {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("name", name);
+        formData.append("asset_type", assetType);
+
+        const res = await fetch("/api/documents/asset-library", {
+          method: "POST",
+          body: formData,
+        });
+        if (res.ok) {
+          const newAsset = await res.json();
+          setAssets((prev) => [newAsset, ...prev]);
+        }
+      } catch (err) {
+        console.error("Upload asset error:", err);
+      }
+    },
+    []
+  );
+
   // ------- Keyboard shortcuts -------
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -351,11 +513,14 @@ export default function PlanRoomClient({
       if (e.key === "Escape") {
         annotationsHook.setSelectedId(null);
         setActiveTool("select");
+        if (multiSelectedIds.size > 0) {
+          setMultiSelectedIds(new Set());
+        }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [annotationsHook]);
+  }, [annotationsHook, multiSelectedIds]);
 
   // ------- Empty state -------
   if (documents.length === 0) {
@@ -387,6 +552,7 @@ export default function PlanRoomClient({
           <PlanRoomUploadModal
             projectList={projectList}
             drawingSets={drawingSets}
+            folders={folders}
             onClose={() => setShowUploadModal(false)}
             onSuccess={() => {
               setShowUploadModal(false);
@@ -403,6 +569,8 @@ export default function PlanRoomClient({
     (a) => a.page_number === pdfViewer.currentPage
   );
 
+  const hasMultiSelected = multiSelectedIds.size > 0;
+
   // ------- Main render -------
   return (
     <div className="plan-room-shell">
@@ -416,120 +584,248 @@ export default function PlanRoomClient({
         presenceUsers={presenceUsers}
       />
 
-      {/* Toolbar */}
-      <PlanRoomToolbar
-        canPrev={currentIndex > 0}
-        canNext={currentIndex < sortedFiltered.length - 1}
-        onPrev={handlePrevSheet}
-        onNext={handleNextSheet}
-        zoomLevel={pdfViewer.zoomLevel}
-        onZoomPreset={(preset) => pdfViewer.setZoomPreset(preset)}
-        activeTool={activeTool}
-        onToolChange={setActiveTool}
-        activeShape={activeShape}
-        onShapeChange={setActiveShape}
-        activeColor={activeColor}
-        onColorChange={setActiveColor}
-        canUndo={annotationsHook.canUndo}
-        canRedo={annotationsHook.canRedo}
-        onUndo={annotationsHook.undo}
-        onRedo={annotationsHook.redo}
-      />
+      {/* View Toggle & Sidebar Toggle Bar */}
+      <div className="plan-room-view-toggle-bar">
+        <div className="plan-room-view-toggle-left">
+          <button
+            className="plan-room-tool-btn"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+          >
+            {sidebarOpen ? <PanelLeftClose size={14} /> : <PanelLeft size={14} />}
+          </button>
+          <div className="plan-room-view-toggle">
+            <button
+              className={`plan-room-view-toggle-btn ${viewMode === "list" ? "active" : ""}`}
+              onClick={() => setViewMode("list")}
+              title="List View"
+            >
+              <List size={14} />
+            </button>
+            <button
+              className={`plan-room-view-toggle-btn ${viewMode === "grid" ? "active" : ""}`}
+              onClick={() => setViewMode("grid")}
+              title="Grid View"
+            >
+              <LayoutGrid size={14} />
+            </button>
+          </div>
+          <span className="plan-room-view-toggle-count">
+            {filtered.length} document{filtered.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <div className="plan-room-view-toggle-right">
+          <button
+            className={`plan-room-tool-btn ${showAssetLibrary ? "active" : ""}`}
+            onClick={() => setShowAssetLibrary(!showAssetLibrary)}
+            title="Asset Library"
+          >
+            <Package size={14} />
+            <span>Assets</span>
+          </button>
+        </div>
+      </div>
 
-      {/* Main Content */}
-      <div className="plan-room-content">
-        {/* Blueprint Viewer */}
-        <BlueprintViewer
-          document={selectedDoc}
-          fileUrl={previewUrl}
-          isLoading={previewLoading}
-          error={previewError}
-          currentPage={pdfViewer.currentPage}
+      {/* Toolbar - only show in list view when a doc is selected */}
+      {viewMode === "list" && (
+        <PlanRoomToolbar
+          canPrev={currentIndex > 0}
+          canNext={currentIndex < sortedFiltered.length - 1}
+          onPrev={handlePrevSheet}
+          onNext={handleNextSheet}
           zoomLevel={pdfViewer.zoomLevel}
-          onLoadSuccess={pdfViewer.setTotalPages}
-          onPageDimensions={pdfViewer.setPageDimensions}
-          pageDimensions={pdfViewer.pageDimensions}
-          onZoom={pdfViewer.setZoom}
+          onZoomPreset={(preset) => pdfViewer.setZoomPreset(preset)}
           activeTool={activeTool}
+          onToolChange={setActiveTool}
           activeShape={activeShape}
+          onShapeChange={setActiveShape}
           activeColor={activeColor}
-          annotations={annotationsHook.annotations}
-          selectedAnnotationId={annotationsHook.selectedId}
-          onAnnotationCreated={handleAnnotationCreated}
-          onAnnotationSelected={annotationsHook.setSelectedId}
-          onAnnotationUpdated={annotationsHook.updateAnnotation}
+          onColorChange={setActiveColor}
+          canUndo={annotationsHook.canUndo}
+          canRedo={annotationsHook.canRedo}
+          onUndo={annotationsHook.undo}
+          onRedo={annotationsHook.redo}
         />
+      )}
 
-        {/* Right Panel */}
-        <RightPanel>
-          <PanelSection title={t("sheetIndex")}>
-            <div className="plan-room-search-inline">
-              <input
-                type="text"
-                placeholder={t("searchSheets")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="plan-room-search-input"
+      {/* Main Layout */}
+      <div className="plan-room-layout">
+        {/* Left Sidebar: Folder Tree */}
+        {sidebarOpen && (
+          <div className="plan-room-sidebar-panel">
+            <FolderTree
+              folders={folders}
+              selectedFolderId={selectedFolderId}
+              onSelectFolder={setSelectedFolderId}
+              onCreateFolder={handleCreateFolder}
+            />
+            {showAssetLibrary && (
+              <AssetLibrary
+                assets={assets}
+                onUploadAsset={handleUploadAsset}
               />
-            </div>
-            <SheetIndex
-              documents={filtered}
-              selectedDocId={selectedId}
-              onSelectDoc={handleSelectDoc}
-            />
-          </PanelSection>
-
-          <PanelSection title={t("markups")} badge={pageAnnotations.length}>
-            <MarkupsList
-              annotations={annotationsHook.annotations}
-              pageNumber={pdfViewer.currentPage}
-              selectedAnnotationId={annotationsHook.selectedId}
-              onSelectAnnotation={annotationsHook.setSelectedId}
-              onDeleteAnnotation={annotationsHook.deleteAnnotation}
-            />
-          </PanelSection>
-
-          <PanelSection title={t("revisions")}>
-            <RevisionsPanel
-              versions={versionHistory}
-              currentDocId={selectedId}
-              onSelectVersion={(doc) => setSelectedId(doc.id)}
-            />
-            {selectedDoc && (
-              <div className="plan-room-rev-actions">
-                <button
-                  className="plan-room-tool-btn"
-                  onClick={() => setShowRevisionModal(true)}
-                >
-                  <Upload size={12} />
-                  {t("uploadRevision")}
-                </button>
-                <button
-                  className="plan-room-tool-btn"
-                  onClick={handleDownload}
-                >
-                  <Download size={12} />
-                  {t("download")}
-                </button>
-                <button
-                  className="plan-room-tool-btn plan-room-tool-btn-danger"
-                  onClick={() => setShowDeleteConfirm(true)}
-                >
-                  <Trash2 size={12} />
-                  {t("delete")}
-                </button>
-              </div>
             )}
-          </PanelSection>
-        </RightPanel>
+          </div>
+        )}
+
+        {/* Main Content */}
+        {viewMode === "grid" ? (
+          <div className="plan-room-grid-content">
+            <ThumbnailGrid
+              documents={sortedFiltered}
+              selectedIds={multiSelectedIds}
+              onSelect={(docId) => {
+                const doc = documents.find((d) => d.id === docId);
+                if (doc) {
+                  handleSelectDoc(doc);
+                  setViewMode("list");
+                }
+              }}
+              onToggleSelect={handleToggleMultiSelect}
+              onOpenDocument={(doc) => {
+                handleSelectDoc(doc);
+                setViewMode("list");
+              }}
+            />
+          </div>
+        ) : (
+          <div className="plan-room-content">
+            {/* Blueprint Viewer */}
+            <BlueprintViewer
+              document={selectedDoc}
+              fileUrl={previewUrl}
+              isLoading={previewLoading}
+              error={previewError}
+              currentPage={pdfViewer.currentPage}
+              zoomLevel={pdfViewer.zoomLevel}
+              onLoadSuccess={pdfViewer.setTotalPages}
+              onPageDimensions={pdfViewer.setPageDimensions}
+              pageDimensions={pdfViewer.pageDimensions}
+              onZoom={pdfViewer.setZoom}
+              activeTool={activeTool}
+              activeShape={activeShape}
+              activeColor={activeColor}
+              annotations={annotationsHook.annotations}
+              selectedAnnotationId={annotationsHook.selectedId}
+              onAnnotationCreated={handleAnnotationCreated}
+              onAnnotationSelected={annotationsHook.setSelectedId}
+              onAnnotationUpdated={annotationsHook.updateAnnotation}
+            />
+
+            {/* Right Panel */}
+            <RightPanel>
+              <PanelSection title={t("sheetIndex")}>
+                <div className="plan-room-search-inline">
+                  <input
+                    type="text"
+                    placeholder={t("searchSheets")}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="plan-room-search-input"
+                  />
+                </div>
+                <SheetIndex
+                  documents={filtered}
+                  selectedDocId={selectedId}
+                  onSelectDoc={handleSelectDoc}
+                />
+              </PanelSection>
+
+              <PanelSection title={t("markups")} badge={pageAnnotations.length}>
+                <MarkupsList
+                  annotations={annotationsHook.annotations}
+                  pageNumber={pdfViewer.currentPage}
+                  selectedAnnotationId={annotationsHook.selectedId}
+                  onSelectAnnotation={annotationsHook.setSelectedId}
+                  onDeleteAnnotation={annotationsHook.deleteAnnotation}
+                />
+              </PanelSection>
+
+              <PanelSection title={t("revisions")}>
+                <RevisionsPanel
+                  versions={versionHistory}
+                  currentDocId={selectedId}
+                  onSelectVersion={(doc) => setSelectedId(doc.id)}
+                />
+                {selectedDoc && (
+                  <div className="plan-room-rev-actions">
+                    <button
+                      className="plan-room-tool-btn"
+                      onClick={() => setShowRevisionModal(true)}
+                    >
+                      <Upload size={12} />
+                      {t("uploadRevision")}
+                    </button>
+                    <button
+                      className="plan-room-tool-btn"
+                      onClick={handleDownload}
+                    >
+                      <Download size={12} />
+                      {t("download")}
+                    </button>
+                    <button
+                      className="plan-room-tool-btn plan-room-tool-btn-danger"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      <Trash2 size={12} />
+                      {t("delete")}
+                    </button>
+                  </div>
+                )}
+              </PanelSection>
+            </RightPanel>
+          </div>
+        )}
       </div>
 
       {/* Bottom Bar */}
-      <BottomBar
-        selectedDoc={selectedDoc}
-        currentPage={pdfViewer.currentPage}
-        totalPages={pdfViewer.totalPages}
-      />
+      {viewMode === "list" && (
+        <BottomBar
+          selectedDoc={selectedDoc}
+          currentPage={pdfViewer.currentPage}
+          totalPages={pdfViewer.totalPages}
+        />
+      )}
+
+      {/* Bulk Actions Bar */}
+      {hasMultiSelected && (
+        <div className="bulk-actions-bar">
+          <div className="bulk-actions-bar-left">
+            <span className="bulk-actions-count">
+              {multiSelectedIds.size} selected
+            </span>
+            <button
+              className="bulk-actions-clear"
+              onClick={handleClearMultiSelect}
+            >
+              Clear
+            </button>
+          </div>
+          <div className="bulk-actions-bar-right">
+            <button
+              className="bulk-actions-btn"
+              onClick={() => setShowMoveToFolderModal(true)}
+            >
+              <FolderInput size={14} />
+              Move to Folder
+            </button>
+            <button
+              className="bulk-actions-btn"
+              onClick={handleDownloadZip}
+            >
+              <Download size={14} />
+              Download ZIP
+            </button>
+            <button
+              className="bulk-actions-btn bulk-actions-btn-danger"
+              onClick={() => setBulkDeleteConfirm(true)}
+            >
+              <Trash2 size={14} />
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ===== Modals ===== */}
 
@@ -538,6 +834,7 @@ export default function PlanRoomClient({
         <PlanRoomUploadModal
           projectList={projectList}
           drawingSets={drawingSets}
+          folders={folders}
           onClose={() => setShowUploadModal(false)}
           onSuccess={() => {
             setShowUploadModal(false);
@@ -708,6 +1005,75 @@ export default function PlanRoomClient({
                 disabled={deleteLoading}
               >
                 {deleteLoading ? t("deleting") : t("delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Move to Folder Modal */}
+      {showMoveToFolderModal && (
+        <div className="plan-room-modal-overlay" onClick={() => setShowMoveToFolderModal(false)}>
+          <div className="plan-room-modal sm" onClick={(e) => e.stopPropagation()}>
+            <div className="plan-room-modal-header">
+              <h3>Move to Folder</h3>
+              <button className="plan-room-modal-close" onClick={() => setShowMoveToFolderModal(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="plan-room-modal-body">
+              <p className="plan-room-modal-hint">
+                Move {multiSelectedIds.size} document{multiSelectedIds.size !== 1 ? "s" : ""} to:
+              </p>
+              <div className="plan-room-form-group">
+                <label>Folder</label>
+                <select
+                  value={moveTargetFolderId ?? ""}
+                  onChange={(e) => setMoveTargetFolderId(e.target.value || null)}
+                >
+                  <option value="">Unfiled (no folder)</option>
+                  {folders.map((f) => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="plan-room-modal-footer">
+              <button className="plan-room-btn-secondary" onClick={() => setShowMoveToFolderModal(false)}>
+                Cancel
+              </button>
+              <button className="plan-room-btn-primary" onClick={handleMoveToFolder}>
+                Move
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation */}
+      {bulkDeleteConfirm && (
+        <div className="plan-room-modal-overlay" onClick={() => setBulkDeleteConfirm(false)}>
+          <div className="plan-room-modal sm" onClick={(e) => e.stopPropagation()}>
+            <div className="plan-room-modal-header">
+              <h3>Delete Documents</h3>
+              <button className="plan-room-modal-close" onClick={() => setBulkDeleteConfirm(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="plan-room-modal-body">
+              <div className="plan-room-delete-warning">
+                <AlertTriangle size={20} />
+                <p>
+                  Are you sure you want to delete {multiSelectedIds.size} document{multiSelectedIds.size !== 1 ? "s" : ""}? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="plan-room-modal-footer">
+              <button className="plan-room-btn-secondary" onClick={() => setBulkDeleteConfirm(false)}>
+                Cancel
+              </button>
+              <button className="plan-room-btn-danger" onClick={handleBulkDelete}>
+                Delete {multiSelectedIds.size} Document{multiSelectedIds.size !== 1 ? "s" : ""}
               </button>
             </div>
           </div>

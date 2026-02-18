@@ -1,6 +1,7 @@
 import { HandCoins } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
 import ARClient from "./ARClient";
 
 export const metadata = {
@@ -104,6 +105,14 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
     projects: inv.projects as { name: string } | null,
   }));
 
+  // Batch-fetch linked journal entries
+  const invoiceIds = invoices.map((inv) => inv.id);
+  const jeMap = await findLinkedJournalEntriesBatch(supabase, userCompany.companyId, "invoice:", invoiceIds);
+  const linkedJEs: Record<string, { id: string; entry_number: string }[]> = {};
+  for (const [entityId, entries] of jeMap) {
+    linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
+  }
+
   return (
     <ARClient
       invoices={invoices}
@@ -112,6 +121,7 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
       billedThisMonth={billedThisMonth}
       collectedThisMonth={collectedThisMonth}
       activeStatus={activeStatus}
+      linkedJEs={linkedJEs}
     />
   );
 }

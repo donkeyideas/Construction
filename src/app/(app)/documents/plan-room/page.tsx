@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getPlanRoomDocuments, getDrawingSets } from "@/lib/queries/documents";
+import { getPlanRoomDocuments, getDrawingSets, getDocumentFolders, getAssetLibrary } from "@/lib/queries/documents";
 import { Map } from "lucide-react";
 import PlanRoomClient from "./PlanRoomClient";
 
@@ -24,8 +24,8 @@ export default async function PlanRoomPage() {
 
   const { companyId, userId } = userCompany;
 
-  // Parallel fetch: documents, drawing sets, projects, user profile
-  const [documents, drawingSets, projectsResult, profileResult] = await Promise.all([
+  // Parallel fetch: documents, drawing sets, projects, user profile, folders, assets
+  const [documents, drawingSets, projectsResult, profileResult, folders, assets] = await Promise.all([
     getPlanRoomDocuments(supabase, companyId),
     getDrawingSets(supabase, companyId),
     supabase
@@ -38,6 +38,8 @@ export default async function PlanRoomPage() {
       .select("full_name")
       .eq("id", userId)
       .single(),
+    getDocumentFolders(supabase, companyId),
+    getAssetLibrary(supabase, companyId),
   ]);
 
   const projectList: { id: string; name: string }[] = projectsResult.data ?? [];
@@ -51,6 +53,8 @@ export default async function PlanRoomPage() {
       companyId={companyId}
       userId={userId}
       userName={userName}
+      folders={folders}
+      assets={assets}
     />
   );
 }

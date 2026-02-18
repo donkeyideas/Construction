@@ -3,6 +3,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
 import ChangeOrdersClient from "./ChangeOrdersClient";
 
 export const metadata = {
@@ -87,6 +88,14 @@ export default async function ChangeOrdersPage({ searchParams }: PageProps) {
     }
   }
 
+  // Batch-fetch linked journal entries for approved change orders
+  const coIds = rows.map((co) => co.id);
+  const jeMap = await findLinkedJournalEntriesBatch(supabase, userCompany.companyId, "change_order:", coIds);
+  const linkedJEs: Record<string, { id: string; entry_number: string }[]> = {};
+  for (const [entityId, entries] of jeMap) {
+    linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
+  }
+
   return (
     <ChangeOrdersClient
       rows={rows}
@@ -94,6 +103,7 @@ export default async function ChangeOrdersPage({ searchParams }: PageProps) {
       userMap={userMap}
       projects={projects}
       activeStatus={activeStatus}
+      linkedJEs={linkedJEs}
     />
   );
 }

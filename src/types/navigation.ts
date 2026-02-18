@@ -94,6 +94,7 @@ export const appNavigation: NavItem[] = [
       { label: "Budget vs Actual", href: "/financial/budget" },
       { label: "Job Costing", href: "/financial/job-costing" },
       { label: "KPI Dashboard", href: "/financial/kpi" },
+      { label: "Financial Audit", href: "/financial/audit" },
     ],
   },
   {
@@ -112,6 +113,7 @@ export const appNavigation: NavItem[] = [
       { label: "Overview", href: "/people/overview" },
       { label: "Directory", href: "/people" },
       { label: "Time & Attendance", href: "/people/time" },
+      { label: "Payroll", href: "/people/payroll" },
       { label: "Certifications", href: "/people/certifications" },
       { label: "Vendors", href: "/people/vendors" },
     ],

@@ -19,11 +19,13 @@ import {
   Zap,
   Rocket,
   Ticket,
+  Database,
 } from "lucide-react";
+import DataImportTab from "./DataImportTab";
 
 import type { CompanyDetails, AuditLogEntry } from "@/lib/queries/admin";
 
-type TabKey = "general" | "subscription" | "integrations" | "audit";
+type TabKey = "general" | "subscription" | "integrations" | "data-import" | "audit";
 
 const INDUSTRIES = [
   "General Contracting",
@@ -98,6 +100,7 @@ export default function SettingsClient({
     { key: "general", label: t("general"), icon: <Settings size={15} /> },
     { key: "subscription", label: t("subscription"), icon: <CreditCard size={15} /> },
     { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
+    { key: "data-import", label: "Data Import", icon: <Database size={15} /> },
     { key: "audit", label: t("auditLog"), icon: <ScrollText size={15} /> },
   ];
 
@@ -755,6 +758,9 @@ export default function SettingsClient({
             ))}
           </div>
         )}
+
+        {/* ===== Data Import Tab ===== */}
+        {activeTab === "data-import" && <DataImportTab />}
 
         {/* ===== Audit Log Tab ===== */}
         {activeTab === "audit" && (

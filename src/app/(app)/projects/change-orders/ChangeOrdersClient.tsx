@@ -12,6 +12,7 @@ import {
   Plus,
   X,
   Upload,
+  AlertCircle,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
@@ -49,12 +50,18 @@ interface KpiData {
   awaitingApproval: number;
 }
 
+interface LinkedJE {
+  id: string;
+  entry_number: string;
+}
+
 interface ChangeOrdersClientProps {
   rows: ChangeOrder[];
   kpi: KpiData;
   userMap: Record<string, string>;
   projects: Project[];
   activeStatus: string | undefined;
+  linkedJEs?: Record<string, LinkedJE[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -139,6 +146,7 @@ export default function ChangeOrdersClient({
   userMap,
   projects,
   activeStatus,
+  linkedJEs = {},
 }: ChangeOrdersClientProps) {
   const router = useRouter();
 
@@ -426,6 +434,7 @@ export default function ChangeOrdersClient({
                   <th style={{ textAlign: "right" }}>Schedule Impact</th>
                   <th>Requested By</th>
                   <th>Status</th>
+                  <th>JE</th>
                 </tr>
               </thead>
               <tbody>
@@ -548,6 +557,26 @@ export default function ChangeOrdersClient({
                         >
                           {co.status}
                         </span>
+                      </td>
+                      <td>
+                        {linkedJEs[co.id]?.length ? (
+                          linkedJEs[co.id].map((je) => (
+                            <Link
+                              key={je.id}
+                              href={`/financial/general-ledger?entry=${je.entry_number}`}
+                              className="je-link"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {je.entry_number}
+                            </Link>
+                          ))
+                        ) : co.status === "approved" ? (
+                          <span className="je-missing" title="No journal entry found">
+                            <AlertCircle size={12} />
+                          </span>
+                        ) : (
+                          <span style={{ color: "var(--muted)" }}>--</span>
+                        )}
                       </td>
                     </tr>
                   );

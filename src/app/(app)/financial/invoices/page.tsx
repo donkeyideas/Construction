@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoices } from "@/lib/queries/financial";
 import type { InvoiceFilters } from "@/lib/queries/financial";
+import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
 import InvoicesClient from "./InvoicesClient";
 
 export const metadata = {
@@ -48,11 +49,22 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
 
   const invoices = await getInvoices(supabase, userCompany.companyId, filters);
 
+  // Batch-fetch linked journal entries for all invoices
+  const invoiceIds = invoices.map((inv) => inv.id);
+  const jeMap = await findLinkedJournalEntriesBatch(supabase, userCompany.companyId, "invoice:", invoiceIds);
+
+  // Serialize Map to plain object for client component
+  const linkedJEs: Record<string, { id: string; entry_number: string }[]> = {};
+  for (const [entityId, entries] of jeMap) {
+    linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
+  }
+
   return (
     <InvoicesClient
       invoices={invoices}
       activeType={activeType}
       activeStatus={activeStatus}
+      linkedJEs={linkedJEs}
     />
   );
 }
