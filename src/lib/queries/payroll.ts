@@ -121,6 +121,7 @@ export interface TimeEntryGroup {
   overtime_hours: number;
   total_hours: number;
   entry_ids: string[];
+  time_entry_ids: string[];
 }
 
 /* ==================================================================
@@ -588,6 +589,7 @@ export async function getApprovedTimeEntries(
       overtime_hours: Math.round(totalOvertime * 100) / 100,
       total_hours: Math.round((totalRegular + totalOvertime) * 100) / 100,
       entry_ids: userData.entries.map((e) => e.id),
+      time_entry_ids: userData.entries.map((e) => e.id),
     });
   }
 
