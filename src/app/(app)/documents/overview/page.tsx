@@ -6,6 +6,8 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getDocumentsOverview } from "@/lib/queries/documents";
 import DocCategoryChart from "@/components/charts/DocCategoryChart";
 import DocUploadTrendChart from "@/components/charts/DocUploadTrendChart";
+import { getDocumentTransactions } from "@/lib/queries/section-transactions";
+import SectionTransactions from "@/components/SectionTransactions";
 
 export const metadata = {
   title: "Documents Overview - Buildwrk",
@@ -35,6 +37,7 @@ export default async function DocumentsOverviewPage() {
   }
 
   const overview = await getDocumentsOverview(supabase, userCompany.companyId);
+  const txnData = await getDocumentTransactions(supabase, userCompany.companyId);
 
   return (
     <div>
@@ -145,6 +148,8 @@ export default async function DocumentsOverviewPage() {
         <Link href="/documents" className="ui-btn ui-btn-sm ui-btn-secondary">Document Library</Link>
         <Link href="/documents/plan-room" className="ui-btn ui-btn-sm ui-btn-secondary">Plan Room</Link>
       </div>
+
+      <SectionTransactions data={txnData} sectionName="Documents" />
     </div>
   );
 }

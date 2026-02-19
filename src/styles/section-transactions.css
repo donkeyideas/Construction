@@ -1,0 +1,111 @@
+/* ===== Section Transactions Table ===== */
+
+.section-txn-wrapper {
+  margin-top: 32px;
+}
+
+.section-txn-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.section-txn-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.section-txn-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+  color: var(--fg);
+  outline: none;
+  cursor: pointer;
+}
+
+.section-txn-select:focus {
+  border-color: var(--color-blue);
+}
+
+.section-txn-table thead th {
+  user-select: none;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.section-txn-table thead th:hover {
+  color: var(--fg);
+}
+
+.section-txn-table tbody tr {
+  transition: background 0.1s ease;
+}
+
+.section-txn-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.section-txn-totals {
+  border-top: 2px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.section-txn-totals td {
+  padding: 12px 14px !important;
+}
+
+.section-txn-desc-link {
+  color: var(--fg);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.15s ease;
+}
+
+.section-txn-desc-link:hover {
+  color: var(--color-blue);
+  text-decoration: underline;
+}
+
+.section-txn-source-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--color-blue);
+  white-space: nowrap;
+}
+
+.section-txn-show-more {
+  display: flex;
+  justify-content: center;
+  padding: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.section-txn-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 768px) {
+  .section-txn-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

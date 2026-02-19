@@ -24,6 +24,8 @@ import {
   getFinancialKPIs,
 } from "@/lib/queries/financial";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
+import { getFinancialTransactions } from "@/lib/queries/section-transactions";
+import SectionTransactions from "@/components/SectionTransactions";
 
 export const metadata = {
   title: "Financial Overview - Buildwrk",
@@ -58,6 +60,8 @@ export default async function FinancialDashboardPage() {
     getMonthlyIncomeExpenses(supabase, userCompany.companyId),
     getFinancialKPIs(supabase, userCompany.companyId),
   ]);
+
+  const txnData = await getFinancialTransactions(supabase, userCompany.companyId);
 
   // Calculate Financial Health Score (0-100)
   let healthScore = 50; // baseline
@@ -472,6 +476,8 @@ export default async function FinancialDashboardPage() {
           </div>
         </div>
       </div>
+
+      <SectionTransactions data={txnData} sectionName="Financial" />
     </div>
   );
 }

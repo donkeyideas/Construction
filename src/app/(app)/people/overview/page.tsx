@@ -6,6 +6,8 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPeopleOverview } from "@/lib/queries/people";
 import PeopleTypeChart from "@/components/charts/PeopleTypeChart";
 import HoursByProjectChart from "@/components/charts/HoursByProjectChart";
+import { getPeopleTransactions } from "@/lib/queries/section-transactions";
+import SectionTransactions from "@/components/SectionTransactions";
 
 export const metadata = {
   title: "People Overview - Buildwrk",
@@ -21,6 +23,7 @@ export default async function PeopleOverviewPage() {
 
   const { companyId } = userCompany;
   const overview = await getPeopleOverview(supabase, companyId);
+  const txnData = await getPeopleTransactions(supabase, companyId);
 
   return (
     <div>
@@ -155,6 +158,8 @@ export default async function PeopleOverviewPage() {
         <Link href="/people/certifications" className="ui-btn ui-btn-sm ui-btn-secondary">All Certifications</Link>
         <Link href="/people/time" className="ui-btn ui-btn-sm ui-btn-secondary">Time Entries</Link>
       </div>
+
+      <SectionTransactions data={txnData} sectionName="People" />
     </div>
   );
 }
