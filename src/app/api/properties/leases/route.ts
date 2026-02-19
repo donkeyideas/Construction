@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import {
+  buildCompanyAccountMap,
+  generateLeaseRevenueSchedule,
+  generateSecurityDepositJournalEntry,
+} from "@/lib/utils/invoice-accounting";
 
 // ---------------------------------------------------------------------------
 // POST /api/properties/leases - Create a new lease
@@ -93,6 +98,33 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error("Create lease error:", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    // Generate lease revenue schedule + security deposit JE
+    try {
+      const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+
+      // Revenue schedule: monthly accrual JEs from lease_start to lease_end
+      await generateLeaseRevenueSchedule(supabase, userCtx.companyId, userCtx.userId, {
+        id: lease.id,
+        property_id: unit.property_id,
+        tenant_name: body.tenant_name.trim(),
+        monthly_rent: Number(body.monthly_rent),
+        lease_start: body.lease_start,
+        lease_end: body.lease_end,
+      }, accountMap);
+
+      // Security deposit JE: DR Cash / CR Security Deposits Held
+      if (body.security_deposit && Number(body.security_deposit) > 0) {
+        await generateSecurityDepositJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+          leaseId: lease.id,
+          amount: Number(body.security_deposit),
+          tenantName: body.tenant_name.trim(),
+          date: body.lease_start,
+        }, accountMap);
+      }
+    } catch (jeErr) {
+      console.warn("Lease JE generation failed (non-blocking):", jeErr);
     }
 
     return NextResponse.json(lease, { status: 201 });

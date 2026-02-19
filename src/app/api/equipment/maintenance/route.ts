@@ -5,6 +5,10 @@ import {
   getMaintenanceLogs,
   createMaintenanceLog,
 } from "@/lib/queries/equipment";
+import {
+  buildCompanyAccountMap,
+  generateMaintenanceCostJournalEntry,
+} from "@/lib/utils/invoice-accounting";
 
 // ---------------------------------------------------------------------------
 // GET /api/equipment/maintenance — List maintenance logs
@@ -103,6 +107,22 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
+    }
+
+    // Generate equipment maintenance JE if cost > 0
+    if (log && body.cost && Number(body.cost) > 0) {
+      try {
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generateMaintenanceCostJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+          id: log.id,
+          source: "equipment",
+          description: body.title?.trim() || "Equipment maintenance",
+          cost: Number(body.cost),
+          date: body.maintenance_date || new Date().toISOString().split("T")[0],
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Equipment maintenance JE failed (non-blocking):", jeErr);
+      }
     }
 
     return NextResponse.json(log, { status: 201 });

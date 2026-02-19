@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import {
+  buildCompanyAccountMap,
+  generateMaintenanceCostJournalEntry,
+} from "@/lib/utils/invoice-accounting";
 
 // ---------------------------------------------------------------------------
 // POST /api/properties/maintenance - Create a new maintenance request
@@ -170,6 +174,23 @@ export async function PATCH(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Generate maintenance JE when actual_cost is set and no JE exists yet
+    if (updated && body.actual_cost && Number(body.actual_cost) > 0 && !updated.journal_entry_id) {
+      try {
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generateMaintenanceCostJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+          id: updated.id,
+          source: "property",
+          description: updated.title ?? "Property maintenance",
+          cost: Number(body.actual_cost),
+          date: updated.completed_at?.split("T")[0] ?? new Date().toISOString().split("T")[0],
+          property_id: updated.property_id,
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Maintenance JE failed (non-blocking):", jeErr);
+      }
     }
 
     return NextResponse.json(updated);

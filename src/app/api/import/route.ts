@@ -222,12 +222,14 @@ export async function POST(request: NextRequest) {
       case "chart_of_accounts": {
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          const acctType = r.account_type || "expense";
           const { error } = await supabase.from("chart_of_accounts").insert({
             company_id: companyId,
             account_number: r.account_number || "",
             name: r.name || "",
-            account_type: r.account_type || "expense",
+            account_type: acctType,
             sub_type: r.sub_type || null,
+            normal_balance: r.normal_balance || (acctType === "asset" || acctType === "expense" ? "debit" : "credit"),
             description: r.description || null,
             is_active: true,
           });
@@ -912,8 +914,8 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Auto-generate invoice journal entries
-        if (insertedInvoices.length > 0) {
+        // Auto-generate invoice journal entries (skip if caller provides separate JEs)
+        if (insertedInvoices.length > 0 && !body.skip_je_generation) {
           try {
             const jeResult = await generateBulkInvoiceJournalEntries(
               supabase, companyId, userId, insertedInvoices
@@ -975,7 +977,7 @@ export async function POST(request: NextRequest) {
           }
 
           // Generate payment JEs (DR AP / CR Cash for payables, DR Cash / CR AR for receivables)
-          if (paymentRecords.length > 0) {
+          if (paymentRecords.length > 0 && !body.skip_je_generation) {
             try {
               const pmtJeResult = await generateBulkPaymentJournalEntries(
                 supabase, companyId, userId, paymentRecords
@@ -1129,7 +1131,7 @@ export async function POST(request: NextRequest) {
               entry_date: first.entry_date || new Date().toISOString().split("T")[0],
               description: first.description || "",
               reference: first.reference || null,
-              status: "draft",
+              status: first.status || body.je_status || "posted",
               created_by: userId,
             })
             .select("id")

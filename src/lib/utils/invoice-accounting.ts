@@ -14,6 +14,15 @@ export interface CompanyAccountMap {
   salesTaxReceivableId: string | null;
   retainageReceivableId: string | null;
   retainagePayableId: string | null;
+  // GAAP expansion accounts
+  rentReceivableId: string | null;
+  deferredRentalRevenueId: string | null;
+  rentalIncomeId: string | null;
+  lateFeeRevenueId: string | null;
+  equipmentAssetId: string | null;
+  accumulatedDepreciationId: string | null;
+  depreciationExpenseId: string | null;
+  repairsMaintenanceId: string | null;
   // Lookup by account number for GL account resolution
   byNumber: Record<string, string>;
 }
@@ -41,6 +50,14 @@ export async function buildCompanyAccountMap(
     salesTaxReceivableId: null,
     retainageReceivableId: null,
     retainagePayableId: null,
+    rentReceivableId: null,
+    deferredRentalRevenueId: null,
+    rentalIncomeId: null,
+    lateFeeRevenueId: null,
+    equipmentAssetId: null,
+    accumulatedDepreciationId: null,
+    depreciationExpenseId: null,
+    repairsMaintenanceId: null,
     byNumber: {},
   };
 
@@ -106,6 +123,64 @@ export async function buildCompanyAccountMap(
       nameLower.includes("retainage") && nameLower.includes("payable")
     ) {
       map.retainagePayableId = a.id;
+    }
+
+    // --- GAAP expansion accounts ---
+
+    // Rent Receivable: asset with "rent" and "receivable" (distinct from AR)
+    if (!map.rentReceivableId && a.account_type === "asset" &&
+      nameLower.includes("rent") && nameLower.includes("receivable")
+    ) {
+      map.rentReceivableId = a.id;
+    }
+
+    // Deferred Rental Revenue: liability with "deferred" and ("rent" or "rental")
+    if (!map.deferredRentalRevenueId && a.account_type === "liability" &&
+      nameLower.includes("deferred") && (nameLower.includes("rent") || nameLower.includes("rental"))
+    ) {
+      map.deferredRentalRevenueId = a.id;
+    }
+
+    // Rental Income: revenue with "rental" or ("rent" and "income")
+    if (!map.rentalIncomeId && a.account_type === "revenue" &&
+      (nameLower.includes("rental") || (nameLower.includes("rent") && nameLower.includes("income")))
+    ) {
+      map.rentalIncomeId = a.id;
+    }
+
+    // Late Fee Revenue: revenue with "late" and "fee"
+    if (!map.lateFeeRevenueId && a.account_type === "revenue" &&
+      nameLower.includes("late") && nameLower.includes("fee")
+    ) {
+      map.lateFeeRevenueId = a.id;
+    }
+
+    // Equipment Asset: fixed_asset with "equipment"
+    if (!map.equipmentAssetId && (a.sub_type === "fixed_asset" || a.account_type === "asset") &&
+      nameLower.includes("equipment") && !nameLower.includes("depreciation") && !nameLower.includes("accumulated")
+    ) {
+      map.equipmentAssetId = a.id;
+    }
+
+    // Accumulated Depreciation: asset (contra) with "accumulated" and "depreciation"
+    if (!map.accumulatedDepreciationId && a.account_type === "asset" &&
+      nameLower.includes("accumulated") && nameLower.includes("depreciation")
+    ) {
+      map.accumulatedDepreciationId = a.id;
+    }
+
+    // Depreciation Expense: expense with "depreciation"
+    if (!map.depreciationExpenseId && a.account_type === "expense" &&
+      nameLower.includes("depreciation")
+    ) {
+      map.depreciationExpenseId = a.id;
+    }
+
+    // Repairs & Maintenance: expense with "repair" or "maintenance"
+    if (!map.repairsMaintenanceId && a.account_type === "expense" &&
+      (nameLower.includes("repair") || nameLower.includes("maintenance"))
+    ) {
+      map.repairsMaintenanceId = a.id;
     }
   }
 
@@ -645,7 +720,667 @@ export async function generateBulkPaymentJournalEntries(
   return { successCount, errors };
 }
 
+// ==========================================================================
+// GAAP Lease Revenue Recognition
+// ==========================================================================
+
+/**
+ * Generate a full lease revenue schedule with monthly accrual JEs.
+ * Creates one lease_revenue_schedule row per month from lease_start to lease_end,
+ * and for each month creates an accrual JE:
+ *   DR Rent Receivable / CR Deferred Rental Revenue
+ *
+ * Reference format: lease_accrual:{leaseId}:{YYYY-MM}
+ * Idempotent — skips months that already have a schedule row.
+ */
+export async function generateLeaseRevenueSchedule(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  lease: {
+    id: string;
+    property_id: string;
+    tenant_name: string;
+    monthly_rent: number;
+    lease_start: string; // YYYY-MM-DD
+    lease_end: string;   // YYYY-MM-DD
+    project_id?: string | null;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ scheduledCount: number; jeCount: number }> {
+  if (lease.monthly_rent <= 0) return { scheduledCount: 0, jeCount: 0 };
+  if (!accountMap.rentReceivableId || !accountMap.deferredRentalRevenueId) {
+    return { scheduledCount: 0, jeCount: 0 };
+  }
+
+  // Generate month list from lease_start to lease_end
+  const months = getMonthsBetween(lease.lease_start, lease.lease_end);
+  if (months.length === 0) return { scheduledCount: 0, jeCount: 0 };
+
+  // Check which months already have schedule rows
+  const { data: existing } = await supabase
+    .from("lease_revenue_schedule")
+    .select("schedule_date")
+    .eq("lease_id", lease.id);
+
+  const existingDates = new Set((existing ?? []).map((r) => r.schedule_date));
+
+  let scheduledCount = 0;
+  let jeCount = 0;
+
+  for (const monthDate of months) {
+    if (existingDates.has(monthDate)) continue;
+
+    const ym = monthDate.substring(0, 7); // YYYY-MM
+    const description = `Rent accrual - ${lease.tenant_name} (${ym})`;
+    const reference = `lease_accrual:${lease.id}:${ym}`;
+
+    // Create accrual JE: DR Rent Receivable / CR Deferred Rental Revenue
+    const entryData: JournalEntryCreateData = {
+      entry_number: `JE-RENT-${lease.id.substring(0, 6)}-${ym}`,
+      entry_date: monthDate,
+      description,
+      reference,
+      lines: [
+        {
+          account_id: accountMap.rentReceivableId!,
+          debit: lease.monthly_rent,
+          credit: 0,
+          description,
+          property_id: lease.property_id,
+        },
+        {
+          account_id: accountMap.deferredRentalRevenueId!,
+          debit: 0,
+          credit: lease.monthly_rent,
+          description,
+          property_id: lease.property_id,
+        },
+      ],
+    };
+
+    const jeResult = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+
+    // Insert schedule row
+    await supabase.from("lease_revenue_schedule").insert({
+      company_id: companyId,
+      lease_id: lease.id,
+      property_id: lease.property_id,
+      schedule_date: monthDate,
+      monthly_rent: lease.monthly_rent,
+      status: "scheduled",
+      accrual_je_id: jeResult?.id ?? null,
+    });
+
+    scheduledCount++;
+    if (jeResult) jeCount++;
+  }
+
+  return { scheduledCount, jeCount };
+}
+
+/**
+ * Recognize lease revenue for a given month.
+ * For each scheduled row on that date:
+ *   DR Deferred Rental Revenue / CR Rental Income
+ *
+ * Updates status from 'scheduled' to 'accrued'.
+ * Reference format: lease_recognition:{leaseId}:{YYYY-MM}
+ */
+export async function recognizeLeaseRevenue(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  scheduleDate: string, // YYYY-MM-DD (1st of month)
+  accountMap: CompanyAccountMap
+): Promise<{ recognizedCount: number }> {
+  if (!accountMap.deferredRentalRevenueId || !accountMap.rentalIncomeId) {
+    return { recognizedCount: 0 };
+  }
+
+  const { data: rows } = await supabase
+    .from("lease_revenue_schedule")
+    .select("id, lease_id, property_id, monthly_rent")
+    .eq("company_id", companyId)
+    .eq("schedule_date", scheduleDate)
+    .eq("status", "scheduled");
+
+  if (!rows || rows.length === 0) return { recognizedCount: 0 };
+
+  let recognizedCount = 0;
+
+  for (const row of rows) {
+    const ym = scheduleDate.substring(0, 7);
+    const description = `Revenue recognition (${ym})`;
+    const reference = `lease_recognition:${row.lease_id}:${ym}`;
+
+    const entryData: JournalEntryCreateData = {
+      entry_number: `JE-RREV-${row.lease_id.substring(0, 6)}-${ym}`,
+      entry_date: scheduleDate,
+      description,
+      reference,
+      lines: [
+        {
+          account_id: accountMap.deferredRentalRevenueId!,
+          debit: row.monthly_rent,
+          credit: 0,
+          description,
+          property_id: row.property_id,
+        },
+        {
+          account_id: accountMap.rentalIncomeId!,
+          debit: 0,
+          credit: row.monthly_rent,
+          description,
+          property_id: row.property_id,
+        },
+      ],
+    };
+
+    const jeResult = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+
+    await supabase
+      .from("lease_revenue_schedule")
+      .update({
+        status: "accrued",
+        recognition_je_id: jeResult?.id ?? null,
+      })
+      .eq("id", row.id);
+
+    recognizedCount++;
+  }
+
+  return { recognizedCount };
+}
+
+/**
+ * Generate a journal entry for a rent payment collection.
+ *   DR Cash / CR Rent Receivable
+ * If late_fee > 0: also DR Rent Receivable / CR Late Fee Revenue
+ *
+ * Updates lease_revenue_schedule status to 'collected'.
+ * Reference format: rent_payment:{paymentId}
+ */
+export async function generateRentPaymentJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  payment: {
+    id: string;
+    amount: number;
+    payment_date: string;
+    late_fee?: number;
+    lease_id: string;
+    property_id: string;
+    tenant_name: string;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ journalEntryId: string } | null> {
+  if (payment.amount <= 0) return null;
+  if (!accountMap.cashId || !accountMap.rentReceivableId) return null;
+
+  const lines: JournalEntryCreateData["lines"] = [];
+  const lateFee = payment.late_fee ?? 0;
+  const rentAmount = payment.amount - lateFee;
+  const description = `Rent payment - ${payment.tenant_name}`;
+
+  // DR Cash (full amount received)
+  lines.push({
+    account_id: accountMap.cashId,
+    debit: payment.amount,
+    credit: 0,
+    description,
+    property_id: payment.property_id,
+  });
+
+  // CR Rent Receivable (rent portion)
+  if (rentAmount > 0) {
+    lines.push({
+      account_id: accountMap.rentReceivableId,
+      debit: 0,
+      credit: rentAmount,
+      description,
+      property_id: payment.property_id,
+    });
+  }
+
+  // CR Late Fee Revenue (if applicable)
+  if (lateFee > 0 && accountMap.lateFeeRevenueId) {
+    lines.push({
+      account_id: accountMap.lateFeeRevenueId,
+      debit: 0,
+      credit: lateFee,
+      description: `Late fee - ${payment.tenant_name}`,
+      property_id: payment.property_id,
+    });
+  } else if (lateFee > 0) {
+    // No late fee account — include in rent receivable credit
+    lines[1].credit += lateFee;
+  }
+
+  const shortId = payment.id.substring(0, 8);
+  const entryData: JournalEntryCreateData = {
+    entry_number: `JE-RPMT-${shortId}`,
+    entry_date: payment.payment_date,
+    description,
+    reference: `rent_payment:${payment.id}`,
+    lines,
+  };
+
+  const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+
+  if (result) {
+    // Update lease_revenue_schedule to 'collected' for that month
+    const paymentMonth = payment.payment_date.substring(0, 7); // YYYY-MM
+    const scheduleDate = `${paymentMonth}-01`;
+    await supabase
+      .from("lease_revenue_schedule")
+      .update({
+        status: "collected",
+        collection_je_id: result.id,
+        rent_payment_id: payment.id,
+      })
+      .eq("lease_id", payment.lease_id)
+      .eq("schedule_date", scheduleDate);
+
+    // Link JE to rent_payments table
+    await supabase
+      .from("rent_payments")
+      .update({ journal_entry_id: result.id })
+      .eq("id", payment.id);
+  }
+
+  return result ? { journalEntryId: result.id } : null;
+}
+
+// ==========================================================================
+// Equipment Purchase & Depreciation
+// ==========================================================================
+
+/**
+ * Generate a journal entry for an equipment purchase.
+ *   DR Equipment (Fixed Asset) / CR Cash
+ *
+ * Reference format: equipment_purchase:{equipmentId}
+ */
+export async function generateEquipmentPurchaseJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  equipment: {
+    id: string;
+    name: string;
+    purchase_cost: number;
+    purchase_date: string;
+    project_id?: string | null;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ journalEntryId: string } | null> {
+  if (equipment.purchase_cost <= 0) return null;
+  if (!accountMap.cashId || !accountMap.equipmentAssetId) return null;
+
+  const description = `Equipment purchase - ${equipment.name}`;
+  const shortId = equipment.id.substring(0, 8);
+
+  const entryData: JournalEntryCreateData = {
+    entry_number: `JE-EQP-${shortId}`,
+    entry_date: equipment.purchase_date,
+    description,
+    reference: `equipment_purchase:${equipment.id}`,
+    project_id: equipment.project_id ?? undefined,
+    lines: [
+      {
+        account_id: accountMap.equipmentAssetId,
+        debit: equipment.purchase_cost,
+        credit: 0,
+        description,
+        project_id: equipment.project_id ?? undefined,
+      },
+      {
+        account_id: accountMap.cashId,
+        debit: 0,
+        credit: equipment.purchase_cost,
+        description,
+        project_id: equipment.project_id ?? undefined,
+      },
+    ],
+  };
+
+  const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+  return result ? { journalEntryId: result.id } : null;
+}
+
+/**
+ * Generate monthly depreciation journal entries for equipment.
+ * Straight-line: monthly = (purchase_cost - salvage_value) / useful_life_months
+ *   DR Depreciation Expense / CR Accumulated Depreciation
+ *
+ * Reference format: depreciation:{equipmentId}:{YYYY-MM}
+ * Idempotent — skips months that already have a depreciation JE.
+ */
+export async function generateDepreciationJournalEntries(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  equipment: {
+    id: string;
+    name: string;
+    purchase_cost: number;
+    salvage_value: number;
+    useful_life_months: number;
+    depreciation_start_date: string; // YYYY-MM-DD
+    project_id?: string | null;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ generatedCount: number }> {
+  if (!accountMap.depreciationExpenseId || !accountMap.accumulatedDepreciationId) {
+    return { generatedCount: 0 };
+  }
+  if (equipment.useful_life_months <= 0) return { generatedCount: 0 };
+
+  const monthlyAmount = Math.round(
+    ((equipment.purchase_cost - equipment.salvage_value) / equipment.useful_life_months) * 100
+  ) / 100;
+  if (monthlyAmount <= 0) return { generatedCount: 0 };
+
+  // Calculate end date
+  const startDate = new Date(equipment.depreciation_start_date);
+  const endDate = new Date(startDate);
+  endDate.setMonth(endDate.getMonth() + equipment.useful_life_months - 1);
+  const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-01`;
+
+  // Only depreciate through today
+  const today = new Date().toISOString().split("T")[0];
+  const effectiveEnd = endDateStr < today ? endDateStr : today;
+
+  const months = getMonthsBetween(equipment.depreciation_start_date, effectiveEnd);
+  if (months.length === 0) return { generatedCount: 0 };
+
+  // Check existing depreciation JEs
+  const refs = months.map((m) => `depreciation:${equipment.id}:${m.substring(0, 7)}`);
+  const { data: existingJEs } = await supabase
+    .from("journal_entries")
+    .select("reference")
+    .eq("company_id", companyId)
+    .in("reference", refs);
+
+  const existingRefs = new Set((existingJEs ?? []).map((j) => j.reference));
+
+  let generatedCount = 0;
+
+  for (const monthDate of months) {
+    const ym = monthDate.substring(0, 7);
+    const ref = `depreciation:${equipment.id}:${ym}`;
+    if (existingRefs.has(ref)) continue;
+
+    const description = `Depreciation - ${equipment.name} (${ym})`;
+
+    const entryData: JournalEntryCreateData = {
+      entry_number: `JE-DEP-${equipment.id.substring(0, 6)}-${ym}`,
+      entry_date: monthDate,
+      description,
+      reference: ref,
+      project_id: equipment.project_id ?? undefined,
+      lines: [
+        {
+          account_id: accountMap.depreciationExpenseId!,
+          debit: monthlyAmount,
+          credit: 0,
+          description,
+          project_id: equipment.project_id ?? undefined,
+        },
+        {
+          account_id: accountMap.accumulatedDepreciationId!,
+          debit: 0,
+          credit: monthlyAmount,
+          description,
+          project_id: equipment.project_id ?? undefined,
+        },
+      ],
+    };
+
+    const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+    if (result) generatedCount++;
+  }
+
+  return { generatedCount };
+}
+
+// ==========================================================================
+// Maintenance Cost JE
+// ==========================================================================
+
+/**
+ * Generate a journal entry for a maintenance/repair cost.
+ *   DR Repairs & Maintenance / CR AP (or Cash if paid immediately)
+ *
+ * Reference format: maintenance:{id} or equip_maintenance:{id}
+ */
+export async function generateMaintenanceCostJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  maintenance: {
+    id: string;
+    source: "property" | "equipment";
+    description: string;
+    cost: number;
+    date: string;
+    property_id?: string | null;
+    project_id?: string | null;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ journalEntryId: string } | null> {
+  if (maintenance.cost <= 0) return null;
+  if (!accountMap.repairsMaintenanceId) return null;
+  const creditAccountId = accountMap.apId || accountMap.cashId;
+  if (!creditAccountId) return null;
+
+  const prefix = maintenance.source === "property" ? "maintenance" : "equip_maintenance";
+  const refStr = `${prefix}:${maintenance.id}`;
+  const shortId = maintenance.id.substring(0, 8);
+  const desc = maintenance.description || `${maintenance.source === "property" ? "Property" : "Equipment"} maintenance`;
+
+  const entryData: JournalEntryCreateData = {
+    entry_number: `JE-MNT-${shortId}`,
+    entry_date: maintenance.date,
+    description: desc,
+    reference: refStr,
+    project_id: maintenance.project_id ?? undefined,
+    lines: [
+      {
+        account_id: accountMap.repairsMaintenanceId,
+        debit: maintenance.cost,
+        credit: 0,
+        description: desc,
+        property_id: maintenance.property_id ?? undefined,
+        project_id: maintenance.project_id ?? undefined,
+      },
+      {
+        account_id: creditAccountId,
+        debit: 0,
+        credit: maintenance.cost,
+        description: desc,
+        property_id: maintenance.property_id ?? undefined,
+        project_id: maintenance.project_id ?? undefined,
+      },
+    ],
+  };
+
+  const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+
+  if (result) {
+    // Link JE back to the source table
+    const table = maintenance.source === "property" ? "maintenance_requests" : "equipment_maintenance_logs";
+    await supabase
+      .from(table)
+      .update({ journal_entry_id: result.id })
+      .eq("id", maintenance.id);
+  }
+
+  return result ? { journalEntryId: result.id } : null;
+}
+
+// ==========================================================================
+// Payroll JE (extracted from payroll route for shared use + backfill)
+// ==========================================================================
+
+/**
+ * Generate a journal entry for a payroll run.
+ *   DR Payroll Expense (gross + employer taxes)
+ *   CR FIT Payable, SIT Payable, FICA Payable, FUTA Payable, SUTA Payable
+ *   CR Cash (net pay)
+ *
+ * Reference format: payroll_run:{runId}
+ */
+export async function generatePayrollRunJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  run: {
+    id: string;
+    pay_date: string;
+    period_start: string;
+    period_end: string;
+    total_gross: number;
+    total_net: number;
+    total_employer_taxes: number;
+    employee_count: number;
+    items: Array<{
+      federal_income_tax: number;
+      state_income_tax: number;
+      social_security_employee: number;
+      medicare_employee: number;
+      social_security_employer: number;
+      medicare_employer: number;
+      futa_employer: number;
+      suta_employer: number;
+    }>;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ journalEntryId: string } | null> {
+  if (!accountMap.cashId) return null;
+
+  // Find payroll expense account
+  let payrollExpenseId: string | null = null;
+  const { data: expenseAccounts } = await supabase
+    .from("chart_of_accounts")
+    .select("id, name")
+    .eq("company_id", companyId)
+    .eq("account_type", "expense")
+    .eq("is_active", true);
+
+  for (const acct of expenseAccounts ?? []) {
+    const nameLower = acct.name.toLowerCase();
+    if (nameLower.includes("payroll") || nameLower.includes("salary") || nameLower.includes("wages")) {
+      payrollExpenseId = acct.id;
+      break;
+    }
+  }
+  if (!payrollExpenseId && expenseAccounts && expenseAccounts.length > 0) {
+    payrollExpenseId = expenseAccounts[0].id;
+  }
+  if (!payrollExpenseId) return null;
+
+  // Find payroll tax liability accounts
+  const fitPayableId = accountMap.byNumber["2500"] ?? null;
+  const sitPayableId = accountMap.byNumber["2510"] ?? null;
+  const ficaPayableId = accountMap.byNumber["2520"] ?? null;
+  const futaPayableId = accountMap.byNumber["2530"] ?? null;
+  const sutaPayableId = accountMap.byNumber["2540"] ?? null;
+
+  // Sum tax amounts across all items
+  let totalFIT = 0, totalSIT = 0, totalFICA = 0, totalFUTA = 0, totalSUTA = 0;
+  for (const item of run.items) {
+    totalFIT += item.federal_income_tax;
+    totalSIT += item.state_income_tax;
+    totalFICA += item.social_security_employee + item.medicare_employee +
+                 item.social_security_employer + item.medicare_employer;
+    totalFUTA += item.futa_employer;
+    totalSUTA += item.suta_employer;
+  }
+
+  const lines: JournalEntryCreateData["lines"] = [];
+
+  // DR: Payroll Expense
+  const payrollExpenseAmount = run.total_gross + run.total_employer_taxes;
+  lines.push({
+    account_id: payrollExpenseId,
+    debit: Math.round(payrollExpenseAmount * 100) / 100,
+    credit: 0,
+    description: "Payroll expense",
+  });
+
+  // CR: Tax payables
+  if (totalFIT > 0 && fitPayableId) {
+    lines.push({ account_id: fitPayableId, debit: 0, credit: Math.round(totalFIT * 100) / 100, description: "Federal income tax withheld" });
+  }
+  if (totalSIT > 0 && sitPayableId) {
+    lines.push({ account_id: sitPayableId, debit: 0, credit: Math.round(totalSIT * 100) / 100, description: "State income tax withheld" });
+  }
+  if (totalFICA > 0 && ficaPayableId) {
+    lines.push({ account_id: ficaPayableId, debit: 0, credit: Math.round(totalFICA * 100) / 100, description: "FICA payable (SS + Medicare)" });
+  }
+  if (totalFUTA > 0 && futaPayableId) {
+    lines.push({ account_id: futaPayableId, debit: 0, credit: Math.round(totalFUTA * 100) / 100, description: "FUTA payable" });
+  }
+  if (totalSUTA > 0 && sutaPayableId) {
+    lines.push({ account_id: sutaPayableId, debit: 0, credit: Math.round(totalSUTA * 100) / 100, description: "SUTA payable" });
+  }
+
+  // CR: Cash = total_net
+  lines.push({
+    account_id: accountMap.cashId,
+    debit: 0,
+    credit: Math.round(run.total_net * 100) / 100,
+    description: "Net payroll disbursement",
+  });
+
+  // Balance check — if missing payable accounts, lump into Cash credit
+  const totalDebits = lines.reduce((s, l) => s + l.debit, 0);
+  const totalCredits = lines.reduce((s, l) => s + l.credit, 0);
+  const imbalance = totalDebits - totalCredits;
+  if (Math.abs(imbalance) > 0.01) {
+    const cashLine = lines.find((l) => l.account_id === accountMap.cashId && l.credit > 0);
+    if (cashLine) {
+      cashLine.credit = Math.round((cashLine.credit + imbalance) * 100) / 100;
+    }
+  }
+
+  const periodLabel = `${run.period_start} to ${run.period_end}`;
+  const entryData: JournalEntryCreateData = {
+    entry_number: `JE-PR-${run.id.substring(0, 8)}`,
+    entry_date: run.pay_date,
+    description: `Payroll for ${periodLabel} (${run.employee_count} employees)`,
+    reference: `payroll_run:${run.id}`,
+    lines,
+  };
+
+  const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+  return result ? { journalEntryId: result.id } : null;
+}
+
 // ---------- Helpers ----------
+
+/** Generate an array of YYYY-MM-01 dates from startDate to endDate inclusive */
+function getMonthsBetween(startDate: string, endDate: string): string[] {
+  const months: string[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Normalize to 1st of month
+  start.setDate(1);
+  end.setDate(1);
+
+  const current = new Date(start);
+  while (current <= end) {
+    const y = current.getFullYear();
+    const m = String(current.getMonth() + 1).padStart(2, "0");
+    months.push(`${y}-${m}-01`);
+    current.setMonth(current.getMonth() + 1);
+  }
+  return months;
+}
 
 /**
  * Auto-map an invoice description to a GL account number based on keywords.

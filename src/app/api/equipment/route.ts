@@ -6,6 +6,10 @@ import {
   createEquipment,
   type EquipmentStatus,
 } from "@/lib/queries/equipment";
+import {
+  buildCompanyAccountMap,
+  generateEquipmentPurchaseJournalEntry,
+} from "@/lib/utils/invoice-accounting";
 
 // ---------------------------------------------------------------------------
 // GET /api/equipment — List equipment for the current user's company
@@ -94,6 +98,21 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
+    }
+
+    // Generate equipment purchase JE if purchase_cost > 0
+    if (equipment && body.purchase_cost && Number(body.purchase_cost) > 0) {
+      try {
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generateEquipmentPurchaseJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+          id: equipment.id,
+          name: body.name.trim(),
+          purchase_cost: Number(body.purchase_cost),
+          purchase_date: body.purchase_date || new Date().toISOString().split("T")[0],
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Equipment purchase JE failed (non-blocking):", jeErr);
+      }
     }
 
     return NextResponse.json(equipment, { status: 201 });
