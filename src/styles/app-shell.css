@@ -233,6 +233,30 @@
   gap: 16px;
 }
 
+.reset-company-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--danger, #e53e3e);
+  color: var(--danger, #e53e3e);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.reset-company-btn:hover {
+  background: var(--danger, #e53e3e);
+  color: #fff;
+}
+.reset-company-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .theme-btn {
   background: var(--surface);
   border: 1px solid var(--border);

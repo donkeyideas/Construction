@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
-import { Search, Bell, Sun, Moon, Menu, LogOut, Settings } from "lucide-react";
+import { Search, Bell, Sun, Moon, Menu, LogOut, Settings, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -100,6 +100,34 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
     router.push("/login");
   }
 
+  const isTestAccount = userInfo.email === "beltran_alain@yahoo.com";
+  const [resetConfirm, setResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  async function handleResetCompany() {
+    if (!resetConfirm) {
+      setResetConfirm(true);
+      setTimeout(() => setResetConfirm(false), 5000);
+      return;
+    }
+    setResetting(true);
+    try {
+      const res = await fetch("/api/admin/reset-company", { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Deleted: ${data.summary?.map((s: { table: string; deleted: number }) => `${s.table}: ${s.deleted}`).join(", ")}`);
+        window.location.reload();
+      } else {
+        alert(data.error || "Failed to reset");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setResetting(false);
+      setResetConfirm(false);
+    }
+  }
+
   const initials = getInitials(userInfo.name, userInfo.email);
 
   return (
@@ -120,6 +148,17 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
         </button>
 
         <div className="topbar-right">
+          {isTestAccount && (
+            <button
+              className="reset-company-btn"
+              onClick={handleResetCompany}
+              disabled={resetting}
+              title="Delete all company data (test account only)"
+            >
+              <Trash2 size={16} />
+              {resetting ? "Deleting..." : resetConfirm ? "Click to Confirm" : "Delete All Data"}
+            </button>
+          )}
           <button onClick={toggleTheme} className="theme-btn" title="Toggle theme">
             {theme === "dark" ? (
               <Sun size={18} strokeWidth={2} />

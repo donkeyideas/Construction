@@ -3,7 +3,6 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getFinancialTransactions } from "@/lib/queries/section-transactions";
 import { DollarSign } from "lucide-react";
 import SectionTransactions from "@/components/SectionTransactions";
-import ResetCompanyButton from "@/components/ResetCompanyButton";
 
 export const metadata = {
   title: "Financial Transactions - Buildwrk",
@@ -23,8 +22,6 @@ export default async function FinancialTransactionsPage() {
     );
   }
 
-  const { data: { user } } = await supabase.auth.getUser();
-  const isTestAccount = user?.email === "beltran_alain@yahoo.com";
   const txnData = await getFinancialTransactions(supabase, userCompany.companyId);
 
   return (
@@ -36,11 +33,6 @@ export default async function FinancialTransactionsPage() {
             All posted journal entry lines — the master ledger of every financial movement.
           </p>
         </div>
-        {isTestAccount && (
-          <div className="fin-header-actions">
-            <ResetCompanyButton />
-          </div>
-        )}
       </div>
       <SectionTransactions data={txnData} sectionName="Financial" />
     </div>

@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPropertyTransactions } from "@/lib/queries/section-transactions";
 import SectionTransactions from "@/components/SectionTransactions";
-import ResetCompanyButton from "@/components/ResetCompanyButton";
 
 export const metadata = {
   title: "Properties Transactions - Buildwrk",
@@ -17,8 +16,6 @@ export default async function PropertiesTransactionsPage() {
     redirect("/register");
   }
 
-  const { data: { user } } = await supabase.auth.getUser();
-  const isTestAccount = user?.email === "beltran_alain@yahoo.com";
   const txnData = await getPropertyTransactions(supabase, userCompany.companyId);
 
   return (
@@ -30,11 +27,6 @@ export default async function PropertiesTransactionsPage() {
             Financial transactions linked to properties — invoices, lease payments, and journal entries.
           </p>
         </div>
-        {isTestAccount && (
-          <div className="fin-header-actions">
-            <ResetCompanyButton />
-          </div>
-        )}
       </div>
       <SectionTransactions data={txnData} sectionName="Properties" />
     </div>
