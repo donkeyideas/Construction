@@ -231,12 +231,19 @@ export default function SectionTransactions({ data, sectionName }: Props) {
   );
 }
 
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+/** Parse ISO date string without timezone conversion to avoid server/client mismatch */
+function formatDateSafe(iso: string): string {
+  const parts = (iso || "").split("T")[0].split("-");
+  if (parts.length < 3) return iso || "";
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  return `${MONTHS[m]} ${d}, ${parts[0]}`;
+}
+
 function TxnRow({ txn }: { txn: SectionTransaction }) {
-  const dateStr = new Date(txn.date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const dateStr = formatDateSafe(txn.date);
 
   return (
     <tr>
