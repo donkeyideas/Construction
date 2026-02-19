@@ -357,7 +357,7 @@ export async function POST(request: NextRequest) {
             title: r.title || "",
             description: r.description || null,
             reason: r.reason || null,
-            status: r.status || "draft",
+            status: r.status || "approved",
             amount: r.amount ? parseFloat(r.amount) : 0,
             schedule_impact_days: r.schedule_impact_days ? parseInt(r.schedule_impact_days) : 0,
             requested_by: userId,

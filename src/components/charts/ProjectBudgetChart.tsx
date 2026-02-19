@@ -67,10 +67,10 @@ export default function ProjectBudgetChart({ data }: Props) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height={240}>
       <BarChart
         data={data}
-        margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+        margin={{ top: 10, right: 10, left: 5, bottom: 0 }}
         barGap={2}
       >
         <CartesianGrid
@@ -81,20 +81,20 @@ export default function ProjectBudgetChart({ data }: Props) {
         />
         <XAxis
           dataKey="name"
-          tick={{ fontSize: 10, fill: "var(--muted)" }}
+          tick={{ fontSize: 9, fill: "var(--muted)" }}
           axisLine={{ stroke: "var(--border)" }}
           tickLine={false}
           interval={0}
-          angle={-20}
+          angle={-35}
           textAnchor="end"
-          height={50}
+          height={70}
         />
         <YAxis
           tickFormatter={formatCompact}
           tick={{ fontSize: 11, fill: "var(--muted)" }}
           axisLine={false}
           tickLine={false}
-          width={55}
+          width={65}
         />
         <Tooltip content={<CustomTooltip />} />
         <Legend

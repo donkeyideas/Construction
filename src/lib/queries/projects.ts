@@ -774,7 +774,7 @@ export async function getProjectsOverview(
     .sort((a, b) => (b.contract_amount ?? 0) - (a.contract_amount ?? 0))
     .slice(0, 8)
     .map((p) => ({
-      name: p.name.length > 20 ? p.name.slice(0, 18) + "…" : p.name,
+      name: p.name.length > 14 ? p.name.slice(0, 12) + "…" : p.name,
       estimated: p.estimated_cost ?? 0,
       actual: p.actual_cost ?? 0,
     }));

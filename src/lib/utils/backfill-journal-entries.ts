@@ -52,7 +52,7 @@ export async function backfillMissingJournalEntries(
     .from("change_orders")
     .select("id, co_number, amount, reason, project_id, title, status")
     .eq("company_id", companyId)
-    .eq("status", "approved")
+    .in("status", ["approved", "draft", "submitted"])
     .not("amount", "is", null);
 
   if (changeOrders && changeOrders.length > 0) {
