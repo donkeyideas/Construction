@@ -6,8 +6,6 @@ import { getPropertiesOverview } from "@/lib/queries/properties";
 import { formatCurrency, formatCompactCurrency, formatPercent } from "@/lib/utils/format";
 import OccupancyChart from "@/components/charts/OccupancyChart";
 import PropertyRevenueChart from "@/components/charts/PropertyRevenueChart";
-import { getPropertyTransactions } from "@/lib/queries/section-transactions";
-import SectionTransactions from "@/components/SectionTransactions";
 
 export const metadata = {
   title: "Properties Overview - Buildwrk",
@@ -26,7 +24,6 @@ export default async function PropertiesOverviewPage() {
   }
 
   const overview = await getPropertiesOverview(supabase, ctx.companyId);
-  const txnData = await getPropertyTransactions(supabase, ctx.companyId);
 
   return (
     <div>
@@ -132,7 +129,6 @@ export default async function PropertiesOverviewPage() {
         <Link href="/properties/maintenance" className="ui-btn ui-btn-sm ui-btn-secondary">All Maintenance</Link>
       </div>
 
-      <SectionTransactions data={txnData} sectionName="Properties" />
     </div>
   );
 }
