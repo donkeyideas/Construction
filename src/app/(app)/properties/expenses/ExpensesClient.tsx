@@ -13,6 +13,7 @@ import {
   Pencil,
   Trash2,
   Upload,
+  Filter,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
@@ -360,44 +361,36 @@ export default function ExpensesClient({
       </div>
 
       {/* Filters */}
-      <div className="fin-filters">
-        <span style={{ fontWeight: 600, fontSize: "0.82rem", marginRight: 8 }}>Type:</span>
-        <button
-          className={`filter-btn ${activeType === "all" ? "active" : ""}`}
-          onClick={() => setActiveType("all")}
-        >
-          All
-        </button>
-        {EXPENSE_TYPE_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            className={`filter-btn ${activeType === opt.value ? "active" : ""}`}
-            onClick={() => setActiveType(opt.value)}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 4 }}>
+        <div className="dash-filter">
+          <Filter size={14} />
+          <select
+            className="dash-filter-select"
+            value={activeType}
+            onChange={(e) => setActiveType(e.target.value)}
           >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-      {properties.length > 1 && (
-        <div className="fin-filters" style={{ marginTop: 8 }}>
-          <span style={{ fontWeight: 600, fontSize: "0.82rem", marginRight: 8 }}>Property:</span>
-          <button
-            className={`filter-btn ${activeProperty === "all" ? "active" : ""}`}
-            onClick={() => setActiveProperty("all")}
-          >
-            All
-          </button>
-          {properties.map((p) => (
-            <button
-              key={p.id}
-              className={`filter-btn ${activeProperty === p.id ? "active" : ""}`}
-              onClick={() => setActiveProperty(p.id)}
-            >
-              {p.name}
-            </button>
-          ))}
+            <option value="all">All Expense Types</option>
+            {EXPENSE_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
         </div>
-      )}
+        {properties.length > 1 && (
+          <div className="dash-filter">
+            <Building2 size={14} />
+            <select
+              className="dash-filter-select"
+              value={activeProperty}
+              onChange={(e) => setActiveProperty(e.target.value)}
+            >
+              <option value="all">All Properties</option>
+              {properties.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
 
       {/* Table */}
       <div className="fin-chart-card" style={{ marginTop: 16 }}>
