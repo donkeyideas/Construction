@@ -596,18 +596,18 @@ export async function getCRMTransactions(
   // Won opportunities with estimated_value
   const { data: opportunities } = await supabase
     .from("opportunities")
-    .select("id, name, estimated_value, stage, close_date, created_at")
+    .select("id, name, estimated_value, stage, expected_close_date, created_at")
     .eq("company_id", companyId)
     .eq("stage", "won")
     .not("estimated_value", "is", null)
-    .order("close_date", { ascending: false })
+    .order("expected_close_date", { ascending: false })
     .limit(100);
 
   for (const opp of opportunities ?? []) {
     const value = Number(opp.estimated_value) || 0;
     txns.push({
       id: `opp-${opp.id}`,
-      date: opp.close_date ?? opp.created_at,
+      date: opp.expected_close_date ?? opp.created_at,
       description: `Won: ${opp.name}`,
       reference: "",
       source: "Opportunities",
