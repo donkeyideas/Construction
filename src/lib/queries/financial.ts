@@ -1,6 +1,28 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
 /* ------------------------------------------------------------------
+   Pagination helper — Supabase defaults to returning max 1000 rows.
+   This fetches ALL rows by paginating through the full result set.
+   ------------------------------------------------------------------ */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function paginatedQuery<T = Record<string, unknown>>(
+  queryFn: (from: number, to: number) => PromiseLike<{ data: any[] | null; error: unknown }>
+): Promise<T[]> {
+  const PAGE_SIZE = 1000;
+  const all: T[] = [];
+  let from = 0;
+  for (;;) {
+    const { data } = await queryFn(from, from + PAGE_SIZE - 1);
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return all;
+}
+
+/* ------------------------------------------------------------------
    Types
    ------------------------------------------------------------------ */
 
@@ -422,28 +444,31 @@ export async function getChartOfAccounts(
   supabase: SupabaseClient,
   companyId: string
 ): Promise<AccountTreeNode[]> {
-  // Fetch accounts and journal entry line totals in parallel
-  const [accountsResult, balancesResult] = await Promise.all([
-    supabase
-      .from("chart_of_accounts")
-      .select("*")
-      .eq("company_id", companyId)
-      .eq("is_active", true)
-      .order("account_number", { ascending: true }),
-    supabase
-      .from("journal_entry_lines")
-      .select("account_id, debit, credit")
-      .eq("company_id", companyId),
-  ]);
+  // Fetch accounts
+  const accountsResult = await supabase
+    .from("chart_of_accounts")
+    .select("*")
+    .eq("company_id", companyId)
+    .eq("is_active", true)
+    .order("account_number", { ascending: true });
 
   if (accountsResult.error) {
     console.error("Error fetching chart of accounts:", accountsResult.error);
     return [];
   }
 
+  // Fetch ALL journal entry line totals (paginated to avoid 1000-row limit)
+  const allLines = await paginatedQuery<{ account_id: string; debit: number; credit: number }>((from, to) =>
+    supabase
+      .from("journal_entry_lines")
+      .select("account_id, debit, credit")
+      .eq("company_id", companyId)
+      .range(from, to)
+  );
+
   // Sum debits and credits per account
   const balanceMap = new Map<string, { debit: number; credit: number }>();
-  for (const line of balancesResult.data ?? []) {
+  for (const line of allLines) {
     const existing = balanceMap.get(line.account_id) ?? { debit: 0, credit: 0 };
     existing.debit += Number(line.debit) || 0;
     existing.credit += Number(line.credit) || 0;
@@ -895,11 +920,14 @@ export async function getJournalEntries(
     const BATCH_SIZE = 100;
     for (let i = 0; i < entryIds.length; i += BATCH_SIZE) {
       const batch = entryIds.slice(i, i + BATCH_SIZE);
-      const { data: lines } = await supabase
-        .from("journal_entry_lines")
-        .select("journal_entry_id, debit, credit")
-        .in("journal_entry_id", batch);
-      for (const line of lines ?? []) {
+      const lines = await paginatedQuery<{ journal_entry_id: string; debit: number; credit: number }>((from, to) =>
+        supabase
+          .from("journal_entry_lines")
+          .select("journal_entry_id, debit, credit")
+          .in("journal_entry_id", batch)
+          .range(from, to)
+      );
+      for (const line of lines) {
         const existing = totals.get(line.journal_entry_id) ?? { debit: 0, credit: 0 };
         existing.debit += line.debit ?? 0;
         existing.credit += line.credit ?? 0;
@@ -1145,21 +1173,24 @@ export async function getTrialBalance(
   companyId: string,
   asOfDate?: string
 ): Promise<TrialBalanceRow[]> {
-  // Use !inner join to filter by posted entries — avoids URL-length issues
-  // with large .in() arrays that exceed Supabase's PostgREST URL limit
-  let query = supabase
-    .from("journal_entry_lines")
-    .select("account_id, debit, credit, chart_of_accounts(account_number, name, account_type), journal_entries!inner(status, entry_date)")
-    .eq("company_id", companyId)
-    .eq("journal_entries.status", "posted");
+  // Use !inner join + pagination to fetch ALL posted JE lines
+  // (Supabase defaults to 1000 rows — real datasets easily exceed this)
+  const lines = await paginatedQuery<{
+    account_id: string; debit: number; credit: number;
+    chart_of_accounts: { account_number: string; name: string; account_type: string } | null;
+    journal_entries: { status: string; entry_date: string };
+  }>(((from: number, to: number) => {
+    let q = supabase
+      .from("journal_entry_lines")
+      .select("account_id, debit, credit, chart_of_accounts(account_number, name, account_type), journal_entries!inner(status, entry_date)")
+      .eq("company_id", companyId)
+      .eq("journal_entries.status", "posted");
+    if (asOfDate) q = q.lte("journal_entries.entry_date", asOfDate);
+    return q.range(from, to);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any);
 
-  if (asOfDate) {
-    query = query.lte("journal_entries.entry_date", asOfDate);
-  }
-
-  const { data: lines } = await query;
-
-  if (!lines || lines.length === 0) {
+  if (lines.length === 0) {
     return [];
   }
 
@@ -1170,12 +1201,7 @@ export async function getTrialBalance(
   >();
 
   for (const line of lines) {
-    const account = (line as Record<string, unknown>).chart_of_accounts as {
-      account_number: string;
-      name: string;
-      account_type: string;
-    } | null;
-
+    const account = line.chart_of_accounts;
     if (!account) continue;
 
     const existing = accountMap.get(line.account_id) ?? {
@@ -1313,24 +1339,28 @@ async function getTrialBalanceDateRange(
   startDate: string,
   endDate: string
 ): Promise<{ account_id: string; account_number: string; account_name: string; account_type: string; debit: number; credit: number }[]> {
-  // Use !inner join to filter by posted entries and date range — avoids
-  // URL-length issues with large .in() arrays
-  const { data: lines } = await supabase
-    .from("journal_entry_lines")
-    .select("account_id, debit, credit, chart_of_accounts(account_number, name, account_type), journal_entries!inner(status, entry_date)")
-    .eq("company_id", companyId)
-    .eq("journal_entries.status", "posted")
-    .gte("journal_entries.entry_date", startDate)
-    .lte("journal_entries.entry_date", endDate);
+  // Paginated !inner join — avoids both URL-length and 1000-row limit issues
+  const lines = await paginatedQuery<{
+    account_id: string; debit: number; credit: number;
+    chart_of_accounts: { account_number: string; name: string; account_type: string } | null;
+    journal_entries: { status: string; entry_date: string };
+  }>((from, to) =>
+    supabase
+      .from("journal_entry_lines")
+      .select("account_id, debit, credit, chart_of_accounts(account_number, name, account_type), journal_entries!inner(status, entry_date)")
+      .eq("company_id", companyId)
+      .eq("journal_entries.status", "posted")
+      .gte("journal_entries.entry_date", startDate)
+      .lte("journal_entries.entry_date", endDate)
+      .range(from, to)
+  );
 
-  if (!lines || lines.length === 0) return [];
+  if (lines.length === 0) return [];
 
   const accountMap = new Map<string, { account_number: string; account_name: string; account_type: string; debit: number; credit: number }>();
 
   for (const line of lines) {
-    const account = (line as Record<string, unknown>).chart_of_accounts as {
-      account_number: string; name: string; account_type: string;
-    } | null;
+    const account = line.chart_of_accounts;
     if (!account) continue;
 
     const existing = accountMap.get(line.account_id) ?? {
@@ -1533,24 +1563,28 @@ export async function getCashFlowStatement(
   const financing: CashFlowSection[] = [];
   let netFinancing = 0;
 
-  // Query journal entry lines for investing and financing activities during the period
-  // Use !inner join to avoid URL-length issues with large .in() arrays
+  // Paginated query for investing and financing activities
   {
-    const { data: cfLines } = await supabase
-      .from("journal_entry_lines")
-      .select("debit, credit, chart_of_accounts(account_number, name, account_type, sub_type), journal_entries!inner(status, entry_date)")
-      .eq("company_id", companyId)
-      .eq("journal_entries.status", "posted")
-      .gte("journal_entries.entry_date", startDate)
-      .lte("journal_entries.entry_date", endDate);
+    const cfLines = await paginatedQuery<{
+      debit: number; credit: number;
+      chart_of_accounts: { account_number: string; name: string; account_type: string; sub_type: string } | null;
+      journal_entries: { status: string; entry_date: string };
+    }>((from, to) =>
+      supabase
+        .from("journal_entry_lines")
+        .select("debit, credit, chart_of_accounts(account_number, name, account_type, sub_type), journal_entries!inner(status, entry_date)")
+        .eq("company_id", companyId)
+        .eq("journal_entries.status", "posted")
+        .gte("journal_entries.entry_date", startDate)
+        .lte("journal_entries.entry_date", endDate)
+        .range(from, to)
+    );
 
     const investingMap = new Map<string, number>();
     const financingMap = new Map<string, number>();
 
-    for (const line of cfLines ?? []) {
-      const account = (line as Record<string, unknown>).chart_of_accounts as {
-        account_number: string; name: string; account_type: string; sub_type: string;
-      } | null;
+    for (const line of cfLines) {
+      const account = line.chart_of_accounts;
       if (!account) continue;
 
       const num = parseInt(account.account_number);
@@ -1823,24 +1857,26 @@ export async function getAccountTransactions(
     .eq("company_id", companyId)
     .single();
 
-  // Use !inner join to filter by posted entries and date — avoids URL-length
-  // issues with large .in() arrays that exceed Supabase's PostgREST URL limit
-  let linesQuery = supabase
-    .from("journal_entry_lines")
-    .select(`
-      id, account_id, debit, credit, description,
-      journal_entries!inner(id, entry_number, entry_date, description, reference, status)
-    `)
-    .eq("account_id", accountId)
-    .eq("company_id", companyId)
-    .eq("journal_entries.status", "posted");
+  // Paginated !inner join — avoids both URL-length and 1000-row limit issues
+  const lines = await paginatedQuery<{
+    id: string; account_id: string; debit: number; credit: number; description: string | null;
+    journal_entries: { id: string; entry_number: string; entry_date: string; description: string; reference: string | null; status: string };
+  }>((from, to) => {
+    let q = supabase
+      .from("journal_entry_lines")
+      .select(`
+        id, account_id, debit, credit, description,
+        journal_entries!inner(id, entry_number, entry_date, description, reference, status)
+      `)
+      .eq("account_id", accountId)
+      .eq("company_id", companyId)
+      .eq("journal_entries.status", "posted");
+    if (startDate) q = q.gte("journal_entries.entry_date", startDate);
+    if (endDate) q = q.lte("journal_entries.entry_date", endDate);
+    return q.range(from, to);
+  });
 
-  if (startDate) linesQuery = linesQuery.gte("journal_entries.entry_date", startDate);
-  if (endDate) linesQuery = linesQuery.lte("journal_entries.entry_date", endDate);
-
-  const { data: lines } = await linesQuery;
-
-  if (!lines || lines.length === 0) {
+  if (lines.length === 0) {
     return {
       transactions: [],
       totalDebit: 0,
@@ -1856,14 +1892,8 @@ export async function getAccountTransactions(
   let totalDebit = 0;
   let totalCredit = 0;
 
-  for (const line of lines ?? []) {
-    const je = (line as Record<string, unknown>).journal_entries as {
-      id: string;
-      entry_number: string;
-      entry_date: string;
-      description: string;
-      reference: string | null;
-    };
+  for (const line of lines) {
+    const je = line.journal_entries;
 
     const debit = line.debit ?? 0;
     const credit = line.credit ?? 0;

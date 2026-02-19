@@ -1,5 +1,23 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+// Pagination helper — Supabase defaults to returning max 1000 rows.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function paginatedQuery<T = Record<string, unknown>>(
+  queryFn: (from: number, to: number) => PromiseLike<{ data: any[] | null; error: unknown }>
+): Promise<T[]> {
+  const PAGE_SIZE = 1000;
+  const all: T[] = [];
+  let from = 0;
+  for (;;) {
+    const { data } = await queryFn(from, from + PAGE_SIZE - 1);
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return all;
+}
+
 export interface AuditCheckResult {
   id: string;
   name: string;
@@ -72,19 +90,17 @@ async function checkTrialBalance(
   const id = "trial-balance";
   const name = "Trial Balance";
 
-  // Use inner join to filter lines by posted entries — avoids URL-length issues
-  // with large .in() arrays
-  const { data: lines, error: linesErr } = await supabase
-    .from("journal_entry_lines")
-    .select("debit, credit, journal_entries!inner(id)")
-    .eq("company_id", companyId)
-    .eq("journal_entries.status", "posted");
+  // Paginated inner join — avoids both URL-length and 1000-row limit issues
+  const lines = await paginatedQuery<{ debit: number; credit: number; journal_entries: { id: string } }>((from, to) =>
+    supabase
+      .from("journal_entry_lines")
+      .select("debit, credit, journal_entries!inner(id)")
+      .eq("company_id", companyId)
+      .eq("journal_entries.status", "posted")
+      .range(from, to)
+  );
 
-  if (linesErr) {
-    return { id, name, status: "fail", summary: "Error querying journal entry lines", details: [linesErr.message] };
-  }
-
-  if (!lines || lines.length === 0) {
+  if (lines.length === 0) {
     return { id, name, status: "pass", summary: "No posted journal entries found — nothing to validate", details: [] };
   }
 
@@ -132,18 +148,21 @@ async function checkBalanceSheetBalance(
   const id = "balance-sheet";
   const name = "Balance Sheet Equation";
 
-  // Use inner join to filter lines by posted entries — avoids URL-length issues
-  const { data: lines, error: linesErr } = await supabase
-    .from("journal_entry_lines")
-    .select("debit, credit, account_id, chart_of_accounts(account_type), journal_entries!inner(id)")
-    .eq("company_id", companyId)
-    .eq("journal_entries.status", "posted");
+  // Paginated inner join — avoids both URL-length and 1000-row limit issues
+  const lines = await paginatedQuery<{
+    debit: number; credit: number; account_id: string;
+    chart_of_accounts: { account_type: string } | null;
+    journal_entries: { id: string };
+  }>((from, to) =>
+    supabase
+      .from("journal_entry_lines")
+      .select("debit, credit, account_id, chart_of_accounts(account_type), journal_entries!inner(id)")
+      .eq("company_id", companyId)
+      .eq("journal_entries.status", "posted")
+      .range(from, to)
+  );
 
-  if (linesErr) {
-    return { id, name, status: "fail", summary: "Error querying journal entry lines", details: [linesErr.message] };
-  }
-
-  if (!lines || lines.length === 0) {
+  if (lines.length === 0) {
     return { id, name, status: "pass", summary: "No posted journal entries found — nothing to validate", details: [] };
   }
 
@@ -153,8 +172,8 @@ async function checkBalanceSheetBalance(
   let totalRevenue = 0;
   let totalExpenses = 0;
 
-  for (const line of lines ?? []) {
-    const account = (line as Record<string, unknown>).chart_of_accounts as { account_type: string } | null;
+  for (const line of lines) {
+    const account = line.chart_of_accounts;
     if (!account) continue;
 
     const debit = Number(line.debit) || 0;
@@ -452,21 +471,20 @@ async function checkBankReconciliation(
     };
   }
 
-  // Use inner join to filter lines by posted entries — avoids URL-length issues
+  // Paginated inner join — avoids both URL-length and 1000-row limit issues
   let glCashBalance = 0;
 
-  const { data: cashLines, error: cashLinesErr } = await supabase
-    .from("journal_entry_lines")
-    .select("debit, credit, journal_entries!inner(id)")
-    .eq("company_id", companyId)
-    .in("account_id", cashAccountIds)
-    .eq("journal_entries.status", "posted");
+  const cashLines = await paginatedQuery<{ debit: number; credit: number; journal_entries: { id: string } }>((from, to) =>
+    supabase
+      .from("journal_entry_lines")
+      .select("debit, credit, journal_entries!inner(id)")
+      .eq("company_id", companyId)
+      .in("account_id", cashAccountIds)
+      .eq("journal_entries.status", "posted")
+      .range(from, to)
+  );
 
-  if (cashLinesErr) {
-    return { id, name, status: "fail", summary: "Error querying cash JE lines", details: [cashLinesErr.message] };
-  }
-
-  for (const line of cashLines ?? []) {
+  for (const line of cashLines) {
     glCashBalance += (Number(line.debit) || 0) - (Number(line.credit) || 0);
   }
 
@@ -655,17 +673,19 @@ async function checkOrphanedJELines(
 
   const validAccountIds = new Set((accounts ?? []).map((a: { id: string }) => a.id));
 
-  // Use inner join to get lines with entry numbers — avoids URL-length issues
-  const { data: lines, error: linesErr } = await supabase
-    .from("journal_entry_lines")
-    .select("id, account_id, journal_entry_id, journal_entries!inner(entry_number)")
-    .eq("company_id", companyId);
+  // Paginated query — avoids 1000-row limit
+  const lines = await paginatedQuery<{
+    id: string; account_id: string; journal_entry_id: string;
+    journal_entries: { entry_number: string };
+  }>((from, to) =>
+    supabase
+      .from("journal_entry_lines")
+      .select("id, account_id, journal_entry_id, journal_entries!inner(entry_number)")
+      .eq("company_id", companyId)
+      .range(from, to)
+  );
 
-  if (linesErr) {
-    return { id, name, status: "fail", summary: "Error querying journal entry lines", details: [linesErr.message] };
-  }
-
-  if (!lines || lines.length === 0) {
+  if (lines.length === 0) {
     return { id, name, status: "pass", summary: "No journal entries found — nothing to validate", details: [] };
   }
 
