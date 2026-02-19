@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { DollarSign } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getDocumentTransactions } from "@/lib/queries/section-transactions";
 import SectionTransactions from "@/components/SectionTransactions";
+import ResetCompanyButton from "@/components/ResetCompanyButton";
 
 export const metadata = {
   title: "Documents Transactions - Buildwrk",
@@ -17,20 +17,24 @@ export default async function DocumentsTransactionsPage() {
     redirect("/register");
   }
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const isTestAccount = user?.email === "beltran_alain@yahoo.com";
   const txnData = await getDocumentTransactions(supabase, userCompany.companyId);
 
   return (
     <div>
       <div className="fin-header">
         <div>
-          <h2>
-            <DollarSign size={24} style={{ verticalAlign: "middle", marginRight: 8 }} />
-            Documents Transactions
-          </h2>
+          <h2>Documents Transactions</h2>
           <p className="fin-header-sub">
             Printing, scanning, storage, and blueprint-related expenses.
           </p>
         </div>
+        {isTestAccount && (
+          <div className="fin-header-actions">
+            <ResetCompanyButton />
+          </div>
+        )}
       </div>
       <SectionTransactions data={txnData} sectionName="Documents" />
     </div>
