@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   DollarSign,
@@ -13,6 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  RefreshCw,
+  BookOpen,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import JournalEntryModal from "@/components/JournalEntryModal";
@@ -29,6 +32,7 @@ type SortDir = "asc" | "desc";
 const PAGE_SIZE = 25;
 
 export default function SectionTransactions({ data, sectionName }: Props) {
+  const router = useRouter();
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -37,6 +41,30 @@ export default function SectionTransactions({ data, sectionName }: Props) {
   // JE Modal state
   const [modalJeId, setModalJeId] = useState<string | null>(null);
   const [modalJeNumber, setModalJeNumber] = useState<string>("");
+
+  // Backfill state
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillDone, setBackfillDone] = useState(false);
+
+  const missingJeCount = useMemo(
+    () => data.transactions.filter((t) => !t.jeNumber).length,
+    [data.transactions]
+  );
+
+  async function handleBackfill() {
+    setBackfilling(true);
+    try {
+      const res = await fetch("/api/admin/backfill-journal-entries", { method: "POST" });
+      if (res.ok) {
+        setBackfillDone(true);
+        router.refresh();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setBackfilling(false);
+    }
+  }
 
   // Unique sources for filter
   const sources = useMemo(() => {
@@ -191,21 +219,38 @@ export default function SectionTransactions({ data, sectionName }: Props) {
             <DollarSign size={16} style={{ color: "var(--color-blue)" }} />
             {sectionName} Transactions
           </div>
-          {sources.length > 1 && (
-            <div className="section-txn-filter">
-              <Filter size={13} />
-              <select
-                value={sourceFilter}
-                onChange={(e) => handleFilterChange(e.target.value)}
-                className="section-txn-select"
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {missingJeCount > 0 && !backfillDone && (
+              <button
+                className="btn btn-primary"
+                style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", padding: "6px 14px" }}
+                onClick={handleBackfill}
+                disabled={backfilling}
               >
-                <option value="all">All Sources</option>
-                {sources.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-          )}
+                {backfilling ? (
+                  <RefreshCw size={14} className="spin" />
+                ) : (
+                  <BookOpen size={14} />
+                )}
+                {backfilling ? "Generating..." : `Generate ${missingJeCount} Missing JE${missingJeCount !== 1 ? "s" : ""}`}
+              </button>
+            )}
+            {sources.length > 1 && (
+              <div className="section-txn-filter">
+                <Filter size={13} />
+                <select
+                  value={sourceFilter}
+                  onChange={(e) => handleFilterChange(e.target.value)}
+                  className="section-txn-select"
+                >
+                  <option value="all">All Sources</option>
+                  {sources.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
 
         {displayed.length > 0 ? (
