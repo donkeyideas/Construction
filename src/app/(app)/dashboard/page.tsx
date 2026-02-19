@@ -11,7 +11,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import {
   getDashboardKPIs,
   getProjectStatusBreakdown,
-  getCashFlow,
+  getARAPAging,
   getPendingApprovals,
   getRecentActivity,
 } from "@/lib/queries/dashboard";
@@ -22,7 +22,7 @@ import {
   formatRelativeTime,
 } from "@/lib/utils/format";
 import DashboardFilter from "@/components/DashboardFilter";
-import CashFlowChart from "@/components/CashFlowChart";
+import ARAPAgingChart from "@/components/charts/ARAPAgingChart";
 import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = {
@@ -111,11 +111,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   if (filterEndDate) arQuery = arQuery.lte("invoice_date", filterEndDate);
 
   // Fetch all dashboard data in parallel
-  const [kpis, projectStatus, cashFlow, pendingApprovalsResult, recentActivity, outstandingAPRes, outstandingARRes] =
+  const [kpis, projectStatus, agingData, pendingApprovalsResult, recentActivity, outstandingAPRes, outstandingARRes] =
     await Promise.all([
       getDashboardKPIs(supabase, companyId, selectedProjectId),
       getProjectStatusBreakdown(supabase, companyId, selectedProjectId),
-      getCashFlow(supabase, companyId, selectedProjectId, filterStartDate, filterEndDate),
+      getARAPAging(supabase, companyId, selectedProjectId),
       getPendingApprovals(supabase, companyId, selectedProjectId),
       getRecentActivity(supabase, companyId, selectedProjectId),
       apQuery,
@@ -185,7 +185,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       : "conic-gradient(var(--border) 0% 100%)";
 
   // Check if cash flow has any data
-  const hasCashFlowData = cashFlow.some((m) => m.cashIn > 0 || m.cashOut > 0);
+  const hasAgingData = agingData.some((b) => b.ar > 0 || b.ap > 0);
 
   // Find the selected project name for the header
   const selectedProjectName = selectedProjectId
@@ -266,11 +266,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         <div className="charts-row">
           {sections.financials && (
             <div className="card">
-              <div className="card-title">{t("cashFlow")}</div>
-              {!hasCashFlowData ? (
-                <EmptyState message={t("noCashFlowData")} />
+              <div className="card-title">AR / AP Aging</div>
+              {!hasAgingData ? (
+                <EmptyState message="No outstanding invoices" />
               ) : (
-                <CashFlowChart data={cashFlow} />
+                <ARAPAgingChart data={agingData} />
               )}
             </div>
           )}

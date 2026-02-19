@@ -27,6 +27,12 @@ export interface CashFlowItem {
   net: number; // cashIn - cashOut
 }
 
+export interface AgingBucket {
+  bucket: string; // "Current", "1-30", "31-60", "61-90", "90+"
+  ar: number;
+  ap: number;
+}
+
 export interface PendingApprovalItem {
   type: "change_order" | "invoice" | "submittal";
   title: string;
@@ -238,6 +244,69 @@ export async function getCashFlow(
   }
 
   return result;
+}
+
+// ---------------------------------------------------------------------------
+// AR / AP Aging (grouped bar chart — outstanding balances by aging bucket)
+// ---------------------------------------------------------------------------
+
+export async function getARAPAging(
+  supabase: SupabaseClient,
+  companyId: string,
+  projectId?: string
+): Promise<AgingBucket[]> {
+  const today = new Date().toISOString().slice(0, 10);
+
+  let arQuery = supabase
+    .from("invoices")
+    .select("invoice_date, due_date, balance_due")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "receivable")
+    .not("status", "in", '("voided","paid")')
+    .gt("balance_due", 0);
+  if (projectId) arQuery = arQuery.eq("project_id", projectId);
+
+  let apQuery = supabase
+    .from("invoices")
+    .select("invoice_date, due_date, balance_due")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "payable")
+    .not("status", "in", '("voided","paid")')
+    .gt("balance_due", 0);
+  if (projectId) apQuery = apQuery.eq("project_id", projectId);
+
+  const [arRes, apRes] = await Promise.all([arQuery, apQuery]);
+
+  const buckets: AgingBucket[] = [
+    { bucket: "Current", ar: 0, ap: 0 },
+    { bucket: "1-30", ar: 0, ap: 0 },
+    { bucket: "31-60", ar: 0, ap: 0 },
+    { bucket: "61-90", ar: 0, ap: 0 },
+    { bucket: "90+", ar: 0, ap: 0 },
+  ];
+
+  function classify(dueDate: string | null, invoiceDate: string): number {
+    const ref = dueDate || invoiceDate;
+    const diffMs = new Date(today).getTime() - new Date(ref).getTime();
+    const days = Math.floor(diffMs / 86_400_000);
+    if (days <= 0) return 0; // Current
+    if (days <= 30) return 1;
+    if (days <= 60) return 2;
+    if (days <= 90) return 3;
+    return 4; // 90+
+  }
+
+  for (const inv of arRes.data ?? []) {
+    const idx = classify(inv.due_date, inv.invoice_date);
+    buckets[idx].ar += Number(inv.balance_due) || 0;
+  }
+
+  for (const inv of apRes.data ?? []) {
+    const idx = classify(inv.due_date, inv.invoice_date);
+    buckets[idx].ap += Number(inv.balance_due) || 0;
+  }
+
+  return buckets;
 }
 
 // ---------------------------------------------------------------------------
