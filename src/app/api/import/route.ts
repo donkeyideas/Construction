@@ -8,6 +8,7 @@ import {
   buildCompanyAccountMap,
   inferGLAccountFromDescription,
 } from "@/lib/utils/invoice-accounting";
+import { backfillMissingJournalEntries } from "@/lib/utils/backfill-journal-entries";
 
 // ---------------------------------------------------------------------------
 // POST /api/import — Generic bulk import endpoint
@@ -1478,6 +1479,19 @@ export async function POST(request: NextRequest) {
         await syncPropertyFinancials(supabase, companyId);
       } catch {
         // Non-blocking: don't fail the import if sync fails
+      }
+    }
+
+    // Auto-generate missing journal entries after importing financial entities
+    const JE_ENTITIES = [
+      "invoices", "change_orders", "leases", "maintenance",
+      "equipment", "equipment_maintenance",
+    ];
+    if (JE_ENTITIES.includes(entity) && successCount > 0) {
+      try {
+        await backfillMissingJournalEntries(supabase, companyId, userId);
+      } catch {
+        // Non-blocking: don't fail the import if backfill fails
       }
     }
 
