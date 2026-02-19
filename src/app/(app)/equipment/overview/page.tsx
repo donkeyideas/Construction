@@ -7,8 +7,7 @@ import { getEquipmentOverview } from "@/lib/queries/equipment";
 import { formatCompactCurrency, formatPercent } from "@/lib/utils/format";
 import EquipmentStatusChart from "@/components/charts/EquipmentStatusChart";
 import EquipmentTypeChart from "@/components/charts/EquipmentTypeChart";
-import { getEquipmentTransactions } from "@/lib/queries/section-transactions";
-import SectionTransactions from "@/components/SectionTransactions";
+
 
 export const metadata = {
   title: "Equipment Overview - Buildwrk",
@@ -23,7 +22,6 @@ export default async function EquipmentOverviewPage() {
   }
 
   const overview = await getEquipmentOverview(supabase, userCtx.companyId);
-  const txnData = await getEquipmentTransactions(supabase, userCtx.companyId);
 
   return (
     <div>
@@ -157,7 +155,6 @@ export default async function EquipmentOverviewPage() {
         <Link href="/equipment/assignments" className="ui-btn ui-btn-sm ui-btn-secondary">All Assignments</Link>
       </div>
 
-      <SectionTransactions data={txnData} sectionName="Equipment" />
     </div>
   );
 }

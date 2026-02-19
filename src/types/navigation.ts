@@ -36,6 +36,7 @@ export const appNavigation: NavItem[] = [
     icon: "hard-hat",
     children: [
       { label: "Overview", href: "/projects/overview" },
+      { label: "Transactions", href: "/projects/transactions" },
       { label: "Active Projects", href: "/projects" },
       { label: "Gantt Schedule", href: "/projects/gantt" },
       { label: "Daily Logs", href: "/projects/daily-logs" },
@@ -50,6 +51,7 @@ export const appNavigation: NavItem[] = [
     icon: "building-2",
     children: [
       { label: "Overview", href: "/properties/overview" },
+      { label: "Transactions", href: "/properties/transactions" },
       { label: "Portfolio", href: "/properties" },
       { label: "Leases", href: "/properties/leases" },
       { label: "Maintenance", href: "/properties/maintenance" },
@@ -60,6 +62,7 @@ export const appNavigation: NavItem[] = [
     icon: "shield-check",
     children: [
       { label: "Overview", href: "/safety/overview" },
+      { label: "Transactions", href: "/safety/transactions" },
       { label: "Dashboard", href: "/safety" },
       { label: "Incidents", href: "/safety/incidents" },
       { label: "Inspections", href: "/safety/inspections" },
@@ -71,6 +74,7 @@ export const appNavigation: NavItem[] = [
     icon: "wrench",
     children: [
       { label: "Overview", href: "/equipment/overview" },
+      { label: "Transactions", href: "/equipment/transactions" },
       { label: "Dashboard", href: "/equipment" },
       { label: "Inventory", href: "/equipment/inventory" },
       { label: "Assignments", href: "/equipment/assignments" },
@@ -82,6 +86,7 @@ export const appNavigation: NavItem[] = [
     icon: "dollar-sign",
     children: [
       { label: "Overview", href: "/financial" },
+      { label: "Transactions", href: "/financial/transactions" },
       { label: "Invoices", href: "/financial/invoices" },
       { label: "Accounts Receivable", href: "/financial/ar" },
       { label: "Accounts Payable", href: "/financial/ap" },
@@ -102,6 +107,7 @@ export const appNavigation: NavItem[] = [
     icon: "folder-open",
     children: [
       { label: "Overview", href: "/documents/overview" },
+      { label: "Transactions", href: "/documents/transactions" },
       { label: "Library", href: "/documents" },
       { label: "Plan Room", href: "/documents/plan-room" },
     ],
@@ -111,6 +117,7 @@ export const appNavigation: NavItem[] = [
     icon: "users",
     children: [
       { label: "Overview", href: "/people/overview" },
+      { label: "Transactions", href: "/people/transactions" },
       { label: "Directory", href: "/people" },
       { label: "Time & Attendance", href: "/people/time" },
       { label: "Payroll", href: "/people/payroll" },
@@ -123,6 +130,7 @@ export const appNavigation: NavItem[] = [
     icon: "handshake",
     children: [
       { label: "Overview", href: "/crm/overview" },
+      { label: "Transactions", href: "/crm/transactions" },
       { label: "Pipeline", href: "/crm" },
       { label: "Bid Management", href: "/crm/bids" },
       { label: "Estimating", href: "/estimating" },

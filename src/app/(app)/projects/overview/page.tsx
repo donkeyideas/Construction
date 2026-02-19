@@ -15,8 +15,7 @@ import {
 import { formatCompactCurrency, formatPercent } from "@/lib/utils/format";
 import ProjectStatusChart from "@/components/charts/ProjectStatusChart";
 import ProjectBudgetChart from "@/components/charts/ProjectBudgetChart";
-import { getProjectTransactions } from "@/lib/queries/section-transactions";
-import SectionTransactions from "@/components/SectionTransactions";
+
 
 export const metadata = {
   title: "Projects Overview - Buildwrk",
@@ -43,7 +42,6 @@ export default async function ProjectsOverviewPage() {
   }
 
   const overview = await getProjectsOverview(supabase, userCtx.companyId);
-  const txnData = await getProjectTransactions(supabase, userCtx.companyId);
 
   return (
     <div>
@@ -233,7 +231,6 @@ export default async function ProjectsOverviewPage() {
         </Link>
       </div>
 
-      <SectionTransactions data={txnData} sectionName="Projects" />
     </div>
   );
 }

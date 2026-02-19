@@ -4,11 +4,9 @@ import { DollarSign, TrendingUp, Target, BarChart3, FileText, Clock, Plus } from
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getCRMOverview } from "@/lib/queries/crm";
-import { getCRMTransactions } from "@/lib/queries/section-transactions";
 import { formatCompactCurrency, formatPercent } from "@/lib/utils/format";
 import PipelineFunnelChart from "@/components/charts/PipelineFunnelChart";
 import BidPerformanceChart from "@/components/charts/BidPerformanceChart";
-import SectionTransactions from "@/components/SectionTransactions";
 
 export const metadata = {
   title: "CRM Overview - Buildwrk",
@@ -42,7 +40,6 @@ export default async function CRMOverviewPage() {
 
   const { companyId } = userCompany;
   const overview = await getCRMOverview(supabase, companyId);
-  const txnData = await getCRMTransactions(supabase, companyId);
 
   return (
     <div>
@@ -191,7 +188,6 @@ export default async function CRMOverviewPage() {
         <Link href="/crm/bids" className="ui-btn ui-btn-sm ui-btn-secondary">All Bids</Link>
       </div>
 
-      <SectionTransactions data={txnData} sectionName="CRM & Bids" />
     </div>
   );
 }

@@ -7,8 +7,7 @@ import { getSafetyOverview } from "@/lib/queries/safety";
 import { formatPercent } from "@/lib/utils/format";
 import IncidentTrendChart from "@/components/charts/IncidentTrendChart";
 import IncidentTypeChart from "@/components/charts/IncidentTypeChart";
-import { getSafetyTransactions } from "@/lib/queries/section-transactions";
-import SectionTransactions from "@/components/SectionTransactions";
+
 
 export const metadata = {
   title: "Safety Overview - Buildwrk",
@@ -39,7 +38,6 @@ export default async function SafetyOverviewPage() {
   }
 
   const overview = await getSafetyOverview(supabase, userCtx.companyId);
-  const txnData = await getSafetyTransactions(supabase, userCtx.companyId);
 
   return (
     <div>
@@ -180,7 +178,6 @@ export default async function SafetyOverviewPage() {
         <Link href="/safety/inspections" className="ui-btn ui-btn-sm ui-btn-secondary">Inspections</Link>
       </div>
 
-      <SectionTransactions data={txnData} sectionName="Safety" />
     </div>
   );
 }
