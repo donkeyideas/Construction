@@ -72,36 +72,25 @@ async function checkTrialBalance(
   const id = "trial-balance";
   const name = "Trial Balance";
 
-  // Get all posted journal entry IDs for this company
-  const { data: entries, error: entriesErr } = await supabase
-    .from("journal_entries")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("status", "posted");
-
-  if (entriesErr) {
-    return { id, name, status: "fail", summary: "Error querying journal entries", details: [entriesErr.message] };
-  }
-
-  const entryIds = (entries ?? []).map((e: { id: string }) => e.id);
-
-  if (entryIds.length === 0) {
-    return { id, name, status: "pass", summary: "No posted journal entries found — nothing to validate", details: [] };
-  }
-
-  // Sum all debits and credits from journal entry lines
+  // Use inner join to filter lines by posted entries — avoids URL-length issues
+  // with large .in() arrays
   const { data: lines, error: linesErr } = await supabase
     .from("journal_entry_lines")
-    .select("debit, credit")
-    .in("journal_entry_id", entryIds);
+    .select("debit, credit, journal_entries!inner(id)")
+    .eq("company_id", companyId)
+    .eq("journal_entries.status", "posted");
 
   if (linesErr) {
     return { id, name, status: "fail", summary: "Error querying journal entry lines", details: [linesErr.message] };
   }
 
+  if (!lines || lines.length === 0) {
+    return { id, name, status: "pass", summary: "No posted journal entries found — nothing to validate", details: [] };
+  }
+
   let totalDebit = 0;
   let totalCredit = 0;
-  for (const line of lines ?? []) {
+  for (const line of lines) {
     totalDebit += Number(line.debit) || 0;
     totalCredit += Number(line.credit) || 0;
   }
@@ -143,31 +132,19 @@ async function checkBalanceSheetBalance(
   const id = "balance-sheet";
   const name = "Balance Sheet Equation";
 
-  // Get all posted journal entry IDs
-  const { data: entries, error: entriesErr } = await supabase
-    .from("journal_entries")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("status", "posted");
-
-  if (entriesErr) {
-    return { id, name, status: "fail", summary: "Error querying journal entries", details: [entriesErr.message] };
-  }
-
-  const entryIds = (entries ?? []).map((e: { id: string }) => e.id);
-
-  if (entryIds.length === 0) {
-    return { id, name, status: "pass", summary: "No posted journal entries found — nothing to validate", details: [] };
-  }
-
-  // Get lines joined with account info
+  // Use inner join to filter lines by posted entries — avoids URL-length issues
   const { data: lines, error: linesErr } = await supabase
     .from("journal_entry_lines")
-    .select("debit, credit, account_id, chart_of_accounts(account_type)")
-    .in("journal_entry_id", entryIds);
+    .select("debit, credit, account_id, chart_of_accounts(account_type), journal_entries!inner(id)")
+    .eq("company_id", companyId)
+    .eq("journal_entries.status", "posted");
 
   if (linesErr) {
     return { id, name, status: "fail", summary: "Error querying journal entry lines", details: [linesErr.message] };
+  }
+
+  if (!lines || lines.length === 0) {
+    return { id, name, status: "pass", summary: "No posted journal entries found — nothing to validate", details: [] };
   }
 
   let totalAssets = 0;
@@ -475,36 +452,22 @@ async function checkBankReconciliation(
     };
   }
 
-  // Get posted journal entry IDs
-  const { data: entries, error: entriesErr } = await supabase
-    .from("journal_entries")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("status", "posted");
-
-  if (entriesErr) {
-    return { id, name, status: "fail", summary: "Error querying journal entries", details: [entriesErr.message] };
-  }
-
-  const entryIds = (entries ?? []).map((e: { id: string }) => e.id);
-
+  // Use inner join to filter lines by posted entries — avoids URL-length issues
   let glCashBalance = 0;
 
-  if (entryIds.length > 0) {
-    // Get journal entry lines for cash accounts
-    const { data: cashLines, error: cashLinesErr } = await supabase
-      .from("journal_entry_lines")
-      .select("debit, credit")
-      .in("account_id", cashAccountIds)
-      .in("journal_entry_id", entryIds);
+  const { data: cashLines, error: cashLinesErr } = await supabase
+    .from("journal_entry_lines")
+    .select("debit, credit, journal_entries!inner(id)")
+    .eq("company_id", companyId)
+    .in("account_id", cashAccountIds)
+    .eq("journal_entries.status", "posted");
 
-    if (cashLinesErr) {
-      return { id, name, status: "fail", summary: "Error querying cash JE lines", details: [cashLinesErr.message] };
-    }
+  if (cashLinesErr) {
+    return { id, name, status: "fail", summary: "Error querying cash JE lines", details: [cashLinesErr.message] };
+  }
 
-    for (const line of cashLines ?? []) {
-      glCashBalance += (Number(line.debit) || 0) - (Number(line.credit) || 0);
-    }
+  for (const line of cashLines ?? []) {
+    glCashBalance += (Number(line.debit) || 0) - (Number(line.credit) || 0);
   }
 
   const difference = Math.abs(bankBalance - glCashBalance);
@@ -692,48 +655,30 @@ async function checkOrphanedJELines(
 
   const validAccountIds = new Set((accounts ?? []).map((a: { id: string }) => a.id));
 
-  // Get all journal entries for this company
-  const { data: entries, error: entriesErr } = await supabase
-    .from("journal_entries")
-    .select("id, entry_number")
-    .eq("company_id", companyId);
-
-  if (entriesErr) {
-    return { id, name, status: "fail", summary: "Error querying journal entries", details: [entriesErr.message] };
-  }
-
-  const allEntries = entries ?? [];
-
-  if (allEntries.length === 0) {
-    return { id, name, status: "pass", summary: "No journal entries found — nothing to validate", details: [] };
-  }
-
-  const entryIds = allEntries.map((e) => e.id);
-  const entryNumberMap = new Map<string, string>();
-  for (const e of allEntries) {
-    entryNumberMap.set(e.id, e.entry_number);
-  }
-
-  // Get all lines for these entries
+  // Use inner join to get lines with entry numbers — avoids URL-length issues
   const { data: lines, error: linesErr } = await supabase
     .from("journal_entry_lines")
-    .select("id, account_id, journal_entry_id")
-    .in("journal_entry_id", entryIds);
+    .select("id, account_id, journal_entry_id, journal_entries!inner(entry_number)")
+    .eq("company_id", companyId);
 
   if (linesErr) {
     return { id, name, status: "fail", summary: "Error querying journal entry lines", details: [linesErr.message] };
+  }
+
+  if (!lines || lines.length === 0) {
+    return { id, name, status: "pass", summary: "No journal entries found — nothing to validate", details: [] };
   }
 
   // Find lines whose account_id is not in this company's chart of accounts
   const orphanedEntryNumbers = new Set<string>();
   let orphanedCount = 0;
 
-  for (const line of lines ?? []) {
+  for (const line of lines) {
     if (!validAccountIds.has(line.account_id)) {
       orphanedCount++;
-      const entryNumber = entryNumberMap.get(line.journal_entry_id);
-      if (entryNumber) {
-        orphanedEntryNumbers.add(entryNumber);
+      const je = line.journal_entries as unknown as { entry_number: string } | null;
+      if (je?.entry_number) {
+        orphanedEntryNumbers.add(je.entry_number);
       }
     }
   }
