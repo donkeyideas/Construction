@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPeopleTransactions } from "@/lib/queries/section-transactions";
+import { backfillMissingJournalEntries } from "@/lib/utils/backfill-journal-entries";
 import SectionTransactions from "@/components/SectionTransactions";
 
 export const metadata = {
@@ -15,6 +16,8 @@ export default async function PeopleTransactionsPage() {
   if (!userCompany) {
     redirect("/register");
   }
+
+  await backfillMissingJournalEntries(supabase, userCompany.companyId, userCompany.userId);
 
   const txnData = await getPeopleTransactions(supabase, userCompany.companyId);
 

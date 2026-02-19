@@ -10,9 +10,12 @@ import {
   Receipt,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Filter,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
+import JournalEntryModal from "@/components/JournalEntryModal";
 import type { SectionTransactionSummary, SectionTransaction } from "@/lib/queries/section-transactions";
 
 interface Props {
@@ -23,11 +26,17 @@ interface Props {
 type SortField = "date" | "description" | "source" | "debit" | "credit";
 type SortDir = "asc" | "desc";
 
+const PAGE_SIZE = 25;
+
 export default function SectionTransactions({ data, sectionName }: Props) {
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [showAll, setShowAll] = useState(false);
+  const [page, setPage] = useState(1);
+
+  // JE Modal state
+  const [modalJeId, setModalJeId] = useState<string | null>(null);
+  const [modalJeNumber, setModalJeNumber] = useState<string>("");
 
   // Unique sources for filter
   const sources = useMemo(() => {
@@ -46,7 +55,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
       let cmp = 0;
       switch (sortField) {
         case "date":
-          cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
+          cmp = a.date.localeCompare(b.date);
           break;
         case "description":
           cmp = a.description.localeCompare(b.description);
@@ -67,7 +76,16 @@ export default function SectionTransactions({ data, sectionName }: Props) {
     return txns;
   }, [data.transactions, sourceFilter, sortField, sortDir]);
 
-  const displayed = showAll ? filtered : filtered.slice(0, 25);
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const safePage = Math.min(page, totalPages || 1);
+  const displayed = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  // Reset page when filter/sort changes
+  const handleFilterChange = (val: string) => {
+    setSourceFilter(val);
+    setPage(1);
+  };
 
   function toggleSort(field: SortField) {
     if (sortField === field) {
@@ -76,6 +94,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
       setSortField(field);
       setSortDir("desc");
     }
+    setPage(1);
   }
 
   function SortIcon({ field }: { field: SortField }) {
@@ -85,9 +104,31 @@ export default function SectionTransactions({ data, sectionName }: Props) {
       : <ChevronUp size={12} style={{ marginLeft: 2 }} />;
   }
 
+  function openJeModal(jeId: string, jeNumber: string) {
+    setModalJeId(jeId);
+    setModalJeNumber(jeNumber);
+  }
+
   // Compute filtered totals
   const filteredDebits = filtered.reduce((s, t) => s + t.debit, 0);
   const filteredCredits = filtered.reduce((s, t) => s + t.credit, 0);
+
+  // Page numbers to show
+  const pageNumbers: number[] = [];
+  const maxPageButtons = 7;
+  if (totalPages <= maxPageButtons) {
+    for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+  } else {
+    pageNumbers.push(1);
+    let start = Math.max(2, safePage - 2);
+    let end = Math.min(totalPages - 1, safePage + 2);
+    if (safePage <= 3) { start = 2; end = 5; }
+    if (safePage >= totalPages - 2) { start = totalPages - 4; end = totalPages - 1; }
+    if (start > 2) pageNumbers.push(-1); // ellipsis
+    for (let i = start; i <= end; i++) pageNumbers.push(i);
+    if (end < totalPages - 1) pageNumbers.push(-2); // ellipsis
+    pageNumbers.push(totalPages);
+  }
 
   return (
     <div className="section-txn-wrapper">
@@ -155,7 +196,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
               <Filter size={13} />
               <select
                 value={sourceFilter}
-                onChange={(e) => setSourceFilter(e.target.value)}
+                onChange={(e) => handleFilterChange(e.target.value)}
                 className="section-txn-select"
               >
                 <option value="all">All Sources</option>
@@ -194,7 +235,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
                 </thead>
                 <tbody>
                   {displayed.map((txn) => (
-                    <TxnRow key={txn.id} txn={txn} />
+                    <TxnRow key={txn.id} txn={txn} onJeClick={openJeModal} />
                   ))}
                 </tbody>
                 <tfoot>
@@ -213,11 +254,40 @@ export default function SectionTransactions({ data, sectionName }: Props) {
                 </tfoot>
               </table>
             </div>
-            {filtered.length > 25 && !showAll && (
-              <div className="section-txn-show-more">
-                <button onClick={() => setShowAll(true)} className="ui-btn ui-btn-outline ui-btn-sm">
-                  Show all {filtered.length} transactions
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="section-txn-pagination">
+                <button
+                  className="section-txn-page-btn"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage(safePage - 1)}
+                >
+                  <ChevronLeft size={14} />
                 </button>
+                {pageNumbers.map((pn, i) =>
+                  pn < 0 ? (
+                    <span key={`ell-${i}`} className="section-txn-page-ellipsis">...</span>
+                  ) : (
+                    <button
+                      key={pn}
+                      className={`section-txn-page-btn${pn === safePage ? " active" : ""}`}
+                      onClick={() => setPage(pn)}
+                    >
+                      {pn}
+                    </button>
+                  )
+                )}
+                <button
+                  className="section-txn-page-btn"
+                  disabled={safePage >= totalPages}
+                  onClick={() => setPage(safePage + 1)}
+                >
+                  <ChevronRight size={14} />
+                </button>
+                <span className="section-txn-page-info">
+                  {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
+                </span>
               </div>
             )}
           </>
@@ -227,6 +297,14 @@ export default function SectionTransactions({ data, sectionName }: Props) {
           </div>
         )}
       </div>
+
+      {/* JE Detail Modal */}
+      <JournalEntryModal
+        jeId={modalJeId ?? ""}
+        jeNumber={modalJeNumber}
+        isOpen={!!modalJeId}
+        onClose={() => setModalJeId(null)}
+      />
     </div>
   );
 }
@@ -242,7 +320,7 @@ function formatDateSafe(iso: string): string {
   return `${MONTHS[m]} ${d}, ${parts[0]}`;
 }
 
-function TxnRow({ txn }: { txn: SectionTransaction }) {
+function TxnRow({ txn, onJeClick }: { txn: SectionTransaction; onJeClick: (id: string, num: string) => void }) {
   const dateStr = formatDateSafe(txn.date);
 
   return (
@@ -264,13 +342,13 @@ function TxnRow({ txn }: { txn: SectionTransaction }) {
         {txn.credit > 0 ? formatCurrency(txn.credit) : "—"}
       </td>
       <td>
-        {txn.jeNumber ? (
-          <Link
-            href={`/financial/general-ledger?entry=${txn.jeNumber}`}
+        {txn.jeNumber && txn.jeId ? (
+          <button
             className="je-link"
+            onClick={() => onJeClick(txn.jeId!, txn.jeNumber!)}
           >
             {txn.jeNumber}
-          </Link>
+          </button>
         ) : (
           <span style={{ color: "var(--muted)", fontSize: "0.78rem" }}>—</span>
         )}
