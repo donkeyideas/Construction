@@ -1,0 +1,28 @@
+property_name,expense_type,description,amount,frequency,effective_date,vendor_name
+Sunset Ridge Apartments,property_tax,Annual property tax assessment,84000,annual,2026-01-01,Travis County Tax Office
+Sunset Ridge Apartments,insurance,Property and liability insurance,36000,annual,2026-01-01,State Farm Commercial
+Sunset Ridge Apartments,utilities,Common area electricity and water,2800,monthly,2026-01-01,Austin Energy / Water Utility
+Sunset Ridge Apartments,cam,Landscaping and grounds maintenance,1500,monthly,2026-01-01,Green Valley Landscaping
+Sunset Ridge Apartments,cam,Janitorial services,1200,monthly,2026-01-01,Pro Clean Services
+Sunset Ridge Apartments,management_fee,Property management 8% of rent,4800,monthly,2026-01-01,Austin Property Group
+Sunset Ridge Apartments,cam,Pool maintenance,600,monthly,2026-04-01,Crystal Pool Services
+Congress Avenue Office Park,property_tax,Annual property tax assessment,127500,annual,2026-01-01,Travis County Tax Office
+Congress Avenue Office Park,insurance,Property and liability insurance,48000,annual,2026-01-01,Hartford Commercial
+Congress Avenue Office Park,utilities,Common area HVAC and lighting,5200,monthly,2026-01-01,Austin Energy
+Congress Avenue Office Park,cam,Janitorial and cleaning services,3800,monthly,2026-01-01,Office Clean Pro
+Congress Avenue Office Park,cam,Landscaping and parking lot maintenance,2100,monthly,2026-01-01,Commercial Grounds Inc
+Congress Avenue Office Park,management_fee,Property management 6% of rent,4500,monthly,2026-01-01,Austin Property Group
+Congress Avenue Office Park,cam,Security services,3200,monthly,2026-01-01,Patriot Security
+Eastside Industrial Complex,property_tax,Annual property tax assessment,67200,annual,2026-01-01,Travis County Tax Office
+Eastside Industrial Complex,insurance,Property insurance,24000,annual,2026-01-01,Liberty Mutual Commercial
+Eastside Industrial Complex,utilities,Common area lighting and water,1800,monthly,2026-01-01,Austin Energy
+Eastside Industrial Complex,cam,Parking lot maintenance,900,monthly,2026-01-01,Texas Paving Co
+Eastside Industrial Complex,management_fee,Property management 5% of rent,2100,monthly,2026-01-01,Austin Property Group
+Lamar Mixed-Use Development,property_tax,Annual property tax assessment,176400,annual,2026-01-01,Travis County Tax Office
+Lamar Mixed-Use Development,insurance,Property and liability insurance,54000,annual,2026-01-01,Travelers Commercial
+Lamar Mixed-Use Development,utilities,Common area electricity water and gas,6500,monthly,2026-01-01,Austin Energy / Water
+Lamar Mixed-Use Development,cam,Janitorial services,4200,monthly,2026-01-01,Pro Clean Services
+Lamar Mixed-Use Development,cam,Landscaping and exterior maintenance,2800,monthly,2026-01-01,Green Valley Landscaping
+Lamar Mixed-Use Development,cam,Security and concierge,5500,monthly,2026-01-01,Allied Universal
+Lamar Mixed-Use Development,management_fee,Property management 7% of rent,7200,monthly,2026-01-01,Austin Property Group
+Lamar Mixed-Use Development,marketing,Leasing marketing and advertising,2000,monthly,2026-01-01,Digital Leasing Group

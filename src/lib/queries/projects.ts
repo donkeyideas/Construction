@@ -367,11 +367,13 @@ export async function getProjectById(
     .order("created_at", { ascending: false });
 
   // ---------------------------------------------------------------------------
-  // Compute actual_cost from linked invoices when the stored value is missing.
-  // Also fill contract_amount from a matching property if still null.
+  // Compute missing financial data and completion % from real sources.
   // This ensures projects auto-created during import show real financials.
   // ---------------------------------------------------------------------------
   const proj = project as ProjectRow;
+  const taskList = (tasks ?? []) as ProjectTask[];
+
+  // Actual cost from linked invoices
   if (!proj.actual_cost || proj.actual_cost === 0) {
     const { data: invTotals } = await supabase
       .from("invoices")
@@ -385,18 +387,36 @@ export async function getProjectById(
       );
     }
   }
-  if (!proj.contract_amount || proj.contract_amount === 0) {
-    // Try to find a property with the same name
-    const { data: matchProp } = await supabase
+
+  // Contract amount from matching property
+  let matchProp: { current_value: number | null; purchase_price: number | null; occupancy_rate: number | null } | null = null;
+  if (!proj.contract_amount || proj.contract_amount === 0 || !proj.completion_pct) {
+    const { data: mp } = await supabase
       .from("properties")
-      .select("current_value, purchase_price")
+      .select("current_value, purchase_price, occupancy_rate")
       .eq("company_id", proj.company_id)
       .ilike("name", proj.name)
       .limit(1)
       .maybeSingle();
-    if (matchProp) {
+    matchProp = mp;
+    if (matchProp && (!proj.contract_amount || proj.contract_amount === 0)) {
       proj.contract_amount =
         matchProp.current_value ?? matchProp.purchase_price ?? null;
+    }
+  }
+
+  // Completion %: use property occupancy, task average, or leave as-is
+  if (!proj.completion_pct || proj.completion_pct === 0) {
+    // Try property occupancy rate first (property-based projects)
+    if (matchProp?.occupancy_rate && matchProp.occupancy_rate > 0) {
+      proj.completion_pct = Math.round(matchProp.occupancy_rate);
+    }
+    // Otherwise compute from task completion average
+    else if (taskList.length > 0) {
+      const avgCompletion =
+        taskList.reduce((sum, t) => sum + (t.completion_pct ?? 0), 0) /
+        taskList.length;
+      proj.completion_pct = Math.round(avgCompletion);
     }
   }
 

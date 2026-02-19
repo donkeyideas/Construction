@@ -1354,6 +1354,20 @@ function MaintenanceTabContent({
 /*  Financials Tab                                                       */
 /* ==================================================================== */
 
+const EXPENSE_TYPE_LABELS: Record<string, string> = {
+  maintenance: "Repairs & Maintenance",
+  cam: "Common Area Maintenance",
+  property_tax: "Property Taxes",
+  insurance: "Insurance",
+  utilities: "Utilities",
+  management_fee: "Management Fees",
+  capital_expense: "Capital Expenditures",
+  hoa_fee: "HOA / Association Fees",
+  marketing: "Leasing & Marketing",
+  legal: "Legal & Professional",
+  other: "Other",
+};
+
 function FinancialsTabContent({
   financials,
 }: {
@@ -1489,6 +1503,44 @@ function FinancialsTabContent({
           </div>
         </div>
       </div>
+
+      {/* Operating Expense Breakdown */}
+      {financials.expenseBreakdown && financials.expenseBreakdown.length > 0 && (
+        <div className="card" style={{ gridColumn: "1 / -1" }}>
+          <div className="card-title">Operating Expense Breakdown (Monthly)</div>
+          <table className="data-table" style={{ marginTop: 8 }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left" }}>Category</th>
+                <th style={{ textAlign: "right" }}>Monthly Amount</th>
+                <th style={{ textAlign: "right" }}>% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {financials.expenseBreakdown.map((item) => (
+                <tr key={item.type}>
+                  <td>{EXPENSE_TYPE_LABELS[item.type] ?? item.type}</td>
+                  <td className="amount-cell">
+                    {formatCurrency(item.monthlyAmount)}
+                  </td>
+                  <td className="amount-cell">
+                    {financials.monthlyExpenses > 0
+                      ? `${((item.monthlyAmount / financials.monthlyExpenses) * 100).toFixed(1)}%`
+                      : "—"}
+                  </td>
+                </tr>
+              ))}
+              <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border-color)" }}>
+                <td>Total Expenses</td>
+                <td className="amount-cell">
+                  {formatCurrency(financials.monthlyExpenses)}
+                </td>
+                <td className="amount-cell">100%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
