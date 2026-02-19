@@ -888,20 +888,23 @@ export async function getJournalEntries(
 
   const entries = (data ?? []) as JournalEntryRow[];
 
-  // Fetch line totals for each entry
+  // Fetch line totals for each entry — batch in chunks to avoid URL-length limits
   if (entries.length > 0) {
     const entryIds = entries.map((e) => e.id);
-    const { data: lines } = await supabase
-      .from("journal_entry_lines")
-      .select("journal_entry_id, debit, credit")
-      .in("journal_entry_id", entryIds);
-
     const totals = new Map<string, { debit: number; credit: number }>();
-    for (const line of lines ?? []) {
-      const existing = totals.get(line.journal_entry_id) ?? { debit: 0, credit: 0 };
-      existing.debit += line.debit ?? 0;
-      existing.credit += line.credit ?? 0;
-      totals.set(line.journal_entry_id, existing);
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < entryIds.length; i += BATCH_SIZE) {
+      const batch = entryIds.slice(i, i + BATCH_SIZE);
+      const { data: lines } = await supabase
+        .from("journal_entry_lines")
+        .select("journal_entry_id, debit, credit")
+        .in("journal_entry_id", batch);
+      for (const line of lines ?? []) {
+        const existing = totals.get(line.journal_entry_id) ?? { debit: 0, credit: 0 };
+        existing.debit += line.debit ?? 0;
+        existing.credit += line.credit ?? 0;
+        totals.set(line.journal_entry_id, existing);
+      }
     }
 
     for (const entry of entries) {
@@ -1142,29 +1145,23 @@ export async function getTrialBalance(
   companyId: string,
   asOfDate?: string
 ): Promise<TrialBalanceRow[]> {
-  // Get all posted journal entry IDs up to the date
-  let entriesQuery = supabase
-    .from("journal_entries")
-    .select("id")
+  // Use !inner join to filter by posted entries — avoids URL-length issues
+  // with large .in() arrays that exceed Supabase's PostgREST URL limit
+  let query = supabase
+    .from("journal_entry_lines")
+    .select("account_id, debit, credit, chart_of_accounts(account_number, name, account_type), journal_entries!inner(status, entry_date)")
     .eq("company_id", companyId)
-    .eq("status", "posted");
+    .eq("journal_entries.status", "posted");
 
   if (asOfDate) {
-    entriesQuery = entriesQuery.lte("entry_date", asOfDate);
+    query = query.lte("journal_entries.entry_date", asOfDate);
   }
 
-  const { data: entries } = await entriesQuery;
-  const entryIds = (entries ?? []).map((e: { id: string }) => e.id);
+  const { data: lines } = await query;
 
-  if (entryIds.length === 0) {
+  if (!lines || lines.length === 0) {
     return [];
   }
-
-  // Get all lines for these entries with account info
-  const { data: lines } = await supabase
-    .from("journal_entry_lines")
-    .select("account_id, debit, credit, chart_of_accounts(account_number, name, account_type)")
-    .in("journal_entry_id", entryIds);
 
   // Aggregate by account
   const accountMap = new Map<
@@ -1172,7 +1169,7 @@ export async function getTrialBalance(
     { account_number: string; account_name: string; account_type: string; debit: number; credit: number }
   >();
 
-  for (const line of lines ?? []) {
+  for (const line of lines) {
     const account = (line as Record<string, unknown>).chart_of_accounts as {
       account_number: string;
       name: string;
@@ -1316,25 +1313,21 @@ async function getTrialBalanceDateRange(
   startDate: string,
   endDate: string
 ): Promise<{ account_id: string; account_number: string; account_name: string; account_type: string; debit: number; credit: number }[]> {
-  const { data: entries } = await supabase
-    .from("journal_entries")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("status", "posted")
-    .gte("entry_date", startDate)
-    .lte("entry_date", endDate);
-
-  const entryIds = (entries ?? []).map((e: { id: string }) => e.id);
-  if (entryIds.length === 0) return [];
-
+  // Use !inner join to filter by posted entries and date range — avoids
+  // URL-length issues with large .in() arrays
   const { data: lines } = await supabase
     .from("journal_entry_lines")
-    .select("account_id, debit, credit, chart_of_accounts(account_number, name, account_type)")
-    .in("journal_entry_id", entryIds);
+    .select("account_id, debit, credit, chart_of_accounts(account_number, name, account_type), journal_entries!inner(status, entry_date)")
+    .eq("company_id", companyId)
+    .eq("journal_entries.status", "posted")
+    .gte("journal_entries.entry_date", startDate)
+    .lte("journal_entries.entry_date", endDate);
+
+  if (!lines || lines.length === 0) return [];
 
   const accountMap = new Map<string, { account_number: string; account_name: string; account_type: string; debit: number; credit: number }>();
 
-  for (const line of lines ?? []) {
+  for (const line of lines) {
     const account = (line as Record<string, unknown>).chart_of_accounts as {
       account_number: string; name: string; account_type: string;
     } | null;
@@ -1541,20 +1534,15 @@ export async function getCashFlowStatement(
   let netFinancing = 0;
 
   // Query journal entry lines for investing and financing activities during the period
-  const { data: cfEntries } = await supabase
-    .from("journal_entries")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("status", "posted")
-    .gte("entry_date", startDate)
-    .lte("entry_date", endDate);
-
-  const cfEntryIds = (cfEntries ?? []).map((e: { id: string }) => e.id);
-  if (cfEntryIds.length > 0) {
+  // Use !inner join to avoid URL-length issues with large .in() arrays
+  {
     const { data: cfLines } = await supabase
       .from("journal_entry_lines")
-      .select("debit, credit, chart_of_accounts(account_number, name, account_type, sub_type)")
-      .in("journal_entry_id", cfEntryIds);
+      .select("debit, credit, chart_of_accounts(account_number, name, account_type, sub_type), journal_entries!inner(status, entry_date)")
+      .eq("company_id", companyId)
+      .eq("journal_entries.status", "posted")
+      .gte("journal_entries.entry_date", startDate)
+      .lte("journal_entries.entry_date", endDate);
 
     const investingMap = new Map<string, number>();
     const financingMap = new Map<string, number>();
@@ -1835,20 +1823,24 @@ export async function getAccountTransactions(
     .eq("company_id", companyId)
     .single();
 
-  // Build the journal entries query with optional date filters
-  let entriesQuery = supabase
-    .from("journal_entries")
-    .select("id")
+  // Use !inner join to filter by posted entries and date — avoids URL-length
+  // issues with large .in() arrays that exceed Supabase's PostgREST URL limit
+  let linesQuery = supabase
+    .from("journal_entry_lines")
+    .select(`
+      id, account_id, debit, credit, description,
+      journal_entries!inner(id, entry_number, entry_date, description, reference, status)
+    `)
+    .eq("account_id", accountId)
     .eq("company_id", companyId)
-    .eq("status", "posted");
+    .eq("journal_entries.status", "posted");
 
-  if (startDate) entriesQuery = entriesQuery.gte("entry_date", startDate);
-  if (endDate) entriesQuery = entriesQuery.lte("entry_date", endDate);
+  if (startDate) linesQuery = linesQuery.gte("journal_entries.entry_date", startDate);
+  if (endDate) linesQuery = linesQuery.lte("journal_entries.entry_date", endDate);
 
-  const { data: entries } = await entriesQuery;
-  const entryIds = (entries ?? []).map((e: { id: string }) => e.id);
+  const { data: lines } = await linesQuery;
 
-  if (entryIds.length === 0) {
+  if (!lines || lines.length === 0) {
     return {
       transactions: [],
       totalDebit: 0,
@@ -1859,17 +1851,6 @@ export async function getAccountTransactions(
       normalBalance: accountInfo?.normal_balance ?? "debit",
     };
   }
-
-  // Get journal entry lines for this account
-  const { data: lines } = await supabase
-    .from("journal_entry_lines")
-    .select(`
-      id, account_id, debit, credit, description,
-      journal_entries!inner(id, entry_number, entry_date, description, reference, status)
-    `)
-    .eq("account_id", accountId)
-    .in("journal_entry_id", entryIds)
-    .order("created_at", { ascending: true });
 
   const transactions: AccountTransactionRow[] = [];
   let totalDebit = 0;

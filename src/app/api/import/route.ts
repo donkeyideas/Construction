@@ -257,7 +257,9 @@ export async function POST(request: NextRequest) {
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
           const acctType = r.account_type || "expense";
-          const { error } = await supabase.from("chart_of_accounts").insert({
+          // Use upsert to handle existing accounts — if account_number already
+          // exists for this company, update the name/type/etc. instead of failing.
+          const { error } = await supabase.from("chart_of_accounts").upsert({
             company_id: companyId,
             account_number: r.account_number || "",
             name: r.name || "",
@@ -266,7 +268,7 @@ export async function POST(request: NextRequest) {
             normal_balance: r.normal_balance || (acctType === "asset" || acctType === "expense" ? "debit" : "credit"),
             description: r.description || null,
             is_active: true,
-          });
+          }, { onConflict: "company_id,account_number" });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
           } else {
@@ -1184,31 +1186,39 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          // Create journal entry lines
+          // Create journal entry lines — validate account lookups before inserting
+          let linesFailed = false;
           for (let j = 0; j < entryRows.length; j++) {
             const line = entryRows[j];
+            const accountId = line.account_id || (line.account_number ? acctLookup[line.account_number] : null) || null;
+            if (!accountId) {
+              errors.push(`Entry ${entryIdx}, Line ${j + 1}: Account "${line.account_number}" not found in Chart of Accounts`);
+              linesFailed = true;
+              continue;
+            }
             const { error: lineError } = await supabase
               .from("journal_entry_lines")
               .insert({
                 company_id: companyId,
                 journal_entry_id: entry.id,
-                account_id: line.account_id || (line.account_number ? acctLookup[line.account_number] : null) || null,
+                account_id: accountId,
                 debit: line.debit ? parseFloat(line.debit) : 0,
                 credit: line.credit ? parseFloat(line.credit) : 0,
                 description: line.line_description || null,
               });
             if (lineError) {
               errors.push(`Entry ${entryIdx}, Line ${j + 1}: ${lineError.message}`);
+              linesFailed = true;
             }
           }
-          successCount++;
+          if (!linesFailed) successCount++;
         }
         break;
       }
 
       case "phases": {
         // CSV project_name takes priority over body picker (current Gantt tab)
-        const projId = (rows[0] ? resolveProjectId(rows[0]) : null) || body.project_id;
+        const projId = (rows[0] ? await resolveProjectId(rows[0]) : null) || body.project_id;
         if (!projId) {
           return NextResponse.json(
             { error: "project_id is required for phases import (select a project or include project_name in CSV)" },
@@ -1263,7 +1273,7 @@ export async function POST(request: NextRequest) {
 
       case "tasks": {
         // CSV project_name takes priority over body picker (current Gantt tab)
-        const taskProjId = (rows[0] ? resolveProjectId(rows[0]) : null) || body.project_id;
+        const taskProjId = (rows[0] ? await resolveProjectId(rows[0]) : null) || body.project_id;
         if (!taskProjId) {
           return NextResponse.json(
             { error: "project_id is required for tasks import (select a project or include project_name in CSV)" },
