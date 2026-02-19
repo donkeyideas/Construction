@@ -54,15 +54,19 @@ interface ARClientProps {
   collectedThisMonth: number;
   activeStatus: string | undefined;
   linkedJEs?: Record<string, LinkedJE[]>;
+  initialStartDate?: string;
+  initialEndDate?: string;
 }
 
 /* ------------------------------------------------------------------
    Helpers
    ------------------------------------------------------------------ */
 
-function buildUrl(status?: string): string {
+function buildUrl(status?: string, start?: string, end?: string): string {
   const p = new URLSearchParams();
   if (status && status !== "all") p.set("status", status);
+  if (start) p.set("start", start);
+  if (end) p.set("end", end);
   const qs = p.toString();
   return `/financial/ar${qs ? `?${qs}` : ""}`;
 }
@@ -79,12 +83,16 @@ export default function ARClient({
   collectedThisMonth,
   activeStatus,
   linkedJEs = {},
+  initialStartDate,
+  initialEndDate,
 }: ARClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
   const now = new Date();
+  const [filterStart, setFilterStart] = useState(initialStartDate || "");
+  const [filterEnd, setFilterEnd] = useState(initialEndDate || "");
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString(dateLocale, {
@@ -249,6 +257,26 @@ export default function ARClient({
         </div>
       </div>
 
+      {/* Date Range Controls */}
+      <div className="fs-date-controls">
+        <div className="fs-date-field">
+          <label>{t("from")}</label>
+          <input type="date" value={filterStart} onChange={(e) => setFilterStart(e.target.value)} />
+        </div>
+        <div className="fs-date-field">
+          <label>{t("to")}</label>
+          <input type="date" value={filterEnd} onChange={(e) => setFilterEnd(e.target.value)} />
+        </div>
+        <button
+          className="ui-btn ui-btn-primary ui-btn-md"
+          onClick={() => {
+            window.location.href = buildUrl(activeStatus, filterStart || undefined, filterEnd || undefined);
+          }}
+        >
+          {t("apply")}
+        </button>
+      </div>
+
       {/* KPI Row */}
       <div className="financial-kpi-row" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         <div className="fin-kpi">
@@ -281,7 +309,7 @@ export default function ARClient({
         {statuses.map((s) => (
           <Link
             key={s.value}
-            href={buildUrl(s.value)}
+            href={buildUrl(s.value, filterStart || undefined, filterEnd || undefined)}
             className={`ui-btn ui-btn-sm ${
               activeStatus === s.value || (!activeStatus && s.value === "all")
                 ? "ui-btn-primary"

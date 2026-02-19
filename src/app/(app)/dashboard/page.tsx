@@ -51,7 +51,7 @@ const ROLE_GREETING_KEY: Record<string, string> = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ project?: string }>;
+  searchParams: Promise<{ project?: string; start?: string; end?: string }>;
 }
 
 export default async function DashboardPage({ searchParams }: PageProps) {
@@ -74,6 +74,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const greeting = (t as any)(greetingKey);
 
   const selectedProjectId = params.project || undefined;
+  const filterStartDate = params.start || undefined;
+  const filterEndDate = params.end || undefined;
 
   // Fetch project list for filter dropdown
   const { data: projectList } = await supabase
@@ -87,7 +89,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     name: p.name as string,
   }));
 
-  // Build AP/AR queries with optional project filter
+  // Build AP/AR queries with optional project + date filter
   let apQuery = supabase
     .from("invoices")
     .select("balance_due")
@@ -95,6 +97,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     .eq("invoice_type", "payable")
     .not("status", "in", '("voided","paid")');
   if (selectedProjectId) apQuery = apQuery.eq("project_id", selectedProjectId);
+  if (filterStartDate) apQuery = apQuery.gte("invoice_date", filterStartDate);
+  if (filterEndDate) apQuery = apQuery.lte("invoice_date", filterEndDate);
 
   let arQuery = supabase
     .from("invoices")
@@ -103,13 +107,15 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     .eq("invoice_type", "receivable")
     .not("status", "in", '("voided","paid")');
   if (selectedProjectId) arQuery = arQuery.eq("project_id", selectedProjectId);
+  if (filterStartDate) arQuery = arQuery.gte("invoice_date", filterStartDate);
+  if (filterEndDate) arQuery = arQuery.lte("invoice_date", filterEndDate);
 
   // Fetch all dashboard data in parallel
   const [kpis, projectStatus, cashFlow, pendingApprovalsResult, recentActivity, outstandingAPRes, outstandingARRes] =
     await Promise.all([
       getDashboardKPIs(supabase, companyId, selectedProjectId),
       getProjectStatusBreakdown(supabase, companyId, selectedProjectId),
-      getCashFlow(supabase, companyId, selectedProjectId),
+      getCashFlow(supabase, companyId, selectedProjectId, filterStartDate, filterEndDate),
       getPendingApprovals(supabase, companyId, selectedProjectId),
       getRecentActivity(supabase, companyId, selectedProjectId),
       apQuery,
@@ -199,12 +205,12 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {projects.length > 1 && (
-            <DashboardFilter
-              projects={projects}
-              selectedProjectId={selectedProjectId}
-            />
-          )}
+          <DashboardFilter
+            projects={projects}
+            selectedProjectId={selectedProjectId}
+            startDate={filterStartDate}
+            endDate={filterEndDate}
+          />
           <div
             style={{
               display: "flex",

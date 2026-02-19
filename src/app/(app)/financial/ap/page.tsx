@@ -11,6 +11,8 @@ export const metadata = {
 interface PageProps {
   searchParams: Promise<{
     status?: string;
+    start?: string;
+    end?: string;
   }>;
 }
 
@@ -30,9 +32,11 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
   }
 
   const activeStatus = params.status || undefined;
+  const filterStartDate = params.start || undefined;
+  const filterEndDate = params.end || undefined;
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+  const startOfMonth = filterStartDate || new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const endOfMonth = filterEndDate || new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
   const todayStr = now.toISOString().split("T")[0];
 
@@ -64,6 +68,8 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       } else {
         query = query.not("status", "eq", "voided").not("status", "eq", "paid");
       }
+      if (filterStartDate) query = query.gte("invoice_date", filterStartDate);
+      if (filterEndDate) query = query.lte("invoice_date", filterEndDate);
       return query;
     })(),
   ]);
@@ -112,6 +118,8 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       paidThisMonth={paidThisMonth}
       activeStatus={activeStatus}
       linkedJEs={linkedJEs}
+      initialStartDate={filterStartDate}
+      initialEndDate={filterEndDate}
     />
   );
 }

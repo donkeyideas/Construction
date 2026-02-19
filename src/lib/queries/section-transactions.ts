@@ -118,7 +118,7 @@ export async function getProjectTransactions(
   // Map invoices
   for (const inv of invoices ?? []) {
     const je = jeMap.get(`invoice:${inv.id}`);
-    const projectName = (inv.projects as { name: string } | null)?.name ?? "";
+    const projectName = (inv.projects as unknown as { name: string } | null)?.name ?? "";
     const isPayable = inv.invoice_type === "payable";
     txns.push({
       id: `inv-${inv.id}`,
@@ -137,7 +137,7 @@ export async function getProjectTransactions(
   // Map change orders
   for (const co of changeOrders ?? []) {
     const je = jeMap.get(`change_order:${co.id}`);
-    const projectName = (co.projects as { name: string } | null)?.name ?? "";
+    const projectName = (co.projects as unknown as { name: string } | null)?.name ?? "";
     const amount = Number(co.amount) || 0;
     txns.push({
       id: `co-${co.id}`,
@@ -261,7 +261,7 @@ export async function getPropertyTransactions(
   // Add JE lines that reference properties but aren't from invoices/payments
   const existingIds = new Set(txns.map((t) => t.id));
   for (const line of jeLines ?? []) {
-    const je = line.journal_entries as { id: string; entry_number: string; entry_date: string; reference: string | null; status: string } | null;
+    const je = line.journal_entries as unknown as { id: string; entry_number: string; entry_date: string; reference: string | null; status: string } | null;
     if (!je || je.status !== "posted") continue;
     // Skip if we already have this from invoices/payments
     if (je.reference && (je.reference.startsWith("invoice:") || je.reference.startsWith("payment:"))) continue;
@@ -304,7 +304,7 @@ export async function getFinancialTransactions(
     .limit(300);
 
   for (const line of jeLines ?? []) {
-    const je = line.journal_entries as { id: string; entry_number: string; entry_date: string; description: string; reference: string | null; status: string } | null;
+    const je = line.journal_entries as unknown as { id: string; entry_number: string; entry_date: string; description: string; reference: string | null; status: string } | null;
     if (!je || je.status !== "posted") continue;
 
     let source = "General Ledger";
@@ -446,7 +446,7 @@ export async function getEquipmentTransactions(
       .limit(200);
 
     for (const line of jeLines ?? []) {
-      const je = line.journal_entries as { id: string; entry_number: string; entry_date: string; description: string; reference: string | null; status: string } | null;
+      const je = line.journal_entries as unknown as { id: string; entry_number: string; entry_date: string; description: string; reference: string | null; status: string } | null;
       if (!je || je.status !== "posted") continue;
 
       txns.push({

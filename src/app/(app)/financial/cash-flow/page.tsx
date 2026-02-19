@@ -8,7 +8,11 @@ export const metadata = {
   title: "Cash Flow - Buildwrk",
 };
 
-export default async function CashFlowPage() {
+export default async function CashFlowPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ start?: string; end?: string }>;
+}) {
   const supabase = await createClient();
   const userCompany = await getCurrentUserCompany(supabase);
 
@@ -22,10 +26,17 @@ export default async function CashFlowPage() {
     );
   }
 
+  const params = await searchParams;
   const now = new Date();
-  const cfStartDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-  const cfEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
-  const cfMonthLabel = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  // Use searchParams dates or default to current month
+  const cfStartDate = params.start || new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+  const cfEndDate = params.end || new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+
+  const startD = new Date(cfStartDate + "T00:00:00");
+  const endD = new Date(cfEndDate + "T00:00:00");
+  const cfDateLabel = startD.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    + " — " + endD.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
   const [cashFlowStatement, bankAccountsRes] = await Promise.all([
     getCashFlowStatement(supabase, userCompany.companyId, cfStartDate, cfEndDate),
@@ -75,7 +86,7 @@ export default async function CashFlowPage() {
   return (
     <CashFlowClient
       companyName={userCompany.companyName}
-      cfMonthLabel={cfMonthLabel}
+      cfMonthLabel={cfDateLabel}
       cashFlowStatement={cashFlowStatement}
       bankAccounts={bankAccounts}
       totalCashPosition={totalCashPosition}

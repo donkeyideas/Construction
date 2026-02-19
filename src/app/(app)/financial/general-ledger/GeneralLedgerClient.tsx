@@ -114,6 +114,8 @@ interface GeneralLedgerClientProps {
   entries: JournalEntryRow[];
   accounts: AccountTreeNode[];
   trialBalance: TrialBalanceRow[];
+  initialStartDate?: string;
+  initialEndDate?: string;
 }
 
 /* ==================================================================
@@ -124,11 +126,15 @@ export default function GeneralLedgerClient({
   entries: initialEntries,
   accounts,
   trialBalance: initialTrialBalance,
+  initialStartDate,
+  initialEndDate,
 }: GeneralLedgerClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
+  const [filterStartDate, setFilterStartDate] = useState(initialStartDate || "");
+  const [filterEndDate, setFilterEndDate] = useState(initialEndDate || "");
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString(dateLocale, {
@@ -428,6 +434,30 @@ export default function GeneralLedgerClient({
           onClick={() => setActiveTab("trial")}
         >
           {t("trialBalance")}
+        </button>
+      </div>
+
+      {/* Date Range Filter */}
+      <div className="fs-date-controls">
+        <div className="fs-date-field">
+          <label>{t("from")}</label>
+          <input type="date" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} />
+        </div>
+        <div className="fs-date-field">
+          <label>{t("to")}</label>
+          <input type="date" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} />
+        </div>
+        <button
+          className="ui-btn ui-btn-primary ui-btn-md"
+          onClick={() => {
+            const params = new URLSearchParams();
+            if (filterStartDate) params.set("start", filterStartDate);
+            if (filterEndDate) params.set("end", filterEndDate);
+            const qs = params.toString();
+            window.location.href = `/financial/general-ledger${qs ? `?${qs}` : ""}`;
+          }}
+        >
+          {t("apply")}
         </button>
       </div>
 

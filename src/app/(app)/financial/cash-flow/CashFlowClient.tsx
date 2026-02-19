@@ -48,11 +48,17 @@ export default function CashFlowClient({
   cfEndDate,
 }: Props) {
   const [selectedAccount, setSelectedAccount] = useState<CashFlowSection | null>(null);
+  const [startDate, setStartDate] = useState(cfStartDate);
+  const [endDate, setEndDate] = useState(cfEndDate);
 
   function handleItemClick(item: CashFlowSection) {
     if (item.account_id) {
       setSelectedAccount(item);
     }
+  }
+
+  function handleApply() {
+    window.location.href = `/financial/cash-flow?start=${startDate}&end=${endDate}`;
   }
 
   return (
@@ -63,6 +69,21 @@ export default function CashFlowClient({
           <h2>Cash Flow</h2>
           <p className="fin-header-sub">Monitor inflows, outflows, and project-level cash projections</p>
         </div>
+      </div>
+
+      {/* Date Range Controls */}
+      <div className="fs-date-controls">
+        <div className="fs-date-field">
+          <label>From</label>
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        </div>
+        <div className="fs-date-field">
+          <label>To</label>
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        </div>
+        <button className="ui-btn ui-btn-primary ui-btn-md" onClick={handleApply}>
+          Apply
+        </button>
       </div>
 
       {/* Cash Flow Statement */}

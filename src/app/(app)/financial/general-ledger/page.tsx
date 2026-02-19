@@ -8,7 +8,11 @@ export const metadata = {
   title: "General Ledger - Buildwrk",
 };
 
-export default async function GeneralLedgerPage() {
+export default async function GeneralLedgerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ start?: string; end?: string }>;
+}) {
   const supabase = await createClient();
   const userCompany = await getCurrentUserCompany(supabase);
 
@@ -26,8 +30,12 @@ export default async function GeneralLedgerPage() {
     );
   }
 
+  const params = await searchParams;
+  const startDate = params.start || undefined;
+  const endDate = params.end || undefined;
+
   const [entries, accounts, trialBalance] = await Promise.all([
-    getJournalEntries(supabase, userCompany.companyId),
+    getJournalEntries(supabase, userCompany.companyId, { startDate, endDate }),
     getChartOfAccounts(supabase, userCompany.companyId),
     getTrialBalance(supabase, userCompany.companyId),
   ]);
@@ -50,6 +58,8 @@ export default async function GeneralLedgerPage() {
         entries={entries}
         accounts={accounts}
         trialBalance={trialBalance}
+        initialStartDate={startDate}
+        initialEndDate={endDate}
       />
     </div>
   );

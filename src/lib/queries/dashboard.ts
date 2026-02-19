@@ -165,11 +165,13 @@ export async function getProjectStatusBreakdown(
 export async function getCashFlow(
   supabase: SupabaseClient,
   companyId: string,
-  projectId?: string
+  projectId?: string,
+  startDate?: string,
+  endDate?: string
 ): Promise<CashFlowItem[]> {
   const now = new Date();
   const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
-  const fromDate = twelveMonthsAgo.toISOString().slice(0, 10);
+  const fromDate = startDate || twelveMonthsAgo.toISOString().slice(0, 10);
 
   // Fetch both receivable and payable invoices in parallel
   let receivableQuery = supabase
@@ -178,6 +180,7 @@ export async function getCashFlow(
     .eq("company_id", companyId)
     .eq("invoice_type", "receivable")
     .gte("invoice_date", fromDate);
+  if (endDate) receivableQuery = receivableQuery.lte("invoice_date", endDate);
   if (projectId) receivableQuery = receivableQuery.eq("project_id", projectId);
 
   let payableQuery = supabase
@@ -186,6 +189,7 @@ export async function getCashFlow(
     .eq("company_id", companyId)
     .eq("invoice_type", "payable")
     .gte("invoice_date", fromDate);
+  if (endDate) payableQuery = payableQuery.lte("invoice_date", endDate);
   if (projectId) payableQuery = payableQuery.eq("project_id", projectId);
 
   const [receivableRes, payableRes] = await Promise.all([receivableQuery, payableQuery]);
