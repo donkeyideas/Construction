@@ -2,20 +2,19 @@
 
 import {
   ResponsiveContainer,
-  ComposedChart,
-  Bar,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
   Legend,
   CartesianGrid,
-  ReferenceLine,
 } from "recharts";
 import type { CashFlowItem } from "@/lib/queries/dashboard";
 
 function formatCompact(value: number): string {
   const abs = Math.abs(value);
+  if (abs >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
   if (abs >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
   if (abs >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
   return `$${value.toFixed(0)}`;
@@ -43,7 +42,7 @@ function CustomTooltip({
 
   const cashIn = payload.find((p) => p.dataKey === "cashIn")?.value ?? 0;
   const cashOut = payload.find((p) => p.dataKey === "cashOut")?.value ?? 0;
-  const net = cashIn - cashOut;
+  const net = payload.find((p) => p.dataKey === "net")?.value ?? cashIn - cashOut;
 
   return (
     <div
@@ -85,11 +84,24 @@ function CustomTooltip({
 export default function CashFlowChart({ data }: { data: CashFlowItem[] }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <ComposedChart
+      <AreaChart
         data={data}
         margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-        barGap={2}
       >
+        <defs>
+          <linearGradient id="gradCashIn" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#22c55e" stopOpacity={0.02} />
+          </linearGradient>
+          <linearGradient id="gradCashOut" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#ef4444" stopOpacity={0.02} />
+          </linearGradient>
+          <linearGradient id="gradNet" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.2} />
+            <stop offset="95%" stopColor="#60a5fa" stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
         <CartesianGrid
           strokeDasharray="3 3"
           stroke="var(--border)"
@@ -115,32 +127,38 @@ export default function CashFlowChart({ data }: { data: CashFlowItem[] }) {
           iconSize={8}
           wrapperStyle={{ fontSize: "0.75rem", paddingTop: 8 }}
         />
-        <ReferenceLine y={0} stroke="var(--border)" strokeWidth={1} />
-        <Bar
+        <Area
           dataKey="cashIn"
           name="Cash In"
-          fill="#22c55e"
-          radius={[3, 3, 0, 0]}
-          maxBarSize={32}
+          type="monotone"
+          stroke="#22c55e"
+          strokeWidth={2}
+          fill="url(#gradCashIn)"
+          dot={{ r: 3, fill: "#22c55e", strokeWidth: 0 }}
+          activeDot={{ r: 5, fill: "#22c55e", strokeWidth: 0 }}
         />
-        <Bar
+        <Area
           dataKey="cashOut"
           name="Cash Out"
-          fill="#ef4444"
-          radius={[3, 3, 0, 0]}
-          maxBarSize={32}
+          type="monotone"
+          stroke="#ef4444"
+          strokeWidth={2}
+          fill="url(#gradCashOut)"
+          dot={{ r: 3, fill: "#ef4444", strokeWidth: 0 }}
+          activeDot={{ r: 5, fill: "#ef4444", strokeWidth: 0 }}
         />
-        <Line
+        <Area
           dataKey="net"
           name="Net Flow"
           type="monotone"
           stroke="#60a5fa"
           strokeWidth={2}
           strokeDasharray="5 3"
+          fill="url(#gradNet)"
           dot={{ r: 3, fill: "#60a5fa", strokeWidth: 0 }}
           activeDot={{ r: 5, fill: "#60a5fa", strokeWidth: 0 }}
         />
-      </ComposedChart>
+      </AreaChart>
     </ResponsiveContainer>
   );
 }
