@@ -75,7 +75,6 @@ export async function getProjectTransactions(
   companyId: string
 ): Promise<SectionTransactionSummary> {
   const txns: SectionTransaction[] = [];
-  const seenJeLineIds = new Set<string>();
 
   // 1. Get all project IDs for this company
   const { data: projects } = await supabase
@@ -87,53 +86,7 @@ export async function getProjectTransactions(
 
   if (projectIds.length === 0) return buildSummary(txns);
 
-  // 2. JE lines tagged to projects (full double-entry with debit AND credit)
-  const { data: jeLines } = await supabase
-    .from("journal_entry_lines")
-    .select("id, debit, credit, description, project_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
-    .eq("company_id", companyId)
-    .in("project_id", projectIds)
-    .limit(500);
-
-  for (const line of jeLines ?? []) {
-    const je = line.journal_entries as unknown as {
-      id: string; entry_number: string; entry_date: string;
-      description: string; reference: string | null; status: string;
-    } | null;
-    if (!je || je.status !== "posted") continue;
-    seenJeLineIds.add(line.id);
-
-    let source = "Journal Entry";
-    let sourceHref = `/financial/general-ledger?entry=${je.entry_number}`;
-    const ref = je.reference ?? "";
-
-    if (ref.startsWith("invoice:")) {
-      source = "Invoice JE";
-      sourceHref = `/financial/invoices/${ref.replace("invoice:", "")}`;
-    } else if (ref.startsWith("payment:")) {
-      source = "Payment JE";
-      sourceHref = "/financial/invoices";
-    } else if (ref.startsWith("change_order:")) {
-      source = "Change Order JE";
-      sourceHref = "/projects/change-orders";
-    }
-
-    const projectName = line.project_id ? projectNameMap.get(line.project_id) ?? "" : "";
-    txns.push({
-      id: `jel-${line.id}`,
-      date: je.entry_date,
-      description: `${line.description || je.description || "Journal Entry"}${projectName ? ` (${projectName})` : ""}`,
-      reference: je.entry_number,
-      source,
-      sourceHref,
-      debit: Number(line.debit) || 0,
-      credit: Number(line.credit) || 0,
-      jeNumber: je.entry_number,
-      jeId: je.id,
-    });
-  }
-
-  // 3. Invoices linked to projects (include those WITHOUT JEs)
+  // 2. Invoices linked to projects — always show, populate JE when available
   const { data: invoices } = await supabase
     .from("invoices")
     .select("id, invoice_number, invoice_type, invoice_date, total_amount, vendor_name, client_name, status, project_id")
@@ -141,16 +94,17 @@ export async function getProjectTransactions(
     .in("project_id", projectIds)
     .neq("status", "voided")
     .order("invoice_date", { ascending: false })
-    .limit(300);
+    .limit(500);
 
   const invRefs = (invoices ?? []).map((i) => `invoice:${i.id}`);
   const invJeMap = await getJEMap(supabase, companyId, invRefs);
 
-  // Only add invoices that DON'T already have JE lines shown above
+  // Track JE IDs already represented by invoices/COs/payments
+  const coveredJeIds = new Set<string>();
+
   for (const inv of invoices ?? []) {
     const je = invJeMap.get(`invoice:${inv.id}`);
-    // Skip if JE lines are already in the table
-    if (je) continue;
+    if (je) coveredJeIds.add(je.id);
 
     const projectName = inv.project_id ? projectNameMap.get(inv.project_id) ?? "" : "";
     const isPayable = inv.invoice_type === "payable";
@@ -163,12 +117,12 @@ export async function getProjectTransactions(
       sourceHref: `/financial/invoices/${inv.id}`,
       debit: isPayable ? Number(inv.total_amount) || 0 : 0,
       credit: !isPayable ? Number(inv.total_amount) || 0 : 0,
-      jeNumber: null,
-      jeId: null,
+      jeNumber: je?.entry_number ?? null,
+      jeId: je?.id ?? null,
     });
   }
 
-  // 4. Change orders (include those WITHOUT JEs)
+  // 3. Change orders — always show, populate JE when available
   const { data: changeOrders } = await supabase
     .from("change_orders")
     .select("id, co_number, title, amount, status, approved_at, created_at, project_id")
@@ -183,8 +137,7 @@ export async function getProjectTransactions(
 
   for (const co of changeOrders ?? []) {
     const je = coJeMap.get(`change_order:${co.id}`);
-    // Skip if JE lines are already in the table
-    if (je) continue;
+    if (je) coveredJeIds.add(je.id);
 
     const projectName = co.project_id ? projectNameMap.get(co.project_id) ?? "" : "";
     const amount = Number(co.amount) || 0;
@@ -197,12 +150,12 @@ export async function getProjectTransactions(
       sourceHref: "/projects/change-orders",
       debit: amount > 0 ? amount : 0,
       credit: amount < 0 ? Math.abs(amount) : 0,
-      jeNumber: null,
-      jeId: null,
+      jeNumber: je?.entry_number ?? null,
+      jeId: je?.id ?? null,
     });
   }
 
-  // 5. Payments on project invoices (include those WITHOUT JEs)
+  // 4. Payments on project invoices — always show, populate JE when available
   const projectInvoiceIds = (invoices ?? []).map((i) => i.id);
   if (projectInvoiceIds.length > 0) {
     const { data: pmts } = await supabase
@@ -217,7 +170,7 @@ export async function getProjectTransactions(
 
     for (const p of pmts ?? []) {
       const je = pmtJeMap.get(`payment:${p.id}`);
-      if (je) continue;
+      if (je) coveredJeIds.add(je.id);
 
       const inv = invoiceMap.get(p.invoice_id);
       const isPayable = inv?.invoice_type === "payable";
@@ -230,10 +183,43 @@ export async function getProjectTransactions(
         sourceHref: inv ? `/financial/invoices/${inv.id}` : "/financial/invoices",
         debit: !isPayable ? Number(p.amount) || 0 : 0,
         credit: isPayable ? Number(p.amount) || 0 : 0,
-        jeNumber: null,
-        jeId: null,
+        jeNumber: je?.entry_number ?? null,
+        jeId: je?.id ?? null,
       });
     }
+  }
+
+  // 5. Standalone JE lines tagged to projects (only those NOT already covered
+  //    by invoices, COs, or payments above — avoids double-counting)
+  const { data: jeLines } = await supabase
+    .from("journal_entry_lines")
+    .select("id, debit, credit, description, project_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
+    .eq("company_id", companyId)
+    .in("project_id", projectIds)
+    .limit(500);
+
+  for (const line of jeLines ?? []) {
+    const je = line.journal_entries as unknown as {
+      id: string; entry_number: string; entry_date: string;
+      description: string; reference: string | null; status: string;
+    } | null;
+    if (!je || je.status !== "posted") continue;
+    // Skip JE lines belonging to JEs already represented by invoices/COs/payments
+    if (coveredJeIds.has(je.id)) continue;
+
+    const projectName = line.project_id ? projectNameMap.get(line.project_id) ?? "" : "";
+    txns.push({
+      id: `jel-${line.id}`,
+      date: je.entry_date,
+      description: `${line.description || je.description || "Journal Entry"}${projectName ? ` (${projectName})` : ""}`,
+      reference: je.entry_number,
+      source: "Journal Entry",
+      sourceHref: `/financial/general-ledger?entry=${je.entry_number}`,
+      debit: Number(line.debit) || 0,
+      credit: Number(line.credit) || 0,
+      jeNumber: je.entry_number,
+      jeId: je.id,
+    });
   }
 
   // 6. Contracts with amounts
@@ -423,12 +409,6 @@ export async function getPropertyTransactions(
       .limit(100),
   ]);
 
-  // Process JE lines
-  for (const line of (jeLines ?? []) as JELineRow[]) {
-    const txn = mapJELine(line);
-    if (txn) txns.push(txn);
-  }
-
   // Build secondary queries that depend on primary results
   const invRefs = (invoices ?? []).map((i) => `invoice:${i.id}`);
   const invoiceIds = (invoices ?? []).map((i) => i.id);
@@ -453,9 +433,13 @@ export async function getPropertyTransactions(
       : Promise.resolve({ data: null }),
   ]);
 
-  // Process invoices without JEs
+  // Track JE IDs already represented by invoices/payments
+  const coveredJeIds = new Set<string>();
+
+  // Process invoices — always show, populate JE when available
   for (const inv of invoices ?? []) {
-    if (invJeMap.get(`invoice:${inv.id}`)) continue;
+    const je = invJeMap.get(`invoice:${inv.id}`);
+    if (je) coveredJeIds.add(je.id);
     const isPayable = inv.invoice_type === "payable";
     txns.push({
       id: `inv-${inv.id}`,
@@ -466,11 +450,11 @@ export async function getPropertyTransactions(
       sourceHref: `/financial/invoices/${inv.id}`,
       debit: isPayable ? Number(inv.total_amount) || 0 : 0,
       credit: !isPayable ? Number(inv.total_amount) || 0 : 0,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
-  // Process payments without JEs
+  // Process payments — always show, populate JE when available
   const pmts = paymentsResult.data;
   if (pmts && pmts.length > 0) {
     const pmtRefs = pmts.map((p) => `payment:${p.id}`);
@@ -478,7 +462,8 @@ export async function getPropertyTransactions(
     const invoiceMap = new Map((invoices ?? []).map((i) => [i.id, i]));
 
     for (const p of pmts) {
-      if (pmtJeMap.get(`payment:${p.id}`)) continue;
+      const je = pmtJeMap.get(`payment:${p.id}`);
+      if (je) coveredJeIds.add(je.id);
       const inv = invoiceMap.get(p.invoice_id);
       const isPayable = inv?.invoice_type === "payable";
       txns.push({
@@ -490,9 +475,21 @@ export async function getPropertyTransactions(
         sourceHref: inv ? `/financial/invoices/${inv.id}` : "/financial/invoices",
         debit: !isPayable ? Number(p.amount) || 0 : 0,
         credit: isPayable ? Number(p.amount) || 0 : 0,
-        jeNumber: null, jeId: null,
+        jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
       });
     }
+  }
+
+  // Standalone JE lines (only those NOT already covered by invoices/payments)
+  for (const line of (jeLines ?? []) as JELineRow[]) {
+    const je = line.journal_entries as unknown as {
+      id: string; entry_number: string; entry_date: string;
+      description: string; reference: string | null; status: string;
+    } | null;
+    if (!je || je.status !== "posted") continue;
+    if (coveredJeIds.has(je.id)) continue;
+    const txn = mapJELine(line);
+    if (txn) txns.push(txn);
   }
 
   // Process lease revenue schedule
@@ -671,7 +668,7 @@ export async function getPeopleTransactions(
   const prJeMap = await getJEMap(supabase, companyId, prRefs);
 
   for (const run of payrollRuns ?? []) {
-    if (prJeMap.get(`payroll_run:${run.id}`)) continue;
+    const je = prJeMap.get(`payroll_run:${run.id}`);
     const gross = Number(run.total_gross) || 0;
     const employerTaxes = Number(run.total_employer_taxes) || 0;
     const net = Number(run.total_net) || 0;
@@ -682,11 +679,11 @@ export async function getPeopleTransactions(
       reference: `PR-${run.id.substring(0, 8)}`,
       source: "Payroll", sourceHref: "/people/payroll",
       debit: gross + employerTaxes, credit: net,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
-  // 4. Contractor/vendor invoices without JEs
+  // 4. Contractor/vendor invoices — always show, populate JE when available
   const { data: contractorInvoices } = await supabase
     .from("invoices")
     .select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
@@ -700,7 +697,7 @@ export async function getPeopleTransactions(
   const invJeMap = await getJEMap(supabase, companyId, invRefs);
 
   for (const inv of contractorInvoices ?? []) {
-    if (invJeMap.get(`invoice:${inv.id}`)) continue;
+    const je = invJeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,
       date: inv.invoice_date,
@@ -708,7 +705,7 @@ export async function getPeopleTransactions(
       reference: inv.invoice_number,
       source: "Vendor Invoices", sourceHref: `/financial/invoices/${inv.id}`,
       debit: Number(inv.total_amount) || 0, credit: 0,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
@@ -808,7 +805,7 @@ export async function getEquipmentTransactions(
   const jeMap = await getJEMap(supabase, companyId, invRefs);
 
   for (const inv of equipInvoices ?? []) {
-    if (jeMap.get(`invoice:${inv.id}`)) continue;
+    const je = jeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,
       date: inv.invoice_date,
@@ -816,7 +813,7 @@ export async function getEquipmentTransactions(
       reference: inv.invoice_number,
       source: "Invoices", sourceHref: `/financial/invoices/${inv.id}`,
       debit: Number(inv.total_amount) || 0, credit: 0,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
@@ -872,7 +869,7 @@ export async function getSafetyTransactions(
   const jeMap = await getJEMap(supabase, companyId, refs);
 
   for (const inv of invoices ?? []) {
-    if (jeMap.get(`invoice:${inv.id}`)) continue;
+    const je = jeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,
       date: inv.invoice_date,
@@ -880,7 +877,7 @@ export async function getSafetyTransactions(
       reference: inv.invoice_number,
       source: "Invoices", sourceHref: `/financial/invoices/${inv.id}`,
       debit: Number(inv.total_amount) || 0, credit: 0,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
@@ -936,7 +933,7 @@ export async function getDocumentTransactions(
   const jeMap = await getJEMap(supabase, companyId, refs);
 
   for (const inv of invoices ?? []) {
-    if (jeMap.get(`invoice:${inv.id}`)) continue;
+    const je = jeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,
       date: inv.invoice_date,
@@ -944,7 +941,7 @@ export async function getDocumentTransactions(
       reference: inv.invoice_number,
       source: "Invoices", sourceHref: `/financial/invoices/${inv.id}`,
       debit: Number(inv.total_amount) || 0, credit: 0,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
@@ -1002,8 +999,7 @@ export async function getCRMTransactions(
   const invJeMap = await getJEMap(supabase, companyId, invRefs);
 
   for (const inv of clientInvoices ?? []) {
-    // Skip if JE lines already shown above
-    if (invJeMap.get(`invoice:${inv.id}`)) continue;
+    const je = invJeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,
       date: inv.invoice_date,
@@ -1011,7 +1007,7 @@ export async function getCRMTransactions(
       reference: inv.invoice_number,
       source: "Client Invoices", sourceHref: `/financial/invoices/${inv.id}`,
       debit: 0, credit: Number(inv.total_amount) || 0,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
