@@ -1,0 +1,102 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name,gl_account
+receivable,2025-01-01,1897200,0,2025-01-05,Monthly Rent Collection - January 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-01-01,60000,0,2025-01-05,Parking Income - January 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-01-01,11250,0,2025-01-05,Pet Fees - January 2025 (150 pets),paid,,,Brickell Bay Condominiums,4020
+receivable,2025-01-01,5000,0,2025-01-05,Laundry & Vending - January 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-01-01,15000,0,2025-01-05,Utility Reimbursement - January 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-02-01,1897200,0,2025-02-05,Monthly Rent Collection - February 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-02-01,60000,0,2025-02-05,Parking Income - February 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-02-01,11250,0,2025-02-05,Pet Fees - February 2025 (150 pets),paid,,,Brickell Bay Condominiums,4020
+receivable,2025-02-01,5000,0,2025-02-05,Laundry & Vending - February 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-02-01,15000,0,2025-02-05,Utility Reimbursement - February 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-03-01,1897200,0,2025-03-05,Monthly Rent Collection - March 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-03-01,60000,0,2025-03-05,Parking Income - March 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-03-01,11250,0,2025-03-05,Pet Fees - March 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-03-01,5000,0,2025-03-05,Laundry & Vending - March 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-03-01,15000,0,2025-03-05,Utility Reimbursement - March 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-04-01,1897200,0,2025-04-05,Monthly Rent Collection - April 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-04-01,60000,0,2025-04-05,Parking Income - April 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-04-01,11250,0,2025-04-05,Pet Fees - April 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-04-01,5000,0,2025-04-05,Laundry & Vending - April 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-04-01,3750,0,2025-04-05,Late Fees - April 2025,paid,,,Brickell Bay Condominiums,4040
+receivable,2025-04-01,15000,0,2025-04-05,Utility Reimbursement - April 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-05-01,1897200,0,2025-05-05,Monthly Rent Collection - May 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-05-01,60000,0,2025-05-05,Parking Income - May 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-05-01,11250,0,2025-05-05,Pet Fees - May 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-05-01,5000,0,2025-05-05,Laundry & Vending - May 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-05-01,15000,0,2025-05-05,Utility Reimbursement - May 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-06-01,1897200,0,2025-06-05,Monthly Rent Collection - June 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-06-01,60000,0,2025-06-05,Parking Income - June 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-06-01,11250,0,2025-06-05,Pet Fees - June 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-06-01,5000,0,2025-06-05,Laundry & Vending - June 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-06-01,15000,0,2025-06-05,Utility Reimbursement - June 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-07-01,1897200,0,2025-07-05,Monthly Rent Collection - July 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-07-01,60000,0,2025-07-05,Parking Income - July 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-07-01,11250,0,2025-07-05,Pet Fees - July 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-07-01,5000,0,2025-07-05,Laundry & Vending - July 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-07-01,3750,0,2025-07-05,Late Fees - July 2025,paid,,,Brickell Bay Condominiums,4040
+receivable,2025-07-01,15000,0,2025-07-05,Utility Reimbursement - July 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-08-01,1897200,0,2025-08-05,Monthly Rent Collection - August 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-08-01,60000,0,2025-08-05,Parking Income - August 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-08-01,11250,0,2025-08-05,Pet Fees - August 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-08-01,5000,0,2025-08-05,Laundry & Vending - August 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-08-01,15000,0,2025-08-05,Utility Reimbursement - August 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-09-01,1897200,0,2025-09-05,Monthly Rent Collection - September 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-09-01,60000,0,2025-09-05,Parking Income - September 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-09-01,11250,0,2025-09-05,Pet Fees - September 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-09-01,5000,0,2025-09-05,Laundry & Vending - September 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-09-01,15000,0,2025-09-05,Utility Reimbursement - September 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-10-01,1897200,0,2025-10-05,Monthly Rent Collection - October 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-10-01,60000,0,2025-10-05,Parking Income - October 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-10-01,11250,0,2025-10-05,Pet Fees - October 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-10-01,5000,0,2025-10-05,Laundry & Vending - October 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-10-01,3750,0,2025-10-05,Late Fees - October 2025,paid,,,Brickell Bay Condominiums,4040
+receivable,2025-10-01,15000,0,2025-10-05,Utility Reimbursement - October 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-11-01,1897200,0,2025-11-05,Monthly Rent Collection - November 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-11-01,60000,0,2025-11-05,Parking Income - November 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-11-01,11250,0,2025-11-05,Pet Fees - November 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-11-01,5000,0,2025-11-05,Laundry & Vending - November 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-11-01,15000,0,2025-11-05,Utility Reimbursement - November 2025,paid,,,Brickell Bay Condominiums,4090
+receivable,2025-12-01,1897200,0,2025-12-05,Monthly Rent Collection - December 2025 (544 units),paid,,,Brickell Bay Condominiums,4000
+receivable,2025-12-01,60000,0,2025-12-05,Parking Income - December 2025,paid,,,Brickell Bay Condominiums,4010
+receivable,2025-12-01,11250,0,2025-12-05,Pet Fees - December 2025,paid,,,Brickell Bay Condominiums,4020
+receivable,2025-12-01,5000,0,2025-12-05,Laundry & Vending - December 2025,paid,,,Brickell Bay Condominiums,4030
+receivable,2025-12-01,3750,0,2025-12-05,Late Fees - December 2025,paid,,,Brickell Bay Condominiums,4040
+receivable,2025-12-01,2500,0,2025-12-05,Application Fees - December 2025,paid,,,Brickell Bay Condominiums,4050
+receivable,2025-12-01,6000,0,2025-12-05,Storage Unit Income - December 2025,paid,,,Brickell Bay Condominiums,4060
+receivable,2025-12-01,15000,0,2025-12-05,Utility Reimbursement - December 2025,paid,,,Brickell Bay Condominiums,4090
+payable,2025-01-31,100035,0,2025-02-28,Property Management Fee - January 2025,paid,Hartford Property Management,,Brickell Bay Condominiums,5000
+payable,2025-01-31,75000,0,2025-02-10,Repairs & Maintenance - January 2025,paid,Home Depot Pro,,Brickell Bay Condominiums,5010
+payable,2025-01-31,15000,0,2025-02-10,Landscaping - January 2025,paid,Sun State Landscaping,,Brickell Bay Condominiums,5020
+payable,2025-01-31,20000,0,2025-02-10,Cleaning & Janitorial - January 2025,paid,Miami Clean Commercial,,Brickell Bay Condominiums,5030
+payable,2025-01-31,30000,0,2025-02-10,Electric - Common Areas - January 2025,paid,Florida Power & Light,,Brickell Bay Condominiums,5040
+payable,2025-01-31,40000,0,2025-02-10,Water & Sewer - January 2025,paid,Miami-Dade Water & Sewer,,Brickell Bay Condominiums,5050
+payable,2025-01-31,5000,0,2025-02-10,Gas - January 2025,paid,Florida Gas,,Brickell Bay Condominiums,5060
+payable,2025-01-31,81667,0,2025-02-10,Property Insurance - January 2025,paid,State Farm Commercial Insurance,,Brickell Bay Condominiums,5070
+payable,2025-01-31,140000,0,2025-02-10,Real Estate Taxes - January 2025,paid,Miami-Dade County Tax Collector,,Brickell Bay Condominiums,5090
+payable,2025-01-31,35000,0,2025-02-10,Security Services - January 2025,paid,Patriot Security Group,,Brickell Bay Condominiums,5110
+payable,2025-01-31,15000,0,2025-02-10,Elevator Maintenance - January 2025,paid,Southeast Elevator Services,,Brickell Bay Condominiums,5120
+payable,2025-01-31,65000,0,2025-02-10,Payroll - On-site Staff - January 2025,paid,,,Brickell Bay Condominiums,5240
+payable,2025-02-28,100035,0,2025-03-31,Property Management Fee - February 2025,paid,Hartford Property Management,,Brickell Bay Condominiums,5000
+payable,2025-02-28,75000,0,2025-03-10,Repairs & Maintenance - February 2025,paid,Home Depot Pro,,Brickell Bay Condominiums,5010
+payable,2025-02-28,15000,0,2025-03-10,Landscaping - February 2025,paid,Sun State Landscaping,,Brickell Bay Condominiums,5020
+payable,2025-02-28,20000,0,2025-03-10,Cleaning & Janitorial - February 2025,paid,Miami Clean Commercial,,Brickell Bay Condominiums,5030
+payable,2025-02-28,30000,0,2025-03-10,Electric - Common Areas - February 2025,paid,Florida Power & Light,,Brickell Bay Condominiums,5040
+payable,2025-02-28,40000,0,2025-03-10,Water & Sewer - February 2025,paid,Miami-Dade Water & Sewer,,Brickell Bay Condominiums,5050
+payable,2025-02-28,81667,0,2025-03-10,Property Insurance - February 2025,paid,State Farm Commercial Insurance,,Brickell Bay Condominiums,5070
+payable,2025-02-28,140000,0,2025-03-10,Real Estate Taxes - February 2025,paid,Miami-Dade County Tax Collector,,Brickell Bay Condominiums,5090
+payable,2025-02-28,35000,0,2025-03-10,Security Services - February 2025,paid,Patriot Security Group,,Brickell Bay Condominiums,5110
+payable,2025-02-28,15000,0,2025-03-10,Elevator Maintenance - February 2025,paid,Southeast Elevator Services,,Brickell Bay Condominiums,5120
+payable,2025-02-28,65000,0,2025-03-10,Payroll - On-site Staff - February 2025,paid,,,Brickell Bay Condominiums,5240
+payable,2025-12-31,100035,0,2026-01-31,Property Management Fee - December 2025,paid,Hartford Property Management,,Brickell Bay Condominiums,5000
+payable,2025-12-31,75000,0,2026-01-10,Repairs & Maintenance - December 2025,paid,Home Depot Pro,,Brickell Bay Condominiums,5010
+payable,2025-12-31,15000,0,2026-01-10,Landscaping - December 2025,paid,Sun State Landscaping,,Brickell Bay Condominiums,5020
+payable,2025-12-31,20000,0,2026-01-10,Cleaning & Janitorial - December 2025,paid,Miami Clean Commercial,,Brickell Bay Condominiums,5030
+payable,2025-12-31,30000,0,2026-01-10,Electric - Common Areas - December 2025,paid,Florida Power & Light,,Brickell Bay Condominiums,5040
+payable,2025-12-31,40000,0,2026-01-10,Water & Sewer - December 2025,paid,Miami-Dade Water & Sewer,,Brickell Bay Condominiums,5050
+payable,2025-12-31,81667,0,2026-01-10,Property Insurance - December 2025,paid,State Farm Commercial Insurance,,Brickell Bay Condominiums,5070
+payable,2025-12-31,140000,0,2026-01-10,Real Estate Taxes - December 2025,paid,Miami-Dade County Tax Collector,,Brickell Bay Condominiums,5090
+payable,2025-12-31,35000,0,2026-01-10,Security Services - December 2025,paid,Patriot Security Group,,Brickell Bay Condominiums,5110
+payable,2025-12-31,15000,0,2026-01-10,Elevator Maintenance - December 2025,paid,Southeast Elevator Services,,Brickell Bay Condominiums,5120
+payable,2025-12-31,65000,0,2026-01-10,Payroll - On-site Staff - December 2025,paid,,,Brickell Bay Condominiums,5240
+payable,2025-12-31,320833,0,2026-01-10,Mortgage Payment - December 2025 (Interest Portion),paid,BankUnited Commercial Lending,,Brickell Bay Condominiums,7000

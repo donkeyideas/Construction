@@ -1,0 +1,21 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Carlos,Menendez,employee,c.menendez@brickellbayproperties.com,305-555-0101,,General Manager
+Sofia,Ramirez,employee,s.ramirez@brickellbayproperties.com,305-555-0102,,Assistant Property Manager
+James,Whitfield,employee,j.whitfield@brickellbayproperties.com,305-555-0103,,Maintenance Supervisor
+Lucia,Torres,employee,l.torres@brickellbayproperties.com,305-555-0104,,Leasing Manager
+Daniel,Park,employee,d.park@brickellbayproperties.com,305-555-0105,,Accountant / Controller
+Marcus,Reid,employee,m.reid@brickellbayproperties.com,305-555-0106,,Head of Security
+Ana,Gutierrez,employee,a.gutierrez@brickellbayproperties.com,305-555-0107,,Leasing Agent
+Roberto,Vega,employee,r.vega@brickellbayproperties.com,305-555-0108,,Maintenance Technician
+Priya,Nair,employee,p.nair@brickellbayproperties.com,305-555-0109,,Maintenance Technician
+Katelyn,Brooks,employee,k.brooks@brickellbayproperties.com,305-555-0110,,Front Desk Concierge
+Brickell Bay Holdings LLC,,owner,info@brickellbayholdings.com,305-555-0200,Brickell Bay Holdings LLC,Ownership Entity
+Hartford Property Management,,vendor,miami@hartfordpm.com,305-555-0301,Hartford Property Management,Regional Director
+Southeast Elevator Services,,vendor,contracts@southeastelevator.com,305-555-0302,Southeast Elevator Services,Account Manager
+Sun State Landscaping,,vendor,bids@sunstatelandscaping.com,305-555-0303,Sun State Landscaping,Account Manager
+Miami Clean Commercial,,vendor,accounts@miamicleancorp.com,305-555-0304,Miami Clean Commercial,Operations Manager
+Patriot Security Group,,vendor,miami@patriotsecurity.com,305-555-0305,Patriot Security Group,Contract Manager
+Coastal HVAC Solutions,,vendor,service@coastalhvac.com,305-555-0306,Coastal HVAC Solutions,Service Manager
+Everglades Pest Control,,vendor,commercial@evergladespest.com,305-555-0307,Everglades Pest Control,Account Rep
+Miami-Dade Legal Partners,,vendor,billing@mdlegalpartners.com,305-555-0308,Miami-Dade Legal Partners,Managing Partner
+Bright & Cruz CPAs,,vendor,info@brightcruz.com,305-555-0309,Bright & Cruz CPAs,Partner

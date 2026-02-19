@@ -1,0 +1,29 @@
+property_name,expense_type,description,amount,frequency,effective_date,end_date,vendor_name,notes
+Brickell Bay Condominiums,management_fee,Property Management Fees (5% of revenue),100035,monthly,2025-01-01,,Pinnacle Property Management,5% of gross revenue
+Brickell Bay Condominiums,cam,Repairs & Maintenance,75000,monthly,2025-01-01,,Various Contractors,General building repairs
+Brickell Bay Condominiums,cam,Landscaping & Grounds,15000,monthly,2025-01-01,,TruGreen Landscaping,Grounds and exterior maintenance
+Brickell Bay Condominiums,cam,Cleaning & Janitorial,20000,monthly,2025-01-01,,CleanPro Services,Common area and lobby cleaning
+Brickell Bay Condominiums,utilities,Utilities - Electric (Common Areas),30000,monthly,2025-01-01,,FPL,Common area electricity
+Brickell Bay Condominiums,utilities,Utilities - Water & Sewer,40000,monthly,2025-01-01,,Miami-Dade Water,Building water and sewer
+Brickell Bay Condominiums,utilities,Utilities - Gas,5000,monthly,2025-01-01,,TECO Energy,Gas for heating and hot water
+Brickell Bay Condominiums,insurance,Insurance - Property & Liability,81667,monthly,2025-01-01,,State Farm Commercial,Property and liability coverage - hurricane zone
+Brickell Bay Condominiums,insurance,Insurance - Workers Compensation,7083,monthly,2025-01-01,,Hartford Insurance,Workers comp for on-site staff
+Brickell Bay Condominiums,property_tax,Real Estate Taxes (Miami-Dade County),140000,monthly,2025-01-01,,Miami-Dade Tax Collector,Annual property tax paid monthly
+Brickell Bay Condominiums,other,Security Services,35000,monthly,2025-01-01,,Allied Universal Security,24/7 lobby and patrol security
+Brickell Bay Condominiums,cam,Elevator Maintenance,15000,monthly,2025-01-01,,Otis Elevator,4 elevator service contract
+Brickell Bay Condominiums,cam,HVAC Maintenance,12500,monthly,2025-01-01,,Carrier HVAC Services,Central plant and unit maintenance
+Brickell Bay Condominiums,cam,Pest Control,6000,monthly,2025-01-01,,Terminix,Monthly pest treatment
+Brickell Bay Condominiums,cam,Pool & Amenity Maintenance,10000,monthly,2025-01-01,,Aqua Pool Services,Pool chemical treatment and amenity upkeep
+Brickell Bay Condominiums,cam,Trash & Recycling,7000,monthly,2025-01-01,,Waste Management,Trash and recycling pickup
+Brickell Bay Condominiums,other,Administrative & Office,5000,monthly,2025-01-01,,,Office supplies and admin costs
+Brickell Bay Condominiums,legal,Legal & Professional,7500,monthly,2025-01-01,,Greenberg Traurig LLP,Legal and accounting fees
+Brickell Bay Condominiums,marketing,Marketing & Advertising,10000,monthly,2025-01-01,,Digital Realty Marketing,Online and print advertising
+Brickell Bay Condominiums,marketing,Leasing Commissions,95000,one_time,2025-06-15,,,Broker commissions for new leases
+Brickell Bay Condominiums,other,Bad Debt Expense,68000,one_time,2025-12-31,,,Write-off of uncollectible tenant balances
+Brickell Bay Condominiums,capital_expense,Capital Reserve Contribution,20000,monthly,2025-01-01,,,Annual reserve fund contribution
+Brickell Bay Condominiums,other,Payroll - On-site Staff,65000,monthly,2025-01-01,,,Building manager and maintenance team
+Brickell Bay Condominiums,other,Payroll Taxes & Benefits,13000,monthly,2025-01-01,,,FICA Medicare and health benefits
+Brickell Bay Condominiums,utilities,Telephone & Internet,2000,monthly,2025-01-01,,AT&T Business,Office phone and internet service
+Brickell Bay Condominiums,other,Software & Technology,3000,monthly,2025-01-01,,Buildwrk,Property management software
+Brickell Bay Condominiums,other,Licenses & Permits,1500,monthly,2025-01-01,,City of Miami,Business and operating licenses
+Brickell Bay Condominiums,other,Bank Charges & Fees,1250,monthly,2025-01-01,,BankUnited,Account maintenance and transaction fees

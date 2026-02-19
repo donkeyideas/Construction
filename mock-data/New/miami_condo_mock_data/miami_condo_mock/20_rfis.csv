@@ -1,0 +1,11 @@
+project_name,subject,question,priority,status,due_date
+Brickell Bay - 2025 Operations,Pool heater replacement specifications,What are the BTU requirements and energy efficiency ratings for the replacement pool heater system? Current unit is 400K BTU natural gas.,high,closed,2025-03-15
+Brickell Bay - 2025 Operations,Elevator cab interior finish options,Please provide material samples and pricing for elevator cab interior modernization - stainless steel vs laminate panels for 4 cabs.,medium,closed,2025-04-01
+Brickell Bay - 2025 Operations,Fire alarm panel compatibility,Is the new Notifier NFS2-3030 panel backward compatible with existing smoke detectors on floors 1-20 or do detectors need replacement?,critical,closed,2025-02-15
+Brickell Bay - 2025 Operations,Parking gate replacement specifications,Confirm vehicle clearance height and gate arm length requirements for the new LiftMaster BG790 barrier gate system.,medium,closed,2025-07-15
+Brickell Bay - 2025 Operations,Roof membrane warranty coverage,Does the existing Johns Manville TPO membrane warranty cover the 3 areas identified for patching during the July inspection?,high,closed,2025-08-01
+Brickell Bay - 2025 Operations,Security camera NVR storage requirements,What is the recommended NVR storage capacity for 64 IP cameras recording at 4K 15fps with 30-day retention?,medium,answered,2025-09-30
+Brickell Bay - 2025 Operations,HVAC chiller refrigerant transition,With R-22 phase-out what is the recommended replacement refrigerant for the Carrier 30XA chiller - R-410A or R-454B?,high,submitted,2025-11-15
+Brickell Bay - 2025 Operations,Hurricane impact window compliance,Do the current windows on floors 1-5 meet the updated Miami-Dade NOA requirements for large missile impact zones?,critical,submitted,2025-12-01
+Brickell Bay - 2025 Operations,Generator fuel tank capacity,Is the existing 1000-gallon diesel tank sufficient for 72-hour runtime at full building load per Florida building code?,high,submitted,2025-12-15
+Brickell Bay - 2025 Operations,Lobby flooring material selection,Request pricing and lead time for replacement of lobby marble flooring - Calacatta Gold vs Statuario Venato options.,low,submitted,2025-12-31

@@ -1,0 +1,11 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+Commercial Riding Mower,grounds,Husqvarna,P 524D,HVA524D-30142,18500,0.00,2022-03-10
+Box Truck - Maintenance,vehicle,Ford,E-350,1FDWE3FS3N2A00142,52000,0.00,2021-08-01
+Electric Floor Scrubber,cleaning,Tennant,T7,TNT7-29841,14200,0.00,2022-01-15
+High Reach Boom Lift,maintenance,JLG,600AJ,JLG600AJ-81234,68000,0.00,2020-06-22
+Commercial Pressure Washer,cleaning,Landa,PHW4-3500,LND4350-55291,4800,0.00,2023-02-14
+Industrial Water Pump,mechanical,Gorman-Rupp,T4A60B-B,GR-T4A-44891,9200,0.00,2019-11-05
+Pool Vacuum System,pool,Pentair,GW9050,PTR9050-88012,6500,0.00,2021-04-18
+CCTV Surveillance System,security,Hikvision,DS-9664NI-I16,HIK9664-70033,38000,0.00,2020-09-01
+Backup Generator - 200kW,mechanical,Caterpillar,XQ200,CAT200-GEN-52241,95000,0.00,2018-05-30
+Golf Cart - Property,vehicle,Club Car,Precedent,CLBP-2022-19204,12000,0.00,2022-07-01

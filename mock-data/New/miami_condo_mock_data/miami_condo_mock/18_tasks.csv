@@ -1,0 +1,29 @@
+project_name,phase_name,name,status,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path
+Brickell Bay - 2025 Operations,Planning & Assessment,Annual budget preparation and approval,completed,high,2025-01-02,2025-01-15,100,true,true
+Brickell Bay - 2025 Operations,Planning & Assessment,Insurance policy renewal review,completed,high,2025-01-06,2025-01-20,100,false,false
+Brickell Bay - 2025 Operations,Planning & Assessment,Vendor contract renewals,completed,medium,2025-01-13,2025-01-31,100,false,false
+Brickell Bay - 2025 Operations,Q1 Operations,Fire safety system annual inspection,completed,critical,2025-01-15,2025-01-17,100,true,true
+Brickell Bay - 2025 Operations,Q1 Operations,Elevator annual certification,completed,critical,2025-02-03,2025-02-07,100,true,true
+Brickell Bay - 2025 Operations,Q1 Operations,HVAC spring startup and filter replacement,completed,high,2025-03-10,2025-03-14,100,false,false
+Brickell Bay - 2025 Operations,Q1 Operations,Common area deep cleaning,completed,medium,2025-03-17,2025-03-21,100,false,false
+Brickell Bay - 2025 Operations,Q2 Operations,Pool resurfacing and equipment upgrade,completed,high,2025-04-07,2025-05-02,100,false,true
+Brickell Bay - 2025 Operations,Q2 Operations,Hurricane preparedness drill,completed,critical,2025-05-15,2025-05-16,100,true,false
+Brickell Bay - 2025 Operations,Q2 Operations,Parking garage power washing and striping,completed,medium,2025-06-02,2025-06-13,100,false,false
+Brickell Bay - 2025 Operations,Q2 Operations,Lobby furniture replacement,completed,low,2025-06-16,2025-06-27,100,false,false
+Brickell Bay - 2025 Operations,Q3 Operations,Roof membrane inspection,completed,high,2025-07-07,2025-07-11,100,false,true
+Brickell Bay - 2025 Operations,Q3 Operations,Generator load bank testing,completed,critical,2025-07-21,2025-07-22,100,true,false
+Brickell Bay - 2025 Operations,Q3 Operations,Exterior painting touch-up (floors 1-10),completed,medium,2025-08-04,2025-08-22,100,false,false
+Brickell Bay - 2025 Operations,Q3 Operations,Back-to-school tenant event,completed,low,2025-08-25,2025-08-25,100,false,false
+Brickell Bay - 2025 Operations,Q4 Operations,HVAC winter preparation,in_progress,high,2025-10-06,2025-10-17,80,false,false
+Brickell Bay - 2025 Operations,Q4 Operations,Holiday lighting installation,in_progress,low,2025-11-17,2025-12-01,60,false,false
+Brickell Bay - 2025 Operations,Q4 Operations,Year-end unit inspections,not_started,medium,2025-12-01,2025-12-20,0,false,false
+Brickell Bay - 2025 Operations,Capital Projects,Pool deck drainage improvement,completed,high,2025-03-03,2025-04-11,100,false,true
+Brickell Bay - 2025 Operations,Capital Projects,Elevator cab interior modernization,completed,high,2025-05-05,2025-07-18,100,false,true
+Brickell Bay - 2025 Operations,Capital Projects,Parking gate system replacement,completed,medium,2025-08-11,2025-09-19,100,false,false
+Brickell Bay - 2025 Operations,Capital Projects,Security camera system upgrade,in_progress,high,2025-09-22,2025-11-28,70,false,false
+Brickell Bay - 2025 Operations,Lease Renewals,Q3 lease renewal campaign (68 units),completed,high,2025-06-01,2025-08-31,100,false,true
+Brickell Bay - 2025 Operations,Lease Renewals,Q4 lease renewal campaign (45 units),in_progress,high,2025-09-01,2025-11-30,65,false,false
+Brickell Bay - 2025 Operations,Lease Renewals,New tenant marketing push,in_progress,medium,2025-10-01,2025-12-31,40,false,false
+Brickell Bay - 2025 Operations,Year-End Close,Prepare year-end financial statements,not_started,critical,2025-12-01,2025-12-31,0,true,true
+Brickell Bay - 2025 Operations,Year-End Close,Annual property tax assessment review,not_started,high,2025-11-15,2025-12-15,0,false,false
+Brickell Bay - 2025 Operations,Year-End Close,Capital reserve fund reconciliation,not_started,high,2025-12-15,2025-12-31,0,false,false

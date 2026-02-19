@@ -932,7 +932,9 @@ export async function POST(request: NextRequest) {
             total_amount: totalAmount,
             tax_amount: taxAmount,
             due_date: r.due_date || null,
-            notes: r.description || null,
+            notes: body.generate_invoice_jes === true
+              ? (r.description || null)
+              : `csv-import:${r.description || ""}`,
             status,
             amount_paid: amountPaid,
             gl_account_id: glAccountId,
@@ -1020,7 +1022,9 @@ export async function POST(request: NextRequest) {
               payment_date: pi.due_date,
               amount: pi.total_amount,
               method: "imported",
-              notes: "Auto-generated from paid invoice import",
+              notes: body.generate_invoice_jes === true
+                ? "Auto-generated from paid invoice import"
+                : "csv-import:Auto-generated from paid invoice import",
             }).select("id").single();
 
             if (pmtErr) {

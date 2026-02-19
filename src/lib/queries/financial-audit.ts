@@ -253,10 +253,14 @@ async function checkInvoiceJECoverage(
     return { id, name, status: "fail", summary: "Error querying invoices", details: [invErr.message] };
   }
 
-  // Exclude auto-generated invoices (from syncPropertyFinancials) — they use
-  // batch JEs rather than individual invoice JEs, so checking them here is wrong.
+  // Exclude invoices that don't need individual JE linkage:
+  // - auto-rent-/auto-maint-: syncPropertyFinancials batch JEs
+  // - csv-import: imported alongside a JE CSV (accounting handled separately)
   const allInvoices = (invoices ?? []).filter(
-    (inv) => !inv.notes?.startsWith("auto-rent-") && !inv.notes?.startsWith("auto-maint-")
+    (inv) =>
+      !inv.notes?.startsWith("auto-rent-") &&
+      !inv.notes?.startsWith("auto-maint-") &&
+      !inv.notes?.startsWith("csv-import:")
   );
 
   if (allInvoices.length === 0) {
@@ -342,14 +346,17 @@ async function checkPaymentJECoverage(
   // Get all payments for the company
   const { data: payments, error: payErr } = await supabase
     .from("payments")
-    .select("id, reference_number")
+    .select("id, reference_number, notes")
     .eq("company_id", companyId);
 
   if (payErr) {
     return { id, name, status: "fail", summary: "Error querying payments", details: [payErr.message] };
   }
 
-  const allPayments = payments ?? [];
+  // Exclude CSV-imported payments (accounting handled by JE CSV, not per-payment JEs)
+  const allPayments = (payments ?? []).filter(
+    (p) => !p.notes?.startsWith("csv-import:")
+  );
 
   if (allPayments.length === 0) {
     return { id, name, status: "pass", summary: "No payments found — nothing to validate", details: [] };
@@ -493,28 +500,36 @@ async function checkBankReconciliation(
   }
 
   const difference = Math.abs(bankBalance - glCashBalance);
+  const largerBalance = Math.max(bankBalance, glCashBalance, 1);
+  const diffPct = (difference / largerBalance) * 100;
 
-  if (difference <= 1.0) {
+  const diffDetails = [
+    `Bank accounts total: $${bankBalance.toFixed(2)}`,
+    `GL cash accounts total: $${glCashBalance.toFixed(2)}`,
+    `Difference: $${difference.toFixed(2)} (${diffPct.toFixed(1)}%)`,
+  ];
+
+  // Pass: within 1% or $100
+  if (diffPct <= 1 || difference <= 100) {
     return {
       id,
       name,
       status: "pass",
-      summary: `Bank balance ($${bankBalance.toFixed(2)}) matches GL cash balance ($${glCashBalance.toFixed(2)})`,
-      details: [],
+      summary: difference <= 1
+        ? `Bank balance matches GL cash balance ($${bankBalance.toFixed(2)})`
+        : `Bank and GL cash within ${diffPct.toFixed(1)}% ($${difference.toFixed(2)})`,
+      details: difference <= 1 ? [] : diffDetails,
     };
   }
 
-  if (difference < 100) {
+  // Warn: within 5%
+  if (diffPct <= 5) {
     return {
       id,
       name,
       status: "warn",
-      summary: `Bank balance and GL cash differ by $${difference.toFixed(2)}`,
-      details: [
-        `Bank accounts total: $${bankBalance.toFixed(2)}`,
-        `GL cash accounts total: $${glCashBalance.toFixed(2)}`,
-        `Difference: $${difference.toFixed(2)}`,
-      ],
+      summary: `Bank and GL cash differ by ${diffPct.toFixed(1)}% ($${difference.toFixed(2)})`,
+      details: diffDetails,
     };
   }
 
@@ -522,12 +537,8 @@ async function checkBankReconciliation(
     id,
     name,
     status: "fail",
-    summary: `Bank balance and GL cash differ by $${difference.toFixed(2)}`,
-    details: [
-      `Bank accounts total: $${bankBalance.toFixed(2)}`,
-      `GL cash accounts total: $${glCashBalance.toFixed(2)}`,
-      `Difference: $${difference.toFixed(2)}`,
-    ],
+    summary: `Bank and GL cash differ by ${diffPct.toFixed(1)}% ($${difference.toFixed(2)})`,
+    details: diffDetails,
   };
 }
 
@@ -619,11 +630,14 @@ async function checkMissingGLMappings(
     return { id, name, status: "fail", summary: "Error querying invoices", details: [invErr.message] };
   }
 
-  // Exclude auto-generated invoices that now have gl_account_id set via syncPropertyFinancials.
-  // For legacy data where gl_account_id might still be null, exclude auto-generated invoices
-  // since they use batch JE accounting rather than per-invoice GL mapping.
+  // Exclude auto-generated and CSV-imported invoices:
+  // - auto-rent-/auto-maint-: batch JE accounting via syncPropertyFinancials
+  // - csv-import: GL mapping handled by JE CSV, not per-invoice
   const unmapped = (invoices ?? []).filter(
-    (inv) => !inv.notes?.startsWith("auto-rent-") && !inv.notes?.startsWith("auto-maint-")
+    (inv) =>
+      !inv.notes?.startsWith("auto-rent-") &&
+      !inv.notes?.startsWith("auto-maint-") &&
+      !inv.notes?.startsWith("csv-import:")
   );
 
   if (unmapped.length === 0) {

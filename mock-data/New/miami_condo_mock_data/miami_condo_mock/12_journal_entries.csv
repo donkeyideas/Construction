@@ -1,0 +1,1546 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-0001,2025-01-31,Rental Income - January 2025,RENT-01-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0001,2025-01-31,Rental Income - January 2025,RENT-01-2025,4000,,1897200,Residential rental income
+JE-0002,2025-01-31,Rent Cash Receipt - January 2025,CASH-01-2025,1000,1897200,,Cash received for rent
+JE-0002,2025-01-31,Rent Cash Receipt - January 2025,CASH-01-2025,1010,,1897200,Clear accounts receivable
+JE-0003,2025-01-31,Other Income - January 2025,OTH-01-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0003,2025-01-31,Other Income - January 2025,OTH-01-2025,4010,,60000,Parking income
+JE-0003,2025-01-31,Other Income - January 2025,OTH-01-2025,4020,,11250,Pet fee income
+JE-0003,2025-01-31,Other Income - January 2025,OTH-01-2025,4030,,5000,Laundry and vending
+JE-0003,2025-01-31,Other Income - January 2025,OTH-01-2025,4090,,15000,Utility reimbursement
+JE-0004,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5000,100035,,Property management fee
+JE-0004,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,100035,Accounts payable
+JE-0005,2025-01-31,AP Payment - Property management fee January 2025,PAY-01-5000,2000,100035,,Clear AP
+JE-0005,2025-01-31,AP Payment - Property management fee January 2025,PAY-01-5000,1000,,100035,Cash paid
+JE-0006,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5010,75000,,Repairs and maintenance
+JE-0006,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,75000,Accounts payable
+JE-0007,2025-01-31,AP Payment - Repairs and maintenance January 2025,PAY-01-5010,2000,75000,,Clear AP
+JE-0007,2025-01-31,AP Payment - Repairs and maintenance January 2025,PAY-01-5010,1000,,75000,Cash paid
+JE-0008,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5020,15000,,Landscaping and grounds
+JE-0008,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,15000,Accounts payable
+JE-0009,2025-01-31,AP Payment - Landscaping and grounds January 2025,PAY-01-5020,2000,15000,,Clear AP
+JE-0009,2025-01-31,AP Payment - Landscaping and grounds January 2025,PAY-01-5020,1000,,15000,Cash paid
+JE-0010,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5030,20000,,Cleaning and janitorial
+JE-0010,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,20000,Accounts payable
+JE-0011,2025-01-31,AP Payment - Cleaning and janitorial January 2025,PAY-01-5030,2000,20000,,Clear AP
+JE-0011,2025-01-31,AP Payment - Cleaning and janitorial January 2025,PAY-01-5030,1000,,20000,Cash paid
+JE-0012,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5040,30000,,Electric - common areas
+JE-0012,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,30000,Accounts payable
+JE-0013,2025-01-31,AP Payment - Electric - common areas January 2025,PAY-01-5040,2000,30000,,Clear AP
+JE-0013,2025-01-31,AP Payment - Electric - common areas January 2025,PAY-01-5040,1000,,30000,Cash paid
+JE-0014,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5050,40000,,Water and sewer
+JE-0014,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,40000,Accounts payable
+JE-0015,2025-01-31,AP Payment - Water and sewer January 2025,PAY-01-5050,2000,40000,,Clear AP
+JE-0015,2025-01-31,AP Payment - Water and sewer January 2025,PAY-01-5050,1000,,40000,Cash paid
+JE-0016,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5060,5000,,Gas
+JE-0016,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,5000,Accounts payable
+JE-0017,2025-01-31,AP Payment - Gas January 2025,PAY-01-5060,2000,5000,,Clear AP
+JE-0017,2025-01-31,AP Payment - Gas January 2025,PAY-01-5060,1000,,5000,Cash paid
+JE-0018,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5070,81667,,Property insurance
+JE-0018,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,81667,Accounts payable
+JE-0019,2025-01-31,AP Payment - Property insurance January 2025,PAY-01-5070,2000,81667,,Clear AP
+JE-0019,2025-01-31,AP Payment - Property insurance January 2025,PAY-01-5070,1000,,81667,Cash paid
+JE-0020,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5090,140000,,Real estate taxes
+JE-0020,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,140000,Accounts payable
+JE-0021,2025-01-31,AP Payment - Real estate taxes January 2025,PAY-01-5090,2000,140000,,Clear AP
+JE-0021,2025-01-31,AP Payment - Real estate taxes January 2025,PAY-01-5090,1000,,140000,Cash paid
+JE-0022,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5110,35000,,Security services
+JE-0022,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,35000,Accounts payable
+JE-0023,2025-01-31,AP Payment - Security services January 2025,PAY-01-5110,2000,35000,,Clear AP
+JE-0023,2025-01-31,AP Payment - Security services January 2025,PAY-01-5110,1000,,35000,Cash paid
+JE-0024,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5120,15000,,Elevator maintenance
+JE-0024,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,15000,Accounts payable
+JE-0025,2025-01-31,AP Payment - Elevator maintenance January 2025,PAY-01-5120,2000,15000,,Clear AP
+JE-0025,2025-01-31,AP Payment - Elevator maintenance January 2025,PAY-01-5120,1000,,15000,Cash paid
+JE-0026,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5130,12500,,HVAC maintenance
+JE-0026,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,12500,Accounts payable
+JE-0027,2025-01-31,AP Payment - HVAC maintenance January 2025,PAY-01-5130,2000,12500,,Clear AP
+JE-0027,2025-01-31,AP Payment - HVAC maintenance January 2025,PAY-01-5130,1000,,12500,Cash paid
+JE-0028,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5140,6000,,Pest control
+JE-0028,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,6000,Accounts payable
+JE-0029,2025-01-31,AP Payment - Pest control January 2025,PAY-01-5140,2000,6000,,Clear AP
+JE-0029,2025-01-31,AP Payment - Pest control January 2025,PAY-01-5140,1000,,6000,Cash paid
+JE-0030,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5150,10000,,Pool and amenity maintenance
+JE-0030,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,10000,Accounts payable
+JE-0031,2025-01-31,AP Payment - Pool and amenity maintenance January 2025,PAY-01-5150,2000,10000,,Clear AP
+JE-0031,2025-01-31,AP Payment - Pool and amenity maintenance January 2025,PAY-01-5150,1000,,10000,Cash paid
+JE-0032,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5160,7000,,Trash and recycling
+JE-0032,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,7000,Accounts payable
+JE-0033,2025-01-31,AP Payment - Trash and recycling January 2025,PAY-01-5160,2000,7000,,Clear AP
+JE-0033,2025-01-31,AP Payment - Trash and recycling January 2025,PAY-01-5160,1000,,7000,Cash paid
+JE-0034,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5170,5000,,Administrative and office
+JE-0034,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,5000,Accounts payable
+JE-0035,2025-01-31,AP Payment - Administrative and office January 2025,PAY-01-5170,2000,5000,,Clear AP
+JE-0035,2025-01-31,AP Payment - Administrative and office January 2025,PAY-01-5170,1000,,5000,Cash paid
+JE-0036,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5180,7500,,Legal and professional
+JE-0036,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,7500,Accounts payable
+JE-0037,2025-01-31,AP Payment - Legal and professional January 2025,PAY-01-5180,2000,7500,,Clear AP
+JE-0037,2025-01-31,AP Payment - Legal and professional January 2025,PAY-01-5180,1000,,7500,Cash paid
+JE-0038,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5190,10000,,Marketing and advertising
+JE-0038,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,10000,Accounts payable
+JE-0039,2025-01-31,AP Payment - Marketing and advertising January 2025,PAY-01-5190,2000,10000,,Clear AP
+JE-0039,2025-01-31,AP Payment - Marketing and advertising January 2025,PAY-01-5190,1000,,10000,Cash paid
+JE-0040,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5200,7917,,Leasing commissions
+JE-0040,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,7917,Accounts payable
+JE-0041,2025-01-31,AP Payment - Leasing commissions January 2025,PAY-01-5200,2000,7917,,Clear AP
+JE-0041,2025-01-31,AP Payment - Leasing commissions January 2025,PAY-01-5200,1000,,7917,Cash paid
+JE-0042,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5220,5667,,Bad debt expense
+JE-0042,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,5667,Accounts payable
+JE-0043,2025-01-31,AP Payment - Bad debt expense January 2025,PAY-01-5220,2000,5667,,Clear AP
+JE-0043,2025-01-31,AP Payment - Bad debt expense January 2025,PAY-01-5220,1000,,5667,Cash paid
+JE-0044,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5230,20000,,Capital reserve contribution
+JE-0044,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,20000,Accounts payable
+JE-0045,2025-01-31,AP Payment - Capital reserve contribution January 2025,PAY-01-5230,2000,20000,,Clear AP
+JE-0045,2025-01-31,AP Payment - Capital reserve contribution January 2025,PAY-01-5230,1000,,20000,Cash paid
+JE-0046,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5240,65000,,Payroll - on-site staff
+JE-0046,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,65000,Accounts payable
+JE-0047,2025-01-31,AP Payment - Payroll - on-site staff January 2025,PAY-01-5240,2000,65000,,Clear AP
+JE-0047,2025-01-31,AP Payment - Payroll - on-site staff January 2025,PAY-01-5240,1000,,65000,Cash paid
+JE-0048,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5250,13000,,Payroll taxes and benefits
+JE-0048,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,13000,Accounts payable
+JE-0049,2025-01-31,AP Payment - Payroll taxes and benefits January 2025,PAY-01-5250,2000,13000,,Clear AP
+JE-0049,2025-01-31,AP Payment - Payroll taxes and benefits January 2025,PAY-01-5250,1000,,13000,Cash paid
+JE-0050,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5260,2000,,Telephone and internet
+JE-0050,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,2000,Accounts payable
+JE-0051,2025-01-31,AP Payment - Telephone and internet January 2025,PAY-01-5260,2000,2000,,Clear AP
+JE-0051,2025-01-31,AP Payment - Telephone and internet January 2025,PAY-01-5260,1000,,2000,Cash paid
+JE-0052,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5270,3000,,Software and technology
+JE-0052,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,3000,Accounts payable
+JE-0053,2025-01-31,AP Payment - Software and technology January 2025,PAY-01-5270,2000,3000,,Clear AP
+JE-0053,2025-01-31,AP Payment - Software and technology January 2025,PAY-01-5270,1000,,3000,Cash paid
+JE-0054,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5280,1500,,Licenses and permits
+JE-0054,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,1500,Accounts payable
+JE-0055,2025-01-31,AP Payment - Licenses and permits January 2025,PAY-01-5280,2000,1500,,Clear AP
+JE-0055,2025-01-31,AP Payment - Licenses and permits January 2025,PAY-01-5280,1000,,1500,Cash paid
+JE-0056,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,5290,1250,,Bank charges and fees
+JE-0056,2025-01-31,Operating Expenses - January 2025,OPEX-01-2025,2000,,1250,Accounts payable
+JE-0057,2025-01-31,AP Payment - Bank charges and fees January 2025,PAY-01-5290,2000,1250,,Clear AP
+JE-0057,2025-01-31,AP Payment - Bank charges and fees January 2025,PAY-01-5290,1000,,1250,Cash paid
+JE-0058,2025-01-31,Mortgage Interest - January 2025,MTG-01-2025,7000,320833,,Mortgage interest expense
+JE-0058,2025-01-31,Mortgage Interest - January 2025,MTG-01-2025,1000,,320833,Cash paid to BankUnited
+JE-0059,2025-01-31,Mortgage Principal - January 2025,PRIN-01-2025,2200,41667,,Mortgage principal reduction
+JE-0059,2025-01-31,Mortgage Principal - January 2025,PRIN-01-2025,1000,,41667,Cash paid to BankUnited
+JE-0060,2025-02-28,Rental Income - February 2025,RENT-02-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0060,2025-02-28,Rental Income - February 2025,RENT-02-2025,4000,,1897200,Residential rental income
+JE-0061,2025-02-28,Rent Cash Receipt - February 2025,CASH-02-2025,1000,1897200,,Cash received for rent
+JE-0061,2025-02-28,Rent Cash Receipt - February 2025,CASH-02-2025,1010,,1897200,Clear accounts receivable
+JE-0062,2025-02-28,Other Income - February 2025,OTH-02-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0062,2025-02-28,Other Income - February 2025,OTH-02-2025,4010,,60000,Parking income
+JE-0062,2025-02-28,Other Income - February 2025,OTH-02-2025,4020,,11250,Pet fee income
+JE-0062,2025-02-28,Other Income - February 2025,OTH-02-2025,4030,,5000,Laundry and vending
+JE-0062,2025-02-28,Other Income - February 2025,OTH-02-2025,4090,,15000,Utility reimbursement
+JE-0063,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5000,100035,,Property management fee
+JE-0063,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,100035,Accounts payable
+JE-0064,2025-02-28,AP Payment - Property management fee February 2025,PAY-02-5000,2000,100035,,Clear AP
+JE-0064,2025-02-28,AP Payment - Property management fee February 2025,PAY-02-5000,1000,,100035,Cash paid
+JE-0065,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5010,75000,,Repairs and maintenance
+JE-0065,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,75000,Accounts payable
+JE-0066,2025-02-28,AP Payment - Repairs and maintenance February 2025,PAY-02-5010,2000,75000,,Clear AP
+JE-0066,2025-02-28,AP Payment - Repairs and maintenance February 2025,PAY-02-5010,1000,,75000,Cash paid
+JE-0067,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5020,15000,,Landscaping and grounds
+JE-0067,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,15000,Accounts payable
+JE-0068,2025-02-28,AP Payment - Landscaping and grounds February 2025,PAY-02-5020,2000,15000,,Clear AP
+JE-0068,2025-02-28,AP Payment - Landscaping and grounds February 2025,PAY-02-5020,1000,,15000,Cash paid
+JE-0069,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5030,20000,,Cleaning and janitorial
+JE-0069,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,20000,Accounts payable
+JE-0070,2025-02-28,AP Payment - Cleaning and janitorial February 2025,PAY-02-5030,2000,20000,,Clear AP
+JE-0070,2025-02-28,AP Payment - Cleaning and janitorial February 2025,PAY-02-5030,1000,,20000,Cash paid
+JE-0071,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5040,30000,,Electric - common areas
+JE-0071,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,30000,Accounts payable
+JE-0072,2025-02-28,AP Payment - Electric - common areas February 2025,PAY-02-5040,2000,30000,,Clear AP
+JE-0072,2025-02-28,AP Payment - Electric - common areas February 2025,PAY-02-5040,1000,,30000,Cash paid
+JE-0073,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5050,40000,,Water and sewer
+JE-0073,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,40000,Accounts payable
+JE-0074,2025-02-28,AP Payment - Water and sewer February 2025,PAY-02-5050,2000,40000,,Clear AP
+JE-0074,2025-02-28,AP Payment - Water and sewer February 2025,PAY-02-5050,1000,,40000,Cash paid
+JE-0075,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5060,5000,,Gas
+JE-0075,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,5000,Accounts payable
+JE-0076,2025-02-28,AP Payment - Gas February 2025,PAY-02-5060,2000,5000,,Clear AP
+JE-0076,2025-02-28,AP Payment - Gas February 2025,PAY-02-5060,1000,,5000,Cash paid
+JE-0077,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5070,81667,,Property insurance
+JE-0077,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,81667,Accounts payable
+JE-0078,2025-02-28,AP Payment - Property insurance February 2025,PAY-02-5070,2000,81667,,Clear AP
+JE-0078,2025-02-28,AP Payment - Property insurance February 2025,PAY-02-5070,1000,,81667,Cash paid
+JE-0079,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5090,140000,,Real estate taxes
+JE-0079,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,140000,Accounts payable
+JE-0080,2025-02-28,AP Payment - Real estate taxes February 2025,PAY-02-5090,2000,140000,,Clear AP
+JE-0080,2025-02-28,AP Payment - Real estate taxes February 2025,PAY-02-5090,1000,,140000,Cash paid
+JE-0081,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5110,35000,,Security services
+JE-0081,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,35000,Accounts payable
+JE-0082,2025-02-28,AP Payment - Security services February 2025,PAY-02-5110,2000,35000,,Clear AP
+JE-0082,2025-02-28,AP Payment - Security services February 2025,PAY-02-5110,1000,,35000,Cash paid
+JE-0083,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5120,15000,,Elevator maintenance
+JE-0083,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,15000,Accounts payable
+JE-0084,2025-02-28,AP Payment - Elevator maintenance February 2025,PAY-02-5120,2000,15000,,Clear AP
+JE-0084,2025-02-28,AP Payment - Elevator maintenance February 2025,PAY-02-5120,1000,,15000,Cash paid
+JE-0085,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5130,12500,,HVAC maintenance
+JE-0085,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,12500,Accounts payable
+JE-0086,2025-02-28,AP Payment - HVAC maintenance February 2025,PAY-02-5130,2000,12500,,Clear AP
+JE-0086,2025-02-28,AP Payment - HVAC maintenance February 2025,PAY-02-5130,1000,,12500,Cash paid
+JE-0087,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5140,6000,,Pest control
+JE-0087,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,6000,Accounts payable
+JE-0088,2025-02-28,AP Payment - Pest control February 2025,PAY-02-5140,2000,6000,,Clear AP
+JE-0088,2025-02-28,AP Payment - Pest control February 2025,PAY-02-5140,1000,,6000,Cash paid
+JE-0089,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5150,10000,,Pool and amenity maintenance
+JE-0089,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,10000,Accounts payable
+JE-0090,2025-02-28,AP Payment - Pool and amenity maintenance February 2025,PAY-02-5150,2000,10000,,Clear AP
+JE-0090,2025-02-28,AP Payment - Pool and amenity maintenance February 2025,PAY-02-5150,1000,,10000,Cash paid
+JE-0091,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5160,7000,,Trash and recycling
+JE-0091,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,7000,Accounts payable
+JE-0092,2025-02-28,AP Payment - Trash and recycling February 2025,PAY-02-5160,2000,7000,,Clear AP
+JE-0092,2025-02-28,AP Payment - Trash and recycling February 2025,PAY-02-5160,1000,,7000,Cash paid
+JE-0093,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5170,5000,,Administrative and office
+JE-0093,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,5000,Accounts payable
+JE-0094,2025-02-28,AP Payment - Administrative and office February 2025,PAY-02-5170,2000,5000,,Clear AP
+JE-0094,2025-02-28,AP Payment - Administrative and office February 2025,PAY-02-5170,1000,,5000,Cash paid
+JE-0095,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5180,7500,,Legal and professional
+JE-0095,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,7500,Accounts payable
+JE-0096,2025-02-28,AP Payment - Legal and professional February 2025,PAY-02-5180,2000,7500,,Clear AP
+JE-0096,2025-02-28,AP Payment - Legal and professional February 2025,PAY-02-5180,1000,,7500,Cash paid
+JE-0097,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5190,10000,,Marketing and advertising
+JE-0097,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,10000,Accounts payable
+JE-0098,2025-02-28,AP Payment - Marketing and advertising February 2025,PAY-02-5190,2000,10000,,Clear AP
+JE-0098,2025-02-28,AP Payment - Marketing and advertising February 2025,PAY-02-5190,1000,,10000,Cash paid
+JE-0099,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5200,7917,,Leasing commissions
+JE-0099,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,7917,Accounts payable
+JE-0100,2025-02-28,AP Payment - Leasing commissions February 2025,PAY-02-5200,2000,7917,,Clear AP
+JE-0100,2025-02-28,AP Payment - Leasing commissions February 2025,PAY-02-5200,1000,,7917,Cash paid
+JE-0101,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5220,5667,,Bad debt expense
+JE-0101,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,5667,Accounts payable
+JE-0102,2025-02-28,AP Payment - Bad debt expense February 2025,PAY-02-5220,2000,5667,,Clear AP
+JE-0102,2025-02-28,AP Payment - Bad debt expense February 2025,PAY-02-5220,1000,,5667,Cash paid
+JE-0103,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5230,20000,,Capital reserve contribution
+JE-0103,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,20000,Accounts payable
+JE-0104,2025-02-28,AP Payment - Capital reserve contribution February 2025,PAY-02-5230,2000,20000,,Clear AP
+JE-0104,2025-02-28,AP Payment - Capital reserve contribution February 2025,PAY-02-5230,1000,,20000,Cash paid
+JE-0105,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5240,65000,,Payroll - on-site staff
+JE-0105,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,65000,Accounts payable
+JE-0106,2025-02-28,AP Payment - Payroll - on-site staff February 2025,PAY-02-5240,2000,65000,,Clear AP
+JE-0106,2025-02-28,AP Payment - Payroll - on-site staff February 2025,PAY-02-5240,1000,,65000,Cash paid
+JE-0107,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5250,13000,,Payroll taxes and benefits
+JE-0107,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,13000,Accounts payable
+JE-0108,2025-02-28,AP Payment - Payroll taxes and benefits February 2025,PAY-02-5250,2000,13000,,Clear AP
+JE-0108,2025-02-28,AP Payment - Payroll taxes and benefits February 2025,PAY-02-5250,1000,,13000,Cash paid
+JE-0109,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5260,2000,,Telephone and internet
+JE-0109,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,2000,Accounts payable
+JE-0110,2025-02-28,AP Payment - Telephone and internet February 2025,PAY-02-5260,2000,2000,,Clear AP
+JE-0110,2025-02-28,AP Payment - Telephone and internet February 2025,PAY-02-5260,1000,,2000,Cash paid
+JE-0111,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5270,3000,,Software and technology
+JE-0111,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,3000,Accounts payable
+JE-0112,2025-02-28,AP Payment - Software and technology February 2025,PAY-02-5270,2000,3000,,Clear AP
+JE-0112,2025-02-28,AP Payment - Software and technology February 2025,PAY-02-5270,1000,,3000,Cash paid
+JE-0113,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5280,1500,,Licenses and permits
+JE-0113,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,1500,Accounts payable
+JE-0114,2025-02-28,AP Payment - Licenses and permits February 2025,PAY-02-5280,2000,1500,,Clear AP
+JE-0114,2025-02-28,AP Payment - Licenses and permits February 2025,PAY-02-5280,1000,,1500,Cash paid
+JE-0115,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,5290,1250,,Bank charges and fees
+JE-0115,2025-02-28,Operating Expenses - February 2025,OPEX-02-2025,2000,,1250,Accounts payable
+JE-0116,2025-02-28,AP Payment - Bank charges and fees February 2025,PAY-02-5290,2000,1250,,Clear AP
+JE-0116,2025-02-28,AP Payment - Bank charges and fees February 2025,PAY-02-5290,1000,,1250,Cash paid
+JE-0117,2025-02-28,Mortgage Interest - February 2025,MTG-02-2025,7000,320833,,Mortgage interest expense
+JE-0117,2025-02-28,Mortgage Interest - February 2025,MTG-02-2025,1000,,320833,Cash paid to BankUnited
+JE-0118,2025-02-28,Mortgage Principal - February 2025,PRIN-02-2025,2200,41667,,Mortgage principal reduction
+JE-0118,2025-02-28,Mortgage Principal - February 2025,PRIN-02-2025,1000,,41667,Cash paid to BankUnited
+JE-0119,2025-03-31,Rental Income - March 2025,RENT-03-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0119,2025-03-31,Rental Income - March 2025,RENT-03-2025,4000,,1897200,Residential rental income
+JE-0120,2025-03-31,Rent Cash Receipt - March 2025,CASH-03-2025,1000,1897200,,Cash received for rent
+JE-0120,2025-03-31,Rent Cash Receipt - March 2025,CASH-03-2025,1010,,1897200,Clear accounts receivable
+JE-0121,2025-03-31,Other Income - March 2025,OTH-03-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0121,2025-03-31,Other Income - March 2025,OTH-03-2025,4010,,60000,Parking income
+JE-0121,2025-03-31,Other Income - March 2025,OTH-03-2025,4020,,11250,Pet fee income
+JE-0121,2025-03-31,Other Income - March 2025,OTH-03-2025,4030,,5000,Laundry and vending
+JE-0121,2025-03-31,Other Income - March 2025,OTH-03-2025,4090,,15000,Utility reimbursement
+JE-0122,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5000,100035,,Property management fee
+JE-0122,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,100035,Accounts payable
+JE-0123,2025-03-31,AP Payment - Property management fee March 2025,PAY-03-5000,2000,100035,,Clear AP
+JE-0123,2025-03-31,AP Payment - Property management fee March 2025,PAY-03-5000,1000,,100035,Cash paid
+JE-0124,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5010,75000,,Repairs and maintenance
+JE-0124,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,75000,Accounts payable
+JE-0125,2025-03-31,AP Payment - Repairs and maintenance March 2025,PAY-03-5010,2000,75000,,Clear AP
+JE-0125,2025-03-31,AP Payment - Repairs and maintenance March 2025,PAY-03-5010,1000,,75000,Cash paid
+JE-0126,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5020,15000,,Landscaping and grounds
+JE-0126,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,15000,Accounts payable
+JE-0127,2025-03-31,AP Payment - Landscaping and grounds March 2025,PAY-03-5020,2000,15000,,Clear AP
+JE-0127,2025-03-31,AP Payment - Landscaping and grounds March 2025,PAY-03-5020,1000,,15000,Cash paid
+JE-0128,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5030,20000,,Cleaning and janitorial
+JE-0128,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,20000,Accounts payable
+JE-0129,2025-03-31,AP Payment - Cleaning and janitorial March 2025,PAY-03-5030,2000,20000,,Clear AP
+JE-0129,2025-03-31,AP Payment - Cleaning and janitorial March 2025,PAY-03-5030,1000,,20000,Cash paid
+JE-0130,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5040,30000,,Electric - common areas
+JE-0130,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,30000,Accounts payable
+JE-0131,2025-03-31,AP Payment - Electric - common areas March 2025,PAY-03-5040,2000,30000,,Clear AP
+JE-0131,2025-03-31,AP Payment - Electric - common areas March 2025,PAY-03-5040,1000,,30000,Cash paid
+JE-0132,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5050,40000,,Water and sewer
+JE-0132,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,40000,Accounts payable
+JE-0133,2025-03-31,AP Payment - Water and sewer March 2025,PAY-03-5050,2000,40000,,Clear AP
+JE-0133,2025-03-31,AP Payment - Water and sewer March 2025,PAY-03-5050,1000,,40000,Cash paid
+JE-0134,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5060,5000,,Gas
+JE-0134,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,5000,Accounts payable
+JE-0135,2025-03-31,AP Payment - Gas March 2025,PAY-03-5060,2000,5000,,Clear AP
+JE-0135,2025-03-31,AP Payment - Gas March 2025,PAY-03-5060,1000,,5000,Cash paid
+JE-0136,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5070,81667,,Property insurance
+JE-0136,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,81667,Accounts payable
+JE-0137,2025-03-31,AP Payment - Property insurance March 2025,PAY-03-5070,2000,81667,,Clear AP
+JE-0137,2025-03-31,AP Payment - Property insurance March 2025,PAY-03-5070,1000,,81667,Cash paid
+JE-0138,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5090,140000,,Real estate taxes
+JE-0138,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,140000,Accounts payable
+JE-0139,2025-03-31,AP Payment - Real estate taxes March 2025,PAY-03-5090,2000,140000,,Clear AP
+JE-0139,2025-03-31,AP Payment - Real estate taxes March 2025,PAY-03-5090,1000,,140000,Cash paid
+JE-0140,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5110,35000,,Security services
+JE-0140,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,35000,Accounts payable
+JE-0141,2025-03-31,AP Payment - Security services March 2025,PAY-03-5110,2000,35000,,Clear AP
+JE-0141,2025-03-31,AP Payment - Security services March 2025,PAY-03-5110,1000,,35000,Cash paid
+JE-0142,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5120,15000,,Elevator maintenance
+JE-0142,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,15000,Accounts payable
+JE-0143,2025-03-31,AP Payment - Elevator maintenance March 2025,PAY-03-5120,2000,15000,,Clear AP
+JE-0143,2025-03-31,AP Payment - Elevator maintenance March 2025,PAY-03-5120,1000,,15000,Cash paid
+JE-0144,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5130,12500,,HVAC maintenance
+JE-0144,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,12500,Accounts payable
+JE-0145,2025-03-31,AP Payment - HVAC maintenance March 2025,PAY-03-5130,2000,12500,,Clear AP
+JE-0145,2025-03-31,AP Payment - HVAC maintenance March 2025,PAY-03-5130,1000,,12500,Cash paid
+JE-0146,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5140,6000,,Pest control
+JE-0146,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,6000,Accounts payable
+JE-0147,2025-03-31,AP Payment - Pest control March 2025,PAY-03-5140,2000,6000,,Clear AP
+JE-0147,2025-03-31,AP Payment - Pest control March 2025,PAY-03-5140,1000,,6000,Cash paid
+JE-0148,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5150,10000,,Pool and amenity maintenance
+JE-0148,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,10000,Accounts payable
+JE-0149,2025-03-31,AP Payment - Pool and amenity maintenance March 2025,PAY-03-5150,2000,10000,,Clear AP
+JE-0149,2025-03-31,AP Payment - Pool and amenity maintenance March 2025,PAY-03-5150,1000,,10000,Cash paid
+JE-0150,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5160,7000,,Trash and recycling
+JE-0150,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,7000,Accounts payable
+JE-0151,2025-03-31,AP Payment - Trash and recycling March 2025,PAY-03-5160,2000,7000,,Clear AP
+JE-0151,2025-03-31,AP Payment - Trash and recycling March 2025,PAY-03-5160,1000,,7000,Cash paid
+JE-0152,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5170,5000,,Administrative and office
+JE-0152,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,5000,Accounts payable
+JE-0153,2025-03-31,AP Payment - Administrative and office March 2025,PAY-03-5170,2000,5000,,Clear AP
+JE-0153,2025-03-31,AP Payment - Administrative and office March 2025,PAY-03-5170,1000,,5000,Cash paid
+JE-0154,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5180,7500,,Legal and professional
+JE-0154,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,7500,Accounts payable
+JE-0155,2025-03-31,AP Payment - Legal and professional March 2025,PAY-03-5180,2000,7500,,Clear AP
+JE-0155,2025-03-31,AP Payment - Legal and professional March 2025,PAY-03-5180,1000,,7500,Cash paid
+JE-0156,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5190,10000,,Marketing and advertising
+JE-0156,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,10000,Accounts payable
+JE-0157,2025-03-31,AP Payment - Marketing and advertising March 2025,PAY-03-5190,2000,10000,,Clear AP
+JE-0157,2025-03-31,AP Payment - Marketing and advertising March 2025,PAY-03-5190,1000,,10000,Cash paid
+JE-0158,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5200,7917,,Leasing commissions
+JE-0158,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,7917,Accounts payable
+JE-0159,2025-03-31,AP Payment - Leasing commissions March 2025,PAY-03-5200,2000,7917,,Clear AP
+JE-0159,2025-03-31,AP Payment - Leasing commissions March 2025,PAY-03-5200,1000,,7917,Cash paid
+JE-0160,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5220,5667,,Bad debt expense
+JE-0160,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,5667,Accounts payable
+JE-0161,2025-03-31,AP Payment - Bad debt expense March 2025,PAY-03-5220,2000,5667,,Clear AP
+JE-0161,2025-03-31,AP Payment - Bad debt expense March 2025,PAY-03-5220,1000,,5667,Cash paid
+JE-0162,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5230,20000,,Capital reserve contribution
+JE-0162,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,20000,Accounts payable
+JE-0163,2025-03-31,AP Payment - Capital reserve contribution March 2025,PAY-03-5230,2000,20000,,Clear AP
+JE-0163,2025-03-31,AP Payment - Capital reserve contribution March 2025,PAY-03-5230,1000,,20000,Cash paid
+JE-0164,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5240,65000,,Payroll - on-site staff
+JE-0164,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,65000,Accounts payable
+JE-0165,2025-03-31,AP Payment - Payroll - on-site staff March 2025,PAY-03-5240,2000,65000,,Clear AP
+JE-0165,2025-03-31,AP Payment - Payroll - on-site staff March 2025,PAY-03-5240,1000,,65000,Cash paid
+JE-0166,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5250,13000,,Payroll taxes and benefits
+JE-0166,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,13000,Accounts payable
+JE-0167,2025-03-31,AP Payment - Payroll taxes and benefits March 2025,PAY-03-5250,2000,13000,,Clear AP
+JE-0167,2025-03-31,AP Payment - Payroll taxes and benefits March 2025,PAY-03-5250,1000,,13000,Cash paid
+JE-0168,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5260,2000,,Telephone and internet
+JE-0168,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,2000,Accounts payable
+JE-0169,2025-03-31,AP Payment - Telephone and internet March 2025,PAY-03-5260,2000,2000,,Clear AP
+JE-0169,2025-03-31,AP Payment - Telephone and internet March 2025,PAY-03-5260,1000,,2000,Cash paid
+JE-0170,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5270,3000,,Software and technology
+JE-0170,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,3000,Accounts payable
+JE-0171,2025-03-31,AP Payment - Software and technology March 2025,PAY-03-5270,2000,3000,,Clear AP
+JE-0171,2025-03-31,AP Payment - Software and technology March 2025,PAY-03-5270,1000,,3000,Cash paid
+JE-0172,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5280,1500,,Licenses and permits
+JE-0172,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,1500,Accounts payable
+JE-0173,2025-03-31,AP Payment - Licenses and permits March 2025,PAY-03-5280,2000,1500,,Clear AP
+JE-0173,2025-03-31,AP Payment - Licenses and permits March 2025,PAY-03-5280,1000,,1500,Cash paid
+JE-0174,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,5290,1250,,Bank charges and fees
+JE-0174,2025-03-31,Operating Expenses - March 2025,OPEX-03-2025,2000,,1250,Accounts payable
+JE-0175,2025-03-31,AP Payment - Bank charges and fees March 2025,PAY-03-5290,2000,1250,,Clear AP
+JE-0175,2025-03-31,AP Payment - Bank charges and fees March 2025,PAY-03-5290,1000,,1250,Cash paid
+JE-0176,2025-03-31,Mortgage Interest - March 2025,MTG-03-2025,7000,320833,,Mortgage interest expense
+JE-0176,2025-03-31,Mortgage Interest - March 2025,MTG-03-2025,1000,,320833,Cash paid to BankUnited
+JE-0177,2025-03-31,Mortgage Principal - March 2025,PRIN-03-2025,2200,41667,,Mortgage principal reduction
+JE-0177,2025-03-31,Mortgage Principal - March 2025,PRIN-03-2025,1000,,41667,Cash paid to BankUnited
+JE-0178,2025-04-30,Rental Income - April 2025,RENT-04-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0178,2025-04-30,Rental Income - April 2025,RENT-04-2025,4000,,1897200,Residential rental income
+JE-0179,2025-04-30,Rent Cash Receipt - April 2025,CASH-04-2025,1000,1897200,,Cash received for rent
+JE-0179,2025-04-30,Rent Cash Receipt - April 2025,CASH-04-2025,1010,,1897200,Clear accounts receivable
+JE-0180,2025-04-30,Other Income - April 2025,OTH-04-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0180,2025-04-30,Other Income - April 2025,OTH-04-2025,4010,,60000,Parking income
+JE-0180,2025-04-30,Other Income - April 2025,OTH-04-2025,4020,,11250,Pet fee income
+JE-0180,2025-04-30,Other Income - April 2025,OTH-04-2025,4030,,5000,Laundry and vending
+JE-0180,2025-04-30,Other Income - April 2025,OTH-04-2025,4090,,15000,Utility reimbursement
+JE-0181,2025-04-30,Late Fees - April 2025,LF-04-2025,1000,3750,,Late fee cash collected
+JE-0181,2025-04-30,Late Fees - April 2025,LF-04-2025,4040,,3750,Late fee income
+JE-0182,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5000,100035,,Property management fee
+JE-0182,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,100035,Accounts payable
+JE-0183,2025-04-30,AP Payment - Property management fee April 2025,PAY-04-5000,2000,100035,,Clear AP
+JE-0183,2025-04-30,AP Payment - Property management fee April 2025,PAY-04-5000,1000,,100035,Cash paid
+JE-0184,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5010,75000,,Repairs and maintenance
+JE-0184,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,75000,Accounts payable
+JE-0185,2025-04-30,AP Payment - Repairs and maintenance April 2025,PAY-04-5010,2000,75000,,Clear AP
+JE-0185,2025-04-30,AP Payment - Repairs and maintenance April 2025,PAY-04-5010,1000,,75000,Cash paid
+JE-0186,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5020,15000,,Landscaping and grounds
+JE-0186,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,15000,Accounts payable
+JE-0187,2025-04-30,AP Payment - Landscaping and grounds April 2025,PAY-04-5020,2000,15000,,Clear AP
+JE-0187,2025-04-30,AP Payment - Landscaping and grounds April 2025,PAY-04-5020,1000,,15000,Cash paid
+JE-0188,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5030,20000,,Cleaning and janitorial
+JE-0188,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,20000,Accounts payable
+JE-0189,2025-04-30,AP Payment - Cleaning and janitorial April 2025,PAY-04-5030,2000,20000,,Clear AP
+JE-0189,2025-04-30,AP Payment - Cleaning and janitorial April 2025,PAY-04-5030,1000,,20000,Cash paid
+JE-0190,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5040,30000,,Electric - common areas
+JE-0190,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,30000,Accounts payable
+JE-0191,2025-04-30,AP Payment - Electric - common areas April 2025,PAY-04-5040,2000,30000,,Clear AP
+JE-0191,2025-04-30,AP Payment - Electric - common areas April 2025,PAY-04-5040,1000,,30000,Cash paid
+JE-0192,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5050,40000,,Water and sewer
+JE-0192,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,40000,Accounts payable
+JE-0193,2025-04-30,AP Payment - Water and sewer April 2025,PAY-04-5050,2000,40000,,Clear AP
+JE-0193,2025-04-30,AP Payment - Water and sewer April 2025,PAY-04-5050,1000,,40000,Cash paid
+JE-0194,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5060,5000,,Gas
+JE-0194,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,5000,Accounts payable
+JE-0195,2025-04-30,AP Payment - Gas April 2025,PAY-04-5060,2000,5000,,Clear AP
+JE-0195,2025-04-30,AP Payment - Gas April 2025,PAY-04-5060,1000,,5000,Cash paid
+JE-0196,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5070,81667,,Property insurance
+JE-0196,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,81667,Accounts payable
+JE-0197,2025-04-30,AP Payment - Property insurance April 2025,PAY-04-5070,2000,81667,,Clear AP
+JE-0197,2025-04-30,AP Payment - Property insurance April 2025,PAY-04-5070,1000,,81667,Cash paid
+JE-0198,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5090,140000,,Real estate taxes
+JE-0198,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,140000,Accounts payable
+JE-0199,2025-04-30,AP Payment - Real estate taxes April 2025,PAY-04-5090,2000,140000,,Clear AP
+JE-0199,2025-04-30,AP Payment - Real estate taxes April 2025,PAY-04-5090,1000,,140000,Cash paid
+JE-0200,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5110,35000,,Security services
+JE-0200,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,35000,Accounts payable
+JE-0201,2025-04-30,AP Payment - Security services April 2025,PAY-04-5110,2000,35000,,Clear AP
+JE-0201,2025-04-30,AP Payment - Security services April 2025,PAY-04-5110,1000,,35000,Cash paid
+JE-0202,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5120,15000,,Elevator maintenance
+JE-0202,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,15000,Accounts payable
+JE-0203,2025-04-30,AP Payment - Elevator maintenance April 2025,PAY-04-5120,2000,15000,,Clear AP
+JE-0203,2025-04-30,AP Payment - Elevator maintenance April 2025,PAY-04-5120,1000,,15000,Cash paid
+JE-0204,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5130,12500,,HVAC maintenance
+JE-0204,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,12500,Accounts payable
+JE-0205,2025-04-30,AP Payment - HVAC maintenance April 2025,PAY-04-5130,2000,12500,,Clear AP
+JE-0205,2025-04-30,AP Payment - HVAC maintenance April 2025,PAY-04-5130,1000,,12500,Cash paid
+JE-0206,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5140,6000,,Pest control
+JE-0206,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,6000,Accounts payable
+JE-0207,2025-04-30,AP Payment - Pest control April 2025,PAY-04-5140,2000,6000,,Clear AP
+JE-0207,2025-04-30,AP Payment - Pest control April 2025,PAY-04-5140,1000,,6000,Cash paid
+JE-0208,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5150,10000,,Pool and amenity maintenance
+JE-0208,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,10000,Accounts payable
+JE-0209,2025-04-30,AP Payment - Pool and amenity maintenance April 2025,PAY-04-5150,2000,10000,,Clear AP
+JE-0209,2025-04-30,AP Payment - Pool and amenity maintenance April 2025,PAY-04-5150,1000,,10000,Cash paid
+JE-0210,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5160,7000,,Trash and recycling
+JE-0210,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,7000,Accounts payable
+JE-0211,2025-04-30,AP Payment - Trash and recycling April 2025,PAY-04-5160,2000,7000,,Clear AP
+JE-0211,2025-04-30,AP Payment - Trash and recycling April 2025,PAY-04-5160,1000,,7000,Cash paid
+JE-0212,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5170,5000,,Administrative and office
+JE-0212,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,5000,Accounts payable
+JE-0213,2025-04-30,AP Payment - Administrative and office April 2025,PAY-04-5170,2000,5000,,Clear AP
+JE-0213,2025-04-30,AP Payment - Administrative and office April 2025,PAY-04-5170,1000,,5000,Cash paid
+JE-0214,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5180,7500,,Legal and professional
+JE-0214,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,7500,Accounts payable
+JE-0215,2025-04-30,AP Payment - Legal and professional April 2025,PAY-04-5180,2000,7500,,Clear AP
+JE-0215,2025-04-30,AP Payment - Legal and professional April 2025,PAY-04-5180,1000,,7500,Cash paid
+JE-0216,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5190,10000,,Marketing and advertising
+JE-0216,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,10000,Accounts payable
+JE-0217,2025-04-30,AP Payment - Marketing and advertising April 2025,PAY-04-5190,2000,10000,,Clear AP
+JE-0217,2025-04-30,AP Payment - Marketing and advertising April 2025,PAY-04-5190,1000,,10000,Cash paid
+JE-0218,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5200,7917,,Leasing commissions
+JE-0218,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,7917,Accounts payable
+JE-0219,2025-04-30,AP Payment - Leasing commissions April 2025,PAY-04-5200,2000,7917,,Clear AP
+JE-0219,2025-04-30,AP Payment - Leasing commissions April 2025,PAY-04-5200,1000,,7917,Cash paid
+JE-0220,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5220,5667,,Bad debt expense
+JE-0220,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,5667,Accounts payable
+JE-0221,2025-04-30,AP Payment - Bad debt expense April 2025,PAY-04-5220,2000,5667,,Clear AP
+JE-0221,2025-04-30,AP Payment - Bad debt expense April 2025,PAY-04-5220,1000,,5667,Cash paid
+JE-0222,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5230,20000,,Capital reserve contribution
+JE-0222,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,20000,Accounts payable
+JE-0223,2025-04-30,AP Payment - Capital reserve contribution April 2025,PAY-04-5230,2000,20000,,Clear AP
+JE-0223,2025-04-30,AP Payment - Capital reserve contribution April 2025,PAY-04-5230,1000,,20000,Cash paid
+JE-0224,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5240,65000,,Payroll - on-site staff
+JE-0224,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,65000,Accounts payable
+JE-0225,2025-04-30,AP Payment - Payroll - on-site staff April 2025,PAY-04-5240,2000,65000,,Clear AP
+JE-0225,2025-04-30,AP Payment - Payroll - on-site staff April 2025,PAY-04-5240,1000,,65000,Cash paid
+JE-0226,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5250,13000,,Payroll taxes and benefits
+JE-0226,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,13000,Accounts payable
+JE-0227,2025-04-30,AP Payment - Payroll taxes and benefits April 2025,PAY-04-5250,2000,13000,,Clear AP
+JE-0227,2025-04-30,AP Payment - Payroll taxes and benefits April 2025,PAY-04-5250,1000,,13000,Cash paid
+JE-0228,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5260,2000,,Telephone and internet
+JE-0228,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,2000,Accounts payable
+JE-0229,2025-04-30,AP Payment - Telephone and internet April 2025,PAY-04-5260,2000,2000,,Clear AP
+JE-0229,2025-04-30,AP Payment - Telephone and internet April 2025,PAY-04-5260,1000,,2000,Cash paid
+JE-0230,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5270,3000,,Software and technology
+JE-0230,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,3000,Accounts payable
+JE-0231,2025-04-30,AP Payment - Software and technology April 2025,PAY-04-5270,2000,3000,,Clear AP
+JE-0231,2025-04-30,AP Payment - Software and technology April 2025,PAY-04-5270,1000,,3000,Cash paid
+JE-0232,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5280,1500,,Licenses and permits
+JE-0232,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,1500,Accounts payable
+JE-0233,2025-04-30,AP Payment - Licenses and permits April 2025,PAY-04-5280,2000,1500,,Clear AP
+JE-0233,2025-04-30,AP Payment - Licenses and permits April 2025,PAY-04-5280,1000,,1500,Cash paid
+JE-0234,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,5290,1250,,Bank charges and fees
+JE-0234,2025-04-30,Operating Expenses - April 2025,OPEX-04-2025,2000,,1250,Accounts payable
+JE-0235,2025-04-30,AP Payment - Bank charges and fees April 2025,PAY-04-5290,2000,1250,,Clear AP
+JE-0235,2025-04-30,AP Payment - Bank charges and fees April 2025,PAY-04-5290,1000,,1250,Cash paid
+JE-0236,2025-04-30,Mortgage Interest - April 2025,MTG-04-2025,7000,320833,,Mortgage interest expense
+JE-0236,2025-04-30,Mortgage Interest - April 2025,MTG-04-2025,1000,,320833,Cash paid to BankUnited
+JE-0237,2025-04-30,Mortgage Principal - April 2025,PRIN-04-2025,2200,41667,,Mortgage principal reduction
+JE-0237,2025-04-30,Mortgage Principal - April 2025,PRIN-04-2025,1000,,41667,Cash paid to BankUnited
+JE-0238,2025-05-31,Rental Income - May 2025,RENT-05-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0238,2025-05-31,Rental Income - May 2025,RENT-05-2025,4000,,1897200,Residential rental income
+JE-0239,2025-05-31,Rent Cash Receipt - May 2025,CASH-05-2025,1000,1897200,,Cash received for rent
+JE-0239,2025-05-31,Rent Cash Receipt - May 2025,CASH-05-2025,1010,,1897200,Clear accounts receivable
+JE-0240,2025-05-31,Other Income - May 2025,OTH-05-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0240,2025-05-31,Other Income - May 2025,OTH-05-2025,4010,,60000,Parking income
+JE-0240,2025-05-31,Other Income - May 2025,OTH-05-2025,4020,,11250,Pet fee income
+JE-0240,2025-05-31,Other Income - May 2025,OTH-05-2025,4030,,5000,Laundry and vending
+JE-0240,2025-05-31,Other Income - May 2025,OTH-05-2025,4090,,15000,Utility reimbursement
+JE-0241,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5000,100035,,Property management fee
+JE-0241,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,100035,Accounts payable
+JE-0242,2025-05-31,AP Payment - Property management fee May 2025,PAY-05-5000,2000,100035,,Clear AP
+JE-0242,2025-05-31,AP Payment - Property management fee May 2025,PAY-05-5000,1000,,100035,Cash paid
+JE-0243,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5010,75000,,Repairs and maintenance
+JE-0243,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,75000,Accounts payable
+JE-0244,2025-05-31,AP Payment - Repairs and maintenance May 2025,PAY-05-5010,2000,75000,,Clear AP
+JE-0244,2025-05-31,AP Payment - Repairs and maintenance May 2025,PAY-05-5010,1000,,75000,Cash paid
+JE-0245,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5020,15000,,Landscaping and grounds
+JE-0245,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,15000,Accounts payable
+JE-0246,2025-05-31,AP Payment - Landscaping and grounds May 2025,PAY-05-5020,2000,15000,,Clear AP
+JE-0246,2025-05-31,AP Payment - Landscaping and grounds May 2025,PAY-05-5020,1000,,15000,Cash paid
+JE-0247,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5030,20000,,Cleaning and janitorial
+JE-0247,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,20000,Accounts payable
+JE-0248,2025-05-31,AP Payment - Cleaning and janitorial May 2025,PAY-05-5030,2000,20000,,Clear AP
+JE-0248,2025-05-31,AP Payment - Cleaning and janitorial May 2025,PAY-05-5030,1000,,20000,Cash paid
+JE-0249,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5040,30000,,Electric - common areas
+JE-0249,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,30000,Accounts payable
+JE-0250,2025-05-31,AP Payment - Electric - common areas May 2025,PAY-05-5040,2000,30000,,Clear AP
+JE-0250,2025-05-31,AP Payment - Electric - common areas May 2025,PAY-05-5040,1000,,30000,Cash paid
+JE-0251,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5050,40000,,Water and sewer
+JE-0251,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,40000,Accounts payable
+JE-0252,2025-05-31,AP Payment - Water and sewer May 2025,PAY-05-5050,2000,40000,,Clear AP
+JE-0252,2025-05-31,AP Payment - Water and sewer May 2025,PAY-05-5050,1000,,40000,Cash paid
+JE-0253,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5060,5000,,Gas
+JE-0253,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,5000,Accounts payable
+JE-0254,2025-05-31,AP Payment - Gas May 2025,PAY-05-5060,2000,5000,,Clear AP
+JE-0254,2025-05-31,AP Payment - Gas May 2025,PAY-05-5060,1000,,5000,Cash paid
+JE-0255,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5070,81667,,Property insurance
+JE-0255,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,81667,Accounts payable
+JE-0256,2025-05-31,AP Payment - Property insurance May 2025,PAY-05-5070,2000,81667,,Clear AP
+JE-0256,2025-05-31,AP Payment - Property insurance May 2025,PAY-05-5070,1000,,81667,Cash paid
+JE-0257,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5090,140000,,Real estate taxes
+JE-0257,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,140000,Accounts payable
+JE-0258,2025-05-31,AP Payment - Real estate taxes May 2025,PAY-05-5090,2000,140000,,Clear AP
+JE-0258,2025-05-31,AP Payment - Real estate taxes May 2025,PAY-05-5090,1000,,140000,Cash paid
+JE-0259,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5110,35000,,Security services
+JE-0259,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,35000,Accounts payable
+JE-0260,2025-05-31,AP Payment - Security services May 2025,PAY-05-5110,2000,35000,,Clear AP
+JE-0260,2025-05-31,AP Payment - Security services May 2025,PAY-05-5110,1000,,35000,Cash paid
+JE-0261,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5120,15000,,Elevator maintenance
+JE-0261,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,15000,Accounts payable
+JE-0262,2025-05-31,AP Payment - Elevator maintenance May 2025,PAY-05-5120,2000,15000,,Clear AP
+JE-0262,2025-05-31,AP Payment - Elevator maintenance May 2025,PAY-05-5120,1000,,15000,Cash paid
+JE-0263,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5130,12500,,HVAC maintenance
+JE-0263,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,12500,Accounts payable
+JE-0264,2025-05-31,AP Payment - HVAC maintenance May 2025,PAY-05-5130,2000,12500,,Clear AP
+JE-0264,2025-05-31,AP Payment - HVAC maintenance May 2025,PAY-05-5130,1000,,12500,Cash paid
+JE-0265,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5140,6000,,Pest control
+JE-0265,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,6000,Accounts payable
+JE-0266,2025-05-31,AP Payment - Pest control May 2025,PAY-05-5140,2000,6000,,Clear AP
+JE-0266,2025-05-31,AP Payment - Pest control May 2025,PAY-05-5140,1000,,6000,Cash paid
+JE-0267,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5150,10000,,Pool and amenity maintenance
+JE-0267,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,10000,Accounts payable
+JE-0268,2025-05-31,AP Payment - Pool and amenity maintenance May 2025,PAY-05-5150,2000,10000,,Clear AP
+JE-0268,2025-05-31,AP Payment - Pool and amenity maintenance May 2025,PAY-05-5150,1000,,10000,Cash paid
+JE-0269,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5160,7000,,Trash and recycling
+JE-0269,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,7000,Accounts payable
+JE-0270,2025-05-31,AP Payment - Trash and recycling May 2025,PAY-05-5160,2000,7000,,Clear AP
+JE-0270,2025-05-31,AP Payment - Trash and recycling May 2025,PAY-05-5160,1000,,7000,Cash paid
+JE-0271,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5170,5000,,Administrative and office
+JE-0271,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,5000,Accounts payable
+JE-0272,2025-05-31,AP Payment - Administrative and office May 2025,PAY-05-5170,2000,5000,,Clear AP
+JE-0272,2025-05-31,AP Payment - Administrative and office May 2025,PAY-05-5170,1000,,5000,Cash paid
+JE-0273,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5180,7500,,Legal and professional
+JE-0273,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,7500,Accounts payable
+JE-0274,2025-05-31,AP Payment - Legal and professional May 2025,PAY-05-5180,2000,7500,,Clear AP
+JE-0274,2025-05-31,AP Payment - Legal and professional May 2025,PAY-05-5180,1000,,7500,Cash paid
+JE-0275,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5190,10000,,Marketing and advertising
+JE-0275,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,10000,Accounts payable
+JE-0276,2025-05-31,AP Payment - Marketing and advertising May 2025,PAY-05-5190,2000,10000,,Clear AP
+JE-0276,2025-05-31,AP Payment - Marketing and advertising May 2025,PAY-05-5190,1000,,10000,Cash paid
+JE-0277,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5200,7917,,Leasing commissions
+JE-0277,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,7917,Accounts payable
+JE-0278,2025-05-31,AP Payment - Leasing commissions May 2025,PAY-05-5200,2000,7917,,Clear AP
+JE-0278,2025-05-31,AP Payment - Leasing commissions May 2025,PAY-05-5200,1000,,7917,Cash paid
+JE-0279,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5220,5667,,Bad debt expense
+JE-0279,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,5667,Accounts payable
+JE-0280,2025-05-31,AP Payment - Bad debt expense May 2025,PAY-05-5220,2000,5667,,Clear AP
+JE-0280,2025-05-31,AP Payment - Bad debt expense May 2025,PAY-05-5220,1000,,5667,Cash paid
+JE-0281,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5230,20000,,Capital reserve contribution
+JE-0281,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,20000,Accounts payable
+JE-0282,2025-05-31,AP Payment - Capital reserve contribution May 2025,PAY-05-5230,2000,20000,,Clear AP
+JE-0282,2025-05-31,AP Payment - Capital reserve contribution May 2025,PAY-05-5230,1000,,20000,Cash paid
+JE-0283,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5240,65000,,Payroll - on-site staff
+JE-0283,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,65000,Accounts payable
+JE-0284,2025-05-31,AP Payment - Payroll - on-site staff May 2025,PAY-05-5240,2000,65000,,Clear AP
+JE-0284,2025-05-31,AP Payment - Payroll - on-site staff May 2025,PAY-05-5240,1000,,65000,Cash paid
+JE-0285,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5250,13000,,Payroll taxes and benefits
+JE-0285,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,13000,Accounts payable
+JE-0286,2025-05-31,AP Payment - Payroll taxes and benefits May 2025,PAY-05-5250,2000,13000,,Clear AP
+JE-0286,2025-05-31,AP Payment - Payroll taxes and benefits May 2025,PAY-05-5250,1000,,13000,Cash paid
+JE-0287,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5260,2000,,Telephone and internet
+JE-0287,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,2000,Accounts payable
+JE-0288,2025-05-31,AP Payment - Telephone and internet May 2025,PAY-05-5260,2000,2000,,Clear AP
+JE-0288,2025-05-31,AP Payment - Telephone and internet May 2025,PAY-05-5260,1000,,2000,Cash paid
+JE-0289,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5270,3000,,Software and technology
+JE-0289,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,3000,Accounts payable
+JE-0290,2025-05-31,AP Payment - Software and technology May 2025,PAY-05-5270,2000,3000,,Clear AP
+JE-0290,2025-05-31,AP Payment - Software and technology May 2025,PAY-05-5270,1000,,3000,Cash paid
+JE-0291,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5280,1500,,Licenses and permits
+JE-0291,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,1500,Accounts payable
+JE-0292,2025-05-31,AP Payment - Licenses and permits May 2025,PAY-05-5280,2000,1500,,Clear AP
+JE-0292,2025-05-31,AP Payment - Licenses and permits May 2025,PAY-05-5280,1000,,1500,Cash paid
+JE-0293,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,5290,1250,,Bank charges and fees
+JE-0293,2025-05-31,Operating Expenses - May 2025,OPEX-05-2025,2000,,1250,Accounts payable
+JE-0294,2025-05-31,AP Payment - Bank charges and fees May 2025,PAY-05-5290,2000,1250,,Clear AP
+JE-0294,2025-05-31,AP Payment - Bank charges and fees May 2025,PAY-05-5290,1000,,1250,Cash paid
+JE-0295,2025-05-31,Mortgage Interest - May 2025,MTG-05-2025,7000,320833,,Mortgage interest expense
+JE-0295,2025-05-31,Mortgage Interest - May 2025,MTG-05-2025,1000,,320833,Cash paid to BankUnited
+JE-0296,2025-05-31,Mortgage Principal - May 2025,PRIN-05-2025,2200,41667,,Mortgage principal reduction
+JE-0296,2025-05-31,Mortgage Principal - May 2025,PRIN-05-2025,1000,,41667,Cash paid to BankUnited
+JE-0297,2025-06-30,Rental Income - June 2025,RENT-06-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0297,2025-06-30,Rental Income - June 2025,RENT-06-2025,4000,,1897200,Residential rental income
+JE-0298,2025-06-30,Rent Cash Receipt - June 2025,CASH-06-2025,1000,1897200,,Cash received for rent
+JE-0298,2025-06-30,Rent Cash Receipt - June 2025,CASH-06-2025,1010,,1897200,Clear accounts receivable
+JE-0299,2025-06-30,Other Income - June 2025,OTH-06-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0299,2025-06-30,Other Income - June 2025,OTH-06-2025,4010,,60000,Parking income
+JE-0299,2025-06-30,Other Income - June 2025,OTH-06-2025,4020,,11250,Pet fee income
+JE-0299,2025-06-30,Other Income - June 2025,OTH-06-2025,4030,,5000,Laundry and vending
+JE-0299,2025-06-30,Other Income - June 2025,OTH-06-2025,4090,,15000,Utility reimbursement
+JE-0300,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5000,100035,,Property management fee
+JE-0300,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,100035,Accounts payable
+JE-0301,2025-06-30,AP Payment - Property management fee June 2025,PAY-06-5000,2000,100035,,Clear AP
+JE-0301,2025-06-30,AP Payment - Property management fee June 2025,PAY-06-5000,1000,,100035,Cash paid
+JE-0302,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5010,75000,,Repairs and maintenance
+JE-0302,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,75000,Accounts payable
+JE-0303,2025-06-30,AP Payment - Repairs and maintenance June 2025,PAY-06-5010,2000,75000,,Clear AP
+JE-0303,2025-06-30,AP Payment - Repairs and maintenance June 2025,PAY-06-5010,1000,,75000,Cash paid
+JE-0304,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5020,15000,,Landscaping and grounds
+JE-0304,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,15000,Accounts payable
+JE-0305,2025-06-30,AP Payment - Landscaping and grounds June 2025,PAY-06-5020,2000,15000,,Clear AP
+JE-0305,2025-06-30,AP Payment - Landscaping and grounds June 2025,PAY-06-5020,1000,,15000,Cash paid
+JE-0306,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5030,20000,,Cleaning and janitorial
+JE-0306,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,20000,Accounts payable
+JE-0307,2025-06-30,AP Payment - Cleaning and janitorial June 2025,PAY-06-5030,2000,20000,,Clear AP
+JE-0307,2025-06-30,AP Payment - Cleaning and janitorial June 2025,PAY-06-5030,1000,,20000,Cash paid
+JE-0308,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5040,30000,,Electric - common areas
+JE-0308,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,30000,Accounts payable
+JE-0309,2025-06-30,AP Payment - Electric - common areas June 2025,PAY-06-5040,2000,30000,,Clear AP
+JE-0309,2025-06-30,AP Payment - Electric - common areas June 2025,PAY-06-5040,1000,,30000,Cash paid
+JE-0310,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5050,40000,,Water and sewer
+JE-0310,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,40000,Accounts payable
+JE-0311,2025-06-30,AP Payment - Water and sewer June 2025,PAY-06-5050,2000,40000,,Clear AP
+JE-0311,2025-06-30,AP Payment - Water and sewer June 2025,PAY-06-5050,1000,,40000,Cash paid
+JE-0312,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5060,5000,,Gas
+JE-0312,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,5000,Accounts payable
+JE-0313,2025-06-30,AP Payment - Gas June 2025,PAY-06-5060,2000,5000,,Clear AP
+JE-0313,2025-06-30,AP Payment - Gas June 2025,PAY-06-5060,1000,,5000,Cash paid
+JE-0314,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5070,81667,,Property insurance
+JE-0314,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,81667,Accounts payable
+JE-0315,2025-06-30,AP Payment - Property insurance June 2025,PAY-06-5070,2000,81667,,Clear AP
+JE-0315,2025-06-30,AP Payment - Property insurance June 2025,PAY-06-5070,1000,,81667,Cash paid
+JE-0316,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5090,140000,,Real estate taxes
+JE-0316,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,140000,Accounts payable
+JE-0317,2025-06-30,AP Payment - Real estate taxes June 2025,PAY-06-5090,2000,140000,,Clear AP
+JE-0317,2025-06-30,AP Payment - Real estate taxes June 2025,PAY-06-5090,1000,,140000,Cash paid
+JE-0318,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5110,35000,,Security services
+JE-0318,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,35000,Accounts payable
+JE-0319,2025-06-30,AP Payment - Security services June 2025,PAY-06-5110,2000,35000,,Clear AP
+JE-0319,2025-06-30,AP Payment - Security services June 2025,PAY-06-5110,1000,,35000,Cash paid
+JE-0320,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5120,15000,,Elevator maintenance
+JE-0320,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,15000,Accounts payable
+JE-0321,2025-06-30,AP Payment - Elevator maintenance June 2025,PAY-06-5120,2000,15000,,Clear AP
+JE-0321,2025-06-30,AP Payment - Elevator maintenance June 2025,PAY-06-5120,1000,,15000,Cash paid
+JE-0322,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5130,12500,,HVAC maintenance
+JE-0322,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,12500,Accounts payable
+JE-0323,2025-06-30,AP Payment - HVAC maintenance June 2025,PAY-06-5130,2000,12500,,Clear AP
+JE-0323,2025-06-30,AP Payment - HVAC maintenance June 2025,PAY-06-5130,1000,,12500,Cash paid
+JE-0324,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5140,6000,,Pest control
+JE-0324,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,6000,Accounts payable
+JE-0325,2025-06-30,AP Payment - Pest control June 2025,PAY-06-5140,2000,6000,,Clear AP
+JE-0325,2025-06-30,AP Payment - Pest control June 2025,PAY-06-5140,1000,,6000,Cash paid
+JE-0326,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5150,10000,,Pool and amenity maintenance
+JE-0326,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,10000,Accounts payable
+JE-0327,2025-06-30,AP Payment - Pool and amenity maintenance June 2025,PAY-06-5150,2000,10000,,Clear AP
+JE-0327,2025-06-30,AP Payment - Pool and amenity maintenance June 2025,PAY-06-5150,1000,,10000,Cash paid
+JE-0328,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5160,7000,,Trash and recycling
+JE-0328,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,7000,Accounts payable
+JE-0329,2025-06-30,AP Payment - Trash and recycling June 2025,PAY-06-5160,2000,7000,,Clear AP
+JE-0329,2025-06-30,AP Payment - Trash and recycling June 2025,PAY-06-5160,1000,,7000,Cash paid
+JE-0330,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5170,5000,,Administrative and office
+JE-0330,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,5000,Accounts payable
+JE-0331,2025-06-30,AP Payment - Administrative and office June 2025,PAY-06-5170,2000,5000,,Clear AP
+JE-0331,2025-06-30,AP Payment - Administrative and office June 2025,PAY-06-5170,1000,,5000,Cash paid
+JE-0332,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5180,7500,,Legal and professional
+JE-0332,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,7500,Accounts payable
+JE-0333,2025-06-30,AP Payment - Legal and professional June 2025,PAY-06-5180,2000,7500,,Clear AP
+JE-0333,2025-06-30,AP Payment - Legal and professional June 2025,PAY-06-5180,1000,,7500,Cash paid
+JE-0334,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5190,10000,,Marketing and advertising
+JE-0334,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,10000,Accounts payable
+JE-0335,2025-06-30,AP Payment - Marketing and advertising June 2025,PAY-06-5190,2000,10000,,Clear AP
+JE-0335,2025-06-30,AP Payment - Marketing and advertising June 2025,PAY-06-5190,1000,,10000,Cash paid
+JE-0336,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5200,7917,,Leasing commissions
+JE-0336,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,7917,Accounts payable
+JE-0337,2025-06-30,AP Payment - Leasing commissions June 2025,PAY-06-5200,2000,7917,,Clear AP
+JE-0337,2025-06-30,AP Payment - Leasing commissions June 2025,PAY-06-5200,1000,,7917,Cash paid
+JE-0338,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5220,5667,,Bad debt expense
+JE-0338,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,5667,Accounts payable
+JE-0339,2025-06-30,AP Payment - Bad debt expense June 2025,PAY-06-5220,2000,5667,,Clear AP
+JE-0339,2025-06-30,AP Payment - Bad debt expense June 2025,PAY-06-5220,1000,,5667,Cash paid
+JE-0340,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5230,20000,,Capital reserve contribution
+JE-0340,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,20000,Accounts payable
+JE-0341,2025-06-30,AP Payment - Capital reserve contribution June 2025,PAY-06-5230,2000,20000,,Clear AP
+JE-0341,2025-06-30,AP Payment - Capital reserve contribution June 2025,PAY-06-5230,1000,,20000,Cash paid
+JE-0342,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5240,65000,,Payroll - on-site staff
+JE-0342,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,65000,Accounts payable
+JE-0343,2025-06-30,AP Payment - Payroll - on-site staff June 2025,PAY-06-5240,2000,65000,,Clear AP
+JE-0343,2025-06-30,AP Payment - Payroll - on-site staff June 2025,PAY-06-5240,1000,,65000,Cash paid
+JE-0344,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5250,13000,,Payroll taxes and benefits
+JE-0344,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,13000,Accounts payable
+JE-0345,2025-06-30,AP Payment - Payroll taxes and benefits June 2025,PAY-06-5250,2000,13000,,Clear AP
+JE-0345,2025-06-30,AP Payment - Payroll taxes and benefits June 2025,PAY-06-5250,1000,,13000,Cash paid
+JE-0346,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5260,2000,,Telephone and internet
+JE-0346,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,2000,Accounts payable
+JE-0347,2025-06-30,AP Payment - Telephone and internet June 2025,PAY-06-5260,2000,2000,,Clear AP
+JE-0347,2025-06-30,AP Payment - Telephone and internet June 2025,PAY-06-5260,1000,,2000,Cash paid
+JE-0348,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5270,3000,,Software and technology
+JE-0348,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,3000,Accounts payable
+JE-0349,2025-06-30,AP Payment - Software and technology June 2025,PAY-06-5270,2000,3000,,Clear AP
+JE-0349,2025-06-30,AP Payment - Software and technology June 2025,PAY-06-5270,1000,,3000,Cash paid
+JE-0350,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5280,1500,,Licenses and permits
+JE-0350,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,1500,Accounts payable
+JE-0351,2025-06-30,AP Payment - Licenses and permits June 2025,PAY-06-5280,2000,1500,,Clear AP
+JE-0351,2025-06-30,AP Payment - Licenses and permits June 2025,PAY-06-5280,1000,,1500,Cash paid
+JE-0352,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,5290,1250,,Bank charges and fees
+JE-0352,2025-06-30,Operating Expenses - June 2025,OPEX-06-2025,2000,,1250,Accounts payable
+JE-0353,2025-06-30,AP Payment - Bank charges and fees June 2025,PAY-06-5290,2000,1250,,Clear AP
+JE-0353,2025-06-30,AP Payment - Bank charges and fees June 2025,PAY-06-5290,1000,,1250,Cash paid
+JE-0354,2025-06-30,Mortgage Interest - June 2025,MTG-06-2025,7000,320833,,Mortgage interest expense
+JE-0354,2025-06-30,Mortgage Interest - June 2025,MTG-06-2025,1000,,320833,Cash paid to BankUnited
+JE-0355,2025-06-30,Mortgage Principal - June 2025,PRIN-06-2025,2200,41667,,Mortgage principal reduction
+JE-0355,2025-06-30,Mortgage Principal - June 2025,PRIN-06-2025,1000,,41667,Cash paid to BankUnited
+JE-0356,2025-07-31,Rental Income - July 2025,RENT-07-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0356,2025-07-31,Rental Income - July 2025,RENT-07-2025,4000,,1897200,Residential rental income
+JE-0357,2025-07-31,Rent Cash Receipt - July 2025,CASH-07-2025,1000,1897200,,Cash received for rent
+JE-0357,2025-07-31,Rent Cash Receipt - July 2025,CASH-07-2025,1010,,1897200,Clear accounts receivable
+JE-0358,2025-07-31,Other Income - July 2025,OTH-07-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0358,2025-07-31,Other Income - July 2025,OTH-07-2025,4010,,60000,Parking income
+JE-0358,2025-07-31,Other Income - July 2025,OTH-07-2025,4020,,11250,Pet fee income
+JE-0358,2025-07-31,Other Income - July 2025,OTH-07-2025,4030,,5000,Laundry and vending
+JE-0358,2025-07-31,Other Income - July 2025,OTH-07-2025,4090,,15000,Utility reimbursement
+JE-0359,2025-07-31,Late Fees - July 2025,LF-07-2025,1000,3750,,Late fee cash collected
+JE-0359,2025-07-31,Late Fees - July 2025,LF-07-2025,4040,,3750,Late fee income
+JE-0360,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5000,100035,,Property management fee
+JE-0360,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,100035,Accounts payable
+JE-0361,2025-07-31,AP Payment - Property management fee July 2025,PAY-07-5000,2000,100035,,Clear AP
+JE-0361,2025-07-31,AP Payment - Property management fee July 2025,PAY-07-5000,1000,,100035,Cash paid
+JE-0362,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5010,75000,,Repairs and maintenance
+JE-0362,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,75000,Accounts payable
+JE-0363,2025-07-31,AP Payment - Repairs and maintenance July 2025,PAY-07-5010,2000,75000,,Clear AP
+JE-0363,2025-07-31,AP Payment - Repairs and maintenance July 2025,PAY-07-5010,1000,,75000,Cash paid
+JE-0364,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5020,15000,,Landscaping and grounds
+JE-0364,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,15000,Accounts payable
+JE-0365,2025-07-31,AP Payment - Landscaping and grounds July 2025,PAY-07-5020,2000,15000,,Clear AP
+JE-0365,2025-07-31,AP Payment - Landscaping and grounds July 2025,PAY-07-5020,1000,,15000,Cash paid
+JE-0366,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5030,20000,,Cleaning and janitorial
+JE-0366,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,20000,Accounts payable
+JE-0367,2025-07-31,AP Payment - Cleaning and janitorial July 2025,PAY-07-5030,2000,20000,,Clear AP
+JE-0367,2025-07-31,AP Payment - Cleaning and janitorial July 2025,PAY-07-5030,1000,,20000,Cash paid
+JE-0368,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5040,30000,,Electric - common areas
+JE-0368,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,30000,Accounts payable
+JE-0369,2025-07-31,AP Payment - Electric - common areas July 2025,PAY-07-5040,2000,30000,,Clear AP
+JE-0369,2025-07-31,AP Payment - Electric - common areas July 2025,PAY-07-5040,1000,,30000,Cash paid
+JE-0370,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5050,40000,,Water and sewer
+JE-0370,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,40000,Accounts payable
+JE-0371,2025-07-31,AP Payment - Water and sewer July 2025,PAY-07-5050,2000,40000,,Clear AP
+JE-0371,2025-07-31,AP Payment - Water and sewer July 2025,PAY-07-5050,1000,,40000,Cash paid
+JE-0372,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5060,5000,,Gas
+JE-0372,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,5000,Accounts payable
+JE-0373,2025-07-31,AP Payment - Gas July 2025,PAY-07-5060,2000,5000,,Clear AP
+JE-0373,2025-07-31,AP Payment - Gas July 2025,PAY-07-5060,1000,,5000,Cash paid
+JE-0374,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5070,81667,,Property insurance
+JE-0374,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,81667,Accounts payable
+JE-0375,2025-07-31,AP Payment - Property insurance July 2025,PAY-07-5070,2000,81667,,Clear AP
+JE-0375,2025-07-31,AP Payment - Property insurance July 2025,PAY-07-5070,1000,,81667,Cash paid
+JE-0376,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5090,140000,,Real estate taxes
+JE-0376,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,140000,Accounts payable
+JE-0377,2025-07-31,AP Payment - Real estate taxes July 2025,PAY-07-5090,2000,140000,,Clear AP
+JE-0377,2025-07-31,AP Payment - Real estate taxes July 2025,PAY-07-5090,1000,,140000,Cash paid
+JE-0378,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5110,35000,,Security services
+JE-0378,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,35000,Accounts payable
+JE-0379,2025-07-31,AP Payment - Security services July 2025,PAY-07-5110,2000,35000,,Clear AP
+JE-0379,2025-07-31,AP Payment - Security services July 2025,PAY-07-5110,1000,,35000,Cash paid
+JE-0380,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5120,15000,,Elevator maintenance
+JE-0380,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,15000,Accounts payable
+JE-0381,2025-07-31,AP Payment - Elevator maintenance July 2025,PAY-07-5120,2000,15000,,Clear AP
+JE-0381,2025-07-31,AP Payment - Elevator maintenance July 2025,PAY-07-5120,1000,,15000,Cash paid
+JE-0382,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5130,12500,,HVAC maintenance
+JE-0382,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,12500,Accounts payable
+JE-0383,2025-07-31,AP Payment - HVAC maintenance July 2025,PAY-07-5130,2000,12500,,Clear AP
+JE-0383,2025-07-31,AP Payment - HVAC maintenance July 2025,PAY-07-5130,1000,,12500,Cash paid
+JE-0384,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5140,6000,,Pest control
+JE-0384,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,6000,Accounts payable
+JE-0385,2025-07-31,AP Payment - Pest control July 2025,PAY-07-5140,2000,6000,,Clear AP
+JE-0385,2025-07-31,AP Payment - Pest control July 2025,PAY-07-5140,1000,,6000,Cash paid
+JE-0386,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5150,10000,,Pool and amenity maintenance
+JE-0386,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,10000,Accounts payable
+JE-0387,2025-07-31,AP Payment - Pool and amenity maintenance July 2025,PAY-07-5150,2000,10000,,Clear AP
+JE-0387,2025-07-31,AP Payment - Pool and amenity maintenance July 2025,PAY-07-5150,1000,,10000,Cash paid
+JE-0388,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5160,7000,,Trash and recycling
+JE-0388,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,7000,Accounts payable
+JE-0389,2025-07-31,AP Payment - Trash and recycling July 2025,PAY-07-5160,2000,7000,,Clear AP
+JE-0389,2025-07-31,AP Payment - Trash and recycling July 2025,PAY-07-5160,1000,,7000,Cash paid
+JE-0390,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5170,5000,,Administrative and office
+JE-0390,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,5000,Accounts payable
+JE-0391,2025-07-31,AP Payment - Administrative and office July 2025,PAY-07-5170,2000,5000,,Clear AP
+JE-0391,2025-07-31,AP Payment - Administrative and office July 2025,PAY-07-5170,1000,,5000,Cash paid
+JE-0392,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5180,7500,,Legal and professional
+JE-0392,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,7500,Accounts payable
+JE-0393,2025-07-31,AP Payment - Legal and professional July 2025,PAY-07-5180,2000,7500,,Clear AP
+JE-0393,2025-07-31,AP Payment - Legal and professional July 2025,PAY-07-5180,1000,,7500,Cash paid
+JE-0394,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5190,10000,,Marketing and advertising
+JE-0394,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,10000,Accounts payable
+JE-0395,2025-07-31,AP Payment - Marketing and advertising July 2025,PAY-07-5190,2000,10000,,Clear AP
+JE-0395,2025-07-31,AP Payment - Marketing and advertising July 2025,PAY-07-5190,1000,,10000,Cash paid
+JE-0396,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5200,7917,,Leasing commissions
+JE-0396,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,7917,Accounts payable
+JE-0397,2025-07-31,AP Payment - Leasing commissions July 2025,PAY-07-5200,2000,7917,,Clear AP
+JE-0397,2025-07-31,AP Payment - Leasing commissions July 2025,PAY-07-5200,1000,,7917,Cash paid
+JE-0398,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5220,5667,,Bad debt expense
+JE-0398,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,5667,Accounts payable
+JE-0399,2025-07-31,AP Payment - Bad debt expense July 2025,PAY-07-5220,2000,5667,,Clear AP
+JE-0399,2025-07-31,AP Payment - Bad debt expense July 2025,PAY-07-5220,1000,,5667,Cash paid
+JE-0400,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5230,20000,,Capital reserve contribution
+JE-0400,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,20000,Accounts payable
+JE-0401,2025-07-31,AP Payment - Capital reserve contribution July 2025,PAY-07-5230,2000,20000,,Clear AP
+JE-0401,2025-07-31,AP Payment - Capital reserve contribution July 2025,PAY-07-5230,1000,,20000,Cash paid
+JE-0402,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5240,65000,,Payroll - on-site staff
+JE-0402,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,65000,Accounts payable
+JE-0403,2025-07-31,AP Payment - Payroll - on-site staff July 2025,PAY-07-5240,2000,65000,,Clear AP
+JE-0403,2025-07-31,AP Payment - Payroll - on-site staff July 2025,PAY-07-5240,1000,,65000,Cash paid
+JE-0404,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5250,13000,,Payroll taxes and benefits
+JE-0404,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,13000,Accounts payable
+JE-0405,2025-07-31,AP Payment - Payroll taxes and benefits July 2025,PAY-07-5250,2000,13000,,Clear AP
+JE-0405,2025-07-31,AP Payment - Payroll taxes and benefits July 2025,PAY-07-5250,1000,,13000,Cash paid
+JE-0406,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5260,2000,,Telephone and internet
+JE-0406,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,2000,Accounts payable
+JE-0407,2025-07-31,AP Payment - Telephone and internet July 2025,PAY-07-5260,2000,2000,,Clear AP
+JE-0407,2025-07-31,AP Payment - Telephone and internet July 2025,PAY-07-5260,1000,,2000,Cash paid
+JE-0408,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5270,3000,,Software and technology
+JE-0408,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,3000,Accounts payable
+JE-0409,2025-07-31,AP Payment - Software and technology July 2025,PAY-07-5270,2000,3000,,Clear AP
+JE-0409,2025-07-31,AP Payment - Software and technology July 2025,PAY-07-5270,1000,,3000,Cash paid
+JE-0410,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5280,1500,,Licenses and permits
+JE-0410,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,1500,Accounts payable
+JE-0411,2025-07-31,AP Payment - Licenses and permits July 2025,PAY-07-5280,2000,1500,,Clear AP
+JE-0411,2025-07-31,AP Payment - Licenses and permits July 2025,PAY-07-5280,1000,,1500,Cash paid
+JE-0412,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,5290,1250,,Bank charges and fees
+JE-0412,2025-07-31,Operating Expenses - July 2025,OPEX-07-2025,2000,,1250,Accounts payable
+JE-0413,2025-07-31,AP Payment - Bank charges and fees July 2025,PAY-07-5290,2000,1250,,Clear AP
+JE-0413,2025-07-31,AP Payment - Bank charges and fees July 2025,PAY-07-5290,1000,,1250,Cash paid
+JE-0414,2025-07-31,Mortgage Interest - July 2025,MTG-07-2025,7000,320833,,Mortgage interest expense
+JE-0414,2025-07-31,Mortgage Interest - July 2025,MTG-07-2025,1000,,320833,Cash paid to BankUnited
+JE-0415,2025-07-31,Mortgage Principal - July 2025,PRIN-07-2025,2200,41667,,Mortgage principal reduction
+JE-0415,2025-07-31,Mortgage Principal - July 2025,PRIN-07-2025,1000,,41667,Cash paid to BankUnited
+JE-0416,2025-08-31,Rental Income - August 2025,RENT-08-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0416,2025-08-31,Rental Income - August 2025,RENT-08-2025,4000,,1897200,Residential rental income
+JE-0417,2025-08-31,Rent Cash Receipt - August 2025,CASH-08-2025,1000,1897200,,Cash received for rent
+JE-0417,2025-08-31,Rent Cash Receipt - August 2025,CASH-08-2025,1010,,1897200,Clear accounts receivable
+JE-0418,2025-08-31,Other Income - August 2025,OTH-08-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0418,2025-08-31,Other Income - August 2025,OTH-08-2025,4010,,60000,Parking income
+JE-0418,2025-08-31,Other Income - August 2025,OTH-08-2025,4020,,11250,Pet fee income
+JE-0418,2025-08-31,Other Income - August 2025,OTH-08-2025,4030,,5000,Laundry and vending
+JE-0418,2025-08-31,Other Income - August 2025,OTH-08-2025,4090,,15000,Utility reimbursement
+JE-0419,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5000,100035,,Property management fee
+JE-0419,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,100035,Accounts payable
+JE-0420,2025-08-31,AP Payment - Property management fee August 2025,PAY-08-5000,2000,100035,,Clear AP
+JE-0420,2025-08-31,AP Payment - Property management fee August 2025,PAY-08-5000,1000,,100035,Cash paid
+JE-0421,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5010,75000,,Repairs and maintenance
+JE-0421,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,75000,Accounts payable
+JE-0422,2025-08-31,AP Payment - Repairs and maintenance August 2025,PAY-08-5010,2000,75000,,Clear AP
+JE-0422,2025-08-31,AP Payment - Repairs and maintenance August 2025,PAY-08-5010,1000,,75000,Cash paid
+JE-0423,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5020,15000,,Landscaping and grounds
+JE-0423,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,15000,Accounts payable
+JE-0424,2025-08-31,AP Payment - Landscaping and grounds August 2025,PAY-08-5020,2000,15000,,Clear AP
+JE-0424,2025-08-31,AP Payment - Landscaping and grounds August 2025,PAY-08-5020,1000,,15000,Cash paid
+JE-0425,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5030,20000,,Cleaning and janitorial
+JE-0425,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,20000,Accounts payable
+JE-0426,2025-08-31,AP Payment - Cleaning and janitorial August 2025,PAY-08-5030,2000,20000,,Clear AP
+JE-0426,2025-08-31,AP Payment - Cleaning and janitorial August 2025,PAY-08-5030,1000,,20000,Cash paid
+JE-0427,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5040,30000,,Electric - common areas
+JE-0427,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,30000,Accounts payable
+JE-0428,2025-08-31,AP Payment - Electric - common areas August 2025,PAY-08-5040,2000,30000,,Clear AP
+JE-0428,2025-08-31,AP Payment - Electric - common areas August 2025,PAY-08-5040,1000,,30000,Cash paid
+JE-0429,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5050,40000,,Water and sewer
+JE-0429,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,40000,Accounts payable
+JE-0430,2025-08-31,AP Payment - Water and sewer August 2025,PAY-08-5050,2000,40000,,Clear AP
+JE-0430,2025-08-31,AP Payment - Water and sewer August 2025,PAY-08-5050,1000,,40000,Cash paid
+JE-0431,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5060,5000,,Gas
+JE-0431,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,5000,Accounts payable
+JE-0432,2025-08-31,AP Payment - Gas August 2025,PAY-08-5060,2000,5000,,Clear AP
+JE-0432,2025-08-31,AP Payment - Gas August 2025,PAY-08-5060,1000,,5000,Cash paid
+JE-0433,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5070,81667,,Property insurance
+JE-0433,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,81667,Accounts payable
+JE-0434,2025-08-31,AP Payment - Property insurance August 2025,PAY-08-5070,2000,81667,,Clear AP
+JE-0434,2025-08-31,AP Payment - Property insurance August 2025,PAY-08-5070,1000,,81667,Cash paid
+JE-0435,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5090,140000,,Real estate taxes
+JE-0435,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,140000,Accounts payable
+JE-0436,2025-08-31,AP Payment - Real estate taxes August 2025,PAY-08-5090,2000,140000,,Clear AP
+JE-0436,2025-08-31,AP Payment - Real estate taxes August 2025,PAY-08-5090,1000,,140000,Cash paid
+JE-0437,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5110,35000,,Security services
+JE-0437,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,35000,Accounts payable
+JE-0438,2025-08-31,AP Payment - Security services August 2025,PAY-08-5110,2000,35000,,Clear AP
+JE-0438,2025-08-31,AP Payment - Security services August 2025,PAY-08-5110,1000,,35000,Cash paid
+JE-0439,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5120,15000,,Elevator maintenance
+JE-0439,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,15000,Accounts payable
+JE-0440,2025-08-31,AP Payment - Elevator maintenance August 2025,PAY-08-5120,2000,15000,,Clear AP
+JE-0440,2025-08-31,AP Payment - Elevator maintenance August 2025,PAY-08-5120,1000,,15000,Cash paid
+JE-0441,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5130,12500,,HVAC maintenance
+JE-0441,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,12500,Accounts payable
+JE-0442,2025-08-31,AP Payment - HVAC maintenance August 2025,PAY-08-5130,2000,12500,,Clear AP
+JE-0442,2025-08-31,AP Payment - HVAC maintenance August 2025,PAY-08-5130,1000,,12500,Cash paid
+JE-0443,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5140,6000,,Pest control
+JE-0443,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,6000,Accounts payable
+JE-0444,2025-08-31,AP Payment - Pest control August 2025,PAY-08-5140,2000,6000,,Clear AP
+JE-0444,2025-08-31,AP Payment - Pest control August 2025,PAY-08-5140,1000,,6000,Cash paid
+JE-0445,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5150,10000,,Pool and amenity maintenance
+JE-0445,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,10000,Accounts payable
+JE-0446,2025-08-31,AP Payment - Pool and amenity maintenance August 2025,PAY-08-5150,2000,10000,,Clear AP
+JE-0446,2025-08-31,AP Payment - Pool and amenity maintenance August 2025,PAY-08-5150,1000,,10000,Cash paid
+JE-0447,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5160,7000,,Trash and recycling
+JE-0447,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,7000,Accounts payable
+JE-0448,2025-08-31,AP Payment - Trash and recycling August 2025,PAY-08-5160,2000,7000,,Clear AP
+JE-0448,2025-08-31,AP Payment - Trash and recycling August 2025,PAY-08-5160,1000,,7000,Cash paid
+JE-0449,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5170,5000,,Administrative and office
+JE-0449,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,5000,Accounts payable
+JE-0450,2025-08-31,AP Payment - Administrative and office August 2025,PAY-08-5170,2000,5000,,Clear AP
+JE-0450,2025-08-31,AP Payment - Administrative and office August 2025,PAY-08-5170,1000,,5000,Cash paid
+JE-0451,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5180,7500,,Legal and professional
+JE-0451,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,7500,Accounts payable
+JE-0452,2025-08-31,AP Payment - Legal and professional August 2025,PAY-08-5180,2000,7500,,Clear AP
+JE-0452,2025-08-31,AP Payment - Legal and professional August 2025,PAY-08-5180,1000,,7500,Cash paid
+JE-0453,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5190,10000,,Marketing and advertising
+JE-0453,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,10000,Accounts payable
+JE-0454,2025-08-31,AP Payment - Marketing and advertising August 2025,PAY-08-5190,2000,10000,,Clear AP
+JE-0454,2025-08-31,AP Payment - Marketing and advertising August 2025,PAY-08-5190,1000,,10000,Cash paid
+JE-0455,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5200,7917,,Leasing commissions
+JE-0455,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,7917,Accounts payable
+JE-0456,2025-08-31,AP Payment - Leasing commissions August 2025,PAY-08-5200,2000,7917,,Clear AP
+JE-0456,2025-08-31,AP Payment - Leasing commissions August 2025,PAY-08-5200,1000,,7917,Cash paid
+JE-0457,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5220,5667,,Bad debt expense
+JE-0457,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,5667,Accounts payable
+JE-0458,2025-08-31,AP Payment - Bad debt expense August 2025,PAY-08-5220,2000,5667,,Clear AP
+JE-0458,2025-08-31,AP Payment - Bad debt expense August 2025,PAY-08-5220,1000,,5667,Cash paid
+JE-0459,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5230,20000,,Capital reserve contribution
+JE-0459,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,20000,Accounts payable
+JE-0460,2025-08-31,AP Payment - Capital reserve contribution August 2025,PAY-08-5230,2000,20000,,Clear AP
+JE-0460,2025-08-31,AP Payment - Capital reserve contribution August 2025,PAY-08-5230,1000,,20000,Cash paid
+JE-0461,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5240,65000,,Payroll - on-site staff
+JE-0461,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,65000,Accounts payable
+JE-0462,2025-08-31,AP Payment - Payroll - on-site staff August 2025,PAY-08-5240,2000,65000,,Clear AP
+JE-0462,2025-08-31,AP Payment - Payroll - on-site staff August 2025,PAY-08-5240,1000,,65000,Cash paid
+JE-0463,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5250,13000,,Payroll taxes and benefits
+JE-0463,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,13000,Accounts payable
+JE-0464,2025-08-31,AP Payment - Payroll taxes and benefits August 2025,PAY-08-5250,2000,13000,,Clear AP
+JE-0464,2025-08-31,AP Payment - Payroll taxes and benefits August 2025,PAY-08-5250,1000,,13000,Cash paid
+JE-0465,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5260,2000,,Telephone and internet
+JE-0465,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,2000,Accounts payable
+JE-0466,2025-08-31,AP Payment - Telephone and internet August 2025,PAY-08-5260,2000,2000,,Clear AP
+JE-0466,2025-08-31,AP Payment - Telephone and internet August 2025,PAY-08-5260,1000,,2000,Cash paid
+JE-0467,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5270,3000,,Software and technology
+JE-0467,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,3000,Accounts payable
+JE-0468,2025-08-31,AP Payment - Software and technology August 2025,PAY-08-5270,2000,3000,,Clear AP
+JE-0468,2025-08-31,AP Payment - Software and technology August 2025,PAY-08-5270,1000,,3000,Cash paid
+JE-0469,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5280,1500,,Licenses and permits
+JE-0469,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,1500,Accounts payable
+JE-0470,2025-08-31,AP Payment - Licenses and permits August 2025,PAY-08-5280,2000,1500,,Clear AP
+JE-0470,2025-08-31,AP Payment - Licenses and permits August 2025,PAY-08-5280,1000,,1500,Cash paid
+JE-0471,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,5290,1250,,Bank charges and fees
+JE-0471,2025-08-31,Operating Expenses - August 2025,OPEX-08-2025,2000,,1250,Accounts payable
+JE-0472,2025-08-31,AP Payment - Bank charges and fees August 2025,PAY-08-5290,2000,1250,,Clear AP
+JE-0472,2025-08-31,AP Payment - Bank charges and fees August 2025,PAY-08-5290,1000,,1250,Cash paid
+JE-0473,2025-08-31,Mortgage Interest - August 2025,MTG-08-2025,7000,320833,,Mortgage interest expense
+JE-0473,2025-08-31,Mortgage Interest - August 2025,MTG-08-2025,1000,,320833,Cash paid to BankUnited
+JE-0474,2025-08-31,Mortgage Principal - August 2025,PRIN-08-2025,2200,41667,,Mortgage principal reduction
+JE-0474,2025-08-31,Mortgage Principal - August 2025,PRIN-08-2025,1000,,41667,Cash paid to BankUnited
+JE-0475,2025-09-30,Rental Income - September 2025,RENT-09-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0475,2025-09-30,Rental Income - September 2025,RENT-09-2025,4000,,1897200,Residential rental income
+JE-0476,2025-09-30,Rent Cash Receipt - September 2025,CASH-09-2025,1000,1897200,,Cash received for rent
+JE-0476,2025-09-30,Rent Cash Receipt - September 2025,CASH-09-2025,1010,,1897200,Clear accounts receivable
+JE-0477,2025-09-30,Other Income - September 2025,OTH-09-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0477,2025-09-30,Other Income - September 2025,OTH-09-2025,4010,,60000,Parking income
+JE-0477,2025-09-30,Other Income - September 2025,OTH-09-2025,4020,,11250,Pet fee income
+JE-0477,2025-09-30,Other Income - September 2025,OTH-09-2025,4030,,5000,Laundry and vending
+JE-0477,2025-09-30,Other Income - September 2025,OTH-09-2025,4090,,15000,Utility reimbursement
+JE-0478,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5000,100035,,Property management fee
+JE-0478,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,100035,Accounts payable
+JE-0479,2025-09-30,AP Payment - Property management fee September 2025,PAY-09-5000,2000,100035,,Clear AP
+JE-0479,2025-09-30,AP Payment - Property management fee September 2025,PAY-09-5000,1000,,100035,Cash paid
+JE-0480,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5010,75000,,Repairs and maintenance
+JE-0480,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,75000,Accounts payable
+JE-0481,2025-09-30,AP Payment - Repairs and maintenance September 2025,PAY-09-5010,2000,75000,,Clear AP
+JE-0481,2025-09-30,AP Payment - Repairs and maintenance September 2025,PAY-09-5010,1000,,75000,Cash paid
+JE-0482,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5020,15000,,Landscaping and grounds
+JE-0482,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,15000,Accounts payable
+JE-0483,2025-09-30,AP Payment - Landscaping and grounds September 2025,PAY-09-5020,2000,15000,,Clear AP
+JE-0483,2025-09-30,AP Payment - Landscaping and grounds September 2025,PAY-09-5020,1000,,15000,Cash paid
+JE-0484,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5030,20000,,Cleaning and janitorial
+JE-0484,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,20000,Accounts payable
+JE-0485,2025-09-30,AP Payment - Cleaning and janitorial September 2025,PAY-09-5030,2000,20000,,Clear AP
+JE-0485,2025-09-30,AP Payment - Cleaning and janitorial September 2025,PAY-09-5030,1000,,20000,Cash paid
+JE-0486,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5040,30000,,Electric - common areas
+JE-0486,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,30000,Accounts payable
+JE-0487,2025-09-30,AP Payment - Electric - common areas September 2025,PAY-09-5040,2000,30000,,Clear AP
+JE-0487,2025-09-30,AP Payment - Electric - common areas September 2025,PAY-09-5040,1000,,30000,Cash paid
+JE-0488,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5050,40000,,Water and sewer
+JE-0488,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,40000,Accounts payable
+JE-0489,2025-09-30,AP Payment - Water and sewer September 2025,PAY-09-5050,2000,40000,,Clear AP
+JE-0489,2025-09-30,AP Payment - Water and sewer September 2025,PAY-09-5050,1000,,40000,Cash paid
+JE-0490,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5060,5000,,Gas
+JE-0490,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,5000,Accounts payable
+JE-0491,2025-09-30,AP Payment - Gas September 2025,PAY-09-5060,2000,5000,,Clear AP
+JE-0491,2025-09-30,AP Payment - Gas September 2025,PAY-09-5060,1000,,5000,Cash paid
+JE-0492,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5070,81667,,Property insurance
+JE-0492,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,81667,Accounts payable
+JE-0493,2025-09-30,AP Payment - Property insurance September 2025,PAY-09-5070,2000,81667,,Clear AP
+JE-0493,2025-09-30,AP Payment - Property insurance September 2025,PAY-09-5070,1000,,81667,Cash paid
+JE-0494,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5090,140000,,Real estate taxes
+JE-0494,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,140000,Accounts payable
+JE-0495,2025-09-30,AP Payment - Real estate taxes September 2025,PAY-09-5090,2000,140000,,Clear AP
+JE-0495,2025-09-30,AP Payment - Real estate taxes September 2025,PAY-09-5090,1000,,140000,Cash paid
+JE-0496,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5110,35000,,Security services
+JE-0496,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,35000,Accounts payable
+JE-0497,2025-09-30,AP Payment - Security services September 2025,PAY-09-5110,2000,35000,,Clear AP
+JE-0497,2025-09-30,AP Payment - Security services September 2025,PAY-09-5110,1000,,35000,Cash paid
+JE-0498,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5120,15000,,Elevator maintenance
+JE-0498,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,15000,Accounts payable
+JE-0499,2025-09-30,AP Payment - Elevator maintenance September 2025,PAY-09-5120,2000,15000,,Clear AP
+JE-0499,2025-09-30,AP Payment - Elevator maintenance September 2025,PAY-09-5120,1000,,15000,Cash paid
+JE-0500,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5130,12500,,HVAC maintenance
+JE-0500,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,12500,Accounts payable
+JE-0501,2025-09-30,AP Payment - HVAC maintenance September 2025,PAY-09-5130,2000,12500,,Clear AP
+JE-0501,2025-09-30,AP Payment - HVAC maintenance September 2025,PAY-09-5130,1000,,12500,Cash paid
+JE-0502,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5140,6000,,Pest control
+JE-0502,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,6000,Accounts payable
+JE-0503,2025-09-30,AP Payment - Pest control September 2025,PAY-09-5140,2000,6000,,Clear AP
+JE-0503,2025-09-30,AP Payment - Pest control September 2025,PAY-09-5140,1000,,6000,Cash paid
+JE-0504,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5150,10000,,Pool and amenity maintenance
+JE-0504,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,10000,Accounts payable
+JE-0505,2025-09-30,AP Payment - Pool and amenity maintenance September 2025,PAY-09-5150,2000,10000,,Clear AP
+JE-0505,2025-09-30,AP Payment - Pool and amenity maintenance September 2025,PAY-09-5150,1000,,10000,Cash paid
+JE-0506,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5160,7000,,Trash and recycling
+JE-0506,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,7000,Accounts payable
+JE-0507,2025-09-30,AP Payment - Trash and recycling September 2025,PAY-09-5160,2000,7000,,Clear AP
+JE-0507,2025-09-30,AP Payment - Trash and recycling September 2025,PAY-09-5160,1000,,7000,Cash paid
+JE-0508,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5170,5000,,Administrative and office
+JE-0508,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,5000,Accounts payable
+JE-0509,2025-09-30,AP Payment - Administrative and office September 2025,PAY-09-5170,2000,5000,,Clear AP
+JE-0509,2025-09-30,AP Payment - Administrative and office September 2025,PAY-09-5170,1000,,5000,Cash paid
+JE-0510,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5180,7500,,Legal and professional
+JE-0510,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,7500,Accounts payable
+JE-0511,2025-09-30,AP Payment - Legal and professional September 2025,PAY-09-5180,2000,7500,,Clear AP
+JE-0511,2025-09-30,AP Payment - Legal and professional September 2025,PAY-09-5180,1000,,7500,Cash paid
+JE-0512,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5190,10000,,Marketing and advertising
+JE-0512,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,10000,Accounts payable
+JE-0513,2025-09-30,AP Payment - Marketing and advertising September 2025,PAY-09-5190,2000,10000,,Clear AP
+JE-0513,2025-09-30,AP Payment - Marketing and advertising September 2025,PAY-09-5190,1000,,10000,Cash paid
+JE-0514,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5200,7917,,Leasing commissions
+JE-0514,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,7917,Accounts payable
+JE-0515,2025-09-30,AP Payment - Leasing commissions September 2025,PAY-09-5200,2000,7917,,Clear AP
+JE-0515,2025-09-30,AP Payment - Leasing commissions September 2025,PAY-09-5200,1000,,7917,Cash paid
+JE-0516,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5220,5667,,Bad debt expense
+JE-0516,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,5667,Accounts payable
+JE-0517,2025-09-30,AP Payment - Bad debt expense September 2025,PAY-09-5220,2000,5667,,Clear AP
+JE-0517,2025-09-30,AP Payment - Bad debt expense September 2025,PAY-09-5220,1000,,5667,Cash paid
+JE-0518,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5230,20000,,Capital reserve contribution
+JE-0518,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,20000,Accounts payable
+JE-0519,2025-09-30,AP Payment - Capital reserve contribution September 2025,PAY-09-5230,2000,20000,,Clear AP
+JE-0519,2025-09-30,AP Payment - Capital reserve contribution September 2025,PAY-09-5230,1000,,20000,Cash paid
+JE-0520,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5240,65000,,Payroll - on-site staff
+JE-0520,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,65000,Accounts payable
+JE-0521,2025-09-30,AP Payment - Payroll - on-site staff September 2025,PAY-09-5240,2000,65000,,Clear AP
+JE-0521,2025-09-30,AP Payment - Payroll - on-site staff September 2025,PAY-09-5240,1000,,65000,Cash paid
+JE-0522,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5250,13000,,Payroll taxes and benefits
+JE-0522,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,13000,Accounts payable
+JE-0523,2025-09-30,AP Payment - Payroll taxes and benefits September 2025,PAY-09-5250,2000,13000,,Clear AP
+JE-0523,2025-09-30,AP Payment - Payroll taxes and benefits September 2025,PAY-09-5250,1000,,13000,Cash paid
+JE-0524,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5260,2000,,Telephone and internet
+JE-0524,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,2000,Accounts payable
+JE-0525,2025-09-30,AP Payment - Telephone and internet September 2025,PAY-09-5260,2000,2000,,Clear AP
+JE-0525,2025-09-30,AP Payment - Telephone and internet September 2025,PAY-09-5260,1000,,2000,Cash paid
+JE-0526,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5270,3000,,Software and technology
+JE-0526,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,3000,Accounts payable
+JE-0527,2025-09-30,AP Payment - Software and technology September 2025,PAY-09-5270,2000,3000,,Clear AP
+JE-0527,2025-09-30,AP Payment - Software and technology September 2025,PAY-09-5270,1000,,3000,Cash paid
+JE-0528,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5280,1500,,Licenses and permits
+JE-0528,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,1500,Accounts payable
+JE-0529,2025-09-30,AP Payment - Licenses and permits September 2025,PAY-09-5280,2000,1500,,Clear AP
+JE-0529,2025-09-30,AP Payment - Licenses and permits September 2025,PAY-09-5280,1000,,1500,Cash paid
+JE-0530,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,5290,1250,,Bank charges and fees
+JE-0530,2025-09-30,Operating Expenses - September 2025,OPEX-09-2025,2000,,1250,Accounts payable
+JE-0531,2025-09-30,AP Payment - Bank charges and fees September 2025,PAY-09-5290,2000,1250,,Clear AP
+JE-0531,2025-09-30,AP Payment - Bank charges and fees September 2025,PAY-09-5290,1000,,1250,Cash paid
+JE-0532,2025-09-30,Mortgage Interest - September 2025,MTG-09-2025,7000,320833,,Mortgage interest expense
+JE-0532,2025-09-30,Mortgage Interest - September 2025,MTG-09-2025,1000,,320833,Cash paid to BankUnited
+JE-0533,2025-09-30,Mortgage Principal - September 2025,PRIN-09-2025,2200,41667,,Mortgage principal reduction
+JE-0533,2025-09-30,Mortgage Principal - September 2025,PRIN-09-2025,1000,,41667,Cash paid to BankUnited
+JE-0534,2025-10-31,Rental Income - October 2025,RENT-10-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0534,2025-10-31,Rental Income - October 2025,RENT-10-2025,4000,,1897200,Residential rental income
+JE-0535,2025-10-31,Rent Cash Receipt - October 2025,CASH-10-2025,1000,1897200,,Cash received for rent
+JE-0535,2025-10-31,Rent Cash Receipt - October 2025,CASH-10-2025,1010,,1897200,Clear accounts receivable
+JE-0536,2025-10-31,Other Income - October 2025,OTH-10-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0536,2025-10-31,Other Income - October 2025,OTH-10-2025,4010,,60000,Parking income
+JE-0536,2025-10-31,Other Income - October 2025,OTH-10-2025,4020,,11250,Pet fee income
+JE-0536,2025-10-31,Other Income - October 2025,OTH-10-2025,4030,,5000,Laundry and vending
+JE-0536,2025-10-31,Other Income - October 2025,OTH-10-2025,4090,,15000,Utility reimbursement
+JE-0537,2025-10-31,Late Fees - October 2025,LF-10-2025,1000,3750,,Late fee cash collected
+JE-0537,2025-10-31,Late Fees - October 2025,LF-10-2025,4040,,3750,Late fee income
+JE-0538,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5000,100035,,Property management fee
+JE-0538,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,100035,Accounts payable
+JE-0539,2025-10-31,AP Payment - Property management fee October 2025,PAY-10-5000,2000,100035,,Clear AP
+JE-0539,2025-10-31,AP Payment - Property management fee October 2025,PAY-10-5000,1000,,100035,Cash paid
+JE-0540,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5010,75000,,Repairs and maintenance
+JE-0540,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,75000,Accounts payable
+JE-0541,2025-10-31,AP Payment - Repairs and maintenance October 2025,PAY-10-5010,2000,75000,,Clear AP
+JE-0541,2025-10-31,AP Payment - Repairs and maintenance October 2025,PAY-10-5010,1000,,75000,Cash paid
+JE-0542,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5020,15000,,Landscaping and grounds
+JE-0542,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,15000,Accounts payable
+JE-0543,2025-10-31,AP Payment - Landscaping and grounds October 2025,PAY-10-5020,2000,15000,,Clear AP
+JE-0543,2025-10-31,AP Payment - Landscaping and grounds October 2025,PAY-10-5020,1000,,15000,Cash paid
+JE-0544,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5030,20000,,Cleaning and janitorial
+JE-0544,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,20000,Accounts payable
+JE-0545,2025-10-31,AP Payment - Cleaning and janitorial October 2025,PAY-10-5030,2000,20000,,Clear AP
+JE-0545,2025-10-31,AP Payment - Cleaning and janitorial October 2025,PAY-10-5030,1000,,20000,Cash paid
+JE-0546,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5040,30000,,Electric - common areas
+JE-0546,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,30000,Accounts payable
+JE-0547,2025-10-31,AP Payment - Electric - common areas October 2025,PAY-10-5040,2000,30000,,Clear AP
+JE-0547,2025-10-31,AP Payment - Electric - common areas October 2025,PAY-10-5040,1000,,30000,Cash paid
+JE-0548,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5050,40000,,Water and sewer
+JE-0548,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,40000,Accounts payable
+JE-0549,2025-10-31,AP Payment - Water and sewer October 2025,PAY-10-5050,2000,40000,,Clear AP
+JE-0549,2025-10-31,AP Payment - Water and sewer October 2025,PAY-10-5050,1000,,40000,Cash paid
+JE-0550,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5060,5000,,Gas
+JE-0550,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,5000,Accounts payable
+JE-0551,2025-10-31,AP Payment - Gas October 2025,PAY-10-5060,2000,5000,,Clear AP
+JE-0551,2025-10-31,AP Payment - Gas October 2025,PAY-10-5060,1000,,5000,Cash paid
+JE-0552,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5070,81667,,Property insurance
+JE-0552,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,81667,Accounts payable
+JE-0553,2025-10-31,AP Payment - Property insurance October 2025,PAY-10-5070,2000,81667,,Clear AP
+JE-0553,2025-10-31,AP Payment - Property insurance October 2025,PAY-10-5070,1000,,81667,Cash paid
+JE-0554,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5090,140000,,Real estate taxes
+JE-0554,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,140000,Accounts payable
+JE-0555,2025-10-31,AP Payment - Real estate taxes October 2025,PAY-10-5090,2000,140000,,Clear AP
+JE-0555,2025-10-31,AP Payment - Real estate taxes October 2025,PAY-10-5090,1000,,140000,Cash paid
+JE-0556,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5110,35000,,Security services
+JE-0556,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,35000,Accounts payable
+JE-0557,2025-10-31,AP Payment - Security services October 2025,PAY-10-5110,2000,35000,,Clear AP
+JE-0557,2025-10-31,AP Payment - Security services October 2025,PAY-10-5110,1000,,35000,Cash paid
+JE-0558,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5120,15000,,Elevator maintenance
+JE-0558,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,15000,Accounts payable
+JE-0559,2025-10-31,AP Payment - Elevator maintenance October 2025,PAY-10-5120,2000,15000,,Clear AP
+JE-0559,2025-10-31,AP Payment - Elevator maintenance October 2025,PAY-10-5120,1000,,15000,Cash paid
+JE-0560,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5130,12500,,HVAC maintenance
+JE-0560,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,12500,Accounts payable
+JE-0561,2025-10-31,AP Payment - HVAC maintenance October 2025,PAY-10-5130,2000,12500,,Clear AP
+JE-0561,2025-10-31,AP Payment - HVAC maintenance October 2025,PAY-10-5130,1000,,12500,Cash paid
+JE-0562,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5140,6000,,Pest control
+JE-0562,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,6000,Accounts payable
+JE-0563,2025-10-31,AP Payment - Pest control October 2025,PAY-10-5140,2000,6000,,Clear AP
+JE-0563,2025-10-31,AP Payment - Pest control October 2025,PAY-10-5140,1000,,6000,Cash paid
+JE-0564,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5150,10000,,Pool and amenity maintenance
+JE-0564,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,10000,Accounts payable
+JE-0565,2025-10-31,AP Payment - Pool and amenity maintenance October 2025,PAY-10-5150,2000,10000,,Clear AP
+JE-0565,2025-10-31,AP Payment - Pool and amenity maintenance October 2025,PAY-10-5150,1000,,10000,Cash paid
+JE-0566,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5160,7000,,Trash and recycling
+JE-0566,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,7000,Accounts payable
+JE-0567,2025-10-31,AP Payment - Trash and recycling October 2025,PAY-10-5160,2000,7000,,Clear AP
+JE-0567,2025-10-31,AP Payment - Trash and recycling October 2025,PAY-10-5160,1000,,7000,Cash paid
+JE-0568,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5170,5000,,Administrative and office
+JE-0568,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,5000,Accounts payable
+JE-0569,2025-10-31,AP Payment - Administrative and office October 2025,PAY-10-5170,2000,5000,,Clear AP
+JE-0569,2025-10-31,AP Payment - Administrative and office October 2025,PAY-10-5170,1000,,5000,Cash paid
+JE-0570,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5180,7500,,Legal and professional
+JE-0570,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,7500,Accounts payable
+JE-0571,2025-10-31,AP Payment - Legal and professional October 2025,PAY-10-5180,2000,7500,,Clear AP
+JE-0571,2025-10-31,AP Payment - Legal and professional October 2025,PAY-10-5180,1000,,7500,Cash paid
+JE-0572,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5190,10000,,Marketing and advertising
+JE-0572,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,10000,Accounts payable
+JE-0573,2025-10-31,AP Payment - Marketing and advertising October 2025,PAY-10-5190,2000,10000,,Clear AP
+JE-0573,2025-10-31,AP Payment - Marketing and advertising October 2025,PAY-10-5190,1000,,10000,Cash paid
+JE-0574,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5200,7917,,Leasing commissions
+JE-0574,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,7917,Accounts payable
+JE-0575,2025-10-31,AP Payment - Leasing commissions October 2025,PAY-10-5200,2000,7917,,Clear AP
+JE-0575,2025-10-31,AP Payment - Leasing commissions October 2025,PAY-10-5200,1000,,7917,Cash paid
+JE-0576,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5220,5667,,Bad debt expense
+JE-0576,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,5667,Accounts payable
+JE-0577,2025-10-31,AP Payment - Bad debt expense October 2025,PAY-10-5220,2000,5667,,Clear AP
+JE-0577,2025-10-31,AP Payment - Bad debt expense October 2025,PAY-10-5220,1000,,5667,Cash paid
+JE-0578,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5230,20000,,Capital reserve contribution
+JE-0578,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,20000,Accounts payable
+JE-0579,2025-10-31,AP Payment - Capital reserve contribution October 2025,PAY-10-5230,2000,20000,,Clear AP
+JE-0579,2025-10-31,AP Payment - Capital reserve contribution October 2025,PAY-10-5230,1000,,20000,Cash paid
+JE-0580,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5240,65000,,Payroll - on-site staff
+JE-0580,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,65000,Accounts payable
+JE-0581,2025-10-31,AP Payment - Payroll - on-site staff October 2025,PAY-10-5240,2000,65000,,Clear AP
+JE-0581,2025-10-31,AP Payment - Payroll - on-site staff October 2025,PAY-10-5240,1000,,65000,Cash paid
+JE-0582,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5250,13000,,Payroll taxes and benefits
+JE-0582,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,13000,Accounts payable
+JE-0583,2025-10-31,AP Payment - Payroll taxes and benefits October 2025,PAY-10-5250,2000,13000,,Clear AP
+JE-0583,2025-10-31,AP Payment - Payroll taxes and benefits October 2025,PAY-10-5250,1000,,13000,Cash paid
+JE-0584,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5260,2000,,Telephone and internet
+JE-0584,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,2000,Accounts payable
+JE-0585,2025-10-31,AP Payment - Telephone and internet October 2025,PAY-10-5260,2000,2000,,Clear AP
+JE-0585,2025-10-31,AP Payment - Telephone and internet October 2025,PAY-10-5260,1000,,2000,Cash paid
+JE-0586,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5270,3000,,Software and technology
+JE-0586,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,3000,Accounts payable
+JE-0587,2025-10-31,AP Payment - Software and technology October 2025,PAY-10-5270,2000,3000,,Clear AP
+JE-0587,2025-10-31,AP Payment - Software and technology October 2025,PAY-10-5270,1000,,3000,Cash paid
+JE-0588,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5280,1500,,Licenses and permits
+JE-0588,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,1500,Accounts payable
+JE-0589,2025-10-31,AP Payment - Licenses and permits October 2025,PAY-10-5280,2000,1500,,Clear AP
+JE-0589,2025-10-31,AP Payment - Licenses and permits October 2025,PAY-10-5280,1000,,1500,Cash paid
+JE-0590,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,5290,1250,,Bank charges and fees
+JE-0590,2025-10-31,Operating Expenses - October 2025,OPEX-10-2025,2000,,1250,Accounts payable
+JE-0591,2025-10-31,AP Payment - Bank charges and fees October 2025,PAY-10-5290,2000,1250,,Clear AP
+JE-0591,2025-10-31,AP Payment - Bank charges and fees October 2025,PAY-10-5290,1000,,1250,Cash paid
+JE-0592,2025-10-31,Mortgage Interest - October 2025,MTG-10-2025,7000,320833,,Mortgage interest expense
+JE-0592,2025-10-31,Mortgage Interest - October 2025,MTG-10-2025,1000,,320833,Cash paid to BankUnited
+JE-0593,2025-10-31,Mortgage Principal - October 2025,PRIN-10-2025,2200,41667,,Mortgage principal reduction
+JE-0593,2025-10-31,Mortgage Principal - October 2025,PRIN-10-2025,1000,,41667,Cash paid to BankUnited
+JE-0594,2025-11-30,Rental Income - November 2025,RENT-11-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0594,2025-11-30,Rental Income - November 2025,RENT-11-2025,4000,,1897200,Residential rental income
+JE-0595,2025-11-30,Rent Cash Receipt - November 2025,CASH-11-2025,1000,1897200,,Cash received for rent
+JE-0595,2025-11-30,Rent Cash Receipt - November 2025,CASH-11-2025,1010,,1897200,Clear accounts receivable
+JE-0596,2025-11-30,Other Income - November 2025,OTH-11-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0596,2025-11-30,Other Income - November 2025,OTH-11-2025,4010,,60000,Parking income
+JE-0596,2025-11-30,Other Income - November 2025,OTH-11-2025,4020,,11250,Pet fee income
+JE-0596,2025-11-30,Other Income - November 2025,OTH-11-2025,4030,,5000,Laundry and vending
+JE-0596,2025-11-30,Other Income - November 2025,OTH-11-2025,4090,,15000,Utility reimbursement
+JE-0597,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5000,100035,,Property management fee
+JE-0597,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,100035,Accounts payable
+JE-0598,2025-11-30,AP Payment - Property management fee November 2025,PAY-11-5000,2000,100035,,Clear AP
+JE-0598,2025-11-30,AP Payment - Property management fee November 2025,PAY-11-5000,1000,,100035,Cash paid
+JE-0599,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5010,75000,,Repairs and maintenance
+JE-0599,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,75000,Accounts payable
+JE-0600,2025-11-30,AP Payment - Repairs and maintenance November 2025,PAY-11-5010,2000,75000,,Clear AP
+JE-0600,2025-11-30,AP Payment - Repairs and maintenance November 2025,PAY-11-5010,1000,,75000,Cash paid
+JE-0601,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5020,15000,,Landscaping and grounds
+JE-0601,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,15000,Accounts payable
+JE-0602,2025-11-30,AP Payment - Landscaping and grounds November 2025,PAY-11-5020,2000,15000,,Clear AP
+JE-0602,2025-11-30,AP Payment - Landscaping and grounds November 2025,PAY-11-5020,1000,,15000,Cash paid
+JE-0603,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5030,20000,,Cleaning and janitorial
+JE-0603,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,20000,Accounts payable
+JE-0604,2025-11-30,AP Payment - Cleaning and janitorial November 2025,PAY-11-5030,2000,20000,,Clear AP
+JE-0604,2025-11-30,AP Payment - Cleaning and janitorial November 2025,PAY-11-5030,1000,,20000,Cash paid
+JE-0605,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5040,30000,,Electric - common areas
+JE-0605,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,30000,Accounts payable
+JE-0606,2025-11-30,AP Payment - Electric - common areas November 2025,PAY-11-5040,2000,30000,,Clear AP
+JE-0606,2025-11-30,AP Payment - Electric - common areas November 2025,PAY-11-5040,1000,,30000,Cash paid
+JE-0607,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5050,40000,,Water and sewer
+JE-0607,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,40000,Accounts payable
+JE-0608,2025-11-30,AP Payment - Water and sewer November 2025,PAY-11-5050,2000,40000,,Clear AP
+JE-0608,2025-11-30,AP Payment - Water and sewer November 2025,PAY-11-5050,1000,,40000,Cash paid
+JE-0609,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5060,5000,,Gas
+JE-0609,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,5000,Accounts payable
+JE-0610,2025-11-30,AP Payment - Gas November 2025,PAY-11-5060,2000,5000,,Clear AP
+JE-0610,2025-11-30,AP Payment - Gas November 2025,PAY-11-5060,1000,,5000,Cash paid
+JE-0611,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5070,81667,,Property insurance
+JE-0611,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,81667,Accounts payable
+JE-0612,2025-11-30,AP Payment - Property insurance November 2025,PAY-11-5070,2000,81667,,Clear AP
+JE-0612,2025-11-30,AP Payment - Property insurance November 2025,PAY-11-5070,1000,,81667,Cash paid
+JE-0613,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5090,140000,,Real estate taxes
+JE-0613,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,140000,Accounts payable
+JE-0614,2025-11-30,AP Payment - Real estate taxes November 2025,PAY-11-5090,2000,140000,,Clear AP
+JE-0614,2025-11-30,AP Payment - Real estate taxes November 2025,PAY-11-5090,1000,,140000,Cash paid
+JE-0615,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5110,35000,,Security services
+JE-0615,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,35000,Accounts payable
+JE-0616,2025-11-30,AP Payment - Security services November 2025,PAY-11-5110,2000,35000,,Clear AP
+JE-0616,2025-11-30,AP Payment - Security services November 2025,PAY-11-5110,1000,,35000,Cash paid
+JE-0617,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5120,15000,,Elevator maintenance
+JE-0617,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,15000,Accounts payable
+JE-0618,2025-11-30,AP Payment - Elevator maintenance November 2025,PAY-11-5120,2000,15000,,Clear AP
+JE-0618,2025-11-30,AP Payment - Elevator maintenance November 2025,PAY-11-5120,1000,,15000,Cash paid
+JE-0619,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5130,12500,,HVAC maintenance
+JE-0619,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,12500,Accounts payable
+JE-0620,2025-11-30,AP Payment - HVAC maintenance November 2025,PAY-11-5130,2000,12500,,Clear AP
+JE-0620,2025-11-30,AP Payment - HVAC maintenance November 2025,PAY-11-5130,1000,,12500,Cash paid
+JE-0621,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5140,6000,,Pest control
+JE-0621,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,6000,Accounts payable
+JE-0622,2025-11-30,AP Payment - Pest control November 2025,PAY-11-5140,2000,6000,,Clear AP
+JE-0622,2025-11-30,AP Payment - Pest control November 2025,PAY-11-5140,1000,,6000,Cash paid
+JE-0623,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5150,10000,,Pool and amenity maintenance
+JE-0623,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,10000,Accounts payable
+JE-0624,2025-11-30,AP Payment - Pool and amenity maintenance November 2025,PAY-11-5150,2000,10000,,Clear AP
+JE-0624,2025-11-30,AP Payment - Pool and amenity maintenance November 2025,PAY-11-5150,1000,,10000,Cash paid
+JE-0625,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5160,7000,,Trash and recycling
+JE-0625,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,7000,Accounts payable
+JE-0626,2025-11-30,AP Payment - Trash and recycling November 2025,PAY-11-5160,2000,7000,,Clear AP
+JE-0626,2025-11-30,AP Payment - Trash and recycling November 2025,PAY-11-5160,1000,,7000,Cash paid
+JE-0627,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5170,5000,,Administrative and office
+JE-0627,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,5000,Accounts payable
+JE-0628,2025-11-30,AP Payment - Administrative and office November 2025,PAY-11-5170,2000,5000,,Clear AP
+JE-0628,2025-11-30,AP Payment - Administrative and office November 2025,PAY-11-5170,1000,,5000,Cash paid
+JE-0629,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5180,7500,,Legal and professional
+JE-0629,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,7500,Accounts payable
+JE-0630,2025-11-30,AP Payment - Legal and professional November 2025,PAY-11-5180,2000,7500,,Clear AP
+JE-0630,2025-11-30,AP Payment - Legal and professional November 2025,PAY-11-5180,1000,,7500,Cash paid
+JE-0631,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5190,10000,,Marketing and advertising
+JE-0631,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,10000,Accounts payable
+JE-0632,2025-11-30,AP Payment - Marketing and advertising November 2025,PAY-11-5190,2000,10000,,Clear AP
+JE-0632,2025-11-30,AP Payment - Marketing and advertising November 2025,PAY-11-5190,1000,,10000,Cash paid
+JE-0633,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5200,7917,,Leasing commissions
+JE-0633,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,7917,Accounts payable
+JE-0634,2025-11-30,AP Payment - Leasing commissions November 2025,PAY-11-5200,2000,7917,,Clear AP
+JE-0634,2025-11-30,AP Payment - Leasing commissions November 2025,PAY-11-5200,1000,,7917,Cash paid
+JE-0635,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5220,5667,,Bad debt expense
+JE-0635,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,5667,Accounts payable
+JE-0636,2025-11-30,AP Payment - Bad debt expense November 2025,PAY-11-5220,2000,5667,,Clear AP
+JE-0636,2025-11-30,AP Payment - Bad debt expense November 2025,PAY-11-5220,1000,,5667,Cash paid
+JE-0637,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5230,20000,,Capital reserve contribution
+JE-0637,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,20000,Accounts payable
+JE-0638,2025-11-30,AP Payment - Capital reserve contribution November 2025,PAY-11-5230,2000,20000,,Clear AP
+JE-0638,2025-11-30,AP Payment - Capital reserve contribution November 2025,PAY-11-5230,1000,,20000,Cash paid
+JE-0639,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5240,65000,,Payroll - on-site staff
+JE-0639,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,65000,Accounts payable
+JE-0640,2025-11-30,AP Payment - Payroll - on-site staff November 2025,PAY-11-5240,2000,65000,,Clear AP
+JE-0640,2025-11-30,AP Payment - Payroll - on-site staff November 2025,PAY-11-5240,1000,,65000,Cash paid
+JE-0641,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5250,13000,,Payroll taxes and benefits
+JE-0641,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,13000,Accounts payable
+JE-0642,2025-11-30,AP Payment - Payroll taxes and benefits November 2025,PAY-11-5250,2000,13000,,Clear AP
+JE-0642,2025-11-30,AP Payment - Payroll taxes and benefits November 2025,PAY-11-5250,1000,,13000,Cash paid
+JE-0643,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5260,2000,,Telephone and internet
+JE-0643,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,2000,Accounts payable
+JE-0644,2025-11-30,AP Payment - Telephone and internet November 2025,PAY-11-5260,2000,2000,,Clear AP
+JE-0644,2025-11-30,AP Payment - Telephone and internet November 2025,PAY-11-5260,1000,,2000,Cash paid
+JE-0645,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5270,3000,,Software and technology
+JE-0645,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,3000,Accounts payable
+JE-0646,2025-11-30,AP Payment - Software and technology November 2025,PAY-11-5270,2000,3000,,Clear AP
+JE-0646,2025-11-30,AP Payment - Software and technology November 2025,PAY-11-5270,1000,,3000,Cash paid
+JE-0647,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5280,1500,,Licenses and permits
+JE-0647,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,1500,Accounts payable
+JE-0648,2025-11-30,AP Payment - Licenses and permits November 2025,PAY-11-5280,2000,1500,,Clear AP
+JE-0648,2025-11-30,AP Payment - Licenses and permits November 2025,PAY-11-5280,1000,,1500,Cash paid
+JE-0649,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,5290,1250,,Bank charges and fees
+JE-0649,2025-11-30,Operating Expenses - November 2025,OPEX-11-2025,2000,,1250,Accounts payable
+JE-0650,2025-11-30,AP Payment - Bank charges and fees November 2025,PAY-11-5290,2000,1250,,Clear AP
+JE-0650,2025-11-30,AP Payment - Bank charges and fees November 2025,PAY-11-5290,1000,,1250,Cash paid
+JE-0651,2025-11-30,Mortgage Interest - November 2025,MTG-11-2025,7000,320833,,Mortgage interest expense
+JE-0651,2025-11-30,Mortgage Interest - November 2025,MTG-11-2025,1000,,320833,Cash paid to BankUnited
+JE-0652,2025-11-30,Mortgage Principal - November 2025,PRIN-11-2025,2200,41667,,Mortgage principal reduction
+JE-0652,2025-11-30,Mortgage Principal - November 2025,PRIN-11-2025,1000,,41667,Cash paid to BankUnited
+JE-0653,2025-12-31,Rental Income - December 2025,RENT-12-2025,1010,1897200,,Accounts receivable - tenant rent
+JE-0653,2025-12-31,Rental Income - December 2025,RENT-12-2025,4000,,1897200,Residential rental income
+JE-0654,2025-12-31,Rent Cash Receipt - December 2025,CASH-12-2025,1000,1897200,,Cash received for rent
+JE-0654,2025-12-31,Rent Cash Receipt - December 2025,CASH-12-2025,1010,,1897200,Clear accounts receivable
+JE-0655,2025-12-31,Other Income - December 2025,OTH-12-2025,1000,91250,,Parking pet laundry util reimbursement cash
+JE-0655,2025-12-31,Other Income - December 2025,OTH-12-2025,4010,,60000,Parking income
+JE-0655,2025-12-31,Other Income - December 2025,OTH-12-2025,4020,,11250,Pet fee income
+JE-0655,2025-12-31,Other Income - December 2025,OTH-12-2025,4030,,5000,Laundry and vending
+JE-0655,2025-12-31,Other Income - December 2025,OTH-12-2025,4090,,15000,Utility reimbursement
+JE-0656,2025-12-31,Late Fees - December 2025,LF-12-2025,1000,3750,,Late fee cash collected
+JE-0656,2025-12-31,Late Fees - December 2025,LF-12-2025,4040,,3750,Late fee income
+JE-0657,2025-12-31,App and Storage Fees - December 2025,MISC-12-2025,1000,8500,,Application and storage fees cash
+JE-0657,2025-12-31,App and Storage Fees - December 2025,MISC-12-2025,4050,,2500,Application fees
+JE-0657,2025-12-31,App and Storage Fees - December 2025,MISC-12-2025,4060,,6000,Storage unit income
+JE-0658,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5000,100035,,Property management fee
+JE-0658,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,100035,Accounts payable
+JE-0659,2025-12-31,AP Payment - Property management fee December 2025,PAY-12-5000,2000,100035,,Clear AP
+JE-0659,2025-12-31,AP Payment - Property management fee December 2025,PAY-12-5000,1000,,100035,Cash paid
+JE-0660,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5010,75000,,Repairs and maintenance
+JE-0660,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,75000,Accounts payable
+JE-0661,2025-12-31,AP Payment - Repairs and maintenance December 2025,PAY-12-5010,2000,75000,,Clear AP
+JE-0661,2025-12-31,AP Payment - Repairs and maintenance December 2025,PAY-12-5010,1000,,75000,Cash paid
+JE-0662,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5020,15000,,Landscaping and grounds
+JE-0662,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,15000,Accounts payable
+JE-0663,2025-12-31,AP Payment - Landscaping and grounds December 2025,PAY-12-5020,2000,15000,,Clear AP
+JE-0663,2025-12-31,AP Payment - Landscaping and grounds December 2025,PAY-12-5020,1000,,15000,Cash paid
+JE-0664,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5030,20000,,Cleaning and janitorial
+JE-0664,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,20000,Accounts payable
+JE-0665,2025-12-31,AP Payment - Cleaning and janitorial December 2025,PAY-12-5030,2000,20000,,Clear AP
+JE-0665,2025-12-31,AP Payment - Cleaning and janitorial December 2025,PAY-12-5030,1000,,20000,Cash paid
+JE-0666,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5040,30000,,Electric - common areas
+JE-0666,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,30000,Accounts payable
+JE-0667,2025-12-31,AP Payment - Electric - common areas December 2025,PAY-12-5040,2000,30000,,Clear AP
+JE-0667,2025-12-31,AP Payment - Electric - common areas December 2025,PAY-12-5040,1000,,30000,Cash paid
+JE-0668,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5050,40000,,Water and sewer
+JE-0668,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,40000,Accounts payable
+JE-0669,2025-12-31,AP Payment - Water and sewer December 2025,PAY-12-5050,2000,40000,,Clear AP
+JE-0669,2025-12-31,AP Payment - Water and sewer December 2025,PAY-12-5050,1000,,40000,Cash paid
+JE-0670,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5060,5000,,Gas
+JE-0670,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,5000,Accounts payable
+JE-0671,2025-12-31,AP Payment - Gas December 2025,PAY-12-5060,2000,5000,,Clear AP
+JE-0671,2025-12-31,AP Payment - Gas December 2025,PAY-12-5060,1000,,5000,Cash paid
+JE-0672,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5070,81667,,Property insurance
+JE-0672,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,81667,Accounts payable
+JE-0673,2025-12-31,AP Payment - Property insurance December 2025,PAY-12-5070,2000,81667,,Clear AP
+JE-0673,2025-12-31,AP Payment - Property insurance December 2025,PAY-12-5070,1000,,81667,Cash paid
+JE-0674,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5090,140000,,Real estate taxes
+JE-0674,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,140000,Accounts payable
+JE-0675,2025-12-31,AP Payment - Real estate taxes December 2025,PAY-12-5090,2000,140000,,Clear AP
+JE-0675,2025-12-31,AP Payment - Real estate taxes December 2025,PAY-12-5090,1000,,140000,Cash paid
+JE-0676,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5110,35000,,Security services
+JE-0676,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,35000,Accounts payable
+JE-0677,2025-12-31,AP Payment - Security services December 2025,PAY-12-5110,2000,35000,,Clear AP
+JE-0677,2025-12-31,AP Payment - Security services December 2025,PAY-12-5110,1000,,35000,Cash paid
+JE-0678,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5120,15000,,Elevator maintenance
+JE-0678,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,15000,Accounts payable
+JE-0679,2025-12-31,AP Payment - Elevator maintenance December 2025,PAY-12-5120,2000,15000,,Clear AP
+JE-0679,2025-12-31,AP Payment - Elevator maintenance December 2025,PAY-12-5120,1000,,15000,Cash paid
+JE-0680,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5130,12500,,HVAC maintenance
+JE-0680,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,12500,Accounts payable
+JE-0681,2025-12-31,AP Payment - HVAC maintenance December 2025,PAY-12-5130,2000,12500,,Clear AP
+JE-0681,2025-12-31,AP Payment - HVAC maintenance December 2025,PAY-12-5130,1000,,12500,Cash paid
+JE-0682,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5140,6000,,Pest control
+JE-0682,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,6000,Accounts payable
+JE-0683,2025-12-31,AP Payment - Pest control December 2025,PAY-12-5140,2000,6000,,Clear AP
+JE-0683,2025-12-31,AP Payment - Pest control December 2025,PAY-12-5140,1000,,6000,Cash paid
+JE-0684,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5150,10000,,Pool and amenity maintenance
+JE-0684,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,10000,Accounts payable
+JE-0685,2025-12-31,AP Payment - Pool and amenity maintenance December 2025,PAY-12-5150,2000,10000,,Clear AP
+JE-0685,2025-12-31,AP Payment - Pool and amenity maintenance December 2025,PAY-12-5150,1000,,10000,Cash paid
+JE-0686,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5160,7000,,Trash and recycling
+JE-0686,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,7000,Accounts payable
+JE-0687,2025-12-31,AP Payment - Trash and recycling December 2025,PAY-12-5160,2000,7000,,Clear AP
+JE-0687,2025-12-31,AP Payment - Trash and recycling December 2025,PAY-12-5160,1000,,7000,Cash paid
+JE-0688,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5170,5000,,Administrative and office
+JE-0688,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,5000,Accounts payable
+JE-0689,2025-12-31,AP Payment - Administrative and office December 2025,PAY-12-5170,2000,5000,,Clear AP
+JE-0689,2025-12-31,AP Payment - Administrative and office December 2025,PAY-12-5170,1000,,5000,Cash paid
+JE-0690,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5180,7500,,Legal and professional
+JE-0690,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,7500,Accounts payable
+JE-0691,2025-12-31,AP Payment - Legal and professional December 2025,PAY-12-5180,2000,7500,,Clear AP
+JE-0691,2025-12-31,AP Payment - Legal and professional December 2025,PAY-12-5180,1000,,7500,Cash paid
+JE-0692,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5190,10000,,Marketing and advertising
+JE-0692,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,10000,Accounts payable
+JE-0693,2025-12-31,AP Payment - Marketing and advertising December 2025,PAY-12-5190,2000,10000,,Clear AP
+JE-0693,2025-12-31,AP Payment - Marketing and advertising December 2025,PAY-12-5190,1000,,10000,Cash paid
+JE-0694,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5200,7917,,Leasing commissions
+JE-0694,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,7917,Accounts payable
+JE-0695,2025-12-31,AP Payment - Leasing commissions December 2025,PAY-12-5200,2000,7917,,Clear AP
+JE-0695,2025-12-31,AP Payment - Leasing commissions December 2025,PAY-12-5200,1000,,7917,Cash paid
+JE-0696,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5220,5667,,Bad debt expense
+JE-0696,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,5667,Accounts payable
+JE-0697,2025-12-31,AP Payment - Bad debt expense December 2025,PAY-12-5220,2000,5667,,Clear AP
+JE-0697,2025-12-31,AP Payment - Bad debt expense December 2025,PAY-12-5220,1000,,5667,Cash paid
+JE-0698,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5230,20000,,Capital reserve contribution
+JE-0698,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,20000,Accounts payable
+JE-0699,2025-12-31,AP Payment - Capital reserve contribution December 2025,PAY-12-5230,2000,20000,,Clear AP
+JE-0699,2025-12-31,AP Payment - Capital reserve contribution December 2025,PAY-12-5230,1000,,20000,Cash paid
+JE-0700,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5240,65000,,Payroll - on-site staff
+JE-0700,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,65000,Accounts payable
+JE-0701,2025-12-31,AP Payment - Payroll - on-site staff December 2025,PAY-12-5240,2000,65000,,Clear AP
+JE-0701,2025-12-31,AP Payment - Payroll - on-site staff December 2025,PAY-12-5240,1000,,65000,Cash paid
+JE-0702,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5250,13000,,Payroll taxes and benefits
+JE-0702,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,13000,Accounts payable
+JE-0703,2025-12-31,AP Payment - Payroll taxes and benefits December 2025,PAY-12-5250,2000,13000,,Clear AP
+JE-0703,2025-12-31,AP Payment - Payroll taxes and benefits December 2025,PAY-12-5250,1000,,13000,Cash paid
+JE-0704,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5260,2000,,Telephone and internet
+JE-0704,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,2000,Accounts payable
+JE-0705,2025-12-31,AP Payment - Telephone and internet December 2025,PAY-12-5260,2000,2000,,Clear AP
+JE-0705,2025-12-31,AP Payment - Telephone and internet December 2025,PAY-12-5260,1000,,2000,Cash paid
+JE-0706,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5270,3000,,Software and technology
+JE-0706,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,3000,Accounts payable
+JE-0707,2025-12-31,AP Payment - Software and technology December 2025,PAY-12-5270,2000,3000,,Clear AP
+JE-0707,2025-12-31,AP Payment - Software and technology December 2025,PAY-12-5270,1000,,3000,Cash paid
+JE-0708,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5280,1500,,Licenses and permits
+JE-0708,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,1500,Accounts payable
+JE-0709,2025-12-31,AP Payment - Licenses and permits December 2025,PAY-12-5280,2000,1500,,Clear AP
+JE-0709,2025-12-31,AP Payment - Licenses and permits December 2025,PAY-12-5280,1000,,1500,Cash paid
+JE-0710,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,5290,1250,,Bank charges and fees
+JE-0710,2025-12-31,Operating Expenses - December 2025,OPEX-12-2025,2000,,1250,Accounts payable
+JE-0711,2025-12-31,AP Payment - Bank charges and fees December 2025,PAY-12-5290,2000,1250,,Clear AP
+JE-0711,2025-12-31,AP Payment - Bank charges and fees December 2025,PAY-12-5290,1000,,1250,Cash paid
+JE-0712,2025-12-31,Workers Comp Insurance - Annual 2025,WC-2025,5080,85000,,Annual workers comp premium
+JE-0712,2025-12-31,Workers Comp Insurance - Annual 2025,WC-2025,1000,,85000,Cash paid
+JE-0713,2025-12-31,Mortgage Interest - December 2025,MTG-12-2025,7000,320833,,Mortgage interest expense
+JE-0713,2025-12-31,Mortgage Interest - December 2025,MTG-12-2025,1000,,320833,Cash paid to BankUnited
+JE-0714,2025-12-31,Mortgage Principal - December 2025,PRIN-12-2025,2200,41667,,Mortgage principal reduction
+JE-0714,2025-12-31,Mortgage Principal - December 2025,PRIN-12-2025,1000,,41667,Cash paid to BankUnited
+JE-0715,2025-12-31,Annual Depreciation - Building 2025,DEPR-BLDG-2025,6000,1800000,,Building depreciation (39yr straight line on $70.2M)
+JE-0715,2025-12-31,Annual Depreciation - Building 2025,DEPR-BLDG-2025,1130,,1800000,Accumulated depreciation - building
+JE-0716,2025-12-31,Annual Depreciation - FF&E 2025,DEPR-FFE-2025,6010,120000,,FF&E depreciation (7yr on various assets)
+JE-0716,2025-12-31,Annual Depreciation - FF&E 2025,DEPR-FFE-2025,1140,,120000,Accumulated depreciation - FF&E
+JE-0717,2025-04-30,Late Fee Income - April 2025,LATE-04-2025,1000,3750,,Cash received - late fees
+JE-0717,2025-04-30,Late Fee Income - April 2025,LATE-04-2025,4040,,3750,Late fee income
+JE-0718,2025-07-31,Late Fee Income - July 2025,LATE-07-2025,1000,3750,,Cash received - late fees
+JE-0718,2025-07-31,Late Fee Income - July 2025,LATE-07-2025,4040,,3750,Late fee income
+JE-0719,2025-10-31,Late Fee Income - October 2025,LATE-10-2025,1000,3750,,Cash received - late fees
+JE-0719,2025-10-31,Late Fee Income - October 2025,LATE-10-2025,4040,,3750,Late fee income
+JE-0720,2025-12-31,Late Fee Income - December 2025,LATE-12-2025,1000,3750,,Cash received - late fees
+JE-0720,2025-12-31,Late Fee Income - December 2025,LATE-12-2025,4040,,3750,Late fee income
+JE-0721,2025-01-31,Application Fees - January 2025,APP-01-2025,1000,2500,,Cash received - application fees
+JE-0721,2025-01-31,Application Fees - January 2025,APP-01-2025,4050,,2500,Application and admin fee income
+JE-0722,2025-02-28,Application Fees - February 2025,APP-02-2025,1000,2500,,Cash received - application fees
+JE-0722,2025-02-28,Application Fees - February 2025,APP-02-2025,4050,,2500,Application and admin fee income
+JE-0723,2025-03-31,Application Fees - March 2025,APP-03-2025,1000,2500,,Cash received - application fees
+JE-0723,2025-03-31,Application Fees - March 2025,APP-03-2025,4050,,2500,Application and admin fee income
+JE-0724,2025-04-30,Application Fees - April 2025,APP-04-2025,1000,2500,,Cash received - application fees
+JE-0724,2025-04-30,Application Fees - April 2025,APP-04-2025,4050,,2500,Application and admin fee income
+JE-0725,2025-05-31,Application Fees - May 2025,APP-05-2025,1000,2500,,Cash received - application fees
+JE-0725,2025-05-31,Application Fees - May 2025,APP-05-2025,4050,,2500,Application and admin fee income
+JE-0726,2025-06-30,Application Fees - June 2025,APP-06-2025,1000,2500,,Cash received - application fees
+JE-0726,2025-06-30,Application Fees - June 2025,APP-06-2025,4050,,2500,Application and admin fee income
+JE-0727,2025-07-31,Application Fees - July 2025,APP-07-2025,1000,2500,,Cash received - application fees
+JE-0727,2025-07-31,Application Fees - July 2025,APP-07-2025,4050,,2500,Application and admin fee income
+JE-0728,2025-08-31,Application Fees - August 2025,APP-08-2025,1000,2500,,Cash received - application fees
+JE-0728,2025-08-31,Application Fees - August 2025,APP-08-2025,4050,,2500,Application and admin fee income
+JE-0729,2025-09-30,Application Fees - September 2025,APP-09-2025,1000,2500,,Cash received - application fees
+JE-0729,2025-09-30,Application Fees - September 2025,APP-09-2025,4050,,2500,Application and admin fee income
+JE-0730,2025-10-31,Application Fees - October 2025,APP-10-2025,1000,2500,,Cash received - application fees
+JE-0730,2025-10-31,Application Fees - October 2025,APP-10-2025,4050,,2500,Application and admin fee income
+JE-0731,2025-11-30,Application Fees - November 2025,APP-11-2025,1000,2500,,Cash received - application fees
+JE-0731,2025-11-30,Application Fees - November 2025,APP-11-2025,4050,,2500,Application and admin fee income
+JE-0732,2025-12-31,Application Fees - December 2025,APP-12-2025,1000,2500,,Cash received - application fees
+JE-0732,2025-12-31,Application Fees - December 2025,APP-12-2025,4050,,2500,Application and admin fee income
+JE-0733,2025-01-31,Storage Income - January 2025,STOR-01-2025,1000,6000,,Cash received - storage unit rental
+JE-0733,2025-01-31,Storage Income - January 2025,STOR-01-2025,4060,,6000,Storage unit income
+JE-0734,2025-02-28,Storage Income - February 2025,STOR-02-2025,1000,6000,,Cash received - storage unit rental
+JE-0734,2025-02-28,Storage Income - February 2025,STOR-02-2025,4060,,6000,Storage unit income
+JE-0735,2025-03-31,Storage Income - March 2025,STOR-03-2025,1000,6000,,Cash received - storage unit rental
+JE-0735,2025-03-31,Storage Income - March 2025,STOR-03-2025,4060,,6000,Storage unit income
+JE-0736,2025-04-30,Storage Income - April 2025,STOR-04-2025,1000,6000,,Cash received - storage unit rental
+JE-0736,2025-04-30,Storage Income - April 2025,STOR-04-2025,4060,,6000,Storage unit income
+JE-0737,2025-05-31,Storage Income - May 2025,STOR-05-2025,1000,6000,,Cash received - storage unit rental
+JE-0737,2025-05-31,Storage Income - May 2025,STOR-05-2025,4060,,6000,Storage unit income
+JE-0738,2025-06-30,Storage Income - June 2025,STOR-06-2025,1000,6000,,Cash received - storage unit rental
+JE-0738,2025-06-30,Storage Income - June 2025,STOR-06-2025,4060,,6000,Storage unit income
+JE-0739,2025-07-31,Storage Income - July 2025,STOR-07-2025,1000,6000,,Cash received - storage unit rental
+JE-0739,2025-07-31,Storage Income - July 2025,STOR-07-2025,4060,,6000,Storage unit income
+JE-0740,2025-08-31,Storage Income - August 2025,STOR-08-2025,1000,6000,,Cash received - storage unit rental
+JE-0740,2025-08-31,Storage Income - August 2025,STOR-08-2025,4060,,6000,Storage unit income
+JE-0741,2025-09-30,Storage Income - September 2025,STOR-09-2025,1000,6000,,Cash received - storage unit rental
+JE-0741,2025-09-30,Storage Income - September 2025,STOR-09-2025,4060,,6000,Storage unit income
+JE-0742,2025-10-31,Storage Income - October 2025,STOR-10-2025,1000,6000,,Cash received - storage unit rental
+JE-0742,2025-10-31,Storage Income - October 2025,STOR-10-2025,4060,,6000,Storage unit income
+JE-0743,2025-11-30,Storage Income - November 2025,STOR-11-2025,1000,6000,,Cash received - storage unit rental
+JE-0743,2025-11-30,Storage Income - November 2025,STOR-11-2025,4060,,6000,Storage unit income
+JE-0744,2025-12-31,Storage Income - December 2025,STOR-12-2025,1000,6000,,Cash received - storage unit rental
+JE-0744,2025-12-31,Storage Income - December 2025,STOR-12-2025,4060,,6000,Storage unit income
+JE-0745,2025-12-31,Owner Distribution 2025,DIST-2025,3000,3500000,,Owner distribution - cash returned
+JE-0745,2025-12-31,Owner Distribution 2025,DIST-2025,1000,,3500000,Cash paid to owner
+JE-0746,2025-12-31,Capital Expenditures 2025,CAPEX-2025,1110,285000,,Building improvements - capital projects
+JE-0746,2025-12-31,Capital Expenditures 2025,CAPEX-2025,1000,,285000,Cash paid for capital improvements
+JE-0747,2025-12-31,Capital Reserve Transfer 2025,RESTRF-2025,1200,240000,,Transfer to capital reserve fund
+JE-0747,2025-12-31,Capital Reserve Transfer 2025,RESTRF-2025,1000,,240000,Cash transferred to reserve account
+JE-0748,2025-12-31,Prepaid Expenses - Year End,PREPAID-2025,1030,145000,,Prepaid insurance and service contracts
+JE-0748,2025-12-31,Prepaid Expenses - Year End,PREPAID-2025,1000,,145000,Cash paid for prepaid expenses
+JE-0749,2025-12-31,Prepaid Rent Received - Year End,PREPRENT-2025,1000,95000,,Cash received from tenant prepayments
+JE-0749,2025-12-31,Prepaid Rent Received - Year End,PREPRENT-2025,2030,,95000,Prepaid rent liability
+JE-0750,2025-12-31,Year-End AR Adjustment,ADJ-AR-2025,1010,2056450,,Outstanding tenant balances and January billings
+JE-0750,2025-12-31,Year-End AR Adjustment,ADJ-AR-2025,1000,,2056450,Reverse overcollected cash to show true AR
+JE-0751,2025-12-31,Year-End AP Adjustment,ADJ-AP-2025,1000,943535,,Reverse overpaid AP to show outstanding payables
+JE-0751,2025-12-31,Year-End AP Adjustment,ADJ-AP-2025,2000,,943535,December payables not yet paid
+JE-0752,2025-12-31,Accrued Expenses - Year End,ADJ-ACCR-2025,1000,180000,,Reverse cash for accrued but uninvoiced expenses
+JE-0752,2025-12-31,Accrued Expenses - Year End,ADJ-ACCR-2025,2010,,180000,Accrued expenses liability
+JE-0753,2025-12-31,Security Deposit Changes 2025,SECDEP-2025,1020,65000,,New tenant security deposits received (net)
+JE-0753,2025-12-31,Security Deposit Changes 2025,SECDEP-2025,2020,,65000,Security deposit liability increase
+JE-0754,2025-12-31,Mortgage Reclassification - Year End,MTG-RECLASS-2025,2200,500004,,Reclassify current portion from long-term
+JE-0754,2025-12-31,Mortgage Reclassification - Year End,MTG-RECLASS-2025,2100,,500004,Current portion of mortgage payable

@@ -1,0 +1,3 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+General Operating,BankUnited,checking,4471,0260,4370000.00
+Payroll Account,BankUnited,checking,4473,0260,485000.00

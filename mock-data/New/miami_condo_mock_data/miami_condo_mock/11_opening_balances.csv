@@ -1,0 +1,14 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description,status
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,1020,751000,,Security deposits held in escrow - beginning balance,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,1040,5000,,Petty cash fund - beginning balance,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,1100,24800000,,Land - original cost,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,1110,69915000,,Building and improvements - cost before 2025 CapEx,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,1120,840000,,Furniture fixtures and equipment - at cost,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,1200,2160000,,Capital reserve fund - beginning balance,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,3010,36336057,,Prior-year cumulative retained losses (debit),posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,1000,,872053,Cash beginning balance (negative - calculated),posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,1130,,28800000,Accumulated depreciation building - 16 years at 1.8M per year,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,1140,,384000,Accumulated depreciation FF&E - prior years,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,2020,,751000,Security deposits liability - matching tenant obligations,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,2200,,75500004,Mortgage payable long-term - beginning balance,posted
+OB-2024,2024-12-31,Opening Balances - Brickell Bay Condominiums,OB-2024,3000,,28500000,Owner equity - capital contributions,posted

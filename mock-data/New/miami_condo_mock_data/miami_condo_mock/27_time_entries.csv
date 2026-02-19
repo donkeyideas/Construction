@@ -1,0 +1,30 @@
+entry_date,hours,overtime_hours,description,cost_code
+2025-01-06,8,0,Property management - tenant move-ins and lease signings,PM001
+2025-01-06,8,0,Maintenance - Unit 301 HVAC repair and unit turn,MT001
+2025-01-07,8,0,Leasing - prospect tours and application processing,LZ001
+2025-01-07,8,1,Maintenance - Pool pump inspection and lobby repair,MT001
+2025-01-08,8,0,Management - vendor coordination and monthly financials review,PM001
+2025-01-08,8,0,Security - overnight shift coverage and patrol logs,SC001
+2025-02-03,8,0,Leasing - February marketing and 12 unit showings,LZ001
+2025-02-03,8,2,Maintenance - Emergency unit 542 plumbing repair,MT001
+2025-02-04,8,0,Management - rent roll review and delinquency follow-up,PM001
+2025-02-04,8,0,Maintenance - parking garage light fixture replacement x8,MT001
+2025-03-05,8,0,Leasing - spring lease renewal campaign coordination,LZ001
+2025-03-05,8,0,Maintenance - exterior pressure wash coordination day 1,MT001
+2025-03-10,8,0,Management - Q1 financial review and owner reporting,PM001
+2025-04-07,8,0,Maintenance - Unit 718 flooring replacement 3-day project,MT001
+2025-04-08,8,1,Maintenance - Unit 718 flooring replacement day 2,MT001
+2025-05-12,8,0,Management - vendor contract renewals and RFP review,PM001
+2025-05-12,8,0,Leasing - spring move-in coordination 22 units,LZ001
+2025-06-02,8,0,Maintenance - pool opening summer prep and inspection,MT001
+2025-06-09,8,0,Management - mid-year budget review and forecast,PM001
+2025-07-07,8,0,Security - holiday coverage Independence Day weekend,SC001
+2025-07-14,8,0,Maintenance - gym equipment preventive maintenance,MT001
+2025-08-04,8,0,Management - lease renewal incentive program launch,PM001
+2025-09-08,8,0,Leasing - Q4 marketing plan and online listing updates,LZ001
+2025-10-06,8,0,Maintenance - rooftop HVAC preventive service day 1,MT001
+2025-10-07,8,2,Maintenance - rooftop HVAC preventive service day 2,MT001
+2025-11-10,8,0,Management - year-end budget preparation and owner meeting,PM001
+2025-12-01,8,0,Maintenance - holiday lighting installation common areas,MT001
+2025-12-15,8,0,Management - year-end audit prep and document collection,PM001
+2025-12-31,8,0,Management - year-end closing and final rent roll reconciliation,PM001

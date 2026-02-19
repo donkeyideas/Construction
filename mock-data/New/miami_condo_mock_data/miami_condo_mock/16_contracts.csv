@@ -1,0 +1,13 @@
+contract_number,title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms,project_name
+BB-CON-001,Property Management Agreement - Brickell Bay,vendor,Hartford Property Management,r.stafford@hartfordpm.com,1200420,2023-01-01,2025-12-31,monthly,Brickell Bay - 2025 Operations
+BB-CON-002,Elevator Maintenance & Service Agreement,vendor,Southeast Elevator Services,t.mackenzie@southeastelevator.com,180000,2024-01-01,2026-12-31,monthly,Brickell Bay - 2025 Operations
+BB-CON-003,Landscaping & Grounds Contract,vendor,Sun State Landscaping,m.fuentes@sunstatelandscaping.com,180000,2024-03-01,2026-02-28,monthly,Brickell Bay - 2025 Operations
+BB-CON-004,Building Cleaning Services Agreement,vendor,Miami Clean Commercial,d.okafor@miamicleancorp.com,240000,2023-06-01,2025-05-31,monthly,Brickell Bay - 2025 Operations
+BB-CON-005,Security Services Contract,vendor,Patriot Security Group,f.lozano@patriotsecurity.com,420000,2023-09-01,2025-08-31,monthly,Brickell Bay - 2025 Operations
+BB-CON-006,HVAC Maintenance Contract - All Units,vendor,Coastal HVAC Solutions,s.cardona@coastalhvac.com,150000,2024-01-01,2025-12-31,monthly,Brickell Bay - 2025 Operations
+BB-CON-007,Pest Control Services Agreement,vendor,Everglades Pest Control,t.bauer@evergladespest.com,72000,2024-01-01,2025-12-31,monthly,Brickell Bay - 2025 Operations
+BB-CON-008,Pool & Amenity Maintenance Contract,vendor,Florida Pool & Spa Pros,d.santos@flpoolspa.com,120000,2023-07-01,2025-06-30,monthly,Brickell Bay - 2025 Operations
+BB-CON-009,Commercial Mortgage - Brickell Bay,financing,BankUnited Commercial Lending,p.kim@bankunited.com,75000000,2018-06-01,2028-06-01,monthly,Brickell Bay - 2025 Operations
+BB-CON-010,Property & Casualty Insurance Policy,vendor,State Farm Commercial Insurance,g.morales@statefarm.com,980000,2025-01-01,2025-12-31,annual,Brickell Bay - 2025 Operations
+BB-CON-011,Waste Management Services,vendor,Biscayne Waste Solutions,k.alvarez@biscaynewaste.com,84000,2024-01-01,2025-12-31,monthly,Brickell Bay - 2025 Operations
+BB-CON-012,Legal Retainer Agreement,vendor,Miami-Dade Legal Partners,h.cruz@mdlegalpartners.com,90000,2024-01-01,2025-12-31,monthly,Brickell Bay - 2025 Operations

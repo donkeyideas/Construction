@@ -1,0 +1,19 @@
+project_name,log_date,weather_conditions,temperature,work_performed,safety_incidents,delays,status
+Brickell Bay - 2025 Operations,2025-01-15,sunny,78,Fire safety system annual inspection completed - all panels passed. Sprinkler test on floors 1-20.,None,None,published
+Brickell Bay - 2025 Operations,2025-02-05,partly_cloudy,75,Elevator annual certification by Otis - car 1 and 2 passed. Cars 3 and 4 scheduled tomorrow.,None,None,published
+Brickell Bay - 2025 Operations,2025-02-06,sunny,77,Elevator certification completed for cars 3 and 4. All 4 elevators certified through Feb 2026.,None,None,published
+Brickell Bay - 2025 Operations,2025-03-10,sunny,82,HVAC spring startup - replaced 200 filters across units. Central chiller inspected and operational.,None,None,published
+Brickell Bay - 2025 Operations,2025-04-07,sunny,84,Pool resurfacing project began - pool drained and old surface removal started. Temporary pool closure signs posted.,None,None,published
+Brickell Bay - 2025 Operations,2025-04-21,rain,80,Pool resurfacing delayed 2 days due to heavy rain. Drainage work continued in covered areas.,None,Rain delay - 2 days added to pool schedule,published
+Brickell Bay - 2025 Operations,2025-05-02,sunny,86,Pool resurfacing complete and pool refilled. Chemical balance testing in progress - reopening in 48 hours.,None,None,published
+Brickell Bay - 2025 Operations,2025-05-15,sunny,88,Hurricane preparedness drill conducted - all staff participated. Emergency supplies inventory verified.,None,None,published
+Brickell Bay - 2025 Operations,2025-06-02,partly_cloudy,90,Parking garage power washing began on level P1. Traffic management plan in effect.,None,None,published
+Brickell Bay - 2025 Operations,2025-07-07,sunny,92,Roof membrane inspection - 3 areas identified for patching. No major structural concerns.,None,None,published
+Brickell Bay - 2025 Operations,2025-07-21,sunny,93,Emergency generator load bank test - 4-hour test at full load. All systems passed.,None,None,published
+Brickell Bay - 2025 Operations,2025-08-04,partly_cloudy,91,Exterior painting touch-up started on floors 1-5. Swing stage installed on south face.,None,None,published
+Brickell Bay - 2025 Operations,2025-08-22,sunny,90,Exterior painting completed through floor 10. All swing stages removed.,None,None,published
+Brickell Bay - 2025 Operations,2025-09-22,sunny,87,Security camera upgrade project kicked off - new IP camera installation began in parking garage.,None,None,published
+Brickell Bay - 2025 Operations,2025-10-06,partly_cloudy,83,HVAC winter prep started - boiler inspection and heating system tests across all floors.,None,None,published
+Brickell Bay - 2025 Operations,2025-10-15,rain,79,Tropical storm warning - activated hurricane plan. Secured outdoor furniture and pool area.,1 minor injury - staff member slipped on wet lobby floor,Outdoor work suspended due to weather,published
+Brickell Bay - 2025 Operations,2025-11-17,sunny,76,Holiday lighting installation started in lobby and exterior common areas.,None,None,published
+Brickell Bay - 2025 Operations,2025-12-01,sunny,74,Year-end unit inspections scheduled to begin. Notification letters sent to all residents.,None,None,draft

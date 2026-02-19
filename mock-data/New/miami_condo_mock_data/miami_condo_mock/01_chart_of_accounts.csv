@@ -1,0 +1,68 @@
+account_number,name,account_type,sub_type,normal_balance,description
+1000,Cash & Equivalents,asset,Current Asset,debit,Operating cash and short-term deposits
+1010,Accounts Receivable,asset,Current Asset,debit,Tenant rent and fees receivable
+1020,Security Deposits Held,asset,Current Asset,debit,Tenant security deposits in escrow
+1030,Prepaid Expenses,asset,Current Asset,debit,Prepaid insurance and service contracts
+1040,Petty Cash,asset,Current Asset,debit,On-site petty cash fund
+1100,Land,asset,Fixed Asset,debit,Land value for Brickell Bay Condominiums site
+1110,Building & Improvements,asset,Fixed Asset,debit,Building structure and capital improvements
+1120,Furniture Fixtures & Equipment,asset,Fixed Asset,debit,Common area FF&E and appliances
+1130,Accumulated Depreciation - Building,asset,Fixed Asset,credit,Accumulated depreciation on building
+1140,Accumulated Depreciation - FF&E,asset,Fixed Asset,credit,Accumulated depreciation on FF&E
+1200,Escrow & Reserve Funds,asset,Other Asset,debit,Capital reserve and replacement fund
+2000,Accounts Payable,liability,Current Liability,credit,Amounts owed to vendors and contractors
+2010,Accrued Expenses,liability,Current Liability,credit,Accrued wages utilities and operating costs
+2020,Security Deposits Liability,liability,Current Liability,credit,Tenant security deposits held
+2030,Prepaid Rent,liability,Current Liability,credit,Tenant rent paid in advance
+2040,Sales Tax Payable,liability,Current Liability,credit,Florida sales tax on taxable services
+2100,Mortgage Payable - Current,liability,Current Liability,credit,Current portion of mortgage due within 12 months
+2200,Mortgage Payable - Long Term,liability,Long-Term Liability,credit,Long-term mortgage on Brickell Bay Condominiums
+2210,Deferred Revenue,liability,Long-Term Liability,credit,Long-term prepaid lease agreements
+3000,Owner Equity,equity,Equity,credit,Owner capital contributions
+3010,Retained Earnings,equity,Equity,credit,Accumulated retained earnings
+3020,Current Year Net Income,equity,Equity,credit,Current year net income
+4000,Residential Rental Income,revenue,Operating Revenue,credit,Base rent from occupied residential units
+4010,Parking Income,revenue,Operating Revenue,credit,Monthly and guest parking fees
+4020,Pet Fee Income,revenue,Operating Revenue,credit,Monthly pet rent and one-time pet fees
+4030,Laundry & Vending Income,revenue,Operating Revenue,credit,Common area laundry and vending revenue
+4040,Late Fee Income,revenue,Operating Revenue,credit,Late payment fees charged to tenants
+4050,Application & Admin Fees,revenue,Operating Revenue,credit,Tenant application and administrative fees
+4060,Storage Unit Income,revenue,Operating Revenue,credit,Storage unit rental fees
+4070,Short-Term Rental Premium,revenue,Operating Revenue,credit,Premium income from furnished short-term units
+4080,Amenity Fee Income,revenue,Operating Revenue,credit,Pool gym and amenity access fees
+4090,Utility Reimbursement Income,revenue,Operating Revenue,credit,Tenant utility reimbursements
+4100,Other Income,revenue,Other Revenue,credit,Miscellaneous operating income
+5000,Property Management Fees,expense,Operating Expense,debit,Third-party property management fee
+5010,Repairs & Maintenance,expense,Operating Expense,debit,Unit and common area repairs
+5020,Landscaping & Grounds,expense,Operating Expense,debit,Exterior landscaping and pool care
+5030,Cleaning & Janitorial,expense,Operating Expense,debit,Common area and unit turn cleaning
+5040,Utilities - Electric,expense,Operating Expense,debit,Common area electricity
+5050,Utilities - Water & Sewer,expense,Operating Expense,debit,Building water and sewer
+5060,Utilities - Gas,expense,Operating Expense,debit,Common area gas
+5070,Insurance - Property,expense,Operating Expense,debit,Building property and liability insurance
+5080,Insurance - Workers Comp,expense,Operating Expense,debit,Workers compensation insurance
+5090,Real Estate Taxes,expense,Operating Expense,debit,Miami-Dade County property taxes
+5100,HOA Fees,expense,Operating Expense,debit,Master HOA and association assessments
+5110,Security Services,expense,Operating Expense,debit,On-site security guard and system monitoring
+5120,Elevator Maintenance,expense,Operating Expense,debit,Elevator inspection and maintenance contracts
+5130,HVAC Maintenance,expense,Operating Expense,debit,Central HVAC and unit maintenance
+5140,Pest Control,expense,Operating Expense,debit,Building-wide pest control services
+5150,Pool & Amenity Maintenance,expense,Operating Expense,debit,Pool chemicals equipment and amenity upkeep
+5160,Trash & Recycling,expense,Operating Expense,debit,Waste collection and recycling services
+5170,Administrative & Office,expense,Operating Expense,debit,Office supplies postage and administrative costs
+5180,Legal & Professional,expense,Operating Expense,debit,Legal accounting and professional services
+5190,Marketing & Advertising,expense,Operating Expense,debit,Tenant marketing and advertising costs
+5200,Leasing Commissions,expense,Operating Expense,debit,Broker and leasing agent commissions
+5210,Vacancy Loss,expense,Operating Expense,debit,Economic vacancy and concessions
+5220,Bad Debt Expense,expense,Operating Expense,debit,Uncollectible tenant accounts
+5230,Capital Reserve Contribution,expense,Operating Expense,debit,Monthly contribution to capital reserve fund
+5240,Payroll - On-site Staff,expense,Operating Expense,debit,On-site property staff wages
+5250,Payroll Taxes & Benefits,expense,Operating Expense,debit,Employer payroll taxes and benefits
+5260,Telephone & Internet,expense,Operating Expense,debit,Office phone internet and systems
+5270,Software & Technology,expense,Operating Expense,debit,Property management software and tech
+5280,Licenses & Permits,expense,Operating Expense,debit,Building operating licenses and permits
+5290,Bank Charges & Fees,expense,Operating Expense,debit,Banking and merchant processing fees
+6000,Depreciation - Building,expense,Non-Cash Expense,debit,Annual building depreciation
+6010,Depreciation - FF&E,expense,Non-Cash Expense,debit,Annual FF&E depreciation
+7000,Interest Expense - Mortgage,expense,Debt Service,debit,Mortgage interest expense
+7010,Loan Origination Amortization,expense,Debt Service,debit,Amortization of loan origination costs
