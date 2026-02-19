@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  ShieldCheck,
   CheckCircle2,
   AlertTriangle,
   XCircle,
@@ -17,44 +16,81 @@ interface Props {
   companyName: string;
 }
 
+const GRADE_COLORS: Record<string, string> = {
+  A: "var(--color-green)",
+  B: "#60a5fa",
+  C: "#fbbf24",
+  D: "#f97316",
+  F: "var(--color-red)",
+};
+
 const STATUS_CONFIG = {
-  pass: { icon: CheckCircle2, label: "Pass", className: "audit-status-pass" },
-  warn: { icon: AlertTriangle, label: "Warning", className: "audit-status-warn" },
-  fail: { icon: XCircle, label: "Fail", className: "audit-status-fail" },
+  pass: { icon: CheckCircle2, label: "Pass", color: "var(--color-green)" },
+  warn: { icon: AlertTriangle, label: "Warning", color: "#fbbf24" },
+  fail: { icon: XCircle, label: "Fail", color: "var(--color-red)" },
 };
 
 function AuditCheck({ check }: { check: AuditCheckResult }) {
   const [expanded, setExpanded] = useState(check.status !== "pass");
   const config = STATUS_CONFIG[check.status];
   const Icon = config.icon;
+  const hasDetails = check.details.length > 0;
 
   return (
-    <div className={`audit-check ${config.className}`}>
-      <div
-        className="audit-check-header"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="audit-check-left">
-          <Icon size={18} />
-          <span className="audit-check-name">{check.name}</span>
+    <div
+      className="audit-check-row"
+      style={{ cursor: hasDetails ? "pointer" : "default" }}
+      onClick={() => hasDetails && setExpanded(!expanded)}
+    >
+      <div className="audit-check-header">
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Icon size={16} style={{ color: config.color, flexShrink: 0 }} />
+          <div>
+            <div style={{ fontWeight: 600, fontSize: "0.88rem" }}>{check.name}</div>
+            <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: 2 }}>
+              {check.summary}
+            </div>
+          </div>
         </div>
-        <div className="audit-check-right">
-          <span className={`audit-check-badge ${config.className}`}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span
+            style={{
+              display: "inline-block",
+              padding: "2px 10px",
+              borderRadius: 20,
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              background: `color-mix(in srgb, ${config.color} 12%, transparent)`,
+              color: config.color,
+            }}
+          >
             {config.label}
           </span>
-          {check.details.length > 0 && (
-            expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />
+          {hasDetails && (
+            expanded
+              ? <ChevronDown size={14} style={{ color: "var(--muted)" }} />
+              : <ChevronRight size={14} style={{ color: "var(--muted)" }} />
           )}
         </div>
       </div>
-      <div className="audit-check-summary">{check.summary}</div>
-      {expanded && check.details.length > 0 && (
-        <div className="audit-check-details">
-          <ul>
-            {check.details.map((detail, idx) => (
-              <li key={idx}>{detail}</li>
-            ))}
-          </ul>
+      {expanded && hasDetails && (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "10px 14px",
+            background: "rgba(255,255,255,0.02)",
+            borderRadius: 8,
+            fontSize: "0.8rem",
+            color: "var(--muted)",
+            maxHeight: 200,
+            overflowY: "auto",
+          }}
+        >
+          {check.details.map((detail, idx) => (
+            <div key={idx} style={{ marginBottom: 3, paddingLeft: 4 }}>
+              {detail}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -65,6 +101,7 @@ export default function AuditClient({ audit, companyName }: Props) {
   const passCount = audit.checks.filter((c) => c.status === "pass").length;
   const warnCount = audit.checks.filter((c) => c.status === "warn").length;
   const failCount = audit.checks.filter((c) => c.status === "fail").length;
+  const totalChecks = audit.checks.length;
 
   const runDate = new Date(audit.runAt).toLocaleDateString("en-US", {
     month: "long",
@@ -74,17 +111,22 @@ export default function AuditClient({ audit, companyName }: Props) {
     minute: "2-digit",
   });
 
+  const gradeColor = GRADE_COLORS[audit.grade] || "var(--muted)";
+
   return (
     <div>
       {/* Header */}
-      <div className="fin-header">
+      <div className="dash-header">
         <div>
-          <h2>Financial Audit</h2>
-          <p className="fin-header-sub">
+          <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "2rem", fontWeight: 700 }}>
+            Financial Audit
+          </h2>
+          <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 2 }}>
             Automated checks to verify data integrity and accounting accuracy
           </p>
         </div>
-        <div className="fin-header-actions">
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{runDate}</span>
           <a
             href="/financial/audit"
             className="ui-btn ui-btn-outline ui-btn-md"
@@ -96,47 +138,78 @@ export default function AuditClient({ audit, companyName }: Props) {
         </div>
       </div>
 
-      {/* Grade Card */}
-      <div className="audit-summary">
-        <div className={`audit-grade-card audit-grade-${audit.grade}`}>
-          <div className="audit-grade-letter">{audit.grade}</div>
-          <div className="audit-grade-label">{audit.gradeLabel}</div>
-        </div>
-        <div className="audit-summary-stats">
-          <div className="audit-stat">
-            <ShieldCheck size={16} />
-            <span className="audit-stat-label">Company</span>
-            <span className="audit-stat-value">{companyName}</span>
-          </div>
-          <div className="audit-stat">
-            <CheckCircle2 size={16} style={{ color: "var(--color-green)" }} />
-            <span className="audit-stat-value">{passCount}</span>
-            <span className="audit-stat-label">Passed</span>
-          </div>
-          <div className="audit-stat">
-            <AlertTriangle size={16} style={{ color: "var(--color-amber)" }} />
-            <span className="audit-stat-value">{warnCount}</span>
-            <span className="audit-stat-label">Warnings</span>
-          </div>
-          <div className="audit-stat">
-            <XCircle size={16} style={{ color: "var(--color-red)" }} />
-            <span className="audit-stat-value">{failCount}</span>
-            <span className="audit-stat-label">Failed</span>
-          </div>
-          <div className="audit-stat">
-            <span className="audit-stat-label">Run at</span>
-            <span className="audit-stat-value" style={{ fontSize: "0.82rem" }}>
-              {runDate}
+      {/* KPI Cards Row */}
+      <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
+        {/* Grade */}
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">Overall Grade</span>
+            <span className="kpi-value" style={{ color: gradeColor, fontSize: "2.5rem" }}>
+              {audit.grade}
             </span>
+          </div>
+          <div style={{ fontSize: "0.78rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            {audit.gradeLabel}
+          </div>
+        </div>
+
+        {/* Total Checks */}
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">Total Checks</span>
+            <span className="kpi-value">{totalChecks}</span>
+          </div>
+          <div className="kpi-icon">
+            <CheckCircle2 size={22} />
+          </div>
+        </div>
+
+        {/* Passed */}
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">Passed</span>
+            <span className="kpi-value" style={{ color: "var(--color-green)" }}>{passCount}</span>
+          </div>
+          <div className="kpi-icon" style={{ color: "var(--color-green)" }}>
+            <CheckCircle2 size={22} />
+          </div>
+        </div>
+
+        {/* Warnings */}
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">Warnings</span>
+            <span className="kpi-value" style={{ color: "#fbbf24" }}>{warnCount}</span>
+          </div>
+          <div className="kpi-icon" style={{ color: "#fbbf24" }}>
+            <AlertTriangle size={22} />
+          </div>
+        </div>
+
+        {/* Failed */}
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">Failed</span>
+            <span className="kpi-value" style={{ color: "var(--color-red)" }}>{failCount}</span>
+          </div>
+          <div className="kpi-icon" style={{ color: "var(--color-red)" }}>
+            <XCircle size={22} />
           </div>
         </div>
       </div>
 
-      {/* Checks */}
-      <div className="audit-checks-list">
-        {audit.checks.map((check) => (
-          <AuditCheck key={check.id} check={check} />
-        ))}
+      {/* Audit Checks */}
+      <div className="card" style={{ padding: 0 }}>
+        <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)" }}>
+          <div className="card-title" style={{ marginBottom: 0 }}>
+            Audit Results — {companyName}
+          </div>
+        </div>
+        <div>
+          {audit.checks.map((check) => (
+            <AuditCheck key={check.id} check={check} />
+          ))}
+        </div>
       </div>
     </div>
   );

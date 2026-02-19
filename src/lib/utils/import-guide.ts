@@ -29,17 +29,18 @@ export interface ImportProgress {
 
 /**
  * Returns a map of nav href -> step number for entities that still need importing.
+ * Only shows badges when import_progress has been explicitly set (i.e. user started
+ * the import wizard). Returns empty map when progress is null/undefined/empty,
+ * since that means the company either predates the import feature or hasn't
+ * opted into guided import.
  */
 export function getImportBadges(
   importProgress: ImportProgress | null | undefined
 ): Map<string, number> {
   const badges = new Map<string, number>();
 
-  if (!importProgress) {
-    // No progress at all - show all badges
-    for (const step of IMPORT_GUIDE_STEPS) {
-      badges.set(step.navHref, step.step);
-    }
+  // No progress tracking at all — don't show any badges
+  if (!importProgress || Object.keys(importProgress).length === 0) {
     return badges;
   }
 
@@ -54,12 +55,15 @@ export function getImportBadges(
 }
 
 /**
- * Returns true when all critical entities have been imported (count > 0).
+ * Returns true when import badges should NOT be shown.
+ * This is true when:
+ * - import_progress is null/undefined/empty (company not using guided import)
+ * - All critical entities have been imported (count > 0)
  */
 export function isImportComplete(
   importProgress: ImportProgress | null | undefined
 ): boolean {
-  if (!importProgress) return false;
+  if (!importProgress || Object.keys(importProgress).length === 0) return true;
 
   return IMPORT_GUIDE_STEPS.every((step) => {
     const progress = importProgress[step.entity];
