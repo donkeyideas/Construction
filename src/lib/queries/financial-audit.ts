@@ -245,7 +245,7 @@ async function checkInvoiceJECoverage(
   // Get all non-draft, non-voided invoices
   const { data: invoices, error: invErr } = await supabase
     .from("invoices")
-    .select("id, invoice_number")
+    .select("id, invoice_number, notes")
     .eq("company_id", companyId)
     .not("status", "in", "(draft,voided)");
 
@@ -253,7 +253,11 @@ async function checkInvoiceJECoverage(
     return { id, name, status: "fail", summary: "Error querying invoices", details: [invErr.message] };
   }
 
-  const allInvoices = invoices ?? [];
+  // Exclude auto-generated invoices (from syncPropertyFinancials) — they use
+  // batch JEs rather than individual invoice JEs, so checking them here is wrong.
+  const allInvoices = (invoices ?? []).filter(
+    (inv) => !inv.notes?.startsWith("auto-rent-") && !inv.notes?.startsWith("auto-maint-")
+  );
 
   if (allInvoices.length === 0) {
     return { id, name, status: "pass", summary: "No active invoices found — nothing to validate", details: [] };
@@ -606,7 +610,7 @@ async function checkMissingGLMappings(
 
   const { data: invoices, error: invErr } = await supabase
     .from("invoices")
-    .select("id, invoice_number")
+    .select("id, invoice_number, notes")
     .eq("company_id", companyId)
     .is("gl_account_id", null)
     .not("status", "in", "(draft,voided)");
@@ -615,7 +619,12 @@ async function checkMissingGLMappings(
     return { id, name, status: "fail", summary: "Error querying invoices", details: [invErr.message] };
   }
 
-  const unmapped = invoices ?? [];
+  // Exclude auto-generated invoices that now have gl_account_id set via syncPropertyFinancials.
+  // For legacy data where gl_account_id might still be null, exclude auto-generated invoices
+  // since they use batch JE accounting rather than per-invoice GL mapping.
+  const unmapped = (invoices ?? []).filter(
+    (inv) => !inv.notes?.startsWith("auto-rent-") && !inv.notes?.startsWith("auto-maint-")
+  );
 
   if (unmapped.length === 0) {
     return { id, name, status: "pass", summary: "All active invoices have GL account mappings", details: [] };

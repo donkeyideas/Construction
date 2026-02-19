@@ -242,6 +242,9 @@ export async function getPropertyById(
 export interface PropertyFinancials {
   monthlyRevenue: number;
   monthlyExpenses: number;
+  maintenanceCost: number;
+  operatingExpenses: number;
+  expenseBreakdown: { type: string; monthlyAmount: number }[];
   noi: number;
   rentCollectionRate: number;
   totalPaid: number;
@@ -252,8 +255,8 @@ export async function getPropertyFinancials(
   supabase: SupabaseClient,
   propertyId: string
 ): Promise<PropertyFinancials> {
-  // Compute revenue directly from active leases (always accurate)
-  const [leasesRes, maintRes] = await Promise.all([
+  // Fetch all expense sources in parallel
+  const [leasesRes, maintRes, propExpRes] = await Promise.all([
     supabase
       .from("leases")
       .select("id, monthly_rent")
@@ -264,10 +267,15 @@ export async function getPropertyFinancials(
       .select("estimated_cost, actual_cost, status")
       .eq("property_id", propertyId)
       .in("status", ["submitted", "assigned", "in_progress", "completed"]),
+    supabase
+      .from("property_expenses")
+      .select("expense_type, amount, frequency, effective_date, end_date")
+      .eq("property_id", propertyId)
   ]);
 
   const activeLeases = leasesRes.data ?? [];
   const maintRequests = maintRes.data ?? [];
+  const propExpenses = (propExpRes as { data: { expense_type: string; amount: number; frequency: string; effective_date: string | null; end_date: string | null }[] | null }).data ?? [];
 
   // Fetch rent_payments via lease_ids (rent_payments doesn't have property_id)
   const leaseIdsForPayments = activeLeases.map((l) => l.id);
@@ -286,8 +294,8 @@ export async function getPropertyFinancials(
     0
   );
 
-  // Expenses = sum of maintenance costs (actual if completed, estimated otherwise)
-  const monthlyExpenses = maintRequests.reduce((sum, m) => {
+  // Maintenance expenses
+  const maintenanceCost = maintRequests.reduce((sum, m) => {
     const cost =
       m.status === "completed"
         ? (m.actual_cost ?? m.estimated_cost ?? 0)
@@ -295,10 +303,46 @@ export async function getPropertyFinancials(
     return sum + cost;
   }, 0);
 
+  // Operating expenses (CAM, taxes, insurance, utilities, mgmt fees, etc.)
+  // Convert each to a monthly equivalent based on frequency
+  const now = new Date();
+  let operatingExpenses = 0;
+  const byType = new Map<string, number>();
+  for (const exp of propExpenses) {
+    if (exp.end_date && new Date(exp.end_date) < now) continue;
+    if (exp.effective_date && new Date(exp.effective_date) > now) continue;
+
+    const amount = Number(exp.amount) || 0;
+    let monthly = 0;
+    switch (exp.frequency) {
+      case "monthly":      monthly = amount; break;
+      case "quarterly":    monthly = amount / 3; break;
+      case "semi_annual":  monthly = amount / 6; break;
+      case "annual":       monthly = amount / 12; break;
+      case "one_time":     break;
+    }
+    operatingExpenses += monthly;
+    if (monthly > 0) {
+      const t = (exp as { expense_type?: string }).expense_type ?? "other";
+      byType.set(t, (byType.get(t) ?? 0) + monthly);
+    }
+  }
+
+  // Build sorted expense breakdown
+  const expenseBreakdown: { type: string; monthlyAmount: number }[] = [];
+  if (maintenanceCost > 0) {
+    expenseBreakdown.push({ type: "maintenance", monthlyAmount: maintenanceCost });
+  }
+  for (const [type, monthlyAmount] of byType) {
+    expenseBreakdown.push({ type, monthlyAmount });
+  }
+  expenseBreakdown.sort((a, b) => b.monthlyAmount - a.monthlyAmount);
+
+  const monthlyExpenses = maintenanceCost + operatingExpenses;
+
   const noi = monthlyRevenue - monthlyExpenses;
 
   // Rent collection for current month
-  const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
@@ -320,7 +364,6 @@ export async function getPropertyFinancials(
     }
   }
 
-  // If no rent_payments exist yet, totalDue = sum of active lease rents (expected)
   if (totalDue === 0 && monthlyRevenue > 0) {
     totalDue = monthlyRevenue;
   }
@@ -330,6 +373,9 @@ export async function getPropertyFinancials(
   return {
     monthlyRevenue,
     monthlyExpenses,
+    maintenanceCost,
+    operatingExpenses,
+    expenseBreakdown,
     noi,
     rentCollectionRate,
     totalPaid,
@@ -661,6 +707,24 @@ export async function syncPropertyFinancials(
   }
 
   // ── 4. Create receivable invoices for active leases (current month) ──
+  // Look up GL accounts for proper accounting
+  const { data: coaAccounts } = await supabase
+    .from("chart_of_accounts")
+    .select("id, account_number, name, account_type")
+    .eq("company_id", companyId)
+    .eq("is_active", true);
+
+  const findAccount = (type: string, namePattern: string) =>
+    (coaAccounts ?? []).find(
+      (a) => a.account_type === type && a.name.toLowerCase().includes(namePattern.toLowerCase())
+    )?.id ?? null;
+
+  // Find key accounts: Rental Income (revenue), Accounts Receivable (asset), Repairs (expense), AP (liability)
+  const rentalIncomeId = findAccount("revenue", "rent") ?? findAccount("revenue", "income");
+  const arAccountId = findAccount("asset", "receivable");
+  const repairsExpenseId = findAccount("expense", "repair") ?? findAccount("expense", "maintenance");
+  const apAccountId = findAccount("liability", "payable");
+
   const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const { data: existingInvoices } = await supabase
     .from("invoices")
@@ -672,6 +736,9 @@ export async function syncPropertyFinancials(
     (existingInvoices ?? []).map((i) => i.notes)
   );
 
+  // Collect new invoices for batch JE generation
+  const newRentInvoices: { id: string; amount: number; tenant: string; propertyId: string }[] = [];
+
   for (const lease of leases ?? []) {
     const noteTag = `auto-rent-${currentMonthStr}-${lease.id}`;
     if (existingInvoiceNotes.has(noteTag)) continue;
@@ -679,7 +746,7 @@ export async function syncPropertyFinancials(
     const invNum = `RENT-${currentMonthStr}-${lease.tenant_name.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase()}`;
     const dueDate = `${currentMonthStr}-01`;
 
-    const { error } = await supabase.from("invoices").insert({
+    const { data: inserted, error } = await supabase.from("invoices").insert({
       company_id: companyId,
       invoice_number: invNum,
       invoice_type: "receivable",
@@ -692,6 +759,7 @@ export async function syncPropertyFinancials(
       total_amount: lease.monthly_rent,
       amount_paid: 0,
       status: "pending",
+      gl_account_id: rentalIncomeId,
       line_items: [
         {
           description: `Monthly Rent - ${lease.tenant_name}`,
@@ -701,8 +769,54 @@ export async function syncPropertyFinancials(
         },
       ],
       notes: noteTag,
-    });
-    if (!error) invoicesCreated++;
+    }).select("id").single();
+    if (!error && inserted) {
+      invoicesCreated++;
+      newRentInvoices.push({
+        id: inserted.id,
+        amount: lease.monthly_rent,
+        tenant: lease.tenant_name,
+        propertyId: lease.property_id,
+      });
+    }
+  }
+
+  // Create a single batch JE for all new rent invoices (DR AR, CR Revenue)
+  if (newRentInvoices.length > 0 && arAccountId && rentalIncomeId) {
+    const totalRent = newRentInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const { data: user } = await supabase.auth.getUser();
+    const userId = user?.user?.id ?? null;
+
+    const { data: jeEntry } = await supabase.from("journal_entries").insert({
+      company_id: companyId,
+      entry_number: `AUTO-RENT-${currentMonthStr}`,
+      entry_date: `${currentMonthStr}-01`,
+      description: `Monthly Rent Charges - ${currentMonthStr} (${newRentInvoices.length} leases)`,
+      reference: `auto-rent-batch-${currentMonthStr}`,
+      status: "posted",
+      created_by: userId,
+    }).select("id").single();
+
+    if (jeEntry) {
+      await supabase.from("journal_entry_lines").insert([
+        {
+          company_id: companyId,
+          journal_entry_id: jeEntry.id,
+          account_id: arAccountId,
+          debit: totalRent,
+          credit: 0,
+          description: `Accounts Receivable - ${newRentInvoices.length} rent invoices`,
+        },
+        {
+          company_id: companyId,
+          journal_entry_id: jeEntry.id,
+          account_id: rentalIncomeId,
+          debit: 0,
+          credit: totalRent,
+          description: `Rental Income - ${currentMonthStr}`,
+        },
+      ]);
+    }
   }
 
   // ── 5. Create payable invoices for maintenance requests ──
@@ -726,6 +840,8 @@ export async function syncPropertyFinancials(
     (existingMaintInvoices ?? []).map((i) => i.notes)
   );
 
+  const newMaintInvoices: { id: string; amount: number; title: string; propertyId: string }[] = [];
+
   for (const m of maintRequests ?? []) {
     const cost = m.actual_cost ?? m.estimated_cost;
     if (!cost || cost <= 0) continue;
@@ -736,7 +852,7 @@ export async function syncPropertyFinancials(
     const invNum = `MAINT-${m.title.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12).toUpperCase()}`;
     const today = now.toISOString().slice(0, 10);
 
-    const { error } = await supabase.from("invoices").insert({
+    const { data: inserted, error } = await supabase.from("invoices").insert({
       company_id: companyId,
       invoice_number: invNum,
       invoice_type: "payable",
@@ -749,6 +865,7 @@ export async function syncPropertyFinancials(
       total_amount: cost,
       amount_paid: m.status === "completed" ? cost : 0,
       status: m.status === "completed" ? "paid" : "pending",
+      gl_account_id: repairsExpenseId,
       line_items: [
         {
           description: m.title,
@@ -758,8 +875,49 @@ export async function syncPropertyFinancials(
         },
       ],
       notes: noteTag,
-    });
-    if (!error) invoicesCreated++;
+    }).select("id").single();
+    if (!error && inserted) {
+      invoicesCreated++;
+      newMaintInvoices.push({ id: inserted.id, amount: cost, title: m.title, propertyId: m.property_id });
+    }
+  }
+
+  // Create batch JE for maintenance invoices (DR Expense, CR AP)
+  if (newMaintInvoices.length > 0 && repairsExpenseId && apAccountId) {
+    const totalMaint = newMaintInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const { data: user } = await supabase.auth.getUser();
+    const userId = user?.user?.id ?? null;
+
+    const { data: jeEntry } = await supabase.from("journal_entries").insert({
+      company_id: companyId,
+      entry_number: `AUTO-MAINT-${currentMonthStr}`,
+      entry_date: now.toISOString().slice(0, 10),
+      description: `Maintenance Expenses - ${newMaintInvoices.length} work orders`,
+      reference: `auto-maint-batch-${currentMonthStr}`,
+      status: "posted",
+      created_by: userId,
+    }).select("id").single();
+
+    if (jeEntry) {
+      await supabase.from("journal_entry_lines").insert([
+        {
+          company_id: companyId,
+          journal_entry_id: jeEntry.id,
+          account_id: repairsExpenseId,
+          debit: totalMaint,
+          credit: 0,
+          description: `Maintenance expenses - ${newMaintInvoices.length} work orders`,
+        },
+        {
+          company_id: companyId,
+          journal_entry_id: jeEntry.id,
+          account_id: apAccountId,
+          debit: 0,
+          credit: totalMaint,
+          description: `Accounts Payable - maintenance`,
+        },
+      ]);
+    }
   }
 
   // ── 6. Recalculate property stats ──

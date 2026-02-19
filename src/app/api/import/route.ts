@@ -43,6 +43,7 @@ const ALLOWED_ENTITIES = [
   "properties",
   "phases",
   "tasks",
+  "property_expenses",
 ] as const;
 
 type AllowedEntity = (typeof ALLOWED_ENTITIES)[number];
@@ -978,8 +979,10 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Auto-generate invoice journal entries (skip if caller provides separate JEs)
-        if (insertedInvoices.length > 0 && !body.skip_je_generation) {
+        // Auto-generate invoice JEs only if explicitly requested.
+        // CSV bulk imports should NOT auto-generate JEs — they cause double-counting
+        // when a JE CSV is also imported. JEs should be imported explicitly.
+        if (insertedInvoices.length > 0 && body.generate_invoice_jes === true) {
           try {
             const jeResult = await generateBulkInvoiceJournalEntries(
               supabase, companyId, userId, insertedInvoices
@@ -1040,8 +1043,8 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // Generate payment JEs (DR AP / CR Cash for payables, DR Cash / CR AR for receivables)
-          if (paymentRecords.length > 0 && !body.skip_je_generation) {
+          // Generate payment JEs only if explicitly requested (same as invoice JEs)
+          if (paymentRecords.length > 0 && body.generate_invoice_jes === true) {
             try {
               const pmtJeResult = await generateBulkPaymentJournalEntries(
                 supabase, companyId, userId, paymentRecords
@@ -1054,28 +1057,31 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // Sync bank balance: net cash impact of all paid invoices
-          try {
-            const { data: defaultBank } = await supabase
-              .from("bank_accounts")
-              .select("id, current_balance")
-              .eq("company_id", companyId)
-              .eq("is_default", true)
-              .single();
-
-            if (defaultBank) {
-              let cashAdjustment = 0;
-              for (const pi of paidInvoices) {
-                // Payable payment = cash out, Receivable payment = cash in
-                cashAdjustment += pi.invoice_type === "payable" ? -pi.total_amount : pi.total_amount;
-              }
-              await supabase
+          // Sync bank balance only when auto-generating JEs (non-CSV workflow).
+          // During CSV import, the bank_accounts CSV already has correct balances
+          // and the GL balance comes from the JE CSV.
+          if (body.generate_invoice_jes === true) {
+            try {
+              const { data: defaultBank } = await supabase
                 .from("bank_accounts")
-                .update({ current_balance: defaultBank.current_balance + cashAdjustment })
-                .eq("id", defaultBank.id);
+                .select("id, current_balance")
+                .eq("company_id", companyId)
+                .eq("is_default", true)
+                .single();
+
+              if (defaultBank) {
+                let cashAdjustment = 0;
+                for (const pi of paidInvoices) {
+                  cashAdjustment += pi.invoice_type === "payable" ? -pi.total_amount : pi.total_amount;
+                }
+                await supabase
+                  .from("bank_accounts")
+                  .update({ current_balance: defaultBank.current_balance + cashAdjustment })
+                  .eq("id", defaultBank.id);
+              }
+            } catch (bankErr) {
+              console.warn("Bank balance sync failed during import:", bankErr);
             }
-          } catch (bankErr) {
-            console.warn("Bank balance sync failed during import:", bankErr);
           }
         }
         break;
@@ -1399,11 +1405,69 @@ export async function POST(request: NextRequest) {
         }
         break;
       }
+
+      case "property_expenses": {
+        // Resolve property_name → property_id
+        const { data: expProps } = await supabase
+          .from("properties")
+          .select("id, name")
+          .eq("company_id", companyId);
+        const expPropLookup: Record<string, string> = {};
+        for (const p of expProps ?? []) {
+          expPropLookup[p.name.trim().toLowerCase()] = p.id;
+        }
+
+        const validTypes = [
+          "cam", "property_tax", "insurance", "utilities",
+          "management_fee", "capital_expense", "hoa_fee",
+          "marketing", "legal", "other",
+        ];
+        const validFreqs = ["one_time", "monthly", "quarterly", "semi_annual", "annual"];
+
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          let propertyId = r.property_id || null;
+          if (!propertyId && r.property_name) {
+            propertyId = expPropLookup[r.property_name.trim().toLowerCase()] || null;
+          }
+          if (!propertyId && expProps && expProps.length > 0) {
+            propertyId = expProps[0].id;
+          }
+          if (!propertyId) {
+            errors.push(`Row ${i + 2}: No property found.`);
+            continue;
+          }
+          const expType = (r.expense_type || "other").toLowerCase();
+          if (!validTypes.includes(expType)) {
+            errors.push(`Row ${i + 2}: Invalid expense_type "${r.expense_type}". Use: ${validTypes.join(", ")}`);
+            continue;
+          }
+          const freq = (r.frequency || "monthly").toLowerCase();
+          const { error } = await supabase.from("property_expenses").insert({
+            company_id: companyId,
+            property_id: propertyId,
+            expense_type: expType,
+            description: r.description || null,
+            amount: r.amount ? parseFloat(r.amount) : 0,
+            frequency: validFreqs.includes(freq) ? freq : "monthly",
+            effective_date: r.effective_date || null,
+            end_date: r.end_date || null,
+            vendor_name: r.vendor_name || null,
+            notes: r.notes || null,
+          });
+          if (error) {
+            errors.push(`Row ${i + 2}: ${error.message}`);
+          } else {
+            successCount++;
+          }
+        }
+        break;
+      }
     }
 
     // Auto-sync property financials after lease or maintenance imports
     if (
-      (entity === "leases" || entity === "maintenance") &&
+      (entity === "leases" || entity === "maintenance" || entity === "property_expenses") &&
       successCount > 0
     ) {
       try {
