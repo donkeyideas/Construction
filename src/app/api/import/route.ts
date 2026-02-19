@@ -91,7 +91,12 @@ export async function POST(request: NextRequest) {
     let projLookup: Record<string, string> = {};
     // Also index properties by name so project-scoped entities can reference
     // a property name when no project exists (common in property management).
-    let propNameLookup: Record<string, { id: string; name: string }> = {};
+    let propNameLookup: Record<string, {
+      id: string; name: string;
+      purchase_price: number | null; current_value: number | null;
+      address_line1: string | null; city: string | null;
+      state: string | null; zip: string | null;
+    }> = {};
     if (PROJECT_SCOPED.includes(entity as AllowedEntity)) {
       const { data: companyProjects } = await supabase
         .from("projects")
@@ -104,14 +109,20 @@ export async function POST(request: NextRequest) {
       }, {} as Record<string, string>);
 
       // Build property lookup as fallback for project resolution
+      // Include financial + address fields so auto-created projects inherit them.
       const { data: companyProperties } = await supabase
         .from("properties")
-        .select("id, name")
+        .select("id, name, purchase_price, current_value, address_line1, city, state, zip")
         .eq("company_id", companyId);
       propNameLookup = (companyProperties || []).reduce((acc, p) => {
-        acc[p.name.trim().toLowerCase()] = { id: p.id, name: p.name };
+        acc[p.name.trim().toLowerCase()] = {
+          id: p.id, name: p.name,
+          purchase_price: p.purchase_price, current_value: p.current_value,
+          address_line1: p.address_line1, city: p.city,
+          state: p.state, zip: p.zip,
+        };
         return acc;
-      }, {} as Record<string, { id: string; name: string }>);
+      }, {} as typeof propNameLookup);
     }
 
     /** Resolve a row's project_id from project_name/project_code or body fallback.
@@ -127,8 +138,11 @@ export async function POST(request: NextRequest) {
         const found = projLookup[key];
         if (found) return found;
         // Fallback: check if a property matches and auto-create a project
+        // Copies financial + address data from the matching property so the
+        // project doesn't show $0 across the board.
         const prop = propNameLookup[key];
         if (prop) {
+          const contractAmt = prop.current_value ?? prop.purchase_price ?? null;
           const { data: newProj } = await supabase
             .from("projects")
             .insert({
@@ -136,6 +150,12 @@ export async function POST(request: NextRequest) {
               name: prop.name,
               status: "active",
               start_date: new Date().toISOString().split("T")[0],
+              contract_amount: contractAmt,
+              estimated_cost: prop.purchase_price ?? null,
+              address_line1: prop.address_line1 ?? null,
+              city: prop.city ?? null,
+              state: prop.state ?? null,
+              zip: prop.zip ?? null,
             })
             .select("id")
             .single();

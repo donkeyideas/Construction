@@ -220,7 +220,74 @@ export async function getProjects(
     return [];
   }
 
-  return (data ?? []) as ProjectRow[];
+  const projects = (data ?? []) as ProjectRow[];
+
+  // -------------------------------------------------------------------------
+  // Fill in missing financial data for projects that have null/0 values.
+  // Computes actual_cost from linked invoices, contract_amount from matching
+  // property. Done in batch to avoid N+1 queries.
+  // -------------------------------------------------------------------------
+  const needActualCost = projects.filter(
+    (p) => !p.actual_cost || p.actual_cost === 0
+  );
+  const needContract = projects.filter(
+    (p) => !p.contract_amount || p.contract_amount === 0
+  );
+
+  if (needActualCost.length > 0 || needContract.length > 0) {
+    const [invoicesRes, propsRes] = await Promise.all([
+      needActualCost.length > 0
+        ? supabase
+            .from("invoices")
+            .select("project_id, total_amount")
+            .eq("company_id", companyId)
+            .in(
+              "project_id",
+              needActualCost.map((p) => p.id)
+            )
+        : Promise.resolve({ data: null }),
+      needContract.length > 0
+        ? supabase
+            .from("properties")
+            .select("name, current_value, purchase_price")
+            .eq("company_id", companyId)
+        : Promise.resolve({ data: null }),
+    ]);
+
+    // Sum invoices by project
+    if (invoicesRes.data) {
+      const costByProject = new Map<string, number>();
+      for (const inv of invoicesRes.data) {
+        if (inv.project_id) {
+          costByProject.set(
+            inv.project_id,
+            (costByProject.get(inv.project_id) ?? 0) + (inv.total_amount ?? 0)
+          );
+        }
+      }
+      for (const p of needActualCost) {
+        const computed = costByProject.get(p.id);
+        if (computed && computed > 0) p.actual_cost = computed;
+      }
+    }
+
+    // Match properties by name for contract_amount
+    if (propsRes.data) {
+      const propByName = new Map<string, { current_value: number | null; purchase_price: number | null }>();
+      for (const prop of propsRes.data) {
+        propByName.set(prop.name.trim().toLowerCase(), prop);
+      }
+      for (const p of needContract) {
+        const match = propByName.get(p.name.trim().toLowerCase());
+        if (match) {
+          p.contract_amount =
+            match.current_value ?? match.purchase_price ?? null;
+        }
+      }
+    }
+  }
+
+  return projects;
 }
 
 // ---------------------------------------------------------------------------
@@ -299,8 +366,42 @@ export async function getProjectById(
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
 
+  // ---------------------------------------------------------------------------
+  // Compute actual_cost from linked invoices when the stored value is missing.
+  // Also fill contract_amount from a matching property if still null.
+  // This ensures projects auto-created during import show real financials.
+  // ---------------------------------------------------------------------------
+  const proj = project as ProjectRow;
+  if (!proj.actual_cost || proj.actual_cost === 0) {
+    const { data: invTotals } = await supabase
+      .from("invoices")
+      .select("total_amount")
+      .eq("project_id", projectId);
+    if (invTotals && invTotals.length > 0) {
+      proj.actual_cost = invTotals.reduce(
+        (sum: number, inv: { total_amount: number | null }) =>
+          sum + (inv.total_amount ?? 0),
+        0
+      );
+    }
+  }
+  if (!proj.contract_amount || proj.contract_amount === 0) {
+    // Try to find a property with the same name
+    const { data: matchProp } = await supabase
+      .from("properties")
+      .select("current_value, purchase_price")
+      .eq("company_id", proj.company_id)
+      .ilike("name", proj.name)
+      .limit(1)
+      .maybeSingle();
+    if (matchProp) {
+      proj.contract_amount =
+        matchProp.current_value ?? matchProp.purchase_price ?? null;
+    }
+  }
+
   return {
-    project: project as ProjectRow,
+    project: proj,
     phases: (phases ?? []) as ProjectPhase[],
     tasks: (tasks ?? []) as ProjectTask[],
     dailyLogs: (dailyLogs ?? []) as DailyLog[],
@@ -573,6 +674,47 @@ export async function getProjectsOverview(
   const rfis = rfisRes.data ?? [];
   const cos = cosRes.data ?? [];
   const phases = phasesRes.data ?? [];
+
+  // Enrich projects missing financial data (same logic as getProjects)
+  const needActual = projects.filter((p) => !p.actual_cost || p.actual_cost === 0);
+  const needContract = projects.filter((p) => !p.contract_amount || p.contract_amount === 0);
+  if (needActual.length > 0 || needContract.length > 0) {
+    const [invRes, propRes] = await Promise.all([
+      needActual.length > 0
+        ? supabase
+            .from("invoices")
+            .select("project_id, total_amount")
+            .eq("company_id", companyId)
+            .in("project_id", needActual.map((p) => p.id))
+        : Promise.resolve({ data: null }),
+      needContract.length > 0
+        ? supabase
+            .from("properties")
+            .select("name, current_value, purchase_price")
+            .eq("company_id", companyId)
+        : Promise.resolve({ data: null }),
+    ]);
+    if (invRes.data) {
+      const costMap = new Map<string, number>();
+      for (const inv of invRes.data) {
+        if (inv.project_id) {
+          costMap.set(inv.project_id, (costMap.get(inv.project_id) ?? 0) + (inv.total_amount ?? 0));
+        }
+      }
+      for (const p of needActual) {
+        const c = costMap.get(p.id);
+        if (c && c > 0) p.actual_cost = c;
+      }
+    }
+    if (propRes.data) {
+      const propMap = new Map<string, { current_value: number | null; purchase_price: number | null }>();
+      for (const pr of propRes.data) propMap.set(pr.name.trim().toLowerCase(), pr);
+      for (const p of needContract) {
+        const m = propMap.get(p.name.trim().toLowerCase());
+        if (m) p.contract_amount = m.current_value ?? m.purchase_price ?? null;
+      }
+    }
+  }
 
   const activeProjects = projects.filter((p) => p.status === "active");
   const activeCount = activeProjects.length;
