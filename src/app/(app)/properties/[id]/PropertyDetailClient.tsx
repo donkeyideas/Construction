@@ -1508,37 +1508,43 @@ function FinancialsTabContent({
       {financials.expenseBreakdown && financials.expenseBreakdown.length > 0 && (
         <div className="card" style={{ gridColumn: "1 / -1" }}>
           <div className="card-title">Operating Expense Breakdown (Monthly)</div>
-          <table className="data-table" style={{ marginTop: 8 }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left" }}>Category</th>
-                <th style={{ textAlign: "right" }}>Monthly Amount</th>
-                <th style={{ textAlign: "right" }}>% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {financials.expenseBreakdown.map((item) => (
-                <tr key={item.type}>
-                  <td>{EXPENSE_TYPE_LABELS[item.type] ?? item.type}</td>
-                  <td className="amount-cell">
-                    {formatCurrency(item.monthlyAmount)}
+          <div style={{ overflowX: "auto" }}>
+            <table className="lease-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th style={{ textAlign: "right" }}>Monthly Amount</th>
+                  <th style={{ textAlign: "right" }}>% of Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {financials.expenseBreakdown.map((item) => (
+                  <tr key={item.type}>
+                    <td>{EXPENSE_TYPE_LABELS[item.type] ?? item.type}</td>
+                    <td style={{ textAlign: "right", fontFamily: "var(--font-serif)", fontWeight: 600 }}>
+                      {formatCurrency(item.monthlyAmount)}
+                    </td>
+                    <td style={{ textAlign: "right", fontFamily: "var(--font-serif)" }}>
+                      {financials.monthlyExpenses > 0
+                        ? `${((item.monthlyAmount / financials.monthlyExpenses) * 100).toFixed(1)}%`
+                        : "—"}
+                    </td>
+                  </tr>
+                ))}
+                <tr>
+                  <td style={{ borderTop: "2px solid var(--border)", paddingTop: 12, fontWeight: 700 }}>
+                    Total Expenses
                   </td>
-                  <td className="amount-cell">
-                    {financials.monthlyExpenses > 0
-                      ? `${((item.monthlyAmount / financials.monthlyExpenses) * 100).toFixed(1)}%`
-                      : "—"}
+                  <td style={{ textAlign: "right", fontFamily: "var(--font-serif)", fontWeight: 700, borderTop: "2px solid var(--border)", paddingTop: 12 }}>
+                    {formatCurrency(financials.monthlyExpenses)}
+                  </td>
+                  <td style={{ textAlign: "right", fontFamily: "var(--font-serif)", fontWeight: 700, borderTop: "2px solid var(--border)", paddingTop: 12 }}>
+                    100%
                   </td>
                 </tr>
-              ))}
-              <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border-color)" }}>
-                <td>Total Expenses</td>
-                <td className="amount-cell">
-                  {formatCurrency(financials.monthlyExpenses)}
-                </td>
-                <td className="amount-cell">100%</td>
-              </tr>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

@@ -54,6 +54,7 @@ export const appNavigation: NavItem[] = [
       { label: "Transactions", href: "/properties/transactions" },
       { label: "Portfolio", href: "/properties" },
       { label: "Leases", href: "/properties/leases" },
+      { label: "Expenses", href: "/properties/expenses" },
       { label: "Maintenance", href: "/properties/maintenance" },
     ],
   },
