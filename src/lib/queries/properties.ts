@@ -135,7 +135,9 @@ export async function getProperties(
     for (const prop of properties) {
       const propUnits = allUnits.filter((u) => u.property_id === prop.id);
       const propLeases = activeLeases.filter((l) => l.property_id === prop.id);
-      const totalUnits = propUnits.length;
+      // Use the greater of unit records count or stored total_units so that
+      // properties with vacant units (no unit record) still show correct capacity.
+      const totalUnits = Math.max(propUnits.length, prop.total_units ?? 0);
       const occupiedCount = propUnits.filter((u) => u.status === "occupied").length;
       const monthlyRevenue = propLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
       const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
@@ -198,7 +200,9 @@ export async function getPropertyById(
   const occupiedCount = units.filter((u) => u.status === "occupied").length;
   const activeLeases = leases.filter((l) => l.status === "active");
   const monthlyRevenue = activeLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
-  const totalUnits = units.length;
+  // Use the greater of unit records count or stored total_units so that
+  // properties with vacant units (no unit record) still show correct capacity.
+  const totalUnits = Math.max(units.length, property.total_units ?? 0);
   const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
 
   const freshProperty = {
@@ -769,7 +773,12 @@ export async function syncPropertyFinancials(
   const { data: properties } = await propsQuery;
 
   for (const prop of properties ?? []) {
-    const [unitsRes, activeLeasesRes] = await Promise.all([
+    const [propRes, unitsRes, activeLeasesRes] = await Promise.all([
+      supabase
+        .from("properties")
+        .select("total_units")
+        .eq("id", prop.id)
+        .single(),
       supabase
         .from("units")
         .select("id, status")
@@ -783,9 +792,12 @@ export async function syncPropertyFinancials(
         .eq("status", "active"),
     ]);
 
+    const storedTotal = propRes.data?.total_units ?? 0;
     const units = unitsRes.data ?? [];
     const propLeases = activeLeasesRes.data ?? [];
-    const totalUnits = units.length;
+    // Use the greater of unit records or stored total_units so properties
+    // with vacant units (no unit record) still show correct capacity.
+    const totalUnits = Math.max(units.length, storedTotal);
     const occupiedCount = units.filter((u) => u.status === "occupied").length;
     const monthlyRevenue = propLeases.reduce(
       (sum, l) => sum + (l.monthly_rent ?? 0),

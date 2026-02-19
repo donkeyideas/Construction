@@ -89,6 +89,9 @@ export async function POST(request: NextRequest) {
       "safety_inspections", "invoices", "submittals", "phases", "tasks",
     ];
     let projLookup: Record<string, string> = {};
+    // Also index properties by name so project-scoped entities can reference
+    // a property name when no project exists (common in property management).
+    let propNameLookup: Record<string, { id: string; name: string }> = {};
     if (PROJECT_SCOPED.includes(entity as AllowedEntity)) {
       const { data: companyProjects } = await supabase
         .from("projects")
@@ -99,17 +102,48 @@ export async function POST(request: NextRequest) {
         if (p.code) acc[p.code.trim().toLowerCase()] = p.id;
         return acc;
       }, {} as Record<string, string>);
+
+      // Build property lookup as fallback for project resolution
+      const { data: companyProperties } = await supabase
+        .from("properties")
+        .select("id, name")
+        .eq("company_id", companyId);
+      propNameLookup = (companyProperties || []).reduce((acc, p) => {
+        acc[p.name.trim().toLowerCase()] = { id: p.id, name: p.name };
+        return acc;
+      }, {} as Record<string, { id: string; name: string }>);
     }
 
     /** Resolve a row's project_id from project_name/project_code or body fallback.
      *  CSV columns (project_name / project_code) take PRIORITY over the body
      *  picker so that multi-project CSV files route rows to the correct project
-     *  regardless of which tab the user happens to be viewing. */
-    function resolveProjectId(r: Record<string, string>): string | null {
+     *  regardless of which tab the user happens to be viewing.
+     *  Falls back to matching properties — auto-creates a project if a property
+     *  name matches but no corresponding project exists. */
+    async function resolveProjectId(r: Record<string, string>): Promise<string | null> {
       if (r.project_id) return r.project_id;
       if (r.project_name) {
-        const found = projLookup[r.project_name.trim().toLowerCase()];
+        const key = r.project_name.trim().toLowerCase();
+        const found = projLookup[key];
         if (found) return found;
+        // Fallback: check if a property matches and auto-create a project
+        const prop = propNameLookup[key];
+        if (prop) {
+          const { data: newProj } = await supabase
+            .from("projects")
+            .insert({
+              company_id: companyId,
+              name: prop.name,
+              status: "active",
+              start_date: new Date().toISOString().split("T")[0],
+            })
+            .select("id")
+            .single();
+          if (newProj) {
+            projLookup[key] = newProj.id;
+            return newProj.id;
+          }
+        }
       }
       if (r.project_code) {
         const found = projLookup[r.project_code.trim().toLowerCase()];
@@ -247,7 +281,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("daily_logs").insert({
             company_id: companyId,
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             log_date: r.log_date || new Date().toISOString().split("T")[0],
             status: r.status || "draft",
             weather_conditions: r.weather_conditions || null,
@@ -271,7 +305,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("rfis").insert({
             company_id: companyId,
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             rfi_number: r.rfi_number || `RFI-${String(i + 1).padStart(3, "0")}`,
             subject: r.subject || "",
             question: r.question || "",
@@ -294,7 +328,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("change_orders").insert({
             company_id: companyId,
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             co_number: r.co_number || `CO-${String(i + 1).padStart(3, "0")}`,
             title: r.title || "",
             description: r.description || null,
@@ -328,7 +362,7 @@ export async function POST(request: NextRequest) {
             end_date: r.end_date || null,
             payment_terms: r.payment_terms || null,
             scope_of_work: r.scope_of_work || null,
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             status: r.status || "draft",
             created_by: userId,
           });
@@ -416,7 +450,12 @@ export async function POST(request: NextRequest) {
         // Recalculate property stats for all affected properties
         if (leaseProps && leaseProps.length > 0) {
           for (const prop of leaseProps) {
-            const [unitsRes, leasesRes] = await Promise.all([
+            const [propRes, unitsRes, leasesRes] = await Promise.all([
+              supabase
+                .from("properties")
+                .select("total_units")
+                .eq("id", prop.id)
+                .single(),
               supabase
                 .from("units")
                 .select("id, status")
@@ -429,11 +468,14 @@ export async function POST(request: NextRequest) {
                 .eq("property_id", prop.id)
                 .eq("status", "active"),
             ]);
+            const storedTotal = propRes.data?.total_units ?? 0;
             const units = unitsRes.data ?? [];
             const activeLeases = leasesRes.data ?? [];
             const occupiedCount = units.filter((u) => u.status === "occupied").length;
             const monthlyRevenue = activeLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
-            const totalUnits = units.length;
+            // Use the greater of unit records or stored total_units so properties
+            // with vacant units (no unit record) still show correct capacity.
+            const totalUnits = Math.max(units.length, storedTotal);
             const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
 
             await supabase
@@ -443,7 +485,7 @@ export async function POST(request: NextRequest) {
                 occupied_units: occupiedCount,
                 occupancy_rate: occupancyRate,
                 monthly_revenue: monthlyRevenue,
-                noi: monthlyRevenue, // simplified: noi = revenue - expenses (expenses stay 0)
+                noi: monthlyRevenue,
               })
               .eq("id", prop.id);
           }
@@ -503,7 +545,7 @@ export async function POST(request: NextRequest) {
             description: r.description || null,
             incident_type: r.incident_type || "near_miss",
             severity: r.severity || "medium",
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             incident_date: r.incident_date || new Date().toISOString().split("T")[0],
             location: r.location || null,
             osha_recordable: r.osha_recordable === "true" || r.osha_recordable === "yes",
@@ -529,7 +571,7 @@ export async function POST(request: NextRequest) {
             description: r.description || null,
             topic: r.topic || null,
             conducted_date: r.scheduled_date || r.conducted_date || new Date().toISOString().split("T")[0],
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             attendee_count: r.attendees_count ? parseInt(r.attendees_count) : null,
             notes: r.notes || null,
             status: r.status || "scheduled",
@@ -550,7 +592,7 @@ export async function POST(request: NextRequest) {
           const { error } = await supabase.from("equipment_assignments").insert({
             company_id: companyId,
             equipment_id: r.equipment_id || null,
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             assigned_to: r.assigned_to || null,
             assigned_date: r.assigned_date || new Date().toISOString().split("T")[0],
             returned_date: r.return_date || null,
@@ -636,7 +678,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("time_entries").insert({
             company_id: companyId,
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             user_id: r.user_id || userId,
             entry_date: r.entry_date || new Date().toISOString().split("T")[0],
             hours: r.hours ? parseFloat(r.hours) : 0,
@@ -820,7 +862,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const invoiceNumber = r.invoice_number || `INV-${String(i + 1).padStart(4, "0")}`;
           const invoiceDate = r.invoice_date || new Date().toISOString().split("T")[0];
-          const projectId = resolveProjectId(r);
+          const projectId = await resolveProjectId(r);
           const invoiceType = (r.invoice_type || "receivable") as "payable" | "receivable";
           const subtotal = r.amount ? parseFloat(r.amount) : 0;
           const taxAmount = r.tax_amount ? parseFloat(r.tax_amount) : 0;
@@ -1022,7 +1064,7 @@ export async function POST(request: NextRequest) {
           const r = rows[i];
           const { error } = await supabase.from("safety_inspections").insert({
             company_id: companyId,
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             inspection_type: r.inspection_type || "site_safety",
             inspection_date: r.inspection_date || new Date().toISOString().split("T")[0],
             score: r.score ? parseInt(r.score) : null,
@@ -1053,7 +1095,7 @@ export async function POST(request: NextRequest) {
 
           const { error } = await supabase.from("submittals").insert({
             company_id: companyId,
-            project_id: resolveProjectId(r),
+            project_id: await resolveProjectId(r),
             submittal_number: r.submittal_number || `SUB-${String(subNum).padStart(3, "0")}`,
             title: r.title || "",
             spec_section: r.spec_section || null,
