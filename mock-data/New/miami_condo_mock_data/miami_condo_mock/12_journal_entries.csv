@@ -1468,14 +1468,6 @@ JE-0715,2025-12-31,Annual Depreciation - Building 2025,DEPR-BLDG-2025,6000,18000
 JE-0715,2025-12-31,Annual Depreciation - Building 2025,DEPR-BLDG-2025,1130,,1800000,Accumulated depreciation - building
 JE-0716,2025-12-31,Annual Depreciation - FF&E 2025,DEPR-FFE-2025,6010,120000,,FF&E depreciation (7yr on various assets)
 JE-0716,2025-12-31,Annual Depreciation - FF&E 2025,DEPR-FFE-2025,1140,,120000,Accumulated depreciation - FF&E
-JE-0717,2025-04-30,Late Fee Income - April 2025,LATE-04-2025,1000,3750,,Cash received - late fees
-JE-0717,2025-04-30,Late Fee Income - April 2025,LATE-04-2025,4040,,3750,Late fee income
-JE-0718,2025-07-31,Late Fee Income - July 2025,LATE-07-2025,1000,3750,,Cash received - late fees
-JE-0718,2025-07-31,Late Fee Income - July 2025,LATE-07-2025,4040,,3750,Late fee income
-JE-0719,2025-10-31,Late Fee Income - October 2025,LATE-10-2025,1000,3750,,Cash received - late fees
-JE-0719,2025-10-31,Late Fee Income - October 2025,LATE-10-2025,4040,,3750,Late fee income
-JE-0720,2025-12-31,Late Fee Income - December 2025,LATE-12-2025,1000,3750,,Cash received - late fees
-JE-0720,2025-12-31,Late Fee Income - December 2025,LATE-12-2025,4040,,3750,Late fee income
 JE-0721,2025-01-31,Application Fees - January 2025,APP-01-2025,1000,2500,,Cash received - application fees
 JE-0721,2025-01-31,Application Fees - January 2025,APP-01-2025,4050,,2500,Application and admin fee income
 JE-0722,2025-02-28,Application Fees - February 2025,APP-02-2025,1000,2500,,Cash received - application fees
@@ -1498,8 +1490,6 @@ JE-0730,2025-10-31,Application Fees - October 2025,APP-10-2025,1000,2500,,Cash r
 JE-0730,2025-10-31,Application Fees - October 2025,APP-10-2025,4050,,2500,Application and admin fee income
 JE-0731,2025-11-30,Application Fees - November 2025,APP-11-2025,1000,2500,,Cash received - application fees
 JE-0731,2025-11-30,Application Fees - November 2025,APP-11-2025,4050,,2500,Application and admin fee income
-JE-0732,2025-12-31,Application Fees - December 2025,APP-12-2025,1000,2500,,Cash received - application fees
-JE-0732,2025-12-31,Application Fees - December 2025,APP-12-2025,4050,,2500,Application and admin fee income
 JE-0733,2025-01-31,Storage Income - January 2025,STOR-01-2025,1000,6000,,Cash received - storage unit rental
 JE-0733,2025-01-31,Storage Income - January 2025,STOR-01-2025,4060,,6000,Storage unit income
 JE-0734,2025-02-28,Storage Income - February 2025,STOR-02-2025,1000,6000,,Cash received - storage unit rental
@@ -1522,8 +1512,6 @@ JE-0742,2025-10-31,Storage Income - October 2025,STOR-10-2025,1000,6000,,Cash re
 JE-0742,2025-10-31,Storage Income - October 2025,STOR-10-2025,4060,,6000,Storage unit income
 JE-0743,2025-11-30,Storage Income - November 2025,STOR-11-2025,1000,6000,,Cash received - storage unit rental
 JE-0743,2025-11-30,Storage Income - November 2025,STOR-11-2025,4060,,6000,Storage unit income
-JE-0744,2025-12-31,Storage Income - December 2025,STOR-12-2025,1000,6000,,Cash received - storage unit rental
-JE-0744,2025-12-31,Storage Income - December 2025,STOR-12-2025,4060,,6000,Storage unit income
 JE-0745,2025-12-31,Owner Distribution 2025,DIST-2025,3000,3500000,,Owner distribution - cash returned
 JE-0745,2025-12-31,Owner Distribution 2025,DIST-2025,1000,,3500000,Cash paid to owner
 JE-0746,2025-12-31,Capital Expenditures 2025,CAPEX-2025,1110,285000,,Building improvements - capital projects

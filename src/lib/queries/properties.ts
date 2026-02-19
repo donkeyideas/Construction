@@ -723,7 +723,7 @@ export async function syncPropertyFinancials(
   const rentalIncomeId = findAccount("revenue", "rent") ?? findAccount("revenue", "income");
   const arAccountId = findAccount("asset", "receivable");
   const repairsExpenseId = findAccount("expense", "repair") ?? findAccount("expense", "maintenance");
-  const apAccountId = findAccount("liability", "payable");
+  const apAccountId = findAccount("liability", "accounts payable") ?? findAccount("liability", "payable");
 
   const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const { data: existingInvoices } = await supabase
