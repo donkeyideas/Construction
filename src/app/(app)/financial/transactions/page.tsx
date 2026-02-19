@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getFinancialTransactions } from "@/lib/queries/section-transactions";
-import { backfillMissingJournalEntries } from "@/lib/utils/backfill-journal-entries";
 import { DollarSign } from "lucide-react";
 import SectionTransactions from "@/components/SectionTransactions";
 
@@ -22,8 +21,6 @@ export default async function FinancialTransactionsPage() {
       </div>
     );
   }
-
-  await backfillMissingJournalEntries(supabase, userCompany.companyId, userCompany.userId);
 
   const txnData = await getFinancialTransactions(supabase, userCompany.companyId);
 

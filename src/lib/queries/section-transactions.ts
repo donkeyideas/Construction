@@ -374,32 +374,86 @@ export async function getPropertyTransactions(
 ): Promise<SectionTransactionSummary> {
   const txns: SectionTransaction[] = [];
 
-  // 1. JE lines with property_id (primary — full debit/credit)
-  const { data: jeLines } = await supabase
-    .from("journal_entry_lines")
-    .select("id, debit, credit, description, property_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
-    .eq("company_id", companyId)
-    .not("property_id", "is", null)
-    .limit(500);
+  // Run all independent queries in parallel
+  const [
+    { data: jeLines },
+    { data: invoices },
+    { data: scheduleRows },
+    { data: leases },
+    { data: maintenance },
+  ] = await Promise.all([
+    // 1. JE lines with property_id
+    supabase
+      .from("journal_entry_lines")
+      .select("id, debit, credit, description, property_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
+      .eq("company_id", companyId)
+      .not("property_id", "is", null)
+      .limit(500),
+    // 2. Invoices with property_id
+    supabase
+      .from("invoices")
+      .select("id, invoice_number, invoice_type, invoice_date, total_amount, vendor_name, client_name, status")
+      .eq("company_id", companyId)
+      .not("property_id", "is", null)
+      .neq("status", "voided")
+      .order("invoice_date", { ascending: false })
+      .limit(300),
+    // 3. Lease revenue schedule
+    supabase
+      .from("lease_revenue_schedule")
+      .select("id, schedule_date, monthly_rent, status, accrual_je_id, recognition_je_id, collection_je_id, lease_id, property_id, leases(tenant_name, unit_number)")
+      .eq("company_id", companyId)
+      .order("schedule_date", { ascending: false })
+      .limit(500),
+    // 4. Leases (fallback for un-scheduled)
+    supabase
+      .from("leases")
+      .select("id, unit_number, tenant_name, monthly_rent, security_deposit, lease_start, status, property_id")
+      .eq("company_id", companyId)
+      .not("monthly_rent", "is", null)
+      .order("lease_start", { ascending: false })
+      .limit(100),
+    // 5. Maintenance requests
+    supabase
+      .from("maintenance_requests")
+      .select("id, title, actual_cost, estimated_cost, status, created_at, property_id")
+      .eq("company_id", companyId)
+      .or("actual_cost.gt.0,estimated_cost.gt.0")
+      .order("created_at", { ascending: false })
+      .limit(100),
+  ]);
 
+  // Process JE lines
   for (const line of (jeLines ?? []) as JELineRow[]) {
     const txn = mapJELine(line);
     if (txn) txns.push(txn);
   }
 
-  // 2. Invoices with property_id that DON'T have JEs
-  const { data: invoices } = await supabase
-    .from("invoices")
-    .select("id, invoice_number, invoice_type, invoice_date, total_amount, vendor_name, client_name, status")
-    .eq("company_id", companyId)
-    .not("property_id", "is", null)
-    .neq("status", "voided")
-    .order("invoice_date", { ascending: false })
-    .limit(300);
-
+  // Build secondary queries that depend on primary results
   const invRefs = (invoices ?? []).map((i) => `invoice:${i.id}`);
-  const invJeMap = await getJEMap(supabase, companyId, invRefs);
+  const invoiceIds = (invoices ?? []).map((i) => i.id);
 
+  // Collect JE IDs from schedule rows
+  const scheduleJeIds = new Set<string>();
+  for (const row of scheduleRows ?? []) {
+    if (row.accrual_je_id) scheduleJeIds.add(row.accrual_je_id);
+    if (row.recognition_je_id) scheduleJeIds.add(row.recognition_je_id);
+    if (row.collection_je_id) scheduleJeIds.add(row.collection_je_id);
+  }
+  const jeIdArray = Array.from(scheduleJeIds);
+
+  // Run dependent queries in parallel
+  const [invJeMap, paymentsResult, scheduleJeResult] = await Promise.all([
+    getJEMap(supabase, companyId, invRefs),
+    invoiceIds.length > 0
+      ? supabase.from("payments").select("id, invoice_id, amount, payment_date, reference_number").in("invoice_id", invoiceIds).order("payment_date", { ascending: false })
+      : Promise.resolve({ data: null }),
+    jeIdArray.length > 0
+      ? supabase.from("journal_entries").select("id, entry_number").in("id", jeIdArray)
+      : Promise.resolve({ data: null }),
+  ]);
+
+  // Process invoices without JEs
   for (const inv of invoices ?? []) {
     if (invJeMap.get(`invoice:${inv.id}`)) continue;
     const isPayable = inv.invoice_type === "payable";
@@ -416,20 +470,14 @@ export async function getPropertyTransactions(
     });
   }
 
-  // 3. Payments on property invoices without JEs
-  const invoiceIds = (invoices ?? []).map((i) => i.id);
-  if (invoiceIds.length > 0) {
-    const { data: pmts } = await supabase
-      .from("payments")
-      .select("id, invoice_id, amount, payment_date, reference_number")
-      .in("invoice_id", invoiceIds)
-      .order("payment_date", { ascending: false });
-
-    const pmtRefs = (pmts ?? []).map((p) => `payment:${p.id}`);
+  // Process payments without JEs
+  const pmts = paymentsResult.data;
+  if (pmts && pmts.length > 0) {
+    const pmtRefs = pmts.map((p) => `payment:${p.id}`);
     const pmtJeMap = await getJEMap(supabase, companyId, pmtRefs);
     const invoiceMap = new Map((invoices ?? []).map((i) => [i.id, i]));
 
-    for (const p of pmts ?? []) {
+    for (const p of pmts) {
       if (pmtJeMap.get(`payment:${p.id}`)) continue;
       const inv = invoiceMap.get(p.invoice_id);
       const isPayable = inv?.invoice_type === "payable";
@@ -447,35 +495,10 @@ export async function getPropertyTransactions(
     }
   }
 
-  // 4. Lease revenue schedule — monthly rows from lease_start to lease_end
-  const { data: scheduleRows } = await supabase
-    .from("lease_revenue_schedule")
-    .select(`
-      id, schedule_date, monthly_rent, status,
-      accrual_je_id, recognition_je_id, collection_je_id,
-      lease_id, property_id,
-      leases(tenant_name, unit_number)
-    `)
-    .eq("company_id", companyId)
-    .order("schedule_date", { ascending: false })
-    .limit(500);
-
-  // Build a map of JE IDs to entry_numbers
-  const scheduleJeIds = new Set<string>();
-  for (const row of scheduleRows ?? []) {
-    if (row.accrual_je_id) scheduleJeIds.add(row.accrual_je_id);
-    if (row.recognition_je_id) scheduleJeIds.add(row.recognition_je_id);
-    if (row.collection_je_id) scheduleJeIds.add(row.collection_je_id);
-  }
-  const jeIdArray = Array.from(scheduleJeIds);
-  let scheduleJeMap = new Map<string, string>();
-  if (jeIdArray.length > 0) {
-    const { data: jes } = await supabase
-      .from("journal_entries")
-      .select("id, entry_number")
-      .in("id", jeIdArray);
-    scheduleJeMap = new Map((jes ?? []).map((j) => [j.id, j.entry_number]));
-  }
+  // Process lease revenue schedule
+  const scheduleJeMap = new Map<string, string>(
+    (scheduleJeResult.data ?? []).map((j) => [j.id, j.entry_number])
+  );
 
   for (const row of scheduleRows ?? []) {
     const lease = row.leases as unknown as { tenant_name: string; unit_number: string } | null;
@@ -486,7 +509,6 @@ export async function getPropertyTransactions(
     const statusBadge = row.status === "collected" ? "[Collected]" :
                         row.status === "accrued" ? "[Recognized]" : "[Scheduled]";
 
-    // Pick the most relevant JE for linking
     const jeId = row.collection_je_id || row.recognition_je_id || row.accrual_je_id || null;
     const jeNumber = jeId ? (scheduleJeMap.get(jeId) ?? null) : null;
 
@@ -504,18 +526,10 @@ export async function getPropertyTransactions(
     });
   }
 
-  // 4b. Leases without schedule rows (fallback for un-backfilled leases)
+  // Leases without schedule rows (fallback)
   const scheduledLeaseIds = new Set((scheduleRows ?? []).map((r) => r.lease_id));
-  const { data: leases } = await supabase
-    .from("leases")
-    .select("id, unit_number, tenant_name, monthly_rent, security_deposit, lease_start, status, property_id")
-    .eq("company_id", companyId)
-    .not("monthly_rent", "is", null)
-    .order("lease_start", { ascending: false })
-    .limit(100);
-
   for (const lease of leases ?? []) {
-    if (scheduledLeaseIds.has(lease.id)) continue; // Already in schedule
+    if (scheduledLeaseIds.has(lease.id)) continue;
     const rent = Number(lease.monthly_rent) || 0;
     const deposit = Number(lease.security_deposit) || 0;
     if (rent > 0) {
@@ -540,15 +554,7 @@ export async function getPropertyTransactions(
     }
   }
 
-  // 5. Maintenance requests with actual_cost
-  const { data: maintenance } = await supabase
-    .from("maintenance_requests")
-    .select("id, title, actual_cost, estimated_cost, status, created_at, property_id")
-    .eq("company_id", companyId)
-    .or("actual_cost.gt.0,estimated_cost.gt.0")
-    .order("created_at", { ascending: false })
-    .limit(100);
-
+  // Process maintenance requests
   for (const m of maintenance ?? []) {
     const cost = Number(m.actual_cost) || Number(m.estimated_cost) || 0;
     if (cost <= 0) continue;
