@@ -2,18 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   Building2,
   CheckCircle2,
   AlertTriangle,
-  FileText,
-  Receipt,
-  HardHat,
-  ShieldCheck,
-  FolderOpen,
-  User,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import type {
@@ -181,52 +174,6 @@ export default function VendorDashboardClient({ dashboard }: Props) {
         </div>
       </div>
 
-      {/* ===== Quick Links ===== */}
-      <div className="vendor-quick-links">
-        <Link href="/vendor/contracts" className="vendor-quick-link">
-          <div className="vendor-quick-link-icon"><FileText size={20} /></div>
-          <div>
-            <div className="vendor-quick-link-label">My Contracts</div>
-            <div className="vendor-quick-link-desc">View all contracts</div>
-          </div>
-        </Link>
-        <Link href="/vendor/invoices" className="vendor-quick-link">
-          <div className="vendor-quick-link-icon"><Receipt size={20} /></div>
-          <div>
-            <div className="vendor-quick-link-label">My Invoices</div>
-            <div className="vendor-quick-link-desc">Track payments</div>
-          </div>
-        </Link>
-        <Link href="/vendor/projects" className="vendor-quick-link">
-          <div className="vendor-quick-link-icon"><HardHat size={20} /></div>
-          <div>
-            <div className="vendor-quick-link-label">My Projects</div>
-            <div className="vendor-quick-link-desc">Project details</div>
-          </div>
-        </Link>
-        <Link href="/vendor/compliance" className="vendor-quick-link">
-          <div className="vendor-quick-link-icon"><ShieldCheck size={20} /></div>
-          <div>
-            <div className="vendor-quick-link-label">Compliance</div>
-            <div className="vendor-quick-link-desc">Certifications</div>
-          </div>
-        </Link>
-        <Link href="/vendor/documents" className="vendor-quick-link">
-          <div className="vendor-quick-link-icon"><FolderOpen size={20} /></div>
-          <div>
-            <div className="vendor-quick-link-label">Documents</div>
-            <div className="vendor-quick-link-desc">Shared files</div>
-          </div>
-        </Link>
-        <Link href="/vendor/profile" className="vendor-quick-link">
-          <div className="vendor-quick-link-icon"><User size={20} /></div>
-          <div>
-            <div className="vendor-quick-link-label">My Profile</div>
-            <div className="vendor-quick-link-desc">Account settings</div>
-          </div>
-        </Link>
-      </div>
-
       {/* ===== Two-Column Layout ===== */}
       <div className="vendor-two-col">
         {/* --- Left Column --- */}
@@ -235,7 +182,6 @@ export default function VendorDashboardClient({ dashboard }: Props) {
           <div className="vendor-card">
             <div className="vendor-card-title">
               {t("activeProjectsTitle")}
-              <Link href="/vendor/projects" className="vendor-view-all">View All &rarr;</Link>
             </div>
             {activeProjects.length > 0 ? (
               activeProjects.map((proj: VendorActiveProject) => {
@@ -337,7 +283,6 @@ export default function VendorDashboardClient({ dashboard }: Props) {
           <div className="vendor-card">
             <div className="vendor-card-title">
               {t("invoicePaymentStatusTitle")}
-              <Link href="/vendor/invoices" className="vendor-view-all">View All &rarr;</Link>
             </div>
             {recentInvoices.length > 0 ? (
               <div style={{ overflowX: "auto" }}>
@@ -386,7 +331,6 @@ export default function VendorDashboardClient({ dashboard }: Props) {
           <div className="vendor-card">
             <div className="vendor-card-title">
               {t("complianceDocsTitle")}
-              <Link href="/vendor/compliance" className="vendor-view-all">View All &rarr;</Link>
             </div>
             {certifications.length > 0 ? (
               <>
