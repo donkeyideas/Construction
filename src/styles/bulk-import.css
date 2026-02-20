@@ -30,7 +30,7 @@
 /* ===== Phase Sections ===== */
 .bulk-import-phase {
   margin-bottom: 20px;
-  background: var(--card-bg, var(--bg));
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
