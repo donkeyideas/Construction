@@ -912,7 +912,7 @@
 }
 
 .ev-metric {
-  background: var(--card-bg);
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 16px;

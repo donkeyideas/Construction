@@ -22,10 +22,6 @@
   margin-bottom: 24px;
 }
 
-.kpi-grid-5 {
-  grid-template-columns: repeat(5, 1fr);
-}
-
 .kpi {
   display: flex;
   justify-content: space-between;
