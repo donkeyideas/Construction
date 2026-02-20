@@ -310,8 +310,8 @@ export default function ImportClient() {
           </p>
           <div>
             <a
-              href="/api/import/template"
-              download
+              href="/buildwrk-import-template.xlsx"
+              download="buildwrk-import-template.xlsx"
               className="bulk-import-btn primary"
               style={{ display: "inline-flex", textDecoration: "none", flex: "none" }}
             >

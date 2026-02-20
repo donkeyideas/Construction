@@ -112,6 +112,16 @@ function groupNavItems(items: NavItem[]): NavGroup[] {
   }));
 }
 
+function safeT(t: (key: string) => string, key: string): string {
+  try {
+    const result = t(key);
+    if (result.startsWith("nav.")) return key;
+    return result;
+  } catch {
+    return key;
+  }
+}
+
 function CorporateNavItem({
   item,
   t,
@@ -139,7 +149,7 @@ function CorporateNavItem({
           className={`nav-link ${isActive ? "active" : ""}`}
         >
           <Icon />
-          <span className="label">{t(item.label)}</span>
+          <span className="label">{safeT(t, item.label)}</span>
           <ChevronRight
             className="chevron"
             style={{ transform: open ? "rotate(90deg)" : undefined }}
@@ -155,7 +165,7 @@ function CorporateNavItem({
                   href={child.href}
                   className={`nav-child ${pathname === child.href ? "active" : ""}`}
                 >
-                  {t(child.label)}
+                  {safeT(t, child.label)}
                   {childBadge != null && (
                     <span className="nav-import-badge">{childBadge}</span>
                   )}
@@ -172,7 +182,7 @@ function CorporateNavItem({
     <div className="nav-item">
       <Link href={item.href!} className={`nav-link ${isActive ? "active" : ""}`}>
         <Icon />
-        <span className="label">{t(item.label)}</span>
+        <span className="label">{safeT(t, item.label)}</span>
         {badge != null && badge > 0 && (
           <span className="nav-badge">{badge > 99 ? "99+" : badge}</span>
         )}
