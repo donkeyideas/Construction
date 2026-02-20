@@ -389,7 +389,7 @@ Structure every data response with clear sections. Use markdown formatting:
             let query = supabase
               .from("properties")
               .select(
-                "id, name, property_type, address_line1, city, state, total_units, occupied_units, occupancy_rate, monthly_revenue, monthly_expenses, noi, current_value, status"
+                "id, name, property_type, address_line1, city, state, total_units, occupied_units, occupancy_rate, monthly_revenue, monthly_expenses, noi, current_value"
               )
               .eq("company_id", companyId)
               .order("name", { ascending: true })

@@ -47,7 +47,7 @@ export default async function PredictionsPage() {
       // Safety: certifications expiring within 60 days
       supabase
         .from("certifications")
-        .select("id, person_name, certification_name, expiry_date")
+        .select("id, cert_name, expiry_date")
         .eq("company_id", companyId)
         .lte("expiry_date", new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
         .gte("expiry_date", new Date().toISOString().slice(0, 10)),

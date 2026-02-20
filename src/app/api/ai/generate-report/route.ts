@@ -537,7 +537,7 @@ async function fetchSafetyComplianceData(
 
   const certsQuery = supabase
     .from("certifications")
-    .select("id, person_name, certification_name, cert_type, expiry_date, status")
+    .select("id, cert_name, cert_type, expiry_date, status, contacts(first_name, last_name)")
     .eq("company_id", companyId)
     .order("expiry_date", { ascending: true })
     .limit(50);
@@ -627,10 +627,14 @@ async function fetchSafetyComplianceData(
   sections.push(`Already expired: ${expired.length}`);
 
   for (const cert of expiringSoon) {
-    sections.push(`  EXPIRING: ${cert.person_name} - ${cert.certification_name} (expires ${cert.expiry_date})`);
+    const contact = cert.contacts as unknown as { first_name?: string; last_name?: string } | null;
+    const personName = contact ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() || "Unknown" : "Unknown";
+    sections.push(`  EXPIRING: ${personName} - ${cert.cert_name ?? cert.cert_type ?? "Certification"} (expires ${cert.expiry_date})`);
   }
   for (const cert of expired) {
-    sections.push(`  EXPIRED: ${cert.person_name} - ${cert.certification_name} (expired ${cert.expiry_date})`);
+    const contact = cert.contacts as unknown as { first_name?: string; last_name?: string } | null;
+    const personName = contact ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() || "Unknown" : "Unknown";
+    sections.push(`  EXPIRED: ${personName} - ${cert.cert_name ?? cert.cert_type ?? "Certification"} (expired ${cert.expiry_date})`);
   }
 
   return sections.join("\n");

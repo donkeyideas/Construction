@@ -65,7 +65,7 @@ export default async function AlertsPage() {
     // 5. Certifications expiring within 30 days
     supabase
       .from("certifications")
-      .select("id, certification_name, expiry_date, contacts(first_name, last_name)")
+      .select("id, cert_name, expiry_date, contacts(first_name, last_name)")
       .eq("company_id", companyId)
       .gte("expiry_date", thirtyDaysAgo.slice(0, 10))
       .lte("expiry_date", thirtyDaysFromNow),
@@ -154,7 +154,7 @@ export default async function AlertsPage() {
       : "Unknown";
     return {
       personName,
-      certName: cert.certification_name ?? "Certification",
+      certName: cert.cert_name ?? "Certification",
       expiresAt: cert.expiry_date,
     };
   });
