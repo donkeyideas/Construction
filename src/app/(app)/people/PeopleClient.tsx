@@ -749,24 +749,24 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                 </div>
 
                 <div className="ticket-form-actions">
-                  <button className="btn-danger" onClick={() => setShowDeleteConfirm(true)}>
-                    <Trash2 size={16} />
+                  <button className="ui-btn ui-btn-sm ui-btn-outline" style={{ color: "var(--color-red)", borderColor: "rgba(220,38,38,0.35)" }} onClick={() => setShowDeleteConfirm(true)}>
+                    <Trash2 size={15} />
                     {t("delete")}
                   </button>
                   {(selectedContact.contact_type === "employee" || selectedContact.contact_type === "vendor") && !selectedContact.user_id && (
-                    <button className="btn-secondary" onClick={() => openCreateLogin(selectedContact)}>
-                      <KeyRound size={16} />
+                    <button className="ui-btn ui-btn-sm ui-btn-outline" onClick={() => openCreateLogin(selectedContact)}>
+                      <KeyRound size={15} />
                       Create Login
                     </button>
                   )}
                   {selectedContact.user_id && (selectedContact.contact_type === "employee" || selectedContact.contact_type === "vendor") && (
-                    <span className="badge badge-green" style={{ padding: "6px 12px", fontSize: "0.8rem" }}>
+                    <span className="badge badge-green" style={{ padding: "6px 12px", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: 4 }}>
                       <Check size={14} />
                       Login Active
                     </span>
                   )}
-                  <button className="btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>
-                    <Edit3 size={16} />
+                  <button className="ui-btn ui-btn-sm ui-btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>
+                    <Edit3 size={15} />
                     {t("edit")}
                   </button>
                 </div>
