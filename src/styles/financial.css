@@ -1064,7 +1064,8 @@
 
 /* Statement card wrapper */
 .fs-statement-card {
-  max-width: 800px;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 /* Title block at top of each statement */
