@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -12,6 +12,10 @@ import {
   User,
   Mail,
   Briefcase,
+  Upload,
+  Pencil,
+  X,
+  Phone,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import type {
@@ -126,6 +130,26 @@ export default function VendorDashboardClient({ dashboard }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Upload state
+  const complianceFileRef = useRef<HTMLInputElement>(null);
+  const documentFileRef = useRef<HTMLInputElement>(null);
+  const [uploadingCompliance, setUploadingCompliance] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [docUploadMsg, setDocUploadMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Profile edit state
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    company_name: contact?.company_name || "",
+    first_name: contact?.first_name || "",
+    last_name: contact?.last_name || "",
+    email: contact?.email || "",
+    job_title: contact?.job_title || "",
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   const contactName =
     contact?.company_name ||
     `${contact?.first_name || ""} ${contact?.last_name || ""}`.trim() ||
@@ -170,6 +194,68 @@ export default function VendorDashboardClient({ dashboard }: Props) {
       setSubmitMsg({ type: "error", text: "Network error. Please try again." });
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleFileUpload(file: File, docType: "compliance" | "general", setUploading: (v: boolean) => void, setMsg: (v: { type: "success" | "error"; text: string } | null) => void) {
+    setUploading(true);
+    setMsg(null);
+
+    if (file.size > 10 * 1024 * 1024) {
+      setMsg({ type: "error", text: "File too large. Maximum size is 10MB." });
+      setUploading(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("doc_type", docType);
+    formData.append("doc_name", file.name);
+
+    try {
+      const res = await fetch("/api/vendor/documents", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        setMsg({ type: "success", text: `"${file.name}" uploaded successfully!` });
+        router.refresh();
+      } else {
+        const data = await res.json();
+        setMsg({ type: "error", text: data.error || "Failed to upload file." });
+      }
+    } catch {
+      setMsg({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleSaveProfile(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingProfile(true);
+    setProfileMsg(null);
+
+    try {
+      const res = await fetch("/api/vendor/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profileForm),
+      });
+
+      if (res.ok) {
+        setProfileMsg({ type: "success", text: "Profile updated successfully!" });
+        setEditingProfile(false);
+        router.refresh();
+      } else {
+        const data = await res.json();
+        setProfileMsg({ type: "error", text: data.error || "Failed to update profile." });
+      }
+    } catch {
+      setProfileMsg({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setSavingProfile(false);
     }
   }
 
@@ -390,9 +476,37 @@ export default function VendorDashboardClient({ dashboard }: Props) {
 
           {/* Compliance & Documents */}
           <div className="vendor-card">
-            <div className="vendor-card-title">
-              {t("complianceDocsTitle")}
+            <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {t("complianceDocsTitle")}
+              </span>
+              <button
+                className="vendor-btn-upload"
+                onClick={() => complianceFileRef.current?.click()}
+                disabled={uploadingCompliance}
+              >
+                <Upload size={14} />
+                {uploadingCompliance ? "Uploading..." : "Upload"}
+              </button>
+              <input
+                ref={complianceFileRef}
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file, "compliance", setUploadingCompliance, setUploadMsg);
+                  e.target.value = "";
+                }}
+              />
             </div>
+
+            {uploadMsg && (
+              <div className={uploadMsg.type === "success" ? "vendor-msg-success" : "vendor-msg-error"}>
+                {uploadMsg.text}
+              </div>
+            )}
+
             {certifications.length > 0 ? (
               <>
                 {certifications.map((cert: VendorCertification) => {
@@ -456,10 +570,38 @@ export default function VendorDashboardClient({ dashboard }: Props) {
 
           {/* Documents */}
           <div className="vendor-card">
-            <div className="vendor-card-title">
-              <FolderOpen size={18} />
-              My Documents
+            <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <FolderOpen size={18} />
+                My Documents
+              </span>
+              <button
+                className="vendor-btn-upload"
+                onClick={() => documentFileRef.current?.click()}
+                disabled={uploadingDoc}
+              >
+                <Upload size={14} />
+                {uploadingDoc ? "Uploading..." : "Upload"}
+              </button>
+              <input
+                ref={documentFileRef}
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file, "general", setUploadingDoc, setDocUploadMsg);
+                  e.target.value = "";
+                }}
+              />
             </div>
+
+            {docUploadMsg && (
+              <div className={docUploadMsg.type === "success" ? "vendor-msg-success" : "vendor-msg-error"}>
+                {docUploadMsg.text}
+              </div>
+            )}
+
             {documents.length > 0 ? (
               documents.map((doc: VendorDocumentItem) => (
                 <div key={doc.id} className="vendor-doc-item">
@@ -499,45 +641,141 @@ export default function VendorDashboardClient({ dashboard }: Props) {
 
           {/* Profile Card */}
           <div className="vendor-card">
-            <div className="vendor-card-title">
-              <User size={18} />
-              My Profile
+            <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <User size={18} />
+                My Profile
+              </span>
+              {contact && !editingProfile && (
+                <button
+                  className="vendor-btn-upload"
+                  onClick={() => {
+                    setProfileForm({
+                      company_name: contact.company_name || "",
+                      first_name: contact.first_name || "",
+                      last_name: contact.last_name || "",
+                      email: contact.email || "",
+                      job_title: contact.job_title || "",
+                    });
+                    setEditingProfile(true);
+                    setProfileMsg(null);
+                  }}
+                >
+                  <Pencil size={14} />
+                  Edit
+                </button>
+              )}
+              {editingProfile && (
+                <button
+                  className="vendor-btn-upload"
+                  onClick={() => { setEditingProfile(false); setProfileMsg(null); }}
+                >
+                  <X size={14} />
+                  Cancel
+                </button>
+              )}
             </div>
+
+            {profileMsg && (
+              <div className={profileMsg.type === "success" ? "vendor-msg-success" : "vendor-msg-error"}>
+                {profileMsg.text}
+              </div>
+            )}
+
             {contact ? (
-              <div className="vendor-profile-grid">
-                <div className="vendor-profile-row">
-                  <User size={14} className="vendor-profile-icon" />
-                  <div>
-                    <div className="vendor-profile-label">Company</div>
-                    <div className="vendor-profile-value">{contact.company_name || "—"}</div>
+              editingProfile ? (
+                <form onSubmit={handleSaveProfile}>
+                  <div className="vendor-form-group">
+                    <label className="vendor-form-label">Company Name</label>
+                    <input
+                      type="text"
+                      className="vendor-form-input"
+                      value={profileForm.company_name}
+                      onChange={(e) => setProfileForm({ ...profileForm, company_name: e.target.value })}
+                    />
                   </div>
-                </div>
-                <div className="vendor-profile-row">
-                  <Briefcase size={14} className="vendor-profile-icon" />
-                  <div>
-                    <div className="vendor-profile-label">Contact</div>
-                    <div className="vendor-profile-value">
-                      {contact.first_name} {contact.last_name}
+                  <div className="vendor-form-group">
+                    <label className="vendor-form-label">First Name</label>
+                    <input
+                      type="text"
+                      className="vendor-form-input"
+                      value={profileForm.first_name}
+                      onChange={(e) => setProfileForm({ ...profileForm, first_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="vendor-form-group">
+                    <label className="vendor-form-label">Last Name</label>
+                    <input
+                      type="text"
+                      className="vendor-form-input"
+                      value={profileForm.last_name}
+                      onChange={(e) => setProfileForm({ ...profileForm, last_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="vendor-form-group">
+                    <label className="vendor-form-label">Email</label>
+                    <input
+                      type="email"
+                      className="vendor-form-input"
+                      value={profileForm.email}
+                      onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="vendor-form-group">
+                    <label className="vendor-form-label">Specialty / Job Title</label>
+                    <input
+                      type="text"
+                      className="vendor-form-input"
+                      value={profileForm.job_title}
+                      onChange={(e) => setProfileForm({ ...profileForm, job_title: e.target.value })}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="vendor-btn-primary"
+                    disabled={savingProfile}
+                  >
+                    {savingProfile ? "Saving..." : "Save Changes"}
+                  </button>
+                </form>
+              ) : (
+                <div className="vendor-profile-grid">
+                  <div className="vendor-profile-row">
+                    <User size={14} className="vendor-profile-icon" />
+                    <div>
+                      <div className="vendor-profile-label">Company</div>
+                      <div className="vendor-profile-value">{contact.company_name || "—"}</div>
                     </div>
                   </div>
-                </div>
-                <div className="vendor-profile-row">
-                  <Mail size={14} className="vendor-profile-icon" />
-                  <div>
-                    <div className="vendor-profile-label">Email</div>
-                    <div className="vendor-profile-value">{contact.email || "—"}</div>
-                  </div>
-                </div>
-                {contact.job_title && (
                   <div className="vendor-profile-row">
                     <Briefcase size={14} className="vendor-profile-icon" />
                     <div>
-                      <div className="vendor-profile-label">Specialty</div>
-                      <div className="vendor-profile-value">{contact.job_title}</div>
+                      <div className="vendor-profile-label">Contact</div>
+                      <div className="vendor-profile-value">
+                        {contact.first_name} {contact.last_name}
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
+                  <div className="vendor-profile-row">
+                    <Mail size={14} className="vendor-profile-icon" />
+                    <div>
+                      <div className="vendor-profile-label">Email</div>
+                      <div className="vendor-profile-value">{contact.email || "—"}</div>
+                    </div>
+                  </div>
+                  {contact.job_title && (
+                    <div className="vendor-profile-row">
+                      <Briefcase size={14} className="vendor-profile-icon" />
+                      <div>
+                        <div className="vendor-profile-label">Specialty</div>
+                        <div className="vendor-profile-value">{contact.job_title}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
             ) : (
               <div className="vendor-empty">No profile information</div>
             )}

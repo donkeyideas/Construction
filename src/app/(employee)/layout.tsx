@@ -6,6 +6,7 @@ import "@/styles/components.css";
 import "@/styles/financial.css";
 import "@/styles/employee-portal.css";
 import "@/styles/vendor-portal.css";
+import "@/styles/variant-corporate.css";
 
 export default function EmployeeLayout({ children }: { children: React.ReactNode }) {
   return (

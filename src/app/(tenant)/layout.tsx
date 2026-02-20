@@ -5,6 +5,7 @@ import "@/styles/app-shell.css";
 import "@/styles/components.css";
 import "@/styles/tenant-portal.css";
 import "@/styles/vendor-portal.css";
+import "@/styles/variant-corporate.css";
 
 export default function TenantLayout({ children }: { children: React.ReactNode }) {
   return (

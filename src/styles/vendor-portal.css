@@ -603,6 +603,105 @@
   font-family: var(--font-sans, Inter, -apple-system, sans-serif);
 }
 
+/* ===== Upload Button (card header) ===== */
+.vendor-btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid var(--border, #d6d3d1);
+  border-radius: 6px;
+  background: var(--surface, #f5f0eb);
+  color: var(--text, #292524);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-sans, Inter, -apple-system, sans-serif);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.vendor-btn-upload:hover {
+  background: var(--border, #d6d3d1);
+  border-color: var(--muted, #78716c);
+}
+.vendor-btn-upload:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Corporate Variant Overrides for Portals ===== */
+[data-variant="corporate"] .portal-nav {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: var(--topbar-bg);
+}
+[data-variant="corporate"] .portal-brand h1 {
+  font-family: var(--font-sans, Inter, -apple-system, sans-serif);
+}
+[data-variant="corporate"] .portal-accent-dot {
+  background: var(--color-amber, #c9a84c);
+}
+[data-variant="corporate"] .portal-search-btn:hover {
+  border-color: var(--color-blue, #2c5282);
+  box-shadow: 0 0 0 2px rgba(44, 82, 130, 0.08);
+}
+[data-variant="corporate"] .portal-theme-btn:hover {
+  color: var(--color-blue, #2c5282);
+}
+[data-variant="corporate"] .portal-avatar {
+  background: var(--color-blue, #2c5282);
+}
+[data-variant="corporate"] .vendor-card {
+  border-radius: var(--card-radius, 8px);
+  background: var(--card-bg, #f8f9fb);
+}
+[data-variant="corporate"] .vendor-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(44, 82, 130, 0.3);
+}
+[data-variant="corporate"] .vendor-card-title {
+  font-family: var(--font-sans, Inter, -apple-system, sans-serif);
+}
+[data-variant="corporate"] .vendor-welcome-card {
+  background: linear-gradient(135deg, var(--color-blue, #2c5282) 0%, var(--color-blue-dark, #1e3a5f) 100%);
+}
+[data-variant="corporate"] .vendor-welcome-badge {
+  background: rgba(255, 255, 255, .2);
+}
+[data-variant="corporate"] .vendor-project-badge {
+  color: var(--color-blue, #2c5282);
+}
+[data-variant="corporate"] .vendor-btn-primary {
+  background: var(--color-blue, #2c5282);
+}
+[data-variant="corporate"] .vendor-btn-primary:hover {
+  background: var(--color-blue-dark, #1e3a5f);
+}
+[data-variant="corporate"] .vendor-badge-blue {
+  background: var(--color-blue-light, rgba(44, 82, 130, 0.1));
+  color: var(--color-blue, #2c5282);
+}
+[data-variant="corporate"] .vendor-badge-amber {
+  background: var(--color-amber-light, rgba(201, 168, 76, 0.12));
+  color: var(--color-amber, #c9a84c);
+}
+[data-variant="corporate"] .vendor-doc-icon {
+  color: var(--color-amber, #c9a84c);
+}
+[data-variant="corporate"] .vendor-doc-download {
+  color: var(--color-blue, #2c5282);
+}
+[data-variant="corporate"] .vendor-doc-download::after {
+  background: var(--color-blue, #2c5282);
+}
+[data-variant="corporate"] .vendor-file-upload:hover {
+  border-color: var(--color-blue, #2c5282);
+}
+[data-variant="corporate"] .vendor-btn-upload:hover {
+  border-color: var(--color-blue, #2c5282);
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 1023px) {
   .portal-nav {
