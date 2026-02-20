@@ -193,7 +193,7 @@ export async function getEmployeePayRates(
 ): Promise<EmployeePayRate[]> {
   const { data, error } = await supabase
     .from("employee_pay_rates")
-    .select("*, user_profiles(full_name, email)")
+    .select("*")
     .eq("company_id", companyId)
     .is("end_date", null)
     .order("effective_date", { ascending: false });
@@ -203,13 +203,26 @@ export async function getEmployeePayRates(
     return [];
   }
 
+  // Fetch user profiles separately (no FK between employee_pay_rates and user_profiles)
+  const userIds = [...new Set((data ?? []).map((r: Record<string, unknown>) => r.user_id as string))];
+  const profileMap: Record<string, { full_name: string | null; email: string | null }> = {};
+
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", userIds);
+    for (const p of profiles ?? []) {
+      profileMap[p.id] = { full_name: p.full_name, email: p.email };
+    }
+  }
+
   return (data ?? []).map((row: Record<string, unknown>) => {
-    const profile = row.user_profiles as { full_name: string | null; email: string | null } | null;
+    const profile = profileMap[row.user_id as string];
     return {
       ...row,
       employee_name: profile?.full_name ?? "Unknown",
       employee_email: profile?.email ?? "",
-      user_profiles: undefined,
     };
   }) as unknown as EmployeePayRate[];
 }
