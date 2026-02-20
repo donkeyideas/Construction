@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { LayoutDashboard, FileText, Receipt, DollarSign, ShieldCheck } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getVendorDashboard } from "@/lib/queries/vendor-portal";
-import { formatCurrency } from "@/lib/utils/format";
+import { getVendorDashboardFull } from "@/lib/queries/vendor-portal";
 import { getTranslations } from "next-intl/server";
+import VendorDashboardClient from "./VendorDashboardClient";
 
 export const metadata = { title: "Vendor Dashboard - Buildwrk" };
 
@@ -12,10 +12,10 @@ export default async function VendorDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) { redirect("/login/vendor"); }
 
-  const dashboard = await getVendorDashboard(supabase, user.id);
+  const dashboard = await getVendorDashboardFull(supabase, user.id);
   const t = await getTranslations("vendor");
 
-  if (!dashboard.contactId) {
+  if (!dashboard.contact) {
     return (
       <div>
         <div className="fin-header">
@@ -37,52 +37,5 @@ export default async function VendorDashboardPage() {
     );
   }
 
-  return (
-    <div>
-      <div className="fin-header">
-        <div>
-          <h2>{t("dashboardTitle")}</h2>
-          <p className="fin-header-sub">{t("dashboardSubtitle")}</p>
-        </div>
-      </div>
-
-      <div className="vendor-kpi-grid">
-        <div className="fin-kpi">
-          <div className="fin-kpi-icon blue">
-            <FileText size={18} />
-          </div>
-          <span className="fin-kpi-label">{t("totalContractValue")}</span>
-          <span className="fin-kpi-value">{formatCurrency(dashboard.totalContractValue)}</span>
-        </div>
-
-        <div className="fin-kpi">
-          <div className="fin-kpi-icon amber">
-            <Receipt size={18} />
-          </div>
-          <span className="fin-kpi-label">{t("outstandingInvoices")}</span>
-          <span className="fin-kpi-value">{dashboard.outstandingInvoices}</span>
-        </div>
-
-        <div className="fin-kpi">
-          <div className="fin-kpi-icon red">
-            <DollarSign size={18} />
-          </div>
-          <span className="fin-kpi-label">{t("outstandingAmount")}</span>
-          <span className={`fin-kpi-value ${dashboard.outstandingAmount > 0 ? "negative" : ""}`}>
-            {formatCurrency(dashboard.outstandingAmount)}
-          </span>
-        </div>
-
-        <div className="fin-kpi">
-          <div className="fin-kpi-icon green">
-            <ShieldCheck size={18} />
-          </div>
-          <span className="fin-kpi-label">{t("expiringCertifications")}</span>
-          <span className={`fin-kpi-value ${dashboard.expiringCertifications > 0 ? "negative" : ""}`}>
-            {dashboard.expiringCertifications}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
+  return <VendorDashboardClient dashboard={dashboard} />;
 }

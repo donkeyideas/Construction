@@ -382,7 +382,18 @@
     "profileTitle": "My Profile",
     "profileSubtitle": "View and manage your vendor profile information.",
     "comingSoon": "Coming Soon",
-    "underDevelopment": "This feature is under development."
+    "underDevelopment": "This feature is under development.",
+    "activeProjectsTitle": "Active Projects",
+    "invoicePaymentStatusTitle": "Invoice & Payment Status",
+    "complianceDocsTitle": "Compliance & Documents",
+    "requiredDocsTitle": "Required Documents Checklist",
+    "labelProject": "Project",
+    "labelInvoiceNumber": "Invoice Number",
+    "labelAmount": "Amount",
+    "labelAttachFile": "Attach File",
+    "submitInvoiceBtn": "Submit Invoice",
+    "thInvoice": "Invoice",
+    "thSubmitted": "Submitted"
   },
   "tenantNav": {
     "tenantPortal": "Tenant Portal",

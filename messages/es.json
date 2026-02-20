@@ -381,7 +381,18 @@
     "profileTitle": "Mi Perfil",
     "profileSubtitle": "Vea y administre su información de perfil de proveedor.",
     "comingSoon": "Próximamente",
-    "underDevelopment": "Esta función está en desarrollo."
+    "underDevelopment": "Esta función está en desarrollo.",
+    "activeProjectsTitle": "Proyectos Activos",
+    "invoicePaymentStatusTitle": "Estado de Facturas y Pagos",
+    "complianceDocsTitle": "Cumplimiento y Documentos",
+    "requiredDocsTitle": "Lista de Documentos Requeridos",
+    "labelProject": "Proyecto",
+    "labelInvoiceNumber": "Número de Factura",
+    "labelAmount": "Monto",
+    "labelAttachFile": "Adjuntar Archivo",
+    "submitInvoiceBtn": "Enviar Factura",
+    "thInvoice": "Factura",
+    "thSubmitted": "Enviado"
   },
   "tenantNav": {
     "tenantPortal": "Portal de Inquilinos",

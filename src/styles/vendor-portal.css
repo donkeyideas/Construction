@@ -1,9 +1,391 @@
 /* Vendor Portal Styles */
-/* Extends app-shell.css, components.css, financial.css */
+/* Matches mockup: mockups-v2/28-tenant-vendor-portal.html */
 
+/* ===== KPI Grid (existing, kept for sub-pages) ===== */
 .vendor-kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
+}
+
+/* ===== Welcome Card ===== */
+.vendor-welcome-card {
+  background: linear-gradient(135deg, var(--amber, #b45309) 0%, #92400e 100%);
+  border-radius: 12px;
+  padding: 32px;
+  color: #fff;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.vendor-welcome-card::after {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .06);
+  pointer-events: none;
+}
+.vendor-welcome-card h2 {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.vendor-welcome-card p {
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+.vendor-welcome-details {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.vendor-welcome-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  opacity: 0.9;
+}
+.vendor-welcome-detail svg {
+  width: 16px;
+  height: 16px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2;
+}
+.vendor-welcome-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .18);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ===== Two-Column Layout ===== */
+.vendor-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* ===== Cards ===== */
+.vendor-card {
+  background: var(--bg, #ffffff);
+  border: 1px solid var(--border, #d6d3d1);
+  border-radius: 10px;
+  padding: 24px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  margin-bottom: 24px;
+}
+.vendor-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .06);
+  transform: translateY(-2px);
+}
+.vendor-card-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== Badges ===== */
+.vendor-badge {
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.vendor-badge-blue {
+  background: var(--blue-light, #eff6ff);
+  color: var(--blue, #1d4ed8);
+}
+.vendor-badge-amber {
+  background: var(--amber-light, #fef3c7);
+  color: var(--amber, #b45309);
+}
+.vendor-badge-green {
+  background: rgba(22, 163, 74, .08);
+  color: var(--green, #16a34a);
+}
+.vendor-badge-red {
+  background: rgba(220, 38, 38, .08);
+  color: var(--red, #dc2626);
+}
+
+/* ===== Project Items ===== */
+.vendor-project-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border, #d6d3d1);
+}
+.vendor-project-item:last-child {
+  border-bottom: none;
+}
+.vendor-project-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--surface, #f5f0eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif, Georgia, serif);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--amber, #b45309);
+  flex-shrink: 0;
+}
+.vendor-project-info {
+  flex: 1;
+  min-width: 0;
+}
+.vendor-project-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.vendor-project-role {
+  font-size: 0.72rem;
+  color: var(--muted, #78716c);
+  margin-top: 2px;
+}
+
+/* ===== Data Table ===== */
+.vendor-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.vendor-data-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted, #78716c);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--border, #d6d3d1);
+}
+.vendor-data-table td {
+  padding: 10px 10px;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--border, #d6d3d1);
+}
+.vendor-data-table tr:last-child td {
+  border-bottom: none;
+}
+.vendor-data-table tr:hover td {
+  background: var(--surface, #f5f0eb);
+}
+
+/* ===== Form Elements ===== */
+.vendor-form-group {
+  margin-bottom: 14px;
+}
+.vendor-form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted, #78716c);
+  margin-bottom: 4px;
+}
+.vendor-form-input,
+.vendor-form-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border, #d6d3d1);
+  border-radius: 7px;
+  background: var(--bg, #ffffff);
+  color: var(--text, #292524);
+  font-size: 0.85rem;
+  font-family: var(--font-sans, Inter, -apple-system, sans-serif);
+}
+.vendor-form-input:focus,
+.vendor-form-select:focus {
+  outline: none;
+  border-color: var(--blue, #1d4ed8);
+  box-shadow: 0 0 0 3px var(--blue-light, #eff6ff);
+}
+.vendor-form-select {
+  appearance: auto;
+}
+
+/* ===== File Upload ===== */
+.vendor-file-upload {
+  border: 2px dashed var(--border, #d6d3d1);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.vendor-file-upload:hover {
+  border-color: var(--blue, #1d4ed8);
+}
+.vendor-file-upload-text {
+  font-size: 0.82rem;
+  color: var(--muted, #78716c);
+}
+.vendor-file-upload-text strong {
+  color: var(--blue, #1d4ed8);
+}
+
+/* ===== Buttons ===== */
+.vendor-btn-primary {
+  background: var(--blue, #1d4ed8);
+  color: #fff;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: var(--font-sans, Inter, -apple-system, sans-serif);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  display: inline-block;
+  width: 100%;
+}
+.vendor-btn-primary:hover {
+  background: #1e40af;
+  transform: translateY(-1px);
+}
+.vendor-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== Compliance Items ===== */
+.vendor-compliance-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border, #d6d3d1);
+}
+.vendor-compliance-item:last-child {
+  border-bottom: none;
+}
+.vendor-compliance-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.vendor-compliance-date {
+  font-size: 0.72rem;
+  color: var(--muted, #78716c);
+}
+.vendor-compliance-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.vendor-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.vendor-status-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ===== Required Documents Checklist ===== */
+.vendor-docs-checklist {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border, #d6d3d1);
+}
+.vendor-docs-checklist-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.vendor-docs-checklist label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--muted, #78716c);
+  padding: 3px 0;
+}
+.vendor-docs-checklist label.needs-attention {
+  color: var(--amber, #b45309);
+}
+
+/* ===== Success/Error Messages ===== */
+.vendor-msg-success {
+  padding: 10px 14px;
+  border-radius: 7px;
+  background: rgba(22, 163, 74, .08);
+  color: var(--green, #16a34a);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.vendor-msg-error {
+  padding: 10px 14px;
+  border-radius: 7px;
+  background: rgba(220, 38, 38, .08);
+  color: var(--red, #dc2626);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+
+/* ===== Empty State ===== */
+.vendor-empty {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--muted, #78716c);
+  font-size: 0.85rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1023px) {
+  .vendor-welcome-card {
+    padding: 24px;
+  }
+  .vendor-welcome-card h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .vendor-two-col {
+    grid-template-columns: 1fr;
+  }
+  .vendor-welcome-card h2 {
+    font-size: 1.4rem;
+  }
+  .vendor-welcome-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .vendor-data-table {
+    font-size: 0.75rem;
+  }
+  .vendor-data-table th,
+  .vendor-data-table td {
+    padding: 6px 6px;
+  }
+  .vendor-welcome-card {
+    padding: 20px;
+  }
 }
