@@ -50,7 +50,7 @@ export default async function CashFlowForecastPage() {
       .select("balance_due")
       .eq("company_id", companyId)
       .eq("invoice_type", "receivable")
-      .in("status", ["sent", "overdue", "partial"])
+      .in("status", ["pending", "approved", "sent", "overdue", "partial"])
       .gte("due_date", todayISO),
 
     // 30 days: due_date between today-30 and today
@@ -59,7 +59,7 @@ export default async function CashFlowForecastPage() {
       .select("balance_due")
       .eq("company_id", companyId)
       .eq("invoice_type", "receivable")
-      .in("status", ["sent", "overdue", "partial"])
+      .in("status", ["pending", "approved", "sent", "overdue", "partial"])
       .gte("due_date", days30Ago)
       .lt("due_date", todayISO),
 
@@ -69,7 +69,7 @@ export default async function CashFlowForecastPage() {
       .select("balance_due")
       .eq("company_id", companyId)
       .eq("invoice_type", "receivable")
-      .in("status", ["sent", "overdue", "partial"])
+      .in("status", ["pending", "approved", "sent", "overdue", "partial"])
       .gte("due_date", days60Ago)
       .lt("due_date", days30Ago),
 
@@ -79,7 +79,7 @@ export default async function CashFlowForecastPage() {
       .select("balance_due")
       .eq("company_id", companyId)
       .eq("invoice_type", "receivable")
-      .in("status", ["sent", "overdue", "partial"])
+      .in("status", ["pending", "approved", "sent", "overdue", "partial"])
       .lt("due_date", days60Ago),
 
     // --- AP aging buckets ---
@@ -89,7 +89,7 @@ export default async function CashFlowForecastPage() {
       .select("balance_due")
       .eq("company_id", companyId)
       .eq("invoice_type", "payable")
-      .in("status", ["received", "overdue", "partial"])
+      .in("status", ["pending", "approved", "received", "overdue", "partial"])
       .gte("due_date", todayISO),
 
     // 30 days: due_date between today-30 and today
@@ -98,7 +98,7 @@ export default async function CashFlowForecastPage() {
       .select("balance_due")
       .eq("company_id", companyId)
       .eq("invoice_type", "payable")
-      .in("status", ["received", "overdue", "partial"])
+      .in("status", ["pending", "approved", "received", "overdue", "partial"])
       .gte("due_date", days30Ago)
       .lt("due_date", todayISO),
 
@@ -108,7 +108,7 @@ export default async function CashFlowForecastPage() {
       .select("balance_due")
       .eq("company_id", companyId)
       .eq("invoice_type", "payable")
-      .in("status", ["received", "overdue", "partial"])
+      .in("status", ["pending", "approved", "received", "overdue", "partial"])
       .gte("due_date", days60Ago)
       .lt("due_date", days30Ago),
 
@@ -118,7 +118,7 @@ export default async function CashFlowForecastPage() {
       .select("balance_due")
       .eq("company_id", companyId)
       .eq("invoice_type", "payable")
-      .in("status", ["received", "overdue", "partial"])
+      .in("status", ["pending", "approved", "received", "overdue", "partial"])
       .lt("due_date", days60Ago),
 
     // --- Monthly burn rate: last 3 months of expense (payable) invoices ---

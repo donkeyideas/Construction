@@ -263,7 +263,7 @@ Structure every data response with clear sections. Use markdown formatting:
                 )
                 .eq("company_id", companyId)
                 .eq("invoice_type", "receivable")
-                .in("status", ["sent", "overdue", "partial"])
+                .in("status", ["pending", "approved", "sent", "overdue", "partial"])
                 .order("due_date", { ascending: true })
                 .limit(20);
 
@@ -289,7 +289,7 @@ Structure every data response with clear sections. Use markdown formatting:
                 )
                 .eq("company_id", companyId)
                 .eq("invoice_type", "payable")
-                .in("status", ["sent", "overdue", "partial"])
+                .in("status", ["pending", "approved", "received", "overdue", "partial"])
                 .order("due_date", { ascending: true })
                 .limit(20);
 
@@ -326,10 +326,10 @@ Structure every data response with clear sections. Use markdown formatting:
             );
 
             const arOutstanding = receivables
-              .filter((i) => ["sent", "overdue", "partial"].includes(i.status))
+              .filter((i) => ["pending", "approved", "sent", "overdue", "partial"].includes(i.status))
               .reduce((s, i) => s + Number(i.balance_due ?? 0), 0);
             const apOutstanding = payables
-              .filter((i) => ["sent", "overdue", "partial"].includes(i.status))
+              .filter((i) => ["pending", "approved", "received", "overdue", "partial"].includes(i.status))
               .reduce((s, i) => s + Number(i.balance_due ?? 0), 0);
 
             return {

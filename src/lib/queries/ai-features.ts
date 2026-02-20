@@ -743,7 +743,7 @@ export async function getCashFlowForecastData(
     .select("due_date, balance_due")
     .eq("company_id", companyId)
     .eq("invoice_type", "receivable")
-    .in("status", ["sent", "overdue", "partial"])
+    .in("status", ["pending", "approved", "sent", "overdue", "partial"])
     .gt("balance_due", 0);
 
   const arAging = bucketByAge(arInvoices ?? [], now);
@@ -754,7 +754,7 @@ export async function getCashFlowForecastData(
     .select("due_date, balance_due")
     .eq("company_id", companyId)
     .eq("invoice_type", "payable")
-    .in("status", ["received", "overdue", "partial"])
+    .in("status", ["pending", "approved", "received", "overdue", "partial"])
     .gt("balance_due", 0);
 
   const apAging = bucketByAge(apInvoices ?? [], now);
