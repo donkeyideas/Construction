@@ -47,11 +47,29 @@ export interface VendorCertification {
   expiry_date: string | null;
 }
 
+export interface VendorContractItem {
+  id: string;
+  project_name: string;
+  title: string;
+  amount: number;
+  status: string;
+}
+
+export interface VendorDocumentItem {
+  id: string;
+  doc_name: string;
+  file_path: string | null;
+  file_type: string | null;
+  shared_at: string | null;
+}
+
 export interface VendorDashboardFull {
   contact: VendorContact | null;
   activeProjects: VendorActiveProject[];
   recentInvoices: VendorRecentInvoice[];
   certifications: VendorCertification[];
+  contracts: VendorContractItem[];
+  documents: VendorDocumentItem[];
   stats: {
     totalContractValue: number;
     outstandingInvoices: number;
@@ -71,6 +89,8 @@ export async function getVendorDashboardFull(
     activeProjects: [],
     recentInvoices: [],
     certifications: [],
+    contracts: [],
+    documents: [],
     stats: {
       totalContractValue: 0,
       outstandingInvoices: 0,
@@ -95,7 +115,7 @@ export async function getVendorDashboardFull(
   const now = new Date();
   const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  const [contractsRes, invoicesRes, certsRes, outstandingRes] = await Promise.all([
+  const [contractsRes, invoicesRes, certsRes, outstandingRes, allContractsRes, docsRes] = await Promise.all([
     // Active contracts with projects
     supabase
       .from("vendor_contracts")
@@ -123,12 +143,27 @@ export async function getVendorDashboardFull(
       .eq("vendor_id", contact.id)
       .eq("invoice_type", "payable")
       .neq("status", "paid"),
+    // All contracts (for My Contracts card)
+    supabase
+      .from("vendor_contracts")
+      .select("id, title, status, amount, projects(name)")
+      .eq("vendor_id", contact.id)
+      .order("created_at", { ascending: false }),
+    // Shared documents (for Documents card)
+    supabase
+      .from("vendor_documents")
+      .select("id, shared_at, documents(name, file_path, file_type)")
+      .eq("vendor_contact_id", contact.id)
+      .order("shared_at", { ascending: false })
+      .limit(10),
   ]);
 
   const contracts = contractsRes.data ?? [];
   const invoices = invoicesRes.data ?? [];
   const certs = certsRes.data ?? [];
   const outstanding = outstandingRes.data ?? [];
+  const allContracts = allContractsRes.data ?? [];
+  const docs = docsRes.data ?? [];
 
   // Build active projects list
   const activeProjects: VendorActiveProject[] = contracts.map((c: Record<string, unknown>) => {
@@ -165,6 +200,30 @@ export async function getVendorDashboardFull(
     expiry_date: (c.expiry_date as string) ?? null,
   }));
 
+  // Build all contracts list
+  const contractsList: VendorContractItem[] = allContracts.map((c: Record<string, unknown>) => {
+    const project = c.projects as { name: string } | null;
+    return {
+      id: c.id as string,
+      project_name: project?.name ?? "Unknown Project",
+      title: (c.title as string) ?? "",
+      amount: (c.amount as number) ?? 0,
+      status: (c.status as string) ?? "draft",
+    };
+  });
+
+  // Build documents list
+  const documentsList: VendorDocumentItem[] = docs.map((d: Record<string, unknown>) => {
+    const doc = d.documents as { name: string; file_path: string; file_type: string } | null;
+    return {
+      id: d.id as string,
+      doc_name: doc?.name ?? "Untitled Document",
+      file_path: doc?.file_path ?? null,
+      file_type: doc?.file_type ?? null,
+      shared_at: (d.shared_at as string) ?? null,
+    };
+  });
+
   // Compute stats
   const expiringCerts = certs.filter((c: Record<string, unknown>) => {
     if (!c.expiry_date) return false;
@@ -182,6 +241,8 @@ export async function getVendorDashboardFull(
     activeProjects,
     recentInvoices,
     certifications,
+    contracts: contractsList,
+    documents: documentsList,
     stats: {
       totalContractValue: contracts.reduce((sum: number, c: Record<string, unknown>) => sum + ((c.amount as number) || 0), 0),
       outstandingInvoices: outstanding.length,

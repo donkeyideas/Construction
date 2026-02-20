@@ -7,6 +7,11 @@ import {
   Building2,
   CheckCircle2,
   AlertTriangle,
+  FileText,
+  FolderOpen,
+  User,
+  Mail,
+  Briefcase,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import type {
@@ -14,6 +19,8 @@ import type {
   VendorActiveProject,
   VendorRecentInvoice,
   VendorCertification,
+  VendorContractItem,
+  VendorDocumentItem,
 } from "@/lib/queries/vendor-portal";
 
 interface Props {
@@ -88,6 +95,21 @@ function getCertStatus(expiryDate: string | null): {
   return { dotColor: "var(--green)", label: "Current", labelColor: "var(--green)", isExpiring: false };
 }
 
+function getContractBadge(status: string): { label: string; className: string } {
+  switch (status) {
+    case "active":
+      return { label: "Active", className: "vendor-badge vendor-badge-green" };
+    case "completed":
+      return { label: "Completed", className: "vendor-badge vendor-badge-blue" };
+    case "draft":
+      return { label: "Draft", className: "vendor-badge vendor-badge-amber" };
+    case "terminated":
+      return { label: "Terminated", className: "vendor-badge vendor-badge-red" };
+    default:
+      return { label: status, className: "vendor-badge vendor-badge-amber" };
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -95,7 +117,7 @@ function getCertStatus(expiryDate: string | null): {
 export default function VendorDashboardClient({ dashboard }: Props) {
   const t = useTranslations("vendor");
   const router = useRouter();
-  const { contact, activeProjects, recentInvoices, certifications, stats } = dashboard;
+  const { contact, activeProjects, recentInvoices, certifications, contracts, documents, stats } = dashboard;
 
   // Invoice submission form state
   const [invoiceProjectId, setInvoiceProjectId] = useState("");
@@ -275,6 +297,45 @@ export default function VendorDashboardClient({ dashboard }: Props) {
               </button>
             </form>
           </div>
+
+          {/* My Contracts */}
+          <div className="vendor-card">
+            <div className="vendor-card-title">
+              <FileText size={18} />
+              My Contracts
+            </div>
+            {contracts.length > 0 ? (
+              <div style={{ overflowX: "auto" }}>
+                <table className="vendor-data-table">
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Contract</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contracts.map((c: VendorContractItem) => {
+                      const badge = getContractBadge(c.status);
+                      return (
+                        <tr key={c.id}>
+                          <td style={{ fontWeight: 600 }}>{c.project_name}</td>
+                          <td>{c.title}</td>
+                          <td>{formatCurrency(c.amount)}</td>
+                          <td>
+                            <span className={badge.className}>{badge.label}</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="vendor-empty">No contracts found</div>
+            )}
+          </div>
         </div>
 
         {/* --- Right Column --- */}
@@ -390,6 +451,95 @@ export default function VendorDashboardClient({ dashboard }: Props) {
               </>
             ) : (
               <div className="vendor-empty">{t("noCertsFound")}</div>
+            )}
+          </div>
+
+          {/* Documents */}
+          <div className="vendor-card">
+            <div className="vendor-card-title">
+              <FolderOpen size={18} />
+              My Documents
+            </div>
+            {documents.length > 0 ? (
+              documents.map((doc: VendorDocumentItem) => (
+                <div key={doc.id} className="vendor-doc-item">
+                  <div className="vendor-doc-info">
+                    <div className="vendor-doc-icon">
+                      <FileText size={16} />
+                    </div>
+                    <div>
+                      <div className="vendor-doc-name">{doc.doc_name}</div>
+                      <div className="vendor-doc-meta">
+                        {doc.file_type || "Document"}
+                        {doc.shared_at &&
+                          ` · Shared ${new Date(doc.shared_at).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}`}
+                      </div>
+                    </div>
+                  </div>
+                  {doc.file_path && (
+                    <a
+                      href={doc.file_path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="vendor-doc-download"
+                    >
+                      Download
+                    </a>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="vendor-empty">No documents shared yet</div>
+            )}
+          </div>
+
+          {/* Profile Card */}
+          <div className="vendor-card">
+            <div className="vendor-card-title">
+              <User size={18} />
+              My Profile
+            </div>
+            {contact ? (
+              <div className="vendor-profile-grid">
+                <div className="vendor-profile-row">
+                  <User size={14} className="vendor-profile-icon" />
+                  <div>
+                    <div className="vendor-profile-label">Company</div>
+                    <div className="vendor-profile-value">{contact.company_name || "—"}</div>
+                  </div>
+                </div>
+                <div className="vendor-profile-row">
+                  <Briefcase size={14} className="vendor-profile-icon" />
+                  <div>
+                    <div className="vendor-profile-label">Contact</div>
+                    <div className="vendor-profile-value">
+                      {contact.first_name} {contact.last_name}
+                    </div>
+                  </div>
+                </div>
+                <div className="vendor-profile-row">
+                  <Mail size={14} className="vendor-profile-icon" />
+                  <div>
+                    <div className="vendor-profile-label">Email</div>
+                    <div className="vendor-profile-value">{contact.email || "—"}</div>
+                  </div>
+                </div>
+                {contact.job_title && (
+                  <div className="vendor-profile-row">
+                    <Briefcase size={14} className="vendor-profile-icon" />
+                    <div>
+                      <div className="vendor-profile-label">Specialty</div>
+                      <div className="vendor-profile-value">{contact.job_title}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="vendor-empty">No profile information</div>
             )}
           </div>
         </div>
