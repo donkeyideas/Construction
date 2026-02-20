@@ -109,7 +109,6 @@ export const appNavigation: NavItem[] = [
     icon: "folder-open",
     children: [
       { label: "Overview", href: "/documents/overview" },
-      { label: "Transactions", href: "/documents/transactions" },
       { label: "Library", href: "/documents" },
       { label: "Plan Room", href: "/documents/plan-room" },
     ],
