@@ -25,7 +25,10 @@
   --muted: #78716c;
   --border: #d6d3d1;
   --sidebar-w: 240px;
+  --sidebar-bg: var(--bg);
   --scrollbar: #ccc;
+  --topbar-h: 52px;
+  --card-radius: 10px;
 }
 
 [data-theme="dark"] {

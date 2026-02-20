@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
-import { Search, Bell, Sun, Moon, Menu, LogOut, Settings, Trash2 } from "lucide-react";
+import { Search, Bell, Sun, Moon, Menu, LogOut, Settings, Trash2, SwatchBook } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -33,7 +33,7 @@ function getInitials(name: string | null, email: string | null): string {
 }
 
 export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, variant, toggleTheme, setVariant } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const isSuperAdmin = pathname.startsWith("/super-admin");
@@ -159,6 +159,13 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
               {resetting ? "Deleting..." : resetConfirm ? "Click to Confirm" : "Delete All Data"}
             </button>
           )}
+          <button
+            onClick={() => setVariant(variant === "classic" ? "corporate" : "classic")}
+            className="theme-btn"
+            title={`Switch to ${variant === "classic" ? "Corporate" : "Classic"} UI`}
+          >
+            <SwatchBook size={18} strokeWidth={2} />
+          </button>
           <button onClick={toggleTheme} className="theme-btn" title="Toggle theme">
             {theme === "dark" ? (
               <Sun size={18} strokeWidth={2} />

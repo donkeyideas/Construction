@@ -79,201 +79,145 @@ export async function getProjectTransactions(
   // 1. Get all project IDs for this company
   const { data: projects } = await supabase
     .from("projects")
-    .select("id, name, contract_amount, estimated_cost, actual_cost")
+    .select("id, name")
     .eq("company_id", companyId);
   const projectIds = (projects ?? []).map((p) => p.id);
   const projectNameMap = new Map((projects ?? []).map((p) => [p.id, p.name]));
 
   if (projectIds.length === 0) return buildSummary(txns);
 
-  // 2. Invoices linked to projects — always show, populate JE when available
-  const { data: invoices } = await supabase
-    .from("invoices")
-    .select("id, invoice_number, invoice_type, invoice_date, total_amount, vendor_name, client_name, status, project_id")
-    .eq("company_id", companyId)
-    .in("project_id", projectIds)
-    .neq("status", "voided")
-    .order("invoice_date", { ascending: false })
-    .limit(500);
+  // 2. Fetch ALL data sources in parallel (single round-trip batch)
+  const [invoicesRes, changeOrdersRes, jeLinesRes, contractsRes, rfisRes] = await Promise.all([
+    supabase.from("invoices")
+      .select("id, invoice_number, invoice_type, invoice_date, total_amount, vendor_name, client_name, status, project_id")
+      .eq("company_id", companyId).in("project_id", projectIds).neq("status", "voided")
+      .order("invoice_date", { ascending: false }).limit(500),
+    supabase.from("change_orders")
+      .select("id, co_number, title, amount, status, approved_at, created_at, project_id")
+      .eq("company_id", companyId).in("project_id", projectIds).not("amount", "is", null)
+      .order("created_at", { ascending: false }).limit(200),
+    supabase.from("journal_entry_lines")
+      .select("id, debit, credit, description, project_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
+      .eq("company_id", companyId).in("project_id", projectIds).limit(500),
+    supabase.from("contracts")
+      .select("id, contract_number, title, contract_amount, status, start_date, project_id")
+      .eq("company_id", companyId).in("project_id", projectIds).not("contract_amount", "is", null)
+      .order("start_date", { ascending: false }).limit(100),
+    supabase.from("rfis")
+      .select("id, rfi_number, subject, cost_impact, status, created_at, project_id")
+      .eq("company_id", companyId).in("project_id", projectIds).not("cost_impact", "is", null).gt("cost_impact", 0)
+      .order("created_at", { ascending: false }).limit(100),
+  ]);
 
-  const invRefs = (invoices ?? []).map((i) => `invoice:${i.id}`);
-  const invJeMap = await getJEMap(supabase, companyId, invRefs);
+  const invoices = invoicesRes.data ?? [];
+  const changeOrders = changeOrdersRes.data ?? [];
+  const jeLines = jeLinesRes.data ?? [];
+  const contracts = contractsRes.data ?? [];
+  const rfis = rfisRes.data ?? [];
 
-  // Track JE IDs already represented by invoices/COs/payments
+  // 3. Fetch payments for project invoices
+  const projectInvoiceIds = invoices.map((i) => i.id);
+  const pmtsRes = projectInvoiceIds.length > 0
+    ? await supabase.from("payments")
+        .select("id, invoice_id, amount, payment_date, reference_number")
+        .in("invoice_id", projectInvoiceIds).order("payment_date", { ascending: false })
+    : { data: [] };
+  const pmts = pmtsRes.data ?? [];
+
+  // 4. Single batched JE lookup for all references
+  const allRefs = [
+    ...invoices.map((i) => `invoice:${i.id}`),
+    ...changeOrders.map((co) => `change_order:${co.id}`),
+    ...pmts.map((p) => `payment:${p.id}`),
+  ];
+  const jeMap = await getJEMap(supabase, companyId, allRefs);
+
+  // 5. Build transaction rows
   const coveredJeIds = new Set<string>();
 
-  for (const inv of invoices ?? []) {
-    const je = invJeMap.get(`invoice:${inv.id}`);
+  for (const inv of invoices) {
+    const je = jeMap.get(`invoice:${inv.id}`);
     if (je) coveredJeIds.add(je.id);
-
     const projectName = inv.project_id ? projectNameMap.get(inv.project_id) ?? "" : "";
     const isPayable = inv.invoice_type === "payable";
     txns.push({
-      id: `inv-${inv.id}`,
-      date: inv.invoice_date,
+      id: `inv-${inv.id}`, date: inv.invoice_date,
       description: `${inv.invoice_number} — ${isPayable ? (inv.vendor_name ?? "Vendor") : (inv.client_name ?? "Client")}${projectName ? ` (${projectName})` : ""}`,
       reference: inv.invoice_number,
       source: isPayable ? "Accounts Payable" : "Accounts Receivable",
       sourceHref: `/financial/invoices/${inv.id}`,
       debit: isPayable ? Number(inv.total_amount) || 0 : 0,
       credit: !isPayable ? Number(inv.total_amount) || 0 : 0,
-      jeNumber: je?.entry_number ?? null,
-      jeId: je?.id ?? null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
-  // 3. Change orders — always show, populate JE when available
-  const { data: changeOrders } = await supabase
-    .from("change_orders")
-    .select("id, co_number, title, amount, status, approved_at, created_at, project_id")
-    .eq("company_id", companyId)
-    .in("project_id", projectIds)
-    .not("amount", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(200);
-
-  const coRefs = (changeOrders ?? []).map((co) => `change_order:${co.id}`);
-  const coJeMap = await getJEMap(supabase, companyId, coRefs);
-
-  for (const co of changeOrders ?? []) {
-    const je = coJeMap.get(`change_order:${co.id}`);
+  for (const co of changeOrders) {
+    const je = jeMap.get(`change_order:${co.id}`);
     if (je) coveredJeIds.add(je.id);
-
     const projectName = co.project_id ? projectNameMap.get(co.project_id) ?? "" : "";
     const amount = Number(co.amount) || 0;
     txns.push({
-      id: `co-${co.id}`,
-      date: co.approved_at ?? co.created_at,
+      id: `co-${co.id}`, date: co.approved_at ?? co.created_at,
       description: `${co.co_number} — ${co.title}${projectName ? ` (${projectName})` : ""}`,
-      reference: co.co_number,
-      source: "Change Orders",
-      sourceHref: "/projects/change-orders",
-      debit: amount > 0 ? amount : 0,
-      credit: amount < 0 ? Math.abs(amount) : 0,
-      jeNumber: je?.entry_number ?? null,
-      jeId: je?.id ?? null,
+      reference: co.co_number, source: "Change Orders", sourceHref: "/projects/change-orders",
+      debit: amount > 0 ? amount : 0, credit: amount < 0 ? Math.abs(amount) : 0,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
-  // 4. Payments on project invoices — always show, populate JE when available
-  const projectInvoiceIds = (invoices ?? []).map((i) => i.id);
-  if (projectInvoiceIds.length > 0) {
-    const { data: pmts } = await supabase
-      .from("payments")
-      .select("id, invoice_id, amount, payment_date, reference_number")
-      .in("invoice_id", projectInvoiceIds)
-      .order("payment_date", { ascending: false });
-
-    const pmtRefs = (pmts ?? []).map((p) => `payment:${p.id}`);
-    const pmtJeMap = await getJEMap(supabase, companyId, pmtRefs);
-    const invoiceMap = new Map((invoices ?? []).map((i) => [i.id, i]));
-
-    for (const p of pmts ?? []) {
-      const je = pmtJeMap.get(`payment:${p.id}`);
-      if (je) coveredJeIds.add(je.id);
-
-      const inv = invoiceMap.get(p.invoice_id);
-      const isPayable = inv?.invoice_type === "payable";
-      txns.push({
-        id: `pmt-${p.id}`,
-        date: p.payment_date,
-        description: `Payment on ${inv?.invoice_number ?? "Invoice"} — ${p.reference_number ?? ""}`,
-        reference: p.reference_number ?? "",
-        source: "Payments",
-        sourceHref: inv ? `/financial/invoices/${inv.id}` : "/financial/invoices",
-        debit: !isPayable ? Number(p.amount) || 0 : 0,
-        credit: isPayable ? Number(p.amount) || 0 : 0,
-        jeNumber: je?.entry_number ?? null,
-        jeId: je?.id ?? null,
-      });
-    }
+  const invoiceMap = new Map(invoices.map((i) => [i.id, i]));
+  for (const p of pmts) {
+    const je = jeMap.get(`payment:${p.id}`);
+    if (je) coveredJeIds.add(je.id);
+    const inv = invoiceMap.get(p.invoice_id);
+    const isPayable = inv?.invoice_type === "payable";
+    txns.push({
+      id: `pmt-${p.id}`, date: p.payment_date,
+      description: `Payment on ${inv?.invoice_number ?? "Invoice"} — ${p.reference_number ?? ""}`,
+      reference: p.reference_number ?? "", source: "Payments",
+      sourceHref: inv ? `/financial/invoices/${inv.id}` : "/financial/invoices",
+      debit: !isPayable ? Number(p.amount) || 0 : 0, credit: isPayable ? Number(p.amount) || 0 : 0,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
+    });
   }
 
-  // 5. Standalone JE lines tagged to projects (only those NOT already covered
-  //    by invoices, COs, or payments above — avoids double-counting)
-  const { data: jeLines } = await supabase
-    .from("journal_entry_lines")
-    .select("id, debit, credit, description, project_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
-    .eq("company_id", companyId)
-    .in("project_id", projectIds)
-    .limit(500);
-
-  for (const line of jeLines ?? []) {
+  for (const line of jeLines) {
     const je = line.journal_entries as unknown as {
       id: string; entry_number: string; entry_date: string;
       description: string; reference: string | null; status: string;
     } | null;
-    if (!je || je.status !== "posted") continue;
-    // Skip JE lines belonging to JEs already represented by invoices/COs/payments
-    if (coveredJeIds.has(je.id)) continue;
-
+    if (!je || je.status !== "posted" || coveredJeIds.has(je.id)) continue;
     const projectName = line.project_id ? projectNameMap.get(line.project_id) ?? "" : "";
     txns.push({
-      id: `jel-${line.id}`,
-      date: je.entry_date,
+      id: `jel-${line.id}`, date: je.entry_date,
       description: `${line.description || je.description || "Journal Entry"}${projectName ? ` (${projectName})` : ""}`,
-      reference: je.entry_number,
-      source: "Journal Entry",
+      reference: je.entry_number, source: "Journal Entry",
       sourceHref: `/financial/general-ledger?entry=${je.entry_number}`,
-      debit: Number(line.debit) || 0,
-      credit: Number(line.credit) || 0,
-      jeNumber: je.entry_number,
-      jeId: je.id,
+      debit: Number(line.debit) || 0, credit: Number(line.credit) || 0,
+      jeNumber: je.entry_number, jeId: je.id,
     });
   }
 
-  // 6. Contracts with amounts
-  const { data: contracts } = await supabase
-    .from("contracts")
-    .select("id, contract_number, title, contract_amount, status, start_date, project_id")
-    .eq("company_id", companyId)
-    .in("project_id", projectIds)
-    .not("contract_amount", "is", null)
-    .order("start_date", { ascending: false })
-    .limit(100);
-
-  for (const c of contracts ?? []) {
+  for (const c of contracts) {
     const projectName = c.project_id ? projectNameMap.get(c.project_id) ?? "" : "";
     const amount = Number(c.contract_amount) || 0;
     txns.push({
-      id: `contract-${c.id}`,
-      date: c.start_date ?? new Date().toISOString().split("T")[0],
+      id: `contract-${c.id}`, date: c.start_date ?? new Date().toISOString().split("T")[0],
       description: `${c.contract_number ?? c.title ?? "Contract"}${projectName ? ` (${projectName})` : ""}`,
-      reference: c.contract_number ?? "",
-      source: "Contracts",
-      sourceHref: "/projects/contracts",
-      debit: amount,
-      credit: 0,
-      jeNumber: null,
-      jeId: null,
+      reference: c.contract_number ?? "", source: "Contracts", sourceHref: "/projects/contracts",
+      debit: amount, credit: 0, jeNumber: null, jeId: null,
     });
   }
 
-  // 7. RFIs with cost impact
-  const { data: rfis } = await supabase
-    .from("rfis")
-    .select("id, rfi_number, subject, cost_impact, status, created_at, project_id")
-    .eq("company_id", companyId)
-    .in("project_id", projectIds)
-    .not("cost_impact", "is", null)
-    .gt("cost_impact", 0)
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  for (const rfi of rfis ?? []) {
+  for (const rfi of rfis) {
     const projectName = rfi.project_id ? projectNameMap.get(rfi.project_id) ?? "" : "";
     const impact = Number(rfi.cost_impact) || 0;
     txns.push({
-      id: `rfi-${rfi.id}`,
-      date: rfi.created_at,
+      id: `rfi-${rfi.id}`, date: rfi.created_at,
       description: `RFI ${rfi.rfi_number ?? ""} — ${rfi.subject ?? ""}${projectName ? ` (${projectName})` : ""}`.trim(),
-      reference: rfi.rfi_number ?? "",
-      source: "RFIs",
-      sourceHref: "/projects/rfis",
-      debit: impact,
-      credit: 0,
-      jeNumber: null,
-      jeId: null,
+      reference: rfi.rfi_number ?? "", source: "RFIs", sourceHref: "/projects/rfis",
+      debit: impact, credit: 0, jeNumber: null, jeId: null,
     });
   }
 
@@ -603,71 +547,60 @@ export async function getPeopleTransactions(
 ): Promise<SectionTransactionSummary> {
   const txns: SectionTransaction[] = [];
 
-  // 1. JE lines from payroll-related accounts
-  const { data: payrollAccounts } = await supabase
-    .from("chart_of_accounts")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("is_active", true)
-    .or("name.ilike.%payroll%,name.ilike.%salary%,name.ilike.%wage%,name.ilike.%fica%,name.ilike.%futa%,name.ilike.%suta%");
+  // Phase 1: All independent queries in parallel
+  const [payrollAccountsRes, payrollJEsRes, payrollRunsRes, contractorInvoicesRes] = await Promise.all([
+    supabase.from("chart_of_accounts").select("id")
+      .eq("company_id", companyId).eq("is_active", true)
+      .or("name.ilike.%payroll%,name.ilike.%salary%,name.ilike.%wage%,name.ilike.%fica%,name.ilike.%futa%,name.ilike.%suta%"),
+    supabase.from("journal_entries").select("id, entry_number, entry_date, description, reference, status")
+      .eq("company_id", companyId).eq("status", "posted")
+      .or("reference.like.payroll_run:%,reference.like.payroll:%").limit(100),
+    supabase.from("payroll_runs").select("id, period_start, period_end, pay_date, status, total_gross, total_net, total_employer_taxes, employee_count")
+      .eq("company_id", companyId).in("status", ["approved", "paid"])
+      .order("pay_date", { ascending: false }).limit(100),
+    supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
+      .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
+      .order("invoice_date", { ascending: false }).limit(200),
+  ]);
 
-  const payrollAcctIds = (payrollAccounts ?? []).map((a) => a.id);
+  const payrollAcctIds = (payrollAccountsRes.data ?? []).map((a) => a.id);
+  const payrollJeIds = (payrollJEsRes.data ?? []).map((j) => j.id);
+  const payrollRuns = payrollRunsRes.data ?? [];
+  const contractorInvoices = contractorInvoicesRes.data ?? [];
 
-  if (payrollAcctIds.length > 0) {
-    const { data: jeLines } = await supabase
-      .from("journal_entry_lines")
-      .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-      .eq("company_id", companyId)
-      .in("account_id", payrollAcctIds)
-      .limit(500);
+  // Phase 2: Dependent queries in parallel
+  const [jeLinesRes, prLinesRes, prJeMap, invJeMap] = await Promise.all([
+    payrollAcctIds.length > 0
+      ? supabase.from("journal_entry_lines")
+          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+          .eq("company_id", companyId).in("account_id", payrollAcctIds).limit(500)
+      : Promise.resolve({ data: null }),
+    payrollJeIds.length > 0
+      ? supabase.from("journal_entry_lines")
+          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+          .eq("company_id", companyId).in("journal_entry_id", payrollJeIds).limit(500)
+      : Promise.resolve({ data: null }),
+    getJEMap(supabase, companyId, payrollRuns.map((r) => `payroll_run:${r.id}`)),
+    getJEMap(supabase, companyId, contractorInvoices.map((i) => `invoice:${i.id}`)),
+  ]);
 
-    for (const line of (jeLines ?? []) as JELineRow[]) {
-      const txn = mapJELine(line);
-      if (txn) txns.push(txn);
-    }
+  // Process payroll account JE lines
+  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
+    const txn = mapJELine(line);
+    if (txn) txns.push(txn);
   }
 
-  // 2. JE lines with payroll_run reference (catch-all for payroll JEs)
-  const { data: payrollJEs } = await supabase
-    .from("journal_entries")
-    .select("id, entry_number, entry_date, description, reference, status")
-    .eq("company_id", companyId)
-    .eq("status", "posted")
-    .or("reference.like.payroll_run:%,reference.like.payroll:%")
-    .limit(100);
-
-  const payrollJeIds = (payrollJEs ?? []).map((j) => j.id);
+  // Process payroll reference JE lines (dedup against account lines)
   const seenJeLineIds = new Set(txns.map((t) => t.id));
-
-  if (payrollJeIds.length > 0) {
-    const { data: prLines } = await supabase
-      .from("journal_entry_lines")
-      .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-      .eq("company_id", companyId)
-      .in("journal_entry_id", payrollJeIds)
-      .limit(500);
-
-    for (const line of (prLines ?? []) as JELineRow[]) {
-      const lineId = `jel-${line.id}`;
-      if (seenJeLineIds.has(lineId)) continue;
-      const txn = mapJELine(line);
-      if (txn) { txns.push(txn); seenJeLineIds.add(lineId); }
-    }
+  for (const line of (prLinesRes.data ?? []) as JELineRow[]) {
+    const lineId = `jel-${line.id}`;
+    if (seenJeLineIds.has(lineId)) continue;
+    const txn = mapJELine(line);
+    if (txn) { txns.push(txn); seenJeLineIds.add(lineId); }
   }
 
-  // 3. Payroll runs without JEs
-  const { data: payrollRuns } = await supabase
-    .from("payroll_runs")
-    .select("id, period_start, period_end, pay_date, status, total_gross, total_net, total_employer_taxes, employee_count")
-    .eq("company_id", companyId)
-    .in("status", ["approved", "paid"])
-    .order("pay_date", { ascending: false })
-    .limit(100);
-
-  const prRefs = (payrollRuns ?? []).map((r) => `payroll_run:${r.id}`);
-  const prJeMap = await getJEMap(supabase, companyId, prRefs);
-
-  for (const run of payrollRuns ?? []) {
+  // Process payroll runs
+  for (const run of payrollRuns) {
     const je = prJeMap.get(`payroll_run:${run.id}`);
     const gross = Number(run.total_gross) || 0;
     const employerTaxes = Number(run.total_employer_taxes) || 0;
@@ -683,20 +616,8 @@ export async function getPeopleTransactions(
     });
   }
 
-  // 4. Contractor/vendor invoices — always show, populate JE when available
-  const { data: contractorInvoices } = await supabase
-    .from("invoices")
-    .select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "payable")
-    .neq("status", "voided")
-    .order("invoice_date", { ascending: false })
-    .limit(200);
-
-  const invRefs = (contractorInvoices ?? []).map((i) => `invoice:${i.id}`);
-  const invJeMap = await getJEMap(supabase, companyId, invRefs);
-
-  for (const inv of contractorInvoices ?? []) {
+  // Process contractor invoices
+  for (const inv of contractorInvoices) {
     const je = invJeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,
@@ -722,41 +643,46 @@ export async function getEquipmentTransactions(
 ): Promise<SectionTransactionSummary> {
   const txns: SectionTransaction[] = [];
 
-  // 1. JE lines tagged to fixed asset accounts
-  const { data: fixedAssetAccounts } = await supabase
-    .from("chart_of_accounts")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("is_active", true)
-    .or("sub_type.eq.fixed_asset,name.ilike.%equipment%,name.ilike.%depreciation%");
+  // Phase 1: All independent queries in parallel
+  const [fixedAssetAccountsRes, equipmentRes, maintLogsRes, equipInvoicesRes] = await Promise.all([
+    supabase.from("chart_of_accounts").select("id")
+      .eq("company_id", companyId).eq("is_active", true)
+      .or("sub_type.eq.fixed_asset,name.ilike.%equipment%,name.ilike.%depreciation%"),
+    supabase.from("equipment").select("id, name, purchase_cost, hourly_rate, status, purchase_date")
+      .eq("company_id", companyId).not("purchase_cost", "is", null).gt("purchase_cost", 0)
+      .order("purchase_date", { ascending: false }).limit(100),
+    supabase.from("equipment_maintenance_logs").select("id, description, cost, maintenance_date, equipment_id, equipment(name)")
+      .eq("company_id", companyId).not("cost", "is", null).gt("cost", 0)
+      .order("maintenance_date", { ascending: false }).limit(100),
+    supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
+      .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
+      .or("notes.ilike.%equipment%,notes.ilike.%maintenance%,notes.ilike.%repair%,notes.ilike.%rental%")
+      .order("invoice_date", { ascending: false }).limit(100),
+  ]);
 
-  const accountIds = (fixedAssetAccounts ?? []).map((a) => a.id);
+  const accountIds = (fixedAssetAccountsRes.data ?? []).map((a) => a.id);
+  const equipment = equipmentRes.data ?? [];
+  const maintLogs = maintLogsRes.data ?? [];
+  const equipInvoices = equipInvoicesRes.data ?? [];
 
-  if (accountIds.length > 0) {
-    const { data: jeLines } = await supabase
-      .from("journal_entry_lines")
-      .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-      .eq("company_id", companyId)
-      .in("account_id", accountIds)
-      .limit(500);
+  // Phase 2: Dependent queries in parallel
+  const [jeLinesRes, jeMap] = await Promise.all([
+    accountIds.length > 0
+      ? supabase.from("journal_entry_lines")
+          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+          .eq("company_id", companyId).in("account_id", accountIds).limit(500)
+      : Promise.resolve({ data: null }),
+    getJEMap(supabase, companyId, equipInvoices.map((i) => `invoice:${i.id}`)),
+  ]);
 
-    for (const line of (jeLines ?? []) as JELineRow[]) {
-      const txn = mapJELine(line);
-      if (txn) txns.push(txn);
-    }
+  // Process JE lines
+  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
+    const txn = mapJELine(line);
+    if (txn) txns.push(txn);
   }
 
-  // 2. Equipment with purchase_cost
-  const { data: equipment } = await supabase
-    .from("equipment")
-    .select("id, name, purchase_cost, hourly_rate, status, purchase_date")
-    .eq("company_id", companyId)
-    .not("purchase_cost", "is", null)
-    .gt("purchase_cost", 0)
-    .order("purchase_date", { ascending: false })
-    .limit(100);
-
-  for (const eq of equipment ?? []) {
+  // Process equipment purchases
+  for (const eq of equipment) {
     const cost = Number(eq.purchase_cost) || 0;
     txns.push({
       id: `equip-${eq.id}`,
@@ -768,17 +694,8 @@ export async function getEquipmentTransactions(
     });
   }
 
-  // 3. Equipment maintenance logs with cost
-  const { data: maintLogs } = await supabase
-    .from("equipment_maintenance_logs")
-    .select("id, description, cost, maintenance_date, equipment_id, equipment(name)")
-    .eq("company_id", companyId)
-    .not("cost", "is", null)
-    .gt("cost", 0)
-    .order("maintenance_date", { ascending: false })
-    .limit(100);
-
-  for (const log of maintLogs ?? []) {
+  // Process maintenance logs
+  for (const log of maintLogs) {
     const equipName = (log.equipment as unknown as { name: string } | null)?.name ?? "Equipment";
     txns.push({
       id: `emaint-${log.id}`,
@@ -790,21 +707,8 @@ export async function getEquipmentTransactions(
     });
   }
 
-  // 4. Equipment invoices without JEs
-  const { data: equipInvoices } = await supabase
-    .from("invoices")
-    .select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "payable")
-    .neq("status", "voided")
-    .or("notes.ilike.%equipment%,notes.ilike.%maintenance%,notes.ilike.%repair%,notes.ilike.%rental%")
-    .order("invoice_date", { ascending: false })
-    .limit(100);
-
-  const invRefs = (equipInvoices ?? []).map((i) => `invoice:${i.id}`);
-  const jeMap = await getJEMap(supabase, companyId, invRefs);
-
-  for (const inv of equipInvoices ?? []) {
+  // Process equipment invoices
+  for (const inv of equipInvoices) {
     const je = jeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,
@@ -830,45 +734,36 @@ export async function getSafetyTransactions(
 ): Promise<SectionTransactionSummary> {
   const txns: SectionTransaction[] = [];
 
-  // 1. JE lines tagged to safety-related accounts
-  const { data: safetyAccounts } = await supabase
-    .from("chart_of_accounts")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("is_active", true)
-    .or("name.ilike.%safety%,name.ilike.%training%,name.ilike.%ppe%,name.ilike.%osha%,name.ilike.%insurance%");
+  // Phase 1: Independent queries in parallel
+  const [safetyAccountsRes, invoicesRes] = await Promise.all([
+    supabase.from("chart_of_accounts").select("id")
+      .eq("company_id", companyId).eq("is_active", true)
+      .or("name.ilike.%safety%,name.ilike.%training%,name.ilike.%ppe%,name.ilike.%osha%,name.ilike.%insurance%"),
+    supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
+      .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
+      .or("notes.ilike.%safety%,notes.ilike.%training%,notes.ilike.%ppe%,notes.ilike.%osha%,notes.ilike.%inspection%")
+      .order("invoice_date", { ascending: false }).limit(100),
+  ]);
 
-  const safetyAcctIds = (safetyAccounts ?? []).map((a) => a.id);
+  const safetyAcctIds = (safetyAccountsRes.data ?? []).map((a) => a.id);
+  const invoices = invoicesRes.data ?? [];
 
-  if (safetyAcctIds.length > 0) {
-    const { data: jeLines } = await supabase
-      .from("journal_entry_lines")
-      .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-      .eq("company_id", companyId)
-      .in("account_id", safetyAcctIds)
-      .limit(500);
+  // Phase 2: Dependent queries in parallel
+  const [jeLinesRes, jeMap] = await Promise.all([
+    safetyAcctIds.length > 0
+      ? supabase.from("journal_entry_lines")
+          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+          .eq("company_id", companyId).in("account_id", safetyAcctIds).limit(500)
+      : Promise.resolve({ data: null }),
+    getJEMap(supabase, companyId, invoices.map((i) => `invoice:${i.id}`)),
+  ]);
 
-    for (const line of (jeLines ?? []) as JELineRow[]) {
-      const txn = mapJELine(line);
-      if (txn) txns.push(txn);
-    }
+  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
+    const txn = mapJELine(line);
+    if (txn) txns.push(txn);
   }
 
-  // 2. Safety-related invoices without JEs
-  const { data: invoices } = await supabase
-    .from("invoices")
-    .select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "payable")
-    .neq("status", "voided")
-    .or("notes.ilike.%safety%,notes.ilike.%training%,notes.ilike.%ppe%,notes.ilike.%osha%,notes.ilike.%inspection%")
-    .order("invoice_date", { ascending: false })
-    .limit(100);
-
-  const refs = (invoices ?? []).map((i) => `invoice:${i.id}`);
-  const jeMap = await getJEMap(supabase, companyId, refs);
-
-  for (const inv of invoices ?? []) {
+  for (const inv of invoices) {
     const je = jeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,
@@ -894,45 +789,36 @@ export async function getDocumentTransactions(
 ): Promise<SectionTransactionSummary> {
   const txns: SectionTransaction[] = [];
 
-  // 1. JE lines tagged to document-related accounts
-  const { data: docAccounts } = await supabase
-    .from("chart_of_accounts")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("is_active", true)
-    .or("name.ilike.%printing%,name.ilike.%document%,name.ilike.%blueprint%,name.ilike.%office supplies%");
+  // Phase 1: Independent queries in parallel
+  const [docAccountsRes, invoicesRes] = await Promise.all([
+    supabase.from("chart_of_accounts").select("id")
+      .eq("company_id", companyId).eq("is_active", true)
+      .or("name.ilike.%printing%,name.ilike.%document%,name.ilike.%blueprint%,name.ilike.%office supplies%"),
+    supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
+      .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
+      .or("notes.ilike.%printing%,notes.ilike.%document%,notes.ilike.%blueprint%,notes.ilike.%scanning%,notes.ilike.%storage%")
+      .order("invoice_date", { ascending: false }).limit(100),
+  ]);
 
-  const docAcctIds = (docAccounts ?? []).map((a) => a.id);
+  const docAcctIds = (docAccountsRes.data ?? []).map((a) => a.id);
+  const invoices = invoicesRes.data ?? [];
 
-  if (docAcctIds.length > 0) {
-    const { data: jeLines } = await supabase
-      .from("journal_entry_lines")
-      .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-      .eq("company_id", companyId)
-      .in("account_id", docAcctIds)
-      .limit(500);
+  // Phase 2: Dependent queries in parallel
+  const [jeLinesRes, jeMap] = await Promise.all([
+    docAcctIds.length > 0
+      ? supabase.from("journal_entry_lines")
+          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+          .eq("company_id", companyId).in("account_id", docAcctIds).limit(500)
+      : Promise.resolve({ data: null }),
+    getJEMap(supabase, companyId, invoices.map((i) => `invoice:${i.id}`)),
+  ]);
 
-    for (const line of (jeLines ?? []) as JELineRow[]) {
-      const txn = mapJELine(line);
-      if (txn) txns.push(txn);
-    }
+  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
+    const txn = mapJELine(line);
+    if (txn) txns.push(txn);
   }
 
-  // 2. Document-related invoices without JEs
-  const { data: invoices } = await supabase
-    .from("invoices")
-    .select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "payable")
-    .neq("status", "voided")
-    .or("notes.ilike.%printing%,notes.ilike.%document%,notes.ilike.%blueprint%,notes.ilike.%scanning%,notes.ilike.%storage%")
-    .order("invoice_date", { ascending: false })
-    .limit(100);
-
-  const refs = (invoices ?? []).map((i) => `invoice:${i.id}`);
-  const jeMap = await getJEMap(supabase, companyId, refs);
-
-  for (const inv of invoices ?? []) {
+  for (const inv of invoices) {
     const je = jeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,

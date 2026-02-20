@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { CorporateSidebar } from "@/components/layout/sidebar-corporate";
 import { Topbar } from "@/components/layout/topbar";
+import { VariantSelectorModal } from "@/components/variant-selector-modal";
+import { useTheme } from "@/components/theme-provider";
 import { usePathname } from "next/navigation";
 import "@/styles/app-shell.css";
+import "@/styles/variant-corporate.css";
+import "@/styles/variant-corporate-shell.css";
 import "@/styles/dashboard.css";
 import "@/styles/components.css";
 import "@/styles/projects.css";
@@ -49,15 +54,19 @@ function getBreadcrumb(pathname: string): string {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const { variant } = useTheme();
+
+  const SidebarComponent = variant === "corporate" ? CorporateSidebar : Sidebar;
 
   return (
     <>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <SidebarComponent isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Topbar
         breadcrumb={getBreadcrumb(pathname)}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
       <main className="main">{children}</main>
+      <VariantSelectorModal />
     </>
   );
 }

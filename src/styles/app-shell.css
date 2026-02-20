@@ -201,7 +201,7 @@
   top: 0;
   left: var(--sidebar-w);
   right: 0;
-  height: 52px;
+  height: var(--topbar-h);
   background: var(--topbar-bg);
   border-bottom: 1px solid var(--border);
   display: flex;
@@ -562,9 +562,9 @@
 /* ===== Main Content ===== */
 .main {
   margin-left: var(--sidebar-w);
-  margin-top: 52px;
+  margin-top: var(--topbar-h);
   padding: 28px;
-  min-height: calc(100vh - 52px);
+  min-height: calc(100vh - var(--topbar-h));
   transition: margin-left 0.25s;
 }
 
@@ -572,7 +572,7 @@
 .card {
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--card-radius);
   padding: 24px;
   transition: box-shadow 0.2s, transform 0.2s;
 }

@@ -90,6 +90,7 @@ export default async function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        <script dangerouslySetInnerHTML={{ __html: `try{var v=localStorage.getItem('buildwrk-variant');document.documentElement.setAttribute('data-variant',v||'classic')}catch(e){document.documentElement.setAttribute('data-variant','classic')}` }} />
       </head>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>

@@ -1,0 +1,187 @@
+/* ============================================================
+   Corporate UI Variant — Structural Shell Overrides
+   Sidebar, topbar, cards, main content area
+   ============================================================ */
+
+/* ===== Sidebar ===== */
+[data-variant="corporate"] .sidebar {
+  background: var(--sidebar-bg);
+}
+
+[data-variant="corporate"] .sidebar-brand {
+  height: 64px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+[data-variant="corporate"] .sidebar-brand h1 {
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+[data-variant="corporate"] .sidebar-brand .accent-line {
+  display: none;
+}
+
+/* Corporate sidebar: logo icon box */
+[data-variant="corporate"] .sidebar-logo-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--color-blue);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+[data-variant="corporate"] .sidebar-logo-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #fff;
+}
+
+/* Section headers in corporate nav */
+[data-variant="corporate"] .nav-section-header {
+  padding: 0 16px;
+  margin-bottom: 6px;
+  margin-top: 16px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+[data-variant="corporate"] .nav-section-header:first-child {
+  margin-top: 4px;
+}
+
+/* Corporate nav links — flat, no left border, rounded */
+[data-variant="corporate"] .nav-link {
+  border-left: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 1px 8px;
+  width: calc(100% - 16px);
+}
+
+[data-variant="corporate"] .nav-link .label::after {
+  display: none;
+}
+
+[data-variant="corporate"] .nav-link:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-variant="corporate"][data-theme="dark"] .nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-variant="corporate"] .nav-link.active {
+  background: var(--color-blue-light);
+  border-left: none;
+  color: var(--color-blue);
+}
+
+[data-variant="corporate"][data-theme="dark"] .nav-link.active {
+  background: rgba(44, 82, 130, 0.2);
+  color: #7eb8e0;
+}
+
+/* Corporate child nav — also rounded, no underline */
+[data-variant="corporate"] .nav-child {
+  border-radius: 6px;
+  padding: 6px 12px 6px 44px;
+  margin: 0 8px;
+}
+
+[data-variant="corporate"] .nav-child::after {
+  display: none;
+}
+
+[data-variant="corporate"] .nav-child:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-variant="corporate"][data-theme="dark"] .nav-child:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ===== Topbar ===== */
+[data-variant="corporate"] .topbar {
+  height: var(--topbar-h);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: var(--topbar-bg);
+}
+
+[data-variant="corporate"] .breadcrumb .dot {
+  display: none;
+}
+
+[data-variant="corporate"] .breadcrumb::before {
+  content: "/";
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-right: 4px;
+}
+
+/* Corporate search bar hover — uses blue instead of amber */
+[data-variant="corporate"] .search-btn:hover {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px rgba(44, 82, 130, 0.08);
+}
+
+/* Corporate theme button hover — uses blue instead of amber */
+[data-variant="corporate"] .theme-btn:hover {
+  color: var(--color-blue);
+}
+
+/* ===== Main Content ===== */
+[data-variant="corporate"] .main {
+  margin-top: var(--topbar-h);
+  min-height: calc(100vh - var(--topbar-h));
+  padding: 24px;
+}
+
+/* ===== Cards ===== */
+[data-variant="corporate"] .card {
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+}
+
+[data-variant="corporate"] .card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(44, 82, 130, 0.3);
+}
+
+[data-variant="corporate"] .card-title {
+  font-family: var(--font-sans);
+}
+
+/* ===== View All links — use blue instead of amber ===== */
+[data-variant="corporate"] .view-all {
+  color: var(--color-blue);
+}
+
+[data-variant="corporate"] .view-all::after {
+  background: var(--color-blue);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1023px) {
+  [data-variant="corporate"] .topbar {
+    height: var(--topbar-h);
+  }
+
+  [data-variant="corporate"] .main {
+    margin-top: var(--topbar-h);
+  }
+}
