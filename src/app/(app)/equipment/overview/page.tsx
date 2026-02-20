@@ -67,8 +67,8 @@ export default async function EquipmentOverviewPage() {
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon blue"><DollarSign size={18} /></div>
-          <span className="fin-kpi-label">Total Asset Value</span>
-          <span className="fin-kpi-value">{formatCompactCurrency(overview.totalAssetValue)}</span>
+          <span className="fin-kpi-label">{overview.totalAssetValue > 0 ? "Total Asset Value" : "Maintenance Investment"}</span>
+          <span className="fin-kpi-value">{formatCompactCurrency(overview.totalAssetValue > 0 ? overview.totalAssetValue : overview.totalMaintenanceCost)}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon red"><Clock size={18} /></div>

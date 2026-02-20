@@ -23,8 +23,55 @@ export interface BackfillResult {
 }
 
 /**
+ * Ensure required GL accounts exist for JE generation.
+ * Creates any missing accounts that the backfill depends on.
+ */
+async function ensureRequiredAccounts(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<void> {
+  const { count } = await supabase
+    .from("chart_of_accounts")
+    .select("id", { count: "exact", head: true })
+    .eq("company_id", companyId);
+  if (!count || count === 0) return;
+
+  const required = [
+    { number: "1500", name: "Equipment", type: "asset", sub: "fixed_asset", balance: "debit", desc: "Equipment and machinery" },
+    { number: "1540", name: "Accumulated Depreciation", type: "asset", sub: "fixed_asset", balance: "credit", desc: "Cumulative depreciation of fixed assets" },
+    { number: "6250", name: "Repairs & Maintenance", type: "expense", sub: "operating_expense", balance: "debit", desc: "Property and equipment repair costs" },
+    { number: "6700", name: "Depreciation Expense", type: "expense", sub: "operating_expense", balance: "debit", desc: "Periodic depreciation of fixed assets" },
+  ];
+
+  for (const acct of required) {
+    const nameLower = acct.name.toLowerCase();
+    const { data: existing } = await supabase
+      .from("chart_of_accounts")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("is_active", true)
+      .ilike("name", `%${nameLower}%`)
+      .limit(1);
+
+    if (!existing || existing.length === 0) {
+      await supabase.from("chart_of_accounts").insert({
+        company_id: companyId,
+        account_number: acct.number,
+        name: acct.name,
+        account_type: acct.type,
+        sub_type: acct.sub,
+        normal_balance: acct.balance,
+        description: acct.desc,
+        is_active: true,
+      });
+    }
+  }
+}
+
+/**
  * Backfill missing journal entries for all entity types.
  * Safe to call multiple times — skips entities that already have JEs.
+ * Auto-seeds required GL accounts if missing.
  */
 export async function backfillMissingJournalEntries(
   supabase: SupabaseClient,
@@ -41,6 +88,9 @@ export async function backfillMissingJournalEntries(
     payrollGenerated: 0,
     maintenanceGenerated: 0,
   };
+
+  // Auto-seed required GL accounts before building the map
+  await ensureRequiredAccounts(supabase, companyId);
 
   const accountMap = await buildCompanyAccountMap(supabase, companyId);
   if (!accountMap.cashId && !accountMap.arId && !accountMap.apId) {

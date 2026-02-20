@@ -601,6 +601,7 @@ export interface EquipmentOverviewData {
   stats: EquipmentStats;
   utilizationRate: number;
   totalAssetValue: number;
+  totalMaintenanceCost: number;
   overdueMaintenanceCount: number;
   statusBreakdown: { status: string; count: number }[];
   typeBreakdown: { type: string; count: number }[];
@@ -623,7 +624,7 @@ export async function getEquipmentOverview(
     .toISOString()
     .slice(0, 10);
 
-  const [equipRes, statsRes, assignRes] = await Promise.all([
+  const [equipRes, statsRes, assignRes, maintCostRes] = await Promise.all([
     supabase
       .from("equipment")
       .select("*")
@@ -632,23 +633,38 @@ export async function getEquipmentOverview(
     getEquipmentStats(supabase, companyId),
     supabase
       .from("equipment_assignments")
-      .select("id, assigned_date, equipment:equipment!equipment_assignments_equipment_id_fkey(name), project:projects!equipment_assignments_project_id_fkey(name), assignee:user_profiles!equipment_assignments_assigned_to_fkey(full_name)")
+      .select("id, equipment_id, assigned_date, equipment:equipment!equipment_assignments_equipment_id_fkey(name), project:projects!equipment_assignments_project_id_fkey(name), assignee:user_profiles!equipment_assignments_assigned_to_fkey(full_name)")
       .eq("company_id", companyId)
       .eq("status", "active")
       .order("assigned_date", { ascending: false })
-      .limit(6),
+      .limit(20),
+    supabase
+      .from("equipment_maintenance_logs")
+      .select("cost")
+      .eq("company_id", companyId)
+      .not("cost", "is", null)
+      .gt("cost", 0),
   ]);
 
   const equipment = (equipRes.data ?? []) as EquipmentRow[];
   const stats = statsRes;
   const assignments = assignRes.data ?? [];
 
+  // Count distinct equipment with active assignments as "in use"
+  const assignedEquipIds = new Set(
+    assignments.map((a: Record<string, unknown>) => a.equipment_id as string)
+  );
+  const assignedInUse = assignedEquipIds.size;
+  const effectiveInUse = Math.max(stats.in_use, assignedInUse);
   const nonRetired = stats.total - stats.retired;
-  const utilizationRate = nonRetired > 0 ? (stats.in_use / nonRetired) * 100 : 0;
+  const utilizationRate = nonRetired > 0 ? (effectiveInUse / nonRetired) * 100 : 0;
 
   const totalAssetValue = equipment
     .filter((e) => e.status !== "retired")
     .reduce((sum, e) => sum + (e.purchase_cost ?? 0), 0);
+
+  const totalMaintenanceCost = (maintCostRes.data ?? [])
+    .reduce((sum, r) => sum + (Number(r.cost) || 0), 0);
 
   // Status breakdown for chart
   const statusBreakdown = [
@@ -695,7 +711,7 @@ export async function getEquipmentOverview(
       e.next_maintenance_date < todayStr
   ).length;
 
-  const activeAssignments = assignments.map((a: Record<string, unknown>) => ({
+  const activeAssignments = assignments.slice(0, 6).map((a: Record<string, unknown>) => ({
     id: a.id as string,
     equipment_name: (a.equipment as { name?: string } | null)?.name ?? "Unknown",
     project_name: (a.project as { name?: string } | null)?.name ?? "Unassigned",
@@ -707,6 +723,7 @@ export async function getEquipmentOverview(
     stats,
     utilizationRate,
     totalAssetValue,
+    totalMaintenanceCost,
     overdueMaintenanceCount,
     statusBreakdown,
     typeBreakdown,

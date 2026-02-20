@@ -56,7 +56,14 @@ export default function SectionTransactions({ data, sectionName }: Props) {
     try {
       const res = await fetch("/api/admin/backfill-journal-entries", { method: "POST" });
       if (res.ok) {
-        setBackfillDone(true);
+        const data = await res.json();
+        const total = (data.coGenerated || 0) + (data.invGenerated || 0) +
+          (data.equipPurchaseGenerated || 0) + (data.depreciationGenerated || 0) +
+          (data.payrollGenerated || 0) + (data.maintenanceGenerated || 0) +
+          (data.leaseScheduled || 0) + (data.rentPaymentGenerated || 0);
+        if (total > 0) {
+          setBackfillDone(true);
+        }
         router.refresh();
       }
     } catch {
