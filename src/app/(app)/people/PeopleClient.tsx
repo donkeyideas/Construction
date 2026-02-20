@@ -301,7 +301,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contactId: selectedContact.id,
+          contact_id: selectedContact.id,
           email: loginEmail,
           password: loginPassword,
         }),
