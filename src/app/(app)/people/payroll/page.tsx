@@ -24,12 +24,29 @@ export default async function PayrollPage() {
   const { companyId, role } = userCompany;
 
   // Fetch all payroll data in parallel
-  const [payrollRuns, payRates, deductions, taxConfig] = await Promise.all([
+  const [payrollRuns, payRates, deductions, taxConfig, employeeContactsRes] = await Promise.all([
     getPayrollRuns(supabase, companyId),
     getEmployeePayRates(supabase, companyId),
     getPayrollDeductions(supabase, companyId),
     getPayrollTaxConfig(supabase, companyId),
+    supabase
+      .from("contacts")
+      .select("id, first_name, last_name, email, job_title, user_id, contact_type")
+      .eq("company_id", companyId)
+      .eq("contact_type", "employee")
+      .eq("is_active", true)
+      .order("last_name"),
   ]);
+
+  const employeeContacts = (employeeContactsRes.data ?? []) as {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string | null;
+    job_title: string | null;
+    user_id: string | null;
+    contact_type: string;
+  }[];
 
   // Fetch user profiles for employees who have pay rates
   const userIds = payRates.map((pr) => pr.user_id);
@@ -80,6 +97,7 @@ export default async function PayrollPage() {
       overview={overview}
       companyId={companyId}
       userRole={role}
+      employeeContacts={employeeContacts}
     />
   );
 }

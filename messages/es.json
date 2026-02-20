@@ -306,6 +306,16 @@
     "Compliance": "Cumplimiento",
     "My Profile": "Mi Perfil"
   },
+  "employeeNav": {
+    "employeePortal": "Portal de Empleados",
+    "Dashboard": "Panel",
+    "Clock In/Out": "Entrada/Salida",
+    "My Timesheets": "Mis Hojas de Tiempo",
+    "Payslips": "Recibos de Pago",
+    "My Certifications": "Mis Certificaciones",
+    "Documents": "Documentos",
+    "My Profile": "Mi Perfil"
+  },
   "vendor": {
     "dashboardTitle": "Panel del Proveedor",
     "dashboardSubtitle": "Resumen de sus contratos, facturas y estado de cumplimiento.",

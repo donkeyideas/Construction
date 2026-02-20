@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 interface PortalLoginProps {
-  portalType: "executive" | "tenant" | "vendor" | "admin";
+  portalType: "executive" | "tenant" | "vendor" | "employee" | "admin";
   defaultRedirect: string;
   title: string;
   subtitle: string;
@@ -48,6 +48,7 @@ function LoginFormInner({
     if (profile?.is_platform_admin) return "/super-admin";
     if (profile?.portal_type === "tenant") return "/tenant";
     if (profile?.portal_type === "vendor") return "/vendor";
+    if (profile?.portal_type === "employee") return "/employee";
     if (profile?.portal_type === "admin") return "/admin-panel";
 
     return defaultRedirect;
@@ -289,6 +290,11 @@ function LoginFormInner({
         {portalType !== "vendor" && (
           <Link href="/login/vendor" className="auth-link">
             Vendor Login
+          </Link>
+        )}
+        {portalType !== "employee" && (
+          <Link href="/login/employee" className="auth-link">
+            Employee Login
           </Link>
         )}
         {portalType !== "admin" && (

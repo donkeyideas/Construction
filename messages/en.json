@@ -306,6 +306,16 @@
     "Compliance": "Compliance",
     "My Profile": "My Profile"
   },
+  "employeeNav": {
+    "employeePortal": "Employee Portal",
+    "Dashboard": "Dashboard",
+    "Clock In/Out": "Clock In/Out",
+    "My Timesheets": "My Timesheets",
+    "Payslips": "Payslips",
+    "My Certifications": "My Certifications",
+    "Documents": "Documents",
+    "My Profile": "My Profile"
+  },
   "vendor": {
     "dashboardTitle": "Vendor Dashboard",
     "dashboardSubtitle": "Overview of your contracts, invoices, and compliance status.",

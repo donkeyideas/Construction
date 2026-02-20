@@ -1,0 +1,1130 @@
+/* Employee Portal Styles */
+/* Reuses vendor-portal patterns + adds clock-in/out specific styles */
+
+/* ===== Dashboard Layout ===== */
+.emp-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ===== Clock In/Out Card ===== */
+.emp-clock-card {
+  text-align: center;
+  padding: 28px 16px !important;
+}
+
+.emp-clock-card:hover {
+  transform: none;
+}
+
+.emp-clock-status {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.emp-clock-status.clocked-in {
+  color: var(--color-green);
+}
+
+.emp-clock-status.clocked-out {
+  color: var(--muted);
+}
+
+.emp-clock-time {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.1;
+}
+
+.emp-clock-duration {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.emp-clock-error {
+  font-size: 0.8rem;
+  color: var(--color-red);
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--color-red-light);
+  border-radius: 6px;
+}
+
+[data-theme="dark"] .emp-clock-error {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+.emp-btn-clock {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.emp-btn-clock:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emp-btn-clock-in {
+  background: var(--color-green);
+  color: #fff;
+}
+
+.emp-btn-clock-in:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.emp-btn-clock-out {
+  background: var(--color-red);
+  color: #fff;
+}
+
+.emp-btn-clock-out:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+/* ===== KPI Row ===== */
+.emp-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.emp-kpi {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  padding: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.emp-kpi:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.emp-kpi-alert {
+  border-color: var(--color-amber);
+}
+
+.emp-kpi-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.emp-kpi-value {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 4px;
+  color: var(--text);
+}
+
+/* ===== Today's Assignments ===== */
+.emp-assignments-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.emp-assignment-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.emp-assignment-item:last-child {
+  border-bottom: none;
+}
+
+.emp-assignment-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.emp-assignment-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.emp-assignment-task {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emp-assignment-project {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ===== Quick Actions Grid ===== */
+.emp-quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.emp-quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: var(--text);
+}
+
+.emp-quick-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.emp-quick-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-amber);
+}
+
+.emp-quick-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ===== Activity Feed ===== */
+.emp-activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.emp-activity-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.emp-activity-item:last-child {
+  border-bottom: none;
+}
+
+.emp-activity-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-amber);
+}
+
+.emp-activity-text {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.emp-activity-time {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ===== Empty State ===== */
+.emp-empty-state {
+  text-align: center;
+  padding: 24px 16px;
+}
+
+.emp-empty-state p {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.emp-empty-sub {
+  font-size: 0.78rem !important;
+  color: var(--muted) !important;
+  margin-top: 4px !important;
+}
+
+/* ===== Summary Row (Pay & Certs) ===== */
+.emp-summary-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.emp-summary-card {
+  text-align: center;
+  padding: 20px 16px !important;
+}
+
+.emp-summary-card:hover {
+  transform: none;
+}
+
+.emp-summary-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px auto;
+  color: var(--color-blue);
+}
+
+.emp-summary-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.emp-summary-value {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.emp-summary-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.emp-summary-warning {
+  color: var(--color-amber) !important;
+  font-weight: 600;
+}
+
+/* =================================================================
+   CLOCK IN/OUT PAGE
+   ================================================================= */
+
+/* Layout: main clock on left, sidebar on right */
+.emp-clock-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+.emp-clock-main {
+  min-width: 0;
+}
+
+.emp-clock-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Full-page clock card */
+.emp-clock-card {
+  text-align: center;
+  padding: 40px 24px !important;
+}
+
+.emp-clock-card:hover {
+  transform: none;
+}
+
+/* Timer display */
+.emp-timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.emp-timer-time {
+  font-family: var(--font-mono, "SF Mono", "Fira Code", monospace);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.emp-timer-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.emp-timer-since {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Clock buttons */
+.emp-clock-btn-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.emp-clock-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 48px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  color: #fff;
+  min-width: 200px;
+}
+
+.emp-clock-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.emp-clock-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.emp-clock-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emp-clock-btn-in {
+  background: var(--color-green);
+}
+
+.emp-clock-btn-in:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.emp-clock-btn-out {
+  background: var(--color-red);
+}
+
+.emp-clock-btn-out:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.emp-clock-error {
+  font-size: 0.8rem;
+  color: var(--color-red);
+  text-align: center;
+  margin-top: 8px;
+}
+
+.emp-today-hours {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* Section title used across pages */
+.emp-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: var(--text);
+}
+
+/* Timeline */
+.emp-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  padding-left: 20px;
+}
+
+.emp-timeline::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--border);
+}
+
+.emp-timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  position: relative;
+}
+
+.emp-timeline-dot {
+  position: absolute;
+  left: -20px;
+  top: 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+  z-index: 1;
+}
+
+.emp-timeline-dot-in {
+  background: var(--color-green);
+}
+
+.emp-timeline-dot-out {
+  background: var(--color-red);
+}
+
+.emp-timeline-content {
+  flex: 1;
+}
+
+.emp-timeline-time {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.emp-timeline-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.emp-timeline-project {
+  color: var(--color-blue);
+}
+
+.emp-empty-small {
+  text-align: center;
+  padding: 20px 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* Weekly bar chart */
+.emp-week-total {
+  margin-left: auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-amber);
+}
+
+.emp-week-grid {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 120px;
+}
+
+.emp-week-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+
+.emp-week-day-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.emp-week-day-today .emp-week-day-label {
+  color: var(--color-amber);
+}
+
+.emp-week-day-bar-wrap {
+  flex: 1;
+  width: 100%;
+  max-width: 28px;
+  background: var(--surface);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.emp-week-day-bar {
+  width: 100%;
+  background: var(--color-blue);
+  border-radius: 4px;
+  min-height: 2px;
+  transition: height 0.3s ease;
+}
+
+.emp-week-day-today .emp-week-day-bar {
+  background: var(--color-amber);
+}
+
+.emp-week-day-hours {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* =================================================================
+   TIMESHEETS PAGE
+   ================================================================= */
+
+.emp-weeks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emp-week-card {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.emp-week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  color: var(--text);
+  transition: background 0.15s;
+}
+
+.emp-week-header:hover {
+  background: var(--surface);
+}
+
+.emp-week-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.emp-week-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.emp-week-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.emp-week-hours {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.emp-week-body {
+  border-top: 1px solid var(--border);
+}
+
+.emp-week-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* =================================================================
+   PAYSLIPS PAGE
+   ================================================================= */
+
+.emp-payslip-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.emp-summary-card {
+  text-align: center;
+  padding: 20px 16px !important;
+}
+
+.emp-summary-card:hover {
+  transform: none;
+}
+
+.emp-summary-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.emp-summary-value {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Payslip detail breakdown */
+.emp-payslip-detail-row {
+  background: var(--surface) !important;
+}
+
+.emp-payslip-detail-row:hover {
+  background: var(--surface) !important;
+}
+
+.emp-payslip-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 24px;
+  padding: 20px 24px;
+}
+
+.emp-breakdown-section {
+  min-width: 0;
+}
+
+.emp-breakdown-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 0 0 12px 0;
+}
+
+.emp-breakdown-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.emp-breakdown-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.emp-breakdown-line span:first-child {
+  color: var(--muted);
+}
+
+.emp-breakdown-line span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 500;
+}
+
+.emp-breakdown-total {
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  font-weight: 700 !important;
+}
+
+.emp-breakdown-total span:first-child {
+  color: var(--text) !important;
+  font-weight: 600;
+}
+
+.emp-breakdown-total span:last-child {
+  font-weight: 700;
+}
+
+.emp-breakdown-net {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.emp-breakdown-net .emp-breakdown-line {
+  gap: 20px;
+}
+
+/* =================================================================
+   CERTIFICATIONS PAGE
+   ================================================================= */
+
+.emp-cert-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.emp-cert-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.emp-cert-card {
+  padding: 20px !important;
+}
+
+.emp-cert-card:hover {
+  transform: none;
+}
+
+.emp-cert-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.emp-cert-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.emp-cert-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.emp-cert-card-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.emp-cert-card-type {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.emp-cert-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.emp-cert-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.emp-cert-detail-label {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.emp-cert-detail-value {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.emp-cert-card-footer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* =================================================================
+   PROFILE PAGE
+   ================================================================= */
+
+.emp-profile-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.emp-profile-card {
+  text-align: center;
+  padding: 28px 20px !important;
+}
+
+.emp-profile-card:hover {
+  transform: none;
+}
+
+.emp-profile-avatar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.emp-avatar-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.emp-avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--color-amber);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emp-profile-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.emp-profile-title {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.emp-profile-company {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.emp-profile-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-blue);
+  background: rgba(59, 130, 246, 0.08);
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+[data-theme="dark"] .emp-profile-role {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+/* Profile info rows */
+.emp-profile-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.emp-profile-row-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+.emp-profile-row-value {
+  font-size: 0.88rem;
+  color: var(--text);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Form fields */
+.emp-form-field {
+  margin-bottom: 16px;
+}
+
+.emp-form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.emp-form-hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.emp-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* Alerts */
+.emp-alert {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.emp-alert-success {
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--color-green);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+[data-theme="dark"] .emp-alert-success {
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.emp-alert-error {
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--color-red);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+[data-theme="dark"] .emp-alert-error {
+  background: rgba(220, 38, 38, 0.12);
+}
+
+/* =================================================================
+   RESPONSIVE
+   ================================================================= */
+
+@media (max-width: 900px) {
+  .emp-clock-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .emp-profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .emp-payslip-summary,
+  .emp-cert-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .emp-payslip-breakdown {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .emp-cert-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .emp-kpi-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .emp-clock-time {
+    font-size: 2rem;
+  }
+
+  .emp-timer-time {
+    font-size: 2.5rem;
+  }
+
+  .emp-clock-btn {
+    padding: 14px 32px;
+    font-size: 0.95rem;
+  }
+
+  .emp-summary-row {
+    grid-template-columns: 1fr;
+  }
+
+  .emp-week-header {
+    padding: 12px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .emp-week-header-right {
+    flex-wrap: wrap;
+  }
+}

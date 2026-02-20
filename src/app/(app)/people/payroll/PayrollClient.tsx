@@ -45,6 +45,16 @@ interface UserProfile {
   email: string | null;
 }
 
+interface EmployeeContact {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  job_title: string | null;
+  user_id: string | null;
+  contact_type: string;
+}
+
 interface PayrollClientProps {
   payrollRuns: PayrollRun[];
   payRates: EmployeePayRate[];
@@ -54,6 +64,7 @@ interface PayrollClientProps {
   overview: PayrollOverview;
   companyId: string;
   userRole: string;
+  employeeContacts: EmployeeContact[];
 }
 
 type TabKey = "dashboard" | "run" | "employees" | "tax" | "reports";
@@ -105,6 +116,7 @@ export default function PayrollClient({
   overview,
   companyId,
   userRole,
+  employeeContacts,
 }: PayrollClientProps) {
   const router = useRouter();
   const isAdmin = ["owner", "admin"].includes(userRole);
@@ -271,17 +283,51 @@ export default function PayrollClient({
     setShowEditModal(true);
   }
 
+  function openSetUpEmployee(contact: EmployeeContact) {
+    // Create a synthetic EmployeePayRate for the modal with defaults
+    const syntheticPayRate: EmployeePayRate = {
+      id: "", // empty = new record
+      company_id: companyId,
+      user_id: contact.user_id!,
+      pay_type: "hourly",
+      hourly_rate: null,
+      overtime_rate: null,
+      salary_amount: null,
+      filing_status: "single",
+      federal_allowances: 0,
+      state_code: "",
+      effective_date: new Date().toISOString().slice(0, 10),
+      end_date: null,
+      employee_name: `${contact.first_name} ${contact.last_name}`,
+      employee_email: contact.email ?? "",
+    };
+    setEditingEmployee(syntheticPayRate);
+    setEditForm({
+      pay_type: "hourly",
+      hourly_rate: "",
+      overtime_rate: "",
+      salary_amount: "",
+      filing_status: "single",
+      state_code: "",
+      federal_allowances: "0",
+    });
+    setEditError("");
+    setShowEditModal(true);
+  }
+
   async function handleSaveEmployee() {
     if (!editingEmployee) return;
     setSaving(true);
     setEditError("");
 
+    const isNew = !editingEmployee.id;
+
     try {
       const res = await fetch("/api/payroll/pay-rates", {
-        method: "PUT",
+        method: isNew ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: editingEmployee.id,
+          ...(isNew ? {} : { id: editingEmployee.id }),
           user_id: editingEmployee.user_id,
           pay_type: editForm.pay_type,
           hourly_rate: editForm.pay_type === "hourly" ? Number(editForm.hourly_rate) : null,
@@ -841,131 +887,238 @@ export default function PayrollClient({
       {/* ── Employee Setup Tab ── */}
       {activeTab === "employees" && (
         <>
-          {payRates.length === 0 ? (
-            <div className="fin-empty">
-              <div className="fin-empty-icon">
-                <Users size={48} />
-              </div>
-              <div className="fin-empty-title">No Employee Pay Rates Configured</div>
-              <p className="fin-empty-desc">
-                Set up pay rates for employees to start running payroll.
-                Employee pay rate records will appear here once configured.
-              </p>
+          {/* All Employee Contacts Table */}
+          <div className="fin-chart-card">
+            <div className="fin-chart-title">
+              <Users size={18} />
+              All Employees ({employeeContacts.length})
             </div>
-          ) : (
-            <div className="payroll-employee-grid">
-              {payRates.map((emp) => {
-                const empDeductions = deductions.filter((d) => d.user_id === emp.user_id);
-                const displayName = emp.employee_name ?? "Unknown";
 
-                return (
-                  <div key={emp.id} className="payroll-employee-card">
-                    <div className="payroll-employee-card-top">
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div className="payroll-employee-card-avatar">
-                          {getInitials(displayName)}
-                        </div>
-                        <div className="payroll-employee-card-info">
-                          <div className="payroll-employee-card-name">{displayName}</div>
-                          <div className="payroll-employee-card-email">
-                            {emp.employee_email ?? ""}
-                          </div>
-                        </div>
-                      </div>
-                      {isAdmin && (
-                        <button
-                          className="ui-btn ui-btn-sm ui-btn-outline"
-                          onClick={() => openEditEmployee(emp)}
-                        >
-                          <Edit3 size={14} />
-                          Edit
-                        </button>
-                      )}
-                    </div>
+            {employeeContacts.length === 0 ? (
+              <div className="fin-empty">
+                <div className="fin-empty-icon">
+                  <Users size={48} />
+                </div>
+                <div className="fin-empty-title">No Employee Contacts Found</div>
+                <p className="fin-empty-desc">
+                  Add employees as contacts in the People section first, then configure their payroll here.
+                </p>
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table className="payroll-review-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Job Title</th>
+                      <th>Pay Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employeeContacts.map((contact) => {
+                      const matchedPayRate = payRates.find(
+                        (pr) => pr.user_id === contact.user_id
+                      );
+                      const hasUserId = !!contact.user_id;
+                      const isConfigured = !!matchedPayRate;
 
-                    <div className="payroll-employee-card-details">
-                      <div className="payroll-employee-card-row">
-                        <span className="payroll-employee-card-label">Pay Type</span>
-                        <span style={{ fontWeight: 600, textTransform: "capitalize" }}>
-                          {emp.pay_type}
-                        </span>
+                      let statusBadge: React.ReactNode;
+                      if (isConfigured) {
+                        statusBadge = (
+                          <span className="payroll-status payroll-status-paid">
+                            Configured
+                          </span>
+                        );
+                      } else if (hasUserId) {
+                        statusBadge = (
+                          <span className="payroll-status payroll-status-draft">
+                            Not Set Up
+                          </span>
+                        );
+                      } else {
+                        statusBadge = (
+                          <span className="payroll-status payroll-status-approved">
+                            Needs Login
+                          </span>
+                        );
+                      }
+
+                      return (
+                        <tr key={contact.id}>
+                          <td style={{ fontWeight: 500 }}>
+                            {contact.first_name} {contact.last_name}
+                          </td>
+                          <td>{contact.email ?? "--"}</td>
+                          <td>{contact.job_title ?? "--"}</td>
+                          <td>{statusBadge}</td>
+                          <td>
+                            <div style={{ display: "flex", gap: 6 }}>
+                              {isConfigured && isAdmin && (
+                                <button
+                                  className="ui-btn ui-btn-sm ui-btn-outline"
+                                  onClick={() => openEditEmployee(matchedPayRate)}
+                                  title="Edit pay rate"
+                                >
+                                  <Edit3 size={14} />
+                                  Edit
+                                </button>
+                              )}
+                              {!isConfigured && hasUserId && isAdmin && (
+                                <button
+                                  className="ui-btn ui-btn-sm ui-btn-primary"
+                                  onClick={() => openSetUpEmployee(contact)}
+                                  title="Set up payroll for this employee"
+                                >
+                                  <Plus size={14} />
+                                  Set Up
+                                </button>
+                              )}
+                              {!hasUserId && (
+                                <span
+                                  style={{
+                                    fontSize: "0.8rem",
+                                    color: "var(--muted)",
+                                    fontStyle: "italic",
+                                  }}
+                                >
+                                  No login account
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Configured Employee Detail Cards */}
+          {payRates.length > 0 && (
+            <>
+              <div style={{ marginTop: 24, marginBottom: 12 }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 600, color: "var(--foreground)" }}>
+                  Configured Pay Rates ({payRates.length})
+                </h3>
+              </div>
+              <div className="payroll-employee-grid">
+                {payRates.map((emp) => {
+                  const empDeductions = deductions.filter((d) => d.user_id === emp.user_id);
+                  const displayName = emp.employee_name ?? "Unknown";
+
+                  return (
+                    <div key={emp.id} className="payroll-employee-card">
+                      <div className="payroll-employee-card-top">
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <div className="payroll-employee-card-avatar">
+                            {getInitials(displayName)}
+                          </div>
+                          <div className="payroll-employee-card-info">
+                            <div className="payroll-employee-card-name">{displayName}</div>
+                            <div className="payroll-employee-card-email">
+                              {emp.employee_email ?? ""}
+                            </div>
+                          </div>
+                        </div>
+                        {isAdmin && (
+                          <button
+                            className="ui-btn ui-btn-sm ui-btn-outline"
+                            onClick={() => openEditEmployee(emp)}
+                          >
+                            <Edit3 size={14} />
+                            Edit
+                          </button>
+                        )}
                       </div>
-                      {emp.pay_type === "hourly" ? (
-                        <>
-                          <div className="payroll-employee-card-row">
-                            <span className="payroll-employee-card-label">Hourly Rate</span>
-                            <span className="payroll-employee-card-value">
-                              {fmt(emp.hourly_rate ?? 0)}/hr
-                            </span>
-                          </div>
-                          <div className="payroll-employee-card-row">
-                            <span className="payroll-employee-card-label">Overtime Rate</span>
-                            <span className="payroll-employee-card-value">
-                              {fmt(emp.overtime_rate ?? 0)}/hr
-                            </span>
-                          </div>
-                        </>
-                      ) : (
+
+                      <div className="payroll-employee-card-details">
                         <div className="payroll-employee-card-row">
-                          <span className="payroll-employee-card-label">Annual Salary</span>
-                          <span className="payroll-employee-card-value">
-                            {fmt(emp.salary_amount ?? 0)}
+                          <span className="payroll-employee-card-label">Pay Type</span>
+                          <span style={{ fontWeight: 600, textTransform: "capitalize" }}>
+                            {emp.pay_type}
                           </span>
                         </div>
-                      )}
-                      <div className="payroll-employee-card-row">
-                        <span className="payroll-employee-card-label">Filing Status</span>
-                        <span style={{ textTransform: "capitalize" }}>
-                          {(emp.filing_status ?? "single").replace(/_/g, " ")}
-                        </span>
-                      </div>
-                      {emp.state_code && (
+                        {emp.pay_type === "hourly" ? (
+                          <>
+                            <div className="payroll-employee-card-row">
+                              <span className="payroll-employee-card-label">Hourly Rate</span>
+                              <span className="payroll-employee-card-value">
+                                {fmt(emp.hourly_rate ?? 0)}/hr
+                              </span>
+                            </div>
+                            <div className="payroll-employee-card-row">
+                              <span className="payroll-employee-card-label">Overtime Rate</span>
+                              <span className="payroll-employee-card-value">
+                                {fmt(emp.overtime_rate ?? 0)}/hr
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="payroll-employee-card-row">
+                            <span className="payroll-employee-card-label">Annual Salary</span>
+                            <span className="payroll-employee-card-value">
+                              {fmt(emp.salary_amount ?? 0)}
+                            </span>
+                          </div>
+                        )}
                         <div className="payroll-employee-card-row">
-                          <span className="payroll-employee-card-label">State</span>
-                          <span>{emp.state_code}</span>
+                          <span className="payroll-employee-card-label">Filing Status</span>
+                          <span style={{ textTransform: "capitalize" }}>
+                            {(emp.filing_status ?? "single").replace(/_/g, " ")}
+                          </span>
+                        </div>
+                        {emp.state_code && (
+                          <div className="payroll-employee-card-row">
+                            <span className="payroll-employee-card-label">State</span>
+                            <span>{emp.state_code}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Deductions */}
+                      {empDeductions.length > 0 && (
+                        <div style={{ marginTop: 12 }}>
+                          <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em", color: "var(--muted)", marginBottom: 6 }}>
+                            Deductions
+                          </div>
+                          {empDeductions.map((ded) => (
+                            <div key={ded.id} className="payroll-deduction-row">
+                              <div className="payroll-deduction-label">
+                                <span>{ded.label}</span>
+                                <span className="payroll-deduction-type">{ded.deduction_type.replace(/_/g, " ")}</span>
+                                <span className={`payroll-deduction-badge ${ded.is_pretax ? "pretax" : "posttax"}`}>
+                                  {ded.is_pretax ? "Pre-tax" : "Post-tax"}
+                                </span>
+                              </div>
+                              <span className="payroll-deduction-amount">
+                                {ded.is_percentage ? `${ded.amount}%` : fmt(ded.amount)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {isAdmin && (
+                        <div className="payroll-employee-card-actions">
+                          <button
+                            className="ui-btn ui-btn-sm ui-btn-outline"
+                            onClick={() => openAddDeduction(emp.user_id)}
+                            style={{ flex: 1 }}
+                          >
+                            <Plus size={14} />
+                            Add Deduction
+                          </button>
                         </div>
                       )}
                     </div>
-
-                    {/* Deductions */}
-                    {empDeductions.length > 0 && (
-                      <div style={{ marginTop: 12 }}>
-                        <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.03em", color: "var(--muted)", marginBottom: 6 }}>
-                          Deductions
-                        </div>
-                        {empDeductions.map((ded) => (
-                          <div key={ded.id} className="payroll-deduction-row">
-                            <div className="payroll-deduction-label">
-                              <span>{ded.label}</span>
-                              <span className="payroll-deduction-type">{ded.deduction_type.replace(/_/g, " ")}</span>
-                              <span className={`payroll-deduction-badge ${ded.is_pretax ? "pretax" : "posttax"}`}>
-                                {ded.is_pretax ? "Pre-tax" : "Post-tax"}
-                              </span>
-                            </div>
-                            <span className="payroll-deduction-amount">
-                              {ded.is_percentage ? `${ded.amount}%` : fmt(ded.amount)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {isAdmin && (
-                      <div className="payroll-employee-card-actions">
-                        <button
-                          className="ui-btn ui-btn-sm ui-btn-outline"
-                          onClick={() => openAddDeduction(emp.user_id)}
-                          style={{ flex: 1 }}
-                        >
-                          <Plus size={14} />
-                          Add Deduction
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </>
       )}

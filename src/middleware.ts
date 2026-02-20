@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 function getLoginUrlForPath(pathname: string): string {
   if (pathname.startsWith("/tenant")) return "/login/tenant";
   if (pathname.startsWith("/vendor")) return "/login/vendor";
+  if (pathname.startsWith("/employee")) return "/login/employee";
   if (pathname.startsWith("/admin-panel")) return "/login/admin";
   return "/login";
 }
@@ -16,6 +17,7 @@ function isLoginPage(pathname: string): boolean {
     pathname === "/login" ||
     pathname === "/login/tenant" ||
     pathname === "/login/vendor" ||
+    pathname === "/login/employee" ||
     pathname === "/login/admin" ||
     pathname === "/register"
   );
@@ -92,6 +94,7 @@ export async function middleware(request: NextRequest) {
     "/login",
     "/login/tenant",
     "/login/vendor",
+    "/login/employee",
     "/login/admin",
     "/register",
     "/forgot-password",
@@ -172,6 +175,8 @@ export async function middleware(request: NextRequest) {
       url.pathname = "/tenant";
     } else if (profile?.portal_type === "vendor") {
       url.pathname = "/vendor";
+    } else if (profile?.portal_type === "employee") {
+      url.pathname = "/employee";
     } else if (profile?.portal_type === "admin") {
       url.pathname = "/admin-panel";
     } else {
@@ -240,7 +245,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Internal staff cannot access tenant/vendor portals
+    // Employee users can ONLY access /employee/* — redirect everything else
+    if (portalType === "employee" && !pathname.startsWith("/employee")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/employee";
+      return NextResponse.redirect(url);
+    }
+
+    // Internal staff cannot access tenant/vendor/employee portals
     if (
       !portalType ||
       portalType === "executive" ||
@@ -248,7 +260,8 @@ export async function middleware(request: NextRequest) {
     ) {
       if (
         pathname.startsWith("/tenant") ||
-        pathname.startsWith("/vendor")
+        pathname.startsWith("/vendor") ||
+        pathname.startsWith("/employee")
       ) {
         const url = request.nextUrl.clone();
         url.pathname = "/dashboard";

@@ -5,6 +5,7 @@ export type PortalType =
   | "admin"
   | "tenant"
   | "vendor"
+  | "employee"
   | "platform_admin";
 
 export interface UserPortalInfo {
@@ -102,6 +103,8 @@ export function getPortalHomeUrl(portalType: PortalType): string {
       return "/tenant";
     case "vendor":
       return "/vendor";
+    case "employee":
+      return "/employee";
     case "executive":
     default:
       return "/dashboard";
@@ -112,6 +115,7 @@ export function getPortalHomeUrl(portalType: PortalType): string {
 export function getLoginUrlForPath(pathname: string): string {
   if (pathname.startsWith("/tenant")) return "/login/tenant";
   if (pathname.startsWith("/vendor")) return "/login/vendor";
+  if (pathname.startsWith("/employee")) return "/login/employee";
   if (pathname.startsWith("/admin-panel")) return "/login/admin";
   if (pathname.startsWith("/super-admin")) return "/login";
   return "/login";
@@ -127,7 +131,7 @@ export function canAccessPath(
 
   // Owner/executive can access executive + admin dashboards
   if (portalType === "executive") {
-    if (pathname.startsWith("/tenant") || pathname.startsWith("/vendor")) {
+    if (pathname.startsWith("/tenant") || pathname.startsWith("/vendor") || pathname.startsWith("/employee")) {
       return false;
     }
     return true;
@@ -135,7 +139,7 @@ export function canAccessPath(
 
   // Admin can access admin + executive dashboards
   if (portalType === "admin") {
-    if (pathname.startsWith("/tenant") || pathname.startsWith("/vendor")) {
+    if (pathname.startsWith("/tenant") || pathname.startsWith("/vendor") || pathname.startsWith("/employee")) {
       return false;
     }
     return true;
@@ -149,6 +153,11 @@ export function canAccessPath(
   // Vendor can only access /vendor/*
   if (portalType === "vendor") {
     return pathname.startsWith("/vendor");
+  }
+
+  // Employee can only access /employee/*
+  if (portalType === "employee") {
+    return pathname.startsWith("/employee");
   }
 
   return false;

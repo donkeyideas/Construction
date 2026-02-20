@@ -16,6 +16,9 @@ import {
   AlertCircle,
   Upload,
   Search,
+  KeyRound,
+  Check,
+  Copy,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -33,6 +36,7 @@ export interface Contact {
   state: string | null;
   notes: string | null;
   is_active: boolean;
+  user_id: string | null;
   expiring_certs_count?: number;
 }
 
@@ -123,6 +127,15 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
     contact_type: "employee",
     notes: "",
   });
+
+  // Create Login modal state
+  const [showCreateLogin, setShowCreateLogin] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [creatingLogin, setCreatingLogin] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loginSuccess, setLoginSuccess] = useState<{ email: string; password: string } | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -267,6 +280,51 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
     if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
+  }
+
+  function openCreateLogin(contact: Contact) {
+    setLoginEmail(contact.email || "");
+    setLoginPassword("");
+    setLoginError("");
+    setLoginSuccess(null);
+    setShowCreateLogin(true);
+  }
+
+  async function handleCreateLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedContact) return;
+    setCreatingLogin(true);
+    setLoginError("");
+
+    try {
+      const res = await fetch("/api/people/create-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contactId: selectedContact.id,
+          email: loginEmail,
+          password: loginPassword,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to create login");
+      }
+
+      setLoginSuccess({ email: loginEmail, password: loginPassword });
+      router.refresh();
+    } catch (err: unknown) {
+      setLoginError(err instanceof Error ? err.message : "Failed to create login");
+    } finally {
+      setCreatingLogin(false);
+    }
+  }
+
+  function copyToClipboard(text: string, field: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
   }
 
   return (
@@ -443,6 +501,98 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
         />
       )}
 
+      {/* Create Login Modal */}
+      {showCreateLogin && selectedContact && (
+        <div className="ticket-modal-overlay" onClick={() => { if (!loginSuccess) setShowCreateLogin(false); }}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <div className="ticket-modal-header">
+              <h3>{loginSuccess ? "Login Created" : "Create Portal Login"}</h3>
+              <button className="ticket-modal-close" onClick={() => { setShowCreateLogin(false); setLoginSuccess(null); }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {loginSuccess ? (
+              <div className="ticket-detail-body">
+                <p style={{ marginBottom: 16, color: "var(--color-success)" }}>
+                  <Check size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />
+                  Login created successfully! Share these credentials with the {selectedContact.contact_type}.
+                </p>
+                <div style={{ background: "var(--bg-tertiary)", borderRadius: 8, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 2 }}>Email</div>
+                      <div style={{ fontWeight: 500 }}>{loginSuccess.email}</div>
+                    </div>
+                    <button className="btn-ghost" onClick={() => copyToClipboard(loginSuccess.email, "email")} style={{ padding: 6 }}>
+                      {copiedField === "email" ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 2 }}>Password</div>
+                      <div style={{ fontWeight: 500, fontFamily: "monospace" }}>{loginSuccess.password}</div>
+                    </div>
+                    <button className="btn-ghost" onClick={() => copyToClipboard(loginSuccess.password, "password")} style={{ padding: 6 }}>
+                      {copiedField === "password" ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+                <p style={{ marginTop: 12, fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                  Portal URL: {selectedContact.contact_type === "employee" ? "/login/employee" : "/login/vendor"}
+                </p>
+                <div className="ticket-form-actions" style={{ marginTop: 16 }}>
+                  <button className="btn-primary" onClick={() => { setShowCreateLogin(false); setLoginSuccess(null); }}>
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleCreateLogin} className="ticket-form">
+                {loginError && <div className="ticket-form-error">{loginError}</div>}
+
+                <p style={{ marginBottom: 12, fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                  Create a {selectedContact.contact_type === "employee" ? "Employee Portal" : "Vendor Portal"} login for{" "}
+                  <strong>{`${selectedContact.first_name ?? ""} ${selectedContact.last_name ?? ""}`.trim() || selectedContact.company_name}</strong>.
+                </p>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Email *</label>
+                  <input
+                    type="email"
+                    className="ticket-form-input"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="user@example.com"
+                    required
+                  />
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Temporary Password *</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    placeholder="Min 8 characters"
+                    minLength={8}
+                    required
+                  />
+                </div>
+
+                <div className="ticket-form-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setShowCreateLogin(false)}>Cancel</button>
+                  <button type="submit" className="btn-primary" disabled={creatingLogin || !loginEmail || loginPassword.length < 8}>
+                    {creatingLogin ? "Creating..." : "Create Login"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Detail/Edit/Delete Modal */}
       {selectedContact && (
         <div className="ticket-modal-overlay" onClick={closeModal}>
@@ -451,7 +601,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
               <h3>
                 {isEditing
                   ? t("editContact")
-                  : `${selectedContact.first_name} ${selectedContact.last_name}`}
+                  : `${selectedContact.first_name ?? ""} ${selectedContact.last_name ?? ""}`.trim() || selectedContact.company_name || t("unnamedContact")}
               </h3>
               <button className="ticket-modal-close" onClick={closeModal}>
                 <X size={18} />
@@ -535,12 +685,17 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                 <div className="ticket-detail-body">
                   <div className="people-detail-header">
                     <div className="people-detail-avatar">
-                      {(selectedContact.first_name?.[0] || "").toUpperCase()}
-                      {(selectedContact.last_name?.[0] || "").toUpperCase()}
+                      {(() => {
+                        const pi = (selectedContact.first_name?.[0] || "") + (selectedContact.last_name?.[0] || "");
+                        const ci = selectedContact.company_name
+                          ? selectedContact.company_name.split(/\s+/).slice(0, 2).map(w => w[0]).join("")
+                          : "";
+                        return (pi || ci || "?").toUpperCase();
+                      })()}
                     </div>
                     <div>
                       <div className="people-detail-name">
-                        {selectedContact.first_name} {selectedContact.last_name}
+                        {`${selectedContact.first_name ?? ""} ${selectedContact.last_name ?? ""}`.trim() || selectedContact.company_name || t("unnamedContact")}
                       </div>
                       {selectedContact.job_title && (
                         <div className="people-detail-title">{selectedContact.job_title}</div>
@@ -601,6 +756,18 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                     <Trash2 size={16} />
                     {t("delete")}
                   </button>
+                  {(selectedContact.contact_type === "employee" || selectedContact.contact_type === "vendor") && !selectedContact.user_id && (
+                    <button className="btn-secondary" onClick={() => openCreateLogin(selectedContact)}>
+                      <KeyRound size={16} />
+                      Create Login
+                    </button>
+                  )}
+                  {selectedContact.user_id && (selectedContact.contact_type === "employee" || selectedContact.contact_type === "vendor") && (
+                    <span className="badge badge-green" style={{ padding: "6px 12px", fontSize: "0.8rem" }}>
+                      <Check size={14} />
+                      Login Active
+                    </span>
+                  )}
                   <button className="btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>
                     <Edit3 size={16} />
                     {t("edit")}
@@ -617,8 +784,13 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
 
 // Contact Card Component
 function ContactCard({ contact, onClick, typeLabels, t }: { contact: Contact; onClick: () => void; typeLabels: Record<ContactType, string>; t: ReturnType<typeof useTranslations> }) {
-  const initials = (contact.first_name?.[0] || "") + (contact.last_name?.[0] || "");
-  const fullName = `${contact.first_name} ${contact.last_name}`.trim();
+  const personInitials = (contact.first_name?.[0] || "") + (contact.last_name?.[0] || "");
+  const companyInitials = contact.company_name
+    ? contact.company_name.split(/\s+/).slice(0, 2).map(w => w[0]).join("")
+    : "";
+  const initials = personInitials || companyInitials;
+  const fullName = `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim();
+  const displayName = fullName || contact.company_name || t("unnamedContact");
   const hasCertWarning = (contact.expiring_certs_count ?? 0) > 0;
 
   return (
@@ -629,7 +801,7 @@ function ContactCard({ contact, onClick, typeLabels, t }: { contact: Contact; on
         </div>
         <div className="contact-card-info">
           <div className="contact-card-name">
-            {fullName || t("unnamedContact")}
+            {displayName}
             {hasCertWarning && <span className="cert-warning" />}
           </div>
           {contact.job_title && <div className="contact-card-title">{contact.job_title}</div>}
