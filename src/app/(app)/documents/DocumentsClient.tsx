@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
@@ -124,6 +124,11 @@ export default function DocumentsClient({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Sync showUpload prop to modal state (handles client-side navigation)
+  useEffect(() => {
+    if (showUpload) setShowUploadModal(true);
+  }, [showUpload]);
 
   const categoryLabels: Record<string, string> = {
     plan: t("categoryPlans"),

@@ -6,6 +6,7 @@ import {
   uploadDocument,
   type DocumentFilters,
 } from "@/lib/queries/documents";
+import { storageUpload } from "@/lib/supabase/storage";
 
 /* ------------------------------------------------------------------
    GET /api/documents - List documents for the current company
@@ -84,18 +85,24 @@ export async function POST(request: NextRequest) {
       const projectId = formData.get("project_id") as string | null;
       const propertyId = formData.get("property_id") as string | null;
       const tagsRaw = formData.get("tags") as string | null;
-      const tags = tagsRaw ? tagsRaw.split(",").map((t) => t.trim()) : [];
+      let tags: string[] = [];
+      if (tagsRaw) {
+        try {
+          const parsed = JSON.parse(tagsRaw);
+          tags = Array.isArray(parsed) ? parsed : tagsRaw.split(",").map((t) => t.trim());
+        } catch {
+          tags = tagsRaw.split(",").map((t) => t.trim());
+        }
+      }
 
-      // Upload file to Supabase Storage
+      // Upload file to Supabase Storage (admin client ensures bucket exists)
       const timestamp = Date.now();
       const storagePath = `${userCtx.companyId}/${folderPath || "uploads"}/${timestamp}-${file.name}`;
 
-      const { error: storageError } = await supabase.storage
-        .from("documents")
-        .upload(storagePath, file, {
-          contentType: file.type,
-          upsert: false,
-        });
+      const { error: storageError } = await storageUpload(storagePath, file, {
+        contentType: file.type,
+        upsert: false,
+      });
 
       if (storageError) {
         console.error("Storage upload error:", storageError);
