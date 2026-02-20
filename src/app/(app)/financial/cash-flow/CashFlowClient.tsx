@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { TrendingUp, Landmark, DollarSign, Building2 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 import type { CashFlowStatementData, CashFlowSection } from "@/lib/queries/financial";
@@ -47,6 +48,7 @@ export default function CashFlowClient({
   cfStartDate,
   cfEndDate,
 }: Props) {
+  const router = useRouter();
   const [selectedAccount, setSelectedAccount] = useState<CashFlowSection | null>(null);
   const [startDate, setStartDate] = useState(cfStartDate);
   const [endDate, setEndDate] = useState(cfEndDate);
@@ -58,7 +60,7 @@ export default function CashFlowClient({
   }
 
   function handleApply() {
-    window.location.href = `/financial/cash-flow?start=${startDate}&end=${endDate}`;
+    router.push(`/financial/cash-flow?start=${startDate}&end=${endDate}`);
   }
 
   return (

@@ -1,11 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getJournalEntries, getChartOfAccounts, getTrialBalance } from "@/lib/queries/financial";
-import { BookOpen } from "lucide-react";
 import GeneralLedgerClient from "./GeneralLedgerClient";
 
 export const metadata = {
-  title: "General Ledger - Buildwrk",
+  title: "Journal Entries - Buildwrk",
 };
 
 export default async function GeneralLedgerPage({
@@ -19,12 +18,9 @@ export default async function GeneralLedgerPage({
   if (!userCompany) {
     return (
       <div className="fin-empty">
-        <div className="fin-empty-icon">
-          <BookOpen size={48} />
-        </div>
         <div className="fin-empty-title">No Company Found</div>
         <div className="fin-empty-desc">
-          Complete your company registration to access the General Ledger.
+          Complete your company registration to access Journal Entries.
         </div>
       </div>
     );
@@ -44,10 +40,7 @@ export default async function GeneralLedgerPage({
     <div>
       <div className="fin-header">
         <div>
-          <h2>
-            <BookOpen size={24} style={{ verticalAlign: "middle", marginRight: 8 }} />
-            General Ledger
-          </h2>
+          <h2>Journal Entries</h2>
           <p className="fin-header-sub">
             Journal entries, trial balance, and double-entry bookkeeping.
           </p>

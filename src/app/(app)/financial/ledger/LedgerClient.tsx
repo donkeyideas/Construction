@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { BookOpen, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Filter } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import Link from "next/link";
 
@@ -112,6 +112,36 @@ export default function LedgerClient({
     router.push(url);
   }
 
+  function handleExportCSV() {
+    const rows: string[] = [];
+    rows.push(["Date", "JE #", "Account", "Description", "Reference", "Debit", "Credit"].join(","));
+    for (const line of lines) {
+      const je = line.journal_entries;
+      const acct = accountMap[line.account_id];
+      const debitVal = Number(line.debit) || 0;
+      const creditVal = Number(line.credit) || 0;
+      const desc = (line.description || je.description || "").replace(/"/g, '""');
+      const ref = (je.reference || "").replace(/"/g, '""');
+      rows.push([
+        je.entry_date,
+        je.entry_number,
+        acct ? `${acct.number} - ${acct.name}` : line.account_id,
+        `"${desc}"`,
+        `"${ref}"`,
+        debitVal > 0 ? debitVal.toFixed(2) : "",
+        creditVal > 0 ? creditVal.toFixed(2) : "",
+      ].join(","));
+    }
+    rows.push([`"Total"`, "", "", "", "", totalDebits.toFixed(2), totalCredits.toFixed(2)].join(","));
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `general_ledger_${filterStart}_${filterEnd}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function handlePageChange(page: number) {
     const url = buildUrl(filterStart, filterEnd, filterAccount || undefined, page);
     router.push(url);
@@ -122,13 +152,16 @@ export default function LedgerClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>
-            <BookOpen size={24} style={{ verticalAlign: "middle", marginRight: 8 }} />
-            General Ledger
-          </h2>
+          <h2>General Ledger</h2>
           <p className="fin-header-sub">
             All posted journal entry lines by account
           </p>
+        </div>
+        <div className="fin-header-actions">
+          <button className="ui-btn ui-btn-outline ui-btn-sm" onClick={handleExportCSV}>
+            <Download size={14} />
+            Export CSV
+          </button>
         </div>
       </div>
 
@@ -217,14 +250,14 @@ export default function LedgerClient({
       <div className="financial-kpi-row">
         <div className="fin-kpi">
           <div className="fin-kpi-icon" style={{ color: "var(--color-green)" }}>
-            <BookOpen size={20} />
+            <Filter size={20} />
           </div>
           <div className="fin-kpi-label">Total Debits</div>
           <div className="fin-kpi-value">{formatCurrency(totalDebits)}</div>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon" style={{ color: "var(--color-red)" }}>
-            <BookOpen size={20} />
+            <Filter size={20} />
           </div>
           <div className="fin-kpi-label">Total Credits</div>
           <div className="fin-kpi-value">{formatCurrency(totalCredits)}</div>
@@ -236,7 +269,7 @@ export default function LedgerClient({
               color: Math.abs(net) < 0.01 ? "var(--color-green)" : "var(--color-amber)",
             }}
           >
-            <BookOpen size={20} />
+            <Filter size={20} />
           </div>
           <div className="fin-kpi-label">Net (Debits - Credits)</div>
           <div
@@ -250,7 +283,7 @@ export default function LedgerClient({
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon" style={{ color: "var(--color-blue)" }}>
-            <BookOpen size={20} />
+            <Filter size={20} />
           </div>
           <div className="fin-kpi-label">Posted Entries</div>
           <div className="fin-kpi-value">{totalLines.toLocaleString()}</div>
@@ -418,7 +451,7 @@ export default function LedgerClient({
         <div className="fin-chart-card">
           <div className="fin-empty">
             <div className="fin-empty-icon">
-              <BookOpen size={48} />
+              <Filter size={48} />
             </div>
             <div className="fin-empty-title">No Ledger Entries Found</div>
             <div className="fin-empty-desc">

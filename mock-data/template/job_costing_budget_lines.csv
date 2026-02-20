@@ -1,0 +1,23 @@
+csi_code,description,budgeted_amount,committed_amount,actual_amount
+01-00,General Requirements - Site Office & Temp Utilities,425000,410000,385000
+02-00,Site Work & Demolition,1850000,1750000,1620000
+03-00,Concrete Foundations & Slabs,3200000,3050000,2875000
+04-00,Masonry & Stone Veneer,890000,845000,720000
+05-00,Structural Steel & Misc Metals,2750000,2680000,2450000
+06-00,Rough Carpentry & Framing,1100000,1050000,980000
+07-00,Waterproofing & Roofing,1450000,1380000,1150000
+08-00,Doors Windows & Glazing,980000,925000,810000
+09-00,"Finishes - Drywall, Paint, Flooring",1650000,1520000,1275000
+10-00,Specialties & Accessories,320000,295000,210000
+11-00,Food Service Equipment,185000,175000,0
+12-00,"Furnishings - Casework, Countertops",275000,250000,120000
+14-00,Conveying Systems - Elevator,680000,650000,580000
+21-00,Fire Suppression & Sprinklers,420000,395000,340000
+22-00,Plumbing & Fixtures,890000,845000,725000
+23-00,HVAC Mechanical Systems,2100000,1980000,1650000
+26-00,Electrical Power & Lighting,1750000,1680000,1420000
+27-00,Communications & Low Voltage,380000,350000,275000
+28-00,Electronic Safety & Security,290000,270000,195000
+31-00,Earthwork & Grading,750000,720000,680000
+32-00,Exterior Improvements & Landscaping,480000,440000,310000
+33-00,Site Utilities - Storm & Sanitary,620000,590000,520000

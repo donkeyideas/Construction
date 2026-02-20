@@ -269,7 +269,7 @@ export default function APClient({
         <button
           className="ui-btn ui-btn-primary ui-btn-md"
           onClick={() => {
-            window.location.href = buildUrl(activeStatus, filterStart || undefined, filterEnd || undefined);
+            router.push(buildUrl(activeStatus, filterStart || undefined, filterEnd || undefined));
           }}
         >
           {t("apply")}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Printer } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
@@ -61,6 +62,7 @@ function StatementSection({
 }
 
 export default function IncomeStatementClient({ data, companyName }: Props) {
+  const router = useRouter();
   const t = useTranslations("financial");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
@@ -74,7 +76,7 @@ export default function IncomeStatementClient({ data, companyName }: Props) {
   }
 
   function handleApply() {
-    window.location.href = `/financial/income-statement?start=${startDate}&end=${endDate}`;
+    router.push(`/financial/income-statement?start=${startDate}&end=${endDate}`);
   }
 
   function handlePrint() {

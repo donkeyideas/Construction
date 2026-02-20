@@ -454,7 +454,7 @@ export default function GeneralLedgerClient({
             if (filterStartDate) params.set("start", filterStartDate);
             if (filterEndDate) params.set("end", filterEndDate);
             const qs = params.toString();
-            window.location.href = `/financial/general-ledger${qs ? `?${qs}` : ""}`;
+            router.push(`/financial/general-ledger${qs ? `?${qs}` : ""}`);
           }}
         >
           {t("apply")}
