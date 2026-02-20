@@ -9,6 +9,9 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  font-size: 0.875rem;
   font-family: var(--font-sans);
   font-weight: 500;
   border-radius: 8px;
