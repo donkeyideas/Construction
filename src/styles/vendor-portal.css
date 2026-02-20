@@ -1,6 +1,19 @@
 /* Vendor Portal Styles */
 /* Matches mockup: mockups-v2/28-tenant-vendor-portal.html */
 
+/* ===== Portal Layout (no sidebar) ===== */
+.portal-layout .sidebar-toggle {
+  display: none;
+}
+.portal-layout .topbar {
+  margin-left: 0;
+}
+.portal-layout .main {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1200px;
+}
+
 /* ===== KPI Grid (existing, kept for sub-pages) ===== */
 .vendor-kpi-grid {
   display: grid;
@@ -98,6 +111,69 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.vendor-card-title .vendor-view-all {
+  margin-left: auto;
+  font-family: var(--font-sans, Inter, -apple-system, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--amber, #b45309);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.vendor-card-title .vendor-view-all:hover {
+  text-decoration: underline;
+}
+
+/* ===== Quick Links Grid ===== */
+.vendor-quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.vendor-quick-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg, #ffffff);
+  border: 1px solid var(--border, #d6d3d1);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text, #292524);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+}
+.vendor-quick-link:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .06);
+  transform: translateY(-2px);
+  border-color: var(--amber, #b45309);
+}
+.vendor-quick-link-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface, #f5f0eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.vendor-quick-link-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--amber, #b45309);
+  fill: none;
+  stroke-width: 2;
+}
+.vendor-quick-link-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.vendor-quick-link-desc {
+  font-size: 0.72rem;
+  color: var(--muted, #78716c);
+  margin-top: 1px;
 }
 
 /* ===== Badges ===== */

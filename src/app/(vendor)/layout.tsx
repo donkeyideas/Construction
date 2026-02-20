@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { VendorSidebar } from "@/components/layout/vendor-sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -11,7 +9,6 @@ import "@/styles/financial.css";
 import "@/styles/vendor-portal.css";
 
 export default function VendorLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const t = useTranslations("vendorNav");
 
@@ -24,13 +21,12 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <>
-      <VendorSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="portal-layout">
       <Topbar
         breadcrumb={getBreadcrumb(pathname)}
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        onToggleSidebar={() => {}}
       />
       <main className="main">{children}</main>
-    </>
+    </div>
   );
 }
