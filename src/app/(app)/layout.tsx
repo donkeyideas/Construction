@@ -38,6 +38,7 @@ import "@/styles/authoritative-reports.css";
 import "@/styles/automation.css";
 import "@/styles/payroll.css";
 import "@/styles/data-import.css";
+import "@/styles/bulk-import.css";
 import "@/styles/section-transactions.css";
 import "@/styles/ai-features.css";
 

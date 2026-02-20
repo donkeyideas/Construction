@@ -172,6 +172,7 @@ export const appNavigation: NavItem[] = [
     label: "Administration",
     icon: "settings",
     children: [
+      { label: "Data Import", href: "/admin/import" },
       { label: "Users & Roles", href: "/admin/users" },
       { label: "Company Settings", href: "/admin/settings" },
       { label: "AI Providers", href: "/admin/ai-providers" },

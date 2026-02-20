@@ -1,0 +1,289 @@
+/* ============================================================
+   Bulk Import Page Styles
+   Buildwrk - /admin/import
+   ============================================================ */
+
+/* Page wrapper */
+.bulk-import-page {
+  max-width: 1200px;
+}
+
+/* Page header */
+.bulk-import-header {
+  margin-bottom: 28px;
+}
+
+.bulk-import-header h1 {
+  font-family: var(--font-serif, "Playfair Display", serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.bulk-import-subtitle {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ===== Phase Sections ===== */
+.bulk-import-phase {
+  margin-bottom: 20px;
+  background: var(--card-bg, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bulk-import-phase-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.bulk-import-phase-header:hover {
+  background: var(--surface);
+}
+
+.bulk-import-phase-badge {
+  background: var(--color-blue);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bulk-import-phase-header h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.bulk-import-phase-desc {
+  font-size: 0.82rem;
+  color: var(--muted);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bulk-import-phase-progress {
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bulk-import-phase-progress.complete {
+  color: var(--color-green);
+  font-weight: 600;
+}
+
+.bulk-import-phase-chevron {
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.bulk-import-phase-chevron.expanded {
+  transform: rotate(90deg);
+}
+
+/* Phase body */
+.bulk-import-phase-body {
+  padding: 0 20px 20px;
+}
+
+/* ===== Entity Grid ===== */
+.bulk-import-entity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+/* ===== Entity Card ===== */
+.bulk-import-entity-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  position: relative;
+}
+
+.bulk-import-entity-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .bulk-import-entity-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.bulk-import-entity-card.imported {
+  border-left: 3px solid var(--color-green);
+}
+
+/* Card header */
+.bulk-import-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bulk-import-card-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bulk-import-card-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.bulk-import-card-name {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.bulk-import-card-deps {
+  font-size: 0.73rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.bulk-import-step-badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* Column pills */
+.bulk-import-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.bulk-import-col-pill {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.bulk-import-col-pill.required {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+[data-theme="dark"] .bulk-import-col-pill {
+  background: var(--bg);
+}
+
+/* Card stats */
+.bulk-import-card-stats {
+  font-size: 0.78rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulk-import-card-stats strong {
+  color: var(--color-green);
+  font-weight: 600;
+}
+
+/* Card actions */
+.bulk-import-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.bulk-import-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bulk-import-btn:hover {
+  background: var(--surface);
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+.bulk-import-btn.primary {
+  background: var(--color-blue);
+  border-color: var(--color-blue);
+  color: #fff;
+}
+
+.bulk-import-btn.primary:hover {
+  background: var(--color-blue-dark, #1e40af);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .bulk-import-entity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bulk-import-phase-desc {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .bulk-import-phase-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .bulk-import-card-actions {
+    flex-direction: column;
+  }
+}
