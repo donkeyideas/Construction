@@ -39,6 +39,7 @@ import "@/styles/automation.css";
 import "@/styles/payroll.css";
 import "@/styles/data-import.css";
 import "@/styles/section-transactions.css";
+import "@/styles/ai-features.css";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
