@@ -22,6 +22,10 @@
   margin-bottom: 24px;
 }
 
+.kpi-grid-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
 .kpi {
   display: flex;
   justify-content: space-between;
@@ -329,6 +333,12 @@ a.activity-item:hover {
   }
   .three-row > :last-child {
     grid-column: span 2;
+  }
+}
+
+@media (max-width: 1279px) {
+  .kpi-grid-5 {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

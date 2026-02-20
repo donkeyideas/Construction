@@ -13,6 +13,11 @@ import {
   Pencil,
   Trash2,
   Upload,
+  DollarSign,
+  Target,
+  Activity,
+  Gauge,
+  Timer,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -536,61 +541,41 @@ export default function JobCostingClient({
       {selectedProjectId && summary && summary.lines.length > 0 ? (
         <>
           {/* Earned Value Metrics */}
-          <div className="ev-metrics">
-            <div className="ev-metric">
-              <div className="ev-metric-label">{t("bcwpLabel")}</div>
-              <div className="ev-metric-value">{formatCurrencyWithLocale(bcwp, dateLocale)}</div>
-              <div className="ev-metric-desc">
-                {t("bcwpDesc")}
+          <div className="kpi-grid kpi-grid-5">
+            <div className="card kpi">
+              <div className="kpi-info">
+                <span className="kpi-label">{t("bcwpLabel")}</span>
+                <span className="kpi-value">{formatCurrencyWithLocale(bcwp, dateLocale)}</span>
               </div>
+              <div className="kpi-icon"><Target size={22} /></div>
             </div>
-            <div className="ev-metric">
-              <div className="ev-metric-label">{t("bcwsLabel")}</div>
-              <div className="ev-metric-value">{formatCurrencyWithLocale(bcws, dateLocale)}</div>
-              <div className="ev-metric-desc">
-                {t("bcwsDesc")}
+            <div className="card kpi">
+              <div className="kpi-info">
+                <span className="kpi-label">{t("bcwsLabel")}</span>
+                <span className="kpi-value">{formatCurrencyWithLocale(bcws, dateLocale)}</span>
               </div>
+              <div className="kpi-icon"><DollarSign size={22} /></div>
             </div>
-            <div className="ev-metric">
-              <div className="ev-metric-label">{t("acwpLabel")}</div>
-              <div className="ev-metric-value">{formatCurrencyWithLocale(acwp, dateLocale)}</div>
-              <div className="ev-metric-desc">
-                {t("acwpDesc")}
+            <div className="card kpi">
+              <div className="kpi-info">
+                <span className="kpi-label">{t("acwpLabel")}</span>
+                <span className="kpi-value">{formatCurrencyWithLocale(acwp, dateLocale)}</span>
               </div>
+              <div className="kpi-icon"><Activity size={22} /></div>
             </div>
-            <div className="ev-metric">
-              <div className="ev-metric-label">{t("cpiLabel")}</div>
-              <div
-                className="ev-metric-value"
-                style={{
-                  color:
-                    cpi >= 1
-                      ? "var(--color-green)"
-                      : cpi >= 0.9
-                      ? "var(--color-amber)"
-                      : "var(--color-red)",
-                }}
-              >
-                {cpi.toFixed(2)}
+            <div className="card kpi">
+              <div className="kpi-info">
+                <span className="kpi-label">{t("cpiLabel")}</span>
+                <span className={`kpi-value ${cpi < 0.9 ? "amber" : ""}`} style={{ color: cpi >= 1 ? "var(--color-green)" : cpi >= 0.9 ? "var(--color-amber)" : "var(--color-red)" }}>{cpi.toFixed(2)}</span>
               </div>
-              <div className="ev-metric-desc">{t("cpiDesc")}</div>
+              <div className="kpi-icon"><Gauge size={22} /></div>
             </div>
-            <div className="ev-metric">
-              <div className="ev-metric-label">{t("spiLabel")}</div>
-              <div
-                className="ev-metric-value"
-                style={{
-                  color:
-                    spi >= 1
-                      ? "var(--color-green)"
-                      : spi >= 0.9
-                      ? "var(--color-amber)"
-                      : "var(--color-red)",
-                }}
-              >
-                {spi.toFixed(2)}
+            <div className="card kpi">
+              <div className="kpi-info">
+                <span className="kpi-label">{t("spiLabel")}</span>
+                <span className={`kpi-value ${spi < 0.9 ? "amber" : ""}`} style={{ color: spi >= 1 ? "var(--color-green)" : spi >= 0.9 ? "var(--color-amber)" : "var(--color-red)" }}>{spi.toFixed(2)}</span>
               </div>
-              <div className="ev-metric-desc">{t("spiDesc")}</div>
+              <div className="kpi-icon"><Timer size={22} /></div>
             </div>
           </div>
 
