@@ -523,13 +523,16 @@ export async function getSafetyOverview(
   const now = new Date();
   const yearStart = `${now.getFullYear()}-01-01`;
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  // 12-month lookback for the trend chart (not just YTD)
+  const trendStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const trendStartStr = `${trendStart.getFullYear()}-${String(trendStart.getMonth() + 1).padStart(2, "0")}-01`;
 
   const [incidentsRes, talksRes, allIncidentsRes] = await Promise.all([
     supabase
       .from("safety_incidents")
       .select("id, incident_type, severity, status, incident_date, osha_recordable, title, incident_number, project_id, reporter:user_profiles!safety_incidents_reporter_profile_fkey(id, full_name, email), assignee:user_profiles!safety_incidents_assignee_profile_fkey(id, full_name, email), project:projects(id, name)")
       .eq("company_id", companyId)
-      .gte("incident_date", yearStart)
+      .gte("incident_date", trendStartStr)
       .order("incident_date", { ascending: false }),
     supabase
       .from("toolbox_talks")
@@ -548,8 +551,10 @@ export async function getSafetyOverview(
   const talks = (talksRes.data ?? []) as unknown as ToolboxTalkRow[];
   const latestIncident = allIncidentsRes.data?.[0];
 
-  const incidentsYTD = incidents.length;
-  const oshaRecordableCount = incidents.filter((i) => i.osha_recordable).length;
+  // YTD = only incidents from Jan 1 of current year
+  const ytdIncidents = incidents.filter((i) => i.incident_date >= yearStart);
+  const incidentsYTD = ytdIncidents.length;
+  const oshaRecordableCount = ytdIncidents.filter((i) => i.osha_recordable).length;
   const openInvestigations = incidents.filter(
     (i) => i.status !== "closed"
   ).length;
@@ -565,7 +570,7 @@ export async function getSafetyOverview(
     (t) => (t.scheduled_date ?? t.conducted_date) >= monthStart
   ).length;
 
-  const nearMissCount = incidents.filter(
+  const nearMissCount = ytdIncidents.filter(
     (i) => i.incident_type === "near_miss"
   ).length;
   const nearMissRatio =
