@@ -594,7 +594,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
       )}
 
       {/* Detail/Edit/Delete Modal */}
-      {selectedContact && (
+      {selectedContact && !showCreateLogin && (
         <div className="ticket-modal-overlay" onClick={closeModal}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
@@ -752,7 +752,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                 </div>
 
                 <div className="ticket-form-actions">
-                  <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
+                  <button className="btn-danger" onClick={() => setShowDeleteConfirm(true)}>
                     <Trash2 size={16} />
                     {t("delete")}
                   </button>
