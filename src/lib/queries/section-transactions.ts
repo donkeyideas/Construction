@@ -847,21 +847,29 @@ export async function getCRMTransactions(
   // CRM transactions: only actual invoiced revenue (not forecasts/estimates)
   // Won opportunities and bids are informational forecasts, not GL entries.
 
-  // 1. JE lines from client invoices (the actual revenue)
-  const { data: jeLines } = await supabase
-    .from("journal_entry_lines")
-    .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-    .eq("company_id", companyId)
-    .limit(500);
+  // Phase 1: Both independent queries in parallel
+  const [jeLinesRes, clientInvoicesRes] = await Promise.all([
+    supabase.from("journal_entry_lines")
+      .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+      .eq("company_id", companyId).limit(500),
+    supabase.from("invoices")
+      .select("id, invoice_number, invoice_date, total_amount, client_name, status")
+      .eq("company_id", companyId).eq("invoice_type", "receivable").neq("status", "voided")
+      .order("invoice_date", { ascending: false }).limit(100),
+  ]);
 
-  // Filter to only invoice JEs
-  for (const line of (jeLines ?? []) as JELineRow[]) {
+  const clientInvoices = clientInvoicesRes.data ?? [];
+
+  // Phase 2: JE map lookup (depends on invoices result)
+  const invJeMap = await getJEMap(supabase, companyId, clientInvoices.map((i) => `invoice:${i.id}`));
+
+  // Process JE lines — filter to only invoice JEs
+  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
     const je = line.journal_entries as unknown as JEParsed | null;
     if (!je || je.status !== "posted") continue;
     const ref = je.reference ?? "";
     if (!ref.startsWith("invoice:")) continue;
 
-    // Check if this is a receivable invoice
     const invId = ref.replace("invoice:", "");
     const txn = mapJELine(line);
     if (txn) {
@@ -871,20 +879,8 @@ export async function getCRMTransactions(
     }
   }
 
-  // 2. Receivable invoices without JEs (fallback)
-  const { data: clientInvoices } = await supabase
-    .from("invoices")
-    .select("id, invoice_number, invoice_date, total_amount, client_name, status")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "receivable")
-    .neq("status", "voided")
-    .order("invoice_date", { ascending: false })
-    .limit(100);
-
-  const invRefs = (clientInvoices ?? []).map((i) => `invoice:${i.id}`);
-  const invJeMap = await getJEMap(supabase, companyId, invRefs);
-
-  for (const inv of clientInvoices ?? []) {
+  // Process client invoices
+  for (const inv of clientInvoices) {
     const je = invJeMap.get(`invoice:${inv.id}`);
     txns.push({
       id: `inv-${inv.id}`,
