@@ -751,12 +751,12 @@ export default function VendorsClient({
                 </div>
 
                 <div className="ticket-form-actions">
-                  <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
-                    <Trash2 size={16} />
+                  <button className="ui-btn ui-btn-sm ui-btn-danger" onClick={() => setShowDeleteConfirm(true)}>
+                    <Trash2 size={15} />
                     {t("delete")}
                   </button>
-                  <button className="btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>
-                    <Edit3 size={16} />
+                  <button className="ui-btn ui-btn-sm ui-btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>
+                    <Edit3 size={15} />
                     {t("edit")}
                   </button>
                 </div>
