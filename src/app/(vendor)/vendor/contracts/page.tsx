@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getVendorContracts } from "@/lib/queries/vendor-portal";
 import { formatCurrency } from "@/lib/utils/format";
 import { getTranslations, getLocale } from "next-intl/server";
@@ -13,7 +14,8 @@ export default async function VendorContractsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) { redirect("/login/vendor"); }
 
-  const contracts = await getVendorContracts(supabase, user.id);
+  const admin = createAdminClient();
+  const contracts = await getVendorContracts(admin, user.id);
   const t = await getTranslations("vendor");
   const locale = await getLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";

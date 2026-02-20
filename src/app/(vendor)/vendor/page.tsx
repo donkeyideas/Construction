@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { LayoutDashboard } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getVendorDashboardFull } from "@/lib/queries/vendor-portal";
 import { getTranslations } from "next-intl/server";
 import VendorDashboardClient from "./VendorDashboardClient";
@@ -12,7 +13,10 @@ export default async function VendorDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) { redirect("/login/vendor"); }
 
-  const dashboard = await getVendorDashboardFull(supabase, user.id);
+  // Use admin client for vendor queries — vendor users lack company_members
+  // records so RLS blocks contacts/contracts/invoices reads via user client.
+  const admin = createAdminClient();
+  const dashboard = await getVendorDashboardFull(admin, user.id);
   const t = await getTranslations("vendor");
 
   if (!dashboard.contact) {
