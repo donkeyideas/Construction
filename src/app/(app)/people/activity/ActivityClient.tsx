@@ -104,11 +104,11 @@ export default function ActivityClient({ activities, todayISO }: ActivityClientP
       </div>
 
       {/* Summary Cards */}
-      <div className="fin-kpi" style={{ marginBottom: 24 }}>
+      <div className="financial-kpi-row" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         <button
-          className={`fin-chart-card fin-kpi-card${filter === "all" ? " active" : ""}`}
+          className={`fin-kpi${filter === "all" ? " active" : ""}`}
           onClick={() => setFilter("all")}
-          style={{ cursor: "pointer", border: filter === "all" ? "1px solid var(--color-amber)" : undefined }}
+          style={{ cursor: "pointer", border: filter === "all" ? "1px solid var(--color-amber)" : undefined, textAlign: "left" }}
         >
           <div className="fin-kpi-label">
             <Users size={14} />
@@ -117,9 +117,9 @@ export default function ActivityClient({ activities, todayISO }: ActivityClientP
           <div className="fin-kpi-value">{activities.length}</div>
         </button>
         <button
-          className={`fin-chart-card fin-kpi-card${filter === "clocked_in" ? " active" : ""}`}
+          className={`fin-kpi${filter === "clocked_in" ? " active" : ""}`}
           onClick={() => setFilter("clocked_in")}
-          style={{ cursor: "pointer", border: filter === "clocked_in" ? "1px solid var(--color-green)" : undefined }}
+          style={{ cursor: "pointer", border: filter === "clocked_in" ? "1px solid var(--color-green)" : undefined, textAlign: "left" }}
         >
           <div className="fin-kpi-label">
             <LogIn size={14} style={{ color: "var(--color-green)" }} />
@@ -128,9 +128,9 @@ export default function ActivityClient({ activities, todayISO }: ActivityClientP
           <div className="fin-kpi-value" style={{ color: "var(--color-green)" }}>{clockedInCount}</div>
         </button>
         <button
-          className={`fin-chart-card fin-kpi-card${filter === "clocked_out" ? " active" : ""}`}
+          className={`fin-kpi${filter === "clocked_out" ? " active" : ""}`}
           onClick={() => setFilter("clocked_out")}
-          style={{ cursor: "pointer", border: filter === "clocked_out" ? "1px solid var(--color-amber)" : undefined }}
+          style={{ cursor: "pointer", border: filter === "clocked_out" ? "1px solid var(--color-amber)" : undefined, textAlign: "left" }}
         >
           <div className="fin-kpi-label">
             <LogOut size={14} style={{ color: "var(--color-amber)" }} />
@@ -139,9 +139,9 @@ export default function ActivityClient({ activities, todayISO }: ActivityClientP
           <div className="fin-kpi-value" style={{ color: "var(--color-amber)" }}>{clockedOutCount}</div>
         </button>
         <button
-          className={`fin-chart-card fin-kpi-card${filter === "no_activity" ? " active" : ""}`}
+          className={`fin-kpi${filter === "no_activity" ? " active" : ""}`}
           onClick={() => setFilter("no_activity")}
-          style={{ cursor: "pointer", border: filter === "no_activity" ? "1px solid var(--muted)" : undefined }}
+          style={{ cursor: "pointer", border: filter === "no_activity" ? "1px solid var(--muted)" : undefined, textAlign: "left" }}
         >
           <div className="fin-kpi-label">
             <AlertCircle size={14} style={{ color: "var(--muted)" }} />
