@@ -254,48 +254,11 @@ export async function upsertEmployeePayRate(
       throw new Error(`Failed to update pay rate: ${error.message}`);
     }
   } else {
-    // Check if a record already exists for this employee + effective_date
-    const { data: existing } = await supabase
+    // Use upsert to handle both insert and duplicate-key scenarios atomically
+    const { error } = await supabase
       .from("employee_pay_rates")
-      .select("id")
-      .eq("company_id", companyId)
-      .eq("user_id", data.user_id)
-      .eq("effective_date", data.effective_date)
-      .maybeSingle();
-
-    if (existing) {
-      // Update the existing record instead of inserting a duplicate
-      const { error } = await supabase
-        .from("employee_pay_rates")
-        .update({
-          pay_type: data.pay_type,
-          hourly_rate: data.hourly_rate ?? null,
-          overtime_rate: data.overtime_rate ?? null,
-          salary_amount: data.salary_amount ?? null,
-          filing_status: data.filing_status,
-          federal_allowances: data.federal_allowances,
-          state_code: data.state_code,
-          end_date: data.end_date ?? null,
-        })
-        .eq("id", existing.id);
-
-      if (error) {
-        console.error("Error updating existing pay rate:", error);
-        throw new Error(`Failed to update pay rate: ${error.message}`);
-      }
-    } else {
-      // End any current active rate for this employee, then insert new
-      await supabase
-        .from("employee_pay_rates")
-        .update({ end_date: data.effective_date })
-        .eq("company_id", companyId)
-        .eq("user_id", data.user_id)
-        .is("end_date", null)
-        .neq("effective_date", data.effective_date);
-
-      const { error } = await supabase
-        .from("employee_pay_rates")
-        .insert({
+      .upsert(
+        {
           company_id: companyId,
           user_id: data.user_id,
           pay_type: data.pay_type,
@@ -306,13 +269,14 @@ export async function upsertEmployeePayRate(
           federal_allowances: data.federal_allowances,
           state_code: data.state_code,
           effective_date: data.effective_date,
-          end_date: data.end_date ?? null,
-        });
+          end_date: null,
+        },
+        { onConflict: "company_id,user_id,effective_date" }
+      );
 
-      if (error) {
-        console.error("Error creating employee pay rate:", error);
-        throw new Error(`Failed to create pay rate: ${error.message}`);
-      }
+    if (error) {
+      console.error("Error upserting employee pay rate:", error);
+      throw new Error(`Failed to save pay rate: ${error.message}`);
     }
   }
 }
