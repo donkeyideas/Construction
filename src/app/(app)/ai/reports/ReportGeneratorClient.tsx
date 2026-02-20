@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   FileText,
   ClipboardList,
@@ -14,7 +16,6 @@ import {
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
-import "@/styles/ai-features.css";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -54,28 +55,40 @@ const REPORT_TYPES: ReportTypeOption[] = [
   {
     id: "project_status",
     label: "Project Status Report",
-    icon: <ClipboardList size={18} />,
+    icon: <ClipboardList size={20} />,
     description: "Progress, milestones, RFIs, and change orders",
   },
   {
     id: "financial_summary",
     label: "Financial Summary",
-    icon: <DollarSign size={18} />,
+    icon: <DollarSign size={20} />,
     description: "Budget, invoices, AR/AP, and cost analysis",
   },
   {
     id: "safety_compliance",
     label: "Safety Compliance Report",
-    icon: <ShieldAlert size={18} />,
+    icon: <ShieldAlert size={20} />,
     description: "Incidents, inspections, and certifications",
   },
   {
     id: "executive_brief",
     label: "Executive Dashboard Brief",
-    icon: <BarChart3 size={18} />,
+    icon: <BarChart3 size={20} />,
     description: "High-level overview across all areas",
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Markdown table wrapper
+// ---------------------------------------------------------------------------
+
+const markdownComponents = {
+  table: ({ children, ...props }: React.ComponentPropsWithoutRef<"table">) => (
+    <div className="table-wrap">
+      <table {...props}>{children}</table>
+    </div>
+  ),
+};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -104,7 +117,6 @@ export default function ReportGeneratorClient({
   projects,
   hasProvider,
 }: ReportGeneratorClientProps) {
-  // State
   const [reportType, setReportType] = useState<ReportType>("project_status");
   const [projectId, setProjectId] = useState<string>("all");
   const [startDate, setStartDate] = useState(getDefaultStartDate);
@@ -193,7 +205,6 @@ export default function ReportGeneratorClient({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const textarea = document.createElement("textarea");
       textarea.value = reportText;
       document.body.appendChild(textarea);
@@ -237,45 +248,15 @@ export default function ReportGeneratorClient({
           </div>
         </div>
 
-        <div
-          className="prediction-card"
-          style={{
-            textAlign: "center",
-            padding: "48px 24px",
-            maxWidth: 560,
-          }}
-        >
-          <AlertTriangle
-            size={36}
-            style={{ color: "var(--color-amber)", marginBottom: 16 }}
-          />
-          <div
-            style={{
-              fontSize: "1.05rem",
-              fontWeight: 600,
-              marginBottom: 8,
-              color: "var(--text)",
-              fontFamily: "var(--font-serif)",
-            }}
-          >
+        <div className="ui-card" style={{ textAlign: "center", padding: "48px 24px", maxWidth: 560 }}>
+          <AlertTriangle size={36} style={{ color: "var(--color-amber)", marginBottom: 16 }} />
+          <div style={{ fontSize: "1.05rem", fontWeight: 600, marginBottom: 8, color: "var(--text)", fontFamily: "var(--font-serif)" }}>
             AI Provider Required
           </div>
-          <p
-            style={{
-              color: "var(--muted)",
-              fontSize: "0.88rem",
-              lineHeight: 1.6,
-              marginBottom: 16,
-            }}
-          >
-            Configure an AI provider in Administration &gt; AI Providers to
-            enable report generation.
+          <p style={{ color: "var(--muted)", fontSize: "0.88rem", lineHeight: 1.6, marginBottom: 16 }}>
+            Configure an AI provider in Administration &gt; AI Providers to enable report generation.
           </p>
-          <Link
-            href="/admin/ai-providers"
-            className="ui-btn ui-btn-primary"
-            style={{ display: "inline-flex" }}
-          >
+          <Link href="/admin/ai-providers" className="ui-btn ui-btn-primary ui-btn-md" style={{ display: "inline-flex" }}>
             Configure AI Provider
           </Link>
         </div>
@@ -306,19 +287,7 @@ export default function ReportGeneratorClient({
           <div className="config-title">Report Configuration</div>
 
           {/* Report type selector */}
-          <label
-            style={{
-              display: "block",
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              color: "var(--muted)",
-              textTransform: "uppercase",
-              letterSpacing: "0.03em",
-              marginBottom: 8,
-            }}
-          >
-            Report Type
-          </label>
+          <label className="report-field-label">Report Type</label>
           <div className="report-type-selector">
             {REPORT_TYPES.map((type) => (
               <button
@@ -328,48 +297,26 @@ export default function ReportGeneratorClient({
                 onClick={() => setReportType(type.id)}
               >
                 <div className="type-icon">{type.icon}</div>
-                {type.label}
+                <span className="type-label">{type.label}</span>
               </button>
             ))}
           </div>
 
           {/* Project selector */}
           <div style={{ marginBottom: 16 }}>
-            <label
-              htmlFor="project-select"
-              style={{
-                display: "block",
-                fontSize: "0.78rem",
-                fontWeight: 600,
-                color: "var(--muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.03em",
-                marginBottom: 6,
-              }}
-            >
+            <label htmlFor="project-select" className="report-field-label">
               Project
             </label>
             <select
               id="project-select"
+              className="report-select"
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px 12px",
-                fontSize: "0.875rem",
-                fontFamily: "var(--font-sans)",
-                color: "var(--text)",
-                background: "var(--bg)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                appearance: "auto",
-              }}
             >
               <option value="all">All Projects</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name}
-                  {p.code ? ` (${p.code})` : ""}
+                  {p.name}{p.code ? ` (${p.code})` : ""}
                 </option>
               ))}
             </select>
@@ -378,67 +325,27 @@ export default function ReportGeneratorClient({
           {/* Date range */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
             <div>
-              <label
-                htmlFor="start-date"
-                style={{
-                  display: "block",
-                  fontSize: "0.78rem",
-                  fontWeight: 600,
-                  color: "var(--muted)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.03em",
-                  marginBottom: 6,
-                }}
-              >
+              <label htmlFor="start-date" className="report-field-label">
                 Start Date
               </label>
               <input
                 id="start-date"
                 type="date"
+                className="report-input"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  fontSize: "0.875rem",
-                  fontFamily: "var(--font-sans)",
-                  color: "var(--text)",
-                  background: "var(--bg)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 8,
-                }}
               />
             </div>
             <div>
-              <label
-                htmlFor="end-date"
-                style={{
-                  display: "block",
-                  fontSize: "0.78rem",
-                  fontWeight: 600,
-                  color: "var(--muted)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.03em",
-                  marginBottom: 6,
-                }}
-              >
+              <label htmlFor="end-date" className="report-field-label">
                 End Date
               </label>
               <input
                 id="end-date"
                 type="date"
+                className="report-input"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  fontSize: "0.875rem",
-                  fontFamily: "var(--font-sans)",
-                  color: "var(--text)",
-                  background: "var(--bg)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 8,
-                }}
               />
             </div>
           </div>
@@ -446,20 +353,14 @@ export default function ReportGeneratorClient({
           {/* Generate button */}
           <button
             type="button"
-            className="ui-btn ui-btn-primary"
+            className="ui-btn ui-btn-primary ui-btn-md"
             onClick={handleGenerate}
             disabled={isGenerating}
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
+            style={{ width: "100%", justifyContent: "center" }}
           >
             {isGenerating ? (
               <>
-                <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                <Loader2 size={16} className="spin-icon" />
                 Generating...
               </>
             ) : (
@@ -474,14 +375,7 @@ export default function ReportGeneratorClient({
         {/* ---- Right: Report Preview ---- */}
         <div className="report-preview">
           {/* Preview header with actions */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 16,
-            }}
-          >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <div className="preview-title" style={{ margin: 0 }}>
               Report Preview
             </div>
@@ -489,30 +383,16 @@ export default function ReportGeneratorClient({
               <div style={{ display: "flex", gap: 8 }}>
                 <button
                   type="button"
-                  className="ui-btn ui-btn-secondary"
+                  className="ui-btn ui-btn-secondary ui-btn-sm"
                   onClick={handleCopy}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontSize: "0.78rem",
-                    padding: "6px 12px",
-                  }}
                 >
                   {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
                   {copied ? "Copied" : "Copy"}
                 </button>
                 <button
                   type="button"
-                  className="ui-btn ui-btn-secondary"
+                  className="ui-btn ui-btn-secondary ui-btn-sm"
                   onClick={handleDownload}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontSize: "0.78rem",
-                    padding: "6px 12px",
-                  }}
                 >
                   <Download size={14} />
                   Download
@@ -523,21 +403,7 @@ export default function ReportGeneratorClient({
 
           {/* Error state */}
           {error && (
-            <div
-              style={{
-                padding: "16px 20px",
-                background: "rgba(220, 38, 38, 0.06)",
-                border: "1px solid rgba(220, 38, 38, 0.2)",
-                borderRadius: 8,
-                color: "var(--color-red)",
-                fontSize: "0.875rem",
-                lineHeight: 1.5,
-                marginBottom: 16,
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 10,
-              }}
-            >
+            <div className="report-error">
               <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
               <span>{error}</span>
             </div>
@@ -554,46 +420,23 @@ export default function ReportGeneratorClient({
             </div>
           )}
 
-          {/* Generated report */}
+          {/* Generated report — rendered markdown */}
           {reportText && (
-            <div className="ai-result-text" style={{ whiteSpace: "pre-wrap" }}>
-              {reportText}
+            <div className="report-markdown-body">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                {reportText}
+              </ReactMarkdown>
             </div>
           )}
 
           {/* Empty state */}
           {!reportText && !isGenerating && !error && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: 300,
-                color: "var(--muted)",
-                textAlign: "center",
-                gap: 12,
-              }}
-            >
+            <div className="report-empty-state">
               <FileText size={48} style={{ opacity: 0.3 }} />
-              <div
-                style={{
-                  fontSize: "0.95rem",
-                  fontWeight: 600,
-                  color: "var(--text)",
-                  fontFamily: "var(--font-serif)",
-                }}
-              >
+              <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text)", fontFamily: "var(--font-serif)" }}>
                 No Report Generated
               </div>
-              <p
-                style={{
-                  fontSize: "0.85rem",
-                  lineHeight: 1.6,
-                  maxWidth: 360,
-                  margin: 0,
-                }}
-              >
+              <p>
                 Select a report type, choose a project, set your date range,
                 and click Generate Report to create an AI-powered analysis.
               </p>

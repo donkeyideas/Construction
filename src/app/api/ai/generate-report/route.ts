@@ -2,6 +2,12 @@ import { streamText } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProviderForTask } from "@/lib/ai/provider-router";
+import {
+  getFinancialOverview,
+  getIncomeStatement,
+  getBalanceSheet,
+  getAgingBuckets,
+} from "@/lib/queries/financial";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -43,7 +49,6 @@ export async function POST(req: Request) {
   const body = (await req.json()) as RequestBody;
   const { companyId, reportType, projectId, startDate, endDate } = body;
 
-  // Validate required fields
   if (!companyId || !reportType || !projectId || !startDate || !endDate) {
     return new Response(
       JSON.stringify({ error: "Missing required fields: companyId, reportType, projectId, startDate, endDate" }),
@@ -51,7 +56,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Validate report type
   if (!VALID_REPORT_TYPES.includes(reportType)) {
     return new Response(
       JSON.stringify({ error: `Invalid reportType. Must be one of: ${VALID_REPORT_TYPES.join(", ")}` }),
@@ -59,12 +63,10 @@ export async function POST(req: Request) {
     );
   }
 
-  // Verify company ownership
   if (companyId !== userCompany.companyId) {
     return new Response("Forbidden", { status: 403 });
   }
 
-  // Get the AI provider
   const providerResult = await getProviderForTask(supabase, companyId, "chat");
 
   if (!providerResult) {
@@ -74,10 +76,8 @@ export async function POST(req: Request) {
     );
   }
 
-  // Build project filter
   const projectFilter = projectId !== "all" ? projectId : null;
 
-  // Fetch data based on report type
   let contextData: string;
   try {
     contextData = await fetchReportData(
@@ -96,28 +96,23 @@ export async function POST(req: Request) {
     );
   }
 
-  // Build prompts
   const today = new Date().toISOString().slice(0, 10);
   const reportLabel = getReportLabel(reportType);
 
-  const systemPrompt = `You are a senior construction industry analyst for ${userCompany.companyName}. You write professional, data-driven reports for executive stakeholders, project managers, and financial officers.
+  const systemPrompt = `You are a senior construction industry analyst for ${userCompany.companyName}. You write professional, data-driven reports for executive stakeholders.
 
 Today's date: ${today}
 Report period: ${startDate} to ${endDate}
 Company: ${userCompany.companyName}
 
-## FORMATTING RULES
-- Write a professional report with clear section headings using markdown (## for main sections, ### for subsections)
-- Include an Executive Summary at the top (2-3 sentences)
-- Present Key Metrics in markdown table format where appropriate
-- Provide a Detailed Analysis section with specific data points
-- Include Risk Factors if any are identified in the data
-- End with Recommendations (numbered list) and Next Steps
-- Format all dollar amounts as currency ($1,234,567)
+FORMATTING RULES:
+- Use markdown headings (## for sections, ### for subsections)
+- Present key metrics in markdown tables
+- Format dollar amounts as currency ($1,234,567)
 - Format percentages to one decimal place (85.3%)
-- Use bold for key metrics and important callouts
-- Be analytical, not just descriptive — interpret the data and identify trends
-- Do not invent data that is not provided — if data is missing, note it as unavailable
+- Use **bold** for important figures and callouts
+- Be analytical — interpret data and identify trends
+- Do NOT invent data — if data is missing, note it as "not available"
 - Use professional construction industry terminology
 - Keep the tone formal and authoritative`;
 
@@ -129,15 +124,14 @@ Here is the current data from the company's systems:
 
 ${contextData}
 
-Generate the full ${reportLabel} now. Include:
-1. Executive Summary
-2. Key Metrics (in table format)
+Generate the full ${reportLabel} with these sections:
+1. Executive Summary (2-3 sentences)
+2. Key Metrics (table format)
 3. Detailed Analysis
 4. Risk Factors
 5. Recommendations
 6. Next Steps`;
 
-  // Stream the AI response
   let result;
   try {
     result = streamText({
@@ -147,8 +141,7 @@ Generate the full ${reportLabel} now. Include:
     });
   } catch (err: unknown) {
     console.error("AI generate-report streamText error:", err);
-    const msg =
-      err instanceof Error ? err.message : "Unknown AI provider error";
+    const msg = err instanceof Error ? err.message : "Unknown AI provider error";
     return new Response(JSON.stringify({ error: msg }), {
       status: 502,
       headers: { "Content-Type": "application/json" },
@@ -178,14 +171,22 @@ function getReportLabel(reportType: ReportType): string {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function fmtDollar(n: number): string {
+  return `$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseArg = any;
+
+// ---------------------------------------------------------------------------
 // Data fetching for each report type
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SupabaseClient = any;
-
 async function fetchReportData(
-  supabase: SupabaseClient,
+  supabase: SupabaseArg,
   companyId: string,
   reportType: ReportType,
   projectId: string | null,
@@ -211,13 +212,12 @@ async function fetchReportData(
 // ---------------------------------------------------------------------------
 
 async function fetchProjectStatusData(
-  supabase: SupabaseClient,
+  supabase: SupabaseArg,
   companyId: string,
   projectId: string | null,
   startDate: string,
   endDate: string
 ): Promise<string> {
-  // Projects
   let projectQuery = supabase
     .from("projects")
     .select("id, name, code, status, contract_amount, estimated_cost, actual_cost, completion_percentage, start_date, end_date, client_name, project_type")
@@ -225,7 +225,6 @@ async function fetchProjectStatusData(
     .order("name");
   if (projectId) projectQuery = projectQuery.eq("id", projectId);
 
-  // Daily logs
   let logsQuery = supabase
     .from("daily_logs")
     .select("id, project_id, log_date, weather, summary, workers_count")
@@ -236,30 +235,27 @@ async function fetchProjectStatusData(
     .limit(50);
   if (projectId) logsQuery = logsQuery.eq("project_id", projectId);
 
-  // RFIs
   let rfisQuery = supabase
     .from("rfis")
     .select("id, rfi_number, subject, status, priority, date_submitted, date_required")
     .eq("company_id", companyId)
     .order("date_submitted", { ascending: false })
-    .limit(30);
+    .limit(50);
   if (projectId) rfisQuery = rfisQuery.eq("project_id", projectId);
 
-  // Change orders
   let cosQuery = supabase
     .from("change_orders")
     .select("id, co_number, title, status, amount, change_order_type, date_submitted")
     .eq("company_id", companyId)
     .order("date_submitted", { ascending: false })
-    .limit(30);
+    .limit(50);
   if (projectId) cosQuery = cosQuery.eq("project_id", projectId);
 
-  // Tasks
   let tasksQuery = supabase
     .from("tasks")
     .select("id, name, status, priority, progress_pct, start_date, end_date")
     .eq("company_id", companyId)
-    .limit(50);
+    .limit(100);
   if (projectId) tasksQuery = tasksQuery.eq("project_id", projectId);
 
   const [projectsRes, logsRes, rfisRes, cosRes, tasksRes] = await Promise.all([
@@ -278,22 +274,25 @@ async function fetchProjectStatusData(
 
   const sections: string[] = [];
 
-  // Projects summary
   sections.push("=== PROJECTS ===");
   if (projects.length === 0) {
     sections.push("No projects found.");
   } else {
+    const totalContractValue = projects.reduce((s: number, p: { contract_amount?: number }) => s + Number(p.contract_amount || 0), 0);
+    const totalActualCost = projects.reduce((s: number, p: { actual_cost?: number }) => s + Number(p.actual_cost || 0), 0);
+    sections.push(`Total projects: ${projects.length}`);
+    sections.push(`Total contract value: ${fmtDollar(totalContractValue)}`);
+    sections.push(`Total actual cost: ${fmtDollar(totalActualCost)}`);
     for (const p of projects) {
       sections.push(
         `Project: ${p.name} (${p.code || "N/A"}) | Status: ${p.status} | Type: ${p.project_type || "N/A"}\n` +
-        `  Client: ${p.client_name || "N/A"} | Contract: $${Number(p.contract_amount || 0).toLocaleString()} | Estimated Cost: $${Number(p.estimated_cost || 0).toLocaleString()}\n` +
-        `  Actual Cost: $${Number(p.actual_cost || 0).toLocaleString()} | Completion: ${Number(p.completion_percentage || 0)}%\n` +
+        `  Client: ${p.client_name || "N/A"} | Contract: ${fmtDollar(Number(p.contract_amount || 0))} | Est. Cost: ${fmtDollar(Number(p.estimated_cost || 0))}\n` +
+        `  Actual Cost: ${fmtDollar(Number(p.actual_cost || 0))} | Completion: ${Number(p.completion_percentage || 0)}%\n` +
         `  Start: ${p.start_date || "N/A"} | End: ${p.end_date || "N/A"}`
       );
     }
   }
 
-  // Daily logs summary
   sections.push("\n=== DAILY LOGS (Recent) ===");
   sections.push(`Total daily logs in period: ${logs.length}`);
   for (const log of logs.slice(0, 10)) {
@@ -303,40 +302,31 @@ async function fetchProjectStatusData(
     );
   }
 
-  // RFIs
   sections.push("\n=== RFIs ===");
   sections.push(`Total RFIs: ${rfis.length}`);
   const rfisByStatus: Record<string, number> = {};
-  for (const rfi of rfis) {
-    rfisByStatus[rfi.status] = (rfisByStatus[rfi.status] || 0) + 1;
-  }
-  sections.push(`By status: ${JSON.stringify(rfisByStatus)}`);
+  for (const rfi of rfis) rfisByStatus[rfi.status] = (rfisByStatus[rfi.status] || 0) + 1;
+  for (const [status, count] of Object.entries(rfisByStatus)) sections.push(`  ${status}: ${count}`);
   for (const rfi of rfis.slice(0, 10)) {
     sections.push(`RFI ${rfi.rfi_number}: ${rfi.subject} | Status: ${rfi.status} | Priority: ${rfi.priority || "N/A"}`);
   }
 
-  // Change orders
   sections.push("\n=== CHANGE ORDERS ===");
   sections.push(`Total change orders: ${cos.length}`);
   const totalCOAmount = cos.reduce((s: number, c: { amount?: number }) => s + Number(c.amount || 0), 0);
-  sections.push(`Total CO value: $${totalCOAmount.toLocaleString()}`);
+  sections.push(`Total CO value: ${fmtDollar(totalCOAmount)}`);
   const cosByStatus: Record<string, number> = {};
-  for (const co of cos) {
-    cosByStatus[co.status] = (cosByStatus[co.status] || 0) + 1;
-  }
-  sections.push(`By status: ${JSON.stringify(cosByStatus)}`);
+  for (const co of cos) cosByStatus[co.status] = (cosByStatus[co.status] || 0) + 1;
+  for (const [status, count] of Object.entries(cosByStatus)) sections.push(`  ${status}: ${count}`);
   for (const co of cos.slice(0, 10)) {
-    sections.push(`CO ${co.co_number}: ${co.title} | Status: ${co.status} | Amount: $${Number(co.amount || 0).toLocaleString()} | Type: ${co.change_order_type || "N/A"}`);
+    sections.push(`CO ${co.co_number}: ${co.title} | Status: ${co.status} | Amount: ${fmtDollar(Number(co.amount || 0))} | Type: ${co.change_order_type || "N/A"}`);
   }
 
-  // Tasks
   sections.push("\n=== TASKS ===");
   sections.push(`Total tasks: ${tasks.length}`);
   const tasksByStatus: Record<string, number> = {};
-  for (const t of tasks) {
-    tasksByStatus[t.status] = (tasksByStatus[t.status] || 0) + 1;
-  }
-  sections.push(`By status: ${JSON.stringify(tasksByStatus)}`);
+  for (const t of tasks) tasksByStatus[t.status] = (tasksByStatus[t.status] || 0) + 1;
+  for (const [status, count] of Object.entries(tasksByStatus)) sections.push(`  ${status}: ${count}`);
   const avgProgress = tasks.length > 0
     ? tasks.reduce((s: number, t: { progress_pct?: number }) => s + Number(t.progress_pct || 0), 0) / tasks.length
     : 0;
@@ -346,127 +336,128 @@ async function fetchProjectStatusData(
 }
 
 // ---------------------------------------------------------------------------
-// Financial Summary Data
+// Financial Summary Data — uses proven financial query functions
 // ---------------------------------------------------------------------------
 
 async function fetchFinancialSummaryData(
-  supabase: SupabaseClient,
+  supabase: SupabaseArg,
   companyId: string,
   projectId: string | null,
   startDate: string,
   endDate: string
 ): Promise<string> {
-  // Invoices
-  let invoicesQuery = supabase
-    .from("invoices")
-    .select("id, invoice_number, invoice_type, status, total_amount, balance_due, tax_amount, due_date, paid_date, client_name, vendor_name")
-    .eq("company_id", companyId)
-    .order("due_date", { ascending: false })
-    .limit(100);
-  if (projectId) invoicesQuery = invoicesQuery.eq("project_id", projectId);
-
-  // Budget lines
-  let budgetQuery = supabase
-    .from("budget_lines")
-    .select("id, description, budgeted_amount, actual_amount, category")
-    .eq("company_id", companyId)
-    .limit(100);
-  if (projectId) budgetQuery = budgetQuery.eq("project_id", projectId);
-
-  // Bank accounts
-  const bankQuery = supabase
-    .from("bank_accounts")
-    .select("id, account_name, account_type, current_balance")
-    .eq("company_id", companyId);
-
-  // Projects for financial context
-  let projectQuery = supabase
-    .from("projects")
-    .select("id, name, code, contract_amount, estimated_cost, actual_cost, completion_percentage")
-    .eq("company_id", companyId);
-  if (projectId) projectQuery = projectQuery.eq("id", projectId);
-
-  const [invoicesRes, budgetRes, bankRes, projectsRes] = await Promise.all([
-    invoicesQuery,
-    budgetQuery,
-    bankQuery,
-    projectQuery,
+  // Use the proven financial query functions that handle pagination and JE data
+  const [overview, incomeStatement, balanceSheet, agingData, projectsRaw, budgetRaw] = await Promise.all([
+    getFinancialOverview(supabase, companyId),
+    getIncomeStatement(supabase, companyId, startDate, endDate),
+    getBalanceSheet(supabase, companyId, endDate),
+    getAgingBuckets(supabase, companyId),
+    supabase
+      .from("projects")
+      .select("id, name, code, contract_amount, estimated_cost, actual_cost, completion_percentage")
+      .eq("company_id", companyId)
+      .order("name"),
+    supabase
+      .from("budget_lines")
+      .select("id, description, budgeted_amount, actual_amount, category")
+      .eq("company_id", companyId)
+      .limit(100),
   ]);
 
-  const invoices = invoicesRes.data ?? [];
-  const budgetLines = budgetRes.data ?? [];
-  const bankAccounts = bankRes.data ?? [];
-  const projects = projectsRes.data ?? [];
+  const allProjects = projectsRaw.data ?? [];
+  const projectsRes = projectId ? allProjects.filter((p: { id: string }) => p.id === projectId) : allProjects;
+  const budgetRes = budgetRaw.data ?? [];
 
   const sections: string[] = [];
 
-  // Bank accounts
-  sections.push("=== BANK ACCOUNTS ===");
-  const totalCash = bankAccounts.reduce((s: number, b: { current_balance?: number }) => s + Number(b.current_balance || 0), 0);
-  sections.push(`Total cash position: $${totalCash.toLocaleString()}`);
-  for (const b of bankAccounts) {
-    sections.push(`  ${b.account_name} (${b.account_type}): $${Number(b.current_balance || 0).toLocaleString()}`);
+  // Cash Position
+  sections.push("=== CASH POSITION ===");
+  sections.push(`Total cash position: ${fmtDollar(overview.cashPosition)}`);
+
+  // Income Statement
+  sections.push("\n=== INCOME STATEMENT (for report period) ===");
+  sections.push(`Total Revenue: ${fmtDollar(incomeStatement.revenue.total)}`);
+  for (const acct of incomeStatement.revenue.accounts) {
+    sections.push(`  ${acct.account_number} ${acct.name}: ${fmtDollar(acct.amount)}`);
+  }
+  sections.push(`Total Cost of Construction: ${fmtDollar(incomeStatement.costOfConstruction.total)}`);
+  for (const acct of incomeStatement.costOfConstruction.accounts) {
+    sections.push(`  ${acct.account_number} ${acct.name}: ${fmtDollar(acct.amount)}`);
+  }
+  sections.push(`Gross Profit: ${fmtDollar(incomeStatement.grossProfit)}`);
+  sections.push(`Total Operating Expenses: ${fmtDollar(incomeStatement.operatingExpenses.total)}`);
+  for (const acct of incomeStatement.operatingExpenses.accounts) {
+    sections.push(`  ${acct.account_number} ${acct.name}: ${fmtDollar(acct.amount)}`);
+  }
+  sections.push(`Net Income: ${fmtDollar(incomeStatement.netIncome)}`);
+  const grossMargin = incomeStatement.revenue.total > 0
+    ? ((incomeStatement.grossProfit / incomeStatement.revenue.total) * 100).toFixed(1)
+    : "N/A";
+  const netMargin = incomeStatement.revenue.total > 0
+    ? ((incomeStatement.netIncome / incomeStatement.revenue.total) * 100).toFixed(1)
+    : "N/A";
+  sections.push(`Gross Margin: ${grossMargin}%`);
+  sections.push(`Net Profit Margin: ${netMargin}%`);
+
+  // Balance Sheet
+  sections.push("\n=== BALANCE SHEET (as of end date) ===");
+  sections.push(`Total Assets: ${fmtDollar(balanceSheet.assets.total)}`);
+  for (const acct of balanceSheet.assets.accounts.slice(0, 15)) {
+    sections.push(`  ${acct.account_number} ${acct.name}: ${fmtDollar(acct.amount)}`);
+  }
+  sections.push(`Total Liabilities: ${fmtDollar(balanceSheet.liabilities.total)}`);
+  for (const acct of balanceSheet.liabilities.accounts.slice(0, 10)) {
+    sections.push(`  ${acct.account_number} ${acct.name}: ${fmtDollar(acct.amount)}`);
+  }
+  sections.push(`Total Equity: ${fmtDollar(balanceSheet.equity.total)}`);
+  sections.push(`Balance Check: Assets ${fmtDollar(balanceSheet.assets.total)} = L+E ${fmtDollar(balanceSheet.totalLiabilitiesAndEquity)} (${balanceSheet.isBalanced ? "BALANCED" : "UNBALANCED"})`);
+
+  // AR / AP
+  sections.push("\n=== ACCOUNTS RECEIVABLE / PAYABLE ===");
+  sections.push(`Accounts Receivable (outstanding): ${fmtDollar(overview.totalAR)}`);
+  sections.push(`Accounts Payable (outstanding): ${fmtDollar(overview.totalAP)}`);
+  sections.push(`Net AR/AP position: ${fmtDollar(overview.totalAR - overview.totalAP)}`);
+
+  // Aging
+  if (agingData && agingData.length > 0) {
+    sections.push("\nAR Aging Buckets:");
+    for (const bucket of agingData) {
+      sections.push(`  ${bucket.label}: ${fmtDollar(bucket.arAmount)}`);
+    }
+    sections.push("AP Aging Buckets:");
+    for (const bucket of agingData) {
+      sections.push(`  ${bucket.label}: ${fmtDollar(bucket.apAmount)}`);
+    }
   }
 
-  // Invoice summary
-  sections.push("\n=== INVOICES ===");
-  sections.push(`Total invoices: ${invoices.length}`);
+  // Revenue this month
+  sections.push(`\nRevenue this month: ${fmtDollar(overview.revenueThisMonth)}`);
+  sections.push(`Expenses this month: ${fmtDollar(overview.expensesThisMonth)}`);
 
-  const receivables = invoices.filter((i: { invoice_type: string }) => i.invoice_type === "receivable");
-  const payables = invoices.filter((i: { invoice_type: string }) => i.invoice_type === "payable");
-
-  const totalAR = receivables
-    .filter((i: { status: string }) => ["sent", "overdue", "partial"].includes(i.status))
-    .reduce((s: number, i: { balance_due?: number }) => s + Number(i.balance_due || 0), 0);
-  const totalAP = payables
-    .filter((i: { status: string }) => ["sent", "overdue", "partial"].includes(i.status))
-    .reduce((s: number, i: { balance_due?: number }) => s + Number(i.balance_due || 0), 0);
-  const overdueInvoices = invoices.filter((i: { status: string }) => i.status === "overdue");
-  const totalOverdue = overdueInvoices.reduce((s: number, i: { balance_due?: number }) => s + Number(i.balance_due || 0), 0);
-  const paidInvoices = invoices.filter((i: { status: string }) => i.status === "paid");
-  const totalPaidAmount = paidInvoices.reduce((s: number, i: { total_amount?: number }) => s + Number(i.total_amount || 0), 0);
-
-  sections.push(`Accounts Receivable (outstanding): $${totalAR.toLocaleString()}`);
-  sections.push(`Accounts Payable (outstanding): $${totalAP.toLocaleString()}`);
-  sections.push(`Net AR/AP position: $${(totalAR - totalAP).toLocaleString()}`);
-  sections.push(`Overdue invoices: ${overdueInvoices.length} totaling $${totalOverdue.toLocaleString()}`);
-  sections.push(`Paid invoices: ${paidInvoices.length} totaling $${totalPaidAmount.toLocaleString()}`);
-
-  // Invoice status breakdown
-  const invoicesByStatus: Record<string, number> = {};
-  for (const inv of invoices) {
-    invoicesByStatus[inv.status] = (invoicesByStatus[inv.status] || 0) + 1;
-  }
-  sections.push(`Invoice status breakdown: ${JSON.stringify(invoicesByStatus)}`);
-
-  // Budget lines
-  sections.push("\n=== BUDGET ===");
-  if (budgetLines.length === 0) {
-    sections.push("No budget lines found.");
-  } else {
-    const totalBudgeted = budgetLines.reduce((s: number, b: { budgeted_amount?: number }) => s + Number(b.budgeted_amount || 0), 0);
-    const totalActual = budgetLines.reduce((s: number, b: { actual_amount?: number }) => s + Number(b.actual_amount || 0), 0);
-    sections.push(`Total budgeted: $${totalBudgeted.toLocaleString()}`);
-    sections.push(`Total actual: $${totalActual.toLocaleString()}`);
-    sections.push(`Variance: $${(totalBudgeted - totalActual).toLocaleString()} (${totalBudgeted > 0 ? ((totalActual / totalBudgeted) * 100).toFixed(1) : "0"}% utilized)`);
-
-    for (const bl of budgetLines.slice(0, 20)) {
-      const pct = Number(bl.budgeted_amount || 0) > 0
-        ? ((Number(bl.actual_amount || 0) / Number(bl.budgeted_amount || 0)) * 100).toFixed(1)
-        : "N/A";
-      sections.push(`  ${bl.description || bl.category || "N/A"}: Budgeted $${Number(bl.budgeted_amount || 0).toLocaleString()} / Actual $${Number(bl.actual_amount || 0).toLocaleString()} (${pct}%)`);
+  // Budget
+  if (budgetRes.length > 0) {
+    sections.push("\n=== BUDGET PERFORMANCE ===");
+    const totalBudgeted = budgetRes.reduce((s: number, b: { budgeted_amount?: number }) => s + Number(b.budgeted_amount || 0), 0);
+    const totalActual = budgetRes.reduce((s: number, b: { actual_amount?: number }) => s + Number(b.actual_amount || 0), 0);
+    sections.push(`Total budgeted: ${fmtDollar(totalBudgeted)}`);
+    sections.push(`Total actual: ${fmtDollar(totalActual)}`);
+    sections.push(`Variance: ${fmtDollar(totalBudgeted - totalActual)} (${totalBudgeted > 0 ? ((totalActual / totalBudgeted) * 100).toFixed(1) : "0"}% utilized)`);
+    for (const bl of budgetRes.slice(0, 20)) {
+      sections.push(`  ${bl.description || bl.category || "N/A"}: Budget ${fmtDollar(Number(bl.budgeted_amount || 0))} / Actual ${fmtDollar(Number(bl.actual_amount || 0))}`);
     }
   }
 
   // Project financials
-  sections.push("\n=== PROJECT FINANCIALS ===");
-  for (const p of projects) {
-    const variance = Number(p.estimated_cost || 0) - Number(p.actual_cost || 0);
-    sections.push(
-      `${p.name} (${p.code || "N/A"}): Contract $${Number(p.contract_amount || 0).toLocaleString()} | ` +
-      `Est. Cost $${Number(p.estimated_cost || 0).toLocaleString()} | Actual $${Number(p.actual_cost || 0).toLocaleString()} | ` +
-      `Variance $${variance.toLocaleString()} | ${Number(p.completion_percentage || 0)}% complete`
-    );
+  if (projectsRes.length > 0) {
+    sections.push("\n=== PROJECT FINANCIALS ===");
+    for (const p of projectsRes) {
+      const variance = Number(p.estimated_cost || 0) - Number(p.actual_cost || 0);
+      sections.push(
+        `${p.name} (${p.code || "N/A"}): Contract ${fmtDollar(Number(p.contract_amount || 0))} | ` +
+        `Est. Cost ${fmtDollar(Number(p.estimated_cost || 0))} | Actual ${fmtDollar(Number(p.actual_cost || 0))} | ` +
+        `Variance ${fmtDollar(variance)} | ${Number(p.completion_percentage || 0)}% complete`
+      );
+    }
   }
 
   return sections.join("\n");
@@ -477,13 +468,12 @@ async function fetchFinancialSummaryData(
 // ---------------------------------------------------------------------------
 
 async function fetchSafetyComplianceData(
-  supabase: SupabaseClient,
+  supabase: SupabaseArg,
   companyId: string,
   projectId: string | null,
   startDate: string,
   endDate: string
 ): Promise<string> {
-  // Incidents
   let incidentsQuery = supabase
     .from("safety_incidents")
     .select("id, incident_number, title, incident_type, severity, status, incident_date, location, osha_recordable, root_cause, corrective_action, days_away, days_restricted")
@@ -494,7 +484,6 @@ async function fetchSafetyComplianceData(
     .limit(50);
   if (projectId) incidentsQuery = incidentsQuery.eq("project_id", projectId);
 
-  // Inspections
   let inspectionsQuery = supabase
     .from("safety_inspections")
     .select("id, inspection_number, inspection_type, status, score, inspector_name, inspection_date, findings, corrective_actions_required")
@@ -505,7 +494,6 @@ async function fetchSafetyComplianceData(
     .limit(50);
   if (projectId) inspectionsQuery = inspectionsQuery.eq("project_id", projectId);
 
-  // Toolbox talks
   let talksQuery = supabase
     .from("toolbox_talks")
     .select("id, talk_number, title, topic, conducted_date, duration_minutes, attendee_count, status")
@@ -516,7 +504,6 @@ async function fetchSafetyComplianceData(
     .limit(50);
   if (projectId) talksQuery = talksQuery.eq("project_id", projectId);
 
-  // Certifications
   const certsQuery = supabase
     .from("certifications")
     .select("id, person_name, certification_name, cert_type, expiry_date, status")
@@ -538,7 +525,6 @@ async function fetchSafetyComplianceData(
 
   const sections: string[] = [];
 
-  // Incidents
   sections.push("=== SAFETY INCIDENTS ===");
   sections.push(`Total incidents in period: ${incidents.length}`);
   const bySeverity: Record<string, number> = {};
@@ -551,7 +537,7 @@ async function fetchSafetyComplianceData(
     totalDaysAway += Number(inc.days_away || 0);
     totalDaysRestricted += Number(inc.days_restricted || 0);
   }
-  sections.push(`By severity: ${JSON.stringify(bySeverity)}`);
+  for (const [sev, count] of Object.entries(bySeverity)) sections.push(`  ${sev}: ${count}`);
   sections.push(`OSHA recordable: ${oshaRecordable}`);
   sections.push(`Total days away from work: ${totalDaysAway}`);
   sections.push(`Total days restricted duty: ${totalDaysRestricted}`);
@@ -565,7 +551,6 @@ async function fetchSafetyComplianceData(
     );
   }
 
-  // Inspections
   sections.push("\n=== SAFETY INSPECTIONS ===");
   sections.push(`Total inspections in period: ${inspections.length}`);
   const avgScore = inspections.length > 0
@@ -583,7 +568,6 @@ async function fetchSafetyComplianceData(
     );
   }
 
-  // Toolbox talks
   sections.push("\n=== TOOLBOX TALKS ===");
   sections.push(`Total talks in period: ${talks.length}`);
   const totalAttendees = talks.reduce((s: number, t: { attendee_count?: number }) => s + Number(t.attendee_count || 0), 0);
@@ -595,7 +579,6 @@ async function fetchSafetyComplianceData(
     sections.push(`Talk ${talk.talk_number}: ${talk.title} | Topic: ${talk.topic || "N/A"} | Date: ${talk.conducted_date} | Attendees: ${talk.attendee_count ?? "N/A"}`);
   }
 
-  // Certifications
   sections.push("\n=== CERTIFICATIONS ===");
   sections.push(`Total certifications on file: ${certs.length}`);
   const now = new Date();
@@ -623,30 +606,28 @@ async function fetchSafetyComplianceData(
 }
 
 // ---------------------------------------------------------------------------
-// Executive Brief Data (combination of all)
+// Executive Brief Data — combines all areas using proven functions
 // ---------------------------------------------------------------------------
 
 async function fetchExecutiveBriefData(
-  supabase: SupabaseClient,
+  supabase: SupabaseArg,
   companyId: string,
   projectId: string | null,
   startDate: string,
   endDate: string
 ): Promise<string> {
-  // Fetch a mix of all data categories in parallel
+  const [overview, incomeStatement, balanceSheet] = await Promise.all([
+    getFinancialOverview(supabase, companyId),
+    getIncomeStatement(supabase, companyId, startDate, endDate),
+    getBalanceSheet(supabase, companyId, endDate),
+  ]);
+
   let projectQuery = supabase
     .from("projects")
     .select("id, name, code, status, contract_amount, estimated_cost, actual_cost, completion_percentage, start_date, end_date")
     .eq("company_id", companyId)
     .order("name");
   if (projectId) projectQuery = projectQuery.eq("id", projectId);
-
-  let invoicesQuery = supabase
-    .from("invoices")
-    .select("id, invoice_type, status, total_amount, balance_due, due_date")
-    .eq("company_id", companyId)
-    .limit(200);
-  if (projectId) invoicesQuery = invoicesQuery.eq("project_id", projectId);
 
   let incidentsQuery = supabase
     .from("safety_incidents")
@@ -660,20 +641,15 @@ async function fetchExecutiveBriefData(
     .from("rfis")
     .select("id, status")
     .eq("company_id", companyId)
-    .limit(100);
+    .limit(200);
   if (projectId) rfisQuery = rfisQuery.eq("project_id", projectId);
 
   let cosQuery = supabase
     .from("change_orders")
     .select("id, status, amount")
     .eq("company_id", companyId)
-    .limit(100);
+    .limit(200);
   if (projectId) cosQuery = cosQuery.eq("project_id", projectId);
-
-  const bankQuery = supabase
-    .from("bank_accounts")
-    .select("id, current_balance")
-    .eq("company_id", companyId);
 
   const inspectionsQuery = supabase
     .from("safety_inspections")
@@ -682,23 +658,18 @@ async function fetchExecutiveBriefData(
     .gte("inspection_date", startDate)
     .lte("inspection_date", endDate);
 
-  const [projectsRes, invoicesRes, incidentsRes, rfisRes, cosRes, bankRes, inspRes] =
-    await Promise.all([
-      projectQuery,
-      invoicesQuery,
-      incidentsQuery,
-      rfisQuery,
-      cosQuery,
-      bankQuery,
-      inspectionsQuery,
-    ]);
+  const [projectsRes, incidentsRes, rfisRes, cosRes, inspRes] = await Promise.all([
+    projectQuery,
+    incidentsQuery,
+    rfisQuery,
+    cosQuery,
+    inspectionsQuery,
+  ]);
 
   const projects = projectsRes.data ?? [];
-  const invoices = invoicesRes.data ?? [];
   const incidents = incidentsRes.data ?? [];
   const rfis = rfisRes.data ?? [];
   const cos = cosRes.data ?? [];
-  const bankAccounts = bankRes.data ?? [];
   const inspections = inspRes.data ?? [];
 
   const sections: string[] = [];
@@ -707,20 +678,19 @@ async function fetchExecutiveBriefData(
   sections.push("=== PORTFOLIO OVERVIEW ===");
   sections.push(`Total projects: ${projects.length}`);
   const statusCounts: Record<string, number> = {};
-  for (const p of projects) {
-    statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
-  }
-  sections.push(`By status: ${JSON.stringify(statusCounts)}`);
+  for (const p of projects) statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+  for (const [status, count] of Object.entries(statusCounts)) sections.push(`  ${status}: ${count}`);
+
   const totalContractValue = projects.reduce((s: number, p: { contract_amount?: number }) => s + Number(p.contract_amount || 0), 0);
   const totalEstimatedCost = projects.reduce((s: number, p: { estimated_cost?: number }) => s + Number(p.estimated_cost || 0), 0);
   const totalActualCost = projects.reduce((s: number, p: { actual_cost?: number }) => s + Number(p.actual_cost || 0), 0);
   const avgCompletion = projects.length > 0
     ? projects.reduce((s: number, p: { completion_percentage?: number }) => s + Number(p.completion_percentage || 0), 0) / projects.length
     : 0;
-  sections.push(`Total contract value: $${totalContractValue.toLocaleString()}`);
-  sections.push(`Total estimated cost: $${totalEstimatedCost.toLocaleString()}`);
-  sections.push(`Total actual cost: $${totalActualCost.toLocaleString()}`);
-  sections.push(`Cost variance: $${(totalEstimatedCost - totalActualCost).toLocaleString()}`);
+  sections.push(`Total contract value: ${fmtDollar(totalContractValue)}`);
+  sections.push(`Total estimated cost: ${fmtDollar(totalEstimatedCost)}`);
+  sections.push(`Total actual cost: ${fmtDollar(totalActualCost)}`);
+  sections.push(`Cost variance: ${fmtDollar(totalEstimatedCost - totalActualCost)}`);
   sections.push(`Average completion: ${avgCompletion.toFixed(1)}%`);
 
   const overBudget = projects.filter(
@@ -731,39 +701,37 @@ async function fetchExecutiveBriefData(
     sections.push(`Projects over budget: ${overBudget.length}`);
     for (const p of overBudget) {
       const over = Number(p.actual_cost || 0) - Number(p.estimated_cost || 0);
-      sections.push(`  ${p.name}: $${over.toLocaleString()} over budget`);
+      sections.push(`  ${p.name}: ${fmtDollar(over)} over budget`);
     }
   }
 
-  // Financial snapshot
+  // Financial snapshot from proven functions
   sections.push("\n=== FINANCIAL SNAPSHOT ===");
-  const totalCash = bankAccounts.reduce((s: number, b: { current_balance?: number }) => s + Number(b.current_balance || 0), 0);
-  sections.push(`Cash position: $${totalCash.toLocaleString()}`);
+  sections.push(`Cash position: ${fmtDollar(overview.cashPosition)}`);
+  sections.push(`Accounts receivable: ${fmtDollar(overview.totalAR)}`);
+  sections.push(`Accounts payable: ${fmtDollar(overview.totalAP)}`);
+  sections.push(`Net AR/AP: ${fmtDollar(overview.totalAR - overview.totalAP)}`);
 
-  const receivables = invoices.filter((i: { invoice_type: string }) => i.invoice_type === "receivable");
-  const payables = invoices.filter((i: { invoice_type: string }) => i.invoice_type === "payable");
-  const arOutstanding = receivables
-    .filter((i: { status: string }) => ["sent", "overdue", "partial"].includes(i.status))
-    .reduce((s: number, i: { balance_due?: number }) => s + Number(i.balance_due || 0), 0);
-  const apOutstanding = payables
-    .filter((i: { status: string }) => ["sent", "overdue", "partial"].includes(i.status))
-    .reduce((s: number, i: { balance_due?: number }) => s + Number(i.balance_due || 0), 0);
-  const overdueCount = invoices.filter((i: { status: string }) => i.status === "overdue").length;
+  // Income statement data
+  sections.push(`\nRevenue (period): ${fmtDollar(incomeStatement.revenue.total)}`);
+  sections.push(`Cost of Construction: ${fmtDollar(incomeStatement.costOfConstruction.total)}`);
+  sections.push(`Gross Profit: ${fmtDollar(incomeStatement.grossProfit)}`);
+  sections.push(`Operating Expenses: ${fmtDollar(incomeStatement.operatingExpenses.total)}`);
+  sections.push(`Net Income: ${fmtDollar(incomeStatement.netIncome)}`);
 
-  sections.push(`Accounts receivable: $${arOutstanding.toLocaleString()}`);
-  sections.push(`Accounts payable: $${apOutstanding.toLocaleString()}`);
-  sections.push(`Net AR/AP: $${(arOutstanding - apOutstanding).toLocaleString()}`);
-  sections.push(`Overdue invoices: ${overdueCount}`);
+  // Balance Sheet totals
+  sections.push(`\nTotal Assets: ${fmtDollar(balanceSheet.assets.total)}`);
+  sections.push(`Total Liabilities: ${fmtDollar(balanceSheet.liabilities.total)}`);
+  sections.push(`Total Equity: ${fmtDollar(balanceSheet.equity.total)}`);
 
   // RFIs and Change Orders
   sections.push("\n=== RFIs & CHANGE ORDERS ===");
   const openRfis = rfis.filter((r: { status: string }) => r.status !== "closed" && r.status !== "cancelled").length;
   sections.push(`Total RFIs: ${rfis.length} (${openRfis} open)`);
-
   const totalCOAmount = cos.reduce((s: number, c: { amount?: number }) => s + Number(c.amount || 0), 0);
   const approvedCOs = cos.filter((c: { status: string }) => c.status === "approved");
-  const pendingCOs = cos.filter((c: { status: string }) => c.status === "pending" || c.status === "submitted");
-  sections.push(`Total change orders: ${cos.length} (value: $${totalCOAmount.toLocaleString()})`);
+  const pendingCOs = cos.filter((c: { status: string }) => c.status === "pending" || c.status === "submitted" || c.status === "draft");
+  sections.push(`Total change orders: ${cos.length} (value: ${fmtDollar(totalCOAmount)})`);
   sections.push(`Approved COs: ${approvedCOs.length} | Pending COs: ${pendingCOs.length}`);
 
   // Safety summary
@@ -775,7 +743,7 @@ async function fetchExecutiveBriefData(
     sevBuckets[inc.severity] = (sevBuckets[inc.severity] || 0) + 1;
     if (inc.osha_recordable) oshaCount++;
   }
-  sections.push(`By severity: ${JSON.stringify(sevBuckets)}`);
+  for (const [sev, count] of Object.entries(sevBuckets)) sections.push(`  ${sev}: ${count}`);
   sections.push(`OSHA recordable: ${oshaCount}`);
 
   const avgInspScore = inspections.length > 0
