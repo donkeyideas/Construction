@@ -111,7 +111,7 @@ export default async function FinancialDashboardPage() {
         <div className="fin-header-actions">
           <Link href="/financial/general-ledger" className="ui-btn ui-btn-outline ui-btn-sm">
             <BookOpen size={14} />
-            General Ledger
+            Journal Entries
           </Link>
         </div>
       </div>
@@ -455,7 +455,7 @@ export default async function FinancialDashboardPage() {
               </Link>
               <Link href="/financial/general-ledger" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
                 <BookOpen size={14} />
-                General Ledger
+                Journal Entries
               </Link>
               <Link href="/financial/income-statement" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
                 <TrendingUp size={14} />

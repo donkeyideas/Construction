@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
-import { Search, Bell, Sun, Moon, Menu, LogOut, Settings, Trash2, SwatchBook } from "lucide-react";
+import { Search, Bell, Sun, Moon, Menu, LogOut, Settings, Trash2, SwatchBook, Shield } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -45,6 +45,8 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
 
   const [unreadCount, setUnreadCount] = useState(0);
   const [userId, setUserId] = useState("");
+  const [auditGrade, setAuditGrade] = useState<string | null>(null);
+  const [auditGradeLabel, setAuditGradeLabel] = useState<string | null>(null);
 
   // Real-time: increment badge when new messages arrive
   const { count: realtimeNewCount } = useRealtimeNotifications(userId);
@@ -78,6 +80,33 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
       }
     });
   }, []);
+
+  // Fetch audit grade on mount
+  useEffect(() => {
+    fetch("/api/financial/audit-grade")
+      .then((res) => {
+        if (res.ok) return res.json();
+        return null;
+      })
+      .then((data) => {
+        if (data?.grade) {
+          setAuditGrade(data.grade);
+          setAuditGradeLabel(data.gradeLabel);
+        }
+      })
+      .catch(() => {
+        // Silently fail — audit grade is non-critical
+      });
+  }, []);
+
+  const gradeColorMap: Record<string, string> = {
+    A: "var(--color-green)",
+    B: "var(--color-blue)",
+    C: "var(--color-amber)",
+    D: "var(--color-orange, #f97316)",
+    F: "var(--color-red)",
+  };
+  const gradeColor = auditGrade ? gradeColorMap[auditGrade] || "var(--muted)" : "var(--muted)";
 
   const totalUnread = unreadCount + realtimeNewCount;
 
@@ -157,6 +186,29 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             >
               <Trash2 size={16} />
               {resetting ? "Deleting..." : resetConfirm ? "Click to Confirm" : "Delete All Data"}
+            </button>
+          )}
+          {auditGrade && (
+            <button
+              className="audit-grade-btn"
+              onClick={() => router.push("/financial/audit")}
+              title={`Financial Audit: ${auditGradeLabel || auditGrade}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "4px 10px",
+                borderRadius: "6px",
+                border: "1px solid var(--border)",
+                background: "transparent",
+                color: gradeColor,
+                fontWeight: 700,
+                fontSize: "0.78rem",
+                cursor: "pointer",
+              }}
+            >
+              <Shield size={14} />
+              {auditGrade}
             </button>
           )}
           <button

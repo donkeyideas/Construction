@@ -41,12 +41,17 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
   const todayStr = now.toISOString().split("T")[0];
 
   const [allApRes, paidThisMonthRes, invoicesRes] = await Promise.all([
-    supabase
-      .from("invoices")
-      .select("id, balance_due, status, due_date")
-      .eq("company_id", userCompany.companyId)
-      .eq("invoice_type", "payable")
-      .not("status", "eq", "voided"),
+    (() => {
+      let q = supabase
+        .from("invoices")
+        .select("id, balance_due, status, due_date")
+        .eq("company_id", userCompany.companyId)
+        .eq("invoice_type", "payable")
+        .not("status", "eq", "voided");
+      if (filterStartDate) q = q.gte("invoice_date", filterStartDate);
+      if (filterEndDate) q = q.lte("invoice_date", filterEndDate);
+      return q;
+    })(),
     supabase
       .from("invoices")
       .select("total_amount")

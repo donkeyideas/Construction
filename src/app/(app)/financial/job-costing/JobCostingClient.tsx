@@ -493,11 +493,11 @@ export default function JobCostingClient({
         </div>
         {selectedProjectId && (
           <div style={{ display: "flex", gap: "8px" }}>
-            <button className="btn btn-ghost" onClick={() => setShowImport(true)}>
+            <button className="ui-btn ui-btn-secondary ui-btn-md" onClick={() => setShowImport(true)}>
               <Upload size={16} />
               {t("importCsv")}
             </button>
-            <button className="btn btn-primary" onClick={openCreate}>
+            <button className="ui-btn ui-btn-primary ui-btn-md" onClick={openCreate}>
               <Plus size={16} />
               {t("addBudgetLine")}
             </button>

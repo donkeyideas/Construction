@@ -62,10 +62,10 @@ export default async function CashFlowPage({
 
     const [inflowRes, outflowRes] = await Promise.all([
       supabase.from("invoices").select("total_amount").eq("company_id", userCompany.companyId)
-        .eq("invoice_type", "receivable").eq("status", "paid")
+        .eq("invoice_type", "receivable").neq("status", "voided")
         .gte("invoice_date", monthDate.toISOString()).lte("invoice_date", monthEnd.toISOString()),
       supabase.from("invoices").select("total_amount").eq("company_id", userCompany.companyId)
-        .eq("invoice_type", "payable").eq("status", "paid")
+        .eq("invoice_type", "payable").neq("status", "voided")
         .gte("invoice_date", monthDate.toISOString()).lte("invoice_date", monthEnd.toISOString()),
     ]);
 

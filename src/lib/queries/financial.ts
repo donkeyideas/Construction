@@ -678,7 +678,7 @@ export async function getMonthlyIncomeExpenses(
         .select("total_amount")
         .eq("company_id", companyId)
         .eq("invoice_type", "receivable")
-        .eq("status", "paid")
+        .neq("status", "voided")
         .gte("invoice_date", startISO)
         .lte("invoice_date", endISO),
       supabase
@@ -686,7 +686,7 @@ export async function getMonthlyIncomeExpenses(
         .select("total_amount")
         .eq("company_id", companyId)
         .eq("invoice_type", "payable")
-        .eq("status", "paid")
+        .neq("status", "voided")
         .gte("invoice_date", startISO)
         .lte("invoice_date", endISO),
     ]);

@@ -92,7 +92,7 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <script dangerouslySetInnerHTML={{ __html: `try{var v=localStorage.getItem('buildwrk-variant');document.documentElement.setAttribute('data-variant',v||'classic')}catch(e){document.documentElement.setAttribute('data-variant','classic')}` }} />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider>{children}</ThemeProvider>
         </NextIntlClientProvider>
