@@ -27,11 +27,6 @@ export const employeeNavigation: NavItem[] = [
     icon: "shield-check",
   },
   {
-    label: "Documents",
-    href: "/employee/documents",
-    icon: "folder-open",
-  },
-  {
     label: "My Profile",
     href: "/employee/profile",
     icon: "user",

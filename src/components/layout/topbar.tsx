@@ -37,6 +37,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const isSuperAdmin = pathname.startsWith("/super-admin");
+  const isPortal = pathname.startsWith("/employee") || pathname.startsWith("/vendor") || pathname.startsWith("/tenant");
   const [searchOpen, setSearchOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<{ name: string | null; email: string | null }>({
     name: null,
@@ -188,7 +189,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
               {resetting ? "Deleting..." : resetConfirm ? "Click to Confirm" : "Delete All Data"}
             </button>
           )}
-          {auditGrade && (
+          {auditGrade && !isPortal && (
             <button
               className="audit-grade-btn"
               onClick={() => router.push("/financial/audit")}

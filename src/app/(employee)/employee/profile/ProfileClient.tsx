@@ -47,7 +47,6 @@ export default function ProfileClient({
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState(profile.full_name ?? "");
   const [phone, setPhone] = useState(profile.phone ?? contact?.phone ?? "");
-  const [jobTitle, setJobTitle] = useState(contact?.job_title ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -55,7 +54,6 @@ export default function ProfileClient({
   function startEdit() {
     setFullName(profile.full_name ?? "");
     setPhone(profile.phone ?? contact?.phone ?? "");
-    setJobTitle(contact?.job_title ?? "");
     setEditing(true);
     setError("");
     setSuccess("");
@@ -78,7 +76,6 @@ export default function ProfileClient({
         body: JSON.stringify({
           full_name: fullName,
           phone,
-          job_title: jobTitle,
         }),
       });
 
@@ -236,11 +233,13 @@ export default function ProfileClient({
                 <input
                   type="text"
                   className="invite-form-input"
-                  value={jobTitle}
-                  onChange={(e) => setJobTitle(e.target.value)}
-                  placeholder="e.g. Project Engineer"
-                  disabled={saving}
+                  value={contact?.job_title ?? ""}
+                  disabled
+                  style={{ opacity: 0.6 }}
                 />
+                <div className="emp-form-hint">
+                  Job title is managed by your administrator
+                </div>
               </div>
 
               <div className="emp-form-actions">

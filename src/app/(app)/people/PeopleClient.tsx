@@ -538,9 +538,6 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                     </button>
                   </div>
                 </div>
-                <p style={{ marginTop: 12, fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                  Portal URL: {selectedContact.contact_type === "employee" ? "/login/employee" : "/login/vendor"}
-                </p>
                 <div className="ticket-form-actions" style={{ marginTop: 16 }}>
                   <button className="btn-primary" onClick={() => { setShowCreateLogin(false); setLoginSuccess(null); }}>
                     Done

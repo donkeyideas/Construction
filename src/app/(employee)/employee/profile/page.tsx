@@ -37,7 +37,7 @@ export default async function EmployeeProfilePage() {
       .single(),
     supabase
       .from("contacts")
-      .select("id, name, email, phone, job_title")
+      .select("id, first_name, last_name, email, phone, job_title")
       .eq("user_id", userCtx.userId)
       .eq("company_id", userCtx.companyId)
       .maybeSingle(),
@@ -51,7 +51,15 @@ export default async function EmployeeProfilePage() {
     avatar_url: null,
   };
 
-  const contact: ContactInfo | null = contactRes.data ?? null;
+  // Build contact name from first_name + last_name
+  const rawContact = contactRes.data as { id: string; first_name: string | null; last_name: string | null; email: string | null; phone: string | null; job_title: string | null } | null;
+  const contact: ContactInfo | null = rawContact ? {
+    id: rawContact.id,
+    name: `${rawContact.first_name ?? ""} ${rawContact.last_name ?? ""}`.trim() || null,
+    email: rawContact.email,
+    phone: rawContact.phone,
+    job_title: rawContact.job_title,
+  } : null;
 
   return (
     <ProfileClient
