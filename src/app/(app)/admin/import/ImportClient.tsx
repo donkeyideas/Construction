@@ -518,6 +518,9 @@ export default function ImportClient() {
                     const isImported = progress && progress.count > 0;
                     const Icon = entity.icon;
 
+                    const requiredCols = entity.columns.filter((c) => c.required);
+                    const optionalCount = entity.columns.length - requiredCols.length;
+
                     return (
                       <div
                         key={entity.key}
@@ -525,8 +528,8 @@ export default function ImportClient() {
                           isImported ? "imported" : ""
                         }`}
                       >
-                        {/* Header row */}
-                        <div className="bulk-import-card-header">
+                        {/* Top: icon + name + step */}
+                        <div className="bulk-import-card-top">
                           <div
                             className="bulk-import-card-icon"
                             style={{
@@ -534,9 +537,9 @@ export default function ImportClient() {
                               color: entity.color,
                             }}
                           >
-                            <Icon size={17} />
+                            <Icon size={20} />
                           </div>
-                          <div className="bulk-import-card-title">
+                          <div className="bulk-import-card-info">
                             <div className="bulk-import-card-name">
                               {entity.label}
                             </div>
@@ -547,42 +550,35 @@ export default function ImportClient() {
                             )}
                           </div>
                           <span className="bulk-import-step-badge">
-                            Step {globalStep}
+                            {globalStep}
                           </span>
                         </div>
 
-                        {/* Required columns */}
-                        <div className="bulk-import-columns">
-                          {entity.columns.map((col) => (
-                            <span
-                              key={col.key}
-                              className={`bulk-import-col-pill ${
-                                col.required ? "required" : ""
-                              }`}
-                              title={
-                                col.required
-                                  ? `${col.label} (required)`
-                                  : col.label
-                              }
-                            >
-                              {col.label}
-                              {col.required ? " *" : ""}
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* Import status */}
-                        <div className="bulk-import-card-stats">
+                        {/* Status row */}
+                        <div className="bulk-import-card-status">
                           {isImported ? (
                             <>
                               <Check size={14} style={{ color: "var(--color-green)" }} />
-                              <strong>{progress.count}</strong> imported
-                              <span style={{ fontSize: "0.72rem" }}>
+                              <span className="imported-count">
+                                {progress.count} records
+                              </span>
+                              <span className="imported-date">
                                 {formatDate(progress.lastImported)}
                               </span>
                             </>
                           ) : (
                             <span>No data imported yet</span>
+                          )}
+                        </div>
+
+                        {/* Required columns summary */}
+                        <div className="bulk-import-card-cols">
+                          <strong>Required:</strong>{" "}
+                          {requiredCols.length > 0
+                            ? requiredCols.map((c) => c.label).join(", ")
+                            : "None"}
+                          {optionalCount > 0 && (
+                            <span> + {optionalCount} optional</span>
                           )}
                         </div>
 
@@ -592,7 +588,7 @@ export default function ImportClient() {
                             className="bulk-import-btn"
                             onClick={() => handleDownloadTemplate(entity)}
                           >
-                            <Download size={13} />
+                            <Download size={14} />
                             Template
                           </button>
                           <button
@@ -602,7 +598,7 @@ export default function ImportClient() {
                               setActiveImport(entity);
                             }}
                           >
-                            <Upload size={13} />
+                            <Upload size={14} />
                             Import CSV
                           </button>
                         </div>

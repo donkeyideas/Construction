@@ -34,6 +34,7 @@ interface AlertsClientProps {
     entry_number: string;
     entry_date: string;
     total_debit: number;
+    daysInDraft: number;
   }[];
   expiringCerts: {
     personName: string;

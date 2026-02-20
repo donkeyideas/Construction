@@ -36,9 +36,9 @@ interface Provider {
 
 interface UsageLog {
   id: string;
-  provider_config_id: string | null;
+  provider_name: string | null;
   user_id: string | null;
-  action_type: string | null;
+  task_type: string | null;
   model_id: string | null;
   input_tokens: number | null;
   output_tokens: number | null;
@@ -71,7 +71,7 @@ type SortField =
   | "created_at"
   | "provider_name"
   | "model_id"
-  | "action_type"
+  | "task_type"
   | "input_tokens"
   | "output_tokens"
   | "estimated_cost";
@@ -113,14 +113,7 @@ function dateKey(dateStr: string): string {
   return dateStr.slice(0, 10);
 }
 
-/** Build a provider name lookup map from provider_config_id to provider_name. */
-function buildProviderLookup(providers: Provider[]): Map<string, string> {
-  const m = new Map<string, string>();
-  for (const p of providers) {
-    m.set(p.id, p.provider_name);
-  }
-  return m;
-}
+// Provider name lookup no longer needed — ai_usage_log stores provider_name directly
 
 // ---------------------------------------------------------------------------
 // Component
@@ -133,8 +126,6 @@ export default function UsageClient({
 }: UsageClientProps) {
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortAsc, setSortAsc] = useState(false);
-
-  const providerLookup = useMemo(() => buildProviderLookup(providers), [providers]);
 
   // -------------------------------------------------------------------------
   // KPI calculations
@@ -207,15 +198,13 @@ export default function UsageClient({
   const costByProvider = useMemo(() => {
     const map = new Map<string, number>();
     for (const l of usageLogs) {
-      const name =
-        (l.provider_config_id ? providerLookup.get(l.provider_config_id) : null) ??
-        "Unknown";
+      const name = l.provider_name ?? "Unknown";
       map.set(name, (map.get(name) ?? 0) + (l.estimated_cost ?? 0));
     }
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value: Math.round(value * 10000) / 10000 }))
       .sort((a, b) => b.value - a.value);
-  }, [usageLogs, providerLookup]);
+  }, [usageLogs]);
 
   // -------------------------------------------------------------------------
   // Chart 3: Tokens by Model (BarChart, stacked input + output)
@@ -272,9 +261,7 @@ export default function UsageClient({
   const tableData = useMemo(() => {
     const enriched = usageLogs.map((l) => ({
       ...l,
-      _providerName:
-        (l.provider_config_id ? providerLookup.get(l.provider_config_id) : null) ??
-        "Unknown",
+      _providerName: l.provider_name ?? "Unknown",
     }));
 
     enriched.sort((a, b) => {
@@ -289,8 +276,8 @@ export default function UsageClient({
         case "model_id":
           cmp = (a.model_id ?? "").localeCompare(b.model_id ?? "");
           break;
-        case "action_type":
-          cmp = (a.action_type ?? "").localeCompare(b.action_type ?? "");
+        case "task_type":
+          cmp = (a.task_type ?? "").localeCompare(b.task_type ?? "");
           break;
         case "input_tokens":
           cmp = (a.input_tokens ?? 0) - (b.input_tokens ?? 0);
@@ -306,7 +293,7 @@ export default function UsageClient({
     });
 
     return enriched.slice(0, 50);
-  }, [usageLogs, providerLookup, sortField, sortAsc]);
+  }, [usageLogs, sortField, sortAsc]);
 
   function handleSort(field: SortField) {
     if (sortField === field) {
@@ -788,10 +775,10 @@ export default function UsageClient({
                   Model{sortIndicator("model_id")}
                 </th>
                 <th
-                  onClick={() => handleSort("action_type")}
+                  onClick={() => handleSort("task_type")}
                   style={{ cursor: "pointer" }}
                 >
-                  Action{sortIndicator("action_type")}
+                  Task{sortIndicator("task_type")}
                 </th>
                 <th
                   onClick={() => handleSort("input_tokens")}
@@ -831,7 +818,7 @@ export default function UsageClient({
                     </span>
                   </td>
                   <td style={{ textTransform: "capitalize" }}>
-                    {row.action_type ?? "-"}
+                    {row.task_type ?? "-"}
                   </td>
                   <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
                     {(row.input_tokens ?? 0).toLocaleString()}

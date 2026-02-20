@@ -28,9 +28,9 @@ export default async function AIProvidersPage() {
     getAIUsageSummary(supabase, companyId),
   ]);
 
-  // Build a usage map keyed by provider_config_id for easy lookup
+  // Build a usage map keyed by provider_name for easy lookup
   const usageMap = new Map(
-    usageSummary.map((u) => [u.provider_config_id, u])
+    usageSummary.map((u) => [u.provider_name, u])
   );
 
   // Prepare providers for the client (mask API keys)

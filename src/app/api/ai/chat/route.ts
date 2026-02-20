@@ -8,6 +8,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProviderForTask } from "@/lib/ai/provider-router";
+import { logAIUsage } from "@/lib/queries/ai";
 
 // ---------------------------------------------------------------------------
 // POST /api/ai/chat - Streaming chat endpoint with function calling
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { model } = providerResult;
+  const { model, config: providerConfig } = providerResult;
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -889,6 +890,38 @@ Structure every data response with clear sections. Use markdown formatting:
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  // Fire-and-forget: log usage after stream completes
+  Promise.resolve(result.usage).then(async (usage) => {
+    const inputTokens = usage.inputTokens ?? 0;
+    const outputTokens = usage.outputTokens ?? 0;
+    // Rough cost estimate per 1K tokens
+    const rates: Record<string, { input: number; output: number }> = {
+      openai: { input: 0.005, output: 0.015 },
+      anthropic: { input: 0.003, output: 0.015 },
+      google: { input: 0.00025, output: 0.0005 },
+      groq: { input: 0.0005, output: 0.0005 },
+      mistral: { input: 0.001, output: 0.003 },
+      cohere: { input: 0.001, output: 0.002 },
+      xai: { input: 0.005, output: 0.015 },
+      deepseek: { input: 0.001, output: 0.002 },
+    };
+    const r = rates[providerConfig.provider_name] ?? { input: 0.005, output: 0.015 };
+    const estimatedCost = (inputTokens * r.input + outputTokens * r.output) / 1000;
+
+    await logAIUsage(supabase, {
+      company_id: companyId,
+      provider_name: providerConfig.provider_name,
+      user_id: userCompany.userId,
+      task_type: "chat",
+      model_id: providerConfig.model_id,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      estimated_cost: Math.round(estimatedCost * 10000) / 10000,
+    });
+  }).catch((err) => {
+    console.error("Failed to log AI chat usage:", err);
+  });
 
   return result.toUIMessageStreamResponse();
 }

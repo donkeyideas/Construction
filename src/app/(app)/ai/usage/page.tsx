@@ -25,7 +25,7 @@ export default async function UsagePage() {
       .eq("company_id", companyId),
     supabase
       .from("ai_usage_log")
-      .select("id, provider_config_id, user_id, action_type, model_id, input_tokens, output_tokens, estimated_cost, created_at")
+      .select("id, provider_name, user_id, task_type, model_id, input_tokens, output_tokens, estimated_cost, created_at")
       .eq("company_id", companyId)
       .gte("created_at", monthStart)
       .lte("created_at", monthEnd)

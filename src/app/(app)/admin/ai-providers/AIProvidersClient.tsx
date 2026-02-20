@@ -36,7 +36,6 @@ interface MaskedProvider {
 }
 
 interface UsageSummaryEntry {
-  provider_config_id: string;
   provider_name: string;
   model_id: string;
   total_requests: number;

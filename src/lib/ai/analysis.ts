@@ -135,6 +135,7 @@ export interface AnomalyDetectionInput {
     entry_number: string;
     entry_date: string;
     total_debit: number;
+    daysInDraft: number;
   }[];
   expiringCerts: {
     personName: string;
@@ -749,14 +750,14 @@ export function detectAnomalies(params: AnomalyDetectionInput): AlertItem[] {
   // --- Unposted journal entries ---
   for (const je of params.unpostedJEs) {
     const severity: AlertItem["severity"] =
-      je.total_debit > 100000 ? "critical" : "warning";
+      je.daysInDraft > 30 ? "critical" : "warning";
     alerts.push({
       id: `unposted-je-${je.id}`,
       category: "financial",
       severity,
       title: `Journal entry ${je.entry_number} is unposted`,
-      description: `JE ${je.entry_number} dated ${je.entry_date} (${fmtUSD(je.total_debit)} total debit) has not been posted.`,
-      metric: fmtUSD(je.total_debit),
+      description: `JE ${je.entry_number} dated ${je.entry_date} has been in draft for ${je.daysInDraft} days.`,
+      metric: `${je.daysInDraft} days in draft`,
       actionUrl: `/journal-entries/${je.id}`,
     });
   }

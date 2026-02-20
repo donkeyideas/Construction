@@ -18,6 +18,7 @@ export default async function AlertsPage() {
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
   const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const todayStr = now.toISOString().slice(0, 10);
 
   // Fetch all anomaly detection data in parallel
@@ -66,7 +67,7 @@ export default async function AlertsPage() {
       .from("certifications")
       .select("id, certification_name, expiry_date, contacts(first_name, last_name)")
       .eq("company_id", companyId)
-      .gte("expiry_date", todayStr)
+      .gte("expiry_date", thirtyDaysAgo.slice(0, 10))
       .lte("expiry_date", thirtyDaysFromNow),
 
     // 6. Overdue RFIs (open for > 7 days)

@@ -26,19 +26,17 @@ export interface AIProviderRow {
 export interface AIUsageLogRow {
   id: string;
   company_id: string;
-  provider_config_id: string;
   user_id: string;
-  action_type: string;
+  provider_name: string;
   model_id: string;
+  task_type: string | null;
   input_tokens: number;
   output_tokens: number;
   estimated_cost: number;
-  metadata: Record<string, unknown>;
   created_at: string;
 }
 
 export interface AIUsageSummary {
-  provider_config_id: string;
   provider_name: string;
   model_id: string;
   total_requests: number;
@@ -73,14 +71,13 @@ export interface UpdateAIProviderData {
 
 export interface LogAIUsageData {
   company_id: string;
-  provider_config_id: string;
+  provider_name: string;
   user_id: string;
-  action_type: string;
+  task_type: string;
   model_id: string;
   input_tokens: number;
   output_tokens: number;
   estimated_cost: number;
-  metadata?: Record<string, unknown>;
 }
 
 // ---------------------------------------------------------------------------
@@ -288,7 +285,7 @@ export async function getAIUsageSummary(
   const { data, error } = await supabase
     .from("ai_usage_log")
     .select(
-      "provider_config_id, model_id, input_tokens, output_tokens, estimated_cost"
+      "provider_name, model_id, input_tokens, output_tokens, estimated_cost"
     )
     .eq("company_id", companyId)
     .gte("created_at", startOfMonth);
@@ -298,11 +295,11 @@ export async function getAIUsageSummary(
     return [];
   }
 
-  // Aggregate by provider_config_id
+  // Aggregate by provider_name
   const map = new Map<string, AIUsageSummary>();
 
   for (const row of data ?? []) {
-    const key = row.provider_config_id;
+    const key = row.provider_name as string;
     const existing = map.get(key);
 
     if (existing) {
@@ -312,8 +309,7 @@ export async function getAIUsageSummary(
       existing.total_estimated_cost += Number(row.estimated_cost ?? 0);
     } else {
       map.set(key, {
-        provider_config_id: key,
-        provider_name: "", // Will be enriched by caller if needed
+        provider_name: key,
         model_id: row.model_id ?? "",
         total_requests: 1,
         total_input_tokens: row.input_tokens ?? 0,
@@ -336,14 +332,13 @@ export async function logAIUsage(
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.from("ai_usage_log").insert({
     company_id: input.company_id,
-    provider_config_id: input.provider_config_id,
+    provider_name: input.provider_name,
     user_id: input.user_id,
-    action_type: input.action_type,
+    task_type: input.task_type,
     model_id: input.model_id,
     input_tokens: input.input_tokens,
     output_tokens: input.output_tokens,
     estimated_cost: input.estimated_cost,
-    metadata: input.metadata ?? {},
   });
 
   if (error) {
@@ -354,9 +349,12 @@ export async function logAIUsage(
   // Also update the current_month_usage on the provider config
   const { data: config } = await supabase
     .from("ai_provider_configs")
-    .select("current_month_usage")
-    .eq("id", input.provider_config_id)
-    .single();
+    .select("id, current_month_usage")
+    .eq("company_id", input.company_id)
+    .eq("provider_name", input.provider_name)
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle();
 
   if (config) {
     const newUsage =
@@ -365,7 +363,7 @@ export async function logAIUsage(
     await supabase
       .from("ai_provider_configs")
       .update({ current_month_usage: newUsage })
-      .eq("id", input.provider_config_id);
+      .eq("id", config.id);
   }
 
   return { error: null };

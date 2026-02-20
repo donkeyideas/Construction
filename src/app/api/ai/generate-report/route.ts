@@ -2,6 +2,7 @@ import { streamText } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProviderForTask } from "@/lib/ai/provider-router";
+import { logAIUsage } from "@/lib/queries/ai";
 import {
   getFinancialOverview,
   getIncomeStatement,
@@ -147,6 +148,36 @@ Generate the full ${reportLabel} with these sections:
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  // Fire-and-forget: log usage after stream completes
+  const pConfig = providerResult.config;
+  Promise.resolve(result.usage).then(async (usage) => {
+    const inputTokens = usage.inputTokens ?? 0;
+    const outputTokens = usage.outputTokens ?? 0;
+    const rates: Record<string, { input: number; output: number }> = {
+      openai: { input: 0.005, output: 0.015 },
+      anthropic: { input: 0.003, output: 0.015 },
+      google: { input: 0.00025, output: 0.0005 },
+      groq: { input: 0.0005, output: 0.0005 },
+      mistral: { input: 0.001, output: 0.003 },
+      deepseek: { input: 0.001, output: 0.002 },
+    };
+    const r = rates[pConfig.provider_name] ?? { input: 0.005, output: 0.015 };
+    const estimatedCost = (inputTokens * r.input + outputTokens * r.output) / 1000;
+
+    await logAIUsage(supabase, {
+      company_id: companyId,
+      provider_name: pConfig.provider_name,
+      user_id: userCompany.userId,
+      task_type: "report",
+      model_id: pConfig.model_id,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      estimated_cost: Math.round(estimatedCost * 10000) / 10000,
+    });
+  }).catch((err) => {
+    console.error("Failed to log report usage:", err);
+  });
 
   return result.toTextStreamResponse();
 }

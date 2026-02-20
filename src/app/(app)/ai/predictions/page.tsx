@@ -20,7 +20,7 @@ export default async function PredictionsPage() {
       supabase
         .from("projects")
         .select(
-          "id, name, code, status, contract_amount, estimated_cost, actual_cost, completion_percentage, start_date, end_date"
+          "id, name, code, status, contract_amount, estimated_cost, actual_cost, completion_pct, start_date, end_date"
         )
         .eq("company_id", companyId)
         .in("status", ["active", "in_progress"]),
@@ -71,7 +71,7 @@ export default async function PredictionsPage() {
     contract_amount: Number(p.contract_amount) || 0,
     estimated_cost: Number(p.estimated_cost) || 0,
     actual_cost: Number(p.actual_cost) || 0,
-    completion_percentage: Number(p.completion_percentage) || 0,
+    completion_pct: Number(p.completion_pct) || 0,
     start_date: (p.start_date ?? null) as string | null,
     end_date: (p.end_date ?? null) as string | null,
   }));

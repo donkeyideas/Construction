@@ -34,7 +34,7 @@ interface ProjectData {
   contract_amount: number;
   estimated_cost: number;
   actual_cost: number;
-  completion_percentage: number;
+  completion_pct: number;
   start_date: string | null;
   end_date: string | null;
 }
@@ -160,7 +160,7 @@ export default function PredictionsClient({
       prediction: predictBudgetOverrun({
         budget: p.contract_amount || p.estimated_cost,
         actualCost: p.actual_cost,
-        completionPct: p.completion_percentage / 100,
+        completionPct: p.completion_pct / 100,
       }),
     }));
   }, [projects]);
@@ -377,7 +377,7 @@ export default function PredictionsClient({
                 <div
                   className="progress-fill"
                   style={{
-                    width: `${Math.min(100, Math.max(0, project.completion_percentage))}%`,
+                    width: `${Math.min(100, Math.max(0, project.completion_pct))}%`,
                     background:
                       prediction.risk === "critical"
                         ? "var(--color-red)"
@@ -397,7 +397,7 @@ export default function PredictionsClient({
                   textAlign: "right",
                 }}
               >
-                {project.completion_percentage.toFixed(0)}% complete
+                {project.completion_pct.toFixed(0)}% complete
               </div>
             </div>
           ))}
