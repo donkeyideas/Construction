@@ -665,6 +665,13 @@ export async function getEquipmentTransactions(
   const maintLogs = maintLogsRes.data ?? [];
   const equipInvoices = equipInvoicesRes.data ?? [];
 
+  // Build all JE reference keys for batch lookup
+  const allJeRefs = [
+    ...equipment.map((e) => `equipment_purchase:${e.id}`),
+    ...maintLogs.map((m) => `equip_maintenance:${m.id}`),
+    ...equipInvoices.map((i) => `invoice:${i.id}`),
+  ];
+
   // Phase 2: Dependent queries in parallel
   const [jeLinesRes, jeMap] = await Promise.all([
     accountIds.length > 0
@@ -672,7 +679,7 @@ export async function getEquipmentTransactions(
           .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
           .eq("company_id", companyId).in("account_id", accountIds).limit(500)
       : Promise.resolve({ data: null }),
-    getJEMap(supabase, companyId, equipInvoices.map((i) => `invoice:${i.id}`)),
+    getJEMap(supabase, companyId, allJeRefs),
   ]);
 
   // Process JE lines
@@ -684,26 +691,28 @@ export async function getEquipmentTransactions(
   // Process equipment purchases
   for (const eq of equipment) {
     const cost = Number(eq.purchase_cost) || 0;
+    const je = jeMap.get(`equipment_purchase:${eq.id}`);
     txns.push({
       id: `equip-${eq.id}`,
       date: eq.purchase_date ?? new Date().toISOString().split("T")[0],
       description: `Equipment Purchase — ${eq.name}`,
       reference: "", source: "Equipment", sourceHref: "/equipment",
       debit: cost, credit: 0,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
   // Process maintenance logs
   for (const log of maintLogs) {
     const equipName = (log.equipment as unknown as { name: string } | null)?.name ?? "Equipment";
+    const je = jeMap.get(`equip_maintenance:${log.id}`);
     txns.push({
       id: `emaint-${log.id}`,
       date: log.maintenance_date,
       description: `Maintenance — ${equipName}: ${log.description || "Service"}`,
       reference: "", source: "Maintenance", sourceHref: "/equipment",
       debit: Number(log.cost) || 0, credit: 0,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 

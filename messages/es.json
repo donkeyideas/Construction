@@ -1557,6 +1557,7 @@
     "labelNotes": "Notas",
     "placeholderAssignmentNotes": "Notas opcionales sobre esta asignacion...",
     "assigning": "Asignando...",
+    "editAssignment": "Editar Asignacion",
     "errorCreateAssignment": "Error al crear la asignacion.",
     "errorReturnEquipment": "Error al devolver el equipo.",
     "errorDeleteAssignment": "Error al eliminar la asignacion.",

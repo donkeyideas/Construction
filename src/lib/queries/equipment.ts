@@ -624,7 +624,7 @@ export async function getEquipmentOverview(
     .toISOString()
     .slice(0, 10);
 
-  const [equipRes, statsRes, assignRes, maintCostRes] = await Promise.all([
+  const [equipRes, statsRes, assignRes, maintCostRes, maintLogsRes] = await Promise.all([
     supabase
       .from("equipment")
       .select("*")
@@ -633,7 +633,12 @@ export async function getEquipmentOverview(
     getEquipmentStats(supabase, companyId),
     supabase
       .from("equipment_assignments")
-      .select("id, equipment_id, assigned_date, equipment:equipment!equipment_assignments_equipment_id_fkey(name), project:projects!equipment_assignments_project_id_fkey(name), assignee:user_profiles!equipment_assignments_assigned_to_fkey(full_name)")
+      .select(`
+        id, equipment_id, assigned_date,
+        equipment:equipment(name),
+        project:projects(name),
+        assignee:user_profiles!equip_assignments_assignee_profile_fkey(full_name)
+      `)
       .eq("company_id", companyId)
       .eq("status", "active")
       .order("assigned_date", { ascending: false })
@@ -644,11 +649,27 @@ export async function getEquipmentOverview(
       .eq("company_id", companyId)
       .not("cost", "is", null)
       .gt("cost", 0),
+    supabase
+      .from("equipment_maintenance_logs")
+      .select("equipment_id, next_due_date")
+      .eq("company_id", companyId)
+      .not("next_due_date", "is", null)
+      .order("next_due_date", { ascending: false }),
   ]);
 
   const equipment = (equipRes.data ?? []) as EquipmentRow[];
   const stats = statsRes;
   const assignments = assignRes.data ?? [];
+
+  // Build a map of equipment_id -> nearest next_due_date from maintenance logs
+  const maintNextDueMap = new Map<string, string>();
+  for (const log of maintLogsRes.data ?? []) {
+    const eid = log.equipment_id as string;
+    const d = log.next_due_date as string;
+    if (!maintNextDueMap.has(eid) || d < maintNextDueMap.get(eid)!) {
+      maintNextDueMap.set(eid, d);
+    }
+  }
 
   // Count distinct equipment with active assignments as "in use"
   const assignedEquipIds = new Set(
@@ -686,8 +707,14 @@ export async function getEquipmentOverview(
   }));
 
   // Maintenance alerts (overdue + upcoming)
+  // Use equipment.next_maintenance_date first, fallback to maintenance log next_due_date
   const todayStr = now.toISOString().slice(0, 10);
-  const maintenanceAlerts = equipment
+  const equipmentWithDates = equipment.map((e) => ({
+    ...e,
+    next_maintenance_date: e.next_maintenance_date || maintNextDueMap.get(e.id) || null,
+  }));
+
+  const maintenanceAlerts = equipmentWithDates
     .filter(
       (e) =>
         e.status !== "retired" &&
@@ -704,7 +731,7 @@ export async function getEquipmentOverview(
     .sort((a, b) => b.daysOverdue - a.daysOverdue)
     .slice(0, 8);
 
-  const overdueMaintenanceCount = equipment.filter(
+  const overdueMaintenanceCount = equipmentWithDates.filter(
     (e) =>
       e.status !== "retired" &&
       e.next_maintenance_date &&

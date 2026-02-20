@@ -314,8 +314,9 @@ export async function backfillMissingJournalEntries(
       } catch (err) { console.warn("Backfill property maintenance JE failed:", m.id, err); }
     }
 
-    // Equipment maintenance logs
-    const { data: equipMaint } = await supabase
+    // Equipment maintenance logs — try with journal_entry_id first, fallback without it
+    let equipMaintData: { id: string; description: string | null; cost: number; maintenance_date: string }[] = [];
+    const { data: equipMaintWithJE, error: equipMaintErr } = await supabase
       .from("equipment_maintenance_logs")
       .select("id, description, cost, maintenance_date, journal_entry_id")
       .eq("company_id", companyId)
@@ -323,7 +324,30 @@ export async function backfillMissingJournalEntries(
       .not("cost", "is", null)
       .gt("cost", 0);
 
-    for (const m of equipMaint ?? []) {
+    if (equipMaintErr) {
+      // journal_entry_id column may not exist yet (migration 029) — query without it
+      const { data: equipMaintNoJE } = await supabase
+        .from("equipment_maintenance_logs")
+        .select("id, description, cost, maintenance_date")
+        .eq("company_id", companyId)
+        .not("cost", "is", null)
+        .gt("cost", 0);
+      equipMaintData = (equipMaintNoJE ?? []) as typeof equipMaintData;
+    } else {
+      equipMaintData = (equipMaintWithJE ?? []) as typeof equipMaintData;
+    }
+
+    // Skip maintenance logs that already have JEs (by reference pattern)
+    const maintRefs = equipMaintData.map((m) => `equip_maintenance:${m.id}`);
+    const { data: existingMaintJEs } = await supabase
+      .from("journal_entries")
+      .select("reference")
+      .eq("company_id", companyId)
+      .in("reference", maintRefs.length > 0 ? maintRefs : ["__none__"]);
+    const existingMaintSet = new Set((existingMaintJEs ?? []).map((j) => j.reference));
+
+    for (const m of equipMaintData) {
+      if (existingMaintSet.has(`equip_maintenance:${m.id}`)) continue;
       try {
         const r = await generateMaintenanceCostJournalEntry(supabase, companyId, userId, {
           id: m.id, source: "equipment", description: m.description ?? "Equipment maintenance",

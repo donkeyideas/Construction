@@ -109,6 +109,20 @@ export default function EquipmentAssignmentsClient({
     notes: "",
   });
 
+  // Edit modal state
+  const [editingAssignment, setEditingAssignment] = useState<EquipmentAssignmentRow | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [editData, setEditData] = useState({
+    equipment_id: "",
+    project_id: "",
+    assigned_to: "",
+    assigned_date: "",
+    returned_date: "",
+    notes: "",
+    status: "",
+  });
+
   // Import modal state
   const [showImport, setShowImport] = useState(false);
 
@@ -219,6 +233,57 @@ export default function EquipmentAssignmentsClient({
       setCreateError(err instanceof Error ? err.message : t("errorCreateAssignment"));
     } finally {
       setCreating(false);
+    }
+  }
+
+  // Open edit modal
+  function openEdit(assignment: EquipmentAssignmentRow) {
+    setEditingAssignment(assignment);
+    setEditError("");
+    setEditData({
+      equipment_id: assignment.equipment_id,
+      project_id: assignment.project_id || "",
+      assigned_to: assignment.assigned_to || "",
+      assigned_date: assignment.assigned_date?.split("T")[0] || "",
+      returned_date: assignment.returned_date?.split("T")[0] || "",
+      notes: assignment.notes || "",
+      status: assignment.status,
+    });
+  }
+
+  // Save edit
+  async function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingAssignment) return;
+    setSaving(true);
+    setEditError("");
+
+    try {
+      const res = await fetch(`/api/equipment/assignments/${editingAssignment.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          equipment_id: editData.equipment_id,
+          project_id: editData.project_id || null,
+          assigned_to: editData.assigned_to || null,
+          assigned_date: editData.assigned_date,
+          returned_date: editData.returned_date || null,
+          notes: editData.notes || null,
+          status: editData.status,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update assignment");
+      }
+
+      setEditingAssignment(null);
+      router.refresh();
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : "Failed to update");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -442,7 +507,12 @@ export default function EquipmentAssignmentsClient({
             </thead>
             <tbody>
               {filtered.map((assignment) => (
-                <tr key={assignment.id} className="equipment-table-row">
+                <tr
+                  key={assignment.id}
+                  className="equipment-table-row"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => openEdit(assignment)}
+                >
                   <td className="equipment-name-cell">
                     {assignment.equipment?.name || "--"}
                   </td>
@@ -472,7 +542,7 @@ export default function EquipmentAssignmentsClient({
                       {assignment.status === "active" && (
                         <button
                           className="equipment-action-btn return-btn"
-                          onClick={() => handleReturn(assignment.id)}
+                          onClick={(e) => { e.stopPropagation(); handleReturn(assignment.id); }}
                           disabled={returning === assignment.id}
                           title={t("returnEquipment")}
                         >
@@ -482,7 +552,7 @@ export default function EquipmentAssignmentsClient({
                       )}
                       <button
                         className="equipment-action-btn delete-btn"
-                        onClick={() => handleDelete(assignment.id)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(assignment.id); }}
                         disabled={returning === assignment.id}
                         title={t("deleteAssignment")}
                       >
@@ -603,6 +673,137 @@ export default function EquipmentAssignmentsClient({
                   disabled={creating || !formData.equipment_id}
                 >
                   {creating ? t("assigning") : t("assignEquipment")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Assignment Modal */}
+      {editingAssignment && (
+        <div className="equipment-modal-overlay" onClick={() => setEditingAssignment(null)}>
+          <div className="equipment-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="equipment-modal-header">
+              <h3>{t("editAssignment")}</h3>
+              <button
+                className="equipment-modal-close"
+                onClick={() => setEditingAssignment(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {editError && (
+              <div className="equipment-form-error">{editError}</div>
+            )}
+
+            <form onSubmit={handleSaveEdit} className="equipment-form">
+              <div className="equipment-form-group">
+                <label className="equipment-form-label">{t("labelEquipmentRequired")}</label>
+                <select
+                  className="equipment-form-select"
+                  value={editData.equipment_id}
+                  onChange={(e) => setEditData({ ...editData, equipment_id: e.target.value })}
+                  required
+                >
+                  {equipmentList.map((eq) => (
+                    <option key={eq.id} value={eq.id}>
+                      {eq.name} ({eq.equipment_type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="equipment-form-group">
+                <label className="equipment-form-label">{t("columnProject")}</label>
+                <select
+                  className="equipment-form-select"
+                  value={editData.project_id}
+                  onChange={(e) => setEditData({ ...editData, project_id: e.target.value })}
+                >
+                  <option value="">{t("noProject")}</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="equipment-form-group">
+                <label className="equipment-form-label">{t("labelAssignTo")}</label>
+                <select
+                  className="equipment-form-select"
+                  value={editData.assigned_to}
+                  onChange={(e) => setEditData({ ...editData, assigned_to: e.target.value })}
+                >
+                  <option value="">{t("unassigned")}</option>
+                  {members.map((m) => (
+                    <option key={m.user_id} value={m.user_id}>
+                      {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div className="equipment-form-group">
+                  <label className="equipment-form-label">{t("columnAssignedDate")}</label>
+                  <input
+                    type="date"
+                    className="equipment-form-select"
+                    value={editData.assigned_date}
+                    onChange={(e) => setEditData({ ...editData, assigned_date: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="equipment-form-group">
+                  <label className="equipment-form-label">{t("columnReturnedDate")}</label>
+                  <input
+                    type="date"
+                    className="equipment-form-select"
+                    value={editData.returned_date}
+                    onChange={(e) => setEditData({ ...editData, returned_date: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="equipment-form-group">
+                <label className="equipment-form-label">{t("columnStatus")}</label>
+                <select
+                  className="equipment-form-select"
+                  value={editData.status}
+                  onChange={(e) => setEditData({ ...editData, status: e.target.value })}
+                >
+                  <option value="active">{t("assignmentStatusActive")}</option>
+                  <option value="returned">{t("assignmentStatusReturned")}</option>
+                </select>
+              </div>
+
+              <div className="equipment-form-group">
+                <label className="equipment-form-label">{t("labelNotes")}</label>
+                <textarea
+                  className="equipment-form-textarea"
+                  value={editData.notes}
+                  onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
+                  placeholder={t("placeholderAssignmentNotes")}
+                  rows={3}
+                />
+              </div>
+
+              <div className="equipment-form-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setEditingAssignment(null)}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={saving || !editData.equipment_id}
+                >
+                  {saving ? t("saving") : t("saveChanges")}
                 </button>
               </div>
             </form>

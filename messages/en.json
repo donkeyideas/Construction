@@ -1926,6 +1926,7 @@
     "labelNotes": "Notes",
     "placeholderAssignmentNotes": "Optional notes about this assignment...",
     "assigning": "Assigning...",
+    "editAssignment": "Edit Assignment",
     "errorCreateAssignment": "Failed to create assignment.",
     "errorReturnEquipment": "Failed to return equipment.",
     "errorDeleteAssignment": "Failed to delete assignment.",
