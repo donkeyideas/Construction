@@ -749,7 +749,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                 </div>
 
                 <div className="ticket-form-actions">
-                  <button className="ui-btn ui-btn-sm ui-btn-outline" style={{ color: "var(--color-red)", borderColor: "rgba(220,38,38,0.35)" }} onClick={() => setShowDeleteConfirm(true)}>
+                  <button className="ui-btn ui-btn-sm ui-btn-danger" onClick={() => setShowDeleteConfirm(true)}>
                     <Trash2 size={15} />
                     {t("delete")}
                   </button>
