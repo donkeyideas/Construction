@@ -298,10 +298,10 @@ export default function SafetyDashboardClient({
                       {getUserName(talk.conductor)}
                     </td>
                     <td className="safety-date-cell">
-                      {formatDateShort(talk.scheduled_date)}
+                      {formatDateShort(talk.scheduled_date || talk.conducted_date)}
                     </td>
                     <td className="safety-attendees-cell">
-                      {talk.attendees_count || 0}
+                      {talk.attendee_count || 0}
                     </td>
                   </tr>
                 ))}
@@ -449,7 +449,7 @@ export default function SafetyDashboardClient({
                 </div>
                 <div className="detail-group">
                   <label className="detail-label">{t("scheduledDate")}</label>
-                  <div className="detail-value">{formatDate(selectedTalk.scheduled_date)}</div>
+                  <div className="detail-value">{formatDate(selectedTalk.scheduled_date || selectedTalk.conducted_date)}</div>
                 </div>
               </div>
 
@@ -467,7 +467,7 @@ export default function SafetyDashboardClient({
               <div className="detail-row">
                 <div className="detail-group">
                   <label className="detail-label">{t("attendees")}</label>
-                  <div className="detail-value">{selectedTalk.attendees_count || 0}</div>
+                  <div className="detail-value">{selectedTalk.attendee_count || 0}</div>
                 </div>
                 <div className="detail-group">
                   <label className="detail-label">{t("created")}</label>

@@ -159,7 +159,7 @@ export default async function SafetyOverviewPage() {
                       {t.conductor?.full_name ?? "TBD"}
                       {t.project?.name && ` · ${t.project.name}`}
                       {" · "}
-                      {new Date(t.scheduled_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {new Date(t.scheduled_date || t.conducted_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </div>
                   </div>
                 </div>

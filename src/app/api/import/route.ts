@@ -588,15 +588,17 @@ export async function POST(request: NextRequest) {
       case "toolbox_talks": {
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          const dateVal = r.scheduled_date || r.conducted_date || new Date().toISOString().split("T")[0];
           const { error } = await supabase.from("toolbox_talks").insert({
             company_id: companyId,
             talk_number: r.talk_number || `TBT-${String(i + 1).padStart(3, "0")}`,
             title: r.title || "",
             description: r.description || null,
             topic: r.topic || null,
-            conducted_date: r.scheduled_date || r.conducted_date || new Date().toISOString().split("T")[0],
+            conducted_date: dateVal,
+            scheduled_date: dateVal,
             project_id: await resolveProjectId(r),
-            attendee_count: r.attendees_count ? parseInt(r.attendees_count) : null,
+            attendee_count: r.attendees_count || r.attendee_count ? parseInt(r.attendees_count || r.attendee_count) : null,
             notes: r.notes || null,
             status: r.status || "scheduled",
             conducted_by: userId,

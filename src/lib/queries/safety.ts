@@ -53,8 +53,9 @@ export interface ToolboxTalkRow {
   status: ToolboxTalkStatus;
   conducted_by: string;
   project_id: string | null;
-  scheduled_date: string;
-  attendees_count: number;
+  conducted_date: string;
+  scheduled_date: string | null;
+  attendee_count: number;
   attendees: string | null;
   notes: string | null;
   created_at: string;
@@ -442,6 +443,8 @@ export async function createToolboxTalk(
 
   const talkNumber = `TBT-${String(nextNumber).padStart(3, "0")}`;
 
+  const dateVal = data.scheduled_date ?? new Date().toISOString().split("T")[0];
+
   const { data: talk, error } = await supabase
     .from("toolbox_talks")
     .insert({
@@ -452,9 +455,10 @@ export async function createToolboxTalk(
       description: data.description ?? null,
       topic: data.topic ?? null,
       status: "scheduled",
-      scheduled_date: data.scheduled_date ?? new Date().toISOString(),
+      scheduled_date: dateVal,
+      conducted_date: dateVal,
       project_id: data.project_id ?? null,
-      attendees_count: data.attendees_count ?? 0,
+      attendee_count: data.attendees_count ?? 0,
       attendees: data.attendees ?? null,
       notes: data.notes ?? null,
     })
@@ -523,15 +527,15 @@ export async function getSafetyOverview(
   const [incidentsRes, talksRes, allIncidentsRes] = await Promise.all([
     supabase
       .from("safety_incidents")
-      .select("id, incident_type, severity, status, incident_date, osha_recordable, title, incident_number, project_id, reporter:user_profiles!safety_incidents_reported_by_fkey(id, full_name, email), assignee:user_profiles!safety_incidents_assigned_to_fkey(id, full_name, email), project:projects!safety_incidents_project_id_fkey(id, name)")
+      .select("id, incident_type, severity, status, incident_date, osha_recordable, title, incident_number, project_id, reporter:user_profiles!safety_incidents_reporter_profile_fkey(id, full_name, email), assignee:user_profiles!safety_incidents_assignee_profile_fkey(id, full_name, email), project:projects(id, name)")
       .eq("company_id", companyId)
       .gte("incident_date", yearStart)
       .order("incident_date", { ascending: false }),
     supabase
       .from("toolbox_talks")
-      .select("*, conductor:user_profiles!toolbox_talks_conducted_by_fkey(id, full_name, email), project:projects!toolbox_talks_project_id_fkey(id, name)")
+      .select("*, conductor:user_profiles!toolbox_talks_conductor_profile_fkey(id, full_name, email), project:projects(id, name)")
       .eq("company_id", companyId)
-      .order("scheduled_date", { ascending: true }),
+      .order("conducted_date", { ascending: true }),
     supabase
       .from("safety_incidents")
       .select("incident_date, osha_recordable")
@@ -558,7 +562,7 @@ export async function getSafetyOverview(
     : 999;
 
   const toolboxTalksThisMonth = talks.filter(
-    (t) => t.status === "completed" && t.scheduled_date >= monthStart
+    (t) => (t.scheduled_date ?? t.conducted_date) >= monthStart
   ).length;
 
   const nearMissCount = incidents.filter(
@@ -618,7 +622,7 @@ export async function getSafetyOverview(
     .filter(
       (t) =>
         t.status === "scheduled" &&
-        t.scheduled_date >= now.toISOString().slice(0, 10)
+        (t.scheduled_date ?? t.conducted_date) >= now.toISOString().slice(0, 10)
     )
     .slice(0, 5);
 

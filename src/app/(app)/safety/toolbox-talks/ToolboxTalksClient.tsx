@@ -277,11 +277,10 @@ export default function ToolboxTalksClient({
       description: selectedTalk.description || "",
       topic: getTopicLabel(selectedTalk.topic) !== "--" ? getTopicLabel(selectedTalk.topic) : "",
       status: selectedTalk.status,
-      scheduled_date: selectedTalk.scheduled_date
-        ? selectedTalk.scheduled_date.split("T")[0]
-        : "",
+      scheduled_date: (selectedTalk.scheduled_date || selectedTalk.conducted_date || "")
+        .split("T")[0],
       project_id: selectedTalk.project_id || "",
-      attendees_count: selectedTalk.attendees_count || 0,
+      attendees_count: selectedTalk.attendee_count || 0,
       attendees: selectedTalk.attendees || "",
       notes: selectedTalk.notes || "",
     });
@@ -314,7 +313,7 @@ export default function ToolboxTalksClient({
       if (editData.status !== selectedTalk.status) payload.status = editData.status;
       if (editData.project_id !== (selectedTalk.project_id || ""))
         payload.project_id = editData.project_id || null;
-      if (editData.attendees_count !== (selectedTalk.attendees_count || 0))
+      if (editData.attendees_count !== (selectedTalk.attendee_count || 0))
         payload.attendees_count = editData.attendees_count;
       if (editData.attendees !== (selectedTalk.attendees || ""))
         payload.attendees = editData.attendees;
@@ -322,9 +321,8 @@ export default function ToolboxTalksClient({
         payload.notes = editData.notes;
 
       const dateVal = editData.scheduled_date as string;
-      const existingDate = selectedTalk.scheduled_date
-        ? selectedTalk.scheduled_date.split("T")[0]
-        : "";
+      const existingDate = (selectedTalk.scheduled_date || selectedTalk.conducted_date || "")
+        .split("T")[0];
       if (dateVal !== existingDate) payload.scheduled_date = editData.scheduled_date;
 
       if (Object.keys(payload).length === 0) {
@@ -537,10 +535,10 @@ export default function ToolboxTalksClient({
                     {getUserName(talk.conductor)}
                   </td>
                   <td className="safety-date-cell">
-                    {formatDateShort(talk.scheduled_date)}
+                    {formatDateShort(talk.scheduled_date || talk.conducted_date)}
                   </td>
                   <td className="safety-attendees-cell">
-                    {talk.attendees_count || 0}
+                    {talk.attendee_count || 0}
                   </td>
                 </tr>
               ))}
@@ -812,7 +810,7 @@ export default function ToolboxTalksClient({
                   </div>
                   <div className="detail-group">
                     <label className="detail-label">{t("scheduledDate")}</label>
-                    <div className="detail-value">{formatDate(selectedTalk.scheduled_date)}</div>
+                    <div className="detail-value">{formatDate(selectedTalk.scheduled_date || selectedTalk.conducted_date)}</div>
                   </div>
                 </div>
 
@@ -830,7 +828,7 @@ export default function ToolboxTalksClient({
                 <div className="detail-row">
                   <div className="detail-group">
                     <label className="detail-label">{t("attendeesCount")}</label>
-                    <div className="detail-value">{selectedTalk.attendees_count || 0}</div>
+                    <div className="detail-value">{selectedTalk.attendee_count || 0}</div>
                   </div>
                   <div className="detail-group">
                     <label className="detail-label">{t("created")}</label>
