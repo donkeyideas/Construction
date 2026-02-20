@@ -37,7 +37,7 @@ export async function GET() {
            filing_status, federal_allowances, state_code, effective_date, end_date? }
    --------------------------------------------------------------------------- */
 
-export async function POST(request: NextRequest) {
+async function handleSave(request: NextRequest) {
   try {
     const supabase = await createClient();
     const userCtx = await getCurrentUserCompany(supabase);
@@ -108,4 +108,12 @@ export async function POST(request: NextRequest) {
       error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+export async function POST(request: NextRequest) {
+  return handleSave(request);
+}
+
+export async function PUT(request: NextRequest) {
+  return handleSave(request);
 }
