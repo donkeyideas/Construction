@@ -38,7 +38,7 @@ function formatDateISO(date: Date): string {
 export default async function TimeAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ week?: string }>;
+  searchParams: Promise<{ week?: string; view?: string }>;
 }) {
   const supabase = await createClient();
   const userCompany = await getCurrentUserCompany(supabase);
@@ -49,6 +49,7 @@ export default async function TimeAttendancePage({
 
   const params = await searchParams;
   const { companyId } = userCompany;
+  const currentView = params.view === "all" ? "all" : "weekly";
 
   const today = new Date();
   let weekStart: Date;
@@ -67,13 +68,19 @@ export default async function TimeAttendancePage({
     formatDateISO(addDays(weekStart, i))
   );
 
-  // Fetch time entries for this week
-  const entries = await getTimeEntries(supabase, companyId, {
-    dateRange: {
-      start: formatDateISO(weekStart),
-      end: formatDateISO(weekEnd),
-    },
-  });
+  // Fetch time entries for this week (always needed for weekly tab)
+  // + fetch ALL entries when on "all" view
+  const [entries, allEntries] = await Promise.all([
+    getTimeEntries(supabase, companyId, {
+      dateRange: {
+        start: formatDateISO(weekStart),
+        end: formatDateISO(weekEnd),
+      },
+    }),
+    currentView === "all"
+      ? getTimeEntries(supabase, companyId)
+      : Promise.resolve([]),
+  ]);
 
   // Group by user
   const userMap = new Map<
@@ -109,6 +116,8 @@ export default async function TimeAttendancePage({
     <TimeClient
       users={users}
       entries={entries}
+      allEntries={allEntries}
+      currentView={currentView}
       pendingCount={pendingCount}
       weekDates={weekDates}
       weekStartISO={formatDateISO(weekStart)}

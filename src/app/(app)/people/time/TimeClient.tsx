@@ -46,6 +46,8 @@ interface UserGroup {
 interface TimeClientProps {
   users: UserGroup[];
   entries: TimeEntry[];
+  allEntries: TimeEntry[];
+  currentView: string;
   pendingCount: number;
   weekDates: string[]; // ISO date strings
   weekStartISO: string;
@@ -58,6 +60,8 @@ interface TimeClientProps {
 export default function TimeClient({
   users,
   entries,
+  allEntries,
+  currentView,
   pendingCount,
   weekDates,
   weekStartISO,
@@ -345,138 +349,260 @@ export default function TimeClient({
         </div>
       </div>
 
-      {/* Week Navigation */}
-      <div className="week-nav">
-        <Link href={`/people/time?week=${prevWeekISO}`} className="week-nav-btn">
-          <ChevronLeft size={18} />
+      {/* Tab Navigation */}
+      <div className="people-tab-bar">
+        <Link
+          href={`/people/time?view=weekly&week=${weekStartISO}`}
+          className={`people-tab ${currentView === "weekly" ? "active" : ""}`}
+        >
+          <Calendar size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
+          {t("weeklyView")}
         </Link>
-        <Link href={`/people/time?week=${nextWeekISO}`} className="week-nav-btn">
-          <ChevronRight size={18} />
+        <Link
+          href="/people/time?view=all"
+          className={`people-tab ${currentView === "all" ? "active" : ""}`}
+        >
+          <FileText size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
+          {t("allEntries")}
         </Link>
-        <span className="week-nav-label">
-          {t("weekOf", { date: formatDateShort(weekStartISO) })}
-        </span>
-        <span className="week-nav-dates">
-          {formatDateShort(weekStartISO)} - {formatDateShort(weekEndISO)}, {weekYear}
-        </span>
       </div>
 
-      {/* Actions Bar */}
-      {pendingCount > 0 && (
-        <div className="timesheet-actions">
-          <div className="timesheet-actions-info">
-            {t("pendingApproval", { count: pendingCount })}
+      {currentView === "weekly" ? (
+        <>
+          {/* Week Navigation */}
+          <div className="week-nav">
+            <Link href={`/people/time?week=${prevWeekISO}`} className="week-nav-btn">
+              <ChevronLeft size={18} />
+            </Link>
+            <Link href={`/people/time?week=${nextWeekISO}`} className="week-nav-btn">
+              <ChevronRight size={18} />
+            </Link>
+            <span className="week-nav-label">
+              {t("weekOf", { date: formatDateShort(weekStartISO) })}
+            </span>
+            <span className="week-nav-dates">
+              {formatDateShort(weekStartISO)} - {formatDateShort(weekEndISO)}, {weekYear}
+            </span>
           </div>
-          {isAdmin && (
-            <button
-              className="ui-btn ui-btn-sm ui-btn-primary"
-              onClick={handleApproveAll}
-              disabled={approving}
-            >
-              <CheckCircle2 size={14} />
-              {approving ? t("approving") : t("approveAll")}
-            </button>
+
+          {/* Actions Bar */}
+          {pendingCount > 0 && (
+            <div className="timesheet-actions">
+              <div className="timesheet-actions-info">
+                {t("pendingApproval", { count: pendingCount })}
+              </div>
+              {isAdmin && (
+                <button
+                  className="ui-btn ui-btn-sm ui-btn-primary"
+                  onClick={handleApproveAll}
+                  disabled={approving}
+                >
+                  <CheckCircle2 size={14} />
+                  {approving ? t("approving") : t("approveAll")}
+                </button>
+              )}
+            </div>
           )}
-        </div>
-      )}
 
-      {/* Timesheet Grid */}
-      {isEmpty ? (
-        <div className="people-empty">
-          <div className="people-empty-icon">
-            <Clock size={48} />
-          </div>
-          <div className="people-empty-title">{t("noTimeEntriesThisWeek")}</div>
-          <p className="people-empty-desc">
-            {t("noTimeEntriesDescription", { date: formatDateShort(weekStartISO) })}
-          </p>
-        </div>
-      ) : (
-        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-          <div style={{ overflowX: "auto" }}>
-            <table className="timesheet-grid">
-              <thead>
-                <tr>
-                  <th>{t("teamMember")}</th>
-                  {weekDates.map((dateStr, i) => {
-                    const d = new Date(dateStr + "T00:00:00");
-                    return (
-                      <th key={i}>
-                        {DAY_LABELS[i]}
-                        <br />
-                        <span style={{ fontSize: "0.68rem", fontWeight: 400, color: "var(--muted)" }}>
-                          {d.getMonth() + 1}/{d.getDate()}
-                        </span>
-                      </th>
-                    );
-                  })}
-                  <th className="total-col">{t("total")}</th>
-                  <th>{t("status")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => {
-                  const dailyHours = weekDates.map((dateStr) => {
-                    const dayEntries = user.entries.filter((e) => e.entry_date === dateStr);
-                    return dayEntries.reduce((sum, e) => sum + (Number(e.hours) || 0), 0);
-                  });
-
-                  const totalHours = dailyHours.reduce((a, b) => a + b, 0);
-
-                  const statuses = user.entries.map((e) => e.status);
-                  const overallStatus = statuses.includes("rejected")
-                    ? "rejected"
-                    : statuses.includes("pending")
-                      ? "pending"
-                      : "approved";
-
-                  const initials = user.name
-                    .split(" ")
-                    .map((w) => w[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase();
-
-                  return (
-                    <tr
-                      key={user.userId}
-                      onClick={() => handleRowClick(user)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <td>
-                        <div className="timesheet-person">
-                          <div className="timesheet-person-avatar">{initials}</div>
-                          <div className="timesheet-person-info">
-                            <div className="timesheet-person-name">{user.name}</div>
-                          </div>
-                        </div>
-                      </td>
-                      {dailyHours.map((hours, i) => (
-                        <td key={i}>
-                          <div className={`timesheet-cell ${hours > 0 ? "has-hours" : "no-hours"}`}>
-                            {hours > 0 ? hours.toFixed(1) : "--"}
-                          </div>
-                        </td>
-                      ))}
-                      <td className="total-col">
-                        {totalHours > 0 ? totalHours.toFixed(1) : "--"}
-                      </td>
-                      <td>
-                        <span className={`time-status time-status-${overallStatus}`}>
-                          {overallStatus === "pending"
-                            ? t("statusPending")
-                            : overallStatus === "approved"
-                              ? t("statusApproved")
-                              : t("statusRejected")}
-                        </span>
-                      </td>
+          {/* Timesheet Grid */}
+          {isEmpty ? (
+            <div className="people-empty">
+              <div className="people-empty-icon">
+                <Clock size={48} />
+              </div>
+              <div className="people-empty-title">{t("noTimeEntriesThisWeek")}</div>
+              <p className="people-empty-desc">
+                {t("noTimeEntriesDescription", { date: formatDateShort(weekStartISO) })}
+              </p>
+            </div>
+          ) : (
+            <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+              <div style={{ overflowX: "auto" }}>
+                <table className="timesheet-grid">
+                  <thead>
+                    <tr>
+                      <th>{t("teamMember")}</th>
+                      {weekDates.map((dateStr, i) => {
+                        const d = new Date(dateStr + "T00:00:00");
+                        return (
+                          <th key={i}>
+                            {DAY_LABELS[i]}
+                            <br />
+                            <span style={{ fontSize: "0.68rem", fontWeight: 400, color: "var(--muted)" }}>
+                              {d.getMonth() + 1}/{d.getDate()}
+                            </span>
+                          </th>
+                        );
+                      })}
+                      <th className="total-col">{t("total")}</th>
+                      <th>{t("status")}</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => {
+                      const dailyHours = weekDates.map((dateStr) => {
+                        const dayEntries = user.entries.filter((e) => e.entry_date === dateStr);
+                        return dayEntries.reduce((sum, e) => sum + (Number(e.hours) || 0), 0);
+                      });
+
+                      const totalHours = dailyHours.reduce((a, b) => a + b, 0);
+
+                      const statuses = user.entries.map((e) => e.status);
+                      const overallStatus = statuses.includes("rejected")
+                        ? "rejected"
+                        : statuses.includes("pending")
+                          ? "pending"
+                          : "approved";
+
+                      const initials = user.name
+                        .split(" ")
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase();
+
+                      return (
+                        <tr
+                          key={user.userId}
+                          onClick={() => handleRowClick(user)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <td>
+                            <div className="timesheet-person">
+                              <div className="timesheet-person-avatar">{initials}</div>
+                              <div className="timesheet-person-info">
+                                <div className="timesheet-person-name">{user.name}</div>
+                              </div>
+                            </div>
+                          </td>
+                          {dailyHours.map((hours, i) => (
+                            <td key={i}>
+                              <div className={`timesheet-cell ${hours > 0 ? "has-hours" : "no-hours"}`}>
+                                {hours > 0 ? hours.toFixed(1) : "--"}
+                              </div>
+                            </td>
+                          ))}
+                          <td className="total-col">
+                            {totalHours > 0 ? totalHours.toFixed(1) : "--"}
+                          </td>
+                          <td>
+                            <span className={`time-status time-status-${overallStatus}`}>
+                              {overallStatus === "pending"
+                                ? t("statusPending")
+                                : overallStatus === "approved"
+                                  ? t("statusApproved")
+                                  : t("statusRejected")}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        /* ── All Entries Table View ── */
+        <>
+          <div className="timesheet-actions" style={{ marginBottom: 16 }}>
+            <div className="timesheet-actions-info">
+              {t("showingEntries", { count: allEntries.length })} &mdash;{" "}
+              <strong>
+                {allEntries.reduce((sum, e) => sum + (Number(e.hours) || 0), 0).toFixed(1)}
+              </strong>{" "}
+              {t("totalHours")}
+            </div>
           </div>
-        </div>
+
+          {allEntries.length === 0 ? (
+            <div className="people-empty">
+              <div className="people-empty-icon">
+                <Clock size={48} />
+              </div>
+              <div className="people-empty-title">{t("noTimeEntries")}</div>
+              <p className="people-empty-desc">{t("noTimeEntriesAllDescription")}</p>
+            </div>
+          ) : (
+            <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+              <div style={{ overflowX: "auto" }}>
+                <table className="timesheet-grid">
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: "left" }}>{t("date")}</th>
+                      <th style={{ textAlign: "left" }}>{t("employee")}</th>
+                      <th style={{ textAlign: "left" }}>{t("project")}</th>
+                      <th>{t("hours")}</th>
+                      <th>{t("costCode")}</th>
+                      <th style={{ textAlign: "left", minWidth: 200 }}>{t("description")}</th>
+                      <th>{t("status")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allEntries.map((entry) => {
+                      const userName =
+                        entry.user_profile?.full_name ||
+                        entry.user_profile?.email ||
+                        "Unknown";
+                      const initials = userName
+                        .split(" ")
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase();
+
+                      return (
+                        <tr
+                          key={entry.id}
+                          onClick={() => handleEntryClick(entry)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <td style={{ textAlign: "left", whiteSpace: "nowrap" }}>
+                            {new Date(entry.entry_date + "T00:00:00").toLocaleDateString(dateLocale, {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </td>
+                          <td style={{ textAlign: "left" }}>
+                            <div className="timesheet-person">
+                              <div className="timesheet-person-avatar">{initials}</div>
+                              <div className="timesheet-person-name">{userName}</div>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: "left", fontSize: "0.82rem" }}>
+                            {entry.project?.name || "--"}
+                          </td>
+                          <td>
+                            <div className="timesheet-cell has-hours">
+                              {Number(entry.hours || 0).toFixed(1)}
+                            </div>
+                          </td>
+                          <td style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "0.8rem" }}>
+                            {entry.cost_code || "--"}
+                          </td>
+                          <td style={{ textAlign: "left", fontSize: "0.82rem", color: "var(--muted)", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {entry.notes || "--"}
+                          </td>
+                          <td>
+                            <span className={`time-status time-status-${entry.status}`}>
+                              {entry.status === "pending"
+                                ? t("statusPending")
+                                : entry.status === "approved"
+                                  ? t("statusApproved")
+                                  : t("statusRejected")}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* ── Create Time Entry Modal ── */}

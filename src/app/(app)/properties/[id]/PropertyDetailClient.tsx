@@ -1816,6 +1816,50 @@ function UnitModal({
   const activeLease = leases.find(
     (l) => l.unit_id === unit.id && l.status === "active"
   );
+
+  // Lease creation form for vacant units
+  const [showLeaseForm, setShowLeaseForm] = useState(false);
+  const [leaseCreating, setLeaseCreating] = useState(false);
+  const [leaseError, setLeaseError] = useState("");
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const oneYearISO = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const [leaseForm, setLeaseForm] = useState({
+    tenant_name: "",
+    monthly_rent: unit.market_rent ? String(unit.market_rent) : "",
+    security_deposit: "",
+    lease_start: todayISO,
+    lease_end: oneYearISO,
+  });
+
+  async function handleCreateLease() {
+    setLeaseCreating(true);
+    setLeaseError("");
+    try {
+      const res = await fetch("/api/properties/leases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unit_id: unit.id,
+          tenant_name: leaseForm.tenant_name,
+          monthly_rent: Number(leaseForm.monthly_rent),
+          security_deposit: leaseForm.security_deposit ? Number(leaseForm.security_deposit) : null,
+          lease_start: leaseForm.lease_start,
+          lease_end: leaseForm.lease_end,
+        }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const data = await res.json();
+        setLeaseError(data.error || t("failedToCreateLease"));
+      }
+    } catch {
+      setLeaseError(t("networkError"));
+    } finally {
+      setLeaseCreating(false);
+    }
+  }
+
   const [form, setForm] = useState({
     unit_number: unit.unit_number,
     unit_type: unit.unit_type,
@@ -2104,6 +2148,87 @@ function UnitModal({
                     </button>
                   </div>
                 </div>
+              ) : showLeaseForm ? (
+                /* ---- Create Lease Form ---- */
+                <div
+                  style={{
+                    marginTop: "16px",
+                    padding: "16px",
+                    background: "rgba(var(--color-blue-rgb, 29, 78, 216), 0.05)",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(var(--color-blue-rgb, 29, 78, 216), 0.2)",
+                  }}
+                >
+                  <label className="detail-label" style={{ marginBottom: "12px", display: "block" }}>
+                    {t("createNewLease")}
+                  </label>
+                  {leaseError && <div className="form-error" style={{ marginBottom: "10px" }}>{leaseError}</div>}
+                  <div className="modal-form-grid">
+                    <div className="form-group">
+                      <label className="form-label">{t("tenantNameRequired")}</label>
+                      <input
+                        className="form-input"
+                        value={leaseForm.tenant_name}
+                        onChange={(e) => setLeaseForm({ ...leaseForm, tenant_name: e.target.value })}
+                        placeholder={t("fullNameOfTenant")}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t("monthlyRentRequired")}</label>
+                      <input
+                        className="form-input"
+                        type="number"
+                        value={leaseForm.monthly_rent}
+                        onChange={(e) => setLeaseForm({ ...leaseForm, monthly_rent: e.target.value })}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t("leaseStart")}</label>
+                      <input
+                        className="form-input"
+                        type="date"
+                        value={leaseForm.lease_start}
+                        onChange={(e) => setLeaseForm({ ...leaseForm, lease_start: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t("leaseEnd")}</label>
+                      <input
+                        className="form-input"
+                        type="date"
+                        value={leaseForm.lease_end}
+                        onChange={(e) => setLeaseForm({ ...leaseForm, lease_end: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t("securityDeposit")}</label>
+                      <input
+                        className="form-input"
+                        type="number"
+                        value={leaseForm.security_deposit}
+                        onChange={(e) => setLeaseForm({ ...leaseForm, security_deposit: e.target.value })}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "12px" }}>
+                    <button
+                      className="ui-btn ui-btn-sm ui-btn-secondary"
+                      onClick={() => setShowLeaseForm(false)}
+                      disabled={leaseCreating}
+                    >
+                      {t("cancel")}
+                    </button>
+                    <button
+                      className="ui-btn ui-btn-sm ui-btn-primary"
+                      onClick={handleCreateLease}
+                      disabled={leaseCreating || !leaseForm.tenant_name || !leaseForm.monthly_rent}
+                    >
+                      {leaseCreating ? t("creating") : t("createLease")}
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div
                   style={{
@@ -2112,11 +2237,20 @@ function UnitModal({
                     background: "rgba(var(--color-amber-rgb, 245, 158, 11), 0.08)",
                     borderRadius: "8px",
                     border: "1px solid rgba(var(--color-amber-rgb, 245, 158, 11), 0.2)",
-                    fontSize: "0.85rem",
-                    color: "var(--color-amber, #f59e0b)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  {t("noActiveLeaseForUnit")}
+                  <span style={{ fontSize: "0.85rem", color: "var(--color-amber, #f59e0b)" }}>
+                    {t("noActiveLeaseForUnit")}
+                  </span>
+                  <button
+                    className="ui-btn ui-btn-sm ui-btn-primary"
+                    onClick={() => setShowLeaseForm(true)}
+                  >
+                    {t("createLease")}
+                  </button>
                 </div>
               )}
             </div>

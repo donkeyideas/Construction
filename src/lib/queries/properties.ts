@@ -135,9 +135,9 @@ export async function getProperties(
     for (const prop of properties) {
       const propUnits = allUnits.filter((u) => u.property_id === prop.id);
       const propLeases = activeLeases.filter((l) => l.property_id === prop.id);
-      // Use the greater of unit records count or stored total_units so that
-      // properties with vacant units (no unit record) still show correct capacity.
-      const totalUnits = Math.max(propUnits.length, prop.total_units ?? 0);
+      // When unit records exist, use their count as the source of truth.
+      // Only fall back to stored total_units when no unit records exist (legacy data).
+      const totalUnits = propUnits.length > 0 ? propUnits.length : (prop.total_units ?? 0);
       const occupiedCount = propUnits.filter((u) => u.status === "occupied").length;
       const monthlyRevenue = propLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
       const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
@@ -200,9 +200,9 @@ export async function getPropertyById(
   const occupiedCount = units.filter((u) => u.status === "occupied").length;
   const activeLeases = leases.filter((l) => l.status === "active");
   const monthlyRevenue = activeLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
-  // Use the greater of unit records count or stored total_units so that
-  // properties with vacant units (no unit record) still show correct capacity.
-  const totalUnits = Math.max(units.length, property.total_units ?? 0);
+  // When unit records exist, use their count as the source of truth.
+  // Only fall back to stored total_units when no unit records exist (legacy data).
+  const totalUnits = units.length > 0 ? units.length : (property.total_units ?? 0);
   const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
 
   const freshProperty = {
