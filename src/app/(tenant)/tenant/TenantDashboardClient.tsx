@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Home,
   Calendar,
@@ -15,6 +16,9 @@ import {
   Wallet,
   Copy,
   Check,
+  Plus,
+  Upload,
+  X,
 } from "lucide-react";
 import type { TenantDashboard } from "@/lib/queries/tenant-portal";
 import { formatCurrency } from "@/lib/utils/format";
@@ -62,8 +66,73 @@ export default function TenantDashboardClient({
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
 
+  const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [nextDueDate, setNextDueDate] = useState("--");
+
+  // New maintenance request modal state
+  const [showNewRequest, setShowNewRequest] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newCategory, setNewCategory] = useState("general");
+  const [newPriority, setNewPriority] = useState("medium");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  const CATEGORIES = [
+    { value: "plumbing", label: t("catPlumbing") },
+    { value: "electrical", label: t("catElectrical") },
+    { value: "hvac", label: t("catHvac") },
+    { value: "appliance", label: t("catAppliance") },
+    { value: "structural", label: t("catStructural") },
+    { value: "general", label: t("catGeneral") },
+  ];
+
+  const PRIORITIES = [
+    { value: "low", label: t("priLowDesc") },
+    { value: "medium", label: t("priMediumDesc") },
+    { value: "high", label: t("priHighDesc") },
+    { value: "emergency", label: t("priEmergencyDesc") },
+  ];
+
+  function openNewRequest() {
+    setNewTitle("");
+    setNewDescription("");
+    setNewCategory("general");
+    setNewPriority("medium");
+    setSubmitError("");
+    setShowNewRequest(true);
+  }
+
+  async function handleSubmitRequest(e: FormEvent) {
+    e.preventDefault();
+    if (!newTitle.trim()) {
+      setSubmitError(t("titleRequiredError"));
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const res = await fetch("/api/tenant/maintenance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          description: newDescription,
+          category: newCategory,
+          priority: newPriority,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || t("failedSubmitRequest"));
+      setShowNewRequest(false);
+      router.refresh();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : t("somethingWentWrong"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   function formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString(dateLocale, {
@@ -405,22 +474,29 @@ export default function TenantDashboardClient({
                   {t("noRequestsSubmitted")}
                 </p>
               )}
-              <Link
-                href="/tenant/maintenance/new"
+              <button
                 className="ui-btn ui-btn-md ui-btn-outline"
-                style={{
-                  width: "100%",
-                  marginTop: 14,
-                  textDecoration: "none",
-                }}
+                style={{ width: "100%", marginTop: 14 }}
+                onClick={openNewRequest}
               >
+                <Plus size={14} style={{ marginRight: 4 }} />
                 {t("newRequest")}
-              </Link>
+              </button>
             </div>
 
             {/* Documents */}
             <div className="card" style={{ marginBottom: 24 }}>
-              <div className="card-title">{t("documents")}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <div className="card-title" style={{ marginBottom: 0 }}>{t("documents")}</div>
+                <Link
+                  href="/tenant/documents"
+                  className="ui-btn ui-btn-sm ui-btn-outline"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4, textDecoration: "none" }}
+                >
+                  <Upload size={13} />
+                  {t("uploadDocument")}
+                </Link>
+              </div>
               {dashboard.documents.length > 0 ? (
                 <>
                   {dashboard.documents.map((doc) => (
@@ -434,7 +510,7 @@ export default function TenantDashboardClient({
                             {doc.doc_name}
                           </div>
                           <div className="tenant-doc-size">
-                            {doc.file_type?.toUpperCase() || "DOC"} &mdash;{" "}
+                            {doc.file_type?.toUpperCase() || "DOC"} {"\u2014"}{" "}
                             {formatFileSize(doc.file_size)}
                           </div>
                         </div>
@@ -503,6 +579,109 @@ export default function TenantDashboardClient({
                 </p>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submit New Maintenance Request Modal */}
+      {showNewRequest && (
+        <div className="tenant-modal-overlay" onClick={() => setShowNewRequest(false)}>
+          <div className="tenant-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="tenant-modal-header">
+              <h3 style={{ margin: 0, fontSize: "1.05rem" }}>
+                {t("submitMaintenanceTitle")}
+              </h3>
+              <button
+                className="tenant-modal-close"
+                onClick={() => setShowNewRequest(false)}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+              {t("submitMaintenanceSubtitle")}
+            </p>
+
+            {submitError && (
+              <div className="tenant-alert tenant-alert-error">{submitError}</div>
+            )}
+
+            <form onSubmit={handleSubmitRequest}>
+              <div className="tenant-field">
+                <label className="tenant-label">{t("issueTitle")}</label>
+                <input
+                  type="text"
+                  className="tenant-form-input"
+                  placeholder={t("issuePlaceholder")}
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  required
+                  disabled={submitting}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div className="tenant-field">
+                  <label className="tenant-label">{t("category")}</label>
+                  <select
+                    className="tenant-form-select"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    disabled={submitting}
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="tenant-field">
+                  <label className="tenant-label">{t("priority")}</label>
+                  <select
+                    className="tenant-form-select"
+                    value={newPriority}
+                    onChange={(e) => setNewPriority(e.target.value)}
+                    disabled={submitting}
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="tenant-field">
+                <label className="tenant-label">{t("description")}</label>
+                <textarea
+                  className="tenant-form-input"
+                  placeholder={t("descriptionPlaceholder")}
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  rows={4}
+                  style={{ resize: "vertical" }}
+                  disabled={submitting}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 8 }}>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn-md ui-btn-outline"
+                  onClick={() => setShowNewRequest(false)}
+                  disabled={submitting}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="ui-btn ui-btn-md ui-btn-primary"
+                  disabled={submitting}
+                >
+                  {submitting ? t("submitting") : t("submitRequestBtn")}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
