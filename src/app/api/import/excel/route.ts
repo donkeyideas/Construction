@@ -938,7 +938,7 @@ async function processEntity(
         .from("properties")
         .select("id, name")
         .eq("company_id", companyId);
-      const unitPropLookup = (unitProps || []).reduce((acc, p) => {
+      const unitPropLookup = (unitProps || []).reduce((acc: Record<string, string>, p: { id: string; name: string }) => {
         acc[p.name.trim().toLowerCase()] = p.id;
         return acc;
       }, {} as Record<string, string>);
