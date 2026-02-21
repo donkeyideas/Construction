@@ -152,7 +152,7 @@ export default async function FinancialDashboardPage() {
           <div className="fin-kpi-icon green">
             <TrendingUp size={18} />
           </div>
-          <span className="fin-kpi-label">Revenue This Month</span>
+          <span className="fin-kpi-label">Revenue ({overview.periodLabel})</span>
           <span className="fin-kpi-value positive">
             {formatCompactCurrency(overview.revenueThisMonth)}
           </span>
@@ -162,7 +162,7 @@ export default async function FinancialDashboardPage() {
           <div className="fin-kpi-icon red">
             <TrendingDown size={18} />
           </div>
-          <span className="fin-kpi-label">Expenses This Month</span>
+          <span className="fin-kpi-label">Expenses ({overview.periodLabel})</span>
           <span className="fin-kpi-value">
             {formatCompactCurrency(overview.expensesThisMonth)}
           </span>
@@ -417,13 +417,13 @@ export default async function FinancialDashboardPage() {
           </div>
           <div className="cashflow-summary">
             <div className="cashflow-item">
-              <div className="cashflow-item-label">Inflows (This Month)</div>
+              <div className="cashflow-item-label">Inflows ({overview.periodLabel})</div>
               <div className="cashflow-item-value inflow">
                 +{formatCompactCurrency(overview.revenueThisMonth)}
               </div>
             </div>
             <div className="cashflow-item">
-              <div className="cashflow-item-label">Outflows (This Month)</div>
+              <div className="cashflow-item-label">Outflows ({overview.periodLabel})</div>
               <div className="cashflow-item-value outflow">
                 -{formatCompactCurrency(overview.expensesThisMonth)}
               </div>

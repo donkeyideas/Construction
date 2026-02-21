@@ -33,6 +33,8 @@ export interface FinancialOverview {
   revenueThisMonth: number;
   expensesThisMonth: number;
   netIncome: number;
+  /** Label for the period shown (e.g. "This Month" or "Oct 2025") */
+  periodLabel: string;
 }
 
 export interface InvoiceRow {
@@ -224,7 +226,8 @@ export async function getFinancialOverview(
     }
   }
 
-  // Fallback: if no payments exist, use invoice-based estimation
+  // Fallback 1: if no payments exist, use invoice-based estimation for current month
+  let periodLabel = "This Month";
   if (revenueThisMonth === 0 && expensesThisMonth === 0) {
     const [revFallback, expFallback] = await Promise.all([
       supabase
@@ -252,6 +255,49 @@ export async function getFinancialOverview(
     );
   }
 
+  // Fallback 2: if current month is still empty, find the most recent month with data
+  if (revenueThisMonth === 0 && expensesThisMonth === 0) {
+    for (let i = 1; i <= 6; i++) {
+      const pastMonth = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const pastEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+      const pastStartISO = pastMonth.toISOString();
+      const pastEndISO = pastEnd.toISOString();
+
+      const [revPast, expPast] = await Promise.all([
+        supabase
+          .from("invoices")
+          .select("total_amount")
+          .eq("company_id", companyId)
+          .eq("invoice_type", "receivable")
+          .neq("status", "voided")
+          .gte("invoice_date", pastStartISO)
+          .lte("invoice_date", pastEndISO),
+        supabase
+          .from("invoices")
+          .select("total_amount")
+          .eq("company_id", companyId)
+          .eq("invoice_type", "payable")
+          .neq("status", "voided")
+          .gte("invoice_date", pastStartISO)
+          .lte("invoice_date", pastEndISO),
+      ]);
+
+      const rev = (revPast.data ?? []).reduce(
+        (sum: number, r: { total_amount: number }) => sum + (r.total_amount ?? 0), 0
+      );
+      const exp = (expPast.data ?? []).reduce(
+        (sum: number, r: { total_amount: number }) => sum + (r.total_amount ?? 0), 0
+      );
+
+      if (rev > 0 || exp > 0) {
+        revenueThisMonth = rev;
+        expensesThisMonth = exp;
+        periodLabel = pastMonth.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+        break;
+      }
+    }
+  }
+
   return {
     totalAR,
     totalAP,
@@ -259,6 +305,7 @@ export async function getFinancialOverview(
     revenueThisMonth,
     expensesThisMonth,
     netIncome: revenueThisMonth - expensesThisMonth,
+    periodLabel,
   };
 }
 

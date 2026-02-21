@@ -1009,7 +1009,7 @@ export async function getPropertiesOverview(
     .toISOString()
     .slice(0, 10);
 
-  const [propsRes, maintRes, leasesRes] = await Promise.all([
+  const [propsRes, maintRes, leasesRes, allUnitsRes, allActiveLeasesRes] = await Promise.all([
     supabase
       .from("properties")
       .select("*")
@@ -1031,11 +1031,40 @@ export async function getPropertiesOverview(
       .gte("lease_end", now.toISOString().slice(0, 10))
       .order("lease_end", { ascending: true })
       .limit(8),
+    // Fetch all units to recalculate occupancy from live data
+    supabase
+      .from("units")
+      .select("id, property_id, status")
+      .eq("company_id", companyId),
+    // Fetch all active leases to recalculate revenue from live data
+    supabase
+      .from("leases")
+      .select("property_id, monthly_rent, status")
+      .eq("company_id", companyId)
+      .eq("status", "active"),
   ]);
 
   const properties = (propsRes.data ?? []) as PropertyRow[];
   const maint = maintRes.data ?? [];
   const leases = leasesRes.data ?? [];
+  const allUnits = allUnitsRes.data ?? [];
+  const allActiveLeases = allActiveLeasesRes.data ?? [];
+
+  // Recalculate stats from live units/leases data (stored values may be stale)
+  for (const prop of properties) {
+    const propUnits = allUnits.filter((u) => u.property_id === prop.id);
+    const propLeases = allActiveLeases.filter((l) => l.property_id === prop.id);
+    const totalUnits = Math.max(propUnits.length, prop.total_units ?? 0);
+    const occupiedCount = propUnits.filter((u) => u.status === "occupied").length;
+    const monthlyRevenue = propLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
+    const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
+
+    prop.total_units = totalUnits;
+    prop.occupied_units = occupiedCount;
+    prop.occupancy_rate = occupancyRate;
+    prop.monthly_revenue = monthlyRevenue;
+    prop.noi = monthlyRevenue;
+  }
 
   const totalProperties = properties.length;
   const totalUnits = properties.reduce((s, p) => s + (p.total_units ?? 0), 0);
