@@ -450,7 +450,7 @@
     "activeCount": "{count} Active",
     "submittedDate": "Submitted {date}",
     "noRequestsSubmitted": "No requests submitted.",
-    "newRequest": "+ New Request",
+    "newRequest": "New Request",
     "documents": "Documents",
     "download": "Download",
     "viewAllDocuments": "View All Documents",

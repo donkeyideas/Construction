@@ -686,10 +686,10 @@ export default function TenantDashboardClient({
                     </div>
                   </div>
                 ) : (
-                  <>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <Upload size={24} style={{ color: "var(--muted)", marginBottom: 8 }} />
                     <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{t("clickToSelectFile")}</div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>

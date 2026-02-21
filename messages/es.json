@@ -449,7 +449,7 @@
     "activeCount": "{count} Activas",
     "submittedDate": "Enviada {date}",
     "noRequestsSubmitted": "No se han enviado solicitudes.",
-    "newRequest": "+ Nueva Solicitud",
+    "newRequest": "Nueva Solicitud",
     "documents": "Documentos",
     "download": "Descargar",
     "viewAllDocuments": "Ver Todos los Documentos",
