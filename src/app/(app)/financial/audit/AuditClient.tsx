@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -8,6 +9,8 @@ import {
   ChevronDown,
   ChevronRight,
   RefreshCw,
+  Wrench,
+  Loader2,
 } from "lucide-react";
 import type { AuditResult, AuditCheckResult } from "@/lib/queries/financial-audit";
 
@@ -30,11 +33,32 @@ const STATUS_CONFIG = {
   fail: { icon: XCircle, label: "Fail", color: "var(--color-red)" },
 };
 
-function AuditCheck({ check }: { check: AuditCheckResult }) {
+/* Fix action config for specific check IDs */
+const FIX_ACTIONS: Record<string, { label: string; endpoint: string }> = {
+  "bank-reconciliation": {
+    label: "Sync Bank Balances from GL",
+    endpoint: "/api/financial/audit/sync-bank-balances",
+  },
+  "unposted-entries": {
+    label: "Post All Draft Entries",
+    endpoint: "/api/financial/audit/post-drafts",
+  },
+};
+
+function AuditCheck({
+  check,
+  onFix,
+  fixing,
+}: {
+  check: AuditCheckResult;
+  onFix?: (checkId: string) => void;
+  fixing?: boolean;
+}) {
   const [expanded, setExpanded] = useState(check.status !== "pass");
   const config = STATUS_CONFIG[check.status];
   const Icon = config.icon;
   const hasDetails = check.details.length > 0;
+  const fixAction = check.status !== "pass" ? FIX_ACTIONS[check.id] : undefined;
 
   return (
     <div
@@ -53,6 +77,20 @@ function AuditCheck({ check }: { check: AuditCheckResult }) {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {fixAction && onFix && (
+            <button
+              className="ui-btn ui-btn-sm ui-btn-outline"
+              style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem" }}
+              disabled={fixing}
+              onClick={(e) => {
+                e.stopPropagation();
+                onFix(check.id);
+              }}
+            >
+              {fixing ? <Loader2 size={12} className="doc-spinner" /> : <Wrench size={12} />}
+              {fixing ? "Fixing..." : fixAction.label}
+            </button>
+          )}
           <span
             style={{
               display: "inline-block",
@@ -98,6 +136,9 @@ function AuditCheck({ check }: { check: AuditCheckResult }) {
 }
 
 export default function AuditClient({ audit, companyName }: Props) {
+  const router = useRouter();
+  const [fixingId, setFixingId] = useState<string | null>(null);
+
   const passCount = audit.checks.filter((c) => c.status === "pass").length;
   const warnCount = audit.checks.filter((c) => c.status === "warn").length;
   const failCount = audit.checks.filter((c) => c.status === "fail").length;
@@ -112,6 +153,27 @@ export default function AuditClient({ audit, companyName }: Props) {
   });
 
   const gradeColor = GRADE_COLORS[audit.grade] || "var(--muted)";
+
+  const handleFix = async (checkId: string) => {
+    const action = FIX_ACTIONS[checkId];
+    if (!action) return;
+
+    setFixingId(checkId);
+    try {
+      const res = await fetch(action.endpoint, { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(`Fix failed: ${data.error || "Unknown error"}`);
+      } else {
+        // Re-run audit to show updated results
+        router.refresh();
+      }
+    } catch {
+      alert("Network error while applying fix");
+    } finally {
+      setFixingId(null);
+    }
+  };
 
   return (
     <div>
@@ -207,7 +269,12 @@ export default function AuditClient({ audit, companyName }: Props) {
         </div>
         <div>
           {audit.checks.map((check) => (
-            <AuditCheck key={check.id} check={check} />
+            <AuditCheck
+              key={check.id}
+              check={check}
+              onFix={handleFix}
+              fixing={fixingId === check.id}
+            />
           ))}
         </div>
       </div>
