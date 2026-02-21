@@ -77,6 +77,12 @@ export default function TenantDashboardClient({
   const [newCategory, setNewCategory] = useState("general");
   const [newPriority, setNewPriority] = useState("medium");
   const [submitting, setSubmitting] = useState(false);
+
+  // Online payment state
+  const [payingOnline, setPayingOnline] = useState(false);
+  const hasOnlinePayment = dashboard.paymentMethods.some(
+    (pm) => pm.method_type === "online_payment"
+  );
   const [submitError, setSubmitError] = useState("");
 
   // Upload document modal state
@@ -220,6 +226,27 @@ export default function TenantDashboardClient({
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  async function handlePayOnline() {
+    setPayingOnline(true);
+    try {
+      const res = await fetch("/api/tenant/payments/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Failed to start payment");
+        setPayingOnline(false);
+      }
+    } catch {
+      alert("Network error. Please try again.");
+      setPayingOnline(false);
+    }
   }
 
   async function handleDocDownload(documentId: string) {
@@ -383,9 +410,31 @@ export default function TenantDashboardClient({
             {/* How to Pay */}
             <div className="card" style={{ marginBottom: 24 }}>
               <div className="card-title">{t("howToPay")}</div>
-              {dashboard.paymentMethods.length > 0 ? (
+
+              {/* Pay Rent Online button */}
+              {hasOnlinePayment && dashboard.lease && (
+                <div style={{ marginBottom: 16 }}>
+                  <button
+                    className="ui-btn ui-btn-md ui-btn-primary"
+                    style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 16px" }}
+                    onClick={handlePayOnline}
+                    disabled={payingOnline}
+                  >
+                    <CreditCard size={16} />
+                    {payingOnline ? t("redirectingToPayment") : t("payRentOnline")}
+                  </button>
+                  <p style={{ fontSize: "0.78rem", color: "var(--muted)", textAlign: "center", marginTop: 6 }}>
+                    {t("payRentOnlineDesc")}
+                  </p>
+                </div>
+              )}
+
+              {/* Manual payment methods (filter out online_payment) */}
+              {dashboard.paymentMethods.filter((pm) => pm.method_type !== "online_payment").length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {dashboard.paymentMethods.map((pm) => (
+                  {dashboard.paymentMethods
+                    .filter((pm) => pm.method_type !== "online_payment")
+                    .map((pm) => (
                     <div
                       key={pm.id}
                       style={{
@@ -459,7 +508,7 @@ export default function TenantDashboardClient({
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : !hasOnlinePayment ? (
                 <p
                   style={{
                     fontSize: "0.85rem",
@@ -470,7 +519,7 @@ export default function TenantDashboardClient({
                 >
                   {t("contactManagerForPayment")}
                 </p>
-              )}
+              ) : null}
             </div>
           </div>
 

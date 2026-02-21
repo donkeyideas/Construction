@@ -20,7 +20,12 @@ import {
   Copy,
   DollarSign,
   Megaphone,
+  CreditCard,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
+import { GATEWAY_PROVIDERS } from "@/lib/payments/gateway";
 import type {
   PropertyRow,
   UnitRow,
@@ -1938,6 +1943,21 @@ function FinancialsTabContent({
   const [methodSaving, setMethodSaving] = useState(false);
   const [methodError, setMethodError] = useState("");
 
+  // Online payments gateway state
+  const [gatewayStatus, setGatewayStatus] = useState<{
+    hasGateway: boolean;
+    provider: string | null;
+    isActive: boolean;
+    onboardedAt: string | null;
+    accountStatus: {
+      connected: boolean;
+      chargesEnabled: boolean;
+      detailsSubmitted: boolean;
+    } | null;
+  } | null>(null);
+  const [gatewayLoading, setGatewayLoading] = useState(true);
+  const [gatewayConnecting, setGatewayConnecting] = useState(false);
+
   const METHOD_TYPES = [
     { value: "zelle", label: "Zelle" },
     { value: "cashapp", label: "Cash App" },
@@ -1958,7 +1978,17 @@ function FinancialsTabContent({
       } catch { /* ignore */ }
       setLoadingMethods(false);
     }
+    async function fetchGatewayStatus() {
+      try {
+        const res = await fetch("/api/payments/gateway/status", { method: "POST" });
+        if (res.ok) {
+          setGatewayStatus(await res.json());
+        }
+      } catch { /* ignore */ }
+      setGatewayLoading(false);
+    }
     fetchMethods();
+    fetchGatewayStatus();
   }, [propertyId]);
 
   function openAddMethod() {
@@ -2040,6 +2070,37 @@ function FinancialsTabContent({
       if (res.ok) {
         const saved = await res.json();
         setPaymentMethods((prev) => prev.map((m) => (m.id === saved.id ? saved : m)));
+      }
+    } catch { /* ignore */ }
+  }
+
+  async function handleConnectGateway(provider: string) {
+    setGatewayConnecting(true);
+    try {
+      const res = await fetch("/api/payments/gateway/onboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Failed to start onboarding");
+        setGatewayConnecting(false);
+      }
+    } catch {
+      alert("Network error");
+      setGatewayConnecting(false);
+    }
+  }
+
+  async function handleDisconnectGateway() {
+    if (!confirm(t("disconnectConfirm"))) return;
+    try {
+      const res = await fetch("/api/payments/gateway/disconnect", { method: "POST" });
+      if (res.ok) {
+        setGatewayStatus({ hasGateway: false, provider: null, isActive: false, onboardedAt: null, accountStatus: null });
       }
     } catch { /* ignore */ }
   }
@@ -2216,6 +2277,111 @@ function FinancialsTabContent({
           </div>
         </div>
       )}
+
+      {/* Online Payments (Gateway) */}
+      <div className="card" style={{ gridColumn: "1 / -1" }}>
+        <div className="card-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <CreditCard size={18} />
+          <span>{t("onlinePaymentsTitle")}</span>
+        </div>
+        <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+          {t("onlinePaymentsDesc")}
+        </p>
+
+        {gatewayLoading ? (
+          <p style={{ color: "var(--muted)", textAlign: "center", padding: "16px 0", fontSize: "0.85rem" }}>
+            <Loader2 size={14} className="doc-spinner" style={{ display: "inline-block", marginRight: 6 }} />
+            {t("checkingConnection")}
+          </p>
+        ) : gatewayStatus?.isActive && gatewayStatus.accountStatus?.connected ? (
+          /* Connected state */
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 8, background: "color-mix(in srgb, var(--color-green) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--color-green) 20%, transparent)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <CheckCircle2 size={18} style={{ color: "var(--color-green)" }} />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
+                  {GATEWAY_PROVIDERS.find((p) => p.key === gatewayStatus.provider)?.name || gatewayStatus.provider}
+                  <span style={{ marginLeft: 8, fontSize: "0.75rem", padding: "2px 8px", borderRadius: 12, background: "color-mix(in srgb, var(--color-green) 15%, transparent)", color: "var(--color-green)" }}>
+                    {t("providerConnected")}
+                  </span>
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: 2 }}>
+                  {t("providerActive")}
+                </div>
+              </div>
+            </div>
+            <button
+              className="ui-btn ui-btn-sm ui-btn-outline"
+              style={{ color: "var(--color-red)", borderColor: "var(--color-red)" }}
+              onClick={handleDisconnectGateway}
+            >
+              {t("disconnectProvider")}
+            </button>
+          </div>
+        ) : gatewayStatus?.hasGateway && !gatewayStatus.isActive ? (
+          /* Pending state */
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 8, background: "color-mix(in srgb, #fbbf24 8%, transparent)", border: "1px solid color-mix(in srgb, #fbbf24 20%, transparent)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <AlertCircle size={18} style={{ color: "#fbbf24" }} />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
+                  {GATEWAY_PROVIDERS.find((p) => p.key === gatewayStatus.provider)?.name || gatewayStatus.provider}
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: 2 }}>
+                  {t("providerPending")}
+                </div>
+              </div>
+            </div>
+            <button
+              className="ui-btn ui-btn-sm ui-btn-primary"
+              disabled={gatewayConnecting}
+              onClick={() => handleConnectGateway(gatewayStatus.provider!)}
+            >
+              {gatewayConnecting ? <Loader2 size={14} className="doc-spinner" /> : <ExternalLink size={14} />}
+              {t("completeSetup")}
+            </button>
+          </div>
+        ) : (
+          /* No gateway — show provider selection */
+          <div>
+            <p style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 12 }}>
+              {t("selectPaymentProvider")}
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
+              {GATEWAY_PROVIDERS.map((gp) => (
+                <div
+                  key={gp.key}
+                  style={{
+                    padding: "14px 16px",
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "var(--bg-secondary)",
+                    opacity: gp.available ? 1 : 0.5,
+                  }}
+                >
+                  <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 2 }}>{gp.name}</div>
+                  <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 10 }}>{gp.description}</div>
+                  {gp.available ? (
+                    <button
+                      className="ui-btn ui-btn-sm ui-btn-primary"
+                      style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                      disabled={gatewayConnecting}
+                      onClick={() => handleConnectGateway(gp.key)}
+                    >
+                      {gatewayConnecting ? <Loader2 size={14} className="doc-spinner" /> : <ExternalLink size={14} />}
+                      {t("connectProvider")}
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: "0.78rem", color: "var(--muted)", fontStyle: "italic" }}>
+                      {t("comingSoon")}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Payment Methods for Tenant Portal */}
       <div className="card" style={{ gridColumn: "1 / -1" }}>
