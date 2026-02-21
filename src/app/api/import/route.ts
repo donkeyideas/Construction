@@ -635,14 +635,18 @@ export async function POST(request: NextRequest) {
           }
           const assignStatus = r.status || "active";
           const projId = await resolveProjectId(r);
+          // assigned_to is uuid FK to auth.users — only pass if it looks like a UUID
+          const isAssignUuid = r.assigned_to && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(r.assigned_to);
+          const assignedName = (!isAssignUuid && r.assigned_to) ? r.assigned_to : null;
+          const assignNotes = [r.notes, assignedName ? `Assigned to: ${assignedName}` : null].filter(Boolean).join("; ");
           const { error } = await supabase.from("equipment_assignments").insert({
             company_id: companyId,
             equipment_id: equipId,
             project_id: projId,
-            assigned_to: r.assigned_to || null,
+            assigned_to: isAssignUuid ? r.assigned_to : null,
             assigned_date: r.assigned_date || new Date().toISOString().split("T")[0],
             returned_date: r.return_date || null,
-            notes: r.notes || null,
+            notes: assignNotes || null,
             status: assignStatus,
           });
           if (error) {

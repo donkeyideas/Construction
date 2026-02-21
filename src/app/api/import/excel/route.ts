@@ -1105,14 +1105,18 @@ async function processEntity(
         }
         const assignStatus = r.status || "active";
         const projId = resolveProjectId(r);
+        // assigned_to is uuid FK to auth.users — only pass if it looks like a UUID
+        const isUuid = r.assigned_to && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(r.assigned_to);
+        const assignedToName = (!isUuid && r.assigned_to) ? r.assigned_to : null;
+        const notesVal = [r.notes, assignedToName ? `Assigned to: ${assignedToName}` : null].filter(Boolean).join("; ");
         const { error } = await supabase.from("equipment_assignments").insert({
           company_id: companyId,
           equipment_id: equipId,
           project_id: projId,
-          assigned_to: r.assigned_to || null,
+          assigned_to: isUuid ? r.assigned_to : null,
           assigned_date: r.assigned_date || new Date().toISOString().split("T")[0],
           returned_date: r.return_date || null,
-          notes: r.notes || null,
+          notes: notesVal || null,
           status: assignStatus,
         });
         if (error) errors.push(`Row ${i + 2}: ${error.message}`);
