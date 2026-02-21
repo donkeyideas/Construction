@@ -624,7 +624,7 @@ export default function DocumentsClient({
             <div className="ticket-detail-body">
               <div className="ticket-detail-row">
                 <span className="ticket-detail-label">{t("category")}</span>
-                <span className={categoryBadgeClass[selectedDoc.category] ?? "badge badge-gray"}>
+                <span className={categoryBadgeClass[selectedDoc.category] ?? "badge badge-gray"} style={{ alignSelf: "flex-start" }}>
                   {categoryLabels[selectedDoc.category] ?? selectedDoc.category}
                 </span>
               </div>
@@ -687,7 +687,7 @@ export default function DocumentsClient({
               {selectedDoc.folder_path && (
                 <div className="ticket-detail-row">
                   <span className="ticket-detail-label">{t("folder")}</span>
-                  <span style={{ fontSize: "0.85rem" }}>/{selectedDoc.folder_path}</span>
+                  <span style={{ fontSize: "0.85rem" }}>{selectedDoc.folder_path.replace(/^\/+/, "")}</span>
                 </div>
               )}
 
@@ -738,7 +738,7 @@ export default function DocumentsClient({
                   <button
                     onClick={handleDeleteClick}
                     className="btn-danger-outline"
-                    style={{ width: "100%" }}
+                    style={{ width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                   >
                     <Trash2 size={16} />
                     {t("deleteDocument")}
