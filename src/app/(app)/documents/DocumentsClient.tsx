@@ -77,6 +77,28 @@ function isPreviewable(fileType: string): "pdf" | "image" | false {
   return false;
 }
 
+function friendlyFileType(mime: string): string {
+  const m = mime.toLowerCase();
+  if (m.includes("pdf")) return "PDF";
+  if (m.includes("jpeg") || m.includes("jpg")) return "JPEG Image";
+  if (m.includes("png")) return "PNG Image";
+  if (m.includes("gif")) return "GIF Image";
+  if (m.includes("webp")) return "WebP Image";
+  if (m.includes("svg")) return "SVG Image";
+  if (m.includes("xlsx") || m.includes("spreadsheet")) return "Excel Spreadsheet";
+  if (m.includes("xls")) return "Excel Spreadsheet";
+  if (m.includes("csv")) return "CSV";
+  if (m.includes("docx") || m.includes("wordprocessing")) return "Word Document";
+  if (m.includes("doc") || m.includes("msword")) return "Word Document";
+  if (m.includes("pptx") || m.includes("presentation")) return "PowerPoint";
+  if (m.includes("zip")) return "ZIP Archive";
+  if (m.includes("dwg")) return "AutoCAD Drawing";
+  if (m.includes("dxf")) return "DXF Drawing";
+  // Fallback: extract subtype from MIME (e.g. "application/octet-stream" → "octet-stream")
+  const slash = m.indexOf("/");
+  return slash >= 0 ? m.slice(slash + 1).toUpperCase() : m.toUpperCase();
+}
+
 const categoryBadgeClass: Record<string, string> = {
   plan: "badge badge-blue",
   spec: "badge badge-amber",
@@ -624,14 +646,12 @@ export default function DocumentsClient({
             <div className="ticket-detail-body">
               <div className="ticket-detail-row">
                 <span className="ticket-detail-label">{t("category")}</span>
-                <span className={categoryBadgeClass[selectedDoc.category] ?? "badge badge-gray"} style={{ alignSelf: "flex-start" }}>
-                  {categoryLabels[selectedDoc.category] ?? selectedDoc.category}
-                </span>
+                <span>{categoryLabels[selectedDoc.category] ?? selectedDoc.category}</span>
               </div>
 
               <div className="ticket-detail-row">
                 <span className="ticket-detail-label">{t("fileType")}</span>
-                <span>{selectedDoc.file_type}</span>
+                <span>{friendlyFileType(selectedDoc.file_type)}</span>
               </div>
 
               <div className="ticket-detail-row">
