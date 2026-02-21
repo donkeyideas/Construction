@@ -411,8 +411,6 @@ export default function TenantDashboardClient({
                 style={{
                   width: "100%",
                   marginTop: 14,
-                  display: "block",
-                  textAlign: "center",
                   textDecoration: "none",
                 }}
               >

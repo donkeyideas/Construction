@@ -19,6 +19,7 @@ import {
   Receipt,
   DollarSign,
   Calculator,
+  Grid3x3,
 } from "lucide-react";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -114,6 +115,27 @@ export const IMPORT_PHASES: PhaseDef[] = [
           { key: "total_units", label: "Total Units", required: false, type: "number" as const },
           { key: "purchase_price", label: "Purchase Price ($)", required: false, type: "number" as const },
           { key: "current_value", label: "Current Value ($)", required: false, type: "number" as const },
+        ],
+      },
+      {
+        key: "units",
+        label: "Units",
+        icon: Grid3x3,
+        color: "var(--color-teal, #14b8a6)",
+        dependencies: "Requires: Properties",
+        columns: [
+          { key: "property_name", label: "Property Name", required: true },
+          { key: "unit_number", label: "Unit Number", required: true },
+          { key: "unit_type", label: "Unit Type", required: false },
+          { key: "sqft", label: "Sq Ft", required: false, type: "number" as const },
+          { key: "bedrooms", label: "Bedrooms", required: false, type: "number" as const },
+          { key: "bathrooms", label: "Bathrooms", required: false, type: "number" as const },
+          { key: "floor_number", label: "Floor", required: false, type: "number" as const },
+          { key: "market_rent", label: "Market Rent ($)", required: false, type: "number" as const },
+          { key: "status", label: "Status", required: false },
+        ],
+        sampleData: [
+          { property_name: "Harbor View Apartments", unit_number: "101", unit_type: "1br", sqft: "750", bedrooms: "1", bathrooms: "1", floor_number: "1", market_rent: "1200", status: "vacant" },
         ],
       },
       {

@@ -42,6 +42,7 @@ const ALLOWED_ENTITIES = [
   "journal_entries",
   "submittals",
   "properties",
+  "units",
   "phases",
   "tasks",
   "property_expenses",
@@ -1255,6 +1256,69 @@ export async function POST(request: NextRequest) {
             errors.push(`Row ${i + 2}: ${error.message}`);
           } else {
             successCount++;
+          }
+        }
+        break;
+      }
+
+      case "units": {
+        // Pre-fetch properties to resolve property_name to property_id
+        const { data: unitProps } = await supabase
+          .from("properties")
+          .select("id, name")
+          .eq("company_id", companyId);
+        const unitPropLookup = (unitProps || []).reduce((acc, p) => {
+          acc[p.name.trim().toLowerCase()] = p.id;
+          return acc;
+        }, {} as Record<string, string>);
+
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          let propertyId = r.property_id || null;
+          if (!propertyId && r.property_name) {
+            propertyId = unitPropLookup[r.property_name.trim().toLowerCase()] || null;
+          }
+          if (!propertyId) {
+            errors.push(`Row ${i + 2}: Property "${r.property_name || ""}" not found. Import properties first.`);
+            continue;
+          }
+          if (!r.unit_number) {
+            errors.push(`Row ${i + 2}: Unit number is required.`);
+            continue;
+          }
+          const { error } = await supabase.from("units").insert({
+            company_id: companyId,
+            property_id: propertyId,
+            unit_number: r.unit_number.trim(),
+            unit_type: r.unit_type || "1br",
+            sqft: r.sqft ? parseInt(r.sqft) : null,
+            bedrooms: r.bedrooms ? parseInt(r.bedrooms) : null,
+            bathrooms: r.bathrooms ? parseInt(r.bathrooms) : null,
+            floor_number: r.floor_number ? parseInt(r.floor_number) : null,
+            market_rent: r.market_rent ? parseFloat(r.market_rent) : null,
+            status: r.status || "vacant",
+          });
+          if (error) {
+            errors.push(`Row ${i + 2}: ${error.message}`);
+          } else {
+            successCount++;
+          }
+        }
+
+        // Update total_units on affected properties
+        if (unitProps && unitProps.length > 0) {
+          for (const prop of unitProps) {
+            const { count } = await supabase
+              .from("units")
+              .select("id", { count: "exact", head: true })
+              .eq("company_id", companyId)
+              .eq("property_id", prop.id);
+            if (count !== null) {
+              await supabase
+                .from("properties")
+                .update({ total_units: count })
+                .eq("id", prop.id);
+            }
           }
         }
         break;
