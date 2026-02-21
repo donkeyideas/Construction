@@ -1362,10 +1362,77 @@ function UnitsTabContent({
     floor_number: "",
     market_rent: "",
   });
+  const csvInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ success: number; errors: string[] } | null>(null);
 
   function resetAddForm() {
     setAddForm({ unit_number: "", unit_type: "1br", sqft: "", bedrooms: "1", bathrooms: "1", floor_number: "", market_rent: "" });
     setAddError("");
+  }
+
+  async function handleCsvImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    setAddError("");
+
+    try {
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter((l) => l.trim());
+      if (lines.length < 2) {
+        setAddError("CSV file is empty or has no data rows.");
+        setImporting(false);
+        return;
+      }
+
+      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+      const rows = lines.slice(1).map((line) => {
+        const vals = line.split(",");
+        const row: Record<string, string> = {};
+        headers.forEach((h, i) => { row[h] = (vals[i] || "").trim(); });
+        return row;
+      });
+
+      let success = 0;
+      const errors: string[] = [];
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const unitNum = r.unit_number || r.unit || r.number || "";
+        if (!unitNum) { errors.push(`Row ${i + 2}: missing unit_number`); continue; }
+
+        const res = await fetch(`/api/properties/${propertyId}/units`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            unit_number: unitNum,
+            unit_type: r.unit_type || r.type || "1br",
+            sqft: r.sqft ? Number(r.sqft) : null,
+            bedrooms: r.bedrooms ? Number(r.bedrooms) : null,
+            bathrooms: r.bathrooms ? Number(r.bathrooms) : null,
+            floor_number: r.floor_number || r.floor ? Number(r.floor_number || r.floor) : null,
+            market_rent: r.market_rent || r.rent ? Number(r.market_rent || r.rent) : null,
+            status: r.status || "vacant",
+          }),
+        });
+        if (res.ok) { success++; } else {
+          const data = await res.json().catch(() => ({ error: "Unknown error" }));
+          errors.push(`Row ${i + 2} (${unitNum}): ${data.error}`);
+        }
+      }
+
+      setImportResult({ success, errors });
+      if (success > 0) {
+        setTimeout(() => window.location.reload(), 1500);
+      }
+    } catch {
+      setAddError("Failed to read CSV file.");
+    } finally {
+      setImporting(false);
+      if (csvInputRef.current) csvInputRef.current.value = "";
+    }
   }
 
   async function handleAddUnit() {
@@ -1458,15 +1525,42 @@ function UnitsTabContent({
     </div>
   ) : null;
 
+  const importFeedbackUI = (
+    <>
+      <input ref={csvInputRef} type="file" accept=".csv" style={{ display: "none" }} onChange={handleCsvImport} />
+      {importing && (
+        <div style={{ padding: "12px 16px", marginBottom: "12px", background: "rgba(var(--color-blue-rgb, 29, 78, 216), 0.08)", borderRadius: "8px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}>
+          <Loader2 size={14} className="spin" /> {t("importingUnits")}
+        </div>
+      )}
+      {importResult && (
+        <div style={{ padding: "12px 16px", marginBottom: "12px", background: importResult.errors.length ? "rgba(var(--color-amber-rgb, 245, 158, 11), 0.08)" : "rgba(var(--color-green-rgb, 34, 197, 94), 0.08)", borderRadius: "8px", fontSize: "0.85rem" }}>
+          <strong>{importResult.success}</strong> {t("unitsImported")}{importResult.errors.length > 0 && `, ${importResult.errors.length} ${t("errors")}`}
+          {importResult.errors.length > 0 && (
+            <ul style={{ margin: "8px 0 0", paddingLeft: "20px", fontSize: "0.8rem", color: "var(--muted)" }}>
+              {importResult.errors.slice(0, 5).map((err, i) => <li key={i}>{err}</li>)}
+              {importResult.errors.length > 5 && <li>...and {importResult.errors.length - 5} more</li>}
+            </ul>
+          )}
+        </div>
+      )}
+      {addError && !showAddForm && <div className="form-error" style={{ marginBottom: "12px" }}>{addError}</div>}
+    </>
+  );
+
   if (units.length === 0) {
     return (
       <div style={{ padding: "20px" }}>
+        {importFeedbackUI}
         {addUnitFormUI}
         {!showAddForm && (
           <div className="properties-empty" style={{ padding: "40px 20px" }}>
             <div className="properties-empty-title">{t("noUnits")}</div>
             <div className="properties-empty-desc">{t("addUnitsDesc")}</div>
-            <button className="ui-btn ui-btn-md ui-btn-primary" style={{ marginTop: "16px" }} onClick={() => setShowAddForm(true)}><Plus size={14} /> {t("addUnit")}</button>
+            <div style={{ display: "flex", gap: "8px", marginTop: "16px", justifyContent: "center" }}>
+              <button className="ui-btn ui-btn-md ui-btn-primary" onClick={() => setShowAddForm(true)}><Plus size={14} /> {t("addUnit")}</button>
+              <button className="ui-btn ui-btn-md ui-btn-secondary" onClick={() => csvInputRef.current?.click()} disabled={importing}><Upload size={14} /> {t("importCSV")}</button>
+            </div>
           </div>
         )}
       </div>
@@ -1484,9 +1578,13 @@ function UnitsTabContent({
           </div>
         ) : <div />}
         {!showAddForm && (
-          <button className="ui-btn ui-btn-sm ui-btn-primary" onClick={() => setShowAddForm(true)}><Plus size={14} /> {t("addUnit")}</button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button className="ui-btn ui-btn-sm ui-btn-secondary" onClick={() => csvInputRef.current?.click()} disabled={importing}><Upload size={14} /> {t("importCSV")}</button>
+            <button className="ui-btn ui-btn-sm ui-btn-primary" onClick={() => setShowAddForm(true)}><Plus size={14} /> {t("addUnit")}</button>
+          </div>
         )}
       </div>
+      {importFeedbackUI}
       {addUnitFormUI}
       <div className="units-grid">
         {sorted.map((unit) => {
