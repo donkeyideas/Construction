@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
         subtotal: amount,
         tax_amount: taxAmt,
         total_amount: totalAmount,
+        balance_due: totalAmount,
         amount_paid: 0,
         status: "submitted",
         notes: description || null,

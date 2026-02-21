@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Upload,
@@ -16,9 +17,18 @@ import {
   Shield,
   CheckCircle2,
   AlertTriangle,
+  AlertCircle,
   XCircle,
   FileText,
+  CreditCard,
+  DollarSign,
+  Settings,
+  KeyRound,
+  Check,
+  Loader2,
 } from "lucide-react";
+import { formatCurrency } from "@/lib/utils/format";
+import { GATEWAY_PROVIDERS } from "@/lib/payments/gateway";
 import ImportModal from "@/components/ImportModal";
 import PrequalificationChecklist from "@/components/PrequalificationChecklist";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -73,6 +83,18 @@ interface Project {
   status: string;
 }
 
+interface PayableInvoice {
+  id: string;
+  invoice_number: string;
+  vendor_name: string | null;
+  total_amount: number;
+  balance_due: number;
+  status: string;
+  due_date: string;
+  invoice_date: string;
+  projects: { name: string } | null;
+}
+
 const TYPE_BADGE_CLASS: Record<string, string> = {
   vendor: "contact-type-vendor",
   subcontractor: "contact-type-subcontractor",
@@ -98,10 +120,12 @@ export default function VendorsClient({
   contacts,
   contracts,
   projects,
+  payableInvoices = [],
 }: {
   contacts: Contact[];
   contracts: VendorContract[];
   projects: Project[];
+  payableInvoices?: PayableInvoice[];
 }) {
   const router = useRouter();
   const t = useTranslations("people");
@@ -117,7 +141,7 @@ export default function VendorsClient({
     { key: "job_title", label: t("jobTitle"), required: false },
   ];
 
-  const [tab, setTab] = useState<"directory" | "contracts">("directory");
+  const [tab, setTab] = useState<"directory" | "contracts" | "payments">("directory");
   const [showImport, setShowImport] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -157,6 +181,128 @@ export default function VendorsClient({
   const [contractForm, setContractForm] = useState(EMPTY_CONTRACT_FORM);
   const [showContractDelete, setShowContractDelete] = useState(false);
   const [contractDeleting, setContractDeleting] = useState(false);
+
+  // Payment gateway state
+  const [gatewayStatus, setGatewayStatus] = useState<{
+    hasGateway: boolean;
+    provider: string | null;
+    isActive: boolean;
+    onboardedAt: string | null;
+    accountName: string | null;
+    accountStatus: { connected: boolean; accountName: string | null } | null;
+  } | null>(null);
+  const [gatewayLoading, setGatewayLoading] = useState(true);
+  const [gatewaySaving, setGatewaySaving] = useState(false);
+  const [gatewayError, setGatewayError] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [gatewayFields, setGatewayFields] = useState<Record<string, string>>({});
+  const [checkingOut, setCheckingOut] = useState<string | null>(null);
+  const [verifyMessage, setVerifyMessage] = useState<{ type: "success" | "info"; text: string } | null>(null);
+
+  useEffect(() => {
+    async function fetchGatewayStatus() {
+      try {
+        const res = await fetch("/api/payments/gateway/status", { method: "POST" });
+        if (res.ok) setGatewayStatus(await res.json());
+      } catch { /* ignore */ }
+      setGatewayLoading(false);
+    }
+    fetchGatewayStatus();
+  }, []);
+
+  // Auto-verify payment on return from checkout
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const paymentStatus = url.searchParams.get("payment");
+    const invoiceId = url.searchParams.get("invoice");
+
+    if (paymentStatus === "success" && invoiceId) {
+      url.searchParams.delete("payment");
+      url.searchParams.delete("invoice");
+      window.history.replaceState({}, "", url.pathname + url.search);
+      setTab("payments");
+
+      (async () => {
+        try {
+          const res = await fetch("/api/financial/vendor-payments/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ invoice_id: invoiceId }),
+          });
+          const data = await res.json();
+          if (data.recorded) {
+            setVerifyMessage({ type: "success", text: "Payment recorded successfully! Journal entry auto-generated." });
+            router.refresh();
+          } else {
+            setVerifyMessage({ type: "info", text: data.message || "Payment pending verification." });
+          }
+        } catch {
+          setVerifyMessage({ type: "info", text: "Payment may have been processed. Refresh to check." });
+        }
+        setTimeout(() => setVerifyMessage(null), 8000);
+      })();
+    } else if (paymentStatus === "canceled") {
+      url.searchParams.delete("payment");
+      window.history.replaceState({}, "", url.pathname + url.search);
+      setTab("payments");
+      setVerifyMessage({ type: "info", text: "Payment was canceled." });
+      setTimeout(() => setVerifyMessage(null), 5000);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleSaveGateway() {
+    if (!selectedProvider) return;
+    const providerInfo = GATEWAY_PROVIDERS.find((p) => p.key === selectedProvider);
+    if (!providerInfo) return;
+    if (!gatewayFields.secret_key?.trim() && !gatewayFields.client_id?.trim()) {
+      setGatewayError("API key is required");
+      return;
+    }
+    setGatewaySaving(true);
+    setGatewayError("");
+    try {
+      const res = await fetch("/api/payments/gateway/onboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: selectedProvider, credentials: gatewayFields }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setGatewayError(data.error || "Failed to save"); return; }
+      setGatewayStatus({
+        hasGateway: true, provider: selectedProvider, isActive: true,
+        onboardedAt: new Date().toISOString(),
+        accountName: data.accountName || selectedProvider,
+        accountStatus: { connected: true, accountName: data.accountName },
+      });
+      setSelectedProvider(null);
+      setGatewayFields({});
+    } catch { setGatewayError("Network error"); } finally { setGatewaySaving(false); }
+  }
+
+  async function handleDisconnectGateway() {
+    if (!confirm("Disconnect payment provider? This will disable online vendor payments.")) return;
+    try {
+      const res = await fetch("/api/payments/gateway/disconnect", { method: "POST" });
+      if (res.ok) {
+        setGatewayStatus({ hasGateway: false, provider: null, isActive: false, onboardedAt: null, accountName: null, accountStatus: null });
+      }
+    } catch { /* ignore */ }
+  }
+
+  async function handlePayOnline(inv: PayableInvoice) {
+    setCheckingOut(inv.id);
+    try {
+      const res = await fetch("/api/financial/vendor-payments/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoice_id: inv.id, return_path: "/people/vendors" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || "Failed to create checkout session"); return; }
+      if (data.url) window.location.href = data.url;
+    } catch { alert("Network error creating checkout session"); } finally { setCheckingOut(null); }
+  }
 
   async function handleImport(rows: Record<string, string>[]) {
     const res = await fetch("/api/import", {
@@ -441,6 +587,13 @@ export default function VendorsClient({
         >
           {t("contracts")} ({contracts.length})
         </button>
+        <button
+          className={`people-tab ${tab === "payments" ? "active" : ""}`}
+          onClick={() => setTab("payments")}
+        >
+          <CreditCard size={14} style={{ verticalAlign: "middle", marginRight: 4 }} />
+          {t("tabPaymentSettings") ?? "Payments"}
+        </button>
       </div>
 
       {/* Directory Tab */}
@@ -612,6 +765,274 @@ export default function VendorsClient({
               </table>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Payments Tab */}
+      {tab === "payments" && (
+        <div>
+          {/* Payment verification banner */}
+          {verifyMessage && (
+            <div style={{
+              padding: "12px 18px", borderRadius: 10, marginBottom: 20,
+              display: "flex", alignItems: "center", gap: 10,
+              fontSize: "0.88rem", fontWeight: 500,
+              background: verifyMessage.type === "success"
+                ? "color-mix(in srgb, var(--color-green) 10%, transparent)"
+                : "color-mix(in srgb, var(--color-blue) 10%, transparent)",
+              color: verifyMessage.type === "success" ? "var(--color-green)" : "var(--color-blue)",
+              border: `1px solid ${verifyMessage.type === "success" ? "color-mix(in srgb, var(--color-green) 25%, transparent)" : "color-mix(in srgb, var(--color-blue) 25%, transparent)"}`,
+            }}>
+              {verifyMessage.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+              {verifyMessage.text}
+              <button
+                style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "inherit", padding: 4 }}
+                onClick={() => setVerifyMessage(null)}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Gateway Connection Card */}
+          <div className="fin-chart-card" style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 16 }}>
+              <h3 style={{ fontFamily: "var(--font-serif)", fontSize: "1.05rem", fontWeight: 700, marginBottom: 4 }}>
+                Payment Provider
+              </h3>
+              <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: 0 }}>
+                Connect a payment provider to pay vendors online directly from this page.
+              </p>
+            </div>
+
+            {gatewayLoading ? (
+              <p style={{ color: "var(--muted)", textAlign: "center", padding: "16px 0", fontSize: "0.85rem" }}>
+                <Loader2 size={14} className="spin" style={{ display: "inline-block", marginRight: 6 }} />
+                Checking connection...
+              </p>
+            ) : gatewayStatus?.isActive && gatewayStatus.accountStatus?.connected ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderRadius: 10, background: "color-mix(in srgb, var(--color-green) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--color-green) 20%, transparent)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <CheckCircle2 size={20} style={{ color: "var(--color-green)" }} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "0.92rem" }}>
+                      {GATEWAY_PROVIDERS.find((p) => p.key === gatewayStatus.provider)?.name || gatewayStatus.provider}
+                      <span style={{ marginLeft: 8, fontSize: "0.73rem", padding: "2px 8px", borderRadius: 12, background: "color-mix(in srgb, var(--color-green) 15%, transparent)", color: "var(--color-green)" }}>
+                        Connected
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--muted)", marginTop: 2 }}>
+                      {gatewayStatus.accountName || "Active"}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  className="ui-btn ui-btn-sm ui-btn-outline"
+                  style={{ color: "var(--color-red)", borderColor: "var(--color-red)" }}
+                  onClick={handleDisconnectGateway}
+                >
+                  Disconnect
+                </button>
+              </div>
+            ) : selectedProvider ? (
+              (() => {
+                const providerInfo = GATEWAY_PROVIDERS.find((p) => p.key === selectedProvider);
+                if (!providerInfo) return null;
+                return (
+                  <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: 18 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                      <div style={{ fontWeight: 600, fontSize: "0.92rem" }}>
+                        {providerInfo.name} — Enter API Keys
+                      </div>
+                      <button
+                        className="ui-btn ui-btn-sm ui-btn-ghost"
+                        onClick={() => { setSelectedProvider(null); setGatewayFields({}); setGatewayError(""); }}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    {providerInfo.fields.map((field) => (
+                      <div key={field.key} style={{ marginBottom: 12 }}>
+                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 500, marginBottom: 4 }}>
+                          {field.label}
+                        </label>
+                        <input
+                          type={field.type}
+                          placeholder={field.placeholder}
+                          value={gatewayFields[field.key] || ""}
+                          onChange={(e) => setGatewayFields((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                          style={{
+                            width: "100%", padding: "8px 12px", borderRadius: 8,
+                            border: "1px solid var(--border)", background: "var(--bg)",
+                            color: "var(--text)", fontSize: "0.85rem", fontFamily: "monospace",
+                          }}
+                        />
+                      </div>
+                    ))}
+                    {gatewayError && (
+                      <p style={{ color: "var(--color-red)", fontSize: "0.82rem", margin: "0 0 10px 0" }}>{gatewayError}</p>
+                    )}
+                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                      <button className="btn-secondary" onClick={() => { setSelectedProvider(null); setGatewayFields({}); setGatewayError(""); }}>
+                        {t("cancel")}
+                      </button>
+                      <button
+                        className="btn-primary"
+                        disabled={gatewaySaving}
+                        onClick={handleSaveGateway}
+                        style={{ display: "flex", alignItems: "center", gap: 6 }}
+                      >
+                        {gatewaySaving ? <Loader2 size={14} className="spin" /> : <Check size={14} />}
+                        Save & Connect
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : (
+              <div>
+                <p style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 14 }}>
+                  Select a payment provider to enable online vendor payments:
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
+                  {GATEWAY_PROVIDERS.map((gp) => (
+                    <div
+                      key={gp.key}
+                      style={{
+                        padding: "16px 18px", borderRadius: 10,
+                        border: "1px solid var(--border)", background: "var(--bg)",
+                        opacity: gp.available ? 1 : 0.5,
+                      }}
+                    >
+                      <div style={{ fontWeight: 600, fontSize: "0.92rem", marginBottom: 4 }}>{gp.name}</div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 10 }}>{gp.description}</div>
+                      {gp.available ? (
+                        <button
+                          className="btn-primary"
+                          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: "0.82rem", padding: "6px 12px" }}
+                          onClick={() => { setSelectedProvider(gp.key); setGatewayFields({}); setGatewayError(""); }}
+                        >
+                          <KeyRound size={14} />
+                          Connect
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: "0.78rem", color: "var(--muted)", fontStyle: "italic" }}>
+                          Coming Soon
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Outstanding Invoices Table */}
+          <div style={{ marginBottom: 12 }}>
+            <h3 style={{ fontFamily: "var(--font-serif)", fontSize: "1.05rem", fontWeight: 700, marginBottom: 4 }}>
+              Outstanding Invoices
+            </h3>
+            <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: 0 }}>
+              {payableInvoices.length} unpaid invoice{payableInvoices.length !== 1 ? "s" : ""} totaling{" "}
+              {formatCurrency(payableInvoices.reduce((s, i) => s + (i.balance_due || 0), 0))}
+            </p>
+          </div>
+
+          {payableInvoices.length > 0 ? (
+            <div className="fin-chart-card" style={{ padding: 0 }}>
+              <div style={{ overflowX: "auto" }}>
+                <table className="invoice-table">
+                  <thead>
+                    <tr>
+                      <th>{t("invoiceNumber") ?? "Invoice #"}</th>
+                      <th>Vendor</th>
+                      <th>{t("project") ?? "Project"}</th>
+                      <th>Due Date</th>
+                      <th style={{ textAlign: "right" }}>{t("amount") ?? "Amount"}</th>
+                      <th style={{ textAlign: "right" }}>Balance Due</th>
+                      <th>{t("status")}</th>
+                      <th>{t("actions") ?? "Actions"}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payableInvoices.map((inv) => {
+                      const now = new Date();
+                      const dueDate = new Date(inv.due_date);
+                      const isPastDue = dueDate < now && inv.status !== "paid" && inv.status !== "voided";
+
+                      return (
+                        <tr key={inv.id}>
+                          <td>
+                            <Link
+                              href={`/financial/ap?status=${inv.status}`}
+                              style={{ fontWeight: 600, color: "var(--color-blue)", textDecoration: "none" }}
+                            >
+                              {inv.invoice_number}
+                            </Link>
+                          </td>
+                          <td>{inv.vendor_name ?? "—"}</td>
+                          <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>{inv.projects?.name ?? "—"}</td>
+                          <td>
+                            <span style={{
+                              color: isPastDue ? "var(--color-red)" : "var(--text)",
+                              fontWeight: isPastDue ? 600 : 400,
+                            }}>
+                              {new Date(inv.due_date).toLocaleDateString(dateLocale, { month: "short", day: "numeric", year: "numeric" })}
+                              {isPastDue && <AlertCircle size={12} style={{ marginLeft: 4, verticalAlign: "middle" }} />}
+                            </span>
+                          </td>
+                          <td className="amount-col">{formatCurrency(inv.total_amount)}</td>
+                          <td className={`amount-col ${isPastDue ? "overdue" : ""}`}>
+                            {formatCurrency(inv.balance_due)}
+                          </td>
+                          <td>
+                            <span className={`inv-status inv-status-${inv.status}`}>{inv.status}</span>
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", gap: 4 }}>
+                              <Link
+                                href={`/financial/ap`}
+                                className="ui-btn ui-btn-primary ui-btn-sm"
+                                style={{ fontSize: "0.75rem", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: 3 }}
+                              >
+                                <DollarSign size={12} />
+                                Pay
+                              </Link>
+                              {gatewayStatus?.isActive && (
+                                <button
+                                  className="ui-btn ui-btn-sm"
+                                  onClick={() => handlePayOnline(inv)}
+                                  disabled={checkingOut === inv.id}
+                                  style={{
+                                    fontSize: "0.75rem", padding: "4px 10px",
+                                    background: "var(--color-green)", color: "#fff",
+                                    border: "none", borderRadius: 6,
+                                    cursor: checkingOut === inv.id ? "wait" : "pointer",
+                                    display: "inline-flex", alignItems: "center", gap: 3,
+                                  }}
+                                >
+                                  {checkingOut === inv.id ? <Loader2 size={12} className="spin" /> : <CreditCard size={12} />}
+                                  Online
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="fin-chart-card">
+              <div className="fin-empty">
+                <div className="fin-empty-icon"><CreditCard size={48} /></div>
+                <div className="fin-empty-title">No Outstanding Invoices</div>
+                <div className="fin-empty-desc">All vendor invoices are paid or no payable invoices exist yet.</div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

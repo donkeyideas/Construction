@@ -23,8 +23,8 @@ export default async function VendorsPage() {
 
   const { companyId } = userCompany;
 
-  // Fetch vendor contacts, vendor contracts, and projects in parallel
-  const [{ data: contacts }, { data: contracts }, { data: projects }] = await Promise.all([
+  // Fetch vendor contacts, vendor contracts, projects, and payable invoices in parallel
+  const [{ data: contacts }, { data: contracts }, { data: projects }, { data: payableInvoices }] = await Promise.all([
     supabase
       .from("contacts")
       .select("*")
@@ -42,6 +42,14 @@ export default async function VendorsPage() {
       .select("id, name, code, status")
       .eq("company_id", companyId)
       .order("name"),
+    supabase
+      .from("invoices")
+      .select("id, invoice_number, vendor_name, total_amount, balance_due, status, due_date, invoice_date, projects(name)")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "payable")
+      .not("status", "eq", "voided")
+      .not("status", "eq", "paid")
+      .order("due_date", { ascending: true }),
   ]);
 
   return (
@@ -50,6 +58,17 @@ export default async function VendorsPage() {
         contacts={contacts ?? []}
         contracts={contracts ?? []}
         projects={projects ?? []}
+        payableInvoices={(payableInvoices ?? []).map((inv: Record<string, unknown>) => ({
+          id: inv.id as string,
+          invoice_number: inv.invoice_number as string,
+          vendor_name: inv.vendor_name as string | null,
+          total_amount: inv.total_amount as number,
+          balance_due: inv.balance_due as number,
+          status: inv.status as string,
+          due_date: inv.due_date as string,
+          invoice_date: inv.invoice_date as string,
+          projects: inv.projects as { name: string } | null,
+        }))}
       />
     </div>
   );

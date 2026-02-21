@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { invoice_id } = body;
+    const { invoice_id, return_path } = body;
 
     if (!invoice_id) {
       return NextResponse.json(
@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
         amount,
         description,
         dueDate,
-        successUrl: `${origin}/financial/ap?payment=success&invoice=${invoice_id}`,
-        cancelUrl: `${origin}/financial/ap?payment=canceled`,
+        successUrl: `${origin}${return_path || "/financial/ap"}?payment=success&invoice=${invoice_id}`,
+        cancelUrl: `${origin}${return_path || "/financial/ap"}?payment=canceled`,
       }
     );
 

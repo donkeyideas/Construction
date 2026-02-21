@@ -604,28 +604,28 @@ export default function APClient({
           className={`ap-tab ${currentTab === "outstanding" ? "active" : ""}`}
           onClick={() => switchTab("outstanding")}
         >
-          <Receipt size={14} style={{ verticalAlign: "middle", marginRight: 4 }} />
+          <Receipt size={14} />
           {t("tabOutstanding")}
         </button>
         <button
           className={`ap-tab ${currentTab === "payments" ? "active" : ""}`}
           onClick={() => switchTab("payments")}
         >
-          <CreditCard size={14} style={{ verticalAlign: "middle", marginRight: 4 }} />
+          <CreditCard size={14} />
           {t("tabPaymentHistory")}
         </button>
         <button
           className={`ap-tab ${currentTab === "vendors" ? "active" : ""}`}
           onClick={() => switchTab("vendors")}
         >
-          <Users size={14} style={{ verticalAlign: "middle", marginRight: 4 }} />
+          <Users size={14} />
           {t("tabVendorSummary")}
         </button>
         <button
           className={`ap-tab ${currentTab === "settings" ? "active" : ""}`}
           onClick={() => switchTab("settings")}
         >
-          <Settings size={14} style={{ verticalAlign: "middle", marginRight: 4 }} />
+          <Settings size={14} />
           {t("tabPaymentSettings") ?? "Payment Settings"}
         </button>
       </div>
