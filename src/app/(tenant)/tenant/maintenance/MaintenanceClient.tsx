@@ -2,7 +2,6 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Plus, Wrench, X, Pencil } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 
@@ -27,10 +26,10 @@ const CATEGORIES = [
 ];
 
 const PRIORITIES = [
-  { value: "low", labelKey: "priLow" },
-  { value: "medium", labelKey: "priMedium" },
-  { value: "high", labelKey: "priHigh" },
-  { value: "emergency", labelKey: "priEmergency" },
+  { value: "low", labelKey: "priLow", descKey: "priLowDesc" },
+  { value: "medium", labelKey: "priMedium", descKey: "priMediumDesc" },
+  { value: "high", labelKey: "priHigh", descKey: "priHighDesc" },
+  { value: "emergency", labelKey: "priEmergency", descKey: "priEmergencyDesc" },
 ];
 
 function getStatusBadge(status: string): string {
@@ -87,6 +86,15 @@ export default function MaintenanceClient({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // New request modal state
+  const [showNewModal, setShowNewModal] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newCategory, setNewCategory] = useState("general");
+  const [newPriority, setNewPriority] = useState("medium");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
   function getCategoryLabel(value: string | null): string {
     const found = CATEGORIES.find((c) => c.value === value);
     return found ? t(found.labelKey) : (value ?? t("catGeneral"));
@@ -104,6 +112,20 @@ export default function MaintenanceClient({
     setError("");
   }
 
+  function openNewModal() {
+    setNewTitle("");
+    setNewDescription("");
+    setNewCategory("general");
+    setNewPriority("medium");
+    setSubmitError("");
+    setShowNewModal(true);
+  }
+
+  function closeNewModal() {
+    setShowNewModal(false);
+    setSubmitError("");
+  }
+
   function startEdit() {
     if (!selected) return;
     setEditTitle(selected.title ?? "");
@@ -112,6 +134,43 @@ export default function MaintenanceClient({
     setEditPriority(selected.priority ?? "medium");
     setEditing(true);
     setError("");
+  }
+
+  async function handleSubmitNew(e: FormEvent) {
+    e.preventDefault();
+    if (!newTitle.trim()) {
+      setSubmitError(t("titleRequiredError"));
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const res = await fetch("/api/tenant/maintenance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          description: newDescription,
+          category: newCategory,
+          priority: newPriority,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || t("failedSubmitRequest"));
+      }
+
+      closeNewModal();
+      router.refresh();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : t("somethingWentWrong"));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleSave(e: FormEvent) {
@@ -163,13 +222,13 @@ export default function MaintenanceClient({
             {t("maintenanceSubtitle")}
           </p>
         </div>
-        <Link
-          href="/tenant/maintenance/new"
+        <button
           className="ui-btn ui-btn-md ui-btn-primary"
+          onClick={openNewModal}
         >
           <Plus size={16} />
           {t("submitRequest")}
-        </Link>
+        </button>
       </div>
 
       {requests.length > 0 ? (
@@ -263,6 +322,114 @@ export default function MaintenanceClient({
           </div>
           <div style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
             {t("noMaintenanceDesc")}
+          </div>
+        </div>
+      )}
+
+      {/* Submit New Request Modal */}
+      {showNewModal && (
+        <div className="tenant-modal-overlay" onClick={closeNewModal}>
+          <div className="tenant-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="tenant-modal-header">
+              <h3 style={{ margin: 0, fontSize: "1.05rem" }}>
+                {t("submitMaintenanceTitle")}
+              </h3>
+              <button
+                className="tenant-modal-close"
+                onClick={closeNewModal}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+              {t("submitMaintenanceSubtitle")}
+            </p>
+
+            {submitError && (
+              <div className="tenant-alert tenant-alert-error">{submitError}</div>
+            )}
+
+            <form onSubmit={handleSubmitNew}>
+              <div className="tenant-field">
+                <label className="tenant-label">{t("issueTitle")}</label>
+                <input
+                  type="text"
+                  className="tenant-form-input"
+                  placeholder={t("issuePlaceholder")}
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  required
+                  disabled={submitting}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div className="tenant-field">
+                  <label className="tenant-label">{t("category")}</label>
+                  <select
+                    className="tenant-form-select"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    disabled={submitting}
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {t(c.labelKey)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="tenant-field">
+                  <label className="tenant-label">{t("priority")}</label>
+                  <select
+                    className="tenant-form-select"
+                    value={newPriority}
+                    onChange={(e) => setNewPriority(e.target.value)}
+                    disabled={submitting}
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p.value} value={p.value}>
+                        {t(p.descKey)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="tenant-field">
+                <label className="tenant-label">{t("description")}</label>
+                <textarea
+                  className="tenant-form-input"
+                  placeholder={t("descriptionPlaceholder")}
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  rows={4}
+                  style={{ resize: "vertical" }}
+                  disabled={submitting}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 8 }}>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn-md ui-btn-outline"
+                  onClick={closeNewModal}
+                  disabled={submitting}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="ui-btn ui-btn-md ui-btn-primary"
+                  disabled={submitting}
+                >
+                  {submitting ? t("submitting") : t("submitRequestBtn")}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
