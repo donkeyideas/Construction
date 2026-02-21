@@ -231,6 +231,7 @@ async function processEntity(
     "daily_logs", "rfis", "change_orders", "contracts", "safety_incidents",
     "toolbox_talks", "equipment_assignments", "time_entries",
     "safety_inspections", "invoices", "submittals", "phases", "tasks",
+    "project_budget_lines",
   ];
   let projLookup: Record<string, string> = {};
   if (PROJECT_SCOPED.includes(entity)) {

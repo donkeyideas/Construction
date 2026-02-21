@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
       "daily_logs", "rfis", "change_orders", "contracts", "safety_incidents",
       "toolbox_talks", "equipment_assignments", "time_entries",
       "safety_inspections", "invoices", "submittals", "phases", "tasks",
+      "project_budget_lines",
     ];
     let projLookup: Record<string, string> = {};
     // Also index properties by name so project-scoped entities can reference

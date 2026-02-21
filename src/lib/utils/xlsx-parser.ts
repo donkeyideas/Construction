@@ -96,9 +96,13 @@ const DEPENDENCY_ORDER: string[] = [
  * Parse an Excel file buffer into an array of sheet objects.
  * Each sheet contains the sheet name, detected headers, and rows as
  * key-value objects (header -> cell value as string).
+ *
+ * Uses cellDates to properly handle date cells from Excel (which store
+ * dates as serial numbers internally). Without this, dates appear as
+ * numbers like "43904.83333" instead of "2020-03-15".
  */
 export function parseXlsxFile(buffer: ArrayBuffer): ParsedSheet[] {
-  const workbook = XLSX.read(buffer, { type: "array" });
+  const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
   const sheets: ParsedSheet[] = [];
 
   for (const sheetName of workbook.SheetNames) {
@@ -106,7 +110,8 @@ export function parseXlsxFile(buffer: ArrayBuffer): ParsedSheet[] {
     if (!worksheet) continue;
 
     // Convert to array-of-arrays, raw values as strings
-    const raw: string[][] = XLSX.utils.sheet_to_json(worksheet, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const raw: any[][] = XLSX.utils.sheet_to_json(worksheet, {
       header: 1,
       defval: "",
       blankrows: false,
@@ -116,19 +121,19 @@ export function parseXlsxFile(buffer: ArrayBuffer): ParsedSheet[] {
     if (raw.length < 2) continue; // Need at least header + 1 data row
 
     // First row is headers
-    const headers = raw[0].map((h) => normalizeHeader(String(h)));
+    const headers = raw[0].map((h: unknown) => normalizeHeader(String(h)));
     const dataRows = raw.slice(1);
 
     const rows: Record<string, string>[] = [];
     for (const row of dataRows) {
       // Skip entirely empty rows
-      if (row.every((cell) => String(cell).trim() === "")) continue;
+      if (row.every((cell: unknown) => String(cell).trim() === "")) continue;
 
       const record: Record<string, string> = {};
       for (let c = 0; c < headers.length; c++) {
         const key = headers[c];
         if (!key) continue;
-        record[key] = String(row[c] ?? "").trim();
+        record[key] = cellToString(row[c]);
       }
       rows.push(record);
     }
@@ -142,12 +147,43 @@ export function parseXlsxFile(buffer: ArrayBuffer): ParsedSheet[] {
 }
 
 /**
+ * Convert a cell value to a trimmed string.
+ * Handles Date objects (from cellDates: true) by converting to ISO date.
+ */
+function cellToString(val: unknown): string {
+  if (val == null) return "";
+  if (val instanceof Date) {
+    // Convert Date objects to YYYY-MM-DD format
+    const y = val.getFullYear();
+    const m = String(val.getMonth() + 1).padStart(2, "0");
+    const d = String(val.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  return String(val).trim();
+}
+
+/**
  * Map an Excel sheet name to an import entity type.
  * Returns null if the sheet name does not match any known entity.
+ *
+ * Handles numbered prefixes (e.g. "01_chart_of_accounts" -> "chart of accounts")
+ * and underscore/snake_case variants (e.g. "chart_of_accounts" -> "chart of accounts").
  */
 export function mapSheetToEntity(sheetName: string): string | null {
   const normalized = sheetName.trim().toLowerCase();
-  return SHEET_ENTITY_MAP[normalized] ?? null;
+
+  // Direct match
+  if (SHEET_ENTITY_MAP[normalized]) return SHEET_ENTITY_MAP[normalized];
+
+  // Strip numeric prefix like "01_", "02_" etc.
+  const stripped = normalized.replace(/^\d+[_\-.\s]+/, "");
+  if (SHEET_ENTITY_MAP[stripped]) return SHEET_ENTITY_MAP[stripped];
+
+  // Replace underscores with spaces (e.g. "chart_of_accounts" -> "chart of accounts")
+  const spaced = stripped.replace(/_/g, " ");
+  if (SHEET_ENTITY_MAP[spaced]) return SHEET_ENTITY_MAP[spaced];
+
+  return null;
 }
 
 /**
