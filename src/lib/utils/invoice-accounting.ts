@@ -933,7 +933,7 @@ export async function generateRentPaymentJournalEntry(
       payment.gateway_provider.slice(1);
     const clearingName = `${providerLabel} Clearing`;
 
-    const { data: clearingAccount } = await supabase
+    let { data: clearingAccount } = await supabase
       .from("chart_of_accounts")
       .select("id")
       .eq("company_id", companyId)
@@ -941,6 +941,40 @@ export async function generateRentPaymentJournalEntry(
       .eq("is_active", true)
       .limit(1)
       .single();
+
+    // Auto-create clearing account if it doesn't exist yet
+    if (!clearingAccount) {
+      const { data: maxAcct } = await supabase
+        .from("chart_of_accounts")
+        .select("account_number")
+        .eq("company_id", companyId)
+        .gte("account_number", "1050")
+        .lte("account_number", "1099")
+        .order("account_number", { ascending: false })
+        .limit(1)
+        .single();
+
+      const nextNum = maxAcct
+        ? String(parseInt(maxAcct.account_number, 10) + 1)
+        : "1060";
+
+      const { data: newAccount } = await supabase
+        .from("chart_of_accounts")
+        .insert({
+          company_id: companyId,
+          account_number: nextNum,
+          name: clearingName,
+          account_type: "asset",
+          sub_type: "current_asset",
+          is_active: true,
+          description: `Clearing account for ${providerLabel} online payments.`,
+          normal_balance: "debit",
+        })
+        .select("id")
+        .single();
+
+      clearingAccount = newAccount;
+    }
 
     if (clearingAccount) {
       debitAccountId = clearingAccount.id;

@@ -99,6 +99,97 @@ export interface RentPaymentRow {
   late_fee: number | null;
 }
 
+export interface PropertyRentPayment {
+  id: string;
+  amount: number;
+  payment_date: string | null;
+  due_date: string;
+  method: string | null;
+  status: string;
+  gateway_provider: string | null;
+  gateway_session_id: string | null;
+  notes: string | null;
+  created_at: string;
+  tenant_name: string | null;
+  unit_number: string | null;
+  je_id: string | null;
+  je_number: string | null;
+}
+
+/* ---------------------------------------------------------
+   getPropertyRentPayments - All rent payments for a property
+   --------------------------------------------------------- */
+
+export async function getPropertyRentPayments(
+  supabase: SupabaseClient,
+  propertyId: string
+): Promise<PropertyRentPayment[]> {
+  // Get active lease IDs for this property
+  const { data: leases } = await supabase
+    .from("leases")
+    .select("id, tenant_name, units(unit_number)")
+    .eq("property_id", propertyId);
+
+  if (!leases || leases.length === 0) return [];
+
+  const leaseIds = leases.map((l) => l.id);
+  const leaseMap = new Map(
+    leases.map((l) => [
+      l.id,
+      {
+        tenant_name: l.tenant_name as string | null,
+        unit_number: (l.units as unknown as { unit_number: string } | null)?.unit_number ?? null,
+      },
+    ])
+  );
+
+  // Get all rent payments for those leases
+  const { data: payments } = await supabase
+    .from("rent_payments")
+    .select("id, amount, payment_date, due_date, method, status, gateway_provider, gateway_session_id, notes, created_at, lease_id")
+    .in("lease_id", leaseIds)
+    .order("payment_date", { ascending: false });
+
+  if (!payments || payments.length === 0) return [];
+
+  // Find associated journal entries via reference pattern "rent_payment:{id}"
+  const paymentIds = payments.map((p) => `rent_payment:${p.id}`);
+  const { data: journalEntries } = await supabase
+    .from("journal_entries")
+    .select("id, entry_number, reference")
+    .in("reference", paymentIds);
+
+  const jeMap = new Map<string, { id: string; entry_number: string }>();
+  if (journalEntries) {
+    for (const je of journalEntries) {
+      if (je.reference) {
+        jeMap.set(je.reference, { id: je.id, entry_number: je.entry_number });
+      }
+    }
+  }
+
+  return payments.map((p) => {
+    const leaseInfo = leaseMap.get(p.lease_id);
+    const je = jeMap.get(`rent_payment:${p.id}`);
+    return {
+      id: p.id,
+      amount: p.amount,
+      payment_date: p.payment_date,
+      due_date: p.due_date,
+      method: p.method,
+      status: p.status,
+      gateway_provider: p.gateway_provider ?? null,
+      gateway_session_id: p.gateway_session_id ?? null,
+      notes: p.notes ?? null,
+      created_at: p.created_at,
+      tenant_name: leaseInfo?.tenant_name ?? null,
+      unit_number: leaseInfo?.unit_number ?? null,
+      je_id: je?.id ?? null,
+      je_number: je?.entry_number ?? null,
+    };
+  });
+}
+
 /* ---------------------------------------------------------
    getProperties - List all properties with summary stats
    --------------------------------------------------------- */

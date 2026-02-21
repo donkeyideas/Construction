@@ -102,8 +102,8 @@ export async function POST(request: NextRequest) {
         amount,
         description: `Rent Payment — ${propertyName}, Unit ${unitName}`,
         dueDate,
-        successUrl: `${origin}/tenant/payments?success=true`,
-        cancelUrl: `${origin}/tenant/payments?canceled=true`,
+        successUrl: `${origin}/tenant?payment=success`,
+        cancelUrl: `${origin}/tenant?payment=canceled`,
       }
     );
 

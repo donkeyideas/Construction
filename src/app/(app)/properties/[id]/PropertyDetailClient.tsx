@@ -31,6 +31,7 @@ import type {
   MaintenanceRequestRow,
   PropertyFinancials,
   AnnouncementRow,
+  PropertyRentPayment,
 } from "@/lib/queries/properties";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
 
@@ -45,6 +46,7 @@ interface PropertyDetailClientProps {
   maintenanceRequests: MaintenanceRequestRow[];
   financials: PropertyFinancials;
   announcements: AnnouncementRow[];
+  rentPayments: PropertyRentPayment[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -134,7 +136,7 @@ function MaintenanceStatusBadge({ status }: { status: string }) {
 /*  Tab Definitions                                                     */
 /* ------------------------------------------------------------------ */
 
-const TAB_KEYS = ["overview", "units", "leases", "maintenance", "financials", "announcements"] as const;
+const TAB_KEYS = ["overview", "units", "leases", "maintenance", "payments", "financials", "announcements"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
 /* ------------------------------------------------------------------ */
@@ -148,6 +150,7 @@ export default function PropertyDetailClient({
   maintenanceRequests,
   financials,
   announcements,
+  rentPayments,
 }: PropertyDetailClientProps) {
   const t = useTranslations("app");
   const locale = useLocale();
@@ -341,6 +344,7 @@ export default function PropertyDetailClient({
     { key: "units" as TabKey, label: t("propTabUnitsCount", { count: units.length }) },
     { key: "leases" as TabKey, label: t("propTabLeasesCount", { count: leases.length }) },
     { key: "maintenance" as TabKey, label: t("propTabMaintenanceCount", { count: maintenanceRequests.length }) },
+    { key: "payments" as TabKey, label: t("propTabPaymentsCount", { count: rentPayments.length }) },
     { key: "financials" as TabKey, label: t("propTabFinancials") },
     { key: "announcements" as TabKey, label: t("propTabAnnouncementsCount", { count: announcements.length }) },
   ];
@@ -457,6 +461,10 @@ export default function PropertyDetailClient({
             setMaintEditMode(false);
           }}
         />
+      )}
+
+      {activeTab === "payments" && (
+        <PaymentsTabContent payments={rentPayments} />
       )}
 
       {activeTab === "financials" && (
@@ -1917,6 +1925,133 @@ interface PaymentMethodItem {
   recipient_info: string | null;
   is_enabled: boolean;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Payments Tab                                                       */
+/* ------------------------------------------------------------------ */
+
+function PaymentsTabContent({ payments }: { payments: PropertyRentPayment[] }) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const totalReceived = payments
+    .filter((p) => p.status === "paid")
+    .reduce((sum, p) => sum + p.amount, 0);
+
+  const paidCount = payments.filter((p) => p.status === "paid").length;
+
+  function getStatusBadge(status: string) {
+    switch (status) {
+      case "paid": return "badge badge-green";
+      case "pending": return "badge badge-amber";
+      case "overdue": case "late": case "failed": return "badge badge-red";
+      default: return "badge badge-blue";
+    }
+  }
+
+  function getMethodLabel(method: string | null, provider: string | null) {
+    if (method === "online" && provider) {
+      return `Online (${provider.charAt(0).toUpperCase() + provider.slice(1)})`;
+    }
+    if (method) {
+      return method.charAt(0).toUpperCase() + method.slice(1);
+    }
+    return "--";
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Summary cards */}
+      <div className="property-stats-grid">
+        <div className="stat-card">
+          <span className="stat-label">{t("totalReceived")}</span>
+          <span className="stat-value" style={{ color: "var(--color-green)" }}>
+            {formatCurrency(totalReceived)}
+          </span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">{t("paymentCount")}</span>
+          <span className="stat-value">{paidCount}</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">{t("totalTransactions")}</span>
+          <span className="stat-value">{payments.length}</span>
+        </div>
+      </div>
+
+      {/* Payments table */}
+      {payments.length > 0 ? (
+        <div className="card" style={{ padding: 0 }}>
+          <div style={{ overflowX: "auto" }}>
+            <table className="invoice-table">
+              <thead>
+                <tr>
+                  <th>{t("thDate")}</th>
+                  <th>{t("tenant")}</th>
+                  <th>{t("unit")}</th>
+                  <th style={{ textAlign: "right" }}>{t("thAmount")}</th>
+                  <th>{t("thStatus")}</th>
+                  <th>{t("thMethod")}</th>
+                  <th>{t("journalEntry")}</th>
+                  <th>{t("notes")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      {p.payment_date
+                        ? new Date(p.payment_date).toLocaleDateString(dateLocale, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : "--"}
+                    </td>
+                    <td>{p.tenant_name || "--"}</td>
+                    <td>{p.unit_number || "--"}</td>
+                    <td className="amount-col">{formatCurrency(p.amount)}</td>
+                    <td>
+                      <span className={getStatusBadge(p.status)}>{p.status}</span>
+                    </td>
+                    <td>{getMethodLabel(p.method, p.gateway_provider)}</td>
+                    <td>
+                      {p.je_number ? (
+                        <span className="badge badge-blue">{p.je_number}</span>
+                      ) : (
+                        <span style={{ color: "var(--muted)", fontSize: "0.82rem" }}>--</span>
+                      )}
+                    </td>
+                    <td style={{ fontSize: "0.82rem", color: "var(--muted)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {p.notes || "--"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="card">
+          <div style={{ textAlign: "center", padding: "40px 20px" }}>
+            <CreditCard size={48} style={{ color: "var(--muted)", marginBottom: 12 }} />
+            <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: 4 }}>
+              {t("noPaymentsReceived")}
+            </div>
+            <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
+              {t("noPaymentsReceivedDesc")}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Financials Tab                                                     */
+/* ------------------------------------------------------------------ */
 
 function FinancialsTabContent({
   financials,

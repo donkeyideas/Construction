@@ -59,8 +59,10 @@ function statusLabel(status: string): string {
 
 export default function TenantDashboardClient({
   dashboard,
+  paymentStatus,
 }: {
   dashboard: TenantDashboard;
+  paymentStatus?: "success" | "canceled";
 }) {
   const t = useTranslations("tenant");
   const locale = useLocale();
@@ -267,6 +269,48 @@ export default function TenantDashboardClient({
 
   return (
     <div>
+      {/* Payment result banners */}
+      {paymentStatus === "success" && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "12px 16px",
+            marginBottom: 16,
+            borderRadius: 8,
+            background: "color-mix(in srgb, var(--color-green) 10%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--color-green) 25%, transparent)",
+            color: "var(--color-green)",
+            fontSize: "0.88rem",
+            fontWeight: 500,
+          }}
+        >
+          <Check size={18} />
+          {t("paymentSuccessBanner")}
+        </div>
+      )}
+      {paymentStatus === "canceled" && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "12px 16px",
+            marginBottom: 16,
+            borderRadius: 8,
+            background: "color-mix(in srgb, #fbbf24 10%, transparent)",
+            border: "1px solid color-mix(in srgb, #fbbf24 25%, transparent)",
+            color: "#fbbf24",
+            fontSize: "0.88rem",
+            fontWeight: 500,
+          }}
+        >
+          <X size={18} />
+          {t("paymentCanceledBanner")}
+        </div>
+      )}
+
       {/* Welcome Banner */}
       <div className="tenant-welcome">
         <h2>{t("welcomeName", { name: dashboard.fullName ?? t("defaultTenant") })}</h2>
