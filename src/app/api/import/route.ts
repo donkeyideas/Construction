@@ -45,6 +45,7 @@ const ALLOWED_ENTITIES = [
   "phases",
   "tasks",
   "property_expenses",
+  "estimates",
 ] as const;
 
 type AllowedEntity = (typeof ALLOWED_ENTITIES)[number];
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
       "daily_logs", "rfis", "change_orders", "contracts", "safety_incidents",
       "toolbox_talks", "equipment_assignments", "time_entries",
       "safety_inspections", "invoices", "submittals", "phases", "tasks",
-      "project_budget_lines",
+      "project_budget_lines", "estimates",
     ];
     let projLookup: Record<string, string> = {};
     // Also index properties by name so project-scoped entities can reference
@@ -247,20 +248,18 @@ export async function POST(request: NextRequest) {
       }
 
       case "project_budget_lines": {
-        const projectId = body.project_id as string;
-        if (!projectId) {
-          return NextResponse.json(
-            { error: "project_id is required for budget line import" },
-            { status: 400 }
-          );
-        }
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          const pid = (await resolveProjectId(r)) || body.project_id;
+          if (!pid) {
+            errors.push(`Row ${i + 2}: could not resolve project`);
+            continue;
+          }
           const { error } = await supabase
             .from("project_budget_lines")
             .insert({
               company_id: companyId,
-              project_id: projectId,
+              project_id: pid,
               csi_code: r.csi_code || "",
               description: r.description || "",
               budgeted_amount: parseFloat(r.budgeted_amount) || 0,
@@ -1278,50 +1277,37 @@ export async function POST(request: NextRequest) {
       }
 
       case "phases": {
-        // CSV project_name takes priority over body picker (current Gantt tab)
-        const projId = (rows[0] ? await resolveProjectId(rows[0]) : null) || body.project_id;
-        if (!projId) {
-          return NextResponse.json(
-            { error: "project_id is required for phases import (select a project or include project_name in CSV)" },
-            { status: 400 }
-          );
-        }
-        // Verify project belongs to company
-        const { data: projCheck } = await supabase
-          .from("projects")
-          .select("id")
-          .eq("id", projId)
-          .eq("company_id", companyId)
-          .single();
-        if (!projCheck) {
-          return NextResponse.json(
-            { error: "Project not found or not in your company" },
-            { status: 404 }
-          );
-        }
-        // Get current max sort_order
-        const { data: existingPhases } = await supabase
-          .from("project_phases")
-          .select("sort_order")
-          .eq("project_id", projId)
-          .order("sort_order", { ascending: false })
-          .limit(1);
-        let nextSort = (existingPhases?.[0]?.sort_order ?? -1) + 1;
+        // Per-row project resolution for multi-project CSVs
+        const phaseSortMap: Record<string, number> = {};
 
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          const pid = (await resolveProjectId(r)) || body.project_id;
+          if (!pid) {
+            errors.push(`Row ${i + 2}: could not resolve project`);
+            continue;
+          }
           if (!r.name) {
             errors.push(`Row ${i + 2}: name is required`);
             continue;
           }
+          if (phaseSortMap[pid] === undefined) {
+            const { data: ex } = await supabase
+              .from("project_phases")
+              .select("sort_order")
+              .eq("project_id", pid)
+              .order("sort_order", { ascending: false })
+              .limit(1);
+            phaseSortMap[pid] = (ex?.[0]?.sort_order ?? -1) + 1;
+          }
           const { error } = await supabase.from("project_phases").insert({
             company_id: companyId,
-            project_id: projId,
+            project_id: pid,
             name: r.name.trim(),
             color: r.color || null,
             start_date: r.start_date || null,
             end_date: r.end_date || null,
-            sort_order: nextSort++,
+            sort_order: phaseSortMap[pid]++,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
@@ -1333,94 +1319,95 @@ export async function POST(request: NextRequest) {
       }
 
       case "tasks": {
-        // CSV project_name takes priority over body picker (current Gantt tab)
-        const taskProjId = (rows[0] ? await resolveProjectId(rows[0]) : null) || body.project_id;
-        if (!taskProjId) {
-          return NextResponse.json(
-            { error: "project_id is required for tasks import (select a project or include project_name in CSV)" },
-            { status: 400 }
-          );
-        }
-        // Verify project belongs to company
-        const { data: taskProjCheck } = await supabase
-          .from("projects")
-          .select("id")
-          .eq("id", taskProjId)
-          .eq("company_id", companyId)
-          .single();
-        if (!taskProjCheck) {
-          return NextResponse.json(
-            { error: "Project not found or not in your company" },
-            { status: 404 }
-          );
-        }
-        // Fetch phases for this project to resolve phase_name → phase_id
-        const { data: projPhases } = await supabase
-          .from("project_phases")
-          .select("id, name")
-          .eq("project_id", taskProjId)
-          .eq("company_id", companyId);
-        const phaseLookup = (projPhases || []).reduce((acc, p) => {
-          acc[p.name.trim().toLowerCase()] = p.id;
-          return acc;
-        }, {} as Record<string, string>);
-
-        // Get current max sort_order for tasks
-        const { data: existingTasks } = await supabase
-          .from("project_tasks")
-          .select("sort_order")
-          .eq("project_id", taskProjId)
-          .order("sort_order", { ascending: false })
-          .limit(1);
-        let taskNextSort = (existingTasks?.[0]?.sort_order ?? -1) + 1;
-
-        // Get current max sort_order for phases (in case we auto-create)
-        const { data: existingPhaseSort } = await supabase
-          .from("project_phases")
-          .select("sort_order")
-          .eq("project_id", taskProjId)
-          .order("sort_order", { ascending: false })
-          .limit(1);
-        let phaseNextSort = (existingPhaseSort?.[0]?.sort_order ?? -1) + 1;
-
+        // Per-project phase lookups and sort counters for multi-project CSVs
+        const taskPhaseLookup: Record<string, Record<string, string>> = {};
+        const taskSortMap: Record<string, number> = {};
+        const taskPhaseSortMap: Record<string, number> = {};
         const validPriorities = ["low", "medium", "high", "critical"];
+
+        async function getCsvPhaseLookup(pid: string) {
+          if (!taskPhaseLookup[pid]) {
+            const { data } = await supabase
+              .from("project_phases")
+              .select("id, name")
+              .eq("project_id", pid)
+              .eq("company_id", companyId);
+            taskPhaseLookup[pid] = (data || []).reduce(
+              (acc: Record<string, string>, p: { id: string; name: string }) => {
+                acc[p.name.trim().toLowerCase()] = p.id;
+                return acc;
+              },
+              {} as Record<string, string>
+            );
+          }
+          return taskPhaseLookup[pid];
+        }
+
+        async function getCsvTaskSort(pid: string) {
+          if (taskSortMap[pid] === undefined) {
+            const { data } = await supabase
+              .from("project_tasks")
+              .select("sort_order")
+              .eq("project_id", pid)
+              .order("sort_order", { ascending: false })
+              .limit(1);
+            taskSortMap[pid] = (data?.[0]?.sort_order ?? -1) + 1;
+          }
+          return taskSortMap[pid]++;
+        }
+
+        async function getCsvPhaseSort(pid: string) {
+          if (taskPhaseSortMap[pid] === undefined) {
+            const { data } = await supabase
+              .from("project_phases")
+              .select("sort_order")
+              .eq("project_id", pid)
+              .order("sort_order", { ascending: false })
+              .limit(1);
+            taskPhaseSortMap[pid] = (data?.[0]?.sort_order ?? -1) + 1;
+          }
+          return taskPhaseSortMap[pid]++;
+        }
 
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          const pid = (await resolveProjectId(r)) || body.project_id;
+          if (!pid) {
+            errors.push(`Row ${i + 2}: could not resolve project`);
+            continue;
+          }
           if (!r.name) {
             errors.push(`Row ${i + 2}: name is required`);
             continue;
           }
-          // Resolve phase_id from phase_name if not a UUID
+          const phases = await getCsvPhaseLookup(pid);
           let phaseId = r.phase_id || null;
           if (!phaseId && r.phase_name) {
-            phaseId = phaseLookup[r.phase_name.trim().toLowerCase()] || null;
-            // Auto-create phase if not found
+            phaseId = phases[r.phase_name.trim().toLowerCase()] || null;
             if (!phaseId) {
-              const { data: newPhase, error: phaseErr } = await supabase
+              const { data: newPhase } = await supabase
                 .from("project_phases")
                 .insert({
                   company_id: companyId,
-                  project_id: taskProjId,
+                  project_id: pid,
                   name: r.phase_name.trim(),
-                  sort_order: phaseNextSort++,
+                  sort_order: await getCsvPhaseSort(pid),
                 })
                 .select("id")
                 .single();
               if (newPhase) {
                 phaseId = newPhase.id;
-                phaseLookup[r.phase_name.trim().toLowerCase()] = newPhase.id;
-              } else {
-                errors.push(`Row ${i + 2}: failed to create phase "${r.phase_name}" — ${phaseErr?.message}`);
+                phases[r.phase_name.trim().toLowerCase()] = newPhase.id;
               }
             }
           }
-          const priority = r.priority && validPriorities.includes(r.priority.toLowerCase())
-            ? r.priority.toLowerCase()
-            : "medium";
+          const priority =
+            r.priority && validPriorities.includes(r.priority.toLowerCase())
+              ? r.priority.toLowerCase()
+              : "medium";
           const { error } = await supabase.from("project_tasks").insert({
             company_id: companyId,
-            project_id: taskProjId,
+            project_id: pid,
             phase_id: phaseId,
             name: r.name.trim(),
             status: r.status || "not_started",
@@ -1428,15 +1415,18 @@ export async function POST(request: NextRequest) {
             start_date: r.start_date || null,
             end_date: r.end_date || null,
             completion_pct: r.completion_pct ? parseFloat(r.completion_pct) : 0,
-            is_milestone: r.is_milestone === "true" || r.is_milestone === "1" || r.is_milestone === "yes",
-            is_critical_path: r.is_critical_path === "true" || r.is_critical_path === "1" || r.is_critical_path === "yes",
-            sort_order: taskNextSort++,
+            is_milestone:
+              r.is_milestone === "true" ||
+              r.is_milestone === "1" ||
+              r.is_milestone === "yes",
+            is_critical_path:
+              r.is_critical_path === "true" ||
+              r.is_critical_path === "1" ||
+              r.is_critical_path === "yes",
+            sort_order: await getCsvTaskSort(pid),
           });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
+          if (error) errors.push(`Row ${i + 2}: ${error.message}`);
+          else successCount++;
         }
         break;
       }
@@ -1495,6 +1485,31 @@ export async function POST(request: NextRequest) {
           } else {
             successCount++;
           }
+        }
+        break;
+      }
+
+      case "estimates": {
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          const estNum = r.estimate_number || `EST-${String(i + 1).padStart(4, "0")}`;
+          const { error } = await supabase.from("estimates").insert({
+            company_id: companyId,
+            project_id: await resolveProjectId(r),
+            estimate_number: estNum,
+            title: r.title || "",
+            description: r.description || null,
+            status: r.status || "draft",
+            total_cost: r.total_cost ? parseFloat(r.total_cost) : 0,
+            total_price: r.total_price ? parseFloat(r.total_price) : 0,
+            margin_pct: r.margin_pct ? parseFloat(r.margin_pct) : 0,
+            overhead_pct: r.overhead_pct ? parseFloat(r.overhead_pct) : 10,
+            profit_pct: r.profit_pct ? parseFloat(r.profit_pct) : 10,
+            notes: r.notes || null,
+            created_by: userId,
+          });
+          if (error) errors.push(`Row ${i + 2}: ${error.message}`);
+          else successCount++;
         }
         break;
       }

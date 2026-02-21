@@ -1,0 +1,21 @@
+property_name,expense_type,description,amount,frequency,effective_date,end_date,vendor_name,notes
+Meridian Office Park,property_tax,Annual Property Tax Assessment,142000,annual,2025-01-01,2025-12-31,Harris County Tax Office,Commercial property tax
+Meridian Office Park,insurance,Commercial Property Insurance,28500,annual,2025-01-01,2025-12-31,State Farm Commercial,Full replacement value coverage
+Meridian Office Park,cam,Common Area Maintenance,4200,monthly,2025-01-01,,ABC Maintenance Services,Landscaping janitorial and common area upkeep
+Meridian Office Park,utilities,Water & Sewer Service,1850,monthly,2025-01-01,,City of Houston Utilities,Building water and sewer
+Meridian Office Park,management_fee,Property Management Fee,6100,monthly,2025-01-01,,Meridian Property Management,5% of gross revenue
+Harbor View Apartments,property_tax,Annual Property Tax,98000,annual,2025-01-01,2025-12-31,Galveston County Tax Office,Residential complex tax
+Harbor View Apartments,insurance,Property & Liability Insurance,22400,annual,2025-01-01,2025-12-31,Allstate Commercial,Wind and flood coverage included
+Harbor View Apartments,utilities,Common Area Electricity,3200,monthly,2025-01-01,,CenterPoint Energy,Hallway lighting elevator and amenity power
+Harbor View Apartments,cam,Pool & Amenity Maintenance,2800,monthly,2025-01-01,,Coastal Pool Services,Pool maintenance gym equipment and amenity center
+Harbor View Apartments,management_fee,Property Management Fee,4650,monthly,2025-01-01,,Meridian Property Management,6% of gross revenue
+Riverside Retail Center,property_tax,Annual Property Tax,72000,annual,2025-01-01,2025-12-31,Bexar County Tax Office,Commercial retail property tax
+Riverside Retail Center,insurance,Commercial Insurance,18200,annual,2025-01-01,2025-12-31,Liberty Mutual,General liability and property coverage
+Riverside Retail Center,cam,Common Area Maintenance,3500,monthly,2025-01-01,,SA Facility Management,Parking lot landscaping and signage maintenance
+Riverside Retail Center,utilities,Water & Common Electric,1400,monthly,2025-01-01,,CPS Energy,Common area utilities
+Riverside Retail Center,marketing,Tenant Marketing Fund,1200,monthly,2025-01-01,,Retail Marketing Co,Shared marketing and advertising
+Lakeview Industrial Park,property_tax,Annual Property Tax,118000,annual,2025-01-01,2025-12-31,Travis County Tax Office,Industrial property tax
+Lakeview Industrial Park,insurance,Industrial Property Insurance,32000,annual,2025-01-01,2025-12-31,Hartford Commercial,Environmental liability included
+Lakeview Industrial Park,cam,Grounds & Security,5500,monthly,2025-01-01,,SecureGuard Services,24/7 security and grounds maintenance
+Lakeview Industrial Park,utilities,Water & Sewer,2100,monthly,2025-01-01,,Austin Water,Industrial water service
+Lakeview Industrial Park,capital_expense,Loading Dock Resurfacing,45000,one_time,2025-03-15,,Texas Paving Co,Dock areas 1-3 resurfacing project

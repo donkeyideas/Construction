@@ -231,7 +231,7 @@ async function processEntity(
     "daily_logs", "rfis", "change_orders", "contracts", "safety_incidents",
     "toolbox_talks", "equipment_assignments", "time_entries",
     "safety_inspections", "invoices", "submittals", "phases", "tasks",
-    "project_budget_lines",
+    "project_budget_lines", "estimates",
   ];
   let projLookup: Record<string, string> = {};
   if (PROJECT_SCOPED.includes(entity)) {
@@ -667,63 +667,85 @@ async function processEntity(
     }
 
     case "tasks": {
-      const taskProjId = rows[0] ? resolveProjectId(rows[0]) : null;
-      if (!taskProjId) {
-        errors.push("project_name or project_id required for tasks import");
-        break;
-      }
-      // Fetch phases for phase_name resolution
-      const { data: projPhases } = await supabase
-        .from("project_phases")
-        .select("id, name")
-        .eq("project_id", taskProjId)
-        .eq("company_id", companyId);
-      const phaseLookup = (projPhases || []).reduce(
-        (acc: Record<string, string>, p: { id: string; name: string }) => {
-          acc[p.name.trim().toLowerCase()] = p.id;
-          return acc;
-        },
-        {} as Record<string, string>
-      );
-      const { data: existingTasks } = await supabase
-        .from("project_tasks")
-        .select("sort_order")
-        .eq("project_id", taskProjId)
-        .order("sort_order", { ascending: false })
-        .limit(1);
-      let taskNextSort = (existingTasks?.[0]?.sort_order ?? -1) + 1;
-      const { data: existingPhaseSort } = await supabase
-        .from("project_phases")
-        .select("sort_order")
-        .eq("project_id", taskProjId)
-        .order("sort_order", { ascending: false })
-        .limit(1);
-      let phaseNextSort = (existingPhaseSort?.[0]?.sort_order ?? -1) + 1;
+      // Per-project phase lookups and sort counters
+      const taskPhaseLookup: Record<string, Record<string, string>> = {};
+      const taskSortMap: Record<string, number> = {};
+      const taskPhaseSortMap: Record<string, number> = {};
       const validPriorities = ["low", "medium", "high", "critical"];
+
+      async function getPhaseLookup(pid: string) {
+        if (!taskPhaseLookup[pid]) {
+          const { data } = await supabase
+            .from("project_phases")
+            .select("id, name")
+            .eq("project_id", pid)
+            .eq("company_id", companyId);
+          taskPhaseLookup[pid] = (data || []).reduce(
+            (acc: Record<string, string>, p: { id: string; name: string }) => {
+              acc[p.name.trim().toLowerCase()] = p.id;
+              return acc;
+            },
+            {} as Record<string, string>
+          );
+        }
+        return taskPhaseLookup[pid];
+      }
+
+      async function getTaskSort(pid: string) {
+        if (taskSortMap[pid] === undefined) {
+          const { data } = await supabase
+            .from("project_tasks")
+            .select("sort_order")
+            .eq("project_id", pid)
+            .order("sort_order", { ascending: false })
+            .limit(1);
+          taskSortMap[pid] = (data?.[0]?.sort_order ?? -1) + 1;
+        }
+        return taskSortMap[pid]++;
+      }
+
+      async function getPhaseSort(pid: string) {
+        if (taskPhaseSortMap[pid] === undefined) {
+          const { data } = await supabase
+            .from("project_phases")
+            .select("sort_order")
+            .eq("project_id", pid)
+            .order("sort_order", { ascending: false })
+            .limit(1);
+          taskPhaseSortMap[pid] = (data?.[0]?.sort_order ?? -1) + 1;
+        }
+        return taskPhaseSortMap[pid]++;
+      }
 
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
+        const pid = resolveProjectId(r);
+        if (!pid) {
+          errors.push(`Row ${i + 2}: could not resolve project`);
+          continue;
+        }
         if (!r.name) {
           errors.push(`Row ${i + 2}: name is required`);
           continue;
         }
+        const phases = await getPhaseLookup(pid);
         let phaseId = r.phase_id || null;
         if (!phaseId && r.phase_name) {
-          phaseId = phaseLookup[r.phase_name.trim().toLowerCase()] || null;
+          phaseId = phases[r.phase_name.trim().toLowerCase()] || null;
           if (!phaseId) {
             const { data: newPhase } = await supabase
               .from("project_phases")
               .insert({
                 company_id: companyId,
-                project_id: taskProjId,
+                project_id: pid,
                 name: r.phase_name.trim(),
-                sort_order: phaseNextSort++,
+                sort_order: await getPhaseSort(pid),
               })
               .select("id")
               .single();
             if (newPhase) {
               phaseId = newPhase.id;
-              phaseLookup[r.phase_name.trim().toLowerCase()] = newPhase.id;
+              phases[r.phase_name.trim().toLowerCase()] = newPhase.id;
             }
           }
         }
@@ -733,7 +755,7 @@ async function processEntity(
             : "medium";
         const { error } = await supabase.from("project_tasks").insert({
           company_id: companyId,
-          project_id: taskProjId,
+          project_id: pid,
           phase_id: phaseId,
           name: r.name.trim(),
           status: r.status || "not_started",
@@ -749,7 +771,7 @@ async function processEntity(
             r.is_critical_path === "true" ||
             r.is_critical_path === "1" ||
             r.is_critical_path === "yes",
-          sort_order: taskNextSort++,
+          sort_order: await getTaskSort(pid),
         });
         if (error) errors.push(`Row ${i + 2}: ${error.message}`);
         else successCount++;
@@ -758,19 +780,16 @@ async function processEntity(
     }
 
     case "project_budget_lines": {
-      // Budget lines need a project — resolve from first row
-      const budgetProjId = rows[0] ? resolveProjectId(rows[0]) : null;
-      if (!budgetProjId) {
-        errors.push(
-          "project_name or project_id required for budget import"
-        );
-        break;
-      }
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
+        const pid = resolveProjectId(r);
+        if (!pid) {
+          errors.push(`Row ${i + 2}: could not resolve project`);
+          continue;
+        }
         const { error } = await supabase.from("project_budget_lines").insert({
           company_id: companyId,
-          project_id: budgetProjId,
+          project_id: pid,
           csi_code: r.csi_code || "",
           description: r.description || "",
           budgeted_amount: parseFloat(r.budgeted_amount) || 0,
@@ -876,33 +895,37 @@ async function processEntity(
     }
 
     case "phases": {
-      const phasesProjId = rows[0] ? resolveProjectId(rows[0]) : null;
-      if (!phasesProjId) {
-        errors.push("project_name or project_id required for phases import");
-        break;
-      }
-      const { data: existingPhases } = await supabase
-        .from("project_phases")
-        .select("sort_order")
-        .eq("project_id", phasesProjId)
-        .order("sort_order", { ascending: false })
-        .limit(1);
-      let nextSort = (existingPhases?.[0]?.sort_order ?? -1) + 1;
+      // Track sort_order per project
+      const phaseSortMap: Record<string, number> = {};
 
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
+        const pid = resolveProjectId(r);
+        if (!pid) {
+          errors.push(`Row ${i + 2}: could not resolve project`);
+          continue;
+        }
         if (!r.name) {
           errors.push(`Row ${i + 2}: name is required`);
           continue;
         }
+        if (phaseSortMap[pid] === undefined) {
+          const { data: ex } = await supabase
+            .from("project_phases")
+            .select("sort_order")
+            .eq("project_id", pid)
+            .order("sort_order", { ascending: false })
+            .limit(1);
+          phaseSortMap[pid] = (ex?.[0]?.sort_order ?? -1) + 1;
+        }
         const { error } = await supabase.from("project_phases").insert({
           company_id: companyId,
-          project_id: phasesProjId,
+          project_id: pid,
           name: r.name.trim(),
           color: r.color || null,
           start_date: r.start_date || null,
           end_date: r.end_date || null,
-          sort_order: nextSort++,
+          sort_order: phaseSortMap[pid]++,
         });
         if (error) errors.push(`Row ${i + 2}: ${error.message}`);
         else successCount++;
@@ -1315,6 +1338,75 @@ async function processEntity(
           due_date: r.due_date || null,
           submitted_by: userId,
           status: r.status || "pending",
+        });
+        if (error) errors.push(`Row ${i + 2}: ${error.message}`);
+        else successCount++;
+      }
+      break;
+    }
+
+    case "property_expenses": {
+      const { data: expProps } = await supabase
+        .from("properties")
+        .select("id, name")
+        .eq("company_id", companyId);
+      const expPropLookup = (expProps || []).reduce(
+        (acc: Record<string, string>, p: { id: string; name: string }) => {
+          acc[p.name.trim().toLowerCase()] = p.id;
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        let propertyId = r.property_id || null;
+        if (!propertyId && r.property_name) {
+          propertyId = expPropLookup[r.property_name.trim().toLowerCase()] || null;
+        }
+        if (!propertyId && expProps && expProps.length > 0) {
+          propertyId = expProps[0].id;
+        }
+        if (!propertyId) {
+          errors.push(`Row ${i + 2}: No property found`);
+          continue;
+        }
+        const { error } = await supabase.from("property_expenses").insert({
+          company_id: companyId,
+          property_id: propertyId,
+          expense_type: r.expense_type || "other",
+          description: r.description || null,
+          amount: r.amount ? parseFloat(r.amount) : 0,
+          frequency: r.frequency || "monthly",
+          effective_date: r.effective_date || null,
+          end_date: r.end_date || null,
+          vendor_name: r.vendor_name || null,
+          notes: r.notes || null,
+        });
+        if (error) errors.push(`Row ${i + 2}: ${error.message}`);
+        else successCount++;
+      }
+      break;
+    }
+
+    case "estimates": {
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const estNum = r.estimate_number || `EST-${String(i + 1).padStart(4, "0")}`;
+        const { error } = await supabase.from("estimates").insert({
+          company_id: companyId,
+          project_id: resolveProjectId(r),
+          estimate_number: estNum,
+          title: r.title || "",
+          description: r.description || null,
+          status: r.status || "draft",
+          total_cost: r.total_cost ? parseFloat(r.total_cost) : 0,
+          total_price: r.total_price ? parseFloat(r.total_price) : 0,
+          margin_pct: r.margin_pct ? parseFloat(r.margin_pct) : 0,
+          overhead_pct: r.overhead_pct ? parseFloat(r.overhead_pct) : 10,
+          profit_pct: r.profit_pct ? parseFloat(r.profit_pct) : 10,
+          notes: r.notes || null,
+          created_by: userId,
         });
         if (error) errors.push(`Row ${i + 2}: ${error.message}`);
         else successCount++;

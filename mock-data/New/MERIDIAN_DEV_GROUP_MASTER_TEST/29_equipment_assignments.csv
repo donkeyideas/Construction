@@ -1,0 +1,16 @@
+equipment_name,project_name,assigned_to,assigned_date,return_date,notes,status
+CAT D6T Dozer,Downtown Convention Center,Mike Rodriguez,2024-02-15,,Site grading and excavation work,active
+John Deere 644K Loader,Downtown Convention Center,Carlos Mendez,2024-03-01,,Material handling and backfill operations,active
+Volvo EC250E Excavator,Downtown Convention Center,James Wilson,2024-02-20,,Foundation excavation and utility trenching,active
+Ford F-350 Crew Cab 1,Downtown Convention Center,Site Superintendent,2024-02-01,,Project vehicle for superintendent,active
+Ford F-350 Crew Cab 2,Downtown Convention Center,Safety Manager,2024-02-01,,Safety inspection vehicle,active
+Portable Generator 100kW,Downtown Convention Center,Electrical Crew,2024-04-01,,Temporary power for construction operations,active
+CAT 320F Excavator,Waterfront Mixed-Use Tower,David Kim,2025-06-15,,Deep foundation pile driving support,active
+Liebherr LTM 1100 Crane,Waterfront Mixed-Use Tower,Crane Operator Team,2025-07-01,,Tower crane support and heavy lifts,active
+Concrete Pump Truck,Downtown Convention Center,Concrete Crew,2024-08-01,,Elevated slab concrete placement,active
+CAT 320F Excavator,Highway Bridge Rehabilitation,Tom Jackson,2020-03-20,2022-06-15,Bridge pier excavation,returned
+Komatsu PC200 Excavator,Highway Bridge Rehabilitation,Bridge Crew,2020-04-01,2022-06-15,Channel diversion and cofferdam work,returned
+CAT 415F2 Backhoe,Meridian Medical Center,Site Crew,2021-02-01,2023-08-30,Utility installation and grading,returned
+Skyjack SJ6832RT Scissor Lift,Meridian Medical Center,Interior Crew,2022-06-01,2023-09-10,MEP installation at height,returned
+Skyjack SJ6832RT Scissor Lift,Downtown Convention Center,Interior Crew,2025-01-15,,MEP rough-in at elevated areas,active
+CAT 415F2 Backhoe,Shoreline Residences Phase I,Utility Crew,2022-04-15,2024-03-15,Underground utility work,returned

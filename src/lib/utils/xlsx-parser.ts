@@ -50,6 +50,8 @@ const SHEET_ENTITY_MAP: Record<string, string> = {
   "submittals": "submittals",
   "properties": "properties",
   "phases": "phases",
+  "property expenses": "property_expenses",
+  "estimates": "estimates",
 };
 
 // ---------------------------------------------------------------------------
@@ -86,6 +88,8 @@ const DEPENDENCY_ORDER: string[] = [
   "equipment_maintenance",
   "submittals",
   "tasks",
+  "property_expenses",
+  "estimates",
 ];
 
 // ---------------------------------------------------------------------------

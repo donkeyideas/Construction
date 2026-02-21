@@ -1,0 +1,11 @@
+estimate_number,title,description,status,total_cost,total_price,margin_pct,overhead_pct,profit_pct,project_name,notes
+EST-0001,Convention Center Base Bid,Complete convention center construction base bid estimate,approved,62500000,75000000,16.67,12,10,Downtown Convention Center,Awarded - base contract
+EST-0002,Convention Center MEP Alternate,Alternate MEP systems with enhanced HVAC controls,approved,18200000,22750000,20,12,10,Downtown Convention Center,Value engineering alternate accepted
+EST-0003,Waterfront Tower Structural Package,Core and shell structural estimate for 42-story tower,approved,48000000,60000000,20,15,10,Waterfront Mixed-Use Tower,Phase 1 structural package
+EST-0004,Waterfront Tower Interior Fit-Out,Residential and commercial interior buildout estimate,in_review,38500000,50050000,23.08,15,12,Waterfront Mixed-Use Tower,Phase 2 interiors pending review
+EST-0005,Airport Terminal Concourse A,New concourse A with 6 gates and passenger amenities,draft,42000000,52500000,20,12,10,Regional Airport Terminal Expansion,Preliminary estimate for bid
+EST-0006,Airport Terminal Baggage System,Automated baggage handling system estimate,draft,18500000,24050000,23.08,15,10,Regional Airport Terminal Expansion,Specialty subcontractor pricing pending
+EST-0007,Bridge Deck Replacement,Full deck replacement with traffic management,approved,12800000,17280000,25.93,12,8,Highway Bridge Rehabilitation,Final as-built estimate
+EST-0008,Medical Center Surgical Wing,Surgical suites and sterile environment buildout,approved,15200000,19760000,23.08,15,10,Meridian Medical Center,Specialty medical construction
+EST-0009,Shoreline Amenity Center,Pool deck clubhouse and fitness center,approved,4800000,6240000,23.08,12,10,Shoreline Residences Phase I,Amenity package estimate
+EST-0010,Convention Center AV Package,Audio visual and communications systems,in_review,3200000,4160000,23.08,12,10,Downtown Convention Center,Technology package for all halls
