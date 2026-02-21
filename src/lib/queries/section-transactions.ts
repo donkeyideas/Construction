@@ -15,6 +15,8 @@ export interface SectionTransaction {
   credit: number;
   jeNumber: string | null;
   jeId: string | null;
+  /** When false, this transaction type doesn't generate JEs (e.g. contracts, RFIs) */
+  jeExpected?: boolean;
 }
 
 export interface SectionTransactionSummary {
@@ -206,7 +208,7 @@ export async function getProjectTransactions(
       id: `contract-${c.id}`, date: c.start_date ?? new Date().toISOString().split("T")[0],
       description: `${c.contract_number ?? c.title ?? "Contract"}${projectName ? ` (${projectName})` : ""}`,
       reference: c.contract_number ?? "", source: "Contracts", sourceHref: "/projects/contracts",
-      debit: amount, credit: 0, jeNumber: null, jeId: null,
+      debit: amount, credit: 0, jeNumber: null, jeId: null, jeExpected: false,
     });
   }
 
@@ -217,7 +219,7 @@ export async function getProjectTransactions(
       id: `rfi-${rfi.id}`, date: rfi.created_at,
       description: `RFI ${rfi.rfi_number ?? ""} — ${rfi.subject ?? ""}${projectName ? ` (${projectName})` : ""}`.trim(),
       reference: rfi.rfi_number ?? "", source: "RFIs", sourceHref: "/projects/rfis",
-      debit: impact, credit: 0, jeNumber: null, jeId: null,
+      debit: impact, credit: 0, jeNumber: null, jeId: null, jeExpected: false,
     });
   }
 
@@ -356,6 +358,7 @@ export async function getPropertyTransactions(
   // Build secondary queries that depend on primary results
   const invRefs = (invoices ?? []).map((i) => `invoice:${i.id}`);
   const invoiceIds = (invoices ?? []).map((i) => i.id);
+  const maintRefs = (maintenance ?? []).filter((m) => (Number(m.actual_cost) || Number(m.estimated_cost) || 0) > 0).map((m) => `maintenance:${m.id}`);
 
   // Collect JE IDs from schedule rows
   const scheduleJeIds = new Set<string>();
@@ -367,7 +370,7 @@ export async function getPropertyTransactions(
   const jeIdArray = Array.from(scheduleJeIds);
 
   // Run dependent queries in parallel
-  const [invJeMap, paymentsResult, scheduleJeResult] = await Promise.all([
+  const [invJeMap, paymentsResult, scheduleJeResult, maintJeMap] = await Promise.all([
     getJEMap(supabase, companyId, invRefs),
     invoiceIds.length > 0
       ? supabase.from("payments").select("id, invoice_id, amount, payment_date, reference_number").in("invoice_id", invoiceIds).order("payment_date", { ascending: false })
@@ -375,6 +378,7 @@ export async function getPropertyTransactions(
     jeIdArray.length > 0
       ? supabase.from("journal_entries").select("id, entry_number").in("id", jeIdArray)
       : Promise.resolve({ data: null }),
+    getJEMap(supabase, companyId, maintRefs),
   ]);
 
   // Track JE IDs already represented by invoices/payments
@@ -467,7 +471,7 @@ export async function getPropertyTransactions(
     });
   }
 
-  // Leases without schedule rows (fallback)
+  // Leases without schedule rows (fallback — informational, no JE expected)
   const scheduledLeaseIds = new Set((scheduleRows ?? []).map((r) => r.lease_id));
   for (const lease of leases ?? []) {
     if (scheduledLeaseIds.has(lease.id)) continue;
@@ -480,7 +484,7 @@ export async function getPropertyTransactions(
         description: `[Pending] ${lease.tenant_name ?? "Tenant"} (Unit ${lease.unit_number ?? "N/A"}) — Monthly Rent`,
         reference: "", source: "Leases", sourceHref: "/properties/leases",
         debit: 0, credit: rent,
-        jeNumber: null, jeId: null,
+        jeNumber: null, jeId: null, jeExpected: false,
       });
     }
     if (deposit > 0) {
@@ -490,22 +494,23 @@ export async function getPropertyTransactions(
         description: `${lease.tenant_name ?? "Tenant"} (Unit ${lease.unit_number ?? "N/A"}) — Security Deposit`,
         reference: "", source: "Leases", sourceHref: "/properties/leases",
         debit: 0, credit: deposit,
-        jeNumber: null, jeId: null,
+        jeNumber: null, jeId: null, jeExpected: false,
       });
     }
   }
 
-  // Process maintenance requests
+  // Process maintenance requests — look up existing JEs by reference
   for (const m of maintenance ?? []) {
     const cost = Number(m.actual_cost) || Number(m.estimated_cost) || 0;
     if (cost <= 0) continue;
+    const je = maintJeMap.get(`maintenance:${m.id}`);
     txns.push({
       id: `maint-${m.id}`,
       date: m.created_at,
       description: `Maintenance — ${m.title ?? "Work Order"}`,
-      reference: "", source: "Maintenance", sourceHref: "/properties/maintenance",
+      reference: je?.entry_number ?? "", source: "Maintenance", sourceHref: "/properties/maintenance",
       debit: cost, credit: 0,
-      jeNumber: null, jeId: null,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 

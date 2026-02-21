@@ -82,7 +82,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
     });
   }, []);
 
-  // Fetch audit grade on mount
+  // Fetch audit grade on mount and on navigation changes
   useEffect(() => {
     fetch("/api/financial/audit-grade")
       .then((res) => {
@@ -98,7 +98,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
       .catch(() => {
         // Silently fail — audit grade is non-critical
       });
-  }, []);
+  }, [pathname]);
 
   const gradeColorMap: Record<string, string> = {
     A: "var(--color-green)",

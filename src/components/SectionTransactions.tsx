@@ -47,7 +47,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
   const [backfillDone, setBackfillDone] = useState(false);
 
   const missingJeCount = useMemo(
-    () => data.transactions.filter((t) => !t.jeNumber).length,
+    () => data.transactions.filter((t) => !t.jeNumber && t.jeExpected !== false).length,
     [data.transactions]
   );
 
