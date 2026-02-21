@@ -1,26 +1,27 @@
+import { redirect } from "next/navigation";
 import { DollarSign } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getVendorPaymentDashboard } from "@/lib/queries/vendor-portal";
 import { getTranslations } from "next-intl/server";
+import PaymentHistoryClient from "./PaymentHistoryClient";
 
 export const metadata = { title: "Payment History - Buildwrk" };
 
 export default async function PaymentHistoryPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) { redirect("/login/vendor"); }
+
   const t = await getTranslations("vendor");
+  const admin = createAdminClient();
+  const dashboard = await getVendorPaymentDashboard(admin, user.id);
 
   return (
-    <div>
-      <div className="fin-header">
-        <div>
-          <h2>{t("paymentsTitle")}</h2>
-          <p className="fin-header-sub">{t("paymentsSubtitle")}</p>
-        </div>
-      </div>
-      <div className="fin-chart-card">
-        <div className="fin-empty">
-          <div className="fin-empty-icon"><DollarSign size={48} /></div>
-          <div className="fin-empty-title">{t("comingSoon")}</div>
-          <div className="fin-empty-desc">{t("underDevelopment")}</div>
-        </div>
-      </div>
-    </div>
+    <PaymentHistoryClient
+      payments={dashboard.payments}
+      pendingInvoices={dashboard.pendingInvoices}
+      stats={dashboard.stats}
+    />
   );
 }

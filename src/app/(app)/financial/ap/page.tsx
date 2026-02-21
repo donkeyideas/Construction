@@ -2,6 +2,7 @@ import { Receipt } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
+import { getAPPaymentHistory, getAPVendorSummary } from "@/lib/queries/financial";
 import APClient from "./APClient";
 
 export const metadata = {
@@ -13,6 +14,7 @@ interface PageProps {
     status?: string;
     start?: string;
     end?: string;
+    tab?: string;
   }>;
 }
 
@@ -32,6 +34,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
   }
 
   const activeStatus = params.status || undefined;
+  const activeTab = params.tab || "outstanding";
   const filterStartDate = params.start || undefined;
   const filterEndDate = params.end || undefined;
   const now = new Date();
@@ -40,7 +43,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
 
   const todayStr = now.toISOString().split("T")[0];
 
-  const [allApRes, paidThisMonthRes, invoicesRes] = await Promise.all([
+  const [allApRes, paidThisMonthRes, invoicesRes, paymentHistory, vendorSummary] = await Promise.all([
     (() => {
       let q = supabase
         .from("invoices")
@@ -63,7 +66,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     (() => {
       let query = supabase
         .from("invoices")
-        .select("id, invoice_number, client_name, vendor_name, project_id, invoice_date, due_date, total_amount, balance_due, status, notes, projects(name)")
+        .select("id, invoice_number, client_name, vendor_name, project_id, invoice_date, due_date, total_amount, balance_due, status, notes, payment_terms, projects(name)")
         .eq("company_id", userCompany.companyId)
         .eq("invoice_type", "payable")
         .order("invoice_date", { ascending: false });
@@ -77,6 +80,11 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       if (filterEndDate) query = query.lte("invoice_date", filterEndDate);
       return query;
     })(),
+    getAPPaymentHistory(supabase, userCompany.companyId, {
+      startDate: filterStartDate,
+      endDate: filterEndDate,
+    }),
+    getAPVendorSummary(supabase, userCompany.companyId),
   ]);
 
   const allAp = allApRes.data ?? [];
@@ -86,7 +94,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
   const overdueAmount = allAp
     .filter((inv) => inv.status !== "paid" && inv.due_date && inv.due_date < todayStr)
     .reduce((sum, inv) => sum + (inv.balance_due ?? 0), 0);
-  const pendingApprovalCount = allAp.filter((inv) => inv.status === "pending").length;
+  const pendingApprovalCount = allAp.filter((inv) => inv.status === "pending" || inv.status === "submitted").length;
   const paidThisMonth = (paidThisMonthRes.data ?? []).reduce(
     (sum, inv) => sum + (inv.total_amount ?? 0), 0
   );
@@ -103,6 +111,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     balance_due: inv.balance_due as number,
     status: inv.status as string,
     notes: inv.notes as string | null,
+    payment_terms: (inv.payment_terms as string) || null,
     projects: inv.projects as { name: string } | null,
   }));
 
@@ -122,9 +131,12 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       pendingApprovalCount={pendingApprovalCount}
       paidThisMonth={paidThisMonth}
       activeStatus={activeStatus}
+      activeTab={activeTab}
       linkedJEs={linkedJEs}
       initialStartDate={filterStartDate}
       initialEndDate={filterEndDate}
+      paymentHistory={paymentHistory}
+      vendorSummary={vendorSummary}
     />
   );
 }

@@ -374,6 +374,161 @@ export async function getVendorPayments(supabase: SupabaseClient, userId: string
   return data ?? [];
 }
 
+export interface VendorPaymentDashboard {
+  payments: {
+    id: string;
+    payment_date: string;
+    amount: number;
+    method: string;
+    reference_number: string | null;
+    notes: string | null;
+    invoice_number: string;
+    je_entry_number: string | null;
+    je_id: string | null;
+  }[];
+  pendingInvoices: {
+    id: string;
+    invoice_number: string;
+    total_amount: number;
+    balance_due: number;
+    status: string;
+    invoice_date: string;
+    due_date: string;
+    payment_terms: string | null;
+    project_name: string | null;
+  }[];
+  stats: {
+    totalReceived: number;
+    pendingCount: number;
+    outstandingBalance: number;
+  };
+}
+
+export async function getVendorPaymentDashboard(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<VendorPaymentDashboard> {
+  const empty: VendorPaymentDashboard = {
+    payments: [],
+    pendingInvoices: [],
+    stats: { totalReceived: 0, pendingCount: 0, outstandingBalance: 0 },
+  };
+
+  const { data: contact } = await supabase
+    .from("contacts")
+    .select("id")
+    .eq("user_id", userId)
+    .in("contact_type", ["vendor", "subcontractor"])
+    .limit(1)
+    .single();
+
+  if (!contact) return empty;
+
+  // Fetch vendor invoices and payments in parallel
+  const [invoicesRes, paymentsInvoicesRes] = await Promise.all([
+    // All vendor invoices (unpaid)
+    supabase
+      .from("invoices")
+      .select("id, invoice_number, total_amount, balance_due, status, invoice_date, due_date, payment_terms, project_id, projects(name)")
+      .eq("vendor_id", contact.id)
+      .eq("invoice_type", "payable")
+      .not("status", "eq", "paid")
+      .not("status", "eq", "voided")
+      .order("due_date", { ascending: true }),
+    // All vendor invoice IDs for payment lookup
+    supabase
+      .from("invoices")
+      .select("id, invoice_number")
+      .eq("vendor_id", contact.id)
+      .eq("invoice_type", "payable"),
+  ]);
+
+  const unpaidInvoices = invoicesRes.data ?? [];
+  const allInvoices = paymentsInvoicesRes.data ?? [];
+
+  // Build invoice number map
+  const invoiceMap = new Map<string, string>();
+  for (const inv of allInvoices) {
+    invoiceMap.set(inv.id, inv.invoice_number);
+  }
+
+  // Fetch payments
+  const invoiceIds = allInvoices.map((i) => i.id);
+  let payments: Record<string, unknown>[] = [];
+  if (invoiceIds.length > 0) {
+    const { data } = await supabase
+      .from("payments")
+      .select("id, payment_date, amount, method, reference_number, notes, invoice_id")
+      .in("invoice_id", invoiceIds)
+      .order("payment_date", { ascending: false });
+    payments = (data ?? []) as Record<string, unknown>[];
+  }
+
+  // Look up JE references for payments
+  const paymentIds = payments.map((p) => p.id as string);
+  let jeMap = new Map<string, { id: string; entry_number: string }>();
+  if (paymentIds.length > 0) {
+    const refs = paymentIds.map((pid) => `payment:${pid}`);
+    const { data: jeData } = await supabase
+      .from("journal_entries")
+      .select("id, entry_number, reference")
+      .in("reference", refs);
+    if (jeData) {
+      for (const je of jeData) {
+        const paymentId = (je.reference as string).replace("payment:", "");
+        jeMap.set(paymentId, { id: je.id, entry_number: je.entry_number });
+      }
+    }
+  }
+
+  // Build payment rows
+  const paymentRows = payments.map((p) => {
+    const pid = p.id as string;
+    const je = jeMap.get(pid);
+    return {
+      id: pid,
+      payment_date: p.payment_date as string,
+      amount: p.amount as number,
+      method: (p.method as string) || "check",
+      reference_number: (p.reference_number as string) || null,
+      notes: (p.notes as string) || null,
+      invoice_number: invoiceMap.get(p.invoice_id as string) || "",
+      je_entry_number: je?.entry_number || null,
+      je_id: je?.id || null,
+    };
+  });
+
+  // Build pending invoices
+  const pendingInvoices = unpaidInvoices.map((inv: Record<string, unknown>) => {
+    const project = inv.projects as { name: string } | null;
+    return {
+      id: inv.id as string,
+      invoice_number: (inv.invoice_number as string) || "",
+      total_amount: (inv.total_amount as number) || 0,
+      balance_due: (inv.balance_due as number) || 0,
+      status: (inv.status as string) || "draft",
+      invoice_date: (inv.invoice_date as string) || "",
+      due_date: (inv.due_date as string) || "",
+      payment_terms: (inv.payment_terms as string) || null,
+      project_name: project?.name || null,
+    };
+  });
+
+  // Compute stats
+  const totalReceived = paymentRows.reduce((sum, p) => sum + p.amount, 0);
+  const outstandingBalance = pendingInvoices.reduce((sum, inv) => sum + inv.balance_due, 0);
+
+  return {
+    payments: paymentRows,
+    pendingInvoices,
+    stats: {
+      totalReceived,
+      pendingCount: pendingInvoices.length,
+      outstandingBalance,
+    },
+  };
+}
+
 export async function getVendorProjects(supabase: SupabaseClient, userId: string) {
   const { data: contact } = await supabase
     .from("contacts")

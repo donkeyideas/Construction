@@ -1,26 +1,18 @@
-import { Receipt } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getVendorProjects } from "@/lib/queries/vendor-portal";
+import SubmitInvoiceClient from "./SubmitInvoiceClient";
 
 export const metadata = { title: "Submit Invoice - Buildwrk" };
 
 export default async function SubmitInvoicePage() {
-  const t = await getTranslations("vendor");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) { redirect("/login/vendor"); }
 
-  return (
-    <div>
-      <div className="fin-header">
-        <div>
-          <h2>{t("submitInvoiceTitle")}</h2>
-          <p className="fin-header-sub">{t("submitInvoiceSubtitle")}</p>
-        </div>
-      </div>
-      <div className="fin-chart-card">
-        <div className="fin-empty">
-          <div className="fin-empty-icon"><Receipt size={48} /></div>
-          <div className="fin-empty-title">{t("comingSoon")}</div>
-          <div className="fin-empty-desc">{t("underDevelopment")}</div>
-        </div>
-      </div>
-    </div>
-  );
+  const admin = createAdminClient();
+  const projects = await getVendorProjects(admin, user.id);
+
+  return <SubmitInvoiceClient projects={projects} />;
 }

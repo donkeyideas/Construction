@@ -2000,3 +2000,204 @@ export async function getAccountTransactions(
     normalBalance,
   };
 }
+
+/* ==================================================================
+   AP PAYMENT DASHBOARD
+   ================================================================== */
+
+export interface APPaymentRow {
+  id: string;
+  payment_date: string;
+  amount: number;
+  method: string;
+  reference_number: string | null;
+  notes: string | null;
+  invoice_id: string;
+  invoice_number: string;
+  vendor_name: string;
+  payment_terms: string | null;
+  je_entry_number: string | null;
+  je_id: string | null;
+  bank_account_name: string | null;
+}
+
+export interface VendorPaymentSummary {
+  vendor_id: string;
+  vendor_name: string;
+  total_owed: number;
+  total_paid: number;
+  invoice_count: number;
+  last_payment_date: string | null;
+  avg_days_to_pay: number | null;
+}
+
+export interface APDashboardData {
+  payments: APPaymentRow[];
+  vendorSummary: VendorPaymentSummary[];
+}
+
+export async function getAPPaymentHistory(
+  supabase: SupabaseClient,
+  companyId: string,
+  filters?: { startDate?: string; endDate?: string }
+): Promise<APPaymentRow[]> {
+  // Get all payments for payable invoices
+  let query = supabase
+    .from("payments")
+    .select("id, payment_date, amount, method, reference_number, notes, invoice_id, bank_account_id, invoices!inner(invoice_number, vendor_name, payment_terms, invoice_type)")
+    .eq("company_id", companyId)
+    .eq("invoices.invoice_type", "payable")
+    .order("payment_date", { ascending: false });
+
+  if (filters?.startDate) query = query.gte("payment_date", filters.startDate);
+  if (filters?.endDate) query = query.lte("payment_date", filters.endDate);
+
+  const { data: payments } = await query;
+  if (!payments || payments.length === 0) return [];
+
+  // Batch lookup JEs
+  const paymentIds = payments.map((p: Record<string, unknown>) => p.id as string);
+  const refs = paymentIds.map((pid: string) => `payment:${pid}`);
+  const { data: jeData } = await supabase
+    .from("journal_entries")
+    .select("id, entry_number, reference")
+    .eq("company_id", companyId)
+    .in("reference", refs);
+
+  const jeMap = new Map<string, { id: string; entry_number: string }>();
+  if (jeData) {
+    for (const je of jeData) {
+      const paymentId = (je.reference as string).replace("payment:", "");
+      jeMap.set(paymentId, { id: je.id, entry_number: je.entry_number });
+    }
+  }
+
+  // Batch lookup bank account names
+  const bankIds = [...new Set(
+    payments
+      .map((p: Record<string, unknown>) => p.bank_account_id as string | null)
+      .filter(Boolean)
+  )] as string[];
+
+  const bankMap = new Map<string, string>();
+  if (bankIds.length > 0) {
+    const { data: banks } = await supabase
+      .from("bank_accounts")
+      .select("id, account_name")
+      .in("id", bankIds);
+    if (banks) {
+      for (const b of banks) bankMap.set(b.id, b.account_name);
+    }
+  }
+
+  return payments.map((p: Record<string, unknown>) => {
+    const inv = p.invoices as { invoice_number: string; vendor_name: string; payment_terms: string | null };
+    const pid = p.id as string;
+    const je = jeMap.get(pid);
+    return {
+      id: pid,
+      payment_date: p.payment_date as string,
+      amount: p.amount as number,
+      method: (p.method as string) || "check",
+      reference_number: (p.reference_number as string) || null,
+      notes: (p.notes as string) || null,
+      invoice_id: p.invoice_id as string,
+      invoice_number: inv?.invoice_number || "",
+      vendor_name: inv?.vendor_name || "Unknown",
+      payment_terms: inv?.payment_terms || null,
+      je_entry_number: je?.entry_number || null,
+      je_id: je?.id || null,
+      bank_account_name: bankMap.get(p.bank_account_id as string) || null,
+    };
+  });
+}
+
+export async function getAPVendorSummary(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<VendorPaymentSummary[]> {
+  // Get all payable invoices with vendor info
+  const { data: invoices } = await supabase
+    .from("invoices")
+    .select("id, vendor_id, vendor_name, total_amount, balance_due, amount_paid, status, invoice_date")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "payable")
+    .not("status", "eq", "voided");
+
+  if (!invoices || invoices.length === 0) return [];
+
+  // Get all payments for these invoices
+  const invoiceIds = invoices.map((i: Record<string, unknown>) => i.id as string);
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("id, invoice_id, payment_date, amount")
+    .in("invoice_id", invoiceIds)
+    .order("payment_date", { ascending: false });
+
+  const paymentsByInvoice = new Map<string, { payment_date: string; amount: number }[]>();
+  if (payments) {
+    for (const p of payments) {
+      const list = paymentsByInvoice.get(p.invoice_id) || [];
+      list.push({ payment_date: p.payment_date, amount: p.amount });
+      paymentsByInvoice.set(p.invoice_id, list);
+    }
+  }
+
+  // Group by vendor
+  const vendorMap = new Map<string, {
+    vendor_name: string;
+    total_owed: number;
+    total_paid: number;
+    invoice_count: number;
+    last_payment_date: string | null;
+    days_to_pay: number[];
+  }>();
+
+  for (const inv of invoices as Record<string, unknown>[]) {
+    const vendorId = (inv.vendor_id as string) || "unknown";
+    const vendorName = (inv.vendor_name as string) || "Unknown Vendor";
+    const existing = vendorMap.get(vendorId) || {
+      vendor_name: vendorName,
+      total_owed: 0,
+      total_paid: 0,
+      invoice_count: 0,
+      last_payment_date: null,
+      days_to_pay: [],
+    };
+
+    existing.total_owed += (inv.balance_due as number) || 0;
+    existing.total_paid += (inv.amount_paid as number) || 0;
+    existing.invoice_count += 1;
+
+    // Check payments for this invoice
+    const invPayments = paymentsByInvoice.get(inv.id as string) || [];
+    for (const pmt of invPayments) {
+      if (!existing.last_payment_date || pmt.payment_date > existing.last_payment_date) {
+        existing.last_payment_date = pmt.payment_date;
+      }
+      // Calculate days to pay
+      if (inv.invoice_date) {
+        const invoiceDate = new Date(inv.invoice_date as string);
+        const paymentDate = new Date(pmt.payment_date);
+        const days = Math.round((paymentDate.getTime() - invoiceDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (days >= 0) existing.days_to_pay.push(days);
+      }
+    }
+
+    vendorMap.set(vendorId, existing);
+  }
+
+  return Array.from(vendorMap.entries())
+    .map(([vendor_id, data]) => ({
+      vendor_id,
+      vendor_name: data.vendor_name,
+      total_owed: data.total_owed,
+      total_paid: data.total_paid,
+      invoice_count: data.invoice_count,
+      last_payment_date: data.last_payment_date,
+      avg_days_to_pay: data.days_to_pay.length > 0
+        ? Math.round(data.days_to_pay.reduce((a, b) => a + b, 0) / data.days_to_pay.length)
+        : null,
+    }))
+    .sort((a, b) => b.total_owed - a.total_owed);
+}
