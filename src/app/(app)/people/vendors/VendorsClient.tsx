@@ -22,6 +22,7 @@ import {
 import ImportModal from "@/components/ImportModal";
 import PrequalificationChecklist from "@/components/PrequalificationChecklist";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
+import "@/styles/financial.css";
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { company_name: "ABC Supply Co", first_name: "Mike", last_name: "Johnson", email: "mike@abcsupply.com", phone: "555-0200", job_title: "Sales Manager" },
@@ -68,7 +69,7 @@ interface VendorContract {
 interface Project {
   id: string;
   name: string;
-  project_number: string | null;
+  code: string | null;
   status: string;
 }
 
@@ -556,58 +557,60 @@ export default function VendorsClient({
             </button>
           </div>
 
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>{t("contractNumber")}</th>
-                  <th>{t("title")}</th>
-                  <th>{t("typeVendor")}</th>
-                  <th>{t("type")}</th>
-                  <th>{t("project") ?? "Project"}</th>
-                  <th>{t("amount")}</th>
-                  <th>{t("status")}</th>
-                  <th>{t("start")}</th>
-                  <th>{t("end")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {contracts.length === 0 ? (
+          <div className="fin-chart-card" style={{ padding: 0 }}>
+            <div style={{ overflowX: "auto" }}>
+              <table className="invoice-table">
+                <thead>
                   <tr>
-                    <td colSpan={9} className="table-empty-cell">
-                      {t("noContractsFound")}
-                    </td>
+                    <th>{t("contractNumber")}</th>
+                    <th>{t("title")}</th>
+                    <th>{t("typeVendor")}</th>
+                    <th>{t("type")}</th>
+                    <th>{t("project") ?? "Project"}</th>
+                    <th style={{ textAlign: "right" }}>{t("amount")}</th>
+                    <th>{t("status")}</th>
+                    <th>{t("start")}</th>
+                    <th>{t("end")}</th>
                   </tr>
-                ) : (
-                  contracts.map((c) => {
-                    const proj = projects.find((p) => p.id === c.project_id);
-                    return (
-                      <tr
-                        key={c.id}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => openEditContract(c)}
-                      >
-                        <td style={{ fontWeight: 600 }}>{c.contract_number || "\u2014"}</td>
-                        <td>{c.title}</td>
-                        <td>{c.contacts?.company_name ?? "\u2014"}</td>
-                        <td style={{ textTransform: "capitalize" }}>
-                          {c.contract_type?.replace(/_/g, " ")}
-                        </td>
-                        <td>{proj?.name ?? "\u2014"}</td>
-                        <td>{fmt(c.amount)}</td>
-                        <td>
-                          <span className={`status-badge status-${c.status}`}>
-                            {c.status}
-                          </span>
-                        </td>
-                        <td>{c.start_date ? new Date(c.start_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
-                        <td>{c.end_date ? new Date(c.end_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {contracts.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} style={{ textAlign: "center", padding: "48px 24px", color: "var(--muted)" }}>
+                        {t("noContractsFound")}
+                      </td>
+                    </tr>
+                  ) : (
+                    contracts.map((c) => {
+                      const proj = projects.find((p) => p.id === c.project_id);
+                      return (
+                        <tr
+                          key={c.id}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => openEditContract(c)}
+                        >
+                          <td style={{ fontWeight: 600, color: "var(--color-blue)" }}>{c.contract_number || "\u2014"}</td>
+                          <td style={{ fontWeight: 500 }}>{c.title}</td>
+                          <td>{c.contacts?.company_name ?? "\u2014"}</td>
+                          <td style={{ textTransform: "capitalize" }}>
+                            {c.contract_type?.replace(/_/g, " ")}
+                          </td>
+                          <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>{proj?.name ?? "\u2014"}</td>
+                          <td className="amount-col">{fmt(c.amount)}</td>
+                          <td>
+                            <span className={`inv-status inv-status-${c.status}`}>
+                              {c.status}
+                            </span>
+                          </td>
+                          <td>{c.start_date ? new Date(c.start_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
+                          <td>{c.end_date ? new Date(c.end_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -981,7 +984,7 @@ export default function VendorsClient({
                       <option value="">{t("selectProject") ?? "-- Select Project --"}</option>
                       {projects.map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.project_number ? `${p.project_number} - ` : ""}{p.name}
+                          {p.code ? `${p.code} - ` : ""}{p.name}
                         </option>
                       ))}
                     </select>

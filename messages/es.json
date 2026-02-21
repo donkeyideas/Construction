@@ -1303,6 +1303,8 @@
       "tabOutstanding": "Pendientes",
       "tabPaymentHistory": "Historial de Pagos",
       "tabVendorSummary": "Resumen por Proveedor",
+      "tabPaymentSettings": "Configuración de Pagos",
+      "vendorPaymentSettingsDesc": "Conecte un proveedor de pagos para pagar a proveedores en línea. Sus claves API se almacenan de forma segura.",
       "terms": "Términos",
       "aging": "Antigüedad",
       "pay": "Pagar",

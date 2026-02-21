@@ -1303,6 +1303,8 @@
     "tabOutstanding": "Outstanding",
     "tabPaymentHistory": "Payment History",
     "tabVendorSummary": "Vendor Summary",
+    "tabPaymentSettings": "Payment Settings",
+    "vendorPaymentSettingsDesc": "Connect a payment provider to pay vendors online. Your API keys are stored securely and used only for processing payments.",
     "terms": "Terms",
     "aging": "Aging",
     "pay": "Pay",

@@ -39,7 +39,7 @@ export default async function VendorsPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("projects")
-      .select("id, name, project_number, status")
+      .select("id, name, code, status")
       .eq("company_id", companyId)
       .order("name"),
   ]);
