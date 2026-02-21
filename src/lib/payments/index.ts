@@ -5,6 +5,9 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { PaymentGateway, GatewayConfig, GatewayCredentials } from "./gateway";
 import { StripeGateway } from "./providers/stripe";
+import { PayPalGateway } from "./providers/paypal";
+import { SquareGateway } from "./providers/square";
+import { GoCardlessGateway } from "./providers/gocardless";
 
 /**
  * Get a gateway instance by provider key.
@@ -13,8 +16,12 @@ export function getGateway(provider: string): PaymentGateway | null {
   switch (provider) {
     case "stripe":
       return new StripeGateway();
-    // case "paypal":  return new PayPalGateway();  // Future
-    // case "square":  return new SquareGateway();   // Future
+    case "paypal":
+      return new PayPalGateway();
+    case "square":
+      return new SquareGateway();
+    case "gocardless":
+      return new GoCardlessGateway();
     default:
       return null;
   }
@@ -49,7 +56,12 @@ export async function getCompanyGateway(
   const config = data as GatewayConfig;
   const credentials = (config.config || {}) as GatewayCredentials;
 
-  if (!credentials.secret_key) return null;
+  // Check for the primary auth credential per provider
+  const hasKey =
+    credentials.secret_key || // Stripe, GoCardless, Square
+    credentials.client_id;    // PayPal (uses client_id + secret_key)
+
+  if (!hasKey) return null;
 
   return { gateway, config, credentials };
 }

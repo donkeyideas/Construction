@@ -94,22 +94,32 @@ export const GATEWAY_PROVIDERS: GatewayProviderInfo[] = [
     key: "paypal",
     name: "PayPal",
     description: "PayPal, Venmo, cards",
-    available: false,
-    fields: [],
+    available: true,
+    fields: [
+      { key: "client_id", label: "Client ID", placeholder: "AV...", type: "password" },
+      { key: "secret_key", label: "Secret", placeholder: "EL...", type: "password" },
+      { key: "webhook_id", label: "Webhook ID (optional)", placeholder: "WH-...", type: "password" },
+    ],
   },
   {
     key: "square",
     name: "Square",
     description: "Cards, ACH, Cash App Pay",
-    available: false,
-    fields: [],
+    available: true,
+    fields: [
+      { key: "secret_key", label: "Access Token", placeholder: "EAAAl...", type: "password" },
+      { key: "webhook_secret", label: "Webhook Signature Key (optional)", placeholder: "...", type: "password" },
+    ],
   },
   {
     key: "gocardless",
     name: "GoCardless",
     description: "ACH, Direct Debit (low fees)",
-    available: false,
-    fields: [],
+    available: true,
+    fields: [
+      { key: "secret_key", label: "Access Token", placeholder: "live_...", type: "password" },
+      { key: "webhook_secret", label: "Webhook Secret (optional)", placeholder: "...", type: "password" },
+    ],
   },
 ];
 
