@@ -1600,7 +1600,6 @@ export async function getCashFlowStatement(
     { label: "Changes in Accounts Receivable", amount: arChange },
     { label: "Changes in Accounts Payable", amount: apChange },
   ];
-  const netOperating = operating.reduce((s, i) => s + i.amount, 0);
 
   // Investing activities — pull from journal entries hitting fixed asset accounts (1500-1999 range)
   const investing: CashFlowSection[] = [];
@@ -1629,6 +1628,7 @@ export async function getCashFlowStatement(
 
     const investingMap = new Map<string, number>();
     const financingMap = new Map<string, number>();
+    const workingCapitalMap = new Map<string, number>();
 
     for (const line of cfLines) {
       const account = line.chart_of_accounts;
@@ -1636,6 +1636,7 @@ export async function getCashFlowStatement(
 
       const num = parseInt(account.account_number);
       const netAmount = (line.debit ?? 0) - (line.credit ?? 0);
+      const nameLower = account.name.toLowerCase();
 
       // Fixed assets (investing): accounts 1500-1999 or sub_type 'fixed_asset'/'contra_asset'
       if (account.sub_type === "fixed_asset" || account.sub_type === "contra_asset" ||
@@ -1645,16 +1646,29 @@ export async function getCashFlowStatement(
       }
 
       // Debt accounts (financing): accounts 2100-2399 or sub_type 'long_term_liability'
-      if (account.sub_type === "long_term_liability" || (num >= 2100 && num < 2400)) {
+      else if (account.sub_type === "long_term_liability" || (num >= 2100 && num < 2400)) {
         const label = account.name;
         // Credit to liability = cash inflow (loan draw), Debit = cash outflow (repayment)
         financingMap.set(label, (financingMap.get(label) ?? 0) - netAmount);
       }
 
       // Equity accounts (financing): accounts 3000-3299 excluding retained earnings
-      if (account.account_type === "equity" && num >= 3000 && num < 3200) {
+      else if (account.account_type === "equity" && num >= 3000 && num < 3200) {
         const label = account.name;
         financingMap.set(label, (financingMap.get(label) ?? 0) - netAmount);
+      }
+
+      // Working capital: payment clearing accounts, rent receivable, prepaid
+      // (current assets 1050-1499 that aren't Cash/Checking/Savings/AR)
+      else if (
+        account.sub_type === "current_asset" &&
+        num >= 1050 && num < 1500 &&
+        !nameLower.includes("cash") &&
+        !nameLower.includes("checking") &&
+        !nameLower.includes("savings")
+      ) {
+        // Increase in current asset = cash used (negative for operating)
+        workingCapitalMap.set(account.name, (workingCapitalMap.get(account.name) ?? 0) + netAmount);
       }
     }
 
@@ -1671,9 +1685,17 @@ export async function getCashFlowStatement(
         netFinancing += amount;
       }
     }
+
+    // Add working capital changes to operating section
+    for (const [label, amount] of workingCapitalMap) {
+      if (Math.abs(amount) > 0.01) {
+        // Increase in asset = cash outflow (negative), decrease = cash inflow (positive)
+        operating.push({ label: `Changes in ${label}`, amount: -amount });
+      }
+    }
   }
 
-
+  const netOperating = operating.reduce((s, i) => s + i.amount, 0);
   const netChange = netOperating + netInvesting + netFinancing;
 
   // Get current cash position

@@ -918,7 +918,32 @@ export async function generateRentPaymentJournalEntry(
   accountMap: CompanyAccountMap
 ): Promise<{ journalEntryId: string } | null> {
   if (payment.amount <= 0) return null;
-  if (!accountMap.cashId || !accountMap.rentReceivableId) return null;
+  if (!accountMap.cashId) return null;
+
+  // Prefer Rental Income (revenue) so the payment hits the P&L.
+  // Fall back to Rent Receivable for accrual-basis setups.
+  let revenueAccountId: string | null = accountMap.rentalIncomeId || accountMap.rentReceivableId;
+
+  // Auto-create Rental Income account if neither exists
+  if (!revenueAccountId) {
+    const { data: newRevAccount } = await supabase
+      .from("chart_of_accounts")
+      .insert({
+        company_id: companyId,
+        account_number: "4000",
+        name: "Rental Income",
+        account_type: "revenue",
+        sub_type: "operating_revenue",
+        is_active: true,
+        description: "Revenue from rental payments received.",
+        normal_balance: "credit",
+      })
+      .select("id")
+      .single();
+
+    if (!newRevAccount) return null;
+    revenueAccountId = newRevAccount.id;
+  }
 
   const lines: JournalEntryCreateData["lines"] = [];
   const lateFee = payment.late_fee ?? 0;
@@ -990,10 +1015,10 @@ export async function generateRentPaymentJournalEntry(
     property_id: payment.property_id,
   });
 
-  // CR Rent Receivable (rent portion)
-  if (rentAmount > 0) {
+  // CR Rental Income (rent revenue — shows on P&L)
+  if (rentAmount > 0 && revenueAccountId) {
     lines.push({
-      account_id: accountMap.rentReceivableId,
+      account_id: revenueAccountId,
       debit: 0,
       credit: rentAmount,
       description,
