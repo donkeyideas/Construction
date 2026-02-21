@@ -1116,3 +1116,35 @@ export async function getPropertiesOverview(
     openMaintenance,
   };
 }
+
+/* =========================================================
+   Property Announcements
+   ========================================================= */
+
+export interface AnnouncementRow {
+  id: string;
+  company_id: string;
+  property_id: string;
+  title: string;
+  content: string;
+  category: string;
+  is_active: boolean;
+  published_at: string;
+  expires_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getPropertyAnnouncements(
+  supabase: SupabaseClient,
+  propertyId: string
+): Promise<AnnouncementRow[]> {
+  const { data } = await supabase
+    .from("tenant_announcements")
+    .select("*")
+    .eq("property_id", propertyId)
+    .order("published_at", { ascending: false });
+
+  return (data ?? []) as AnnouncementRow[];
+}

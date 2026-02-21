@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
   ArrowLeft,
@@ -18,6 +19,7 @@ import {
   Check,
   Copy,
   DollarSign,
+  Megaphone,
 } from "lucide-react";
 import type {
   PropertyRow,
@@ -25,6 +27,7 @@ import type {
   LeaseRow,
   MaintenanceRequestRow,
   PropertyFinancials,
+  AnnouncementRow,
 } from "@/lib/queries/properties";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
 
@@ -38,6 +41,7 @@ interface PropertyDetailClientProps {
   leases: LeaseRow[];
   maintenanceRequests: MaintenanceRequestRow[];
   financials: PropertyFinancials;
+  announcements: AnnouncementRow[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -127,7 +131,7 @@ function MaintenanceStatusBadge({ status }: { status: string }) {
 /*  Tab Definitions                                                     */
 /* ------------------------------------------------------------------ */
 
-const TAB_KEYS = ["overview", "units", "leases", "maintenance", "financials"] as const;
+const TAB_KEYS = ["overview", "units", "leases", "maintenance", "financials", "announcements"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
 /* ------------------------------------------------------------------ */
@@ -140,6 +144,7 @@ export default function PropertyDetailClient({
   leases,
   maintenanceRequests,
   financials,
+  announcements,
 }: PropertyDetailClientProps) {
   const t = useTranslations("app");
   const locale = useLocale();
@@ -334,6 +339,7 @@ export default function PropertyDetailClient({
     { key: "leases" as TabKey, label: t("propTabLeasesCount", { count: leases.length }) },
     { key: "maintenance" as TabKey, label: t("propTabMaintenanceCount", { count: maintenanceRequests.length }) },
     { key: "financials" as TabKey, label: t("propTabFinancials") },
+    { key: "announcements" as TabKey, label: t("propTabAnnouncementsCount", { count: announcements.length }) },
   ];
 
   return (
@@ -452,6 +458,13 @@ export default function PropertyDetailClient({
 
       {activeTab === "financials" && (
         <FinancialsTabContent financials={financials} propertyId={property.id} />
+      )}
+
+      {activeTab === "announcements" && (
+        <AnnouncementsTabContent
+          announcements={announcements}
+          propertyId={property.id}
+        />
       )}
 
       {/* ===== MODALS ===== */}
@@ -2355,6 +2368,318 @@ function FinancialsTabContent({
               </button>
               <button className="btn-primary" onClick={handleSaveMethod} disabled={methodSaving}>
                 {methodSaving ? t("saving") : t("save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ==================================================================== */
+/*  Announcements Tab                                                     */
+/* ==================================================================== */
+
+function AnnouncementsTabContent({
+  announcements,
+  propertyId,
+}: {
+  announcements: AnnouncementRow[];
+  propertyId: string;
+}) {
+  const t = useTranslations("app");
+  const locale = useLocale();
+  const dateLocale = locale === "es" ? "es" : "en-US";
+  const router = useRouter();
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [createTitle, setCreateTitle] = useState("");
+  const [createContent, setCreateContent] = useState("");
+  const [createCategory, setCreateCategory] = useState("general");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  function openCreate() {
+    setCreateTitle("");
+    setCreateContent("");
+    setCreateCategory("general");
+    setCreateError("");
+    setShowCreate(true);
+  }
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!createTitle.trim() || !createContent.trim()) {
+      setCreateError(t("annTitleContentRequired"));
+      return;
+    }
+    setCreating(true);
+    setCreateError("");
+    try {
+      const res = await fetch(`/api/properties/${propertyId}/announcements`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: createTitle,
+          content: createContent,
+          category: createCategory,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to create");
+      setShowCreate(false);
+      router.refresh();
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(
+        `/api/properties/${propertyId}/announcements/${deleteId}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete");
+      }
+      setDeleteId(null);
+      router.refresh();
+    } catch {
+      alert("Failed to delete announcement");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  function getCategoryBadge(cat: string) {
+    switch (cat) {
+      case "emergency":
+        return "badge badge-red";
+      case "maintenance":
+        return "badge badge-amber";
+      case "event":
+        return "badge badge-blue";
+      default:
+        return "badge badge-green";
+    }
+  }
+
+  function formatDate(d: string) {
+    return new Date(d).toLocaleDateString(dateLocale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  const CATEGORIES = [
+    { value: "general", label: t("annCatGeneral") },
+    { value: "maintenance", label: t("annCatMaintenance") },
+    { value: "emergency", label: t("annCatEmergency") },
+    { value: "event", label: t("annCatEvent") },
+  ];
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600 }}>
+            {t("annTitle")}
+          </h3>
+          <p style={{ color: "var(--muted)", fontSize: "0.85rem", marginTop: 2 }}>
+            {t("annSubtitle")}
+          </p>
+        </div>
+        <button
+          className="ui-btn ui-btn-md ui-btn-primary"
+          onClick={openCreate}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+        >
+          <Plus size={15} />
+          {t("annCreate")}
+        </button>
+      </div>
+
+      {announcements.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {announcements.map((ann) => (
+            <div key={ann.id} className="card" style={{ padding: 20 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <span className={getCategoryBadge(ann.category)}>
+                      {ann.category.charAt(0).toUpperCase() + ann.category.slice(1)}
+                    </span>
+                    {!ann.is_active && (
+                      <span className="badge" style={{ opacity: 0.6 }}>{t("annInactive")}</span>
+                    )}
+                  </div>
+                  <div style={{ fontWeight: 600, fontSize: "0.95rem", marginBottom: 4 }}>
+                    {ann.title}
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: 8, whiteSpace: "pre-wrap" }}>
+                    {ann.content.length > 300 ? ann.content.slice(0, 300) + "..." : ann.content}
+                  </div>
+                  <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+                    {t("annPublished", { date: formatDate(ann.published_at) })}
+                    {ann.expires_at && (
+                      <> {"\u2014"} {t("annExpires", { date: formatDate(ann.expires_at) })}</>
+                    )}
+                  </div>
+                </div>
+                <button
+                  className="ui-btn ui-btn-sm ui-btn-outline"
+                  onClick={() => setDeleteId(ann.id)}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0, color: "var(--color-red)" }}
+                >
+                  <Trash2 size={13} />
+                  {t("delete")}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="card" style={{ padding: 48, textAlign: "center" }}>
+          <Megaphone size={48} style={{ color: "var(--muted)", marginBottom: 12 }} />
+          <div style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 6 }}>
+            {t("annEmpty")}
+          </div>
+          <div style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
+            {t("annEmptyDesc")}
+          </div>
+        </div>
+      )}
+
+      {/* Create Announcement Modal */}
+      {showCreate && (
+        <div className="modal-content" onClick={() => setShowCreate(false)}>
+          <div className="modal-body" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: "1.05rem" }}>{t("annCreateTitle")}</h3>
+              <button
+                onClick={() => setShowCreate(false)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+              {t("annCreateDesc")}
+            </p>
+
+            {createError && (
+              <div style={{ padding: "8px 12px", borderRadius: 6, background: "rgba(239,68,68,0.1)", color: "var(--color-red)", fontSize: "0.85rem", marginBottom: 12 }}>
+                {createError}
+              </div>
+            )}
+
+            <form onSubmit={handleCreate}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted)" }}>
+                  {t("annFieldTitle")}
+                </label>
+                <input
+                  type="text"
+                  className="invite-form-input"
+                  value={createTitle}
+                  onChange={(e) => setCreateTitle(e.target.value)}
+                  placeholder={t("annTitlePlaceholder")}
+                  required
+                  disabled={creating}
+                />
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted)" }}>
+                  {t("annFieldCategory")}
+                </label>
+                <select
+                  className="invite-form-select"
+                  value={createCategory}
+                  onChange={(e) => setCreateCategory(e.target.value)}
+                  disabled={creating}
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted)" }}>
+                  {t("annFieldContent")}
+                </label>
+                <textarea
+                  className="invite-form-input"
+                  value={createContent}
+                  onChange={(e) => setCreateContent(e.target.value)}
+                  placeholder={t("annContentPlaceholder")}
+                  rows={5}
+                  style={{ resize: "vertical" }}
+                  required
+                  disabled={creating}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn-md ui-btn-outline"
+                  onClick={() => setShowCreate(false)}
+                  disabled={creating}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="ui-btn ui-btn-md ui-btn-primary"
+                  disabled={creating}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  <Megaphone size={15} />
+                  {creating ? t("annPublishing") : t("annPublish")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Announcement Confirmation */}
+      {deleteId && (
+        <div className="modal-content" onClick={() => setDeleteId(null)}>
+          <div className="modal-body" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <h3 style={{ margin: "0 0 12px 0", fontSize: "1.05rem" }}>{t("annDeleteTitle")}</h3>
+            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 20px 0" }}>
+              {t("annDeleteDesc")}
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <button
+                className="ui-btn ui-btn-md ui-btn-outline"
+                onClick={() => setDeleteId(null)}
+                disabled={deleting}
+              >
+                {t("cancel")}
+              </button>
+              <button
+                className="ui-btn ui-btn-md ui-btn-primary"
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{ background: "var(--color-red)" }}
+              >
+                {deleting ? t("annDeleting") : t("annDeleteConfirm")}
               </button>
             </div>
           </div>

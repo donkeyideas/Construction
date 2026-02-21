@@ -91,10 +91,12 @@ export default function ProfileClient({
 
   return (
     <div>
-      <div className="fin-header">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h2>{t("profileTitle")}</h2>
-          <p className="fin-header-sub">
+          <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "2rem", fontWeight: 700, margin: 0 }}>
+            {t("profileTitle")}
+          </h2>
+          <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 2 }}>
             {t("profileSubtitle")}
           </p>
         </div>
@@ -146,7 +148,7 @@ export default function ProfileClient({
                 <label className="tenant-label">{t("fullName")}</label>
                 <input
                   type="text"
-                  className="invite-form-input"
+                  className="tenant-form-input"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder={t("enterFullName")}
@@ -158,7 +160,7 @@ export default function ProfileClient({
                 <label className="tenant-label">{t("email")}</label>
                 <input
                   type="email"
-                  className="invite-form-input"
+                  className="tenant-form-input"
                   value={profile.email}
                   disabled
                   style={{ opacity: 0.6 }}
@@ -178,7 +180,7 @@ export default function ProfileClient({
                 <label className="tenant-label">{t("phone")}</label>
                 <input
                   type="tel"
-                  className="invite-form-input"
+                  className="tenant-form-input"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder={t("phonePlaceholder")}
@@ -315,7 +317,7 @@ export default function ProfileClient({
                 <div>
                   <div className="tenant-profile-row-label">{t("leasePeriod")}</div>
                   <div className="tenant-profile-row-value">
-                    {formatDate(profile.lease.lease_start)} &mdash;{" "}
+                    {formatDate(profile.lease.lease_start)} {"\u2014"}{" "}
                     {formatDate(profile.lease.lease_end)}
                   </div>
                 </div>

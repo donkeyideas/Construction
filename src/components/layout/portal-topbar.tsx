@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
-import { Sun, Moon, LogOut, Search, Settings, SwatchBook } from "lucide-react";
+import { Sun, Moon, LogOut, Search, Settings, SwatchBook, User, Phone, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -45,6 +45,14 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
     email: null,
   });
 
+  // Settings modal state (tenant portal only)
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsName, setSettingsName] = useState("");
+  const [settingsPhone, setSettingsPhone] = useState("");
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsError, setSettingsError] = useState("");
+  const [settingsSuccess, setSettingsSuccess] = useState("");
+
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
@@ -73,6 +81,59 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
+  }
+
+  function openSettings() {
+    setSettingsName(userInfo.name ?? "");
+    setSettingsPhone("");
+    setSettingsError("");
+    setSettingsSuccess("");
+    setSettingsOpen(true);
+
+    // Fetch current profile data for phone
+    fetch("/api/tenant/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.phone) setSettingsPhone(data.phone);
+        if (data.full_name) setSettingsName(data.full_name);
+      })
+      .catch(() => {});
+  }
+
+  async function handleSettingsSave(e: FormEvent) {
+    e.preventDefault();
+    setSettingsSaving(true);
+    setSettingsError("");
+    setSettingsSuccess("");
+
+    try {
+      const res = await fetch("/api/tenant/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name: settingsName, phone: settingsPhone }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save");
+
+      setUserInfo((prev) => ({ ...prev, name: settingsName }));
+      setSettingsSuccess("Settings saved successfully.");
+      setTimeout(() => {
+        setSettingsOpen(false);
+        router.refresh();
+      }, 800);
+    } catch (err) {
+      setSettingsError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSettingsSaving(false);
+    }
+  }
+
+  function handleSettingsClick() {
+    if (portalType === "tenant") {
+      openSettings();
+    } else {
+      router.push("/admin/settings");
+    }
   }
 
   const initials = getInitials(userInfo.name, userInfo.email);
@@ -119,7 +180,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
                 )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push("/admin/settings")}>
+              <DropdownMenuItem onSelect={handleSettingsClick}>
                 <Settings size={14} style={{ marginRight: 8 }} />
                 Settings
               </DropdownMenuItem>
@@ -138,6 +199,85 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
       </nav>
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Tenant Settings Modal */}
+      {settingsOpen && (
+        <div className="tenant-modal-overlay" onClick={() => setSettingsOpen(false)}>
+          <div className="tenant-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="tenant-modal-header">
+              <h3 style={{ margin: 0, fontSize: "1.05rem" }}>Settings</h3>
+              <button
+                className="tenant-modal-close"
+                onClick={() => setSettingsOpen(false)}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+              Update your personal information.
+            </p>
+
+            {settingsError && (
+              <div className="tenant-alert tenant-alert-error">{settingsError}</div>
+            )}
+            {settingsSuccess && (
+              <div className="tenant-alert tenant-alert-success">{settingsSuccess}</div>
+            )}
+
+            <form onSubmit={handleSettingsSave}>
+              <div className="tenant-field">
+                <label className="tenant-label">
+                  <User size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  className="tenant-form-input"
+                  value={settingsName}
+                  onChange={(e) => setSettingsName(e.target.value)}
+                  placeholder="Enter your full name"
+                  disabled={settingsSaving}
+                />
+              </div>
+
+              <div className="tenant-field">
+                <label className="tenant-label">
+                  <Phone size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  className="tenant-form-input"
+                  value={settingsPhone}
+                  onChange={(e) => setSettingsPhone(e.target.value)}
+                  placeholder="(555) 123-4567"
+                  disabled={settingsSaving}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 8 }}>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn-md ui-btn-outline"
+                  onClick={() => setSettingsOpen(false)}
+                  disabled={settingsSaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="ui-btn ui-btn-md ui-btn-primary"
+                  disabled={settingsSaving}
+                >
+                  {settingsSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

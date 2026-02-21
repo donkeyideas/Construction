@@ -4,6 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import {
   getPropertyById,
   getPropertyFinancials,
+  getPropertyAnnouncements,
 } from "@/lib/queries/properties";
 import PropertyDetailClient from "./PropertyDetailClient";
 
@@ -44,7 +45,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const financials = await getPropertyFinancials(supabase, id);
+  const [financials, announcements] = await Promise.all([
+    getPropertyFinancials(supabase, id),
+    getPropertyAnnouncements(supabase, id),
+  ]);
 
   return (
     <PropertyDetailClient
@@ -53,6 +57,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       leases={leases}
       maintenanceRequests={maintenanceRequests}
       financials={financials}
+      announcements={announcements}
     />
   );
 }
