@@ -61,7 +61,8 @@ export default function SectionTransactions({ data, sectionName }: Props) {
           (data.contractsGenerated || 0) + (data.rfisGenerated || 0) +
           (data.equipPurchaseGenerated || 0) + (data.depreciationGenerated || 0) +
           (data.payrollGenerated || 0) + (data.maintenanceGenerated || 0) +
-          (data.leaseScheduled || 0) + (data.rentPaymentGenerated || 0);
+          (data.leaseScheduled || 0) + (data.rentPaymentGenerated || 0) +
+          (data.draftsPosted || 0) + (data.banksSynced || 0);
         if (total > 0) {
           setBackfillDone(true);
         }

@@ -1373,7 +1373,7 @@ async function processEntity(
             entry_date: first.entry_date || new Date().toISOString().split("T")[0],
             description: first.description || "",
             reference: first.reference || null,
-            status: "draft",
+            status: first.status || "posted",
             created_by: userId,
           })
           .select("id")

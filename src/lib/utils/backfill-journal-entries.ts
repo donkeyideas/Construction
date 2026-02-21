@@ -23,6 +23,8 @@ export interface BackfillResult {
   depreciationGenerated: number;
   payrollGenerated: number;
   maintenanceGenerated: number;
+  draftsPosted: number;
+  banksSynced: number;
 }
 
 /**
@@ -92,6 +94,8 @@ export async function backfillMissingJournalEntries(
     depreciationGenerated: 0,
     payrollGenerated: 0,
     maintenanceGenerated: 0,
+    draftsPosted: 0,
+    banksSynced: 0,
   };
 
   // Auto-seed required GL accounts before building the map
@@ -463,6 +467,90 @@ export async function backfillMissingJournalEntries(
         }, accountMap);
         if (r) result.maintenanceGenerated++;
       } catch (err) { console.warn("Backfill equipment maintenance JE failed:", m.id, err); }
+    }
+  }
+
+  // --- Post all draft JEs ---
+  const { data: drafts } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("status", "draft");
+
+  if (drafts && drafts.length > 0) {
+    const draftIds = drafts.map((d) => d.id);
+    await supabase
+      .from("journal_entries")
+      .update({ status: "posted" })
+      .eq("company_id", companyId)
+      .in("id", draftIds);
+    result.draftsPosted = draftIds.length;
+  }
+
+  // --- Sync bank balances from GL cash accounts ---
+  const { data: bankAccounts } = await supabase
+    .from("bank_accounts")
+    .select("id, account_name")
+    .eq("company_id", companyId);
+
+  if (bankAccounts && bankAccounts.length > 0) {
+    // Find all cash-type GL accounts
+    const { data: cashAccounts } = await supabase
+      .from("chart_of_accounts")
+      .select("id, name")
+      .eq("company_id", companyId)
+      .eq("account_type", "asset")
+      .eq("is_active", true)
+      .or("name.ilike.%cash%,name.ilike.%checking%,name.ilike.%savings%");
+
+    const cashAccountIds = (cashAccounts ?? []).map((a) => a.id);
+
+    if (cashAccountIds.length > 0) {
+      // Calculate total GL cash balance from posted JEs
+      const { data: cashLines } = await supabase
+        .from("journal_entry_lines")
+        .select("debit, credit, journal_entries!inner(status)")
+        .eq("company_id", companyId)
+        .in("account_id", cashAccountIds)
+        .eq("journal_entries.status" as string, "posted")
+        .limit(5000);
+
+      let glCashTotal = 0;
+      for (const line of cashLines ?? []) {
+        glCashTotal += (Number(line.debit) || 0) - (Number(line.credit) || 0);
+      }
+
+      // Distribute GL cash total proportionally across bank accounts based on current ratios
+      const currentTotal = bankAccounts.reduce((s, b) => s + 1, 0); // count
+      if (bankAccounts.length === 1) {
+        // Single bank account: set to GL total
+        await supabase
+          .from("bank_accounts")
+          .update({ current_balance: glCashTotal })
+          .eq("id", bankAccounts[0].id);
+        result.banksSynced = 1;
+      } else {
+        // Multiple bank accounts: distribute proportionally
+        // Read current balances for ratio calculation
+        const { data: bankWithBalances } = await supabase
+          .from("bank_accounts")
+          .select("id, current_balance")
+          .eq("company_id", companyId);
+
+        const balances = bankWithBalances ?? [];
+        const oldTotal = balances.reduce((s, b) => s + (Number(b.current_balance) || 0), 0);
+
+        for (const bank of balances) {
+          const oldBal = Number(bank.current_balance) || 0;
+          const ratio = oldTotal > 0 ? oldBal / oldTotal : 1 / balances.length;
+          const newBal = Math.round(glCashTotal * ratio * 100) / 100;
+          await supabase
+            .from("bank_accounts")
+            .update({ current_balance: newBal })
+            .eq("id", bank.id);
+          result.banksSynced++;
+        }
+      }
     }
   }
 
