@@ -1,26 +1,49 @@
-import { User } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getVendorContact, getVendorCertifications } from "@/lib/queries/vendor-portal";
+import ProfileClient from "./ProfileClient";
 
 export const metadata = { title: "My Profile - Buildwrk" };
 
 export default async function VendorProfilePage() {
-  const t = await getTranslations("vendor");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login/vendor");
+
+  const admin = createAdminClient();
+  const [contact, certifications] = await Promise.all([
+    getVendorContact(admin, user.id),
+    getVendorCertifications(admin, user.id),
+  ]);
+
+  if (!contact) {
+    return (
+      <div className="fin-empty">
+        <div className="fin-empty-title">Profile Not Found</div>
+        <div className="fin-empty-desc">Your vendor profile could not be loaded.</div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="fin-header">
-        <div>
-          <h2>{t("profileTitle")}</h2>
-          <p className="fin-header-sub">{t("profileSubtitle")}</p>
-        </div>
-      </div>
-      <div className="fin-chart-card">
-        <div className="fin-empty">
-          <div className="fin-empty-icon"><User size={48} /></div>
-          <div className="fin-empty-title">{t("comingSoon")}</div>
-          <div className="fin-empty-desc">{t("underDevelopment")}</div>
-        </div>
-      </div>
-    </div>
+    <ProfileClient
+      contact={{
+        id: contact.id,
+        company_name: contact.company_name,
+        first_name: contact.first_name,
+        last_name: contact.last_name,
+        email: contact.email,
+        phone: contact.phone,
+        job_title: contact.job_title,
+      }}
+      certifications={(certifications ?? []).map((c: Record<string, unknown>) => ({
+        id: c.id as string,
+        cert_name: (c.cert_name as string) ?? "",
+        cert_type: (c.cert_type as string) ?? null,
+        expiry_date: (c.expiry_date as string) ?? null,
+      }))}
+    />
   );
 }

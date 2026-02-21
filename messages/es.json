@@ -2071,7 +2071,24 @@
     "additionalNotesPlaceholder": "Notas adicionales...",
     "vendorsEntity": "Proveedores",
     "editVendor": "Editar Proveedor",
-    "deleteVendorConfirm": "Esta seguro de que desea eliminar a {name}? Esta accion no se puede deshacer."
+    "deleteVendorConfirm": "Esta seguro de que desea eliminar a {name}? Esta accion no se puede deshacer.",
+    "createContract": "Crear Contrato",
+    "editContract": "Editar Contrato",
+    "selectVendor": "-- Seleccionar Proveedor --",
+    "selectProject": "-- Seleccionar Proyecto --",
+    "project": "Proyecto",
+    "scopeOfWork": "Alcance del Trabajo",
+    "retentionPct": "Retencion %",
+    "insuranceRequired": "Seguro Requerido",
+    "insuranceExpiry": "Vencimiento del Seguro",
+    "subcontract": "Subcontrato",
+    "purchaseOrder": "Orden de Compra",
+    "serviceAgreement": "Acuerdo de Servicio",
+    "contactFirstName": "Nombre",
+    "contactLastName": "Apellido",
+    "failedToUpdate": "Error al actualizar",
+    "failedToDelete": "Error al eliminar",
+    "failedToCreateVendor": "Error al crear proveedor"
   },
   "projects": {
     "projects": {

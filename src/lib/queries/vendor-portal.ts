@@ -582,3 +582,256 @@ export async function getVendorDocuments(supabase: SupabaseClient, userId: strin
     .order("shared_at", { ascending: false });
   return data ?? [];
 }
+
+// ---------- Detail page queries ----------
+
+export async function getVendorContact(supabase: SupabaseClient, userId: string) {
+  const { data } = await supabase
+    .from("contacts")
+    .select("*")
+    .eq("user_id", userId)
+    .in("contact_type", ["vendor", "subcontractor"])
+    .limit(1)
+    .single();
+  return data;
+}
+
+export interface VendorInvoiceDetail {
+  id: string;
+  invoice_number: string;
+  total_amount: number;
+  balance_due: number;
+  status: string;
+  invoice_date: string;
+  due_date: string | null;
+  description: string | null;
+  payment_terms: string | null;
+  tax_amount: number;
+  line_items: unknown;
+  project_name: string | null;
+  payments: {
+    id: string;
+    payment_date: string;
+    amount: number;
+    method: string;
+    reference_number: string | null;
+    je_entry_number: string | null;
+  }[];
+}
+
+export async function getVendorInvoiceDetail(
+  supabase: SupabaseClient,
+  userId: string,
+  invoiceId: string
+): Promise<VendorInvoiceDetail | null> {
+  const contact = await getVendorContact(supabase, userId);
+  if (!contact) return null;
+
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("*, projects(name)")
+    .eq("id", invoiceId)
+    .eq("vendor_id", contact.id)
+    .eq("invoice_type", "payable")
+    .single();
+
+  if (!invoice) return null;
+
+  // Fetch payments for this invoice
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("id, payment_date, amount, method, reference_number")
+    .eq("invoice_id", invoiceId)
+    .order("payment_date", { ascending: false });
+
+  // Look up JE references
+  const paymentRows = (payments ?? []).map((p) => ({
+    ...p,
+    je_entry_number: null as string | null,
+  }));
+
+  if (paymentRows.length > 0) {
+    const refs = paymentRows.map((p) => `payment:${p.id}`);
+    const { data: jeData } = await supabase
+      .from("journal_entries")
+      .select("entry_number, reference")
+      .in("reference", refs);
+    if (jeData) {
+      const jeMap = new Map(jeData.map((je) => [je.reference.replace("payment:", ""), je.entry_number]));
+      for (const row of paymentRows) {
+        row.je_entry_number = jeMap.get(row.id) || null;
+      }
+    }
+  }
+
+  const project = invoice.projects as { name: string } | null;
+  return {
+    id: invoice.id,
+    invoice_number: invoice.invoice_number ?? "",
+    total_amount: invoice.total_amount ?? 0,
+    balance_due: invoice.balance_due ?? 0,
+    status: invoice.status ?? "draft",
+    invoice_date: invoice.invoice_date ?? "",
+    due_date: invoice.due_date ?? null,
+    description: invoice.description ?? null,
+    payment_terms: invoice.payment_terms ?? null,
+    tax_amount: invoice.tax_amount ?? 0,
+    line_items: invoice.line_items ?? null,
+    project_name: project?.name ?? null,
+    payments: paymentRows,
+  };
+}
+
+export interface VendorContractDetail {
+  id: string;
+  contract_number: string | null;
+  title: string;
+  contract_type: string | null;
+  amount: number;
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+  scope_of_work: string | null;
+  retention_pct: number;
+  insurance_required: boolean;
+  insurance_expiry: string | null;
+  project_name: string | null;
+  project_status: string | null;
+  invoices: {
+    id: string;
+    invoice_number: string;
+    total_amount: number;
+    balance_due: number;
+    status: string;
+    invoice_date: string;
+  }[];
+}
+
+export async function getVendorContractDetail(
+  supabase: SupabaseClient,
+  userId: string,
+  contractId: string
+): Promise<VendorContractDetail | null> {
+  const contact = await getVendorContact(supabase, userId);
+  if (!contact) return null;
+
+  const { data: contract } = await supabase
+    .from("vendor_contracts")
+    .select("*, projects(name, status)")
+    .eq("id", contractId)
+    .eq("vendor_id", contact.id)
+    .single();
+
+  if (!contract) return null;
+
+  // Fetch invoices for this contract's project
+  let invoices: { id: string; invoice_number: string; total_amount: number; balance_due: number; status: string; invoice_date: string }[] = [];
+  if (contract.project_id) {
+    const { data } = await supabase
+      .from("invoices")
+      .select("id, invoice_number, total_amount, balance_due, status, invoice_date")
+      .eq("vendor_id", contact.id)
+      .eq("project_id", contract.project_id)
+      .eq("invoice_type", "payable")
+      .order("invoice_date", { ascending: false });
+    invoices = (data ?? []) as typeof invoices;
+  }
+
+  const project = contract.projects as { name: string; status: string } | null;
+  return {
+    id: contract.id,
+    contract_number: contract.contract_number ?? null,
+    title: contract.title ?? "",
+    contract_type: contract.contract_type ?? null,
+    amount: contract.amount ?? 0,
+    status: contract.status ?? "draft",
+    start_date: contract.start_date ?? null,
+    end_date: contract.end_date ?? null,
+    scope_of_work: contract.scope_of_work ?? null,
+    retention_pct: contract.retention_pct ?? 0,
+    insurance_required: contract.insurance_required ?? false,
+    insurance_expiry: contract.insurance_expiry ?? null,
+    project_name: project?.name ?? null,
+    project_status: project?.status ?? null,
+    invoices,
+  };
+}
+
+export interface VendorProjectDetail {
+  id: string;
+  name: string;
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+  project_number: string | null;
+  contract: {
+    id: string;
+    title: string;
+    amount: number;
+    status: string;
+    contract_number: string | null;
+  } | null;
+  invoices: {
+    id: string;
+    invoice_number: string;
+    total_amount: number;
+    balance_due: number;
+    status: string;
+    invoice_date: string;
+  }[];
+}
+
+export async function getVendorProjectDetail(
+  supabase: SupabaseClient,
+  userId: string,
+  projectId: string
+): Promise<VendorProjectDetail | null> {
+  const contact = await getVendorContact(supabase, userId);
+  if (!contact) return null;
+
+  // Verify vendor has a contract for this project
+  const { data: contract } = await supabase
+    .from("vendor_contracts")
+    .select("id, title, amount, status, contract_number")
+    .eq("vendor_id", contact.id)
+    .eq("project_id", projectId)
+    .limit(1)
+    .single();
+
+  if (!contract) return null;
+
+  // Fetch project details
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id, name, status, start_date, end_date, project_number")
+    .eq("id", projectId)
+    .single();
+
+  if (!project) return null;
+
+  // Fetch invoices for this project
+  const { data: invoices } = await supabase
+    .from("invoices")
+    .select("id, invoice_number, total_amount, balance_due, status, invoice_date")
+    .eq("vendor_id", contact.id)
+    .eq("project_id", projectId)
+    .eq("invoice_type", "payable")
+    .order("invoice_date", { ascending: false });
+
+  return {
+    id: project.id,
+    name: project.name ?? "",
+    status: project.status ?? "planning",
+    start_date: project.start_date ?? null,
+    end_date: project.end_date ?? null,
+    project_number: project.project_number ?? null,
+    contract: {
+      id: contract.id,
+      title: contract.title,
+      amount: contract.amount ?? 0,
+      status: contract.status ?? "draft",
+      contract_number: contract.contract_number ?? null,
+    },
+    invoices: (invoices ?? []) as VendorProjectDetail["invoices"],
+  };
+}

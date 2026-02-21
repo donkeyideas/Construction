@@ -23,8 +23,8 @@ export default async function VendorsPage() {
 
   const { companyId } = userCompany;
 
-  // Fetch vendor & subcontractor contacts and vendor contracts in parallel
-  const [{ data: contacts }, { data: contracts }] = await Promise.all([
+  // Fetch vendor contacts, vendor contracts, and projects in parallel
+  const [{ data: contacts }, { data: contracts }, { data: projects }] = await Promise.all([
     supabase
       .from("contacts")
       .select("*")
@@ -37,6 +37,11 @@ export default async function VendorsPage() {
       .select("*, contacts(first_name, last_name, company_name)")
       .eq("company_id", companyId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("projects")
+      .select("id, name, project_number, status")
+      .eq("company_id", companyId)
+      .order("name"),
   ]);
 
   return (
@@ -44,6 +49,7 @@ export default async function VendorsPage() {
       <VendorsClient
         contacts={contacts ?? []}
         contracts={contracts ?? []}
+        projects={projects ?? []}
       />
     </div>
   );

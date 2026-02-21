@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   XCircle,
+  FileText,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import PrequalificationChecklist from "@/components/PrequalificationChecklist";
@@ -48,6 +49,8 @@ interface Contact {
 
 interface VendorContract {
   id: string;
+  vendor_id: string;
+  project_id: string | null;
   contract_number: string;
   title: string;
   contract_type: string;
@@ -55,7 +58,18 @@ interface VendorContract {
   status: string;
   start_date: string;
   end_date: string;
+  scope_of_work: string | null;
+  retention_pct: number | null;
+  insurance_required: boolean | null;
+  insurance_expiry: string | null;
   contacts?: { first_name: string; last_name: string; company_name: string };
+}
+
+interface Project {
+  id: string;
+  name: string;
+  project_number: string | null;
+  status: string;
 }
 
 const TYPE_BADGE_CLASS: Record<string, string> = {
@@ -63,12 +77,30 @@ const TYPE_BADGE_CLASS: Record<string, string> = {
   subcontractor: "contact-type-subcontractor",
 };
 
+const EMPTY_CONTRACT_FORM = {
+  vendor_id: "",
+  project_id: "",
+  contract_number: "",
+  title: "",
+  contract_type: "subcontract",
+  amount: "",
+  status: "active",
+  start_date: "",
+  end_date: "",
+  scope_of_work: "",
+  retention_pct: "",
+  insurance_required: true,
+  insurance_expiry: "",
+};
+
 export default function VendorsClient({
   contacts,
   contracts,
+  projects,
 }: {
   contacts: Contact[];
   contracts: VendorContract[];
+  projects: Project[];
 }) {
   const router = useRouter();
   const t = useTranslations("people");
@@ -115,6 +147,15 @@ export default function VendorsClient({
     contact_type: "vendor",
     notes: "",
   });
+
+  // Contract CRUD state
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [contractEditing, setContractEditing] = useState<VendorContract | null>(null);
+  const [contractSaving, setContractSaving] = useState(false);
+  const [contractError, setContractError] = useState("");
+  const [contractForm, setContractForm] = useState(EMPTY_CONTRACT_FORM);
+  const [showContractDelete, setShowContractDelete] = useState(false);
+  const [contractDeleting, setContractDeleting] = useState(false);
 
   async function handleImport(rows: Record<string, string>[]) {
     const res = await fetch("/api/import", {
@@ -250,6 +291,110 @@ export default function VendorsClient({
     setIsEditing(false);
     setShowDeleteConfirm(false);
     setEditError("");
+  }
+
+  // ---- Contract modal helpers ----
+  function openCreateContract() {
+    setContractEditing(null);
+    setContractForm(EMPTY_CONTRACT_FORM);
+    setContractError("");
+    setShowContractDelete(false);
+    setShowContractModal(true);
+  }
+
+  function openEditContract(c: VendorContract) {
+    setContractEditing(c);
+    setContractForm({
+      vendor_id: c.vendor_id || "",
+      project_id: c.project_id || "",
+      contract_number: c.contract_number || "",
+      title: c.title || "",
+      contract_type: c.contract_type || "subcontract",
+      amount: c.amount ? String(c.amount) : "",
+      status: c.status || "active",
+      start_date: c.start_date || "",
+      end_date: c.end_date || "",
+      scope_of_work: c.scope_of_work || "",
+      retention_pct: c.retention_pct != null ? String(c.retention_pct) : "",
+      insurance_required: c.insurance_required ?? true,
+      insurance_expiry: c.insurance_expiry || "",
+    });
+    setContractError("");
+    setShowContractDelete(false);
+    setShowContractModal(true);
+  }
+
+  function closeContractModal() {
+    setShowContractModal(false);
+    setContractEditing(null);
+    setContractError("");
+    setShowContractDelete(false);
+  }
+
+  async function handleContractSave(e: React.FormEvent) {
+    e.preventDefault();
+    setContractSaving(true);
+    setContractError("");
+
+    const payload: Record<string, unknown> = {
+      vendor_id: contractForm.vendor_id,
+      project_id: contractForm.project_id || null,
+      contract_number: contractForm.contract_number || null,
+      title: contractForm.title,
+      contract_type: contractForm.contract_type,
+      amount: contractForm.amount ? Number(contractForm.amount) : 0,
+      status: contractForm.status,
+      start_date: contractForm.start_date || null,
+      end_date: contractForm.end_date || null,
+      scope_of_work: contractForm.scope_of_work || null,
+      retention_pct: contractForm.retention_pct ? Number(contractForm.retention_pct) : 0,
+      insurance_required: contractForm.insurance_required,
+      insurance_expiry: contractForm.insurance_expiry || null,
+    };
+
+    try {
+      const url = contractEditing
+        ? `/api/people/vendor-contracts/${contractEditing.id}`
+        : "/api/people/vendor-contracts";
+      const method = contractEditing ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save contract");
+      }
+
+      closeContractModal();
+      router.refresh();
+    } catch (err: unknown) {
+      setContractError(err instanceof Error ? err.message : "Failed to save contract");
+    } finally {
+      setContractSaving(false);
+    }
+  }
+
+  async function handleContractDelete() {
+    if (!contractEditing) return;
+    setContractDeleting(true);
+    try {
+      const res = await fetch(`/api/people/vendor-contracts/${contractEditing.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete contract");
+      }
+      closeContractModal();
+      router.refresh();
+    } catch (err: unknown) {
+      setContractError(err instanceof Error ? err.message : "Failed to delete contract");
+      setShowContractDelete(false);
+    } finally {
+      setContractDeleting(false);
+    }
   }
 
   const fmt = (n: number) =>
@@ -403,49 +548,67 @@ export default function VendorsClient({
 
       {/* Contracts Tab */}
       {tab === "contracts" && (
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>{t("contractNumber")}</th>
-                <th>{t("title")}</th>
-                <th>{t("typeVendor")}</th>
-                <th>{t("type")}</th>
-                <th>{t("amount")}</th>
-                <th>{t("status")}</th>
-                <th>{t("start")}</th>
-                <th>{t("end")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contracts.length === 0 ? (
+        <div>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
+            <button className="btn-primary" onClick={openCreateContract}>
+              <FileText size={16} />
+              {t("createContract") ?? "Create Contract"}
+            </button>
+          </div>
+
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
                 <tr>
-                  <td colSpan={8} className="table-empty-cell">
-                    {t("noContractsFound")}
-                  </td>
+                  <th>{t("contractNumber")}</th>
+                  <th>{t("title")}</th>
+                  <th>{t("typeVendor")}</th>
+                  <th>{t("type")}</th>
+                  <th>{t("project") ?? "Project"}</th>
+                  <th>{t("amount")}</th>
+                  <th>{t("status")}</th>
+                  <th>{t("start")}</th>
+                  <th>{t("end")}</th>
                 </tr>
-              ) : (
-                contracts.map((c) => (
-                  <tr key={c.id}>
-                    <td style={{ fontWeight: 600 }}>{c.contract_number}</td>
-                    <td>{c.title}</td>
-                    <td>{c.contacts?.company_name ?? "\u2014"}</td>
-                    <td style={{ textTransform: "capitalize" }}>
-                      {c.contract_type?.replace(/_/g, " ")}
+              </thead>
+              <tbody>
+                {contracts.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="table-empty-cell">
+                      {t("noContractsFound")}
                     </td>
-                    <td>{fmt(c.amount)}</td>
-                    <td>
-                      <span className={`status-badge status-${c.status}`}>
-                        {c.status}
-                      </span>
-                    </td>
-                    <td>{c.start_date ? new Date(c.start_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
-                    <td>{c.end_date ? new Date(c.end_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  contracts.map((c) => {
+                    const proj = projects.find((p) => p.id === c.project_id);
+                    return (
+                      <tr
+                        key={c.id}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => openEditContract(c)}
+                      >
+                        <td style={{ fontWeight: 600 }}>{c.contract_number || "\u2014"}</td>
+                        <td>{c.title}</td>
+                        <td>{c.contacts?.company_name ?? "\u2014"}</td>
+                        <td style={{ textTransform: "capitalize" }}>
+                          {c.contract_type?.replace(/_/g, " ")}
+                        </td>
+                        <td>{proj?.name ?? "\u2014"}</td>
+                        <td>{fmt(c.amount)}</td>
+                        <td>
+                          <span className={`status-badge status-${c.status}`}>
+                            {c.status}
+                          </span>
+                        </td>
+                        <td>{c.start_date ? new Date(c.start_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
+                        <td>{c.end_date ? new Date(c.end_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -761,6 +924,227 @@ export default function VendorsClient({
                   </button>
                 </div>
               </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Contract Create/Edit Modal */}
+      {showContractModal && (
+        <div className="ticket-modal-overlay" onClick={closeContractModal}>
+          <div className="ticket-modal" style={{ maxWidth: "640px" }} onClick={(e) => e.stopPropagation()}>
+            <div className="ticket-modal-header">
+              <h3>{contractEditing ? (t("editContract") ?? "Edit Contract") : (t("createContract") ?? "Create Contract")}</h3>
+              <button className="ticket-modal-close" onClick={closeContractModal}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {contractError && <div className="ticket-form-error">{contractError}</div>}
+
+            {showContractDelete ? (
+              <div className="ticket-delete-confirm">
+                <p>Are you sure you want to delete contract &ldquo;{contractEditing?.title}&rdquo;? This action cannot be undone.</p>
+                <div className="ticket-delete-actions">
+                  <button className="btn-secondary" onClick={() => setShowContractDelete(false)} disabled={contractDeleting}>{t("cancel")}</button>
+                  <button className="btn-danger" onClick={handleContractDelete} disabled={contractDeleting}>
+                    {contractDeleting ? t("deleting") : t("delete")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleContractSave} className="ticket-form">
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("typeVendor")} *</label>
+                    <select
+                      className="ticket-form-select"
+                      value={contractForm.vendor_id}
+                      onChange={(e) => setContractForm({ ...contractForm, vendor_id: e.target.value })}
+                      required
+                    >
+                      <option value="">{t("selectVendor") ?? "-- Select Vendor --"}</option>
+                      {contacts.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.company_name || `${c.first_name} ${c.last_name}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("project") ?? "Project"}</label>
+                    <select
+                      className="ticket-form-select"
+                      value={contractForm.project_id}
+                      onChange={(e) => setContractForm({ ...contractForm, project_id: e.target.value })}
+                    >
+                      <option value="">{t("selectProject") ?? "-- Select Project --"}</option>
+                      {projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.project_number ? `${p.project_number} - ` : ""}{p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("title")} *</label>
+                    <input
+                      type="text"
+                      className="ticket-form-input"
+                      value={contractForm.title}
+                      onChange={(e) => setContractForm({ ...contractForm, title: e.target.value })}
+                      placeholder="e.g. Structural Steel Package"
+                      required
+                    />
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("contractNumber")}</label>
+                    <input
+                      type="text"
+                      className="ticket-form-input"
+                      value={contractForm.contract_number}
+                      onChange={(e) => setContractForm({ ...contractForm, contract_number: e.target.value })}
+                      placeholder="e.g. SC-2026-001"
+                    />
+                  </div>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("type")}</label>
+                    <select
+                      className="ticket-form-select"
+                      value={contractForm.contract_type}
+                      onChange={(e) => setContractForm({ ...contractForm, contract_type: e.target.value })}
+                    >
+                      <option value="subcontract">{t("subcontract") ?? "Subcontract"}</option>
+                      <option value="purchase_order">{t("purchaseOrder") ?? "Purchase Order"}</option>
+                      <option value="service_agreement">{t("serviceAgreement") ?? "Service Agreement"}</option>
+                    </select>
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("status")}</label>
+                    <select
+                      className="ticket-form-select"
+                      value={contractForm.status}
+                      onChange={(e) => setContractForm({ ...contractForm, status: e.target.value })}
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="active">Active</option>
+                      <option value="completed">Completed</option>
+                      <option value="terminated">Terminated</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("amount")}</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      className="ticket-form-input"
+                      value={contractForm.amount}
+                      onChange={(e) => setContractForm({ ...contractForm, amount: e.target.value })}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("retentionPct") ?? "Retention %"}</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      className="ticket-form-input"
+                      value={contractForm.retention_pct}
+                      onChange={(e) => setContractForm({ ...contractForm, retention_pct: e.target.value })}
+                      placeholder="10"
+                    />
+                  </div>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("start")}</label>
+                    <input
+                      type="date"
+                      className="ticket-form-input"
+                      value={contractForm.start_date}
+                      onChange={(e) => setContractForm({ ...contractForm, start_date: e.target.value })}
+                    />
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("end")}</label>
+                    <input
+                      type="date"
+                      className="ticket-form-input"
+                      value={contractForm.end_date}
+                      onChange={(e) => setContractForm({ ...contractForm, end_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group" style={{ flex: "0 0 auto" }}>
+                    <label className="ticket-form-label" style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={contractForm.insurance_required}
+                        onChange={(e) => setContractForm({ ...contractForm, insurance_required: e.target.checked })}
+                      />
+                      {t("insuranceRequired") ?? "Insurance Required"}
+                    </label>
+                  </div>
+                  {contractForm.insurance_required && (
+                    <div className="ticket-form-group">
+                      <label className="ticket-form-label">{t("insuranceExpiry") ?? "Insurance Expiry"}</label>
+                      <input
+                        type="date"
+                        className="ticket-form-input"
+                        value={contractForm.insurance_expiry}
+                        onChange={(e) => setContractForm({ ...contractForm, insurance_expiry: e.target.value })}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("scopeOfWork") ?? "Scope of Work"}</label>
+                  <textarea
+                    className="ticket-form-textarea"
+                    value={contractForm.scope_of_work}
+                    onChange={(e) => setContractForm({ ...contractForm, scope_of_work: e.target.value })}
+                    rows={3}
+                    placeholder="Describe the scope of work..."
+                  />
+                </div>
+
+                <div className="ticket-form-actions">
+                  {contractEditing && (
+                    <button type="button" className="btn-danger" onClick={() => setShowContractDelete(true)}>
+                      <Trash2 size={15} />
+                      {t("delete")}
+                    </button>
+                  )}
+                  <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+                    <button type="button" className="btn-secondary" onClick={closeContractModal}>
+                      {t("cancel")}
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      disabled={contractSaving || !contractForm.vendor_id || !contractForm.title.trim()}
+                    >
+                      {contractSaving ? t("saving") : contractEditing ? (t("saveChanges")) : (t("createContract") ?? "Create Contract")}
+                    </button>
+                  </div>
+                </div>
+              </form>
             )}
           </div>
         </div>

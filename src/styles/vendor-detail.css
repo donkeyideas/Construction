@@ -1,0 +1,248 @@
+/* Vendor Portal Detail Pages - Shared Styles */
+
+.vd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition: color 0.15s;
+}
+.vd-back:hover {
+  color: var(--foreground);
+}
+
+.vd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.vd-header-left h2 {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+}
+.vd-header-sub {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.vd-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.vd-badge-draft { background: var(--muted-bg, rgba(128,128,128,0.15)); color: var(--muted); }
+.vd-badge-submitted { background: rgba(59,130,246,0.15); color: var(--color-blue); }
+.vd-badge-approved { background: rgba(34,197,94,0.15); color: var(--color-green); }
+.vd-badge-active { background: rgba(34,197,94,0.15); color: var(--color-green); }
+.vd-badge-paid { background: rgba(34,197,94,0.15); color: var(--color-green); }
+.vd-badge-completed { background: rgba(34,197,94,0.15); color: var(--color-green); }
+.vd-badge-overdue { background: rgba(239,68,68,0.15); color: var(--color-red); }
+.vd-badge-terminated { background: rgba(239,68,68,0.15); color: var(--color-red); }
+.vd-badge-voided { background: rgba(239,68,68,0.15); color: var(--color-red); }
+.vd-badge-pending { background: rgba(245,158,11,0.15); color: var(--color-amber); }
+.vd-badge-planning { background: rgba(59,130,246,0.15); color: var(--color-blue); }
+.vd-badge-in_progress { background: rgba(59,130,246,0.15); color: var(--color-blue); }
+
+.vd-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.vd-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.vd-card-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+.vd-card-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.vd-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.vd-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.vd-field-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+.vd-field-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.vd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.vd-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.vd-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.vd-table tbody tr:hover {
+  background: var(--hover-bg, rgba(255,255,255,0.03));
+}
+.vd-table-link {
+  color: var(--color-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+.vd-table-link:hover {
+  text-decoration: underline;
+}
+.vd-table-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 24px 12px;
+  font-style: italic;
+}
+
+/* Profile form */
+.vd-profile-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.vd-profile-form .vd-form-full {
+  grid-column: 1 / -1;
+}
+.vd-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.vd-form-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.vd-form-input,
+.vd-form-select {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input-bg, var(--card));
+  color: var(--foreground);
+  font-size: 0.9rem;
+}
+.vd-form-input:focus,
+.vd-form-select:focus {
+  outline: none;
+  border-color: var(--color-blue);
+}
+
+.vd-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.vd-msg {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+.vd-msg-success {
+  background: rgba(34,197,94,0.12);
+  color: var(--color-green);
+}
+.vd-msg-error {
+  background: rgba(239,68,68,0.12);
+  color: var(--color-red);
+}
+
+.vd-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--muted);
+}
+.vd-empty-icon {
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+.vd-empty-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--foreground);
+}
+
+/* Upload area */
+.vd-upload-area {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.vd-upload-area:hover {
+  border-color: var(--color-blue);
+}
+.vd-upload-link {
+  color: var(--color-blue);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .vd-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  .vd-profile-form {
+    grid-template-columns: 1fr;
+  }
+  .vd-grid {
+    grid-template-columns: 1fr;
+  }
+}
