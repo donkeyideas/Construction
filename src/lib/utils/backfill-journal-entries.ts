@@ -10,10 +10,12 @@ import {
   generateMaintenanceCostJournalEntry,
   generatePayrollRunJournalEntry,
 } from "@/lib/utils/invoice-accounting";
+import { createPostedJournalEntry } from "@/lib/queries/financial";
 
 export interface BackfillResult {
   coGenerated: number;
   invGenerated: number;
+  contractsGenerated: number;
   leaseScheduled: number;
   rentPaymentGenerated: number;
   equipPurchaseGenerated: number;
@@ -81,6 +83,7 @@ export async function backfillMissingJournalEntries(
   const result: BackfillResult = {
     coGenerated: 0,
     invGenerated: 0,
+    contractsGenerated: 0,
     leaseScheduled: 0,
     rentPaymentGenerated: 0,
     equipPurchaseGenerated: 0,
@@ -124,6 +127,51 @@ export async function backfillMissingJournalEntries(
         }, accountMap);
         if (r) result.coGenerated++;
       } catch (err) { console.warn("Backfill CO JE failed:", co.id, err); }
+    }
+  }
+
+  // --- Contracts (commitment JE: DR WIP/Expense / CR AP) ---
+  const { data: contracts } = await supabase
+    .from("contracts")
+    .select("id, contract_number, title, contract_amount, start_date, project_id, status")
+    .eq("company_id", companyId)
+    .not("contract_amount", "is", null);
+
+  if (contracts && contracts.length > 0) {
+    const contractRefs = contracts.map((c) => `contract:${c.id}`);
+    const { data: existingContractJEs } = await supabase
+      .from("journal_entries")
+      .select("reference")
+      .eq("company_id", companyId)
+      .in("reference", contractRefs);
+    const existingContractRefSet = new Set((existingContractJEs ?? []).map((j) => j.reference));
+
+    const expenseAccountId = accountMap.byNumber["5000"] || accountMap.byNumber["5010"] || accountMap.byNumber["6000"] || null;
+    const creditAccountId = accountMap.apId || accountMap.cashId;
+
+    if (expenseAccountId && creditAccountId) {
+      for (const c of contracts) {
+        if (existingContractRefSet.has(`contract:${c.id}`)) continue;
+        const amount = Number(c.contract_amount) || 0;
+        if (amount <= 0) continue;
+        try {
+          const shortId = c.id.substring(0, 8);
+          const desc = `Contract ${c.contract_number || c.title || shortId}`;
+          const entryData = {
+            entry_number: `JE-CTR-${c.contract_number || shortId}`,
+            entry_date: c.start_date ?? new Date().toISOString().split("T")[0],
+            description: desc,
+            reference: `contract:${c.id}`,
+            project_id: c.project_id ?? undefined,
+            lines: [
+              { account_id: expenseAccountId, debit: amount, credit: 0, description: desc, project_id: c.project_id ?? undefined },
+              { account_id: creditAccountId, debit: 0, credit: amount, description: desc, project_id: c.project_id ?? undefined },
+            ],
+          };
+          const r = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+          if (r) result.contractsGenerated++;
+        } catch (err) { console.warn("Backfill contract JE failed:", c.id, err); }
+      }
     }
   }
 
@@ -295,19 +343,31 @@ export async function backfillMissingJournalEntries(
 
   // --- Property Maintenance ---
   if (accountMap.repairsMaintenanceId) {
+    // Fetch maintenance with actual_cost OR estimated_cost (use actual_cost first, fall back to estimated)
     const { data: maintenance } = await supabase
       .from("maintenance_requests")
-      .select("id, title, actual_cost, created_at, property_id, journal_entry_id")
+      .select("id, title, actual_cost, estimated_cost, created_at, property_id, journal_entry_id")
       .eq("company_id", companyId)
-      .is("journal_entry_id", null)
-      .not("actual_cost", "is", null)
-      .gt("actual_cost", 0);
+      .or("actual_cost.gt.0,estimated_cost.gt.0");
+
+    // Also check by reference in case journal_entry_id column is stale
+    const maintRefs = (maintenance ?? []).map((m) => `maintenance:${m.id}`);
+    const { data: existingMaintRefJEs } = await supabase
+      .from("journal_entries")
+      .select("reference")
+      .eq("company_id", companyId)
+      .in("reference", maintRefs.length > 0 ? maintRefs : ["__none__"]);
+    const existingMaintRefSet = new Set((existingMaintRefJEs ?? []).map((j) => j.reference));
 
     for (const m of maintenance ?? []) {
+      if (m.journal_entry_id) continue; // already linked
+      if (existingMaintRefSet.has(`maintenance:${m.id}`)) continue; // already has JE by reference
+      const cost = Number(m.actual_cost) || Number(m.estimated_cost) || 0;
+      if (cost <= 0) continue;
       try {
         const r = await generateMaintenanceCostJournalEntry(supabase, companyId, userId, {
           id: m.id, source: "property", description: m.title ?? "Property maintenance",
-          cost: Number(m.actual_cost), date: m.created_at?.split("T")[0] ?? new Date().toISOString().split("T")[0],
+          cost, date: m.created_at?.split("T")[0] ?? new Date().toISOString().split("T")[0],
           property_id: m.property_id,
         }, accountMap);
         if (r) result.maintenanceGenerated++;
@@ -338,12 +398,12 @@ export async function backfillMissingJournalEntries(
     }
 
     // Skip maintenance logs that already have JEs (by reference pattern)
-    const maintRefs = equipMaintData.map((m) => `equip_maintenance:${m.id}`);
+    const equipMaintRefs = equipMaintData.map((m) => `equip_maintenance:${m.id}`);
     const { data: existingMaintJEs } = await supabase
       .from("journal_entries")
       .select("reference")
       .eq("company_id", companyId)
-      .in("reference", maintRefs.length > 0 ? maintRefs : ["__none__"]);
+      .in("reference", equipMaintRefs.length > 0 ? equipMaintRefs : ["__none__"]);
     const existingMaintSet = new Set((existingMaintJEs ?? []).map((j) => j.reference));
 
     for (const m of equipMaintData) {

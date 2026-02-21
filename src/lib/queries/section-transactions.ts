@@ -131,6 +131,7 @@ export async function getProjectTransactions(
     ...invoices.map((i) => `invoice:${i.id}`),
     ...changeOrders.map((co) => `change_order:${co.id}`),
     ...pmts.map((p) => `payment:${p.id}`),
+    ...contracts.map((c) => `contract:${c.id}`),
   ];
   const jeMap = await getJEMap(supabase, companyId, allRefs);
 
@@ -202,13 +203,15 @@ export async function getProjectTransactions(
   }
 
   for (const c of contracts) {
+    const je = jeMap.get(`contract:${c.id}`);
+    if (je) coveredJeIds.add(je.id);
     const projectName = c.project_id ? projectNameMap.get(c.project_id) ?? "" : "";
     const amount = Number(c.contract_amount) || 0;
     txns.push({
       id: `contract-${c.id}`, date: c.start_date ?? new Date().toISOString().split("T")[0],
       description: `${c.contract_number ?? c.title ?? "Contract"}${projectName ? ` (${projectName})` : ""}`,
       reference: c.contract_number ?? "", source: "Contracts", sourceHref: "/projects/contracts",
-      debit: amount, credit: 0, jeNumber: null, jeId: null, jeExpected: false,
+      debit: amount, credit: 0, jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 

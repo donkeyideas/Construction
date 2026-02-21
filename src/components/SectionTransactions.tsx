@@ -58,9 +58,10 @@ export default function SectionTransactions({ data, sectionName }: Props) {
       if (res.ok) {
         const data = await res.json();
         const total = (data.coGenerated || 0) + (data.invGenerated || 0) +
-          (data.equipPurchaseGenerated || 0) + (data.depreciationGenerated || 0) +
-          (data.payrollGenerated || 0) + (data.maintenanceGenerated || 0) +
-          (data.leaseScheduled || 0) + (data.rentPaymentGenerated || 0);
+          (data.contractsGenerated || 0) + (data.equipPurchaseGenerated || 0) +
+          (data.depreciationGenerated || 0) + (data.payrollGenerated || 0) +
+          (data.maintenanceGenerated || 0) + (data.leaseScheduled || 0) +
+          (data.rentPaymentGenerated || 0);
         if (total > 0) {
           setBackfillDone(true);
         }
