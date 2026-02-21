@@ -1,0 +1,13 @@
+name,equipment_type,make,model,serial_number,status,purchase_cost,hourly_rate,purchase_date,last_maintenance_date,next_maintenance_date
+CAT 320F Excavator,excavator,Caterpillar,320F,SN-CAT320-2019,available,0,185,2019-06-15,2025-02-10,2025-08-10
+CAT D6T Dozer,dozer,Caterpillar,D6T,SN-D6T-2020,in_use,0,225,2020-02-01,2025-01-20,2026-01-20
+Liebherr LTM 1100 Crane,crane,Liebherr,LTM 1100,SN-LTM1100-2018,available,0,450,2018-09-20,2025-04-10,2026-04-10
+John Deere 644K Loader,loader,John Deere,644K,SN-JD644K-2021,in_use,0,165,2021-03-10,2025-06-22,2025-12-22
+Volvo EC250E Excavator,excavator,Volvo,EC250E,SN-VEC250-2022,in_use,0,195,2022-01-15,2025-09-01,2026-01-01
+Komatsu PC200 Excavator,excavator,Komatsu,PC200,SN-KPC200-2019,available,0,175,2019-11-01,2025-03-01,2025-09-01
+Concrete Pump Truck,pump,Putzmeister,BSF 36,SN-PM36-2020,available,0,350,2020-07-22,2025-03-15,2025-09-15
+Ford F-350 Crew Cab 1,vehicle,Ford,F-350,SN-F350-001,in_use,0,45,2021-05-01,2025-05-01,2025-08-01
+Ford F-350 Crew Cab 2,vehicle,Ford,F-350,SN-F350-002,in_use,0,45,2021-05-01,2025-07-10,2026-07-10
+CAT 415F2 Backhoe,backhoe,Caterpillar,415F2,SN-CAT415-2021,available,0,135,2021-08-15,2025-04-28,2025-10-28
+Portable Generator 100kW,generator,Cummins,C100D6,SN-CUM100-2020,in_use,0,55,2020-04-10,2025-06-15,2026-06-15
+Skyjack SJ6832RT Scissor Lift,lift,Skyjack,SJ6832RT,SN-SJ6832-2022,available,0,85,2022-03-20,2025-08-20,2026-08-20

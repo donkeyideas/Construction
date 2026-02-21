@@ -1,0 +1,32 @@
+name,equipment_type,make,model,serial_number,status,purchase_cost,hourly_rate,purchase_date,last_maintenance_date,next_maintenance_date
+CAT 390F Excavator,excavator,Caterpillar,390F L,CAT390F-78421,485000,275.00,2018-04-15
+CAT 336 Next Gen Excavator,excavator,Caterpillar,336 GC,CAT336GC-92104,365000,225.00,2021-06-20
+Komatsu PC210LC Excavator,excavator,Komatsu,PC210LC-11,KOM-PC210-44182,295000,195.00,2019-09-10
+CAT 966M Wheel Loader,loader,Caterpillar,966M XE,CAT966M-55301,415000,210.00,2020-03-25
+Volvo L120H Wheel Loader,loader,Volvo,L120H,VOL-L120H-28841,340000,185.00,2017-11-08
+Liebherr LTM 1100 Crane,crane,Liebherr,LTM 1100-4.2,LH1100-34921,1250000,650.00,2016-05-20
+Manitowoc 14000 Crawler Crane,crane,Manitowoc,14000 Series 3,MAN14K-22104,2100000,850.00,2014-08-12
+Link-Belt TCC-750 Crane,crane,Link-Belt,TCC-750,LB-TCC750-18840,625000,425.00,2022-01-15
+CAT D8T Dozer,excavator,Caterpillar,D8T,CATD8T-66290,520000,285.00,2019-04-01
+CAT D6 XE Dozer,excavator,Caterpillar,D6 XE,CATD6XE-41055,340000,195.00,2021-10-18
+Hamm H13i Roller,compactor,Hamm,H13i,HAMM-H13I-9921,185000,125.00,2020-07-22
+Kenworth T880 Dump Truck #1,truck,Kenworth,T880,KW-T880-71204,175000,105.00,2022-02-10
+Kenworth T880 Dump Truck #2,truck,Kenworth,T880,KW-T880-71205,175000,105.00,2022-02-10
+Peterbilt 567 Water Truck,truck,Peterbilt,567,PB-567-44891,165000,95.00,2021-05-14
+Ford F-550 Service Truck,truck,Ford,F-550 Super Duty,1FD0W5HT-88210,78000,55.00,2023-06-01
+Ford F-350 Crew Cab #1,truck,Ford,F-350 XLT,1FT8W3BT-77102,72000,45.00,2023-01-15
+Ford F-350 Crew Cab #2,truck,Ford,F-350 XLT,1FT8W3BT-77103,72000,45.00,2023-01-15
+RAM 3500 Flatbed,truck,RAM,3500 Tradesman,3C63RRGL-55018,68000,45.00,2024-03-20
+Generac 200kW Generator,generator,Generac,MD200,GEN-MD200-11204,68000,85.00,2020-09-15
+Generac 100kW Generator,generator,Generac,MD100,GEN-MD100-11205,42000,55.00,2022-08-01
+Atlas Copco XAS 750 Compressor,compressor,Atlas Copco,XAS 750,AC-XAS750-3321,85000,75.00,2019-12-10
+Atlas Copco XAS 185 Compressor,compressor,Atlas Copco,XAS 185,AC-XAS185-3322,35000,45.00,2023-03-08
+JLG 1250AJP Boom Lift,scaffold,JLG,1250AJP,JLG-1250-55901,285000,165.00,2020-11-25
+Genie GS-4069 Scissor Lift,scaffold,Genie,GS-4069 RT,GN-4069-44182,42000,55.00,2023-07-12
+Genie GS-2632 Scissor Lift,scaffold,Genie,GS-2632,GN-2632-44183,18500,35.00,2024-01-20
+Wirtgen W210Fi Cold Planer,tools,Wirtgen,W210Fi,WRT-W210-18841,450000,325.00,2018-06-30
+Putzmeister 56Z Concrete Pump,tools,Putzmeister,56Z-Meter,PUTZ-56Z-27104,385000,285.00,2017-02-15
+Hilti PR 2-HS Laser Level,tools,Hilti,PR 2-HS A12,HI-PR2HS-9901,4200,15.00,2024-09-10
+Trimble SX12 Total Station,tools,Trimble,SX12,TRM-SX12-22140,42000,85.00,2022-05-18
+Wacker Neuson BPU6555 Compactor,tools,Wacker Neuson,BPU 6555,WN-6555-3312,12500,35.00,2023-11-01
+Multiquip QP-402 Pump,tools,Multiquip,QP-402,MQ-QP402-5580,8500,30.00,2024-04-15

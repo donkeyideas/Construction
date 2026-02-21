@@ -177,6 +177,38 @@ export async function POST(request: NextRequest) {
       return null;
     }
 
+    // ---- User profile lookup for UUID FK fields (assigned_to, reviewer, etc.) ----
+    const NEEDS_USER_LOOKUP: AllowedEntity[] = [
+      "rfis", "submittals", "maintenance", "equipment_assignments",
+    ];
+    let userNameLookup: Record<string, string> = {};
+    if (NEEDS_USER_LOOKUP.includes(entity as AllowedEntity)) {
+      const { data: members } = await supabase
+        .from("company_members")
+        .select("user_id")
+        .eq("company_id", companyId);
+      const memberIds = (members || []).map((m: { user_id: string }) => m.user_id);
+      if (memberIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("user_profiles")
+          .select("id, full_name, email")
+          .in("id", memberIds);
+        for (const p of profiles || []) {
+          if ((p as { full_name?: string }).full_name)
+            userNameLookup[(p as { full_name: string }).full_name.trim().toLowerCase()] = (p as { id: string }).id;
+          if ((p as { email?: string }).email)
+            userNameLookup[(p as { email: string }).email.trim().toLowerCase()] = (p as { id: string }).id;
+        }
+      }
+    }
+
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    function resolveUserRef(nameOrUuid: string | null | undefined): string | null {
+      if (!nameOrUuid) return null;
+      if (UUID_RE.test(nameOrUuid)) return nameOrUuid;
+      return userNameLookup[nameOrUuid.trim().toLowerCase()] || null;
+    }
+
     // Process based on entity type
     switch (entity as AllowedEntity) {
       case "contacts": {
@@ -237,6 +269,8 @@ export async function POST(request: NextRequest) {
             purchase_cost: parseFloat(r.purchase_cost) || 0,
             hourly_rate: parseFloat(r.hourly_rate) || 0,
             purchase_date: r.purchase_date || null,
+            last_maintenance_date: r.last_maintenance_date || null,
+            next_maintenance_date: r.next_maintenance_date || null,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
@@ -327,16 +361,21 @@ export async function POST(request: NextRequest) {
       case "rfis": {
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
+          const assignedTo = resolveUserRef(r.assigned_to);
           const { error } = await supabase.from("rfis").insert({
             company_id: companyId,
             project_id: await resolveProjectId(r),
             rfi_number: r.rfi_number || `RFI-${String(i + 1).padStart(3, "0")}`,
             subject: r.subject || "",
             question: r.question || "",
+            answer: r.answer || null,
             priority: r.priority || "medium",
             status: r.status || "submitted",
             due_date: r.due_date || null,
             submitted_by: userId,
+            assigned_to: assignedTo,
+            cost_impact: r.cost_impact ? parseFloat(r.cost_impact) : null,
+            schedule_impact_days: r.schedule_impact_days ? parseInt(r.schedule_impact_days) : null,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
@@ -538,6 +577,7 @@ export async function POST(request: NextRequest) {
           if (!propertyId && maintProps && maintProps.length > 0) {
             propertyId = maintProps[0].id;
           }
+          const assignedTo = resolveUserRef(r.assigned_to);
           const { error } = await supabase.from("maintenance_requests").insert({
             company_id: companyId,
             property_id: propertyId,
@@ -548,7 +588,10 @@ export async function POST(request: NextRequest) {
             status: r.status || "submitted",
             scheduled_date: r.scheduled_date || null,
             estimated_cost: r.estimated_cost ? parseFloat(r.estimated_cost) : null,
+            actual_cost: r.actual_cost ? parseFloat(r.actual_cost) : null,
             requested_by: userId,
+            assigned_to: assignedTo,
+            notes: r.notes || null,
           });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
@@ -635,15 +678,15 @@ export async function POST(request: NextRequest) {
           }
           const assignStatus = r.status || "active";
           const projId = await resolveProjectId(r);
-          // assigned_to is uuid FK to auth.users — only pass if it looks like a UUID
-          const isAssignUuid = r.assigned_to && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(r.assigned_to);
-          const assignedName = (!isAssignUuid && r.assigned_to) ? r.assigned_to : null;
+          // Try to resolve assigned_to: UUID > user profile name lookup > store name in notes
+          const resolvedAssignee = resolveUserRef(r.assigned_to);
+          const assignedName = (!resolvedAssignee && r.assigned_to) ? r.assigned_to : null;
           const assignNotes = [r.notes, assignedName ? `Assigned to: ${assignedName}` : null].filter(Boolean).join("; ");
           const { error } = await supabase.from("equipment_assignments").insert({
             company_id: companyId,
             equipment_id: equipId,
             project_id: projId,
-            assigned_to: isAssignUuid ? r.assigned_to : null,
+            assigned_to: resolvedAssignee,
             assigned_date: r.assigned_date || new Date().toISOString().split("T")[0],
             returned_date: r.return_date || null,
             notes: assignNotes || null,
@@ -704,6 +747,15 @@ export async function POST(request: NextRequest) {
             errors.push(`Row ${i + 2}: ${error.message}`);
           } else {
             successCount++;
+            // Backfill equipment.last_maintenance_date and next_maintenance_date
+            if (equipId) {
+              const updates: Record<string, string> = {};
+              if (r.maintenance_date) updates.last_maintenance_date = r.maintenance_date;
+              if (r.next_due_date) updates.next_maintenance_date = r.next_due_date;
+              if (Object.keys(updates).length > 0) {
+                await supabase.from("equipment").update(updates).eq("id", equipId);
+              }
+            }
           }
         }
         break;
@@ -1159,6 +1211,7 @@ export async function POST(request: NextRequest) {
             .eq("company_id", companyId);
           const subNum = (subCount ?? 0) + i + 1;
 
+          const reviewerId = resolveUserRef(r.reviewer || r.reviewer_id);
           const { error } = await supabase.from("submittals").insert({
             company_id: companyId,
             project_id: await resolveProjectId(r),
@@ -1167,6 +1220,8 @@ export async function POST(request: NextRequest) {
             spec_section: r.spec_section || null,
             due_date: r.due_date || null,
             submitted_by: userId,
+            reviewer_id: reviewerId,
+            review_comments: r.review_comments || null,
             status: r.status || "pending",
           });
           if (error) {

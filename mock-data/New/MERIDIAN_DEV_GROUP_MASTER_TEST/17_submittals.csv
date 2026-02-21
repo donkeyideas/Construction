@@ -1,0 +1,23 @@
+submittal_number,title,project_name,spec_section,due_date,status,review_comments
+SUB-001,Structural Steel Shop Drawings,Downtown Convention Center,05 12 00,2024-12-01,approved,Approved with comments - verify connection details at moment frame locations per structural addendum 3
+SUB-002,Curtain Wall System,Downtown Convention Center,08 44 13,2025-06-15,approved,Approved - mockup test passed. Proceed with fabrication per approved sample
+SUB-003,HVAC Equipment Schedule,Downtown Convention Center,23 00 00,2025-08-01,approved,Approved - equipment selections meet spec requirements. Verify electrical connections with Division 26
+SUB-004,Electrical Switchgear,Downtown Convention Center,26 24 16,2025-09-01,approved,Approved as noted - confirm arc flash labeling per NFPA 70E
+SUB-005,Elevator Equipment,Downtown Convention Center,14 20 00,2025-10-15,pending,
+SUB-006,Fire Alarm System,Downtown Convention Center,28 31 00,2025-11-01,pending,
+SUB-007,Acoustical Ceiling Tiles,Downtown Convention Center,09 51 00,2026-01-15,pending,
+SUB-008,AV System Design,Downtown Convention Center,27 41 00,2026-03-01,pending,
+SUB-009,Steel H-Piles,Waterfront Mixed-Use Tower,31 62 00,2025-05-15,approved,Approved - mill certificates provided. Pile driving contractor to submit driving criteria separately
+SUB-010,Marine Concrete Mix Design,Waterfront Mixed-Use Tower,03 30 00,2025-06-01,approved,Approved with conditions - maintain 28-day cylinder break results above 6000 PSI
+SUB-011,Waterproofing Membrane,Waterfront Mixed-Use Tower,07 10 00,2025-12-01,pending,
+SUB-012,Curtain Wall Mockup,Waterfront Mixed-Use Tower,08 44 13,2026-09-01,pending,
+SUB-013,Bridge Bearings,Highway Bridge Rehabilitation,34 41 16,2020-07-01,approved,Approved - bearing capacity and movement range verified by structural engineer
+SUB-014,Structural Steel Girders,Highway Bridge Rehabilitation,05 12 23,2020-10-15,approved,Approved as submitted
+SUB-015,High Performance Concrete Mix,Highway Bridge Rehabilitation,03 31 00,2021-08-01,approved,Approved - HPC mix meets AASHTO requirements for bridge deck application
+SUB-016,Seismic Retrofit Hardware,Highway Bridge Rehabilitation,05 05 23,2021-04-15,approved,Approved with note - torque values per manufacturer ICC-ES report
+SUB-017,MRI Equipment Specifications,Meridian Medical Center,11 52 13,2023-01-15,approved,Approved - RF shielding and vibration isolation requirements confirmed with vendor
+SUB-018,Medical Gas Piping,Meridian Medical Center,22 63 00,2022-06-01,approved,Approved - Type K copper per RFI clarification. ASSE 6010 certification required for installer
+SUB-019,Generator and ATS,Meridian Medical Center,26 32 13,2022-04-15,approved,Approved - NEC 700 and NFPA 110 compliance verified
+SUB-020,Impact Rated Windows,Shoreline Residences Phase I,08 52 00,2022-11-01,approved,Approved - Florida Building Code NOA documentation provided
+SUB-021,Precast Concrete Panels,Shoreline Residences Phase I,03 41 00,2022-09-15,approved,Approved with comments - verify panel connection hardware per structural detail SD-12
+SUB-022,Pool Mechanical Equipment,Shoreline Residences Phase I,13 15 00,2023-08-01,approved,Approved - health department flow rate requirements met
