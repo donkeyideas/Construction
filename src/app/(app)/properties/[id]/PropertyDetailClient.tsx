@@ -2563,124 +2563,116 @@ function AnnouncementsTabContent({
 
       {/* Create Announcement Modal */}
       {showCreate && (
-        <div className="modal-content" onClick={() => setShowCreate(false)}>
-          <div className="modal-body" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: "1.05rem" }}>{t("annCreateTitle")}</h3>
-              <button
-                onClick={() => setShowCreate(false)}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}
-              >
+        <div className="modal-overlay" onClick={() => setShowCreate(false)}>
+          <div className="modal-content" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t("annCreateTitle")}</h3>
+              <button className="modal-close" onClick={() => setShowCreate(false)}>
                 <X size={18} />
               </button>
             </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+                {t("annCreateDesc")}
+              </p>
 
-            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
-              {t("annCreateDesc")}
-            </p>
+              {createError && (
+                <div className="form-error">{createError}</div>
+              )}
 
-            {createError && (
-              <div style={{ padding: "8px 12px", borderRadius: 6, background: "rgba(239,68,68,0.1)", color: "var(--color-red)", fontSize: "0.85rem", marginBottom: 12 }}>
-                {createError}
-              </div>
-            )}
+              <form onSubmit={handleCreate}>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("annFieldTitle")}</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={createTitle}
+                    onChange={(e) => setCreateTitle(e.target.value)}
+                    placeholder={t("annTitlePlaceholder")}
+                    required
+                    disabled={creating}
+                  />
+                </div>
 
-            <form onSubmit={handleCreate}>
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted)" }}>
-                  {t("annFieldTitle")}
-                </label>
-                <input
-                  type="text"
-                  className="invite-form-input"
-                  value={createTitle}
-                  onChange={(e) => setCreateTitle(e.target.value)}
-                  placeholder={t("annTitlePlaceholder")}
-                  required
-                  disabled={creating}
-                />
-              </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("annFieldCategory")}</label>
+                  <select
+                    className="ticket-form-input"
+                    value={createCategory}
+                    onChange={(e) => setCreateCategory(e.target.value)}
+                    disabled={creating}
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted)" }}>
-                  {t("annFieldCategory")}
-                </label>
-                <select
-                  className="invite-form-select"
-                  value={createCategory}
-                  onChange={(e) => setCreateCategory(e.target.value)}
-                  disabled={creating}
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </select>
-              </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("annFieldContent")}</label>
+                  <textarea
+                    className="ticket-form-input"
+                    value={createContent}
+                    onChange={(e) => setCreateContent(e.target.value)}
+                    placeholder={t("annContentPlaceholder")}
+                    rows={5}
+                    style={{ resize: "vertical" }}
+                    required
+                    disabled={creating}
+                  />
+                </div>
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted)" }}>
-                  {t("annFieldContent")}
-                </label>
-                <textarea
-                  className="invite-form-input"
-                  value={createContent}
-                  onChange={(e) => setCreateContent(e.target.value)}
-                  placeholder={t("annContentPlaceholder")}
-                  rows={5}
-                  style={{ resize: "vertical" }}
-                  required
-                  disabled={creating}
-                />
-              </div>
-
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                <button
-                  type="button"
-                  className="ui-btn ui-btn-md ui-btn-outline"
-                  onClick={() => setShowCreate(false)}
-                  disabled={creating}
-                >
-                  {t("cancel")}
-                </button>
-                <button
-                  type="submit"
-                  className="ui-btn ui-btn-md ui-btn-primary"
-                  disabled={creating}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-                >
-                  <Megaphone size={15} />
-                  {creating ? t("annPublishing") : t("annPublish")}
-                </button>
-              </div>
-            </form>
+                <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 8 }}>
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn-md ui-btn-outline"
+                    onClick={() => setShowCreate(false)}
+                    disabled={creating}
+                  >
+                    {t("cancel")}
+                  </button>
+                  <button
+                    type="submit"
+                    className="ui-btn ui-btn-md ui-btn-primary"
+                    disabled={creating}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                  >
+                    <Megaphone size={15} />
+                    {creating ? t("annPublishing") : t("annPublish")}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Delete Announcement Confirmation */}
       {deleteId && (
-        <div className="modal-content" onClick={() => setDeleteId(null)}>
-          <div className="modal-body" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
-            <h3 style={{ margin: "0 0 12px 0", fontSize: "1.05rem" }}>{t("annDeleteTitle")}</h3>
-            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 20px 0" }}>
-              {t("annDeleteDesc")}
-            </p>
-            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-              <button
-                className="ui-btn ui-btn-md ui-btn-outline"
-                onClick={() => setDeleteId(null)}
-                disabled={deleting}
-              >
-                {t("cancel")}
-              </button>
-              <button
-                className="ui-btn ui-btn-md ui-btn-primary"
-                onClick={handleDelete}
-                disabled={deleting}
-                style={{ background: "var(--color-red)" }}
-              >
-                {deleting ? t("annDeleting") : t("annDeleteConfirm")}
-              </button>
+        <div className="modal-overlay" onClick={() => setDeleteId(null)}>
+          <div className="modal-content" style={{ maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-body">
+              <h3 style={{ margin: "0 0 12px 0", fontSize: "1.05rem" }}>{t("annDeleteTitle")}</h3>
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 20px 0" }}>
+                {t("annDeleteDesc")}
+              </p>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                <button
+                  className="ui-btn ui-btn-md ui-btn-outline"
+                  onClick={() => setDeleteId(null)}
+                  disabled={deleting}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  className="ui-btn ui-btn-md ui-btn-primary"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  style={{ background: "var(--color-red)" }}
+                >
+                  {deleting ? t("annDeleting") : t("annDeleteConfirm")}
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -99,12 +99,15 @@ export async function getTenantDashboard(
         .select("id", { count: "exact" })
         .eq("requested_by", userId)
         .in("status", ["submitted", "assigned", "in_progress"]),
-      supabase
-        .from("tenant_announcements")
-        .select("id, title, content, category, published_at")
-        .eq("is_active", true)
-        .order("published_at", { ascending: false })
-        .limit(3),
+      propertyId
+        ? admin
+            .from("tenant_announcements")
+            .select("id, title, content, category, published_at")
+            .eq("property_id", propertyId)
+            .eq("is_active", true)
+            .order("published_at", { ascending: false })
+            .limit(3)
+        : Promise.resolve({ data: [] as never[] }),
       getTenantDocuments(supabase, userId),
       propertyId
         ? supabase
@@ -320,9 +323,24 @@ export async function getTenantProfile(
 }
 
 export async function getTenantAnnouncements(supabase: SupabaseClient, userId: string) {
-  const { data } = await supabase
+  // Use admin client to bypass RLS — tenant users can't always resolve the
+  // property_id chain via RLS, so we fetch the property from their lease first.
+  const admin = createAdminClient();
+
+  const { data: lease } = await admin
+    .from("leases")
+    .select("property_id")
+    .eq("tenant_user_id", userId)
+    .eq("status", "active")
+    .limit(1)
+    .single();
+
+  if (!lease?.property_id) return [];
+
+  const { data } = await admin
     .from("tenant_announcements")
     .select("*")
+    .eq("property_id", lease.property_id)
     .eq("is_active", true)
     .order("published_at", { ascending: false });
   return data ?? [];
