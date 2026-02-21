@@ -546,7 +546,7 @@ export default function PropertyDetailClient({
       {/* Create Tenant Login Modal */}
       {loginLease && !loginSuccess && (
         <div className="modal-overlay" onClick={() => setLoginLease(null)}>
-          <div className="modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">{t("createTenantLogin")}</h3>
               <button className="modal-close" onClick={() => setLoginLease(null)}>
@@ -593,7 +593,7 @@ export default function PropertyDetailClient({
       {/* Login Created Success Modal */}
       {loginSuccess && (
         <div className="modal-overlay" onClick={() => { setLoginSuccess(null); setLoginLease(null); window.location.reload(); }}>
-          <div className="modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">{t("loginCreated")}</h3>
               <button className="modal-close" onClick={() => { setLoginSuccess(null); setLoginLease(null); window.location.reload(); }}>
@@ -637,7 +637,7 @@ export default function PropertyDetailClient({
       {/* Record Rent Payment Modal */}
       {paymentLease && (
         <div className="modal-overlay" onClick={() => setPaymentLease(null)}>
-          <div className="modal" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">{t("recordPayment")}</h3>
               <button className="modal-close" onClick={() => setPaymentLease(null)}>
@@ -2281,7 +2281,7 @@ function FinancialsTabContent({
       {/* Add/Edit Payment Method Modal */}
       {showAddMethod && (
         <div className="modal-overlay" onClick={() => setShowAddMethod(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">
                 {editingMethod ? t("editPaymentMethod") : t("addPaymentMethod")}

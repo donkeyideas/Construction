@@ -1141,7 +1141,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
       {/* Create Tenant Login Modal */}
       {showCreateLogin && selectedLease && !loginSuccess && (
         <div className="modal-overlay" onClick={() => setShowCreateLogin(false)}>
-          <div className="modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">{t("createTenantLogin")}</h3>
               <button className="modal-close" onClick={() => setShowCreateLogin(false)}>
@@ -1188,7 +1188,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
       {/* Login Created Success */}
       {loginSuccess && (
         <div className="modal-overlay" onClick={() => { setLoginSuccess(null); setShowCreateLogin(false); router.refresh(); }}>
-          <div className="modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">{t("loginCreated")}</h3>
               <button className="modal-close" onClick={() => { setLoginSuccess(null); setShowCreateLogin(false); router.refresh(); }}>
@@ -1232,7 +1232,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
       {/* Record Rent Payment Modal */}
       {showRecordPayment && selectedLease && (
         <div className="modal-overlay" onClick={() => setShowRecordPayment(false)}>
-          <div className="modal" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">{t("recordPayment")}</h3>
               <button className="modal-close" onClick={() => setShowRecordPayment(false)}>
