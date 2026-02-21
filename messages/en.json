@@ -3029,6 +3029,8 @@
     "loadingPhotos": "Loading photos...",
     "clickToUploadPhotos": "Click to upload photos",
     "occupancyRate": "Occupancy Rate",
+    "totalUnits": "Total Units",
+    "vacant": "Vacant",
     "monthlyRevenue": "Monthly Revenue",
     "monthlyExpenses": "Monthly Expenses",
     "noi": "NOI",

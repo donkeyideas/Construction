@@ -1568,17 +1568,29 @@ function UnitsTabContent({
   }
 
   const vacantCount = units.filter((u) => u.status === "vacant").length;
+  const occupiedCount = units.filter((u) => u.status === "occupied").length;
+  const occupancyRate = units.length > 0 ? Math.round((occupiedCount / units.length) * 100) : 0;
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-        {vacantCount > 0 ? (
-          <div style={{ padding: "10px 16px", background: "rgba(var(--color-amber-rgb, 245, 158, 11), 0.1)", border: "1px solid rgba(var(--color-amber-rgb, 245, 158, 11), 0.3)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-amber, #f59e0b)", fontWeight: 500, flex: 1, marginRight: "12px" }}>
-            {t("vacantUnitsAvailable", { count: vacantCount })}
+      {/* Summary Cards + Actions */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", flex: 1, marginRight: "16px" }}>
+          <div className="card" style={{ padding: "14px 18px", margin: 0 }}>
+            <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.03em" }}>{t("totalUnits")}</div>
+            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--foreground)", marginTop: "4px" }}>{units.length}</div>
           </div>
-        ) : <div />}
+          <div className="card" style={{ padding: "14px 18px", margin: 0 }}>
+            <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.03em" }}>{t("vacant")}</div>
+            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: vacantCount > 0 ? "var(--color-amber, #f59e0b)" : "var(--foreground)", marginTop: "4px" }}>{vacantCount}</div>
+          </div>
+          <div className="card" style={{ padding: "14px 18px", margin: 0 }}>
+            <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.03em" }}>{t("occupancyRate")}</div>
+            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: occupancyRate >= 90 ? "var(--color-green, #22c55e)" : occupancyRate >= 70 ? "var(--color-amber, #f59e0b)" : "var(--color-red, #ef4444)", marginTop: "4px" }}>{occupancyRate}%</div>
+          </div>
+        </div>
         {!showAddForm && (
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
             <button className="ui-btn ui-btn-sm ui-btn-secondary" onClick={() => csvInputRef.current?.click()} disabled={importing}><Upload size={14} /> {t("importCSV")}</button>
             <button className="ui-btn ui-btn-sm ui-btn-primary" onClick={() => setShowAddForm(true)}><Plus size={14} /> {t("addUnit")}</button>
           </div>
