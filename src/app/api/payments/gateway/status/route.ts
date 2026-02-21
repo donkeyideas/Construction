@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getCompanyGatewayConfig } from "@/lib/payments";
-import { getGateway } from "@/lib/payments";
+import { getCompanyGatewayConfig, getGateway } from "@/lib/payments";
+import type { GatewayCredentials } from "@/lib/payments";
 
 /**
  * POST /api/payments/gateway/status
@@ -27,12 +27,13 @@ export async function POST() {
       });
     }
 
-    // If we have an account_id, check live status with the provider
+    // If active, check credentials are still valid
     let accountStatus = null;
-    if (config.account_id) {
+    const credentials = (config.config || {}) as GatewayCredentials;
+    if (config.is_active && credentials.secret_key) {
       const gateway = getGateway(config.provider);
       if (gateway) {
-        accountStatus = await gateway.getAccountStatus(config.account_id);
+        accountStatus = await gateway.getAccountStatus(credentials);
       }
     }
 
@@ -41,6 +42,7 @@ export async function POST() {
       provider: config.provider,
       isActive: config.is_active,
       onboardedAt: config.onboarded_at,
+      accountName: config.account_id,
       accountStatus,
     });
   } catch (err) {

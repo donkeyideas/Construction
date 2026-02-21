@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { PaymentGateway, GatewayConfig } from "./gateway";
+import type { PaymentGateway, GatewayConfig, GatewayCredentials } from "./gateway";
 import { StripeGateway } from "./providers/stripe";
 
 /**
@@ -21,12 +21,16 @@ export function getGateway(provider: string): PaymentGateway | null {
 }
 
 /**
- * Get a company's active payment gateway (if any).
- * Returns the gateway implementation + config, or null if none configured.
+ * Get a company's active payment gateway with its credentials.
+ * Returns the gateway implementation + config + credentials, or null if none configured.
  */
 export async function getCompanyGateway(
   companyId: string
-): Promise<{ gateway: PaymentGateway; config: GatewayConfig } | null> {
+): Promise<{
+  gateway: PaymentGateway;
+  config: GatewayConfig;
+  credentials: GatewayCredentials;
+} | null> {
   const admin = createAdminClient();
 
   const { data } = await admin
@@ -42,7 +46,12 @@ export async function getCompanyGateway(
   const gateway = getGateway(data.provider);
   if (!gateway) return null;
 
-  return { gateway, config: data as GatewayConfig };
+  const config = data as GatewayConfig;
+  const credentials = (config.config || {}) as GatewayCredentials;
+
+  if (!credentials.secret_key) return null;
+
+  return { gateway, config, credentials };
 }
 
 /**
@@ -66,3 +75,7 @@ export async function getCompanyGatewayConfig(
   const { data } = await query.limit(1).single();
   return (data as GatewayConfig) ?? null;
 }
+
+// Re-export types and constants for convenience
+export { GATEWAY_PROVIDERS } from "./gateway";
+export type { GatewayConfig, GatewayCredentials, CheckoutParams } from "./gateway";

@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getCompanyGatewayConfig, getGateway } from "@/lib/payments";
+import { getCompanyGatewayConfig } from "@/lib/payments";
 
 /**
  * POST /api/payments/gateway/disconnect
- * Disconnect the company's active payment gateway.
+ * Disconnect the company's active payment gateway (clears stored credentials).
  */
 export async function POST() {
   try {
@@ -24,14 +24,22 @@ export async function POST() {
       return NextResponse.json({ error: "No gateway configured" }, { status: 400 });
     }
 
-    // Disconnect via the provider
-    const gateway = getGateway(config.provider);
-    if (gateway) {
-      await gateway.disconnect(ctx.companyId);
-    }
+    const admin = createAdminClient();
+
+    // Clear credentials and deactivate
+    await admin
+      .from("payment_gateway_config")
+      .update({
+        is_active: false,
+        account_id: null,
+        config: {},
+        onboarded_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("company_id", ctx.companyId)
+      .eq("provider", config.provider);
 
     // Disable all online_payment methods for the company's properties
-    const admin = createAdminClient();
     await admin
       .from("property_payment_methods")
       .update({ is_enabled: false })

@@ -4,44 +4,59 @@
 
 /**
  * Common interface that all payment providers implement.
- * Adding a new provider = creating a new file in providers/ that implements this.
+ * Each property management company configures their OWN API keys.
+ * The platform (Buildwrk) does NOT intermediate — payments go directly
+ * through the company's own provider account.
  */
 export interface PaymentGateway {
   /** Provider key (e.g. "stripe", "paypal", "square") */
   provider: string;
 
   /**
-   * Start the onboarding/OAuth flow — redirect the user to the provider.
-   * Returns the redirect URL and the provider-specific account ID.
+   * Validate API credentials provided by the property manager.
+   * Returns account info if valid, null if invalid.
    */
-  createOnboardingUrl(
-    companyId: string,
-    returnUrl: string,
-    refreshUrl: string
-  ): Promise<{ url: string; accountId: string } | null>;
+  validateCredentials(
+    credentials: GatewayCredentials
+  ): Promise<{ valid: boolean; accountName?: string; error?: string }>;
 
   /**
-   * Check if the connected account is fully set up and can accept payments.
+   * Check if the stored credentials are still valid and the account can accept payments.
    */
-  getAccountStatus(accountId: string): Promise<GatewayAccountStatus>;
-
-  /**
-   * Disconnect / deauthorize the provider account.
-   */
-  disconnect(companyId: string): Promise<void>;
+  getAccountStatus(
+    credentials: GatewayCredentials
+  ): Promise<GatewayAccountStatus>;
 
   /**
    * Create a checkout / payment session for a tenant to pay rent.
-   * Returns a URL that the tenant should be redirected to.
+   * Uses the company's own API key — payments go directly to their account.
    */
-  createCheckoutSession(params: CheckoutParams): Promise<{ url: string } | null>;
+  createCheckoutSession(
+    credentials: GatewayCredentials,
+    params: CheckoutParams
+  ): Promise<{ url: string } | null>;
+
+  /**
+   * Verify a webhook signature using the company's webhook secret.
+   * Returns the parsed event if valid, null if signature mismatch.
+   */
+  verifyWebhook(
+    credentials: GatewayCredentials,
+    body: string,
+    signature: string
+  ): Promise<unknown | null>;
+}
+
+export interface GatewayCredentials {
+  secret_key: string;
+  webhook_secret?: string;
+  [key: string]: unknown;
 }
 
 export interface GatewayAccountStatus {
   connected: boolean;
-  accountId: string | null;
-  chargesEnabled: boolean;
-  detailsSubmitted: boolean;
+  accountName: string | null;
+  error?: string;
 }
 
 export interface CheckoutParams {
@@ -53,8 +68,6 @@ export interface CheckoutParams {
   dueDate: string;
   successUrl: string;
   cancelUrl: string;
-  /** Provider-specific destination account ID */
-  destinationAccountId: string;
 }
 
 /** Available gateway providers shown in the UI */
@@ -63,13 +76,41 @@ export interface GatewayProviderInfo {
   name: string;
   description: string;
   available: boolean; // false = "Coming Soon"
+  fields: { key: string; label: string; placeholder: string; type: string }[];
 }
 
 export const GATEWAY_PROVIDERS: GatewayProviderInfo[] = [
-  { key: "stripe", name: "Stripe", description: "Cards, ACH, Apple Pay, Google Pay", available: true },
-  { key: "paypal", name: "PayPal", description: "PayPal, Venmo, cards", available: false },
-  { key: "square", name: "Square", description: "Cards, ACH, Cash App Pay", available: false },
-  { key: "gocardless", name: "GoCardless", description: "ACH, Direct Debit (low fees)", available: false },
+  {
+    key: "stripe",
+    name: "Stripe",
+    description: "Cards, ACH, Apple Pay, Google Pay",
+    available: true,
+    fields: [
+      { key: "secret_key", label: "Secret Key", placeholder: "sk_live_...", type: "password" },
+      { key: "webhook_secret", label: "Webhook Secret (optional)", placeholder: "whsec_...", type: "password" },
+    ],
+  },
+  {
+    key: "paypal",
+    name: "PayPal",
+    description: "PayPal, Venmo, cards",
+    available: false,
+    fields: [],
+  },
+  {
+    key: "square",
+    name: "Square",
+    description: "Cards, ACH, Cash App Pay",
+    available: false,
+    fields: [],
+  },
+  {
+    key: "gocardless",
+    name: "GoCardless",
+    description: "ACH, Direct Debit (low fees)",
+    available: false,
+    fields: [],
+  },
 ];
 
 /** Database row shape for payment_gateway_config */

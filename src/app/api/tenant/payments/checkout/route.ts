@@ -93,17 +93,19 @@ export async function POST(request: NextRequest) {
 
     const origin = request.headers.get("origin") || "";
 
-    const session = await result.gateway.createCheckoutSession({
-      leaseId: lease.id,
-      companyId,
-      tenantUserId: user.id,
-      amount,
-      description: `Rent Payment — ${propertyName}, Unit ${unitName}`,
-      dueDate,
-      successUrl: `${origin}/tenant/payments?success=true`,
-      cancelUrl: `${origin}/tenant/payments?canceled=true`,
-      destinationAccountId: result.config.account_id!,
-    });
+    const session = await result.gateway.createCheckoutSession(
+      result.credentials,
+      {
+        leaseId: lease.id,
+        companyId,
+        tenantUserId: user.id,
+        amount,
+        description: `Rent Payment — ${propertyName}, Unit ${unitName}`,
+        dueDate,
+        successUrl: `${origin}/tenant/payments?success=true`,
+        cancelUrl: `${origin}/tenant/payments?canceled=true`,
+      }
+    );
 
     if (!session) {
       return NextResponse.json(

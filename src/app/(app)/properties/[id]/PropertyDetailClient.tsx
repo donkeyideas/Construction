@@ -21,9 +21,7 @@ import {
   DollarSign,
   Megaphone,
   CreditCard,
-  ExternalLink,
   CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
 import { GATEWAY_PROVIDERS } from "@/lib/payments/gateway";
 import type {
@@ -1949,14 +1947,17 @@ function FinancialsTabContent({
     provider: string | null;
     isActive: boolean;
     onboardedAt: string | null;
+    accountName: string | null;
     accountStatus: {
       connected: boolean;
-      chargesEnabled: boolean;
-      detailsSubmitted: boolean;
+      accountName: string | null;
     } | null;
   } | null>(null);
   const [gatewayLoading, setGatewayLoading] = useState(true);
-  const [gatewayConnecting, setGatewayConnecting] = useState(false);
+  const [gatewaySaving, setGatewaySaving] = useState(false);
+  const [gatewayError, setGatewayError] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [gatewayFields, setGatewayFields] = useState<Record<string, string>>({});
 
   const METHOD_TYPES = [
     { value: "zelle", label: "Zelle" },
@@ -2074,24 +2075,48 @@ function FinancialsTabContent({
     } catch { /* ignore */ }
   }
 
-  async function handleConnectGateway(provider: string) {
-    setGatewayConnecting(true);
+  async function handleSaveGateway() {
+    if (!selectedProvider) return;
+    const providerInfo = GATEWAY_PROVIDERS.find((p) => p.key === selectedProvider);
+    if (!providerInfo) return;
+
+    // Validate required field
+    if (!gatewayFields.secret_key?.trim()) {
+      setGatewayError(t("secretKeyRequired"));
+      return;
+    }
+
+    setGatewaySaving(true);
+    setGatewayError("");
     try {
       const res = await fetch("/api/payments/gateway/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider }),
+        body: JSON.stringify({
+          provider: selectedProvider,
+          credentials: gatewayFields,
+        }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert(data.error || "Failed to start onboarding");
-        setGatewayConnecting(false);
+      if (!res.ok) {
+        setGatewayError(data.error || "Failed to save");
+        return;
       }
+      // Success — update local state
+      setGatewayStatus({
+        hasGateway: true,
+        provider: selectedProvider,
+        isActive: true,
+        onboardedAt: new Date().toISOString(),
+        accountName: data.accountName || selectedProvider,
+        accountStatus: { connected: true, accountName: data.accountName },
+      });
+      setSelectedProvider(null);
+      setGatewayFields({});
     } catch {
-      alert("Network error");
-      setGatewayConnecting(false);
+      setGatewayError("Network error");
+    } finally {
+      setGatewaySaving(false);
     }
   }
 
@@ -2100,7 +2125,7 @@ function FinancialsTabContent({
     try {
       const res = await fetch("/api/payments/gateway/disconnect", { method: "POST" });
       if (res.ok) {
-        setGatewayStatus({ hasGateway: false, provider: null, isActive: false, onboardedAt: null, accountStatus: null });
+        setGatewayStatus({ hasGateway: false, provider: null, isActive: false, onboardedAt: null, accountName: null, accountStatus: null });
       }
     } catch { /* ignore */ }
   }
@@ -2306,7 +2331,7 @@ function FinancialsTabContent({
                   </span>
                 </div>
                 <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: 2 }}>
-                  {t("providerActive")}
+                  {gatewayStatus.accountName || t("providerActive")}
                 </div>
               </div>
             </div>
@@ -2318,29 +2343,75 @@ function FinancialsTabContent({
               {t("disconnectProvider")}
             </button>
           </div>
-        ) : gatewayStatus?.hasGateway && !gatewayStatus.isActive ? (
-          /* Pending state */
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 8, background: "color-mix(in srgb, #fbbf24 8%, transparent)", border: "1px solid color-mix(in srgb, #fbbf24 20%, transparent)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <AlertCircle size={18} style={{ color: "#fbbf24" }} />
-              <div>
-                <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
-                  {GATEWAY_PROVIDERS.find((p) => p.key === gatewayStatus.provider)?.name || gatewayStatus.provider}
+        ) : selectedProvider ? (
+          /* API key input form */
+          (() => {
+            const providerInfo = GATEWAY_PROVIDERS.find((p) => p.key === selectedProvider);
+            if (!providerInfo) return null;
+            return (
+              <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                  <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                    {providerInfo.name} — {t("enterApiKeys")}
+                  </div>
+                  <button
+                    className="ui-btn ui-btn-sm ui-btn-ghost"
+                    onClick={() => { setSelectedProvider(null); setGatewayFields({}); setGatewayError(""); }}
+                  >
+                    <X size={14} />
+                  </button>
                 </div>
-                <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: 2 }}>
-                  {t("providerPending")}
+                <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: "0 0 14px 0" }}>
+                  {t("apiKeyInstructions")}
+                </p>
+                {providerInfo.fields.map((field) => (
+                  <div key={field.key} style={{ marginBottom: 12 }}>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 500, marginBottom: 4 }}>
+                      {field.label}
+                    </label>
+                    <input
+                      type={field.type}
+                      placeholder={field.placeholder}
+                      value={gatewayFields[field.key] || ""}
+                      onChange={(e) => setGatewayFields((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        borderRadius: 6,
+                        border: "1px solid var(--border)",
+                        background: "var(--bg)",
+                        color: "var(--text)",
+                        fontSize: "0.85rem",
+                        fontFamily: "monospace",
+                      }}
+                    />
+                  </div>
+                ))}
+                {gatewayError && (
+                  <p style={{ color: "var(--color-red)", fontSize: "0.82rem", margin: "0 0 10px 0" }}>
+                    {gatewayError}
+                  </p>
+                )}
+                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                  <button
+                    className="ui-btn ui-btn-sm ui-btn-outline"
+                    onClick={() => { setSelectedProvider(null); setGatewayFields({}); setGatewayError(""); }}
+                  >
+                    {t("cancel")}
+                  </button>
+                  <button
+                    className="ui-btn ui-btn-sm ui-btn-primary"
+                    disabled={gatewaySaving}
+                    onClick={handleSaveGateway}
+                    style={{ display: "flex", alignItems: "center", gap: 6 }}
+                  >
+                    {gatewaySaving ? <Loader2 size={14} className="doc-spinner" /> : <Check size={14} />}
+                    {t("saveAndConnect")}
+                  </button>
                 </div>
               </div>
-            </div>
-            <button
-              className="ui-btn ui-btn-sm ui-btn-primary"
-              disabled={gatewayConnecting}
-              onClick={() => handleConnectGateway(gatewayStatus.provider!)}
-            >
-              {gatewayConnecting ? <Loader2 size={14} className="doc-spinner" /> : <ExternalLink size={14} />}
-              {t("completeSetup")}
-            </button>
-          </div>
+            );
+          })()
         ) : (
           /* No gateway — show provider selection */
           <div>
@@ -2365,11 +2436,10 @@ function FinancialsTabContent({
                     <button
                       className="ui-btn ui-btn-sm ui-btn-primary"
                       style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                      disabled={gatewayConnecting}
-                      onClick={() => handleConnectGateway(gp.key)}
+                      onClick={() => { setSelectedProvider(gp.key); setGatewayFields({}); setGatewayError(""); }}
                     >
-                      {gatewayConnecting ? <Loader2 size={14} className="doc-spinner" /> : <ExternalLink size={14} />}
-                      {t("connectProvider")}
+                      <KeyRound size={14} />
+                      {t("setupProvider")}
                     </button>
                   ) : (
                     <span style={{ fontSize: "0.78rem", color: "var(--muted)", fontStyle: "italic" }}>

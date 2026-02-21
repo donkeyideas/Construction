@@ -1,120 +1,84 @@
 // ---------------------------------------------------------------------------
-// Stripe Connect — PaymentGateway implementation
+// Stripe — PaymentGateway implementation using company's OWN API keys
 // ---------------------------------------------------------------------------
 
-import { getStripeInstance } from "@/lib/stripe/config";
-import { createAdminClient } from "@/lib/supabase/admin";
+import Stripe from "stripe";
 import type {
   PaymentGateway,
   GatewayAccountStatus,
+  GatewayCredentials,
   CheckoutParams,
 } from "../gateway";
+
+/**
+ * Creates a Stripe instance using the company's own secret key.
+ * Each company manages their own Stripe account — no platform Connect.
+ */
+function createStripeClient(secretKey: string): Stripe {
+  return new Stripe(secretKey);
+}
 
 export class StripeGateway implements PaymentGateway {
   provider = "stripe" as const;
 
-  async createOnboardingUrl(
-    companyId: string,
-    returnUrl: string,
-    refreshUrl: string
-  ): Promise<{ url: string; accountId: string } | null> {
-    const stripe = await getStripeInstance();
-    if (!stripe) return null;
-
-    const admin = createAdminClient();
-
-    // Check for existing gateway config
-    const { data: existing } = await admin
-      .from("payment_gateway_config")
-      .select("account_id")
-      .eq("company_id", companyId)
-      .eq("provider", "stripe")
-      .single();
-
-    let accountId = existing?.account_id;
-
-    if (!accountId) {
-      // Create a new Standard connected account
-      const account = await stripe.accounts.create({
-        type: "standard",
-        metadata: { company_id: companyId },
-      });
-      accountId = account.id;
-
-      // Store immediately (even before onboarding completes)
-      await admin.from("payment_gateway_config").upsert(
-        {
-          company_id: companyId,
-          provider: "stripe",
-          account_id: accountId,
-          is_active: false,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "company_id,provider" }
-      );
-    }
-
-    // Create an account link for onboarding
-    const accountLink = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: refreshUrl,
-      return_url: returnUrl,
-      type: "account_onboarding",
-    });
-
-    return { url: accountLink.url, accountId };
-  }
-
-  async getAccountStatus(accountId: string): Promise<GatewayAccountStatus> {
-    const stripe = await getStripeInstance();
-    if (!stripe || !accountId) {
-      return {
-        connected: false,
-        accountId: null,
-        chargesEnabled: false,
-        detailsSubmitted: false,
-      };
+  async validateCredentials(
+    credentials: GatewayCredentials
+  ): Promise<{ valid: boolean; accountName?: string; error?: string }> {
+    if (!credentials.secret_key) {
+      return { valid: false, error: "Secret key is required" };
     }
 
     try {
-      const account = await stripe.accounts.retrieve(accountId);
-      return {
-        connected: account.charges_enabled && account.details_submitted,
-        accountId: account.id,
-        chargesEnabled: account.charges_enabled,
-        detailsSubmitted: account.details_submitted,
-      };
-    } catch {
-      return {
-        connected: false,
-        accountId,
-        chargesEnabled: false,
-        detailsSubmitted: false,
-      };
+      const stripe = createStripeClient(credentials.secret_key);
+      // Retrieve the account to verify the key works
+      const account = await stripe.accounts.retrieve();
+      const name =
+        (account as Stripe.Account & { settings?: { dashboard?: { display_name?: string } } })
+          .settings?.dashboard?.display_name ||
+        (account as Stripe.Account & { business_profile?: { name?: string } })
+          .business_profile?.name ||
+        "Stripe Account";
+      return { valid: true, accountName: name };
+    } catch (err) {
+      const message =
+        err instanceof Stripe.errors.StripeAuthenticationError
+          ? "Invalid API key. Please check and try again."
+          : err instanceof Error
+            ? err.message
+            : "Failed to validate key";
+      return { valid: false, error: message };
     }
   }
 
-  async disconnect(companyId: string): Promise<void> {
-    const admin = createAdminClient();
+  async getAccountStatus(
+    credentials: GatewayCredentials
+  ): Promise<GatewayAccountStatus> {
+    if (!credentials.secret_key) {
+      return { connected: false, accountName: null, error: "No key configured" };
+    }
 
-    await admin
-      .from("payment_gateway_config")
-      .update({
-        is_active: false,
-        account_id: null,
-        onboarded_at: null,
-        config: {},
-        updated_at: new Date().toISOString(),
-      })
-      .eq("company_id", companyId)
-      .eq("provider", "stripe");
+    try {
+      const stripe = createStripeClient(credentials.secret_key);
+      const account = await stripe.accounts.retrieve();
+      const name =
+        (account as Stripe.Account & { settings?: { dashboard?: { display_name?: string } } })
+          .settings?.dashboard?.display_name ||
+        (account as Stripe.Account & { business_profile?: { name?: string } })
+          .business_profile?.name ||
+        "Stripe Account";
+      return { connected: true, accountName: name };
+    } catch {
+      return { connected: false, accountName: null, error: "API key is no longer valid" };
+    }
   }
 
   async createCheckoutSession(
+    credentials: GatewayCredentials,
     params: CheckoutParams
   ): Promise<{ url: string } | null> {
-    const stripe = await getStripeInstance();
-    if (!stripe) return null;
+    if (!credentials.secret_key) return null;
+
+    const stripe = createStripeClient(credentials.secret_key);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -131,10 +95,6 @@ export class StripeGateway implements PaymentGateway {
         },
       ],
       payment_intent_data: {
-        // application_fee_amount: Math.round(params.amount * 0.01 * 100), // 1% platform fee (enable later)
-        transfer_data: {
-          destination: params.destinationAccountId,
-        },
         metadata: {
           company_id: params.companyId,
           lease_id: params.leaseId,
@@ -156,5 +116,24 @@ export class StripeGateway implements PaymentGateway {
     });
 
     return session.url ? { url: session.url } : null;
+  }
+
+  async verifyWebhook(
+    credentials: GatewayCredentials,
+    body: string,
+    signature: string
+  ): Promise<Stripe.Event | null> {
+    if (!credentials.webhook_secret || !credentials.secret_key) return null;
+
+    try {
+      const stripe = createStripeClient(credentials.secret_key);
+      return stripe.webhooks.constructEvent(
+        body,
+        signature,
+        credentials.webhook_secret
+      );
+    } catch {
+      return null;
+    }
   }
 }

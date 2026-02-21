@@ -106,7 +106,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/seed") ||
     pathname.startsWith("/api/locale") ||
-    pathname.startsWith("/api/stripe/webhook");
+    pathname.startsWith("/api/stripe/webhook") ||
+    pathname.startsWith("/api/payments/webhook");
 
   // ─── Platform flags: maintenance mode + registration gate ───
   const flags = await getPlatformFlags();
