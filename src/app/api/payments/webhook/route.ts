@@ -472,6 +472,7 @@ async function recordRentPayment(
         lease_id: data.leaseId,
         property_id: lease.property_id,
         tenant_name: lease.tenant_name || "Tenant",
+        gateway_provider: data.provider,
       },
       accountMap
     );

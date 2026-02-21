@@ -913,6 +913,7 @@ export async function generateRentPaymentJournalEntry(
     lease_id: string;
     property_id: string;
     tenant_name: string;
+    gateway_provider?: string;
   },
   accountMap: CompanyAccountMap
 ): Promise<{ journalEntryId: string } | null> {
@@ -924,9 +925,31 @@ export async function generateRentPaymentJournalEntry(
   const rentAmount = payment.amount - lateFee;
   const description = `Rent payment - ${payment.tenant_name}`;
 
-  // DR Cash (full amount received)
+  // For online payments, use the provider's clearing account instead of Cash
+  let debitAccountId = accountMap.cashId;
+  if (payment.gateway_provider) {
+    const providerLabel =
+      payment.gateway_provider.charAt(0).toUpperCase() +
+      payment.gateway_provider.slice(1);
+    const clearingName = `${providerLabel} Clearing`;
+
+    const { data: clearingAccount } = await supabase
+      .from("chart_of_accounts")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("name", clearingName)
+      .eq("is_active", true)
+      .limit(1)
+      .single();
+
+    if (clearingAccount) {
+      debitAccountId = clearingAccount.id;
+    }
+  }
+
+  // DR Cash or Provider Clearing (full amount received)
   lines.push({
-    account_id: accountMap.cashId,
+    account_id: debitAccountId,
     debit: payment.amount,
     credit: 0,
     description,

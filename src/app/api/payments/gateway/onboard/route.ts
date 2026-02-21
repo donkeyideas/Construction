@@ -65,6 +65,46 @@ export async function POST(request: NextRequest) {
       { onConflict: "company_id,provider" }
     );
 
+    // Auto-create GL clearing account for this payment provider
+    const providerLabel = provider.charAt(0).toUpperCase() + provider.slice(1);
+    const clearingAccountName = `${providerLabel} Clearing`;
+
+    const { data: existingAccount } = await admin
+      .from("chart_of_accounts")
+      .select("id")
+      .eq("company_id", ctx.companyId)
+      .eq("name", clearingAccountName)
+      .limit(1)
+      .single();
+
+    if (!existingAccount) {
+      // Find the next available account number in the 1xxx range (assets)
+      const { data: maxAccount } = await admin
+        .from("chart_of_accounts")
+        .select("account_number")
+        .eq("company_id", ctx.companyId)
+        .gte("account_number", "1050")
+        .lte("account_number", "1099")
+        .order("account_number", { ascending: false })
+        .limit(1)
+        .single();
+
+      const nextNum = maxAccount
+        ? String(parseInt(maxAccount.account_number, 10) + 1)
+        : "1060";
+
+      await admin.from("chart_of_accounts").insert({
+        company_id: ctx.companyId,
+        account_number: nextNum,
+        name: clearingAccountName,
+        account_type: "asset",
+        sub_type: "current_asset",
+        is_active: true,
+        description: `Clearing account for ${providerLabel} online payments. Funds received via ${providerLabel} before deposit.`,
+        normal_balance: "debit",
+      });
+    }
+
     // Auto-create "online_payment" method for all company properties
     const { data: properties } = await admin
       .from("properties")

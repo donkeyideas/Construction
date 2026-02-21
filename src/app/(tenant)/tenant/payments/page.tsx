@@ -1,13 +1,125 @@
 import { redirect } from "next/navigation";
 import { CreditCard, CheckCircle2, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getTenantPayments } from "@/lib/queries/tenant-portal";
+import { getCompanyGateway } from "@/lib/payments";
 import { formatCurrency } from "@/lib/utils/format";
 import { getTranslations, getLocale } from "next-intl/server";
+import Stripe from "stripe";
+import {
+  generateRentPaymentJournalEntry,
+  buildCompanyAccountMap,
+} from "@/lib/utils/invoice-accounting";
 
 export const metadata = {
   title: "Payments - Buildwrk",
 };
+
+/**
+ * Server-side: verify & record payment when tenant returns from checkout.
+ * This covers cases where the webhook hasn't fired yet.
+ */
+async function verifyAndRecordPayment(userId: string) {
+  const admin = createAdminClient();
+
+  // Get tenant's active lease
+  const { data: lease } = await admin
+    .from("leases")
+    .select("id, company_id, property_id, tenant_name")
+    .eq("tenant_user_id", userId)
+    .eq("status", "active")
+    .limit(1)
+    .single();
+
+  if (!lease) return;
+
+  const companyId = lease.company_id as string;
+  const result = await getCompanyGateway(companyId);
+  if (!result) return;
+
+  try {
+    if (result.config.provider === "stripe") {
+      const stripe = new Stripe(result.credentials.secret_key);
+      const sessions = await stripe.checkout.sessions.list({ limit: 5 });
+
+      const session = sessions.data.find(
+        (s) =>
+          s.status === "complete" &&
+          s.metadata?.tenant_user_id === userId &&
+          s.metadata?.lease_id === lease.id &&
+          s.metadata?.payment_type === "rent"
+      );
+
+      if (!session) return;
+
+      // Already recorded?
+      const { data: existing } = await admin
+        .from("rent_payments")
+        .select("id")
+        .eq("gateway_session_id", session.id)
+        .limit(1)
+        .single();
+
+      if (existing) return;
+
+      const amount = (session.amount_total ?? 0) / 100;
+      const paymentDate = new Date().toISOString().slice(0, 10);
+      const paymentIntentId =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : null;
+
+      const { data: payment } = await admin
+        .from("rent_payments")
+        .insert({
+          company_id: companyId,
+          lease_id: lease.id,
+          amount,
+          payment_date: paymentDate,
+          due_date: session.metadata?.due_date || paymentDate,
+          method: "online",
+          status: "paid",
+          gateway_provider: "stripe",
+          gateway_payment_id: paymentIntentId,
+          gateway_session_id: session.id,
+          notes: "Paid online via Stripe",
+        })
+        .select()
+        .single();
+
+      if (!payment) return;
+
+      // Auto-generate journal entry
+      try {
+        const accountMap = await buildCompanyAccountMap(admin, companyId);
+        await generateRentPaymentJournalEntry(admin, companyId, userId, {
+          id: payment.id,
+          amount,
+          payment_date: paymentDate,
+          lease_id: lease.id,
+          property_id: lease.property_id,
+          tenant_name: lease.tenant_name || "Tenant",
+          gateway_provider: "stripe",
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Rent payment JE warning:", jeErr);
+      }
+
+      // Log for idempotency
+      await admin.from("payment_webhook_events").insert({
+        event_id: `verify-${session.id}`,
+        provider: "stripe",
+        event_type: "checkout.session.verified",
+        company_id: companyId,
+        payload: { sessionId: session.id, paymentId: paymentIntentId },
+      });
+    }
+    // PayPal, Square, GoCardless: webhook is primary path; no server-side verify yet
+  } catch (err) {
+    console.warn("Payment verification warning:", err);
+  }
+}
 
 export default async function TenantPaymentsPage({
   searchParams,
@@ -20,16 +132,22 @@ export default async function TenantPaymentsPage({
     redirect("/login/tenant");
   }
 
-  const [payments, t, locale, params] = await Promise.all([
+  const params = await searchParams;
+  const showSuccess = params.success === "true";
+  const showCanceled = params.canceled === "true";
+
+  // If returning from successful checkout, verify & record before fetching payments
+  if (showSuccess) {
+    await verifyAndRecordPayment(user.id);
+  }
+
+  const [payments, t, locale] = await Promise.all([
     getTenantPayments(supabase, user.id),
     getTranslations("tenant"),
     getLocale(),
-    searchParams,
   ]);
 
   const dateLocale = locale === "es" ? "es" : "en-US";
-  const showSuccess = params.success === "true";
-  const showCanceled = params.canceled === "true";
 
   function getStatusBadge(status: string): string {
     switch (status) {
@@ -132,7 +250,11 @@ export default async function TenantPaymentsPage({
                         {payment.status}
                       </span>
                     </td>
-                    <td>{payment.payment_method ?? "--"}</td>
+                    <td>
+                      {payment.method === "online" && payment.gateway_provider
+                        ? `Online (${payment.gateway_provider.charAt(0).toUpperCase() + payment.gateway_provider.slice(1)})`
+                        : payment.method ?? "--"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
