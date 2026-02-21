@@ -361,7 +361,6 @@ export async function POST(request: NextRequest) {
       case "rfis": {
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
-          const assignedTo = resolveUserRef(r.assigned_to);
           const { error } = await supabase.from("rfis").insert({
             company_id: companyId,
             project_id: await resolveProjectId(r),
@@ -373,7 +372,7 @@ export async function POST(request: NextRequest) {
             status: r.status || "submitted",
             due_date: r.due_date || null,
             submitted_by: userId,
-            assigned_to: assignedTo,
+            assigned_to: resolveUserRef(r.assigned_to) || userId,
             cost_impact: r.cost_impact ? parseFloat(r.cost_impact) : null,
             schedule_impact_days: r.schedule_impact_days ? parseInt(r.schedule_impact_days) : null,
           });
@@ -577,7 +576,6 @@ export async function POST(request: NextRequest) {
           if (!propertyId && maintProps && maintProps.length > 0) {
             propertyId = maintProps[0].id;
           }
-          const assignedTo = resolveUserRef(r.assigned_to);
           const { error } = await supabase.from("maintenance_requests").insert({
             company_id: companyId,
             property_id: propertyId,
@@ -590,7 +588,7 @@ export async function POST(request: NextRequest) {
             estimated_cost: r.estimated_cost ? parseFloat(r.estimated_cost) : null,
             actual_cost: r.actual_cost ? parseFloat(r.actual_cost) : null,
             requested_by: userId,
-            assigned_to: assignedTo,
+            assigned_to: resolveUserRef(r.assigned_to) || userId,
             notes: r.notes || null,
           });
           if (error) {
@@ -686,7 +684,7 @@ export async function POST(request: NextRequest) {
             company_id: companyId,
             equipment_id: equipId,
             project_id: projId,
-            assigned_to: resolvedAssignee,
+            assigned_to: resolvedAssignee || userId,
             assigned_date: r.assigned_date || new Date().toISOString().split("T")[0],
             returned_date: r.return_date || null,
             notes: assignNotes || null,
@@ -701,6 +699,7 @@ export async function POST(request: NextRequest) {
               await supabase.from("equipment").update({
                 status: assignStatus === "active" ? "in_use" : "available",
                 current_project_id: assignStatus === "active" ? projId : null,
+                assigned_to: resolvedAssignee || userId,
               }).eq("id", equipId);
             }
           }
@@ -1211,7 +1210,6 @@ export async function POST(request: NextRequest) {
             .eq("company_id", companyId);
           const subNum = (subCount ?? 0) + i + 1;
 
-          const reviewerId = resolveUserRef(r.reviewer || r.reviewer_id);
           const { error } = await supabase.from("submittals").insert({
             company_id: companyId,
             project_id: await resolveProjectId(r),
@@ -1220,7 +1218,7 @@ export async function POST(request: NextRequest) {
             spec_section: r.spec_section || null,
             due_date: r.due_date || null,
             submitted_by: userId,
-            reviewer_id: reviewerId,
+            reviewer_id: resolveUserRef(r.reviewer || r.reviewer_id) || userId,
             review_comments: r.review_comments || null,
             status: r.status || "pending",
           });
