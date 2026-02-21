@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /* ------------------------------------------------------------------
    Types
@@ -91,6 +92,41 @@ export interface FolderNode {
 }
 
 /* ------------------------------------------------------------------
+   resolveUploaderNames - Fill in uploader info for docs where FK join
+   returned null (e.g. tenant users not in company_members)
+   ------------------------------------------------------------------ */
+
+async function resolveUploaderNames(docs: DocumentRow[]): Promise<void> {
+  const missing = docs.filter(
+    (d) => !d.uploader && d.uploaded_by
+  );
+  if (missing.length === 0) return;
+
+  const userIds = [...new Set(missing.map((d) => d.uploaded_by))];
+  const admin = createAdminClient();
+  const { data: profiles } = await admin
+    .from("user_profiles")
+    .select("id, full_name, email")
+    .in("id", userIds);
+
+  if (!profiles || profiles.length === 0) return;
+
+  const profileMap = new Map(
+    profiles.map((p: { id: string; full_name: string; email: string }) => [
+      p.id,
+      { full_name: p.full_name, email: p.email },
+    ])
+  );
+
+  for (const doc of missing) {
+    const profile = profileMap.get(doc.uploaded_by);
+    if (profile) {
+      doc.uploader = profile;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------
    getDocuments - List documents with optional filters
    ------------------------------------------------------------------ */
 
@@ -126,8 +162,11 @@ export async function getDocuments(
 
   if (filters?.folderPath) {
     // Match exact folder or child folders (prefix match)
+    // Also handle leading-slash variant for backwards compatibility
+    const fp = filters.folderPath;
+    const altFp = fp.startsWith("/") ? fp.slice(1) : `/${fp}`;
     query = query.or(
-      `folder_path.eq.${filters.folderPath},folder_path.like.${filters.folderPath}/%`
+      `folder_path.eq.${fp},folder_path.like.${fp}/%,folder_path.eq.${altFp},folder_path.like.${altFp}/%`
     );
   }
 
@@ -143,7 +182,12 @@ export async function getDocuments(
     return [];
   }
 
-  return (data ?? []) as DocumentRow[];
+  const docs = (data ?? []) as DocumentRow[];
+
+  // Resolve missing uploader names (e.g. tenant users blocked by RLS)
+  await resolveUploaderNames(docs);
+
+  return docs;
 }
 
 /* ------------------------------------------------------------------
@@ -230,7 +274,9 @@ export async function getDocumentById(
     return null;
   }
 
-  return data as DocumentRow;
+  const doc = data as DocumentRow;
+  await resolveUploaderNames([doc]);
+  return doc;
 }
 
 /* ------------------------------------------------------------------

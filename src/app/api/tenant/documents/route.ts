@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         file_type: file.type,
         file_size: file.size,
         category: "correspondence",
-        folder_path: "/Tenant Uploads",
+        folder_path: "Tenant Uploads",
         uploaded_by: user.id,
         ai_extracted_data: { uploader_name: uploaderName },
       })
