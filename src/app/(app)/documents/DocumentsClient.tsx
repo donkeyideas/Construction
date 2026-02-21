@@ -639,6 +639,7 @@ export default function DocumentsClient({
                 <span>
                   {(selectedDoc.uploader as { full_name: string; email: string } | null)?.full_name ??
                     (selectedDoc.uploader as { full_name: string; email: string } | null)?.email ??
+                    (selectedDoc.ai_extracted_data as { uploader_name?: string } | null)?.uploader_name ??
                     t("unknown")}
                 </span>
               </div>
@@ -774,6 +775,7 @@ function DocumentCard({
   const uploaderName =
     (doc.uploader as { full_name: string; email: string } | null)?.full_name ??
     (doc.uploader as { full_name: string; email: string } | null)?.email ??
+    (doc.ai_extracted_data as { uploader_name?: string } | null)?.uploader_name ??
     t("unknown");
 
   const projectInfo = doc.project as { id: string; name: string; code: string } | null;

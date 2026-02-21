@@ -422,7 +422,7 @@
   "tenant": {
     "welcomeName": "Welcome, {name}",
     "defaultTenant": "Tenant",
-    "unitAt": "Unit {unit} at {property}",
+    "unitAt": "{unit} at {property}",
     "leaseActive": "Lease Active",
     "noActiveLeaseMsg": "No active lease on file.",
     "noActiveLeaseTitle": "No Active Lease",

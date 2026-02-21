@@ -421,7 +421,7 @@
   "tenant": {
     "welcomeName": "Bienvenido, {name}",
     "defaultTenant": "Inquilino",
-    "unitAt": "Unidad {unit} en {property}",
+    "unitAt": "{unit} en {property}",
     "leaseActive": "Contrato Activo",
     "noActiveLeaseMsg": "No tiene un contrato activo en el sistema.",
     "noActiveLeaseTitle": "Sin Contrato Activo",

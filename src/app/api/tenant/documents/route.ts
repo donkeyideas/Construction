@@ -42,6 +42,10 @@ export async function POST(request: NextRequest) {
 
     const name = (formData.get("name") as string) || file.name;
 
+    // Get uploader display name for document metadata (RLS blocks user_profiles join for tenant users)
+    const uploaderName =
+      user.user_metadata?.full_name || user.email || "Tenant";
+
     // Upload file to Supabase Storage
     const timestamp = Date.now();
     const storagePath = `${lease.company_id}/tenant-uploads/${timestamp}-${file.name}`;
@@ -75,6 +79,7 @@ export async function POST(request: NextRequest) {
         category: "correspondence",
         folder_path: "/Tenant Uploads",
         uploaded_by: user.id,
+        ai_extracted_data: { uploader_name: uploaderName },
       })
       .select("id")
       .single();
