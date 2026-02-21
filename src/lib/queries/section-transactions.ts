@@ -135,7 +135,8 @@ export async function getProjectTransactions(
   ];
   const jeMap = await getJEMap(supabase, companyId, allRefs);
 
-  // 5. Build transaction rows
+  // 5. Build transaction rows — populate coveredJeIds from all source entities
+  //    BEFORE the standalone JE lines loop, so it can skip duplicates.
   const coveredJeIds = new Set<string>();
 
   for (const inv of invoices) {
@@ -185,6 +186,21 @@ export async function getProjectTransactions(
     });
   }
 
+  // Contracts MUST be processed before standalone JE lines so coveredJeIds is populated
+  for (const c of contracts) {
+    const je = jeMap.get(`contract:${c.id}`);
+    if (je) coveredJeIds.add(je.id);
+    const projectName = c.project_id ? projectNameMap.get(c.project_id) ?? "" : "";
+    const amount = Number(c.contract_amount) || 0;
+    txns.push({
+      id: `contract-${c.id}`, date: c.start_date ?? new Date().toISOString().split("T")[0],
+      description: `${c.contract_number ?? c.title ?? "Contract"}${projectName ? ` (${projectName})` : ""}`,
+      reference: c.contract_number ?? "", source: "Contracts", sourceHref: "/projects/contracts",
+      debit: amount, credit: 0, jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
+    });
+  }
+
+  // Standalone JE lines — only those NOT already covered by invoices/COs/payments/contracts
   for (const line of jeLines) {
     const je = line.journal_entries as unknown as {
       id: string; entry_number: string; entry_date: string;
@@ -199,19 +215,6 @@ export async function getProjectTransactions(
       sourceHref: `/financial/general-ledger?entry=${je.entry_number}`,
       debit: Number(line.debit) || 0, credit: Number(line.credit) || 0,
       jeNumber: je.entry_number, jeId: je.id,
-    });
-  }
-
-  for (const c of contracts) {
-    const je = jeMap.get(`contract:${c.id}`);
-    if (je) coveredJeIds.add(je.id);
-    const projectName = c.project_id ? projectNameMap.get(c.project_id) ?? "" : "";
-    const amount = Number(c.contract_amount) || 0;
-    txns.push({
-      id: `contract-${c.id}`, date: c.start_date ?? new Date().toISOString().split("T")[0],
-      description: `${c.contract_number ?? c.title ?? "Contract"}${projectName ? ` (${projectName})` : ""}`,
-      reference: c.contract_number ?? "", source: "Contracts", sourceHref: "/projects/contracts",
-      debit: amount, credit: 0, jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
@@ -279,6 +282,9 @@ function mapJELine(line: JELineRow, extra?: { projectNameMap?: Map<string, strin
   } else if (ref.startsWith("maintenance:") || ref.startsWith("equip_maintenance:")) {
     source = "Maintenance JE";
     sourceHref = "/properties/maintenance";
+  } else if (ref.startsWith("contract:")) {
+    source = "Contract JE";
+    sourceHref = "/projects/contracts";
   }
 
   const projName = line.project_id && extra?.projectNameMap
@@ -384,7 +390,8 @@ export async function getPropertyTransactions(
     getJEMap(supabase, companyId, maintRefs),
   ]);
 
-  // Track JE IDs already represented by invoices/payments
+  // Track JE IDs already represented by source entities (invoices/payments/maintenance)
+  // so standalone JE lines loop can skip duplicates.
   const coveredJeIds = new Set<string>();
 
   // Process invoices — always show, populate JE when available
@@ -431,7 +438,13 @@ export async function getPropertyTransactions(
     }
   }
 
-  // Standalone JE lines (only those NOT already covered by invoices/payments)
+  // Pre-populate coveredJeIds with maintenance JEs before the JE lines loop
+  for (const m of maintenance ?? []) {
+    const je = maintJeMap.get(`maintenance:${m.id}`);
+    if (je) coveredJeIds.add(je.id);
+  }
+
+  // Standalone JE lines (only those NOT already covered by invoices/payments/maintenance)
   for (const line of (jeLines ?? []) as JELineRow[]) {
     const je = line.journal_entries as unknown as {
       id: string; entry_number: string; entry_date: string;
