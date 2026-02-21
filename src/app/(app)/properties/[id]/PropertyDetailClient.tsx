@@ -13,6 +13,11 @@ import {
   ImageIcon,
   Upload,
   Loader2,
+  Plus,
+  KeyRound,
+  Check,
+  Copy,
+  DollarSign,
 } from "lucide-react";
 import type {
   PropertyRow,
@@ -165,6 +170,29 @@ export default function PropertyDetailClient({
     name: string;
   } | null>(null);
 
+  // Create tenant login modal
+  const [loginLease, setLoginLease] = useState<LeaseRow | null>(null);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [creatingLogin, setCreatingLogin] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loginSuccess, setLoginSuccess] = useState<{ email: string; password: string } | null>(null);
+  const [copiedLoginField, setCopiedLoginField] = useState<string | null>(null);
+
+  // Record payment modal
+  const [paymentLease, setPaymentLease] = useState<LeaseRow | null>(null);
+  const [paymentForm, setPaymentForm] = useState({
+    amount: "",
+    payment_date: new Date().toISOString().slice(0, 10),
+    due_date: "",
+    method: "ach",
+    reference_number: "",
+    notes: "",
+    late_fee: "",
+  });
+  const [recordingPayment, setRecordingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+
   // Derived data
   const activeLeases = leases.filter((l) => l.status === "active");
   const openMaint = maintenanceRequests.filter(
@@ -198,6 +226,105 @@ export default function PropertyDetailClient({
       warehouse: t("unitTypeWarehouse"),
     };
     return map[ut] ?? ut;
+  }
+
+  // Create Tenant Login
+  function openCreateLogin(lease: LeaseRow) {
+    setLoginLease(lease);
+    setLoginEmail(lease.tenant_email || "");
+    setLoginPassword("");
+    setLoginError("");
+    setLoginSuccess(null);
+  }
+
+  async function handleCreateLogin() {
+    if (!loginLease) return;
+    if (loginPassword.length < 8) {
+      setLoginError(t("passwordMinLength"));
+      return;
+    }
+    setCreatingLogin(true);
+    setLoginError("");
+    try {
+      const res = await fetch("/api/leases/create-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lease_id: loginLease.id,
+          email: loginEmail,
+          password: loginPassword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLoginError(data.error || "Failed to create login");
+        return;
+      }
+      setLoginSuccess({ email: loginEmail, password: loginPassword });
+    } catch {
+      setLoginError(t("networkError"));
+    } finally {
+      setCreatingLogin(false);
+    }
+  }
+
+  function copyLoginField(field: string, value: string) {
+    navigator.clipboard.writeText(value);
+    setCopiedLoginField(field);
+    setTimeout(() => setCopiedLoginField(null), 2000);
+  }
+
+  // Record Rent Payment
+  function openRecordPayment(lease: LeaseRow) {
+    setPaymentLease(lease);
+    const now = new Date();
+    const dueDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    setPaymentForm({
+      amount: String(lease.monthly_rent || ""),
+      payment_date: now.toISOString().slice(0, 10),
+      due_date: dueDate,
+      method: "ach",
+      reference_number: "",
+      notes: "",
+      late_fee: "",
+    });
+    setPaymentError("");
+  }
+
+  async function handleRecordPayment() {
+    if (!paymentLease) return;
+    if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
+      setPaymentError(t("amountRequired"));
+      return;
+    }
+    setRecordingPayment(true);
+    setPaymentError("");
+    try {
+      const res = await fetch("/api/properties/rent-payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lease_id: paymentLease.id,
+          amount: paymentForm.amount,
+          payment_date: paymentForm.payment_date,
+          due_date: paymentForm.due_date || paymentForm.payment_date,
+          method: paymentForm.method,
+          reference_number: paymentForm.reference_number || null,
+          notes: paymentForm.notes || null,
+          late_fee: paymentForm.late_fee || null,
+        }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const data = await res.json();
+        setPaymentError(data.error || "Failed to record payment");
+      }
+    } catch {
+      setPaymentError(t("networkError"));
+    } finally {
+      setRecordingPayment(false);
+    }
   }
 
   // Tab labels with counts
@@ -289,6 +416,7 @@ export default function PropertyDetailClient({
         <UnitsTabContent
           units={units}
           leases={leases}
+          propertyId={property.id}
           onSelectUnit={(u) => {
             setSelectedUnit(u);
             setUnitEditMode(false);
@@ -303,6 +431,8 @@ export default function PropertyDetailClient({
       {activeTab === "leases" && (
         <LeasesTabContent
           leases={leases}
+          unitCount={units.length}
+          onSwitchToUnits={() => setActiveTab("units")}
           onSelectLease={(l) => {
             setSelectedLease(l);
             setLeaseEditMode(false);
@@ -321,7 +451,7 @@ export default function PropertyDetailClient({
       )}
 
       {activeTab === "financials" && (
-        <FinancialsTabContent financials={financials} />
+        <FinancialsTabContent financials={financials} propertyId={property.id} />
       )}
 
       {/* ===== MODALS ===== */}
@@ -378,6 +508,8 @@ export default function PropertyDetailClient({
           onDelete={(id, name) =>
             setDeleteTarget({ type: "lease", id, name })
           }
+          onCreateLogin={openCreateLogin}
+          onRecordPayment={openRecordPayment}
         />
       )}
 
@@ -409,6 +541,204 @@ export default function PropertyDetailClient({
           setSaving={setSaving}
           onClose={() => setDeleteTarget(null)}
         />
+      )}
+
+      {/* Create Tenant Login Modal */}
+      {loginLease && !loginSuccess && (
+        <div className="modal-overlay" onClick={() => setLoginLease(null)}>
+          <div className="modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t("createTenantLogin")}</h3>
+              <button className="modal-close" onClick={() => setLoginLease(null)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+                {t("createTenantLoginDesc", { name: loginLease.tenant_name })}
+              </p>
+              {loginError && <div className="form-error">{loginError}</div>}
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("email")} *</label>
+                <input
+                  type="email"
+                  className="ticket-form-input"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                />
+              </div>
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("temporaryPassword")} *</label>
+                <input
+                  type="text"
+                  className="ticket-form-input"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder={t("minChars", { count: 8 })}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setLoginLease(null)}>
+                {t("cancel")}
+              </button>
+              <button className="btn-primary" onClick={handleCreateLogin} disabled={creatingLogin}>
+                {creatingLogin ? t("creating") : t("createLogin")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Login Created Success Modal */}
+      {loginSuccess && (
+        <div className="modal-overlay" onClick={() => { setLoginSuccess(null); setLoginLease(null); window.location.reload(); }}>
+          <div className="modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t("loginCreated")}</h3>
+              <button className="modal-close" onClick={() => { setLoginSuccess(null); setLoginLease(null); window.location.reload(); }}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+                {t("shareCredentials")}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 8, background: "var(--bg-secondary)" }}>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--muted)", textTransform: "uppercase" }}>{t("email")}</div>
+                    <div style={{ fontWeight: 600 }}>{loginSuccess.email}</div>
+                  </div>
+                  <button className="ui-btn ui-btn-sm ui-btn-outline" onClick={() => copyLoginField("email", loginSuccess.email)}>
+                    {copiedLoginField === "email" ? <Check size={14} /> : <Copy size={14} />}
+                  </button>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 8, background: "var(--bg-secondary)" }}>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--muted)", textTransform: "uppercase" }}>{t("password")}</div>
+                    <div style={{ fontWeight: 600 }}>{loginSuccess.password}</div>
+                  </div>
+                  <button className="ui-btn ui-btn-sm ui-btn-outline" onClick={() => copyLoginField("password", loginSuccess.password)}>
+                    {copiedLoginField === "password" ? <Check size={14} /> : <Copy size={14} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-primary" onClick={() => { setLoginSuccess(null); setLoginLease(null); window.location.reload(); }}>
+                {t("done")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Record Rent Payment Modal */}
+      {paymentLease && (
+        <div className="modal-overlay" onClick={() => setPaymentLease(null)}>
+          <div className="modal" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t("recordPayment")}</h3>
+              <button className="modal-close" onClick={() => setPaymentLease(null)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+                {t("recordPaymentDesc", { tenant: paymentLease.tenant_name })}
+              </p>
+              {paymentError && <div className="form-error">{paymentError}</div>}
+              <div className="modal-form-grid">
+                <div className="form-group">
+                  <label className="form-label">{t("amount")} *</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                    step="0.01"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("paymentDate")} *</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={paymentForm.payment_date}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, payment_date: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("dueDate")}</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={paymentForm.due_date}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, due_date: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("paymentMethodLabel")} *</label>
+                  <select
+                    className="form-select"
+                    value={paymentForm.method}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
+                  >
+                    <option value="ach">ACH / Bank Transfer</option>
+                    <option value="check">{t("check")}</option>
+                    <option value="zelle">Zelle</option>
+                    <option value="cashapp">Cash App</option>
+                    <option value="venmo">Venmo</option>
+                    <option value="paypal">PayPal</option>
+                    <option value="wire">{t("wireTransfer")}</option>
+                    <option value="cash">{t("cash")}</option>
+                    <option value="credit_card">{t("creditCard")}</option>
+                    <option value="other">{t("other")}</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("referenceNumber")}</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={paymentForm.reference_number}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, reference_number: e.target.value })}
+                    placeholder={t("referenceNumberPlaceholder")}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("lateFee")}</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={paymentForm.late_fee}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, late_fee: e.target.value })}
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label className="form-label">{t("notes")}</label>
+                  <textarea
+                    className="form-input"
+                    rows={2}
+                    value={paymentForm.notes}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setPaymentLease(null)}>
+                {t("cancel")}
+              </button>
+              <button className="btn-primary" onClick={handleRecordPayment} disabled={recordingPayment}>
+                {recordingPayment ? t("saving") : t("recordPayment")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1009,15 +1339,69 @@ function OverviewTabContent({
 function UnitsTabContent({
   units,
   leases,
+  propertyId,
   onSelectUnit,
   onEditUnit,
 }: {
   units: UnitRow[];
   leases: LeaseRow[];
+  propertyId: string;
   onSelectUnit: (u: UnitRow) => void;
   onEditUnit: (u: UnitRow) => void;
 }) {
   const t = useTranslations("app");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addingSaving, setAddingSaving] = useState(false);
+  const [addError, setAddError] = useState("");
+  const [addForm, setAddForm] = useState({
+    unit_number: "",
+    unit_type: "1br",
+    sqft: "",
+    bedrooms: "1",
+    bathrooms: "1",
+    floor_number: "",
+    market_rent: "",
+  });
+
+  function resetAddForm() {
+    setAddForm({ unit_number: "", unit_type: "1br", sqft: "", bedrooms: "1", bathrooms: "1", floor_number: "", market_rent: "" });
+    setAddError("");
+  }
+
+  async function handleAddUnit() {
+    if (!addForm.unit_number.trim()) {
+      setAddError(t("unitNumberRequired"));
+      return;
+    }
+    setAddingSaving(true);
+    setAddError("");
+    try {
+      const res = await fetch(`/api/properties/${propertyId}/units`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unit_number: addForm.unit_number.trim(),
+          unit_type: addForm.unit_type,
+          sqft: addForm.sqft ? Number(addForm.sqft) : null,
+          bedrooms: addForm.bedrooms ? Number(addForm.bedrooms) : null,
+          bathrooms: addForm.bathrooms ? Number(addForm.bathrooms) : null,
+          floor_number: addForm.floor_number ? Number(addForm.floor_number) : null,
+          market_rent: addForm.market_rent ? Number(addForm.market_rent) : null,
+          status: "vacant",
+        }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const data = await res.json();
+        setAddError(data.error || t("failedToCreateUnit"));
+      }
+    } catch {
+      setAddError(t("networkError"));
+    } finally {
+      setAddingSaving(false);
+    }
+  }
 
   function unitTypeLabel(ut: string): string {
     const map: Record<string, string> = {
@@ -1051,13 +1435,40 @@ function UnitsTabContent({
     (a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9)
   );
 
+  const addUnitFormUI = showAddForm ? (
+    <div style={{ padding: "16px", marginBottom: "16px", background: "rgba(var(--color-blue-rgb, 29, 78, 216), 0.05)", borderRadius: "8px", border: "1px solid rgba(var(--color-blue-rgb, 29, 78, 216), 0.2)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+        <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{t("addNewUnit")}</span>
+        <button className="ui-btn ui-btn-sm ui-btn-ghost" onClick={() => { setShowAddForm(false); resetAddForm(); }}><X size={14} /></button>
+      </div>
+      {addError && <div className="form-error" style={{ marginBottom: "12px" }}>{addError}</div>}
+      <div className="modal-form-grid">
+        <div className="form-group"><label className="form-label">{t("unitNumber")} *</label><input className="form-input" value={addForm.unit_number} onChange={(e) => setAddForm({ ...addForm, unit_number: e.target.value })} placeholder="101, A1, etc." /></div>
+        <div className="form-group"><label className="form-label">{t("unitType")}</label><select className="form-select" value={addForm.unit_type} onChange={(e) => setAddForm({ ...addForm, unit_type: e.target.value })}><option value="studio">{t("unitTypeStudio")}</option><option value="1br">{t("unitType1br")}</option><option value="2br">{t("unitType2br")}</option><option value="3br">{t("unitType3br")}</option><option value="office">{t("unitTypeOffice")}</option><option value="retail">{t("unitTypeRetail")}</option><option value="warehouse">{t("unitTypeWarehouse")}</option></select></div>
+        <div className="form-group"><label className="form-label">{t("sqFt")}</label><input className="form-input" type="number" value={addForm.sqft} onChange={(e) => setAddForm({ ...addForm, sqft: e.target.value })} placeholder="0" /></div>
+        <div className="form-group"><label className="form-label">{t("marketRent")}</label><input className="form-input" type="number" value={addForm.market_rent} onChange={(e) => setAddForm({ ...addForm, market_rent: e.target.value })} placeholder="0" /></div>
+        <div className="form-group"><label className="form-label">{t("bedrooms")}</label><input className="form-input" type="number" value={addForm.bedrooms} onChange={(e) => setAddForm({ ...addForm, bedrooms: e.target.value })} placeholder="0" /></div>
+        <div className="form-group"><label className="form-label">{t("bathrooms")}</label><input className="form-input" type="number" value={addForm.bathrooms} onChange={(e) => setAddForm({ ...addForm, bathrooms: e.target.value })} placeholder="0" /></div>
+        <div className="form-group"><label className="form-label">{t("floorNumber")}</label><input className="form-input" type="number" value={addForm.floor_number} onChange={(e) => setAddForm({ ...addForm, floor_number: e.target.value })} placeholder="0" /></div>
+      </div>
+      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "12px" }}>
+        <button className="ui-btn ui-btn-md ui-btn-secondary" onClick={() => { setShowAddForm(false); resetAddForm(); }} disabled={addingSaving}>{t("cancel")}</button>
+        <button className="ui-btn ui-btn-md ui-btn-primary" onClick={handleAddUnit} disabled={addingSaving}>{addingSaving ? <><Loader2 size={14} className="spin" /> {t("saving")}</> : <><Plus size={14} /> {t("addUnit")}</>}</button>
+      </div>
+    </div>
+  ) : null;
+
   if (units.length === 0) {
     return (
-      <div className="properties-empty" style={{ padding: "40px 20px" }}>
-        <div className="properties-empty-title">{t("noUnits")}</div>
-        <div className="properties-empty-desc">
-          {t("addUnitsDesc")}
-        </div>
+      <div style={{ padding: "20px" }}>
+        {addUnitFormUI}
+        {!showAddForm && (
+          <div className="properties-empty" style={{ padding: "40px 20px" }}>
+            <div className="properties-empty-title">{t("noUnits")}</div>
+            <div className="properties-empty-desc">{t("addUnitsDesc")}</div>
+            <button className="ui-btn ui-btn-md ui-btn-primary" style={{ marginTop: "16px" }} onClick={() => setShowAddForm(true)}><Plus size={14} /> {t("addUnit")}</button>
+          </div>
+        )}
       </div>
     );
   }
@@ -1066,22 +1477,17 @@ function UnitsTabContent({
 
   return (
     <>
-      {vacantCount > 0 && (
-        <div
-          style={{
-            padding: "10px 16px",
-            marginBottom: "12px",
-            background: "rgba(var(--color-amber-rgb, 245, 158, 11), 0.1)",
-            border: "1px solid rgba(var(--color-amber-rgb, 245, 158, 11), 0.3)",
-            borderRadius: "8px",
-            fontSize: "0.85rem",
-            color: "var(--color-amber, #f59e0b)",
-            fontWeight: 500,
-          }}
-        >
-          {t("vacantUnitsAvailable", { count: vacantCount })}
-        </div>
-      )}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+        {vacantCount > 0 ? (
+          <div style={{ padding: "10px 16px", background: "rgba(var(--color-amber-rgb, 245, 158, 11), 0.1)", border: "1px solid rgba(var(--color-amber-rgb, 245, 158, 11), 0.3)", borderRadius: "8px", fontSize: "0.85rem", color: "var(--color-amber, #f59e0b)", fontWeight: 500, flex: 1, marginRight: "12px" }}>
+            {t("vacantUnitsAvailable", { count: vacantCount })}
+          </div>
+        ) : <div />}
+        {!showAddForm && (
+          <button className="ui-btn ui-btn-sm ui-btn-primary" onClick={() => setShowAddForm(true)}><Plus size={14} /> {t("addUnit")}</button>
+        )}
+      </div>
+      {addUnitFormUI}
       <div className="units-grid">
         {sorted.map((unit) => {
           const tenant = tenantByUnit.get(unit.id);
@@ -1146,9 +1552,13 @@ function UnitsTabContent({
 
 function LeasesTabContent({
   leases,
+  unitCount,
+  onSwitchToUnits,
   onSelectLease,
 }: {
   leases: LeaseRow[];
+  unitCount: number;
+  onSwitchToUnits: () => void;
   onSelectLease: (l: LeaseRow) => void;
 }) {
   const t = useTranslations("app");
@@ -1169,8 +1579,13 @@ function LeasesTabContent({
       <div className="properties-empty" style={{ padding: "40px 20px" }}>
         <div className="properties-empty-title">{t("noLeases")}</div>
         <div className="properties-empty-desc">
-          {t("leasesWillAppearHere")}
+          {unitCount === 0 ? t("addUnitsFirstForLeases") : t("leasesWillAppearHere")}
         </div>
+        {unitCount === 0 && (
+          <button className="ui-btn ui-btn-md ui-btn-primary" style={{ marginTop: "16px" }} onClick={onSwitchToUnits}>
+            <Plus size={14} /> {t("addUnitsFirst")}
+          </button>
+        )}
       </div>
     );
   }
@@ -1368,12 +1783,143 @@ const EXPENSE_TYPE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
+interface PaymentMethodItem {
+  id: string;
+  method_type: string;
+  label: string;
+  instructions: string;
+  recipient_info: string | null;
+  is_enabled: boolean;
+}
+
 function FinancialsTabContent({
   financials,
+  propertyId,
 }: {
   financials: PropertyFinancials;
+  propertyId: string;
 }) {
   const t = useTranslations("app");
+
+  // Payment methods state
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodItem[]>([]);
+  const [loadingMethods, setLoadingMethods] = useState(true);
+  const [showAddMethod, setShowAddMethod] = useState(false);
+  const [editingMethod, setEditingMethod] = useState<PaymentMethodItem | null>(null);
+  const [methodForm, setMethodForm] = useState({
+    method_type: "zelle",
+    label: "Zelle",
+    instructions: "",
+    recipient_info: "",
+  });
+  const [methodSaving, setMethodSaving] = useState(false);
+  const [methodError, setMethodError] = useState("");
+
+  const METHOD_TYPES = [
+    { value: "zelle", label: "Zelle" },
+    { value: "cashapp", label: "Cash App" },
+    { value: "venmo", label: "Venmo" },
+    { value: "paypal", label: "PayPal" },
+    { value: "wire", label: t("wireTransfer") },
+    { value: "check", label: t("checkByMail") },
+    { value: "other", label: t("other") },
+  ];
+
+  useEffect(() => {
+    async function fetchMethods() {
+      try {
+        const res = await fetch(`/api/properties/payment-methods?property_id=${propertyId}`);
+        if (res.ok) {
+          setPaymentMethods(await res.json());
+        }
+      } catch { /* ignore */ }
+      setLoadingMethods(false);
+    }
+    fetchMethods();
+  }, [propertyId]);
+
+  function openAddMethod() {
+    setEditingMethod(null);
+    setMethodForm({ method_type: "zelle", label: "Zelle", instructions: "", recipient_info: "" });
+    setMethodError("");
+    setShowAddMethod(true);
+  }
+
+  function openEditMethod(m: PaymentMethodItem) {
+    setEditingMethod(m);
+    setMethodForm({
+      method_type: m.method_type,
+      label: m.label,
+      instructions: m.instructions,
+      recipient_info: m.recipient_info || "",
+    });
+    setMethodError("");
+    setShowAddMethod(true);
+  }
+
+  async function handleSaveMethod() {
+    if (!methodForm.instructions.trim()) {
+      setMethodError(t("instructionsRequired"));
+      return;
+    }
+    setMethodSaving(true);
+    setMethodError("");
+    try {
+      const isEdit = !!editingMethod;
+      const res = await fetch("/api/properties/payment-methods", {
+        method: isEdit ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          isEdit
+            ? { id: editingMethod!.id, ...methodForm }
+            : { property_id: propertyId, ...methodForm }
+        ),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setMethodError(data.error || "Failed");
+        return;
+      }
+      const saved = await res.json();
+      if (isEdit) {
+        setPaymentMethods((prev) => prev.map((m) => (m.id === saved.id ? saved : m)));
+      } else {
+        setPaymentMethods((prev) => [...prev, saved]);
+      }
+      setShowAddMethod(false);
+    } catch {
+      setMethodError("Network error");
+    } finally {
+      setMethodSaving(false);
+    }
+  }
+
+  async function handleDeleteMethod(id: string) {
+    try {
+      const res = await fetch("/api/properties/payment-methods", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setPaymentMethods((prev) => prev.filter((m) => m.id !== id));
+      }
+    } catch { /* ignore */ }
+  }
+
+  async function handleToggleMethod(id: string, enabled: boolean) {
+    try {
+      const res = await fetch("/api/properties/payment-methods", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, is_enabled: enabled }),
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setPaymentMethods((prev) => prev.map((m) => (m.id === saved.id ? saved : m)));
+      }
+    } catch { /* ignore */ }
+  }
 
   const maxVal = Math.max(
     financials.monthlyRevenue,
@@ -1544,6 +2090,163 @@ function FinancialsTabContent({
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Methods for Tenant Portal */}
+      <div className="card" style={{ gridColumn: "1 / -1" }}>
+        <div className="card-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>{t("paymentMethodsTitle")}</span>
+          <button className="ui-btn ui-btn-sm ui-btn-primary" onClick={openAddMethod}>
+            <Plus size={14} />
+            {t("addPaymentMethod")}
+          </button>
+        </div>
+        <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+          {t("paymentMethodsDesc")}
+        </p>
+
+        {loadingMethods ? (
+          <p style={{ color: "var(--muted)", textAlign: "center", padding: "16px 0" }}>
+            {t("loading")}...
+          </p>
+        ) : paymentMethods.length === 0 ? (
+          <p style={{ fontSize: "0.85rem", color: "var(--muted)", textAlign: "center", padding: "16px 0" }}>
+            {t("noPaymentMethodsConfigured")}
+          </p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {paymentMethods.map((m) => (
+              <div
+                key={m.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "12px",
+                  borderRadius: 8,
+                  background: "var(--bg-secondary)",
+                  opacity: m.is_enabled ? 1 : 0.5,
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{m.label}</div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: 2 }}>
+                    {m.instructions}
+                  </div>
+                  {m.recipient_info && (
+                    <div style={{ fontSize: "0.8rem", color: "var(--color-primary)", marginTop: 2 }}>
+                      {m.recipient_info}
+                    </div>
+                  )}
+                </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: "0.8rem" }}>
+                  <input
+                    type="checkbox"
+                    checked={m.is_enabled}
+                    onChange={(e) => handleToggleMethod(m.id, e.target.checked)}
+                  />
+                  {t("enabled")}
+                </label>
+                <button
+                  className="ui-btn ui-btn-sm ui-btn-outline"
+                  onClick={() => openEditMethod(m)}
+                >
+                  <Pencil size={12} />
+                </button>
+                <button
+                  className="ui-btn ui-btn-sm ui-btn-outline"
+                  style={{ color: "var(--color-red)" }}
+                  onClick={() => handleDeleteMethod(m.id)}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add/Edit Payment Method Modal */}
+      {showAddMethod && (
+        <div className="modal-overlay" onClick={() => setShowAddMethod(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">
+                {editingMethod ? t("editPaymentMethod") : t("addPaymentMethod")}
+              </h3>
+              <button className="modal-close" onClick={() => setShowAddMethod(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              {methodError && (
+                <div className="tenant-alert tenant-alert-error" style={{ marginBottom: 12 }}>
+                  {methodError}
+                </div>
+              )}
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("methodType")}</label>
+                <select
+                  className="ticket-form-input"
+                  value={methodForm.method_type}
+                  onChange={(e) => {
+                    const type = e.target.value;
+                    const found = METHOD_TYPES.find((mt) => mt.value === type);
+                    setMethodForm({
+                      ...methodForm,
+                      method_type: type,
+                      label: found?.label || type,
+                    });
+                  }}
+                >
+                  {METHOD_TYPES.map((mt) => (
+                    <option key={mt.value} value={mt.value}>
+                      {mt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("displayLabel")}</label>
+                <input
+                  type="text"
+                  className="ticket-form-input"
+                  value={methodForm.label}
+                  onChange={(e) => setMethodForm({ ...methodForm, label: e.target.value })}
+                  placeholder="e.g. Zelle"
+                />
+              </div>
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("paymentInstructions")}</label>
+                <textarea
+                  className="ticket-form-input"
+                  rows={3}
+                  value={methodForm.instructions}
+                  onChange={(e) => setMethodForm({ ...methodForm, instructions: e.target.value })}
+                  placeholder={t("paymentInstructionsPlaceholder")}
+                />
+              </div>
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("recipientInfo")}</label>
+                <input
+                  type="text"
+                  className="ticket-form-input"
+                  value={methodForm.recipient_info}
+                  onChange={(e) => setMethodForm({ ...methodForm, recipient_info: e.target.value })}
+                  placeholder={t("recipientInfoPlaceholder")}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowAddMethod(false)}>
+                {t("cancel")}
+              </button>
+              <button className="btn-primary" onClick={handleSaveMethod} disabled={methodSaving}>
+                {methodSaving ? t("saving") : t("save")}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -2274,6 +2977,8 @@ function LeaseModal({
   onClose,
   onToggleEdit,
   onDelete,
+  onCreateLogin,
+  onRecordPayment,
 }: {
   lease: LeaseRow;
   propertyId: string;
@@ -2283,6 +2988,8 @@ function LeaseModal({
   onClose: () => void;
   onToggleEdit: () => void;
   onDelete: (id: string, name: string) => void;
+  onCreateLogin: (lease: LeaseRow) => void;
+  onRecordPayment: (lease: LeaseRow) => void;
 }) {
   const t = useTranslations("app");
   const locale = useLocale();
@@ -2368,7 +3075,32 @@ function LeaseModal({
               </span>
             )}
           </h3>
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            {!editMode && !lease.tenant_user_id && lease.tenant_email && (
+              <button
+                className="ui-btn ui-btn-sm ui-btn-outline"
+                onClick={() => onCreateLogin(lease)}
+                title={t("createTenantLogin")}
+              >
+                <KeyRound size={13} />
+                {t("createLogin")}
+              </button>
+            )}
+            {!editMode && lease.tenant_user_id && (
+              <span className="badge badge-green" style={{ fontSize: "0.75rem" }}>
+                <Check size={12} /> {t("loginActive")}
+              </span>
+            )}
+            {!editMode && (
+              <button
+                className="ui-btn ui-btn-sm ui-btn-outline"
+                onClick={() => onRecordPayment(lease)}
+                title={t("recordPayment")}
+              >
+                <DollarSign size={13} />
+                {t("recordPayment")}
+              </button>
+            )}
             <button
               className="ui-btn ui-btn-sm ui-btn-outline"
               onClick={onToggleEdit}

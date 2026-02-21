@@ -1,0 +1,55 @@
+account_number,name,account_type,sub_type,description,normal_balance
+1000,Cash,asset,current_asset,General cash account,debit
+1010,Checking - Operating,asset,current_asset,Primary operating checking account,debit
+1020,Checking - Payroll,asset,current_asset,Payroll disbursement account,debit
+1030,Savings - Reserve,asset,current_asset,Emergency and reserve fund,debit
+1100,Accounts Receivable,asset,current_asset,Trade receivables from clients,debit
+1150,Retainage Receivable,asset,current_asset,Retainage held by owners on receivables,debit
+1200,Inventory - Materials,asset,current_asset,Construction materials inventory,debit
+1300,Prepaid Insurance,asset,current_asset,Prepaid insurance premiums,debit
+1400,Work in Progress,asset,current_asset,Costs on uncompleted contracts,debit
+1500,Equipment,asset,fixed_asset,Construction equipment and machinery,debit
+1510,Accumulated Depreciation - Equipment,asset,fixed_asset,Accumulated depreciation on equipment,credit
+1600,Vehicles,asset,fixed_asset,Company trucks and vehicles,debit
+1610,Accumulated Depreciation - Vehicles,asset,fixed_asset,Accumulated depreciation on vehicles,credit
+1700,Buildings,asset,fixed_asset,Office and warehouse buildings,debit
+1710,Accumulated Depreciation - Buildings,asset,fixed_asset,Accumulated depreciation on buildings,credit
+1800,Land,asset,fixed_asset,Land owned by company,debit
+1900,Security Deposits,asset,current_asset,Security deposits held or receivable,debit
+2000,Accounts Payable,liability,current_liability,Trade payables to vendors and subs,credit
+2050,Retainage Payable,liability,current_liability,Retainage owed to subcontractors,credit
+2100,Accrued Wages,liability,current_liability,Wages earned but not yet paid,credit
+2200,Sales Tax Payable,liability,current_liability,Sales tax collected and owed,credit
+2300,Notes Payable - Short Term,liability,current_liability,Short-term notes and loans,credit
+2400,Credit Card Payable,liability,current_liability,Outstanding credit card balances,credit
+2500,Line of Credit,liability,current_liability,Revolving line of credit,credit
+2600,Accrued Expenses,liability,current_liability,Accrued but unpaid expenses,credit
+2700,Notes Payable - Long Term,liability,long_term_liability,Long-term notes and loans,credit
+2800,Mortgage Payable,liability,long_term_liability,Mortgage on owned properties,credit
+3000,Owner Equity,equity,,Owner contributed capital,credit
+3100,Retained Earnings,equity,,Accumulated net income,credit
+3200,Owner Draws,equity,,Owner withdrawals,debit
+4000,Construction Revenue,revenue,,Revenue from construction contracts,credit
+4100,Service Revenue,revenue,,Revenue from consulting and services,credit
+4200,Rental Income,revenue,,Rental income from owned properties,credit
+4300,Interest Income,revenue,,Interest earned on bank accounts,credit
+4400,Change Order Revenue,revenue,,Revenue from approved change orders,credit
+5000,Cost of Goods Sold,expense,cost_of_goods,Direct costs of construction,debit
+5100,Direct Labor,expense,,Field labor wages and benefits,debit
+5200,Materials,expense,,Construction materials consumed,debit
+5300,Subcontractor Costs,expense,,Payments to subcontractors,debit
+5400,Equipment Rental,expense,,Rented equipment costs,debit
+5500,Permits and Fees,expense,,Building permits and inspection fees,debit
+6000,Office Expense,expense,,Office supplies and admin costs,debit
+6100,Insurance Expense,expense,,General liability and property insurance,debit
+6200,Utilities,expense,,Electric gas water telecom,debit
+6300,Professional Fees,expense,,Legal accounting engineering fees,debit
+6400,Depreciation Expense,expense,,Monthly depreciation charges,debit
+6500,Repairs and Maintenance,expense,,Repairs to equipment and facilities,debit
+6600,Vehicle Expense,expense,,Fuel maintenance and repairs,debit
+6700,Travel and Entertainment,expense,,Business travel meals entertainment,debit
+6800,Marketing and Advertising,expense,,Marketing and business development,debit
+6900,Permits and Licenses,expense,,Business licenses and permits,debit
+7000,Interest Expense,expense,,Interest on loans and credit,debit
+7100,Bad Debt Expense,expense,,Uncollectible receivables written off,debit
+8000,Sales Tax Receivable,asset,current_asset,Sales tax paid on purchases,debit

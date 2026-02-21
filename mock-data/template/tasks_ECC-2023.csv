@@ -1,0 +1,20 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design development and permitting,Preconstruction,high,2022-06-01,2022-10-30,100,false,true,Energy Corridor Campus Tower C
+Excavation and caissons,Foundation & Structure,critical,2022-11-01,2023-04-30,100,false,true,Energy Corridor Campus Tower C
+Mat foundation and underground parking,Foundation & Structure,critical,2023-03-01,2023-09-30,100,false,true,Energy Corridor Campus Tower C
+Structural steel erection floors 1-7,Foundation & Structure,critical,2023-06-01,2023-12-30,100,false,true,Energy Corridor Campus Tower C
+Structural steel erection floors 8-14,Foundation & Structure,critical,2023-10-01,2024-03-30,100,false,true,Energy Corridor Campus Tower C
+Steel topped out,Foundation & Structure,critical,2024-03-30,2024-03-30,100,true,true,Energy Corridor Campus Tower C
+Curtain wall floors 1-7,Curtain Wall & Envelope,high,2023-10-01,2024-04-30,100,false,false,Energy Corridor Campus Tower C
+Curtain wall floors 8-14,Curtain Wall & Envelope,high,2024-03-01,2024-09-30,100,false,false,Energy Corridor Campus Tower C
+Roof and mechanical screen,Curtain Wall & Envelope,medium,2024-08-01,2024-12-30,90,false,false,Energy Corridor Campus Tower C
+Electrical distribution and lighting,MEP Systems,high,2023-06-01,2024-12-30,90,false,false,Energy Corridor Campus Tower C
+HVAC systems and controls,MEP Systems,high,2024-01-01,2025-03-30,75,false,false,Energy Corridor Campus Tower C
+Plumbing and fire protection,MEP Systems,high,2023-09-01,2024-09-30,95,false,false,Energy Corridor Campus Tower C
+Tenant build-out floors 1-7,Interior Build-Out,medium,2024-06-01,2025-03-30,80,false,false,Energy Corridor Campus Tower C
+Tenant build-out floors 8-14,Interior Build-Out,medium,2024-10-01,2025-06-30,50,false,false,Energy Corridor Campus Tower C
+Conference center and amenity deck,Interior Build-Out,high,2025-01-01,2025-09-30,25,false,false,Energy Corridor Campus Tower C
+Lobby and common area finishes,Interior Build-Out,high,2025-03-01,2025-08-30,20,false,false,Energy Corridor Campus Tower C
+MEP commissioning and balancing,Commissioning & Turnover,critical,2025-06-01,2025-09-30,0,false,true,Energy Corridor Campus Tower C
+LEED Platinum certification,Commissioning & Turnover,high,2025-08-01,2025-12-30,0,false,false,Energy Corridor Campus Tower C
+Certificate of occupancy,Commissioning & Turnover,critical,2025-12-30,2025-12-30,0,true,true,Energy Corridor Campus Tower C

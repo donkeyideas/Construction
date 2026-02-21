@@ -1,0 +1,31 @@
+log_date,weather_conditions,temperature,work_performed,safety_incidents,delays,status,project_name
+2024-03-15,Clear,72,Demolition of existing parking structure Level 1 complete. Debris hauling in progress. 8 trucks loaded and removed.,None,None,approved,Downtown Convention Center
+2024-04-22,Partly Cloudy,78,Environmental remediation ongoing in northeast quadrant. Soil sampling complete in Zones A and B. Awaiting lab results.,None,Lab results delayed 3 days - adjusted remediation schedule,approved,Downtown Convention Center
+2024-08-10,Clear,95,Excavation of basement Level 2 in progress. 2400 CY of earth removed today. Dewatering pumps running continuously.,None,Excessive heat - modified work schedule to 6AM-2PM,approved,Downtown Convention Center
+2024-11-05,Rain,58,Foundation wall forms set for pour Section C. Rebar inspection passed by city inspector. Pour postponed to tomorrow due to rain.,None,Rain delay - concrete pour moved to Nov 6,approved,Downtown Convention Center
+2025-02-20,Clear,65,Steel erection floors 1-3 complete. Column splices welded and inspected. Deck pans installed Level 1.,None,None,approved,Downtown Convention Center
+2025-04-14,Overcast,70,Structural steel erection Level 4-5 in progress. 42 tons of steel erected today. Concrete deck pour Level 2 complete - 380 CY.,None,None,approved,Downtown Convention Center
+2025-07-08,Clear,98,Exhibition hall long-span truss delivery and staging. First 120-ft truss lifted into position. Crane operation from 5AM-1PM due to heat.,None,Heat advisory - reduced crane operations to morning only,approved,Downtown Convention Center
+2025-09-15,Clear,85,Steel erection substantially complete. Punch list walk with structural engineer scheduled for Sept 18. Metal deck installation ongoing.,None,None,approved,Downtown Convention Center
+2025-10-22,Clear,75,Curtain wall installation started on north elevation. Mock-up panel approved by architect. 12 panels installed today.,None,None,approved,Downtown Convention Center
+2026-01-10,Overcast,52,MEP rough-in Levels 1-2 in progress. Chilled water piping installed in mechanical room. Electrical switchgear delivered and staged.,None,None,draft,Downtown Convention Center
+2025-06-20,Clear,88,Marine survey complete. Test pile program started - 3 test piles driven to verify capacity. Pile driving rig mobilized.,None,None,approved,Waterfront Mixed-Use Tower
+2025-09-05,Partly Cloudy,90,Production pile driving in progress. 8 H-piles driven today to depths of 85-95 feet. Total 32 of 180 piles complete.,None,None,approved,Waterfront Mixed-Use Tower
+2025-10-18,Clear,82,Pile driving continues - 78 of 180 piles driven. Pile cap excavation started in Zone A. Dewatering system operational.,None,Marine debris encountered at pile location P-45 requiring removal,approved,Waterfront Mixed-Use Tower
+2025-11-30,Overcast,62,Pile driving 140 of 180 complete. Pile cap forming and rebar placement Zone A-C. Concrete pour pile caps Zone A scheduled Dec 3.,None,None,approved,Waterfront Mixed-Use Tower
+2026-01-15,Clear,55,Final piles driven - 180 of 180 complete. Pile cap concrete pours ongoing. Grade beams forming Zone D-F started.,None,None,draft,Waterfront Mixed-Use Tower
+2020-05-18,Clear,82,Bridge deck demolition Span 3 complete. Debris removed via barge. Traffic control maintained on alternate route.,None,None,approved,Highway Bridge Rehabilitation
+2020-09-22,Partly Cloudy,76,Pier 4 foundation pour complete - 120 CY placed. Cure time 7 days before form stripping. Pier 5 rebar cage assembly started.,None,None,approved,Highway Bridge Rehabilitation
+2021-04-12,Clear,70,Steel girder erection Spans 1-2 complete. Temporary falsework removed. Girder alignment survey confirms within tolerance.,None,None,approved,Highway Bridge Rehabilitation
+2021-11-15,Clear,62,Bridge deck concrete pour Section B - 285 CY high-performance concrete placed. Curing compound applied. Smooth finish achieved.,None,None,approved,Highway Bridge Rehabilitation
+2022-04-05,Clear,75,Final asphalt overlay complete. Striping and signage installed. Bridge open to single-lane traffic for final inspection.,None,None,approved,Highway Bridge Rehabilitation
+2021-06-14,Clear,90,Site clearing complete. Mass grading 60% done. Temporary sediment basin installed per SWPPP. 14 loads of fill imported.,None,None,approved,Meridian Medical Center
+2021-12-08,Overcast,48,Structural steel erection Level 3 in progress. 65 tons erected this week. Concrete deck pour Level 1 complete.,None,Cold weather concrete precautions implemented,approved,Meridian Medical Center
+2022-06-20,Partly Cloudy,92,Curtain wall installation 40% complete. Roofing membrane installed on Level 6. Interior framing started Level 1.,None,None,approved,Meridian Medical Center
+2023-02-15,Clear,58,Interior finishes Level 1-3 in progress. Drywall taping complete Level 1. Floor tile installation started in lobbies.,None,None,approved,Meridian Medical Center
+2023-07-20,Clear,96,MRI equipment delivered and set. Imaging suite rough-in inspected and passed. Final paint touch-ups ongoing.,None,None,approved,Meridian Medical Center
+2022-05-10,Clear,80,Mass grading complete. Underground storm drain installation 50%. Temporary construction entrance paved.,None,None,approved,Shoreline Residences Phase I
+2022-10-03,Partly Cloudy,78,Pile driving complete - all 240 piles verified. Mat foundation pour Sections A-C complete - 850 CY total.,None,None,approved,Shoreline Residences Phase I
+2023-03-22,Clear,72,Precast concrete erection Level 6-8. Topping slab pours Level 3-4 complete. MEP sleeve coordination ongoing.,None,None,approved,Shoreline Residences Phase I
+2023-09-14,Clear,88,Roofing complete. Exterior stucco application 70%. Window installation Levels 1-5 complete.,None,None,approved,Shoreline Residences Phase I
+2024-02-10,Clear,55,Unit finishes 85% complete. Pool mechanical room equipment installed. Landscape irrigation rough-in started.,None,None,approved,Shoreline Residences Phase I

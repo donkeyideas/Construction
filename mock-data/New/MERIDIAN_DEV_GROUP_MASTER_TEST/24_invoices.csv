@@ -1,0 +1,27 @@
+invoice_number,invoice_type,vendor_name,client_name,amount,tax_amount,invoice_date,due_date,status,description,project_name,gl_account,retainage_pct,retainage_held
+INV-2024-001,receivable,,City of Houston,3750000,0,2024-04-30,2024-05-30,paid,Progress Payment 1 - Demolition and Site Prep complete,Downtown Convention Center,4000,5,187500
+INV-2024-002,receivable,,City of Houston,5200000,0,2024-10-31,2024-11-30,paid,Progress Payment 2 - Foundation and Basement complete,Downtown Convention Center,4000,5,260000
+INV-2025-003,receivable,,City of Houston,8100000,0,2025-03-31,2025-04-30,paid,Progress Payment 3 - Structural Steel 50% complete,Downtown Convention Center,4000,5,405000
+INV-2025-004,receivable,,City of Houston,7500000,0,2025-09-30,2025-10-30,pending,Progress Payment 4 - Steel complete and envelope started,Downtown Convention Center,4000,5,375000
+INV-2025-005,receivable,,Bayshore Development Partners,4800000,0,2025-09-30,2025-10-30,paid,Progress Payment 1 - Marine Foundation 60% complete,Waterfront Mixed-Use Tower,4000,10,480000
+INV-2025-006,receivable,,Bayshore Development Partners,6200000,0,2025-12-31,2026-01-30,pending,Progress Payment 2 - Piling complete and pile caps in progress,Waterfront Mixed-Use Tower,4000,10,620000
+INV-2020-007,receivable,,Texas DOT,4200000,0,2020-09-30,2020-10-30,paid,Progress Payment 1 - Demolition and substructure 40%,Highway Bridge Rehabilitation,4000,5,210000
+INV-2021-008,receivable,,Texas DOT,5800000,0,2021-06-30,2021-07-30,paid,Progress Payment 2 - Superstructure complete,Highway Bridge Rehabilitation,4000,5,290000
+INV-2021-009,receivable,,Texas DOT,4500000,0,2021-12-31,2022-01-30,paid,Progress Payment 3 - Bridge deck 80% complete,Highway Bridge Rehabilitation,4000,5,225000
+INV-2022-010,receivable,,Texas DOT,4000000,0,2022-06-30,2022-07-30,paid,Final Payment - Project complete and accepted,Highway Bridge Rehabilitation,4000,0,0
+INV-2022-011,receivable,,Healthcare Corp of America,9500000,0,2022-03-31,2022-04-30,paid,Progress Payment 2 - Structural frame complete,Meridian Medical Center,4000,5,475000
+INV-2023-012,receivable,,Healthcare Corp of America,12000000,0,2023-06-30,2023-07-30,paid,Progress Payment 4 - Interior finishes and equipment,Meridian Medical Center,4000,5,600000
+INV-2023-013,receivable,,Shoreline Holdings LLC,8400000,0,2023-03-31,2023-04-30,paid,Progress Payment 2 - Structure and exterior 60%,Shoreline Residences Phase I,4000,5,420000
+INV-2024-014,receivable,,Shoreline Holdings LLC,6200000,0,2024-03-31,2024-04-30,paid,Final Payment - Project complete and closeout,Shoreline Residences Phase I,4000,0,0
+INV-2024-101,payable,Russo Concrete LLC,,1850000,0,2024-11-15,2024-12-15,paid,Foundation concrete work progress billing,Downtown Convention Center,5300,,
+INV-2025-102,payable,Premier Steel Fabricators,,4350000,0,2025-04-30,2025-05-30,paid,Structural steel fabrication and erection progress,Downtown Convention Center,5300,,
+INV-2025-103,payable,Turner Electrical Inc,,1640000,0,2025-08-31,2025-09-30,pending,Electrical rough-in progress billing Levels 1-3,Downtown Convention Center,5300,,
+INV-2025-104,payable,Washington HVAC Systems,,2450000,0,2025-10-31,2025-11-30,pending,HVAC equipment delivery and installation progress,Downtown Convention Center,5300,,
+INV-2025-105,payable,Vulcan Materials Supply,,680000,148920,2025-06-15,2025-07-15,paid,Rebar steel plates and misc metals delivery,Downtown Convention Center,5200,,
+INV-2025-106,payable,Russo Concrete LLC,,3600000,0,2025-10-15,2025-11-15,paid,Marine pile cap concrete work progress billing,Waterfront Mixed-Use Tower,5300,,
+INV-2025-107,payable,Petit Environmental Services,,125000,0,2025-09-30,2025-10-30,paid,Environmental monitoring and compliance services Q3,Waterfront Mixed-Use Tower,6300,,
+INV-2025-108,payable,Brooks & Associates Architecture,,260000,0,2025-10-31,2025-11-30,pending,Architecture design services monthly billing October,Waterfront Mixed-Use Tower,6300,,
+INV-2020-109,payable,Russo Concrete LLC,,980000,0,2020-10-31,2020-11-30,paid,Bridge pier concrete work progress billing,Highway Bridge Rehabilitation,5300,,
+INV-2021-110,payable,Vulcan Materials Supply,,420000,91800,2021-05-15,2021-06-15,paid,Steel girders and bearing assemblies,Highway Bridge Rehabilitation,5200,,
+INV-2022-111,payable,United Rental Corp,,85000,0,2022-01-31,2022-02-28,paid,Crane rental and operator for girder erection,Highway Bridge Rehabilitation,5400,,
+INV-2022-112,payable,Metro Insurance Group,,245000,0,2022-01-01,2022-01-31,paid,Annual general liability insurance premium,Downtown Convention Center,6100,,

@@ -1,0 +1,27 @@
+name,property_type,address_line1,city,state,zip,year_built,total_sqft,total_units,purchase_price,current_value
+Bayou Bend Luxury Apartments,residential,4200 Allen Pkwy,Houston,TX,77019,2003,480000,240,42000000,68000000
+Heights Townhome Village,residential,1200 Yale St,Houston,TX,77008,2004,168000,80,8500000,22000000
+Memorial Green Townhomes,residential,1750 Memorial Dr,Houston,TX,77007,2010,96000,48,12000000,18500000
+Museum Park Residences Tower A,residential,1400 Binz St,Houston,TX,77004,2024,520000,190,88000000,92000000
+Drake Waterfront Condos (Pre-Sale),residential,500 Allen Pkwy,Houston,TX,77019,2027,640000,200,110000000,115000000
+Galleria Office Tower,commercial,5075 Westheimer Rd,Houston,TX,77056,2002,350000,42,18500000,52000000
+Energy Corridor Campus Bldg A,commercial,14800 St. Marys Ln,Houston,TX,77079,2007,280000,36,42000000,48000000
+Energy Corridor Campus Bldg B,commercial,14900 St. Marys Ln,Houston,TX,77079,2012,250000,32,38000000,44000000
+Woodlands Corporate Bldg 1,commercial,24 Waterway Ave,The Woodlands,TX,77380,2010,220000,28,35000000,42000000
+Woodlands Corporate Bldg 2,commercial,26 Waterway Ave,The Woodlands,TX,77380,2022,260000,32,44000000,48000000
+Westchase District Parking Garage,commercial,10777 Westheimer Rd,Houston,TX,77042,2005,480000,1200,12000000,15000000
+Pearland Town Center Phase I,commercial,11200 Broadway St,Pearland,TX,77584,2006,450000,80,35000000,42000000
+Pearland Town Center Phase II,commercial,11400 Broadway St,Pearland,TX,77584,2014,280000,55,28000000,34000000
+Galleria Mall South Wing,commercial,5015 Westheimer Rd,Houston,TX,77056,2013,180000,24,48000000,38000000
+Katy Asian Town Retail,commercial,23000 Colonial Pkwy,Katy,TX,77449,2015,150000,35,18000000,22000000
+Sugar Land Town Square Expansion,mixed_use,15958 City Walk,Sugar Land,TX,77478,2026,320000,65,65000000,68000000
+Midtown Mixed-Use Tower,mixed_use,2800 Main St,Houston,TX,77002,2019,420000,330,78000000,85000000
+Katy Asian Town Mixed Use,mixed_use,23000 Colonial Pkwy,Katy,TX,77449,2015,280000,200,42000000,48000000
+Channelview Industrial Park Phase I,industrial,15600 Market Street Rd,Channelview,TX,77530,2007,240000,6,18000000,24000000
+Channelview Industrial Park Phase II,industrial,15800 Market Street Rd,Channelview,TX,77530,2012,320000,8,22000000,28000000
+Channelview Industrial Park Phase III,industrial,16000 Market Street Rd,Channelview,TX,77530,2023,200000,4,26000000,30000000
+Baytown Refinery Maintenance Facility,industrial,4800 Decker Dr,Baytown,TX,77520,2001,85000,3,6200000,8500000
+Kemp Petrochemical Storage,industrial,16200 Market Street Rd,Channelview,TX,77530,2026,150000,12,75000000,78000000
+Greenspoint Office Park (Distressed),commercial,200 Greenspoint Mall,Houston,TX,77060,1985,120000,16,8000000,2200000
+Second Midtown Hotel Site (Vacant Lot),commercial,2600 Main St,Houston,TX,77002,2016,0,0,45000000,12000000
+Galveston Beachfront Site (Damaged),commercial,3800 Seawall Blvd,Galveston,TX,77550,2017,0,0,55000000,8500000

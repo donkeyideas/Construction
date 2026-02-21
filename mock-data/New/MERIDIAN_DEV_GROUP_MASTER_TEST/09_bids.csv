@@ -1,0 +1,6 @@
+project_name,client_name,bid_amount,due_date,bid_type,status,notes
+City Hall Renovation,City of San Antonio,31500000,2026-05-01,lump_sum,submitted,Full renovation of 80000 SF historic city hall building including MEP upgrades and ADA compliance
+Luxury Resort & Spa,Gulf Coast Resorts Inc,82000000,2027-01-15,gmp,draft,200-room beachfront resort with spa conference center and three restaurants
+University Science Building,Texas State University,46500000,2026-03-01,lump_sum,submitted,New 4-story 120000 SF science building with wet labs clean rooms and lecture halls
+Industrial Warehouse Complex,Lone Star Logistics,20800000,2027-07-01,design_build,draft,Three 150000 SF tilt-wall warehouses with dock-high loading and cold storage
+Senior Living Community,Heritage Senior Care,36200000,2026-07-01,gmp,submitted,180-unit independent and assisted living community with memory care wing

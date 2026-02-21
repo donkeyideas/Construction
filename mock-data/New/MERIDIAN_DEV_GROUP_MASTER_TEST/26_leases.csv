@@ -1,0 +1,19 @@
+tenant_name,property_name,tenant_email,tenant_phone,monthly_rent,security_deposit,lease_start,lease_end,unit_number,unit_type,status
+Apex Digital Marketing,Meridian Office Park,info@apexdigital.com,(713) 555-1001,4500,9000,2023-01-01,2026-12-31,Suite 101,office,active
+Rodriguez Law Group,Meridian Office Park,contact@rodriguezlaw.com,(713) 555-1002,5200,10400,2022-06-01,2025-05-31,Suite 202,office,active
+Pinnacle Financial Advisors,Meridian Office Park,admin@pinnaclefa.com,(713) 555-1003,3800,7600,2024-03-01,2027-02-28,Suite 103,office,active
+Greenfield Consulting,Meridian Office Park,hello@greenfieldconsult.com,(713) 555-1004,6100,12200,2023-07-01,2026-06-30,Suite 301,office,active
+TechVenture Labs,Meridian Office Park,ops@techventurelabs.com,(713) 555-1005,7500,15000,2024-01-01,2026-12-31,Suite 401,office,active
+Sarah Mitchell,Harbor View Apartments,sarah.m@email.com,(409) 555-2001,1850,3700,2024-02-01,2025-01-31,Unit 1A,apartment,active
+James and Linda Cooper,Harbor View Apartments,cooperfamily@email.com,(409) 555-2002,2100,4200,2023-08-01,2025-07-31,Unit 2B,apartment,active
+Marcus Thompson,Harbor View Apartments,mthompson@email.com,(409) 555-2003,1650,3300,2024-06-01,2025-05-31,Unit 1C,apartment,active
+Elena Vasquez,Harbor View Apartments,evasquez@email.com,(409) 555-2004,2200,4400,2024-01-01,2025-12-31,Unit 3A,apartment,active
+David and Amy Chen,Harbor View Apartments,chenresidence@email.com,(409) 555-2005,2400,4800,2023-11-01,2025-10-31,Unit 4A,apartment,active
+Robert Kim,Harbor View Apartments,rkim@email.com,(409) 555-2006,1750,3500,2024-04-01,2025-03-31,Unit 1D,apartment,active
+Riverside Coffee & Bakery,Riverside Retail Center,manager@riversidecoffee.com,(210) 555-3001,3200,6400,2022-03-01,2027-02-28,Unit A,retail,active
+Hill Country Boutique,Riverside Retail Center,owner@hillcountryboutique.com,(210) 555-3002,2800,5600,2023-01-01,2025-12-31,Unit B,retail,active
+Alamo City Dental,Riverside Retail Center,office@alamocitydental.com,(210) 555-3003,4500,9000,2021-06-01,2026-05-31,Unit C,retail,active
+River Walk Fitness,Riverside Retail Center,info@riverwalkfit.com,(210) 555-3004,3800,7600,2024-01-01,2028-12-31,Unit D,retail,active
+Texas Industrial Supply Co,Lakeview Industrial Park,warehouse@txindustrial.com,(512) 555-4001,8500,17000,2022-01-01,2027-12-31,Bay 1,warehouse,active
+Central Texas Distribution,Lakeview Industrial Park,ops@ctxdist.com,(512) 555-4002,9200,18400,2023-06-01,2028-05-31,Bay 2,warehouse,active
+Lone Star Manufacturing,Lakeview Industrial Park,admin@lonestarmanuf.com,(512) 555-4003,7800,15600,2024-01-01,2028-12-31,Bay 3,warehouse,active

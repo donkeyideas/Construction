@@ -1,0 +1,46 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design development and permit applications,Preconstruction & Permits,high,2022-03-01,2022-06-30,100,false,true,Reid Luxury Resort & Spa
+Building permit issued,Preconstruction & Permits,critical,2022-08-30,2022-08-30,100,true,true,Reid Luxury Resort & Spa
+Demolition of existing structures,Site Preparation & Excavation,high,2022-09-01,2022-10-15,100,false,true,Reid Luxury Resort & Spa
+Mass excavation - 85000 CY,Site Preparation & Excavation,high,2022-10-15,2023-01-30,100,false,true,Reid Luxury Resort & Spa
+Dewatering system installation,Site Preparation & Excavation,high,2022-11-01,2022-12-15,100,false,true,Reid Luxury Resort & Spa
+Shoring and tiebacks,Site Preparation & Excavation,critical,2022-11-15,2023-02-28,100,false,true,Reid Luxury Resort & Spa
+Mat slab rebar - 2400 tons,Foundation & Mat Slab,critical,2023-03-01,2023-05-30,100,false,true,Reid Luxury Resort & Spa
+Mat slab concrete pour - 12000 CY,Foundation & Mat Slab,critical,2023-06-01,2023-07-15,100,false,true,Reid Luxury Resort & Spa
+Foundation waterproofing and backfill,Foundation & Mat Slab,high,2023-07-15,2023-09-30,100,false,false,Reid Luxury Resort & Spa
+Foundation complete milestone,Foundation & Mat Slab,critical,2023-10-30,2023-10-30,100,true,true,Reid Luxury Resort & Spa
+Parking structure levels P1-P3,Core Structure & Podium,high,2023-11-01,2024-03-30,100,false,true,Reid Luxury Resort & Spa
+Podium retail and amenity level,Core Structure & Podium,high,2024-01-15,2024-06-30,100,false,false,Reid Luxury Resort & Spa
+Pool deck structural slab level 5,Core Structure & Podium,high,2024-04-01,2024-06-30,100,false,false,Reid Luxury Resort & Spa
+Podium topped out,Core Structure & Podium,critical,2024-08-30,2024-08-30,100,true,true,Reid Luxury Resort & Spa
+Tower core walls floors 1-10,Tower Structure (Floors 1-20),critical,2024-09-01,2024-12-30,100,false,true,Reid Luxury Resort & Spa
+Tower floor slabs floors 1-10,Tower Structure (Floors 1-20),critical,2024-10-01,2025-01-30,100,false,true,Reid Luxury Resort & Spa
+Tower core walls floors 11-20,Tower Structure (Floors 1-20),critical,2025-01-01,2025-03-30,100,false,true,Reid Luxury Resort & Spa
+Tower floor slabs floors 11-20,Tower Structure (Floors 1-20),high,2025-02-01,2025-04-30,100,false,true,Reid Luxury Resort & Spa
+Floor 20 milestone,Tower Structure (Floors 1-20),critical,2025-04-30,2025-04-30,100,true,true,Reid Luxury Resort & Spa
+Tower core walls floors 21-30,Tower Structure (Floors 21-42),critical,2025-05-01,2025-08-30,80,false,true,Reid Luxury Resort & Spa
+Tower floor slabs floors 21-30,Tower Structure (Floors 21-42),critical,2025-06-01,2025-09-30,70,false,true,Reid Luxury Resort & Spa
+Tower core walls floors 31-42,Tower Structure (Floors 21-42),critical,2025-09-01,2025-12-30,35,false,true,Reid Luxury Resort & Spa
+Tower floor slabs floors 31-42,Tower Structure (Floors 21-42),high,2025-10-01,2026-01-30,15,false,true,Reid Luxury Resort & Spa
+Roof structure and mechanical penthouse,Tower Structure (Floors 21-42),high,2025-12-01,2026-02-28,5,false,false,Reid Luxury Resort & Spa
+Curtain wall floors 1-14 south and east,Curtain Wall & Exterior,high,2025-06-01,2025-11-30,65,false,false,Reid Luxury Resort & Spa
+Curtain wall floors 1-14 north and west,Curtain Wall & Exterior,high,2025-08-01,2026-01-30,40,false,false,Reid Luxury Resort & Spa
+Curtain wall floors 15-28,Curtain Wall & Exterior,high,2025-11-01,2026-04-30,10,false,false,Reid Luxury Resort & Spa
+Curtain wall floors 29-42,Curtain Wall & Exterior,medium,2026-02-01,2026-06-30,0,false,false,Reid Luxury Resort & Spa
+Electrical risers and panel distribution,MEP Rough-In,high,2024-06-01,2025-06-30,85,false,false,Reid Luxury Resort & Spa
+Plumbing risers and branch piping,MEP Rough-In,high,2024-08-01,2025-08-30,75,false,false,Reid Luxury Resort & Spa
+HVAC ductwork and equipment,MEP Rough-In,high,2025-01-01,2025-10-30,55,false,false,Reid Luxury Resort & Spa
+Fire protection piping,MEP Rough-In,high,2024-10-01,2025-09-30,60,false,false,Reid Luxury Resort & Spa
+Guest room framing floors 1-20,Interior Build-Out,medium,2025-03-01,2025-10-30,70,false,false,Reid Luxury Resort & Spa
+Guest room framing floors 21-42,Interior Build-Out,medium,2025-10-01,2026-04-30,5,false,false,Reid Luxury Resort & Spa
+Lobby and public area finishes,Interior Build-Out,high,2025-08-01,2026-06-30,25,false,false,Reid Luxury Resort & Spa
+Restaurant build-outs (6 venues),Interior Build-Out,medium,2025-11-01,2026-08-30,10,false,false,Reid Luxury Resort & Spa
+Guest room finishes floors 1-20,Interior Build-Out,medium,2025-12-01,2026-07-30,5,false,false,Reid Luxury Resort & Spa
+Infinity pool mechanical and finish,Specialty Systems (Pool Spa Kitchen),high,2025-08-01,2026-03-30,30,false,false,Reid Luxury Resort & Spa
+Full-service spa build-out,Specialty Systems (Pool Spa Kitchen),medium,2025-10-01,2026-05-30,15,false,false,Reid Luxury Resort & Spa
+Commercial kitchen equipment installation,Specialty Systems (Pool Spa Kitchen),high,2026-01-01,2026-06-30,5,false,false,Reid Luxury Resort & Spa
+Building automation system commissioning,Commissioning & Punch List,high,2026-04-01,2026-07-30,0,false,false,Reid Luxury Resort & Spa
+MEP systems commissioning and balancing,Commissioning & Punch List,critical,2026-05-01,2026-08-30,0,false,true,Reid Luxury Resort & Spa
+Punch list and deficiency corrections,Commissioning & Punch List,high,2026-07-01,2026-09-30,0,false,false,Reid Luxury Resort & Spa
+Certificate of occupancy,Final Inspections & Turnover,critical,2026-10-30,2026-10-30,0,true,true,Reid Luxury Resort & Spa
+Owner training and turnover,Final Inspections & Turnover,medium,2026-11-01,2026-12-30,0,false,false,Reid Luxury Resort & Spa

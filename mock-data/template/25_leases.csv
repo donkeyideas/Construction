@@ -1,0 +1,35 @@
+tenant_name,property_name,tenant_email,tenant_phone,monthly_rent,security_deposit,lease_start,lease_end
+Apex Energy Solutions,Energy Corridor Campus Bldg A,leasing@apexenergy.com,713-555-1001,125000,250000,2020-01-01,2030-01-01
+Meridian Capital Advisors,Energy Corridor Campus Bldg A,admin@meridiancap.com,713-555-1002,85000,170000,2021-06-01,2028-06-01
+DataVault Cloud Services,Energy Corridor Campus Bldg A,facilities@datavault.com,713-555-1003,62000,124000,2022-03-01,2027-03-01
+Houston Legal Associates LLP,Galleria Office Tower,admin@houstonlegal.com,713-555-1004,95000,190000,2019-01-01,2029-01-01
+Petro-Dynamic Engineering,Galleria Office Tower,office@petrodynamic.com,713-555-1005,78000,156000,2020-07-01,2025-07-01
+Southwest Architecture Group,Galleria Office Tower,mgmt@swarchitects.com,713-555-1006,42000,84000,2023-01-01,2028-01-01
+TechBridge Innovation Labs,Woodlands Corporate Bldg 2,admin@techbridge.io,713-555-1007,110000,220000,2022-10-01,2032-10-01
+NovaChem Research Inc,Woodlands Corporate Bldg 1,facilities@novachem.com,713-555-1008,88000,176000,2018-04-01,2028-04-01
+Gulf States Insurance Group,Woodlands Corporate Bldg 1,realestate@gulfstatesins.com,713-555-1009,65000,130000,2021-01-01,2026-01-01
+Lone Star Wealth Management,Woodlands Corporate Bldg 2,ops@lonestarwealth.com,713-555-1010,55000,110000,2023-06-01,2028-06-01
+Sarah & Marcus Thompson,Bayou Bend Luxury Apartments,s.thompson@email.com,713-555-2001,3200,6400,2024-03-01,2025-03-01
+James Liu & Family,Bayou Bend Luxury Apartments,james.liu@email.com,713-555-2002,2800,5600,2024-06-01,2025-06-01
+Nicole Barrett,Bayou Bend Luxury Apartments,nicole.barrett@email.com,713-555-0501,3500,7000,2025-01-01,2026-01-01
+David Okafor,Bayou Bend Luxury Apartments,david.okafor@email.com,713-555-0502,2600,5200,2025-02-01,2026-02-01
+Lisa Huang,Heights Townhome Village,lisa.huang@email.com,713-555-0503,2200,4400,2024-08-01,2025-08-01
+Marcus Johnson,Heights Townhome Village,marcus.johnson@email.com,713-555-0504,2400,4800,2024-11-01,2025-11-01
+Emily Rodriguez,Memorial Green Townhomes,emily.rodriguez@email.com,713-555-0505,2800,5600,2025-01-01,2026-01-01
+Robert & Kim Park,Memorial Green Townhomes,r.park@email.com,713-555-2003,3100,6200,2024-07-01,2025-07-01
+Anderson Family Trust,Heights Townhome Village,anderson.trust@email.com,713-555-2004,2500,5000,2024-04-01,2025-04-01
+Midtown Fitness LLC,Midtown Mixed-Use Tower,admin@midtownfit.com,713-555-2005,8500,17000,2020-01-01,2030-01-01
+Bayou City Coffee Co,Midtown Mixed-Use Tower,hello@bayoucitycoffee.com,713-555-2006,4200,8400,2020-03-01,2025-03-01
+Tran Medical Practice,Midtown Mixed-Use Tower,office@tranmedical.com,713-555-2007,6800,13600,2021-06-01,2026-06-01
+Pho Saigon Restaurant,Katy Asian Town Retail,owner@phosaigon.com,713-555-2008,5500,11000,2016-01-01,2026-01-01
+Golden Dragon Market,Katy Asian Town Retail,admin@goldendragonmkt.com,713-555-2009,8200,16400,2016-01-01,2026-01-01
+Sakura Sushi & Sake,Katy Asian Town Retail,info@sakurasushi.com,713-555-2010,4800,9600,2018-06-01,2028-06-01
+H-Mart Supermarket,Katy Asian Town Retail,realestate@hmart.com,713-555-2011,22000,44000,2016-01-01,2031-01-01
+Amazon Fulfillment Center,Channelview Industrial Park Phase II,realestate@amazon.com,713-555-2012,185000,370000,2019-01-01,2029-01-01
+FedEx Ground Hub,Channelview Industrial Park Phase I,facilities@fedex.com,713-555-2013,125000,250000,2015-01-01,2025-01-01
+Sysco Cold Storage,Channelview Industrial Park Phase III,realestate@sysco.com,713-555-2014,145000,290000,2023-06-01,2033-06-01
+ExxonMobil Maintenance Contract,Baytown Refinery Maintenance Facility,facilities@exxon.com,713-555-2015,35000,70000,2002-01-01,2027-01-01
+Pearland Cinema 14,Pearland Town Center Phase II,ops@pearlandcinema.com,713-555-2016,32000,64000,2015-01-01,2030-01-01
+Target Store #4482,Pearland Town Center Phase I,realestate@target.com,713-555-2017,45000,90000,2007-01-01,2027-01-01
+Dillard's Department Store,Galleria Mall South Wing,realestate@dillards.com,713-555-2018,65000,130000,2014-01-01,2024-01-01
+Neiman Marcus Last Call,Galleria Mall South Wing,leasing@neimanmarcus.com,713-555-2019,55000,110000,2014-01-01,2024-01-01

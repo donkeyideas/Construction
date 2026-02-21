@@ -1,0 +1,27 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Schematic design and programming,Preconstruction & Design,critical,2024-04-15,2024-07-30,100,false,true,Foster Regional Medical Center
+Construction documents and permitting,Preconstruction & Design,critical,2024-08-01,2024-10-30,100,false,true,Foster Regional Medical Center
+Mass excavation and soil export,Site Work & Foundation,high,2024-11-01,2025-02-28,100,false,true,Foster Regional Medical Center
+Deep foundation piles - 480 piles,Site Work & Foundation,critical,2025-01-15,2025-06-30,65,false,true,Foster Regional Medical Center
+Pile caps and grade beams,Site Work & Foundation,critical,2025-05-01,2025-09-30,20,false,true,Foster Regional Medical Center
+Mat slab and below-grade waterproofing,Site Work & Foundation,critical,2025-08-01,2026-01-30,0,false,true,Foster Regional Medical Center
+Underground utilities and site infrastructure,Site Work & Foundation,high,2025-03-01,2025-12-30,30,false,false,Foster Regional Medical Center
+Structural steel erection - Phase 1,Structural Frame,critical,2025-06-01,2026-03-30,10,false,true,Foster Regional Medical Center
+Structural steel erection - Phase 2,Structural Frame,critical,2026-01-01,2026-09-30,0,false,true,Foster Regional Medical Center
+Concrete floor slabs,Structural Frame,high,2025-09-01,2027-01-30,5,false,false,Foster Regional Medical Center
+Structural frame topped out,Structural Frame,critical,2027-01-30,2027-01-30,0,true,true,Foster Regional Medical Center
+Curtain wall and storefront,Building Envelope,high,2026-06-01,2027-03-30,0,false,false,Foster Regional Medical Center
+Roofing and waterproofing,Building Envelope,high,2026-10-01,2027-06-30,0,false,false,Foster Regional Medical Center
+Building envelope complete,Building Envelope,critical,2027-06-30,2027-06-30,0,true,true,Foster Regional Medical Center
+Electrical distribution and emergency power,MEP Systems,critical,2025-10-01,2027-03-30,5,false,true,Foster Regional Medical Center
+Medical gas systems,MEP Systems,high,2026-06-01,2027-06-30,0,false,false,Foster Regional Medical Center
+HVAC - operating rooms and clean rooms,MEP Systems,critical,2026-03-01,2027-06-30,0,false,true,Foster Regional Medical Center
+Plumbing and fire protection,MEP Systems,high,2026-01-01,2027-09-30,0,false,false,Foster Regional Medical Center
+Operating room build-out - 24 ORs,Interior Build-Out,critical,2026-09-01,2027-09-30,0,false,true,Foster Regional Medical Center
+Patient room build-out - 500 rooms,Interior Build-Out,high,2027-01-01,2028-01-30,0,false,false,Foster Regional Medical Center
+Emergency department build-out,Interior Build-Out,critical,2026-12-01,2027-10-30,0,false,true,Foster Regional Medical Center
+Imaging equipment installation - MRI CT,Medical Equipment & Systems,critical,2027-06-01,2028-01-30,0,false,true,Foster Regional Medical Center
+Surgical equipment and sterilization,Medical Equipment & Systems,high,2027-08-01,2028-03-30,0,false,false,Foster Regional Medical Center
+Building automation commissioning,Commissioning & Licensure,critical,2027-10-01,2028-04-30,0,false,true,Foster Regional Medical Center
+JCAHO and state licensure inspections,Commissioning & Licensure,critical,2028-03-01,2028-06-30,0,false,true,Foster Regional Medical Center
+Certificate of occupancy and opening,Commissioning & Licensure,critical,2028-06-30,2028-06-30,0,true,true,Foster Regional Medical Center

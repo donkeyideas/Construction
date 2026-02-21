@@ -1,0 +1,31 @@
+entry_date,hours,overtime_hours,description,cost_code,status,project_name
+2025-01-06,8,0,Steel erection supervision Level 2 columns and beams,05 12 00,approved,Downtown Convention Center
+2025-01-07,8,2,Steel erection supervision continued and coordination with concrete crew,05 12 00,approved,Downtown Convention Center
+2025-01-08,8,0,Foundation inspection and rebar placement verification,03 20 00,approved,Downtown Convention Center
+2025-01-09,8,1.5,MEP coordination meeting and field layout for mechanical room,23 00 00,approved,Downtown Convention Center
+2025-01-10,8,0,Weekly safety walk and documentation,01 00 00,approved,Downtown Convention Center
+2025-01-13,8,0,Curtain wall mock-up review with architect,08 44 13,approved,Downtown Convention Center
+2025-01-14,10,2,Concrete pour preparation and placement Level 2 deck,03 30 00,approved,Downtown Convention Center
+2025-01-15,8,0,Steel inspection and welding observation,05 12 00,approved,Downtown Convention Center
+2025-01-16,8,0,Project management and schedule update,01 00 00,approved,Downtown Convention Center
+2025-01-17,8,3,Steel erection overtime to meet schedule milestone,05 12 00,approved,Downtown Convention Center
+2025-07-14,8,0,Pile driving observation and log - piles P-55 through P-62,31 62 00,approved,Waterfront Mixed-Use Tower
+2025-07-15,8,0,Pile driving continued - piles P-63 through P-69,31 62 00,approved,Waterfront Mixed-Use Tower
+2025-07-16,8,2,Pile cap rebar placement Zone A with evening pour prep,03 20 00,approved,Waterfront Mixed-Use Tower
+2025-07-17,10,2,Pile cap concrete pour Zone A - 185 CY placed,03 30 00,approved,Waterfront Mixed-Use Tower
+2025-07-18,8,0,Marine environmental monitoring and reporting,01 00 00,approved,Waterfront Mixed-Use Tower
+2020-06-15,8,0,Pier demolition supervision and debris management,02 41 00,approved,Highway Bridge Rehabilitation
+2020-06-16,8,1.5,Pier foundation excavation and dewatering,31 20 00,approved,Highway Bridge Rehabilitation
+2020-06-17,8,0,Rebar inspection pier 3 foundation,03 20 00,approved,Highway Bridge Rehabilitation
+2020-06-18,10,2,Concrete pour pier 3 foundation - 120 CY,03 30 00,approved,Highway Bridge Rehabilitation
+2020-06-19,8,0,Traffic control review and safety documentation,01 00 00,approved,Highway Bridge Rehabilitation
+2022-03-15,8,0,Interior framing layout Level 1 surgical suite,09 22 00,approved,Meridian Medical Center
+2022-03-16,8,0,Coordinate MEP rough-in with framing crew,22 00 00,approved,Meridian Medical Center
+2022-03-17,8,1.5,Electrical panel installation Level 1,26 24 00,approved,Meridian Medical Center
+2022-03-18,8,0,Plumbing rough-in inspection preparation,22 10 00,approved,Meridian Medical Center
+2022-03-19,6,0,Weekly progress meeting and schedule update,01 00 00,approved,Meridian Medical Center
+2023-01-09,8,0,Precast panel erection supervision Level 7-8,03 41 00,approved,Shoreline Residences Phase I
+2023-01-10,8,2,Topping slab preparation and pour Level 5,03 30 00,approved,Shoreline Residences Phase I
+2023-01-11,8,0,Window installation coordination Levels 1-3,08 52 00,approved,Shoreline Residences Phase I
+2023-01-12,8,0,MEP coordination and conflict resolution,01 00 00,approved,Shoreline Residences Phase I
+2023-01-13,8,0,Quality control walkthrough and punch list,01 00 00,approved,Shoreline Residences Phase I

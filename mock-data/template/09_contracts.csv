@@ -1,0 +1,28 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+Energy Corridor Tower C - Structural Steel Package,subcontractor,Kowalski Structural Steel,eddie@kowalski-steel.com,4850000,2022-06-01,2024-12-30,net_30
+Energy Corridor Tower C - MEP Package,subcontractor,Delgado Electrical Corp,rosa@delgado-electric.com,6200000,2022-09-01,2025-08-30,net_30
+Energy Corridor Tower C - HVAC Systems,subcontractor,Blackwell Climate Systems,donna@blackwell-hvac.com,3800000,2023-01-15,2025-06-30,net_45
+Reid Luxury Resort - Foundation & Structure,subcontractor,Santos Foundations Inc,miguel@santos-foundations.com,12500000,2022-03-01,2024-06-30,net_30
+Reid Luxury Resort - Curtain Wall & Glazing,subcontractor,Chen Glass & Glazing Corp,natalie@chen-glass.com,8500000,2023-06-01,2025-09-30,net_45
+Reid Luxury Resort - Elevator Package (8 cabs),subcontractor,Moreno Elevator Services,jake@moreno-elevator.com,5200000,2023-09-01,2025-12-30,net_60
+Reid Luxury Resort - Fire Protection,subcontractor,Okonkwo Fire Protection,wayne@okonkwo-fire.com,3400000,2023-03-01,2025-11-30,net_30
+Port Container Terminal - Civil & Earthwork,subcontractor,Santos Foundations Inc,miguel@santos-foundations.com,18000000,2023-01-15,2025-12-30,net_30
+Port Container Terminal - Electrical & Controls,subcontractor,Delgado Electrical Corp,rosa@delgado-electric.com,14500000,2023-06-01,2026-12-30,net_45
+Museum Park Residences - Concrete Package,subcontractor,Petrov Ready Mix & Pumping,ivan@petrov-concrete.com,8200000,2023-04-01,2025-06-30,net_30
+Museum Park Residences - Framing & Drywall,subcontractor,Cho Interior Systems,raymond@cho-drywall.com,5500000,2023-10-01,2026-03-30,net_30
+Museum Park Residences - Roofing Package,subcontractor,Yamamoto Commercial Roofing,curtis@yamamoto-roofing.com,2800000,2024-06-01,2025-12-30,net_30
+Sugar Land Expansion - Masonry & Exterior,subcontractor,McBride Masonry LLC,shawn@mcbride-masonry.com,4200000,2023-07-15,2025-09-30,net_30
+Sugar Land Expansion - Landscaping & Hardscape,subcontractor,Wallace Landscape & Irrigation,tammy@wallace-landscaping.com,1800000,2025-01-01,2026-04-30,net_30
+Hardy Toll Road - Demolition & Earthwork,subcontractor,Fitzgerald Demolition Inc,paul@fitzgerald-demolition.com,3500000,2023-10-01,2024-12-30,net_30
+Hardy Toll Road - Paving & Striping,subcontractor,Santos Foundations Inc,miguel@santos-foundations.com,5800000,2024-06-01,2025-12-15,net_30
+Foster Medical Center - Foundation Package,subcontractor,Santos Foundations Inc,miguel@santos-foundations.com,22000000,2024-04-15,2026-03-30,net_30
+Foster Medical Center - Structural Steel,subcontractor,Kowalski Structural Steel,eddie@kowalski-steel.com,18500000,2024-10-01,2026-12-30,net_30
+Kemp Petrochemical - Tank Fabrication,subcontractor,Kowalski Structural Steel,eddie@kowalski-steel.com,12000000,2024-08-01,2026-06-30,net_45
+Drake Waterfront Condos - Concrete Structure,subcontractor,Petrov Ready Mix & Pumping,ivan@petrov-concrete.com,14000000,2024-01-01,2026-06-30,net_30
+Steel Supply Agreement 2024-2026,vendor,Houston Steel Distributors,wayne@houstonsteel.com,8500000,2024-01-01,2026-12-31,net_30
+Concrete Supply Agreement 2024-2026,vendor,Texas Concrete & Aggregate,steve@txconcrete-supply.com,6200000,2024-01-01,2026-12-31,net_30
+Lumber Supply Agreement 2025-2026,vendor,Gulf Coast Lumber & Hardware,karen@gulfcoast-lumber.com,3800000,2025-01-01,2026-12-31,net_30
+Equipment Rental Master Agreement,vendor,Franklin Equipment Rental,dennis@franklin-rental.com,4500000,2024-01-01,2026-12-31,net_30
+Safety Equipment & PPE Supply,vendor,Novak Safety Supply Inc,beth@novak-safety.com,450000,2025-01-01,2025-12-31,net_30
+Testing & Inspection Services,professional_services,Gulf Coast Testing Lab,helen@gctestlab.com,1200000,2024-01-01,2026-12-31,net_30
+Crane Services Annual Contract,vendor,Lone Star Crane Service,david@lonestarcrane.com,2800000,2025-01-01,2025-12-31,net_30

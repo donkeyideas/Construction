@@ -8,6 +8,13 @@ import {
   Wrench,
   FileText,
   Download,
+  Smartphone,
+  Landmark,
+  CreditCard,
+  Mail,
+  Wallet,
+  Copy,
+  Check,
 } from "lucide-react";
 import type { TenantDashboard } from "@/lib/queries/tenant-portal";
 import { formatCurrency } from "@/lib/utils/format";
@@ -55,7 +62,7 @@ export default function TenantDashboardClient({
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
 
-  const [paymentAlert, setPaymentAlert] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [nextDueDate, setNextDueDate] = useState("--");
 
   function formatDate(dateStr: string): string {
@@ -82,9 +89,27 @@ export default function TenantDashboardClient({
     );
   }, [dateLocale]);
 
-  function handlePayNow() {
-    setPaymentAlert(t("paymentComingSoon"));
-    setTimeout(() => setPaymentAlert(""), 5000);
+  function getMethodIcon(type: string) {
+    switch (type) {
+      case "zelle":
+      case "cashapp":
+      case "venmo":
+        return <Smartphone size={18} />;
+      case "wire":
+        return <Landmark size={18} />;
+      case "paypal":
+        return <CreditCard size={18} />;
+      case "check":
+        return <Mail size={18} />;
+      default:
+        return <Wallet size={18} />;
+    }
+  }
+
+  function handleCopy(id: string, text: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   }
 
   async function handleDocDownload(documentId: string) {
@@ -245,38 +270,97 @@ export default function TenantDashboardClient({
               )}
             </div>
 
-            {/* Make a Payment */}
+            {/* How to Pay */}
             <div className="card" style={{ marginBottom: 24 }}>
-              <div className="card-title">{t("makePayment")}</div>
-              {paymentAlert && (
-                <div className="tenant-alert tenant-alert-success">
-                  {paymentAlert}
+              <div className="card-title">{t("howToPay")}</div>
+              {dashboard.paymentMethods.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {dashboard.paymentMethods.map((pm) => (
+                    <div
+                      key={pm.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 12,
+                        padding: "12px",
+                        borderRadius: 8,
+                        background: "var(--bg-secondary)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          flexShrink: 0,
+                          width: 36,
+                          height: 36,
+                          borderRadius: 8,
+                          background: "var(--bg-tertiary)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "var(--color-primary)",
+                        }}
+                      >
+                        {getMethodIcon(pm.method_type)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
+                          {pm.label}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.82rem",
+                            color: "var(--muted)",
+                            marginTop: 2,
+                          }}
+                        >
+                          {pm.instructions}
+                        </div>
+                        {pm.recipient_info && (
+                          <button
+                            onClick={() => handleCopy(pm.id, pm.recipient_info!)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              marginTop: 6,
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              border: "1px solid var(--border)",
+                              background: "var(--bg-tertiary)",
+                              color: copiedId === pm.id ? "var(--color-green)" : "var(--text)",
+                              cursor: "pointer",
+                              fontSize: "0.8rem",
+                            }}
+                          >
+                            {copiedId === pm.id ? (
+                              <>
+                                <Check size={12} />
+                                {t("copied")}
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={12} />
+                                {pm.recipient_info}
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              ) : (
+                <p
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "var(--muted)",
+                    textAlign: "center",
+                    padding: "16px 0",
+                  }}
+                >
+                  {t("contactManagerForPayment")}
+                </p>
               )}
-              <div className="tenant-field">
-                <label className="tenant-label">{t("amount")}</label>
-                <input
-                  type="text"
-                  className="tenant-form-input"
-                  defaultValue={formatCurrency(lease.monthly_rent)}
-                  readOnly
-                />
-              </div>
-              <div className="tenant-field">
-                <label className="tenant-label">{t("paymentMethod")}</label>
-                <select className="tenant-form-select">
-                  <option>{t("bankTransfer")}</option>
-                  <option>{t("creditCard")}</option>
-                  <option>{t("check")}</option>
-                </select>
-              </div>
-              <button
-                className="tenant-btn-primary"
-                style={{ marginTop: 8 }}
-                onClick={handlePayNow}
-              >
-                {t("payNow")}
-              </button>
             </div>
           </div>
 

@@ -1,0 +1,52 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-2024-001,2024-01-15,Opening balances - Cash accounts,OB-2024,1010,2450000,0,Operating account opening balance
+JE-2024-001,2024-01-15,Opening balances - Cash accounts,OB-2024,1020,385000,0,Payroll account opening balance
+JE-2024-001,2024-01-15,Opening balances - Cash accounts,OB-2024,1030,1200000,0,Reserve fund opening balance
+JE-2024-001,2024-01-15,Opening balances - Cash accounts,OB-2024,3100,0,4035000,Retained earnings offset
+JE-2024-002,2024-01-15,Opening balances - Fixed assets,OB-2024,1500,1987000,0,Equipment at cost
+JE-2024-002,2024-01-15,Opening balances - Fixed assets,OB-2024,1510,0,650000,Accumulated depreciation equipment
+JE-2024-002,2024-01-15,Opening balances - Fixed assets,OB-2024,1600,104000,0,Vehicles at cost
+JE-2024-002,2024-01-15,Opening balances - Fixed assets,OB-2024,1610,0,35000,Accumulated depreciation vehicles
+JE-2024-002,2024-01-15,Opening balances - Fixed assets,OB-2024,1700,3200000,0,Buildings at cost
+JE-2024-002,2024-01-15,Opening balances - Fixed assets,OB-2024,1710,0,480000,Accumulated depreciation buildings
+JE-2024-002,2024-01-15,Opening balances - Fixed assets,OB-2024,1800,2500000,0,Land at cost
+JE-2024-002,2024-01-15,Opening balances - Fixed assets,OB-2024,3100,0,6626000,Retained earnings offset for fixed assets
+JE-2024-003,2024-01-15,Opening balances - Property assets,OB-2024,1700,23400000,0,Investment properties at cost
+JE-2024-003,2024-01-15,Opening balances - Property assets,OB-2024,2800,0,18500000,Mortgage payable on properties
+JE-2024-003,2024-01-15,Opening balances - Property assets,OB-2024,3000,0,4900000,Owner equity in properties
+JE-2024-004,2024-03-31,Monthly depreciation - Q1 2024,DEP-2024-Q1,6400,42500,0,Depreciation expense Q1
+JE-2024-004,2024-03-31,Monthly depreciation - Q1 2024,DEP-2024-Q1,1510,0,28000,Equipment depreciation Q1
+JE-2024-004,2024-03-31,Monthly depreciation - Q1 2024,DEP-2024-Q1,1610,0,6500,Vehicle depreciation Q1
+JE-2024-004,2024-03-31,Monthly depreciation - Q1 2024,DEP-2024-Q1,1710,0,8000,Building depreciation Q1
+JE-2024-005,2024-04-30,Convention Center Progress Pay 1 - Revenue recognition,INV-2024-001,1100,3750000,0,Accounts receivable progress payment 1
+JE-2024-005,2024-04-30,Convention Center Progress Pay 1 - Revenue recognition,INV-2024-001,4000,0,3562500,Construction revenue net of retainage
+JE-2024-005,2024-04-30,Convention Center Progress Pay 1 - Revenue recognition,INV-2024-001,1150,0,187500,Retainage receivable 5%
+JE-2024-006,2024-05-30,Receipt of Convention Center Progress Pay 1,PMT-2024-001,1010,3562500,0,Cash received from City of Houston
+JE-2024-006,2024-05-30,Receipt of Convention Center Progress Pay 1,PMT-2024-001,1100,0,3562500,Clear AR for progress payment 1
+JE-2024-007,2024-06-30,Monthly depreciation - Q2 2024,DEP-2024-Q2,6400,42500,0,Depreciation expense Q2
+JE-2024-007,2024-06-30,Monthly depreciation - Q2 2024,DEP-2024-Q2,1510,0,28000,Equipment depreciation Q2
+JE-2024-007,2024-06-30,Monthly depreciation - Q2 2024,DEP-2024-Q2,1610,0,6500,Vehicle depreciation Q2
+JE-2024-007,2024-06-30,Monthly depreciation - Q2 2024,DEP-2024-Q2,1710,0,8000,Building depreciation Q2
+JE-2025-008,2025-01-15,Payroll accrual - January 2025,PAY-2025-01,5100,285000,0,Direct labor expense
+JE-2025-008,2025-01-15,Payroll accrual - January 2025,PAY-2025-01,6000,65000,0,Office salary expense
+JE-2025-008,2025-01-15,Payroll accrual - January 2025,PAY-2025-01,2100,0,350000,Accrued wages payable
+JE-2025-009,2025-01-31,Payroll disbursement - January 2025,PAY-2025-01D,2100,350000,0,Clear accrued wages
+JE-2025-009,2025-01-31,Payroll disbursement - January 2025,PAY-2025-01D,1020,0,350000,Cash from payroll account
+JE-2025-010,2025-03-31,Subcontractor payment - Russo Concrete,AP-2025-001,2000,1850000,0,Clear AP for Russo Concrete
+JE-2025-010,2025-03-31,Subcontractor payment - Russo Concrete,AP-2025-001,1010,0,1850000,Cash payment to Russo Concrete
+JE-2025-011,2025-06-30,Rental income Q2 2025 - All properties,RENT-2025-Q2,1010,186000,0,Cash received for rental income
+JE-2025-011,2025-06-30,Rental income Q2 2025 - All properties,RENT-2025-Q2,4200,0,186000,Rental income recognized Q2
+JE-2025-012,2025-06-30,Monthly depreciation - Q2 2025,DEP-2025-Q2,6400,42500,0,Depreciation expense Q2 2025
+JE-2025-012,2025-06-30,Monthly depreciation - Q2 2025,DEP-2025-Q2,1510,0,28000,Equipment depreciation Q2 2025
+JE-2025-012,2025-06-30,Monthly depreciation - Q2 2025,DEP-2025-Q2,1610,0,6500,Vehicle depreciation Q2 2025
+JE-2025-012,2025-06-30,Monthly depreciation - Q2 2025,DEP-2025-Q2,1710,0,8000,Building depreciation Q2 2025
+JE-2025-013,2025-09-30,Insurance expense accrual,INS-2025-Q3,6100,61250,0,Insurance expense quarterly accrual
+JE-2025-013,2025-09-30,Insurance expense accrual,INS-2025-Q3,1300,0,61250,Reduce prepaid insurance
+JE-2025-014,2025-09-30,Waterfront Progress Pay 1 - Revenue,INV-2025-005,1100,4800000,0,AR Bayshore Development Partners
+JE-2025-014,2025-09-30,Waterfront Progress Pay 1 - Revenue,INV-2025-005,4000,0,4320000,Construction revenue net of retainage
+JE-2025-014,2025-09-30,Waterfront Progress Pay 1 - Revenue,INV-2025-005,1150,0,480000,Retainage receivable 10%
+JE-2025-015,2025-10-30,Receipt of Waterfront Progress Pay 1,PMT-2025-005,1010,4320000,0,Cash received from Bayshore Dev
+JE-2025-015,2025-10-30,Receipt of Waterfront Progress Pay 1,PMT-2025-005,1100,0,4320000,Clear AR for Waterfront payment 1
+JE-2025-016,2025-10-15,Materials purchase with sales tax,PO-2025-042,5200,680000,0,Materials cost - rebar and steel
+JE-2025-016,2025-10-15,Materials purchase with sales tax,PO-2025-042,8000,148920,0,Sales tax receivable on materials
+JE-2025-016,2025-10-15,Materials purchase with sales tax,PO-2025-042,2000,0,828920,AP to Vulcan Materials Supply

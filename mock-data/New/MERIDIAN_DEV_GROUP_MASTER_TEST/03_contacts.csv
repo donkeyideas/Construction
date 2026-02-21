@@ -1,0 +1,21 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Robert,Meridian,employee,robert@meridiandg.com,(713) 555-0101,Meridian Development Group,CEO
+Diana,Torres,employee,diana@meridiandg.com,(713) 555-0102,Meridian Development Group,CFO
+Michael,Chen,employee,michael@meridiandg.com,(713) 555-0103,Meridian Development Group,VP of Operations
+Sarah,Williams,employee,sarah@meridiandg.com,(713) 555-0104,Meridian Development Group,Senior Project Manager
+James,O'Brien,employee,james@meridiandg.com,(713) 555-0105,Meridian Development Group,Project Manager
+Patricia,Nguyen,employee,patricia@meridiandg.com,(713) 555-0106,Meridian Development Group,Senior Estimator
+David,Martinez,employee,david@meridiandg.com,(713) 555-0107,Meridian Development Group,Field Superintendent
+Lisa,Campbell,employee,lisa@meridiandg.com,(713) 555-0108,Meridian Development Group,Safety Director
+Kevin,Park,employee,kevin@meridiandg.com,(713) 555-0109,Meridian Development Group,Controller
+Amanda,Foster,employee,amanda@meridiandg.com,(713) 555-0110,Meridian Development Group,HR Manager
+Tony,Russo,subcontractor,tony@russoconcrete.com,(713) 555-0201,Russo Concrete LLC,Foreman
+Maria,Gonzalez,subcontractor,maria@premiersteel.com,(210) 555-0202,Premier Steel Fabricators,Project Lead
+William,Turner,subcontractor,william@turnerelectric.com,(512) 555-0203,Turner Electrical Inc,Estimator
+Jennifer,Kim,subcontractor,jennifer@pacificplumb.com,(713) 555-0204,Pacific Plumbing & Mechanical,Project Manager
+Carlos,Mendez,subcontractor,carlos@mendezmason.com,(210) 555-0205,Mendez Masonry,Foreman
+Rachel,Green,subcontractor,rachel@greenspaceland.com,(713) 555-0206,GreenSpace Landscaping,Designer
+Hassan,Ali,subcontractor,hassan@alliedstruct.com,(512) 555-0207,Allied Structural Engineers,Structural Engineer
+Samantha,Brooks,subcontractor,sam@brooksarch.com,(713) 555-0208,Brooks & Associates Architecture,Principal Architect
+Derek,Washington,subcontractor,derek@washhvac.com,(210) 555-0209,Washington HVAC Systems,Project Manager
+Nicole,Petit,subcontractor,nicole@petitenviro.com,(512) 555-0210,Petit Environmental Services,Senior Consultant

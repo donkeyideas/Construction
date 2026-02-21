@@ -1,0 +1,57 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2025-09-01,3200000,0,2025-10-01,Progress Payment #15 - Tower C structural steel floors 1-5,paid,,Chen Investment Partners,Energy Corridor Campus Tower C
+receivable,2025-09-15,4800000,0,2025-10-15,Progress Payment #10 - Resort parking structure levels P1-P3,paid,,Reid Hospitality Group,Reid Luxury Resort & Spa
+receivable,2025-09-20,5500000,0,2025-10-20,Progress Payment #5 - Terminal dredging and bulkhead Phase 2,paid,,Port of Houston Authority,Port Container Terminal Automation
+receivable,2025-10-01,2800000,0,2025-11-01,Progress Payment #16 - Tower C steel floors 6-9,paid,,Chen Investment Partners,Energy Corridor Campus Tower C
+receivable,2025-10-15,5200000,0,2025-11-15,Progress Payment #11 - Resort podium retail and pool deck,paid,,Reid Hospitality Group,Reid Luxury Resort & Spa
+receivable,2025-10-20,6800000,0,2025-11-20,Progress Payment #6 - Terminal crane rail berths 1-2,paid,,Port of Houston Authority,Port Container Terminal Automation
+receivable,2025-10-25,1800000,0,2025-11-25,Progress Payment #9 - Museum Park foundation and core start,paid,,Bayou City REIT,Museum Park High-Rise Residences
+receivable,2025-11-01,3600000,0,2025-12-01,Progress Payment #17 - Tower C steel topped out and deck,paid,,Chen Investment Partners,Energy Corridor Campus Tower C
+receivable,2025-11-15,2850000,0,2025-12-15,Progress Payment #18 - Tower C floors 10-14 steel and deck,paid,,Chen Investment Partners,Energy Corridor Campus Tower C
+receivable,2025-10-30,4200000,0,2025-11-30,Progress Payment #14 - Resort foundation mat slab and podium,paid,,Reid Hospitality Group,Reid Luxury Resort & Spa
+receivable,2025-11-15,5800000,0,2025-12-15,Progress Payment #12 - Resort tower core walls floors 1-10,paid,,Reid Hospitality Group,Reid Luxury Resort & Spa
+receivable,2025-11-30,8500000,0,2025-12-30,Progress Payment #8 - Container terminal bulkhead and crane rail,paid,,Port of Houston Authority,Port Container Terminal Automation
+receivable,2025-11-20,2000000,0,2025-12-20,Progress Payment #10 - Museum Park Tower A floors 1-8,paid,,Bayou City REIT,Museum Park High-Rise Residences
+receivable,2025-12-01,1450000,0,2026-01-15,Progress Payment #19 - Tower C curtain wall floors 1-8,pending,,Chen Investment Partners,Energy Corridor Campus Tower C
+receivable,2025-12-15,2100000,0,2026-01-15,Progress Payment #12 - Museum Park Tower A structure complete,paid,,Bayou City REIT,Museum Park High-Rise Residences
+receivable,2025-12-30,5800000,0,2026-01-30,Progress Payment #15 - Resort core structure floors 1-18,pending,,Reid Hospitality Group,Reid Luxury Resort & Spa
+receivable,2025-12-15,1850000,0,2026-01-30,Progress Payment #6 - Sugar Land retail building shell,pending,,Woodward Retail Development,Sugar Land Town Square Expansion
+receivable,2025-12-20,4500000,0,2026-01-31,Progress Payment #3 - Woodlands Village site prep and foundation,pending,,Chen Investment Partners,Woodlands Mixed-Use Village
+receivable,2026-01-15,3500000,0,2026-02-15,Progress Payment #16 - Resort curtain wall and MEP rough-in,draft,,Reid Hospitality Group,Reid Luxury Resort & Spa
+receivable,2026-01-15,6200000,0,2026-02-15,Progress Payment #9 - Terminal electrical and controls,pending,,Port of Houston Authority,Port Container Terminal Automation
+receivable,2026-01-15,8500000,0,2026-02-15,Progress Payment #3 - Foster Medical Center foundation,pending,,Foster Medical Systems,Foster Regional Medical Center
+receivable,2026-01-15,1200000,0,2026-02-15,Milestone 4 - Hardy Toll Road segment 2 paving complete,approved,,Texas DOT Houston District,Hardy Toll Road Widening Segment 3
+receivable,2026-01-28,2800000,0,2026-02-28,Progress Payment #13 - Museum Park Tower B floors 15-22,pending,,Bayou City REIT,Museum Park High-Rise Residences
+receivable,2026-01-28,850000,0,2026-02-28,Progress Payment #4 - HISD Magnet School MEP rough-in,pending,,Houston ISD Facilities,HISD Magnet School Renovation
+receivable,2026-01-28,3200000,0,2026-02-28,Progress Payment #4 - Drake Waterfront mat slab and core walls,pending,,Drake Properties LLC,Drake Waterfront Condominiums
+receivable,2026-02-01,125000,0,2026-02-28,Change Order #3 - Tower C upgraded lobby finishes,approved,,Chen Investment Partners,Energy Corridor Campus Tower C
+receivable,2026-02-15,2200000,0,2026-03-15,Progress Payment #4 - Kemp Petrochemical tank foundations,draft,,Kemp Industrial Partners,Kemp Petrochemical Storage Facility
+receivable,2026-02-15,340000,0,2026-03-15,Change Order #5 - Resort pool deck expansion,draft,,Reid Hospitality Group,Reid Luxury Resort & Spa
+payable,2025-09-15,2200000,0,2025-10-15,Payment Application #9 - Tower C foundation concrete,paid,Santos Foundations Inc,,Energy Corridor Campus Tower C
+payable,2025-09-20,1800000,0,2025-10-20,Payment Application #5 - Resort shoring and excavation,paid,Santos Foundations Inc,,Reid Luxury Resort & Spa
+payable,2025-10-01,950000,0,2025-11-01,Payment Application #10 - Tower C rebar and formwork,paid,Kowalski Structural Steel,,Energy Corridor Campus Tower C
+payable,2025-10-15,3500000,0,2025-11-15,Payment Application #3 - Terminal dredging Phase 2,paid,Santos Foundations Inc,,Port Container Terminal Automation
+payable,2025-10-25,1650000,0,2025-11-25,Payment Application #6 - Resort mat slab concrete,paid,Petrov Ready Mix & Pumping,,Reid Luxury Resort & Spa
+payable,2025-11-01,2100000,0,2025-12-01,Payment Application #11 - Tower C structural steel floors 6-10,paid,Kowalski Structural Steel,,Energy Corridor Campus Tower C
+payable,2025-11-15,4200000,0,2025-12-15,Payment Application #4 - Terminal crane rail foundations,paid,Santos Foundations Inc,,Port Container Terminal Automation
+payable,2025-12-01,1250000,0,2026-01-15,Payment Application #12 - Tower C structural steel floors 10-14,paid,Kowalski Structural Steel,,Energy Corridor Campus Tower C
+payable,2025-12-15,2800000,0,2026-01-30,Payment Application #8 - Resort foundation concrete,paid,Santos Foundations Inc,,Reid Luxury Resort & Spa
+payable,2025-12-01,3200000,0,2026-01-20,Payment Application #6 - Terminal civil earthwork Phase 3,paid,Santos Foundations Inc,,Port Container Terminal Automation
+payable,2025-12-15,520000,0,2026-01-30,Payment Application #5 - Hardy demolition Phase 3,paid,Fitzgerald Demolition Inc,,Hardy Toll Road Widening Segment 3
+payable,2026-01-05,890000,0,2026-02-05,Payment Application #13 - Tower C electrical floors 1-10,approved,Delgado Electrical Corp,,Energy Corridor Campus Tower C
+payable,2026-01-15,1850000,0,2026-02-15,Payment Application #4 - Resort curtain wall Phases 1-3,pending,Chen Glass & Glazing Corp,,Reid Luxury Resort & Spa
+payable,2026-01-10,1200000,0,2026-02-10,Payment Application #6 - Resort elevator installation cabs 1-4,pending,Moreno Elevator Services,,Reid Luxury Resort & Spa
+payable,2026-01-15,2400000,0,2026-02-15,Payment Application #4 - Terminal electrical and controls,pending,Delgado Electrical Corp,,Port Container Terminal Automation
+payable,2026-01-05,1450000,0,2026-02-05,Payment Application #5 - Museum Park concrete floors 18-22,approved,Petrov Ready Mix & Pumping,,Museum Park High-Rise Residences
+payable,2026-01-10,680000,0,2026-02-10,Payment Application #3 - Sugar Land masonry exterior,pending,McBride Masonry LLC,,Sugar Land Town Square Expansion
+payable,2026-01-15,850000,0,2026-02-15,Payment Application #4 - Hardy paving segment 2,approved,Santos Foundations Inc,,Hardy Toll Road Widening Segment 3
+payable,2026-01-20,4500000,0,2026-02-20,Payment Application #2 - Foster Medical foundation deep piles,pending,Santos Foundations Inc,,Foster Regional Medical Center
+payable,2026-01-28,2800000,0,2026-02-28,Payment Application #2 - Kemp tank steel fabrication,pending,Kowalski Structural Steel,,Kemp Petrochemical Storage Facility
+payable,2026-01-15,1800000,0,2026-02-15,Payment Application #3 - Drake Waterfront concrete core walls,pending,Petrov Ready Mix & Pumping,,Drake Waterfront Condominiums
+payable,2026-01-05,185000,15725,2026-01-30,Invoice #STL-44821 - January structural steel deliveries,paid,Houston Steel Distributors,,Energy Corridor Campus Tower C
+payable,2026-01-05,142000,12070,2026-01-30,Invoice #TCA-9201 - January concrete 850 CY multiple projects,paid,Texas Concrete & Aggregate,,Reid Luxury Resort & Spa
+payable,2026-02-01,95000,8075,2026-02-10,Invoice #GCL-28104 - February lumber and framing materials,pending,Gulf Coast Lumber & Hardware,,Museum Park High-Rise Residences
+payable,2026-01-15,68000,5780,2026-02-01,Invoice #FER-7704 - January crane and lift rentals,approved,Franklin Equipment Rental,,Reid Luxury Resort & Spa
+payable,2026-01-15,42000,3570,2026-02-01,Invoice #NSS-3381 - Q1 safety equipment and PPE,approved,Novak Safety Supply Inc,,
+payable,2026-01-31,28000,0,2026-02-15,Invoice #GCT-1204 - January testing and inspection services,pending,Gulf Coast Testing Lab,,Foster Regional Medical Center
+payable,2026-01-15,85000,0,2026-02-10,Invoice #LSC-5521 - January crane services 320 hours,approved,Lone Star Crane Service,,Port Container Terminal Automation

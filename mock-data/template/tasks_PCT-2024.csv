@@ -1,0 +1,27 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Environmental impact assessment,Preconstruction & Permitting,critical,2023-01-15,2023-04-30,100,false,true,Port Container Terminal Automation
+USACE permit issued,Preconstruction & Permitting,critical,2023-06-30,2023-06-30,100,true,true,Port Container Terminal Automation
+Dredging and channel deepening,Marine & Civil Works,critical,2023-07-01,2024-03-30,100,false,true,Port Container Terminal Automation
+Bulkhead construction - 1200 LF,Marine & Civil Works,critical,2023-09-01,2024-06-30,100,false,true,Port Container Terminal Automation
+Container yard grading - 25 acres,Marine & Civil Works,high,2024-01-01,2024-09-30,100,false,false,Port Container Terminal Automation
+Container yard paving - Sections A-D,Marine & Civil Works,high,2024-06-01,2025-03-30,85,false,false,Port Container Terminal Automation
+Berth 1-2 crane rail foundation,Structural Steel & Crane Rail,critical,2024-01-01,2024-08-30,100,false,true,Port Container Terminal Automation
+Berth 3-4 crane rail foundation,Structural Steel & Crane Rail,critical,2024-06-01,2025-01-30,100,false,true,Port Container Terminal Automation
+STS crane rail installation - berths 1-4,Structural Steel & Crane Rail,critical,2024-09-01,2025-06-30,80,false,true,Port Container Terminal Automation
+Crane rail alignment and testing,Structural Steel & Crane Rail,high,2025-06-01,2025-12-30,20,false,false,Port Container Terminal Automation
+Main substation construction,Electrical & Controls,critical,2024-06-01,2025-03-30,90,false,true,Port Container Terminal Automation
+Berth electrical distribution,Electrical & Controls,high,2024-10-01,2025-09-30,60,false,false,Port Container Terminal Automation
+Shore power connections - 4 berths,Electrical & Controls,high,2025-03-01,2026-01-30,25,false,false,Port Container Terminal Automation
+Yard lighting installation - 120 poles,Electrical & Controls,medium,2025-06-01,2026-03-30,30,false,false,Port Container Terminal Automation
+STS cranes 1-4 assembly,Container Handling Systems,critical,2025-01-01,2025-09-30,65,false,true,Port Container Terminal Automation
+STS cranes 5-8 assembly,Container Handling Systems,critical,2025-06-01,2026-03-30,25,false,true,Port Container Terminal Automation
+AGV fleet deployment - 45 vehicles,Container Handling Systems,critical,2025-09-01,2026-09-30,10,false,true,Port Container Terminal Automation
+Container scanner and RFID system,Container Handling Systems,high,2026-01-01,2026-09-30,0,false,false,Port Container Terminal Automation
+TOS core system installation,Terminal Operating System,critical,2025-06-01,2026-06-30,15,false,true,Port Container Terminal Automation
+AGV navigation and control integration,Terminal Operating System,critical,2025-09-01,2026-12-30,5,false,true,Port Container Terminal Automation
+Vessel planning module,Terminal Operating System,high,2026-03-01,2027-01-30,0,false,false,Port Container Terminal Automation
+Gate automation and OCR,Gate Complex & Security,high,2025-09-01,2026-06-30,15,false,false,Port Container Terminal Automation
+Security and access control,Gate Complex & Security,medium,2026-01-01,2026-09-30,0,false,false,Port Container Terminal Automation
+Phase 1 commissioning - berths 1-2,Commissioning & Testing,critical,2026-06-01,2026-12-30,0,false,true,Port Container Terminal Automation
+Phase 2 commissioning - berths 3-4,Commissioning & Testing,critical,2026-10-01,2027-06-30,0,false,true,Port Container Terminal Automation
+Full terminal operational acceptance,Commissioning & Testing,critical,2027-06-30,2027-06-30,0,true,true,Port Container Terminal Automation

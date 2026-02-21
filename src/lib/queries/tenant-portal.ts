@@ -1,6 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export interface PaymentMethod {
+  id: string;
+  method_type: string;
+  label: string;
+  instructions: string;
+  recipient_info: string | null;
+}
+
 export interface TenantDashboard {
   fullName: string | null;
   lease: {
@@ -38,6 +46,7 @@ export interface TenantDashboard {
     published_at: string;
   }>;
   openMaintenanceCount: number;
+  paymentMethods: PaymentMethod[];
 }
 
 export async function getTenantDashboard(
@@ -53,7 +62,7 @@ export async function getTenantDashboard(
       .single(),
     supabase
       .from("leases")
-      .select("id, status, monthly_rent, security_deposit, lease_start, lease_end, units(unit_number, properties(name))")
+      .select("id, status, monthly_rent, security_deposit, lease_start, lease_end, property_id, units(unit_number, properties(name))")
       .eq("tenant_user_id", userId)
       .eq("status", "active")
       .limit(1)
@@ -63,9 +72,10 @@ export async function getTenantDashboard(
   const leaseData = leaseRes.data;
   const unit = leaseData?.units as unknown as { unit_number: string; properties: { name: string } } | null;
   const leaseId = leaseData?.id;
+  const propertyId = leaseData?.property_id as string | undefined;
 
   // Phase 2: fetch remaining data in parallel (payments need leaseId)
-  const [paymentsRes, maintenanceRes, maintenanceCountRes, announcementsRes, documents] =
+  const [paymentsRes, maintenanceRes, maintenanceCountRes, announcementsRes, documents, paymentMethodsRes] =
     await Promise.all([
       leaseId
         ? supabase
@@ -93,6 +103,14 @@ export async function getTenantDashboard(
         .order("published_at", { ascending: false })
         .limit(3),
       getTenantDocuments(supabase, userId),
+      propertyId
+        ? supabase
+            .from("property_payment_methods")
+            .select("id, method_type, label, instructions, recipient_info")
+            .eq("property_id", propertyId)
+            .eq("is_enabled", true)
+            .order("display_order", { ascending: true })
+        : Promise.resolve({ data: [] as never[] }),
     ]);
 
   return {
@@ -134,6 +152,13 @@ export async function getTenantDashboard(
       published_at: a.published_at as string,
     })),
     openMaintenanceCount: maintenanceCountRes.count ?? 0,
+    paymentMethods: (paymentMethodsRes.data ?? []).map((pm: Record<string, unknown>) => ({
+      id: pm.id as string,
+      method_type: pm.method_type as string,
+      label: pm.label as string,
+      instructions: pm.instructions as string,
+      recipient_info: (pm.recipient_info as string) ?? null,
+    })),
   };
 }
 

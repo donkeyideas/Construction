@@ -1,0 +1,16 @@
+cert_name,cert_type,issuing_authority,cert_number,issued_date,expiry_date,contact_name
+OSHA 30-Hour Construction,safety,OSHA,OSHA30-2024-4521,2024-01-15,2029-01-15,David Martinez
+OSHA 30-Hour Construction,safety,OSHA,OSHA30-2023-3892,2023-06-01,2028-06-01,Lisa Campbell
+OSHA 10-Hour Construction,safety,OSHA,OSHA10-2024-8834,2024-03-10,2029-03-10,Sarah Williams
+OSHA 10-Hour Construction,safety,OSHA,OSHA10-2024-8835,2024-03-10,2029-03-10,James O'Brien
+PMP - Project Management Professional,certification,PMI,PMP-2891045,2022-09-01,2025-09-01,Sarah Williams
+PMP - Project Management Professional,certification,PMI,PMP-3102847,2023-11-15,2026-11-15,James O'Brien
+PE - Professional Engineer (Texas),license,Texas Board of PE,PE-TX-89234,2020-06-01,2026-06-01,Michael Chen
+LEED AP BD+C,certification,GBCI,LEEDAP-10892341,2021-04-20,2027-04-20,Patricia Nguyen
+CCM - Certified Construction Manager,certification,CMAA,CCM-24891,2023-01-10,2026-01-10,Michael Chen
+CPR and First Aid,safety,American Red Cross,ARC-FA-2024-11234,2024-08-01,2026-08-01,David Martinez
+CPR and First Aid,safety,American Red Cross,ARC-FA-2024-11235,2024-08-01,2026-08-01,Lisa Campbell
+Crane Operator NCCCO,certification,NCCCO,NCCCO-TSS-78234,2023-05-15,2028-05-15,Tony Russo
+AWS Certified Welding Inspector,certification,American Welding Society,CWI-24-09182,2024-02-01,2027-02-01,Carlos Mendez
+Texas Master Electrician License,license,Texas TDLR,ELEC-TX-ME-45892,2021-09-01,2025-09-01,William Turner
+Texas Master Plumber License,license,Texas SBPE,PLMB-TX-MP-23891,2022-03-15,2026-03-15,Jennifer Kim

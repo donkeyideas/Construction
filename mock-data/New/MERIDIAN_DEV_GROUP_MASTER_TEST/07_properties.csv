@@ -1,0 +1,5 @@
+name,property_type,address_line1,city,state,zip,year_built,total_sqft,total_units,purchase_price,current_value
+Meridian Office Park,commercial,2400 Commerce Blvd,Houston,TX,77002,2015,45000,12,8500000,12200000
+Harbor View Apartments,residential,850 Harbor Dr,Galveston,TX,77550,2019,32000,24,6200000,7800000
+Riverside Retail Center,commercial,1200 River Rd,San Antonio,TX,78204,2010,28000,8,4100000,5500000
+Lakeview Industrial Park,industrial,500 Lakeview Pkwy,Austin,TX,78701,2017,60000,6,7800000,9200000

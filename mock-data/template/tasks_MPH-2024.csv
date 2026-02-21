@@ -1,0 +1,26 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design and permit approvals,Preconstruction & Permitting,critical,2023-04-01,2023-09-30,100,false,true,Museum Park High-Rise Residences
+Mass excavation - 65000 CY,Excavation & Foundation,high,2023-10-01,2024-01-30,100,false,true,Museum Park High-Rise Residences
+Drilled shafts and pile caps,Excavation & Foundation,critical,2024-01-01,2024-04-30,100,false,true,Museum Park High-Rise Residences
+Mat slab pour - Tower A,Excavation & Foundation,critical,2024-03-15,2024-05-15,100,false,true,Museum Park High-Rise Residences
+Mat slab pour - Tower B,Excavation & Foundation,critical,2024-04-15,2024-06-30,100,false,true,Museum Park High-Rise Residences
+Tower A core walls floors 1-14,Tower A Structure,critical,2024-03-01,2024-09-30,100,false,true,Museum Park High-Rise Residences
+Tower A core walls floors 15-28,Tower A Structure,critical,2024-10-01,2025-03-30,85,false,true,Museum Park High-Rise Residences
+Tower A topped out,Tower A Structure,critical,2025-03-30,2025-03-30,0,true,true,Museum Park High-Rise Residences
+Tower B core walls floors 1-14,Tower B Structure,critical,2024-06-01,2024-12-30,100,false,true,Museum Park High-Rise Residences
+Tower B core walls floors 15-28,Tower B Structure,critical,2025-01-01,2025-06-30,55,false,true,Museum Park High-Rise Residences
+Tower B topped out,Tower B Structure,critical,2025-06-30,2025-06-30,0,true,true,Museum Park High-Rise Residences
+Curtain wall Tower A,Exterior Envelope,high,2024-10-01,2025-06-30,60,false,false,Museum Park High-Rise Residences
+Curtain wall Tower B,Exterior Envelope,high,2025-01-01,2025-09-30,25,false,false,Museum Park High-Rise Residences
+Roofing both towers,Exterior Envelope,medium,2025-06-01,2025-12-30,0,false,false,Museum Park High-Rise Residences
+Electrical distribution,MEP Rough-In,high,2024-06-01,2025-06-30,65,false,false,Museum Park High-Rise Residences
+Plumbing risers and branches,MEP Rough-In,high,2024-09-01,2025-06-30,55,false,false,Museum Park High-Rise Residences
+HVAC ductwork and equipment,MEP Rough-In,high,2025-01-01,2025-09-30,30,false,false,Museum Park High-Rise Residences
+Unit finishes Tower A floors 1-14,Interior Finishes,medium,2025-03-01,2025-10-30,35,false,false,Museum Park High-Rise Residences
+Unit finishes Tower A floors 15-28,Interior Finishes,medium,2025-08-01,2026-02-28,5,false,false,Museum Park High-Rise Residences
+Unit finishes Tower B,Interior Finishes,medium,2025-09-01,2026-06-30,0,false,false,Museum Park High-Rise Residences
+Sky lounge and rooftop amenities,Amenities & Common Areas,high,2025-09-01,2026-04-30,5,false,false,Museum Park High-Rise Residences
+Clubhouse and fitness center,Amenities & Common Areas,medium,2025-11-01,2026-06-30,0,false,false,Museum Park High-Rise Residences
+Pool and outdoor amenity deck,Amenities & Common Areas,medium,2026-01-01,2026-06-30,0,false,false,Museum Park High-Rise Residences
+Systems commissioning,Commissioning & Turnover,critical,2026-03-01,2026-06-30,0,false,true,Museum Park High-Rise Residences
+Certificate of occupancy,Commissioning & Turnover,critical,2026-08-30,2026-08-30,0,true,true,Museum Park High-Rise Residences

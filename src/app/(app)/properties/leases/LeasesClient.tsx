@@ -14,6 +14,9 @@ import {
   Pencil,
   Trash2,
   Upload,
+  KeyRound,
+  Check,
+  Copy,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
@@ -28,6 +31,7 @@ interface Lease {
   tenant_name: string | null;
   tenant_email: string | null;
   tenant_phone: string | null;
+  tenant_user_id: string | null;
   monthly_rent: number | null;
   security_deposit: number | null;
   lease_start: string | null;
@@ -151,6 +155,29 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
   // Delete confirmation
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Create tenant login
+  const [showCreateLogin, setShowCreateLogin] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [creatingLogin, setCreatingLogin] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loginSuccess, setLoginSuccess] = useState<{ email: string; password: string } | null>(null);
+  const [copiedLoginField, setCopiedLoginField] = useState<string | null>(null);
+
+  // Record payment
+  const [showRecordPayment, setShowRecordPayment] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({
+    amount: "",
+    payment_date: new Date().toISOString().slice(0, 10),
+    due_date: "",
+    method: "ach",
+    reference_number: "",
+    notes: "",
+    late_fee: "",
+  });
+  const [recordingPayment, setRecordingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   // ---- Derived data ----
   const now = useMemo(() => new Date(), []);
@@ -350,6 +377,109 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
       setShowDeleteConfirm(false);
     } finally {
       setDeleting(false);
+    }
+  }
+
+  // ---- Create Tenant Login ----
+  function openCreateLogin() {
+    if (!selectedLease) return;
+    setLoginEmail(selectedLease.tenant_email || "");
+    setLoginPassword("");
+    setLoginError("");
+    setLoginSuccess(null);
+    setShowCreateLogin(true);
+  }
+
+  async function handleCreateLogin() {
+    if (!selectedLease) return;
+    if (loginPassword.length < 8) {
+      setLoginError(t("passwordMinLength"));
+      return;
+    }
+    setCreatingLogin(true);
+    setLoginError("");
+    try {
+      const res = await fetch("/api/leases/create-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lease_id: selectedLease.id,
+          email: loginEmail,
+          password: loginPassword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLoginError(data.error || "Failed to create login");
+        return;
+      }
+      setLoginSuccess({ email: loginEmail, password: loginPassword });
+    } catch {
+      setLoginError(t("networkError"));
+    } finally {
+      setCreatingLogin(false);
+    }
+  }
+
+  function copyLoginField(field: string, value: string) {
+    navigator.clipboard.writeText(value);
+    setCopiedLoginField(field);
+    setTimeout(() => setCopiedLoginField(null), 2000);
+  }
+
+  // ---- Record Rent Payment ----
+  function openRecordPayment() {
+    if (!selectedLease) return;
+    const now = new Date();
+    const dueDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    setPaymentForm({
+      amount: String(selectedLease.monthly_rent || ""),
+      payment_date: now.toISOString().slice(0, 10),
+      due_date: dueDate,
+      method: "ach",
+      reference_number: "",
+      notes: "",
+      late_fee: "",
+    });
+    setPaymentError("");
+    setShowRecordPayment(true);
+  }
+
+  async function handleRecordPayment() {
+    if (!selectedLease) return;
+    if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
+      setPaymentError(t("amountRequired"));
+      return;
+    }
+    setRecordingPayment(true);
+    setPaymentError("");
+    try {
+      const res = await fetch("/api/properties/rent-payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lease_id: selectedLease.id,
+          amount: paymentForm.amount,
+          payment_date: paymentForm.payment_date,
+          due_date: paymentForm.due_date || paymentForm.payment_date,
+          method: paymentForm.method,
+          reference_number: paymentForm.reference_number || null,
+          notes: paymentForm.notes || null,
+          late_fee: paymentForm.late_fee || null,
+        }),
+      });
+      if (res.ok) {
+        setShowRecordPayment(false);
+        setSelectedLease(null);
+        router.refresh();
+      } else {
+        const data = await res.json();
+        setPaymentError(data.error || "Failed to record payment");
+      }
+    } catch {
+      setPaymentError(t("networkError"));
+    } finally {
+      setRecordingPayment(false);
     }
   }
 
@@ -829,10 +959,25 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                 </div>
 
                 {/* Action buttons */}
-                <div className="ticket-form-actions" style={{ marginTop: "1.5rem" }}>
+                <div className="ticket-form-actions" style={{ marginTop: "1.5rem", flexWrap: "wrap" }}>
                   <button className="btn-secondary" onClick={() => setShowDeleteConfirm(true)}>
                     <Trash2 size={14} />
                     {t("delete")}
+                  </button>
+                  {!selectedLease.tenant_user_id && selectedLease.tenant_email && (
+                    <button className="ui-btn ui-btn-md ui-btn-outline" onClick={openCreateLogin}>
+                      <KeyRound size={14} />
+                      {t("createLogin")}
+                    </button>
+                  )}
+                  {selectedLease.tenant_user_id && (
+                    <span className="badge badge-green" style={{ padding: "6px 12px", fontSize: "0.8rem" }}>
+                      <Check size={14} /> {t("loginActive")}
+                    </span>
+                  )}
+                  <button className="ui-btn ui-btn-md ui-btn-outline" onClick={openRecordPayment}>
+                    <DollarSign size={14} />
+                    {t("recordPayment")}
                   </button>
                   <button className="btn-primary" onClick={startEditing}>
                     <Pencil size={14} />
@@ -991,6 +1136,204 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
           onImport={handleImport}
           onClose={() => setShowImport(false)}
         />
+      )}
+
+      {/* Create Tenant Login Modal */}
+      {showCreateLogin && selectedLease && !loginSuccess && (
+        <div className="modal-overlay" onClick={() => setShowCreateLogin(false)}>
+          <div className="modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t("createTenantLogin")}</h3>
+              <button className="modal-close" onClick={() => setShowCreateLogin(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+                {t("createTenantLoginDesc", { name: selectedLease.tenant_name ?? "" })}
+              </p>
+              {loginError && <div className="form-error">{loginError}</div>}
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("email")} *</label>
+                <input
+                  type="email"
+                  className="ticket-form-input"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                />
+              </div>
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("temporaryPassword")} *</label>
+                <input
+                  type="text"
+                  className="ticket-form-input"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder={t("minChars", { count: 8 })}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowCreateLogin(false)}>
+                {t("cancel")}
+              </button>
+              <button className="btn-primary" onClick={handleCreateLogin} disabled={creatingLogin}>
+                {creatingLogin ? t("creating") : t("createLogin")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Login Created Success */}
+      {loginSuccess && (
+        <div className="modal-overlay" onClick={() => { setLoginSuccess(null); setShowCreateLogin(false); router.refresh(); }}>
+          <div className="modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t("loginCreated")}</h3>
+              <button className="modal-close" onClick={() => { setLoginSuccess(null); setShowCreateLogin(false); router.refresh(); }}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+                {t("shareCredentials")}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 8, background: "var(--bg-secondary)" }}>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--muted)", textTransform: "uppercase" }}>{t("email")}</div>
+                    <div style={{ fontWeight: 600 }}>{loginSuccess.email}</div>
+                  </div>
+                  <button className="ui-btn ui-btn-sm ui-btn-outline" onClick={() => copyLoginField("email", loginSuccess.email)}>
+                    {copiedLoginField === "email" ? <Check size={14} /> : <Copy size={14} />}
+                  </button>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 8, background: "var(--bg-secondary)" }}>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--muted)", textTransform: "uppercase" }}>{t("password")}</div>
+                    <div style={{ fontWeight: 600 }}>{loginSuccess.password}</div>
+                  </div>
+                  <button className="ui-btn ui-btn-sm ui-btn-outline" onClick={() => copyLoginField("password", loginSuccess.password)}>
+                    {copiedLoginField === "password" ? <Check size={14} /> : <Copy size={14} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-primary" onClick={() => { setLoginSuccess(null); setShowCreateLogin(false); router.refresh(); }}>
+                {t("done")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Record Rent Payment Modal */}
+      {showRecordPayment && selectedLease && (
+        <div className="modal-overlay" onClick={() => setShowRecordPayment(false)}>
+          <div className="modal" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">{t("recordPayment")}</h3>
+              <button className="modal-close" onClick={() => setShowRecordPayment(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+                {t("recordPaymentDesc", { tenant: selectedLease.tenant_name ?? "" })}
+              </p>
+              {paymentError && <div className="form-error">{paymentError}</div>}
+              <div className="modal-form-grid">
+                <div className="form-group">
+                  <label className="form-label">{t("amount")} *</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                    step="0.01"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("paymentDate")} *</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={paymentForm.payment_date}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, payment_date: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("dueDate")}</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={paymentForm.due_date}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, due_date: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("paymentMethodLabel")} *</label>
+                  <select
+                    className="form-select"
+                    value={paymentForm.method}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
+                  >
+                    <option value="ach">ACH / Bank Transfer</option>
+                    <option value="check">{t("check")}</option>
+                    <option value="zelle">Zelle</option>
+                    <option value="cashapp">Cash App</option>
+                    <option value="venmo">Venmo</option>
+                    <option value="paypal">PayPal</option>
+                    <option value="wire">{t("wireTransfer")}</option>
+                    <option value="cash">{t("cash")}</option>
+                    <option value="credit_card">{t("creditCard")}</option>
+                    <option value="other">{t("other")}</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("referenceNumber")}</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={paymentForm.reference_number}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, reference_number: e.target.value })}
+                    placeholder={t("referenceNumberPlaceholder")}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t("lateFee")}</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={paymentForm.late_fee}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, late_fee: e.target.value })}
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label className="form-label">{t("notes")}</label>
+                  <textarea
+                    className="form-input"
+                    rows={2}
+                    value={paymentForm.notes}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowRecordPayment(false)}>
+                {t("cancel")}
+              </button>
+              <button className="btn-primary" onClick={handleRecordPayment} disabled={recordingPayment}>
+                {recordingPayment ? t("saving") : t("recordPayment")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

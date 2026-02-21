@@ -1,0 +1,4 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+Meridian Operating Account,First National Bank,checking,1842,5670,2450000
+Meridian Payroll Account,First National Bank,checking,3891,5670,385000
+Meridian Reserve Fund,Chase Bank,savings,7234,2145,1200000

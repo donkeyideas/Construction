@@ -1,0 +1,9 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+General Operating,JPMorgan Chase,checking,8841,3320,4285000.00
+Payroll Account,JPMorgan Chase,checking,8842,3320,1125000.00
+Project Escrow - Energy Corridor,Wells Fargo,checking,6617,4489,2850000.00
+Project Escrow - Port Terminal,Wells Fargo,checking,6618,4489,1475000.00
+Equipment Reserve Fund,Frost Bank,savings,3301,5571,875000.00
+Operating Reserve,Frost Bank,savings,3302,5571,3200000.00
+Line of Credit,Texas Capital Bank,credit,9910,2245,-1500000.00
+Retainage Trust Account,Comerica Bank,checking,7744,8812,2150000.00
