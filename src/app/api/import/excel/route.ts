@@ -1081,20 +1081,50 @@ async function processEntity(
     }
 
     case "equipment_assignments": {
+      const { data: assignEquip } = await supabase
+        .from("equipment")
+        .select("id, name")
+        .eq("company_id", companyId);
+      const assignEquipLookup = (assignEquip || []).reduce(
+        (acc: Record<string, string>, e: { id: string; name: string }) => {
+          acc[e.name.trim().toLowerCase()] = e.id;
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
+        let equipId = r.equipment_id || null;
+        if (!equipId && r.equipment_name) {
+          equipId = assignEquipLookup[r.equipment_name.trim().toLowerCase()] || null;
+          if (!equipId) {
+            errors.push(`Row ${i + 2}: Could not find equipment "${r.equipment_name}"`);
+            continue;
+          }
+        }
+        const assignStatus = r.status || "active";
+        const projId = resolveProjectId(r);
         const { error } = await supabase.from("equipment_assignments").insert({
           company_id: companyId,
-          equipment_id: r.equipment_id || null,
-          project_id: resolveProjectId(r),
+          equipment_id: equipId,
+          project_id: projId,
           assigned_to: r.assigned_to || null,
           assigned_date: r.assigned_date || new Date().toISOString().split("T")[0],
           returned_date: r.return_date || null,
           notes: r.notes || null,
-          status: r.status || "active",
+          status: assignStatus,
         });
         if (error) errors.push(`Row ${i + 2}: ${error.message}`);
-        else successCount++;
+        else {
+          successCount++;
+          if (equipId) {
+            await supabase.from("equipment").update({
+              status: assignStatus === "active" ? "in_use" : "available",
+              current_project_id: assignStatus === "active" ? projId : null,
+            }).eq("id", equipId);
+          }
+        }
       }
       break;
     }
