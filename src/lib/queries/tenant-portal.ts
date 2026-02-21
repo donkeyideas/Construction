@@ -54,13 +54,16 @@ export async function getTenantDashboard(
   userId: string
 ): Promise<TenantDashboard> {
   // Phase 1: fetch profile + lease in parallel (lease needed for payment lookup)
+  // Admin client is required for the lease query because tenants lack RLS access
+  // to the properties table, so the nested join units→properties returns null.
+  const admin = createAdminClient();
   const [profileRes, leaseRes] = await Promise.all([
     supabase
       .from("user_profiles")
       .select("full_name")
       .eq("id", userId)
       .single(),
-    supabase
+    admin
       .from("leases")
       .select("id, status, monthly_rent, security_deposit, lease_start, lease_end, property_id, units(unit_number, properties(name))")
       .eq("tenant_user_id", userId)
@@ -269,13 +272,15 @@ export async function getTenantProfile(
   supabase: SupabaseClient,
   userId: string
 ): Promise<TenantProfile | null> {
+  // Admin client bypasses RLS so the nested units→properties join resolves
+  const admin = createAdminClient();
   const [profileRes, leaseRes] = await Promise.all([
     supabase
       .from("user_profiles")
       .select("id, email, full_name, phone, avatar_url")
       .eq("id", userId)
       .single(),
-    supabase
+    admin
       .from("leases")
       .select(
         "status, monthly_rent, lease_start, lease_end, units(unit_number, properties(name))"
