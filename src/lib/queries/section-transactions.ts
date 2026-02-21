@@ -132,6 +132,7 @@ export async function getProjectTransactions(
     ...changeOrders.map((co) => `change_order:${co.id}`),
     ...pmts.map((p) => `payment:${p.id}`),
     ...contracts.map((c) => `contract:${c.id}`),
+    ...rfis.map((r) => `rfi:${r.id}`),
   ];
   const jeMap = await getJEMap(supabase, companyId, allRefs);
 
@@ -200,7 +201,21 @@ export async function getProjectTransactions(
     });
   }
 
-  // Standalone JE lines — only those NOT already covered by invoices/COs/payments/contracts
+  // RFIs — processed before JE lines so coveredJeIds is populated
+  for (const rfi of rfis) {
+    const je = jeMap.get(`rfi:${rfi.id}`);
+    if (je) coveredJeIds.add(je.id);
+    const projectName = rfi.project_id ? projectNameMap.get(rfi.project_id) ?? "" : "";
+    const impact = Number(rfi.cost_impact) || 0;
+    txns.push({
+      id: `rfi-${rfi.id}`, date: rfi.created_at,
+      description: `RFI ${rfi.rfi_number ?? ""} — ${rfi.subject ?? ""}${projectName ? ` (${projectName})` : ""}`.trim(),
+      reference: rfi.rfi_number ?? "", source: "RFIs", sourceHref: "/projects/rfis",
+      debit: impact, credit: 0, jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
+    });
+  }
+
+  // Standalone JE lines — only those NOT already covered by source entities
   for (const line of jeLines) {
     const je = line.journal_entries as unknown as {
       id: string; entry_number: string; entry_date: string;
@@ -215,17 +230,6 @@ export async function getProjectTransactions(
       sourceHref: `/financial/general-ledger?entry=${je.entry_number}`,
       debit: Number(line.debit) || 0, credit: Number(line.credit) || 0,
       jeNumber: je.entry_number, jeId: je.id,
-    });
-  }
-
-  for (const rfi of rfis) {
-    const projectName = rfi.project_id ? projectNameMap.get(rfi.project_id) ?? "" : "";
-    const impact = Number(rfi.cost_impact) || 0;
-    txns.push({
-      id: `rfi-${rfi.id}`, date: rfi.created_at,
-      description: `RFI ${rfi.rfi_number ?? ""} — ${rfi.subject ?? ""}${projectName ? ` (${projectName})` : ""}`.trim(),
-      reference: rfi.rfi_number ?? "", source: "RFIs", sourceHref: "/projects/rfis",
-      debit: impact, credit: 0, jeNumber: null, jeId: null, jeExpected: false,
     });
   }
 
@@ -285,6 +289,9 @@ function mapJELine(line: JELineRow, extra?: { projectNameMap?: Map<string, strin
   } else if (ref.startsWith("contract:")) {
     source = "Contract JE";
     sourceHref = "/projects/contracts";
+  } else if (ref.startsWith("rfi:")) {
+    source = "RFI JE";
+    sourceHref = "/projects/rfis";
   }
 
   const projName = line.project_id && extra?.projectNameMap

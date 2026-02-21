@@ -16,6 +16,7 @@ export interface BackfillResult {
   coGenerated: number;
   invGenerated: number;
   contractsGenerated: number;
+  rfisGenerated: number;
   leaseScheduled: number;
   rentPaymentGenerated: number;
   equipPurchaseGenerated: number;
@@ -84,6 +85,7 @@ export async function backfillMissingJournalEntries(
     coGenerated: 0,
     invGenerated: 0,
     contractsGenerated: 0,
+    rfisGenerated: 0,
     leaseScheduled: 0,
     rentPaymentGenerated: 0,
     equipPurchaseGenerated: 0,
@@ -171,6 +173,52 @@ export async function backfillMissingJournalEntries(
           const r = await createPostedJournalEntry(supabase, companyId, userId, entryData);
           if (r) result.contractsGenerated++;
         } catch (err) { console.warn("Backfill contract JE failed:", c.id, err); }
+      }
+    }
+  }
+
+  // --- RFIs (cost impact JE: DR Expense / CR AP) ---
+  const { data: rfis } = await supabase
+    .from("rfis")
+    .select("id, rfi_number, subject, cost_impact, created_at, project_id, status")
+    .eq("company_id", companyId)
+    .not("cost_impact", "is", null)
+    .gt("cost_impact", 0);
+
+  if (rfis && rfis.length > 0) {
+    const rfiRefs = rfis.map((r) => `rfi:${r.id}`);
+    const { data: existingRfiJEs } = await supabase
+      .from("journal_entries")
+      .select("reference")
+      .eq("company_id", companyId)
+      .in("reference", rfiRefs);
+    const existingRfiRefSet = new Set((existingRfiJEs ?? []).map((j) => j.reference));
+
+    const rfiExpenseId = accountMap.byNumber["5000"] || accountMap.byNumber["5010"] || accountMap.byNumber["6000"] || null;
+    const rfiCreditId = accountMap.apId || accountMap.cashId;
+
+    if (rfiExpenseId && rfiCreditId) {
+      for (const rfi of rfis) {
+        if (existingRfiRefSet.has(`rfi:${rfi.id}`)) continue;
+        const amount = Number(rfi.cost_impact) || 0;
+        if (amount <= 0) continue;
+        try {
+          const shortId = rfi.id.substring(0, 8);
+          const desc = `RFI ${rfi.rfi_number || shortId} — ${rfi.subject || "Cost Impact"}`;
+          const entryData = {
+            entry_number: `JE-RFI-${rfi.rfi_number || shortId}`,
+            entry_date: rfi.created_at?.split("T")[0] ?? new Date().toISOString().split("T")[0],
+            description: desc,
+            reference: `rfi:${rfi.id}`,
+            project_id: rfi.project_id ?? undefined,
+            lines: [
+              { account_id: rfiExpenseId, debit: amount, credit: 0, description: desc, project_id: rfi.project_id ?? undefined },
+              { account_id: rfiCreditId, debit: 0, credit: amount, description: desc, project_id: rfi.project_id ?? undefined },
+            ],
+          };
+          const r = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+          if (r) result.rfisGenerated++;
+        } catch (err) { console.warn("Backfill RFI JE failed:", rfi.id, err); }
       }
     }
   }
