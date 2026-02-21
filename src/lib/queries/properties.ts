@@ -110,6 +110,7 @@ export interface PropertyRentPayment {
   gateway_session_id: string | null;
   notes: string | null;
   created_at: string;
+  lease_id: string;
   tenant_name: string | null;
   unit_number: string | null;
   je_id: string | null;
@@ -182,6 +183,7 @@ export async function getPropertyRentPayments(
       gateway_session_id: p.gateway_session_id ?? null,
       notes: p.notes ?? null,
       created_at: p.created_at,
+      lease_id: p.lease_id,
       tenant_name: leaseInfo?.tenant_name ?? null,
       unit_number: leaseInfo?.unit_number ?? null,
       je_id: je?.id ?? null,

@@ -547,6 +547,38 @@
   padding-left: 8px;
 }
 
+/* ===== Payments Summary Stats ===== */
+.property-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.stat-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
 /* ===== Financials Tab ===== */
 .financials-grid {
   display: grid;
@@ -1051,6 +1083,9 @@ div:hover > .photo-delete-btn {
 
 @media (max-width: 768px) {
   .properties-grid {
+    grid-template-columns: 1fr;
+  }
+  .property-stats-grid {
     grid-template-columns: 1fr;
   }
   .maintenance-board {

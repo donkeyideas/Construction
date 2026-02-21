@@ -329,6 +329,7 @@ export async function getPropertyTransactions(
     { data: scheduleRows },
     { data: leases },
     { data: maintenance },
+    { data: rentPayments },
   ] = await Promise.all([
     // 1. JE lines with property_id
     supabase
@@ -369,12 +370,20 @@ export async function getPropertyTransactions(
       .or("actual_cost.gt.0,estimated_cost.gt.0")
       .order("created_at", { ascending: false })
       .limit(100),
+    // 6. Rent payments (via leases)
+    supabase
+      .from("rent_payments")
+      .select("id, amount, payment_date, method, status, gateway_provider, notes, lease_id, leases(tenant_name, unit_number, property_id)")
+      .eq("company_id", companyId)
+      .order("payment_date", { ascending: false })
+      .limit(200),
   ]);
 
   // Build secondary queries that depend on primary results
   const invRefs = (invoices ?? []).map((i) => `invoice:${i.id}`);
   const invoiceIds = (invoices ?? []).map((i) => i.id);
   const maintRefs = (maintenance ?? []).filter((m) => (Number(m.actual_cost) || Number(m.estimated_cost) || 0) > 0).map((m) => `maintenance:${m.id}`);
+  const rentPaymentRefs = (rentPayments ?? []).map((rp) => `rent_payment:${rp.id}`);
 
   // Collect JE IDs from schedule rows
   const scheduleJeIds = new Set<string>();
@@ -386,7 +395,7 @@ export async function getPropertyTransactions(
   const jeIdArray = Array.from(scheduleJeIds);
 
   // Run dependent queries in parallel
-  const [invJeMap, paymentsResult, scheduleJeResult, maintJeMap] = await Promise.all([
+  const [invJeMap, paymentsResult, scheduleJeResult, maintJeMap, rentPaymentJeMap] = await Promise.all([
     getJEMap(supabase, companyId, invRefs),
     invoiceIds.length > 0
       ? supabase.from("payments").select("id, invoice_id, amount, payment_date, reference_number").in("invoice_id", invoiceIds).order("payment_date", { ascending: false })
@@ -395,9 +404,10 @@ export async function getPropertyTransactions(
       ? supabase.from("journal_entries").select("id, entry_number").in("id", jeIdArray)
       : Promise.resolve({ data: null }),
     getJEMap(supabase, companyId, maintRefs),
+    getJEMap(supabase, companyId, rentPaymentRefs),
   ]);
 
-  // Track JE IDs already represented by source entities (invoices/payments/maintenance)
+  // Track JE IDs already represented by source entities (invoices/payments/maintenance/rent)
   // so standalone JE lines loop can skip duplicates.
   const coveredJeIds = new Set<string>();
 
@@ -445,13 +455,17 @@ export async function getPropertyTransactions(
     }
   }
 
-  // Pre-populate coveredJeIds with maintenance JEs before the JE lines loop
+  // Pre-populate coveredJeIds with maintenance + rent payment JEs before the JE lines loop
   for (const m of maintenance ?? []) {
     const je = maintJeMap.get(`maintenance:${m.id}`);
     if (je) coveredJeIds.add(je.id);
   }
+  for (const rp of rentPayments ?? []) {
+    const je = rentPaymentJeMap.get(`rent_payment:${rp.id}`);
+    if (je) coveredJeIds.add(je.id);
+  }
 
-  // Standalone JE lines (only those NOT already covered by invoices/payments/maintenance)
+  // Standalone JE lines (only those NOT already covered by invoices/payments/maintenance/rent)
   for (const line of (jeLines ?? []) as JELineRow[]) {
     const je = line.journal_entries as unknown as {
       id: string; entry_number: string; entry_date: string;
@@ -534,6 +548,32 @@ export async function getPropertyTransactions(
       reference: je?.entry_number ?? "", source: "Maintenance", sourceHref: "/properties/maintenance",
       debit: cost, credit: 0,
       jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
+    });
+  }
+
+  // Process rent payments — show as explicit "Rent Payment" source
+  for (const rp of rentPayments ?? []) {
+    const amount = Number(rp.amount) || 0;
+    if (amount <= 0) continue;
+    const je = rentPaymentJeMap.get(`rent_payment:${rp.id}`);
+    if (je) coveredJeIds.add(je.id);
+    const leaseInfo = rp.leases as unknown as { tenant_name: string | null; unit_number: string | null; property_id: string | null } | null;
+    const tenantName = leaseInfo?.tenant_name ?? "Tenant";
+    const unitNumber = leaseInfo?.unit_number ?? "";
+    const methodLabel = rp.method === "online" && rp.gateway_provider
+      ? `Online (${rp.gateway_provider.charAt(0).toUpperCase() + rp.gateway_provider.slice(1)})`
+      : rp.method ?? "";
+    txns.push({
+      id: `rent-${rp.id}`,
+      date: rp.payment_date ?? rp.notes ?? new Date().toISOString().split("T")[0],
+      description: `Rent Payment — ${tenantName}${unitNumber ? ` (Unit ${unitNumber})` : ""}${methodLabel ? ` — ${methodLabel}` : ""}`,
+      reference: je?.entry_number ?? "",
+      source: "Rent Payment",
+      sourceHref: "/properties",
+      debit: 0,
+      credit: amount,
+      jeNumber: je?.entry_number ?? null,
+      jeId: je?.id ?? null,
     });
   }
 

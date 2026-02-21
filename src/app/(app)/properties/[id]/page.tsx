@@ -7,6 +7,10 @@ import {
   getPropertyAnnouncements,
   getPropertyRentPayments,
 } from "@/lib/queries/properties";
+import {
+  buildCompanyAccountMap,
+  generateRentPaymentJournalEntry,
+} from "@/lib/utils/invoice-accounting";
 import PropertyDetailClient from "./PropertyDetailClient";
 
 export const metadata = {
@@ -46,11 +50,34 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [financials, announcements, rentPayments] = await Promise.all([
+  let [financials, announcements, rentPayments] = await Promise.all([
     getPropertyFinancials(supabase, id),
     getPropertyAnnouncements(supabase, id),
     getPropertyRentPayments(supabase, id),
   ]);
+
+  // Auto-backfill: generate missing JEs for rent payments that don't have one
+  const paymentsWithoutJE = rentPayments.filter((p) => !p.je_id && p.amount > 0);
+  if (paymentsWithoutJE.length > 0) {
+    try {
+      const accountMap = await buildCompanyAccountMap(supabase, ctx.companyId);
+      for (const pmt of paymentsWithoutJE) {
+        await generateRentPaymentJournalEntry(supabase, ctx.companyId, ctx.userId, {
+          id: pmt.id,
+          amount: pmt.amount,
+          payment_date: pmt.payment_date ?? new Date().toISOString().slice(0, 10),
+          lease_id: pmt.lease_id,
+          property_id: id,
+          tenant_name: pmt.tenant_name ?? "Tenant",
+          gateway_provider: pmt.gateway_provider ?? undefined,
+        }, accountMap);
+      }
+      // Re-fetch payments to include the newly created JE references
+      rentPayments = await getPropertyRentPayments(supabase, id);
+    } catch (err) {
+      console.warn("Auto-backfill rent payment JEs warning:", err);
+    }
+  }
 
   return (
     <PropertyDetailClient

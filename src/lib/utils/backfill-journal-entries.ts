@@ -284,22 +284,25 @@ export async function backfillMissingJournalEntries(
   }
 
   // --- Rent Payments ---
-  if (accountMap.cashId && accountMap.rentReceivableId) {
+  if (accountMap.cashId && (accountMap.rentalIncomeId || accountMap.rentReceivableId)) {
     const { data: rentPayments } = await supabase
       .from("rent_payments")
-      .select("id, amount, payment_date, late_fee, lease_id, property_id, leases(tenant_name), journal_entry_id")
+      .select("id, amount, payment_date, late_fee, lease_id, gateway_provider, leases(tenant_name, property_id), journal_entry_id")
       .eq("company_id", companyId)
       .is("journal_entry_id", null)
       .not("amount", "is", null)
       .gt("amount", 0);
 
     for (const pmt of rentPayments ?? []) {
-      const tenantName = (pmt.leases as unknown as { tenant_name: string } | null)?.tenant_name ?? "Tenant";
+      const leaseInfo = pmt.leases as unknown as { tenant_name: string; property_id: string } | null;
+      const tenantName = leaseInfo?.tenant_name ?? "Tenant";
+      const propertyId = leaseInfo?.property_id ?? "";
       try {
         const r = await generateRentPaymentJournalEntry(supabase, companyId, userId, {
           id: pmt.id, amount: Number(pmt.amount), payment_date: pmt.payment_date,
           late_fee: Number(pmt.late_fee) || 0, lease_id: pmt.lease_id,
-          property_id: pmt.property_id, tenant_name: tenantName,
+          property_id: propertyId, tenant_name: tenantName,
+          gateway_provider: pmt.gateway_provider ?? undefined,
         }, accountMap);
         if (r) result.rentPaymentGenerated++;
       } catch (err) { console.warn("Backfill rent payment JE failed:", pmt.id, err); }
