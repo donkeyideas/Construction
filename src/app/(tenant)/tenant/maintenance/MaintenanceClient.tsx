@@ -154,10 +154,12 @@ export default function MaintenanceClient({
 
   return (
     <div>
-      <div className="fin-header">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h2>{t("maintenanceTitle")}</h2>
-          <p className="fin-header-sub">
+          <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "2rem", fontWeight: 700, margin: 0 }}>
+            {t("maintenanceTitle")}
+          </h2>
+          <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 2 }}>
             {t("maintenanceSubtitle")}
           </p>
         </div>
@@ -252,15 +254,15 @@ export default function MaintenanceClient({
           ))}
         </div>
       ) : (
-        <div className="fin-chart-card">
-          <div className="fin-empty">
-            <div className="fin-empty-icon">
-              <Wrench size={48} />
-            </div>
-            <div className="fin-empty-title">{t("noMaintenanceRequests")}</div>
-            <div className="fin-empty-desc">
-              {t("noMaintenanceDesc")}
-            </div>
+        <div className="card" style={{ padding: 48, textAlign: "center" }}>
+          <div style={{ color: "var(--muted)", marginBottom: 12 }}>
+            <Wrench size={48} />
+          </div>
+          <div style={{ fontFamily: "var(--font-serif)", fontSize: "1.1rem", fontWeight: 600, marginBottom: 6 }}>
+            {t("noMaintenanceRequests")}
+          </div>
+          <div style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
+            {t("noMaintenanceDesc")}
           </div>
         </div>
       )}
@@ -311,7 +313,7 @@ export default function MaintenanceClient({
                   <label className="tenant-label">{t("issueTitle")}</label>
                   <input
                     type="text"
-                    className="invite-form-input"
+                    className="tenant-form-input"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
                     required
@@ -329,7 +331,7 @@ export default function MaintenanceClient({
                   <div className="tenant-field">
                     <label className="tenant-label">{t("category")}</label>
                     <select
-                      className="invite-form-select"
+                      className="tenant-form-select"
                       value={editCategory}
                       onChange={(e) => setEditCategory(e.target.value)}
                       disabled={saving}
@@ -344,7 +346,7 @@ export default function MaintenanceClient({
                   <div className="tenant-field">
                     <label className="tenant-label">{t("priority")}</label>
                     <select
-                      className="invite-form-select"
+                      className="tenant-form-select"
                       value={editPriority}
                       onChange={(e) => setEditPriority(e.target.value)}
                       disabled={saving}
@@ -361,7 +363,7 @@ export default function MaintenanceClient({
                 <div className="tenant-field">
                   <label className="tenant-label">{t("description")}</label>
                   <textarea
-                    className="invite-form-input"
+                    className="tenant-form-input"
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
                     rows={5}

@@ -65,13 +65,13 @@ export default function SubmitMaintenanceRequestPage() {
 
   return (
     <div>
-      <div className="fin-header">
-        <div>
-          <h2>{t("submitMaintenanceTitle")}</h2>
-          <p className="fin-header-sub">
-            {t("submitMaintenanceSubtitle")}
-          </p>
-        </div>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "2rem", fontWeight: 700, margin: 0 }}>
+          {t("submitMaintenanceTitle")}
+        </h2>
+        <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 2 }}>
+          {t("submitMaintenanceSubtitle")}
+        </p>
       </div>
 
       <div className="card" style={{ maxWidth: 640, padding: 24 }}>
@@ -103,7 +103,7 @@ export default function SubmitMaintenanceRequestPage() {
             <input
               id="title"
               type="text"
-              className="invite-form-input"
+              className="tenant-form-input"
               placeholder={t("issuePlaceholder")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -125,7 +125,7 @@ export default function SubmitMaintenanceRequestPage() {
               </label>
               <select
                 id="category"
-                className="invite-form-select"
+                className="tenant-form-select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 disabled={submitting}
@@ -144,7 +144,7 @@ export default function SubmitMaintenanceRequestPage() {
               </label>
               <select
                 id="priority"
-                className="invite-form-select"
+                className="tenant-form-select"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
                 disabled={submitting}
@@ -164,7 +164,7 @@ export default function SubmitMaintenanceRequestPage() {
             </label>
             <textarea
               id="description"
-              className="invite-form-input"
+              className="tenant-form-input"
               placeholder={t("descriptionPlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
