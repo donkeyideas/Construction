@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -79,6 +79,14 @@ export default function TenantDashboardClient({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
+  // Upload document modal state
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadName, setUploadName] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const CATEGORIES = [
     { value: "plumbing", label: t("catPlumbing") },
     { value: "electrical", label: t("catElectrical") },
@@ -131,6 +139,39 @@ export default function TenantDashboardClient({
       setSubmitError(err instanceof Error ? err.message : t("somethingWentWrong"));
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function openUpload() {
+    setUploadFile(null);
+    setUploadName("");
+    setUploadError("");
+    setShowUpload(true);
+  }
+
+  async function handleUpload() {
+    if (!uploadFile) {
+      setUploadError(t("noFileSelected"));
+      return;
+    }
+    setUploading(true);
+    setUploadError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+      formData.append("name", uploadName || uploadFile.name);
+      const res = await fetch("/api/tenant/documents", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || t("failedUpload"));
+      setShowUpload(false);
+      router.refresh();
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : t("somethingWentWrong"));
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -488,14 +529,14 @@ export default function TenantDashboardClient({
             <div className="card" style={{ marginBottom: 24 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <div className="card-title" style={{ marginBottom: 0 }}>{t("documents")}</div>
-                <Link
-                  href="/tenant/documents"
+                <button
                   className="ui-btn ui-btn-sm ui-btn-outline"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 4, textDecoration: "none" }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                  onClick={openUpload}
                 >
                   <Upload size={13} />
                   {t("uploadDocument")}
-                </Link>
+                </button>
               </div>
               {dashboard.documents.length > 0 ? (
                 <>
@@ -578,6 +619,115 @@ export default function TenantDashboardClient({
                   {t("noAnnouncements")}
                 </p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Document Modal */}
+      {showUpload && (
+        <div className="tenant-modal-overlay" onClick={() => setShowUpload(false)}>
+          <div className="tenant-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="tenant-modal-header">
+              <h3 style={{ margin: 0, fontSize: "1.05rem" }}>
+                {t("uploadDocument")}
+              </h3>
+              <button
+                className="tenant-modal-close"
+                onClick={() => setShowUpload(false)}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
+              {t("uploadDocumentDesc")}
+            </p>
+
+            {uploadError && (
+              <div className="tenant-alert tenant-alert-error">{uploadError}</div>
+            )}
+
+            <div className="tenant-field">
+              <label className="tenant-label">{t("selectFile")}</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setUploadFile(file);
+                    setUploadName(file.name);
+                    setUploadError("");
+                  }
+                }}
+                disabled={uploading}
+              />
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  border: "2px dashed var(--border)",
+                  borderRadius: 8,
+                  padding: uploadFile ? "12px 16px" : "32px 16px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                }}
+              >
+                {uploadFile ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-blue)", fontSize: "0.7rem", fontWeight: 700, flexShrink: 0 }}>
+                      {uploadFile.type.includes("pdf") ? "PDF" : "DOC"}
+                    </div>
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontWeight: 600, fontSize: "0.85rem" }}>{uploadFile.name}</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{formatFileSize(uploadFile.size)}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <Upload size={24} style={{ color: "var(--muted)", marginBottom: 8 }} />
+                    <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{t("clickToSelectFile")}</div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {uploadFile && (
+              <div className="tenant-field">
+                <label className="tenant-label">{t("documentName")}</label>
+                <input
+                  type="text"
+                  className="tenant-form-input"
+                  value={uploadName}
+                  onChange={(e) => setUploadName(e.target.value)}
+                  disabled={uploading}
+                />
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 8 }}>
+              <button
+                className="ui-btn ui-btn-md ui-btn-outline"
+                onClick={() => setShowUpload(false)}
+                disabled={uploading}
+              >
+                {t("cancel")}
+              </button>
+              <button
+                className="ui-btn ui-btn-md ui-btn-primary"
+                onClick={handleUpload}
+                disabled={uploading || !uploadFile}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                {uploading ? t("uploading") : (
+                  <>
+                    <Upload size={15} />
+                    {t("uploadDocument")}
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
