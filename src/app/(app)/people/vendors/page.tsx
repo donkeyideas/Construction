@@ -1,6 +1,7 @@
 import { Truck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getAPPaymentHistory, getAPVendorSummary } from "@/lib/queries/financial";
 import VendorsClient from "./VendorsClient";
 
 export const metadata = {
@@ -23,8 +24,8 @@ export default async function VendorsPage() {
 
   const { companyId } = userCompany;
 
-  // Fetch vendor contacts, vendor contracts, projects, and payable invoices in parallel
-  const [{ data: contacts }, { data: contracts }, { data: projects }, { data: payableInvoices }] = await Promise.all([
+  // Fetch vendor contacts, vendor contracts, projects, payable invoices, payment history, and vendor summary in parallel
+  const [{ data: contacts }, { data: contracts }, { data: projects }, { data: payableInvoices }, paymentHistory, vendorSummary] = await Promise.all([
     supabase
       .from("contacts")
       .select("*")
@@ -50,6 +51,8 @@ export default async function VendorsPage() {
       .not("status", "eq", "voided")
       .not("status", "eq", "paid")
       .order("due_date", { ascending: true }),
+    getAPPaymentHistory(supabase, companyId),
+    getAPVendorSummary(supabase, companyId),
   ]);
 
   return (
@@ -69,6 +72,8 @@ export default async function VendorsPage() {
           invoice_date: inv.invoice_date as string,
           projects: inv.projects as { name: string } | null,
         }))}
+        paymentHistory={paymentHistory}
+        vendorSummary={vendorSummary}
       />
     </div>
   );

@@ -23,8 +23,10 @@ import {
   CreditCard,
   DollarSign,
   Loader2,
+  Users,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
+import type { APPaymentRow, VendorPaymentSummary } from "@/lib/queries/financial";
 import ImportModal from "@/components/ImportModal";
 import PrequalificationChecklist from "@/components/PrequalificationChecklist";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -117,11 +119,15 @@ export default function VendorsClient({
   contracts,
   projects,
   payableInvoices = [],
+  paymentHistory = [],
+  vendorSummary = [],
 }: {
   contacts: Contact[];
   contracts: VendorContract[];
   projects: Project[];
   payableInvoices?: PayableInvoice[];
+  paymentHistory?: APPaymentRow[];
+  vendorSummary?: VendorPaymentSummary[];
 }) {
   const router = useRouter();
   const t = useTranslations("people");
@@ -137,7 +143,7 @@ export default function VendorsClient({
     { key: "job_title", label: t("jobTitle"), required: false },
   ];
 
-  const [tab, setTab] = useState<"directory" | "contracts" | "payments">("directory");
+  const [tab, setTab] = useState<"directory" | "contracts" | "payments" | "history" | "summary">("directory");
   const [showImport, setShowImport] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -524,6 +530,18 @@ export default function VendorsClient({
         >
           Payments
         </button>
+        <button
+          className={`people-tab ${tab === "history" ? "active" : ""}`}
+          onClick={() => setTab("history")}
+        >
+          Payment History
+        </button>
+        <button
+          className={`people-tab ${tab === "summary" ? "active" : ""}`}
+          onClick={() => setTab("summary")}
+        >
+          Vendor Summary
+        </button>
       </div>
 
       {/* Directory Tab */}
@@ -784,6 +802,141 @@ export default function VendorsClient({
                 <div className="fin-empty-icon"><CreditCard size={48} /></div>
                 <div className="fin-empty-title">No Outstanding Invoices</div>
                 <div className="fin-empty-desc">All vendor invoices are paid or no payable invoices exist yet.</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Payment History Tab */}
+      {tab === "history" && (
+        <div>
+          {paymentHistory.length > 0 ? (
+            <div className="fin-chart-card" style={{ padding: 0 }}>
+              <div style={{ overflowX: "auto" }}>
+                <table className="invoice-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Vendor</th>
+                      <th>Invoice #</th>
+                      <th style={{ textAlign: "right" }}>Amount</th>
+                      <th>Method</th>
+                      <th>Reference</th>
+                      <th>JE</th>
+                      <th>Bank Account</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentHistory.map((pmt) => (
+                      <tr key={pmt.id}>
+                        <td>{new Date(pmt.payment_date).toLocaleDateString(dateLocale, { month: "short", day: "numeric", year: "numeric" })}</td>
+                        <td style={{ fontWeight: 500 }}>{pmt.vendor_name}</td>
+                        <td style={{ fontWeight: 600, color: "var(--color-blue)" }}>
+                          {pmt.invoice_number}
+                        </td>
+                        <td className="amount-col" style={{ color: "var(--color-green)" }}>
+                          {formatCurrency(pmt.amount)}
+                        </td>
+                        <td>{({ check: "Check", ach: "ACH", wire: "Wire Transfer", credit_card: "Credit Card", cash: "Cash", bank_transfer: "Bank Transfer" } as Record<string, string>)[pmt.method] || pmt.method}</td>
+                        <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
+                          {pmt.reference_number || "--"}
+                        </td>
+                        <td>
+                          {pmt.je_entry_number ? (
+                            <Link
+                              href={`/financial/general-ledger?entry=${pmt.je_entry_number}`}
+                              className="je-link"
+                            >
+                              {pmt.je_entry_number}
+                            </Link>
+                          ) : (
+                            <span style={{ color: "var(--muted)" }}>--</span>
+                          )}
+                        </td>
+                        <td style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                          {pmt.bank_account_name || "--"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="fin-chart-card">
+              <div className="fin-empty">
+                <div className="fin-empty-icon"><CreditCard size={48} /></div>
+                <div className="fin-empty-title">No Payments Found</div>
+                <div className="fin-empty-desc">No vendor payments have been recorded yet.</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Vendor Summary Tab */}
+      {tab === "summary" && (
+        <div>
+          {vendorSummary.length > 0 ? (
+            <div className="fin-chart-card" style={{ padding: 0 }}>
+              <div style={{ overflowX: "auto" }}>
+                <table className="invoice-table">
+                  <thead>
+                    <tr>
+                      <th>Vendor</th>
+                      <th style={{ textAlign: "right" }}>Total Owed</th>
+                      <th style={{ textAlign: "right" }}>Total Paid</th>
+                      <th style={{ textAlign: "center" }}>Invoices</th>
+                      <th>Last Payment</th>
+                      <th style={{ textAlign: "center" }}>Avg Days to Pay</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {vendorSummary.map((vs) => (
+                      <tr key={vs.vendor_id}>
+                        <td style={{ fontWeight: 600 }}>{vs.vendor_name}</td>
+                        <td className="amount-col">
+                          <span style={{ color: vs.total_owed > 0 ? "var(--color-red)" : "var(--text)" }}>
+                            {formatCurrency(vs.total_owed)}
+                          </span>
+                        </td>
+                        <td className="amount-col" style={{ color: "var(--color-green)" }}>
+                          {formatCurrency(vs.total_paid)}
+                        </td>
+                        <td style={{ textAlign: "center" }}>{vs.invoice_count}</td>
+                        <td>
+                          {vs.last_payment_date
+                            ? new Date(vs.last_payment_date).toLocaleDateString(dateLocale, { month: "short", day: "numeric", year: "numeric" })
+                            : <span style={{ color: "var(--muted)" }}>--</span>
+                          }
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          {vs.avg_days_to_pay !== null ? (
+                            <span style={{
+                              color: vs.avg_days_to_pay > 45 ? "var(--color-red)"
+                                : vs.avg_days_to_pay > 30 ? "var(--color-amber, #d97706)"
+                                : "var(--color-green)",
+                              fontWeight: 600,
+                            }}>
+                              {vs.avg_days_to_pay}d
+                            </span>
+                          ) : (
+                            <span style={{ color: "var(--muted)" }}>--</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="fin-chart-card">
+              <div className="fin-empty">
+                <div className="fin-empty-icon"><Users size={48} /></div>
+                <div className="fin-empty-title">No Vendor Data</div>
+                <div className="fin-empty-desc">Vendor payment summary will appear once invoices are created.</div>
               </div>
             </div>
           )}

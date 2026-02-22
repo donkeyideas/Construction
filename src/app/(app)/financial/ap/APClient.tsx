@@ -17,13 +17,10 @@ import {
   ExternalLink,
   Loader2,
   Upload,
-  CreditCard,
-  Users,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
-import type { APPaymentRow, VendorPaymentSummary } from "@/lib/queries/financial";
 
 /* ------------------------------------------------------------------
    Types
@@ -57,24 +54,20 @@ interface APClientProps {
   pendingApprovalCount: number;
   paidThisMonth: number;
   activeStatus: string | undefined;
-  activeTab: string;
   linkedJEs?: Record<string, LinkedJE[]>;
   initialStartDate?: string;
   initialEndDate?: string;
-  paymentHistory: APPaymentRow[];
-  vendorSummary: VendorPaymentSummary[];
 }
 
 /* ------------------------------------------------------------------
    Helpers
    ------------------------------------------------------------------ */
 
-function buildUrl(status?: string, start?: string, end?: string, tab?: string): string {
+function buildUrl(status?: string, start?: string, end?: string): string {
   const p = new URLSearchParams();
   if (status && status !== "all") p.set("status", status);
   if (start) p.set("start", start);
   if (end) p.set("end", end);
-  if (tab && tab !== "outstanding") p.set("tab", tab);
   const qs = p.toString();
   return `/financial/ap${qs ? `?${qs}` : ""}`;
 }
@@ -105,18 +98,6 @@ function getTermsLabel(terms: string | null): string {
   return labels[terms] || terms;
 }
 
-function getMethodLabel(method: string): string {
-  const labels: Record<string, string> = {
-    check: "Check",
-    ach: "ACH",
-    wire: "Wire Transfer",
-    credit_card: "Credit Card",
-    cash: "Cash",
-    bank_transfer: "Bank Transfer",
-  };
-  return labels[method] || method;
-}
-
 /* ==================================================================
    Component
    ================================================================== */
@@ -128,12 +109,9 @@ export default function APClient({
   pendingApprovalCount,
   paidThisMonth,
   activeStatus,
-  activeTab,
   linkedJEs = {},
   initialStartDate,
   initialEndDate,
-  paymentHistory,
-  vendorSummary,
 }: APClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
@@ -142,7 +120,6 @@ export default function APClient({
   const now = new Date();
   const [filterStart, setFilterStart] = useState(initialStartDate || "");
   const [filterEnd, setFilterEnd] = useState(initialEndDate || "");
-  const [currentTab, setCurrentTab] = useState(activeTab);
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString(dateLocale, {
@@ -290,11 +267,6 @@ export default function APClient({
     }
   }
 
-  function switchTab(tab: string) {
-    setCurrentTab(tab);
-    router.push(buildUrl(activeStatus, filterStart || undefined, filterEnd || undefined, tab));
-  }
-
   return (
     <div>
       {/* Header */}
@@ -328,7 +300,7 @@ export default function APClient({
         <button
           className="ui-btn ui-btn-primary ui-btn-md"
           onClick={() => {
-            router.push(buildUrl(activeStatus, filterStart || undefined, filterEnd || undefined, currentTab));
+            router.push(buildUrl(activeStatus, filterStart || undefined, filterEnd || undefined));
           }}
         >
           {t("apply")}
@@ -361,38 +333,13 @@ export default function APClient({
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="ap-tabs">
-        <button
-          className={`ap-tab ${currentTab === "outstanding" ? "active" : ""}`}
-          onClick={() => switchTab("outstanding")}
-        >
-          {t("tabOutstanding")}
-        </button>
-        <button
-          className={`ap-tab ${currentTab === "payments" ? "active" : ""}`}
-          onClick={() => switchTab("payments")}
-        >
-          {t("tabPaymentHistory")}
-        </button>
-        <button
-          className={`ap-tab ${currentTab === "vendors" ? "active" : ""}`}
-          onClick={() => switchTab("vendors")}
-        >
-          {t("tabVendorSummary")}
-        </button>
-      </div>
-
-      {/* ============ OUTSTANDING TAB ============ */}
-      {currentTab === "outstanding" && (
-        <>
-          {/* Status Filters */}
-          <div className="fin-filters">
+      {/* Status Filters */}
+      <div className="fin-filters">
             <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>{t("status")}:</label>
             {statuses.map((s) => (
               <Link
                 key={s.value}
-                href={buildUrl(s.value, filterStart || undefined, filterEnd || undefined, "outstanding")}
+                href={buildUrl(s.value, filterStart || undefined, filterEnd || undefined)}
                 className={`ui-btn ui-btn-sm ${
                   activeStatus === s.value || (!activeStatus && s.value === "all")
                     ? "ui-btn-primary"
@@ -524,147 +471,6 @@ export default function APClient({
               </div>
             </div>
           )}
-        </>
-      )}
-
-      {/* ============ PAYMENT HISTORY TAB ============ */}
-      {currentTab === "payments" && (
-        <>
-          {paymentHistory.length > 0 ? (
-            <div className="fin-chart-card" style={{ padding: 0 }}>
-              <div style={{ overflowX: "auto" }}>
-                <table className="invoice-table">
-                  <thead>
-                    <tr>
-                      <th>{t("date")}</th>
-                      <th>{t("vendorName")}</th>
-                      <th>{t("invoiceNumber")}</th>
-                      <th style={{ textAlign: "right" }}>{t("amount")}</th>
-                      <th>{t("method")}</th>
-                      <th>{t("reference")}</th>
-                      <th>{t("terms")}</th>
-                      <th>JE</th>
-                      <th>{t("bankAccount")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paymentHistory.map((pmt) => (
-                      <tr key={pmt.id}>
-                        <td>{formatDate(pmt.payment_date)}</td>
-                        <td style={{ fontWeight: 500 }}>{pmt.vendor_name}</td>
-                        <td style={{ fontWeight: 600, color: "var(--color-blue)" }}>
-                          {pmt.invoice_number}
-                        </td>
-                        <td className="amount-col" style={{ color: "var(--color-green)" }}>
-                          {formatCurrency(pmt.amount)}
-                        </td>
-                        <td>{getMethodLabel(pmt.method)}</td>
-                        <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
-                          {pmt.reference_number || "--"}
-                        </td>
-                        <td style={{ fontSize: "0.82rem" }}>
-                          {getTermsLabel(pmt.payment_terms)}
-                        </td>
-                        <td>
-                          {pmt.je_entry_number ? (
-                            <Link
-                              href={`/financial/general-ledger?entry=${pmt.je_entry_number}`}
-                              className="je-link"
-                            >
-                              {pmt.je_entry_number}
-                            </Link>
-                          ) : (
-                            <span style={{ color: "var(--muted)" }}>--</span>
-                          )}
-                        </td>
-                        <td style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-                          {pmt.bank_account_name || "--"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            <div className="fin-chart-card">
-              <div className="fin-empty">
-                <div className="fin-empty-icon"><CreditCard size={48} /></div>
-                <div className="fin-empty-title">{t("noPaymentsFound")}</div>
-                <div className="fin-empty-desc">{t("noPaymentsDesc")}</div>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* ============ VENDOR SUMMARY TAB ============ */}
-      {currentTab === "vendors" && (
-        <>
-          {vendorSummary.length > 0 ? (
-            <div className="fin-chart-card" style={{ padding: 0 }}>
-              <div style={{ overflowX: "auto" }}>
-                <table className="invoice-table">
-                  <thead>
-                    <tr>
-                      <th>{t("vendorName")}</th>
-                      <th style={{ textAlign: "right" }}>{t("totalOwed")}</th>
-                      <th style={{ textAlign: "right" }}>{t("totalPaid")}</th>
-                      <th style={{ textAlign: "center" }}>{t("invoices")}</th>
-                      <th>{t("lastPayment")}</th>
-                      <th style={{ textAlign: "center" }}>{t("avgDaysToPay")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {vendorSummary.map((vs) => (
-                      <tr key={vs.vendor_id}>
-                        <td style={{ fontWeight: 600 }}>{vs.vendor_name}</td>
-                        <td className="amount-col">
-                          <span style={{ color: vs.total_owed > 0 ? "var(--color-red)" : "var(--text)" }}>
-                            {formatCurrency(vs.total_owed)}
-                          </span>
-                        </td>
-                        <td className="amount-col" style={{ color: "var(--color-green)" }}>
-                          {formatCurrency(vs.total_paid)}
-                        </td>
-                        <td style={{ textAlign: "center" }}>{vs.invoice_count}</td>
-                        <td>
-                          {vs.last_payment_date
-                            ? formatDate(vs.last_payment_date)
-                            : <span style={{ color: "var(--muted)" }}>--</span>
-                          }
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {vs.avg_days_to_pay !== null ? (
-                            <span style={{
-                              color: vs.avg_days_to_pay > 45 ? "var(--color-red)"
-                                : vs.avg_days_to_pay > 30 ? "var(--color-amber, #d97706)"
-                                : "var(--color-green)",
-                              fontWeight: 600,
-                            }}>
-                              {vs.avg_days_to_pay}d
-                            </span>
-                          ) : (
-                            <span style={{ color: "var(--muted)" }}>--</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            <div className="fin-chart-card">
-              <div className="fin-empty">
-                <div className="fin-empty-icon"><Users size={48} /></div>
-                <div className="fin-empty-title">{t("noVendorData")}</div>
-                <div className="fin-empty-desc">{t("noVendorDataDesc")}</div>
-              </div>
-            </div>
-          )}
-        </>
-      )}
 
       {/* Invoice Detail Modal */}
       {selectedInvoice && (
