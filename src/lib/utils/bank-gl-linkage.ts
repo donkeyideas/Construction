@@ -2,8 +2,9 @@
  * Bank Account ↔ GL Account Linkage Utility
  *
  * Ensures every bank account has a corresponding GL account in the Chart of Accounts.
+ * GL accounts are named "Checking ••1842" or "Savings ••7234" using the last 4 digits.
  * When a bank account is created (API or import), this utility:
- *   1. Finds or creates a matching GL account (asset, 1010-1049 range)
+ *   1. Finds or creates a matching GL account (asset, 1040-1099 range)
  *   2. Links it via bank_accounts.gl_account_id
  *   3. Creates an opening balance JE if the bank has an initial balance
  */
@@ -11,6 +12,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createPostedJournalEntry } from "@/lib/queries/financial";
 import type { JournalEntryCreateData } from "@/lib/queries/financial";
+
+/**
+ * Build the GL account display name: "Checking ••1842" or "Savings ••7234"
+ */
+function buildGLName(bankType: string, last4: string | null): string {
+  const typeLabel = bankType === "savings" ? "Savings" : "Checking";
+  return `${typeLabel} ••${last4 || "????"}`;
+}
 
 /**
  * Ensure a bank account is linked to a GL account.
@@ -27,54 +36,42 @@ export async function ensureBankAccountGLLink(
   userId?: string
 ): Promise<{ glAccountId: string; created: boolean }> {
   // 1. Check if already linked
-  const { data: existing } = await supabase
+  const { data: bankRow } = await supabase
     .from("bank_accounts")
-    .select("gl_account_id")
+    .select("gl_account_id, account_number_last4")
     .eq("id", bankAccountId)
     .single();
 
-  if (existing?.gl_account_id) {
-    return { glAccountId: existing.gl_account_id, created: false };
+  if (bankRow?.gl_account_id) {
+    return { glAccountId: bankRow.gl_account_id, created: false };
   }
 
-  // 2. Search for matching GL account by name pattern
-  const nameLower = bankName.toLowerCase();
-  const { data: candidates } = await supabase
-    .from("chart_of_accounts")
-    .select("id, account_number, name")
-    .eq("company_id", companyId)
-    .eq("account_type", "asset")
-    .eq("is_active", true)
-    .gte("account_number", "1000")
-    .lte("account_number", "1049")
-    .order("account_number");
+  const last4 = bankRow?.account_number_last4 || null;
+  const glName = buildGLName(bankType, last4);
 
+  // 2. Search for existing GL account with the same "••last4" name (already created)
   let matchedId: string | null = null;
-  if (candidates) {
-    for (const ca of candidates) {
-      const caNameLower = ca.name.toLowerCase();
-      if (
-        caNameLower === nameLower ||
-        nameLower.includes(caNameLower) ||
-        caNameLower.includes(nameLower) ||
-        (nameLower.includes("operating") && caNameLower.includes("operating")) ||
-        (nameLower.includes("payroll") && caNameLower.includes("payroll")) ||
-        (nameLower.includes("savings") && caNameLower.includes("savings")) ||
-        (nameLower.includes("reserve") && caNameLower.includes("reserve")) ||
-        (nameLower.includes("checking") && caNameLower.includes("checking"))
-      ) {
-        // Make sure this GL account isn't already linked to a different bank account
-        const { data: alreadyLinked } = await supabase
-          .from("bank_accounts")
-          .select("id")
-          .eq("gl_account_id", ca.id)
-          .neq("id", bankAccountId)
-          .limit(1);
+  if (last4) {
+    const { data: existing } = await supabase
+      .from("chart_of_accounts")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("account_type", "asset")
+      .eq("is_active", true)
+      .ilike("name", `%••${last4}%`)
+      .limit(1);
 
-        if (!alreadyLinked || alreadyLinked.length === 0) {
-          matchedId = ca.id;
-          break;
-        }
+    if (existing && existing.length > 0) {
+      // Verify it's not already linked to a different bank account
+      const { data: alreadyLinked } = await supabase
+        .from("bank_accounts")
+        .select("id")
+        .eq("gl_account_id", existing[0].id)
+        .neq("id", bankAccountId)
+        .limit(1);
+
+      if (!alreadyLinked || alreadyLinked.length === 0) {
+        matchedId = existing[0].id;
       }
     }
   }
@@ -85,14 +82,22 @@ export async function ensureBankAccountGLLink(
   if (matchedId) {
     glAccountId = matchedId;
   } else {
-    // 3. Auto-create a new GL account
-    // Find next available account number in 1010-1049
-    const maxNum = candidates && candidates.length > 0
-      ? Math.max(...candidates.map((c) => parseInt(c.account_number, 10)))
-      : 1009;
-    const nextNum = Math.max(maxNum + 1, 1010);
+    // 3. Auto-create a new GL account in 1040-1099 range
+    const { data: highAccounts } = await supabase
+      .from("chart_of_accounts")
+      .select("account_number")
+      .eq("company_id", companyId)
+      .gte("account_number", "1040")
+      .lte("account_number", "1099")
+      .order("account_number", { ascending: false })
+      .limit(1);
 
-    if (nextNum > 1049) {
+    const maxNum = highAccounts && highAccounts.length > 0
+      ? parseInt(highAccounts[0].account_number, 10)
+      : 1039;
+    const nextNum = Math.max(maxNum + 1, 1040);
+
+    if (nextNum > 1099) {
       // Fallback: use the parent Cash account (1000)
       const { data: cashParent } = await supabase
         .from("chart_of_accounts")
@@ -104,7 +109,7 @@ export async function ensureBankAccountGLLink(
       if (cashParent) {
         glAccountId = cashParent.id;
       } else {
-        throw new Error("No available account numbers in 1010-1049 range and no Cash parent (1000) account found");
+        throw new Error("No available account numbers in 1040-1099 range and no Cash parent (1000) account found");
       }
     } else {
       // Find parent account 1000 for hierarchy
@@ -115,10 +120,6 @@ export async function ensureBankAccountGLLink(
         .eq("account_number", "1000")
         .single();
 
-      const glName = bankName;
-      const subType = bankType === "savings" ? "current_asset" : "current_asset";
-      const description = `Bank account: ${bankName} (${bankType})`;
-
       const { data: newAccount, error: createErr } = await supabase
         .from("chart_of_accounts")
         .insert({
@@ -126,10 +127,10 @@ export async function ensureBankAccountGLLink(
           account_number: String(nextNum),
           name: glName,
           account_type: "asset",
-          sub_type: subType,
+          sub_type: "current_asset",
           normal_balance: "debit",
           is_active: true,
-          description,
+          description: `Bank account: ${bankName}`,
           parent_id: parentAccount?.id || null,
         })
         .select("id")
@@ -160,7 +161,7 @@ export async function ensureBankAccountGLLink(
 
 /**
  * Create an opening balance journal entry for a bank account.
- * DR Bank GL Account / CR Opening Balance Equity
+ * DR Bank GL Account / CR 1000 Cash (reclassification from generic Cash)
  */
 async function createOpeningBalanceJE(
   supabase: SupabaseClient,
@@ -184,9 +185,15 @@ async function createOpeningBalanceJE(
     return; // Already exists
   }
 
-  // Get or create Opening Balance Equity account (3050)
-  const equityAccountId = await getOrCreateOpeningBalanceEquity(supabase, companyId);
-  if (!equityAccountId) return;
+  // Use 1000 Cash as the offset (reclassification from generic Cash)
+  const { data: cashAccount } = await supabase
+    .from("chart_of_accounts")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("account_number", "1000")
+    .single();
+
+  if (!cashAccount) return;
 
   const shortId = bankAccountId.substring(0, 8);
   const today = new Date().toISOString().split("T")[0];
@@ -204,74 +211,13 @@ async function createOpeningBalanceJE(
         description: `Opening balance - ${bankName}`,
       },
       {
-        account_id: equityAccountId,
+        account_id: cashAccount.id,
         debit: 0,
         credit: amount,
-        description: `Opening balance - ${bankName}`,
+        description: `Reclassify Cash to ${bankName}`,
       },
     ],
   };
 
   await createPostedJournalEntry(supabase, companyId, userId, entryData);
-}
-
-/**
- * Get or create the "Opening Balance Equity" account (3050).
- */
-async function getOrCreateOpeningBalanceEquity(
-  supabase: SupabaseClient,
-  companyId: string
-): Promise<string | null> {
-  // Check if it already exists
-  const { data: existing } = await supabase
-    .from("chart_of_accounts")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("account_number", "3050")
-    .single();
-
-  if (existing) return existing.id;
-
-  // Also check by name pattern
-  const { data: byName } = await supabase
-    .from("chart_of_accounts")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("account_type", "equity")
-    .ilike("name", "%opening balance%")
-    .limit(1);
-
-  if (byName && byName.length > 0) return byName[0].id;
-
-  // Find parent equity account (3000 Owner's Equity) for hierarchy
-  const { data: parentEquity } = await supabase
-    .from("chart_of_accounts")
-    .select("id")
-    .eq("company_id", companyId)
-    .eq("account_number", "3000")
-    .single();
-
-  // Create the account
-  const { data: created, error } = await supabase
-    .from("chart_of_accounts")
-    .insert({
-      company_id: companyId,
-      account_number: "3050",
-      name: "Opening Balance Equity",
-      account_type: "equity",
-      sub_type: "owners_equity",
-      normal_balance: "credit",
-      is_active: true,
-      description: "Offset account for opening balance entries when bank accounts are created",
-      parent_id: parentEquity?.id || null,
-    })
-    .select("id")
-    .single();
-
-  if (error || !created) {
-    console.error("Failed to create Opening Balance Equity account:", error?.message);
-    return null;
-  }
-
-  return created.id;
 }
