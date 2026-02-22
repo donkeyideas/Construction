@@ -1,13 +1,13 @@
 import { Globe } from "lucide-react";
 
-export const metadata = { title: "SEO, AEO & CRO Management - Buildwrk" };
+export const metadata = { title: "Search & AI Management - Buildwrk" };
 
 export default function SEOManagementPage() {
   return (
     <div>
       <div className="fin-header">
         <div>
-          <h2>SEO, AEO & CRO Management</h2>
+          <h2>Search & AI Management</h2>
           <p className="fin-header-sub">Optimize your site for search engines and manage geographic targeting.</p>
         </div>
       </div>

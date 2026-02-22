@@ -16,7 +16,7 @@ import {
 import SeoClient from "./SeoClient";
 
 export const metadata = {
-  title: "SEO, AEO & CRO - Super Admin - Buildwrk",
+  title: "Search & AI - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminSeoPage() {
