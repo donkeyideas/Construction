@@ -168,7 +168,23 @@ function isPreviewableImage(fileType: string | null): boolean {
 export default function VendorDashboardClient({ dashboard }: Props) {
   const t = useTranslations("vendor");
   const router = useRouter();
-  const { contact, activeProjects, recentInvoices, certifications, contracts, documents, stats } = dashboard;
+  const { contact, activeProjects, recentInvoices, certifications: rawCertifications, contracts, documents, stats } = dashboard;
+
+  // Merge compliance documents (uploaded before cert tracking) into certifications list
+  // Documents that already have a matching certification (by name) are not duplicated
+  const certifications: VendorCertification[] = (() => {
+    const complianceDocs = documents.filter((d: VendorDocumentItem) => d.doc_category === "compliance");
+    const certNames = new Set(rawCertifications.map((c: VendorCertification) => c.cert_name.toLowerCase()));
+    const virtualCerts: VendorCertification[] = complianceDocs
+      .filter((d: VendorDocumentItem) => !certNames.has(d.doc_name.toLowerCase()))
+      .map((d: VendorDocumentItem) => ({
+        id: `doc-${d.id}`,
+        cert_name: d.doc_name,
+        cert_type: null,
+        expiry_date: null, // shows as "On File" with green dot
+      }));
+    return [...rawCertifications, ...virtualCerts];
+  })();
 
   // Invoice submission form state
   const [invoiceProjectId, setInvoiceProjectId] = useState("");
