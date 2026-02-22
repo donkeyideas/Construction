@@ -18,16 +18,14 @@ import {
   Zap,
   Rocket,
   Ticket,
-  Database,
   LayoutGrid,
 } from "lucide-react";
-import DataImportTab from "./DataImportTab";
 import { MODULES } from "@/lib/constants/modules";
 import { ArrowUpRight } from "lucide-react";
 
 import type { CompanyDetails } from "@/lib/queries/admin";
 
-type TabKey = "general" | "subscription" | "modules" | "integrations" | "data-import";
+type TabKey = "general" | "subscription" | "modules" | "integrations";
 
 const INDUSTRIES = [
   "General Contracting",
@@ -86,7 +84,6 @@ export default function SettingsClient({
     { key: "subscription", label: t("subscription"), icon: <CreditCard size={15} /> },
     { key: "modules", label: "Modules", icon: <LayoutGrid size={15} /> },
     { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
-    { key: "data-import", label: "Data Import", icon: <Database size={15} /> },
   ];
 
   const PLAN_INFO: Record<string, { label: string; icon: typeof Zap; color: string; features: string[] }> = {
@@ -1109,8 +1106,6 @@ export default function SettingsClient({
           </div>
         )}
 
-        {/* ===== Data Import Tab ===== */}
-        {activeTab === "data-import" && <DataImportTab />}
       </div>
     </div>
   );
