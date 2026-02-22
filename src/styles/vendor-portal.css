@@ -974,3 +974,188 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== Vendor Modal ===== */
+.vendor-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.vendor-modal {
+  background: var(--bg, #ffffff);
+  border: 1px solid var(--border, #d6d3d1);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.vendor-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border, #d6d3d1);
+}
+.vendor-modal-header h3 {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+.vendor-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted, #78716c);
+  padding: 4px;
+  border-radius: 4px;
+}
+.vendor-modal-close:hover {
+  background: var(--surface, #f5f0eb);
+  color: var(--text, #1c1917);
+}
+.vendor-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.vendor-modal-field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted, #78716c);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.vendor-modal-field input,
+.vendor-modal-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #d6d3d1);
+  border-radius: 6px;
+  font-size: 0.88rem;
+  background: var(--bg, #ffffff);
+  color: var(--text, #1c1917);
+}
+.vendor-modal-field input:focus,
+.vendor-modal-field select:focus {
+  outline: none;
+  border-color: var(--amber, #b45309);
+  box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.15);
+}
+.vendor-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border, #d6d3d1);
+}
+.vendor-modal-btn-cancel {
+  padding: 9px 18px;
+  border: 1px solid var(--border, #d6d3d1);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text, #1c1917);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.vendor-modal-btn-cancel:hover {
+  background: var(--surface, #f5f0eb);
+}
+.vendor-modal-btn-submit {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 6px;
+  background: var(--amber, #b45309);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.vendor-modal-btn-submit:hover {
+  background: #92400e;
+}
+.vendor-modal-btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Invoice detail modal — wider */
+.vendor-modal.vendor-modal-wide {
+  max-width: 640px;
+}
+.vendor-invoice-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.vendor-invoice-stat {
+  text-align: center;
+  padding: 12px;
+  background: var(--surface, #f5f0eb);
+  border-radius: 8px;
+}
+.vendor-invoice-stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted, #78716c);
+  margin-bottom: 4px;
+}
+.vendor-invoice-stat-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.vendor-invoice-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border, #d6d3d1);
+  font-size: 0.85rem;
+}
+.vendor-invoice-detail-row:last-child {
+  border-bottom: none;
+}
+.vendor-invoice-detail-label {
+  color: var(--muted, #78716c);
+}
+.vendor-payments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.vendor-payments-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted, #78716c);
+  border-bottom: 2px solid var(--border, #d6d3d1);
+}
+.vendor-payments-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border, #d6d3d1);
+}
+.vendor-payments-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Clickable invoice rows */
+.vendor-data-table tbody tr.vendor-row-clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.vendor-data-table tbody tr.vendor-row-clickable:hover {
+  background: var(--surface, #f5f0eb);
+}

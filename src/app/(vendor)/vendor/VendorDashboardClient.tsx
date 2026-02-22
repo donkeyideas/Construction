@@ -16,6 +16,8 @@ import {
   Pencil,
   X,
   Phone,
+  DollarSign,
+  Calendar,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import type {
@@ -139,6 +141,28 @@ export default function VendorDashboardClient({ dashboard }: Props) {
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [uploadMsg, setUploadMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [docUploadMsg, setDocUploadMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Document upload modal state
+  const [docModalOpen, setDocModalOpen] = useState(false);
+  const [docModalFile, setDocModalFile] = useState<File | null>(null);
+  const [docModalProject, setDocModalProject] = useState("");
+  const [docModalName, setDocModalName] = useState("");
+  const [docModalType, setDocModalType] = useState<"general" | "compliance">("general");
+  const [docModalUploading, setDocModalUploading] = useState(false);
+  const [docModalMsg, setDocModalMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const docModalFileRef = useRef<HTMLInputElement>(null);
+
+  // Invoice detail modal state
+  const [selectedInvoice, setSelectedInvoice] = useState<VendorRecentInvoice | null>(null);
+  const [invoicePayments, setInvoicePayments] = useState<Array<{
+    id: string;
+    payment_date: string;
+    amount: number;
+    method: string;
+    reference_number: string | null;
+    notes: string | null;
+  }> | null>(null);
+  const [loadingPayments, setLoadingPayments] = useState(false);
 
   // Profile edit state
   const [editingProfile, setEditingProfile] = useState(false);
@@ -276,6 +300,75 @@ export default function VendorDashboardClient({ dashboard }: Props) {
       setProfileMsg({ type: "error", text: "Network error. Please try again." });
     } finally {
       setSavingProfile(false);
+    }
+  }
+
+  function openDocModal(type: "general" | "compliance") {
+    setDocModalType(type);
+    setDocModalFile(null);
+    setDocModalName("");
+    setDocModalProject("");
+    setDocModalMsg(null);
+    setDocModalOpen(true);
+  }
+
+  async function handleDocModalSubmit() {
+    if (!docModalFile) return;
+    setDocModalUploading(true);
+    setDocModalMsg(null);
+
+    if (docModalFile.size > 10 * 1024 * 1024) {
+      setDocModalMsg({ type: "error", text: "File too large. Maximum size is 10MB." });
+      setDocModalUploading(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", docModalFile);
+    formData.append("doc_type", docModalType);
+    formData.append("doc_name", docModalName || docModalFile.name);
+    if (docModalProject) formData.append("project_id", docModalProject);
+
+    try {
+      const res = await fetch("/api/vendor/documents", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        setDocModalMsg({ type: "success", text: "Document uploaded successfully!" });
+        setTimeout(() => {
+          setDocModalOpen(false);
+          router.refresh();
+        }, 800);
+      } else {
+        const data = await res.json();
+        setDocModalMsg({ type: "error", text: data.error || "Failed to upload document." });
+      }
+    } catch {
+      setDocModalMsg({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setDocModalUploading(false);
+    }
+  }
+
+  async function openInvoiceDetail(inv: VendorRecentInvoice) {
+    setSelectedInvoice(inv);
+    setInvoicePayments(null);
+    setLoadingPayments(true);
+
+    try {
+      const res = await fetch(`/api/vendor/invoices/${inv.id}/payments`);
+      if (res.ok) {
+        const data = await res.json();
+        setInvoicePayments(data.payments ?? []);
+      } else {
+        setInvoicePayments([]);
+      }
+    } catch {
+      setInvoicePayments([]);
+    } finally {
+      setLoadingPayments(false);
     }
   }
 
@@ -493,7 +586,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                     {recentInvoices.map((inv: VendorRecentInvoice) => {
                       const badge = getStatusBadge(inv.status);
                       return (
-                        <tr key={inv.id}>
+                        <tr key={inv.id} className="vendor-row-clickable" onClick={() => openInvoiceDetail(inv)}>
                           <td style={{ fontWeight: 600 }}>{inv.invoice_number}</td>
                           <td>{inv.project_name || "—"}</td>
                           <td>{formatCurrency(inv.total_amount)}</td>
@@ -528,23 +621,11 @@ export default function VendorDashboardClient({ dashboard }: Props) {
               </span>
               <button
                 className="vendor-btn-upload"
-                onClick={() => complianceFileRef.current?.click()}
-                disabled={uploadingCompliance}
+                onClick={() => openDocModal("compliance")}
               >
                 <Upload size={14} />
-                {uploadingCompliance ? "Uploading..." : "Upload"}
+                Upload
               </button>
-              <input
-                ref={complianceFileRef}
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileUpload(file, "compliance", setUploadingCompliance, setUploadMsg);
-                  e.target.value = "";
-                }}
-              />
             </div>
 
             {uploadMsg && (
@@ -623,23 +704,11 @@ export default function VendorDashboardClient({ dashboard }: Props) {
               </span>
               <button
                 className="vendor-btn-upload"
-                onClick={() => documentFileRef.current?.click()}
-                disabled={uploadingDoc}
+                onClick={() => openDocModal("general")}
               >
                 <Upload size={14} />
-                {uploadingDoc ? "Uploading..." : "Upload"}
+                Upload
               </button>
-              <input
-                ref={documentFileRef}
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileUpload(file, "general", setUploadingDoc, setDocUploadMsg);
-                  e.target.value = "";
-                }}
-              />
             </div>
 
             {docUploadMsg && (
@@ -828,6 +897,212 @@ export default function VendorDashboardClient({ dashboard }: Props) {
           </div>
         </div>
       </div>
+
+      {/* ===== Document Upload Modal ===== */}
+      {docModalOpen && (
+        <div className="vendor-modal-overlay" onClick={() => setDocModalOpen(false)}>
+          <div className="vendor-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="vendor-modal-header">
+              <h3>{docModalType === "compliance" ? "Upload Compliance Document" : "Upload Document"}</h3>
+              <button className="vendor-modal-close" onClick={() => setDocModalOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="vendor-modal-body">
+              {docModalMsg && (
+                <div className={docModalMsg.type === "success" ? "vendor-msg-success" : "vendor-msg-error"}>
+                  {docModalMsg.text}
+                </div>
+              )}
+
+              {/* File drop zone */}
+              <div className="vendor-modal-field">
+                <label>File</label>
+                <div
+                  className="vendor-file-upload"
+                  onClick={() => docModalFileRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files[0];
+                    if (file) {
+                      setDocModalFile(file);
+                      setDocModalName(file.name.replace(/\.[^.]+$/, ""));
+                    }
+                  }}
+                >
+                  {docModalFile ? (
+                    <span style={{ fontSize: "0.85rem" }}>{docModalFile.name}</span>
+                  ) : (
+                    <span className="vendor-file-upload-text">
+                      <strong style={{ color: "var(--amber, #b45309)" }}>Click to upload</strong> or drag and drop
+                      <br />PDF, PNG, or JPG up to 10MB
+                    </span>
+                  )}
+                </div>
+                <input
+                  ref={docModalFileRef}
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setDocModalFile(file);
+                      setDocModalName(file.name.replace(/\.[^.]+$/, ""));
+                    }
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+
+              {/* Document name */}
+              <div className="vendor-modal-field">
+                <label>Document Name</label>
+                <input
+                  type="text"
+                  value={docModalName}
+                  onChange={(e) => setDocModalName(e.target.value)}
+                  placeholder="e.g., Insurance Certificate 2026"
+                />
+              </div>
+
+              {/* Project */}
+              <div className="vendor-modal-field">
+                <label>Project (optional)</label>
+                <select value={docModalProject} onChange={(e) => setDocModalProject(e.target.value)}>
+                  <option value="">— No Project —</option>
+                  {activeProjects.map((p) => (
+                    <option key={p.project_id} value={p.project_id}>{p.project_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Document type */}
+              <div className="vendor-modal-field">
+                <label>Category</label>
+                <select value={docModalType} onChange={(e) => setDocModalType(e.target.value as "general" | "compliance")}>
+                  <option value="general">General</option>
+                  <option value="compliance">Compliance / Certification</option>
+                </select>
+              </div>
+            </div>
+            <div className="vendor-modal-footer">
+              <button className="vendor-modal-btn-cancel" onClick={() => setDocModalOpen(false)}>Cancel</button>
+              <button
+                className="vendor-modal-btn-submit"
+                disabled={!docModalFile || docModalUploading}
+                onClick={handleDocModalSubmit}
+              >
+                {docModalUploading ? "Uploading..." : "Upload Document"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Invoice Detail Modal ===== */}
+      {selectedInvoice && (
+        <div className="vendor-modal-overlay" onClick={() => setSelectedInvoice(null)}>
+          <div className="vendor-modal vendor-modal-wide" onClick={(e) => e.stopPropagation()}>
+            <div className="vendor-modal-header">
+              <h3>Invoice {selectedInvoice.invoice_number}</h3>
+              <button className="vendor-modal-close" onClick={() => setSelectedInvoice(null)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="vendor-modal-body">
+              {/* Status badge */}
+              <div style={{ marginBottom: 4 }}>
+                <span className={getStatusBadge(selectedInvoice.status).className}>
+                  {getStatusBadge(selectedInvoice.status).label}
+                </span>
+              </div>
+
+              {/* Amount summary */}
+              <div className="vendor-invoice-summary">
+                <div className="vendor-invoice-stat">
+                  <div className="vendor-invoice-stat-label">Total</div>
+                  <div className="vendor-invoice-stat-value">{formatCurrency(selectedInvoice.total_amount)}</div>
+                </div>
+                <div className="vendor-invoice-stat">
+                  <div className="vendor-invoice-stat-label">Paid</div>
+                  <div className="vendor-invoice-stat-value" style={{ color: "var(--green, #16a34a)" }}>
+                    {formatCurrency(selectedInvoice.total_amount - selectedInvoice.balance_due)}
+                  </div>
+                </div>
+                <div className="vendor-invoice-stat">
+                  <div className="vendor-invoice-stat-label">Balance Due</div>
+                  <div className="vendor-invoice-stat-value" style={{ color: selectedInvoice.balance_due > 0 ? "var(--amber, #b45309)" : "inherit" }}>
+                    {formatCurrency(selectedInvoice.balance_due)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Invoice details */}
+              <div>
+                <div className="vendor-invoice-detail-row">
+                  <span className="vendor-invoice-detail-label">Project</span>
+                  <span>{selectedInvoice.project_name || "—"}</span>
+                </div>
+                <div className="vendor-invoice-detail-row">
+                  <span className="vendor-invoice-detail-label">Submitted</span>
+                  <span>
+                    {selectedInvoice.invoice_date
+                      ? new Date(selectedInvoice.invoice_date).toLocaleDateString("en-US", {
+                          month: "short", day: "numeric", year: "numeric",
+                        })
+                      : "—"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Payment history */}
+              <div>
+                <h4 style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                  <DollarSign size={16} /> Payment History
+                </h4>
+
+                {loadingPayments ? (
+                  <div className="vendor-empty">Loading payments...</div>
+                ) : invoicePayments && invoicePayments.length > 0 ? (
+                  <table className="vendor-payments-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Reference #</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoicePayments.map((pmt) => (
+                        <tr key={pmt.id}>
+                          <td>
+                            {new Date(pmt.payment_date).toLocaleDateString("en-US", {
+                              month: "short", day: "numeric", year: "numeric",
+                            })}
+                          </td>
+                          <td style={{ fontWeight: 600 }}>{formatCurrency(pmt.amount)}</td>
+                          <td style={{ textTransform: "capitalize" }}>{pmt.method}</td>
+                          <td>{pmt.reference_number || "—"}</td>
+                          <td>{pmt.notes || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="vendor-empty">No payments recorded yet</div>
+                )}
+              </div>
+            </div>
+            <div className="vendor-modal-footer">
+              <button className="vendor-modal-btn-cancel" onClick={() => setSelectedInvoice(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

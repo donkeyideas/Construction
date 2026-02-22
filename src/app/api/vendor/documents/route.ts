@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null;
     const docType = (formData.get("doc_type") as string) || "general";
     const docName = (formData.get("doc_name") as string) || file?.name || "Untitled";
+    const projectId = (formData.get("project_id") as string) || null;
 
     if (!file) {
       return NextResponse.json(
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
       .from("documents")
       .insert({
         company_id: contact.company_id,
+        project_id: projectId,
         name: docName,
         file_path: storagePath,
         file_type: file.type,
