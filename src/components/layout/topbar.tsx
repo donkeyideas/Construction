@@ -80,7 +80,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           setUnreadCount(total);
         });
 
-        // Fetch trial_ends_at from company
+        // Fetch trial info from company
         supabase
           .from("company_members")
           .select("company_id")
@@ -92,18 +92,24 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             if (!member) return;
             supabase
               .from("companies")
-              .select("trial_ends_at, subscription_status")
+              .select("trial_ends_at, subscription_status, stripe_subscription_id")
               .eq("id", member.company_id)
               .single()
               .then(({ data: company }) => {
-                if (company?.trial_ends_at) {
+                if (!company) return;
+                // Show trial badge if:
+                // 1. Has trial_ends_at and status is trialing, OR
+                // 2. No stripe subscription (hasn't paid) regardless of status
+                const hasStripe = !!company.stripe_subscription_id;
+                if (hasStripe) return; // Paid customer, no trial badge
+
+                if (company.trial_ends_at) {
                   const trialEnd = new Date(company.trial_ends_at).getTime();
-                  const now = Date.now();
-                  const daysLeft = Math.max(0, Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24)));
-                  // Only show trial badge if status is trialing or trial hasn't expired
-                  if (company.subscription_status === "trialing" || (daysLeft > 0 && company.subscription_status !== "active")) {
-                    setTrialDaysLeft(daysLeft);
-                  }
+                  const daysLeft = Math.max(0, Math.ceil((trialEnd - Date.now()) / (1000 * 60 * 60 * 24)));
+                  setTrialDaysLeft(daysLeft);
+                } else {
+                  // No trial_ends_at set (legacy account) — show 14-day default
+                  setTrialDaysLeft(14);
                 }
               });
           });
