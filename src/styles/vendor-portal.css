@@ -995,6 +995,7 @@
   border-radius: 12px;
   width: 100%;
   max-width: 520px;
+  overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 }
 .vendor-modal-header {
@@ -1138,6 +1139,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.82rem;
+  table-layout: fixed;
 }
 .vendor-payments-table th {
   text-align: left;
@@ -1151,6 +1153,9 @@
 .vendor-payments-table td {
   padding: 8px 10px;
   border-bottom: 1px solid var(--border, #d6d3d1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .vendor-payments-table tr:last-child td {
   border-bottom: none;
