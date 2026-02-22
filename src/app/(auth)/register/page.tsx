@@ -9,8 +9,8 @@ import { MODULES } from "@/lib/constants/modules";
 interface PricingTier {
   id: string;
   name: string;
-  price_monthly: number;
-  price_yearly: number;
+  monthly_price: number;
+  annual_price: number;
   max_modules: number | null;
   max_users: number | null;
   max_projects: number | null;
@@ -671,9 +671,9 @@ export default function RegisterPage() {
             {(pricingTiers.length > 0
               ? pricingTiers
               : [
-                  { id: "starter", name: "Starter", price_monthly: 0, price_yearly: 0, max_modules: 3, max_users: 5, max_projects: 3 },
-                  { id: "professional", name: "Professional", price_monthly: 79, price_yearly: 790, max_modules: 6, max_users: 25, max_projects: null },
-                  { id: "enterprise", name: "Enterprise", price_monthly: 199, price_yearly: 1990, max_modules: null, max_users: null, max_projects: null },
+                  { id: "starter", name: "Starter", monthly_price: 99, annual_price: 79, max_modules: 3, max_users: 10, max_projects: 5 },
+                  { id: "professional", name: "Professional", monthly_price: 299, annual_price: 249, max_modules: 6, max_users: 50, max_projects: 25 },
+                  { id: "enterprise", name: "Enterprise", monthly_price: 599, annual_price: 499, max_modules: null, max_users: null, max_projects: null },
                 ]
             ).map((tier) => {
               const isSelected = selectedPlan === tier.name.toLowerCase();
@@ -737,9 +737,9 @@ export default function RegisterPage() {
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text)" }}>
-                      {tier.price_monthly === 0 ? "Free" : `$${tier.price_monthly}`}
+                      {tier.monthly_price === 0 ? "Free" : `$${tier.monthly_price}`}
                     </div>
-                    {tier.price_monthly > 0 && (
+                    {tier.monthly_price > 0 && (
                       <div style={{ fontSize: "0.7rem", color: "var(--muted)" }}>/month</div>
                     )}
                   </div>
