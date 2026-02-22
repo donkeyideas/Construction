@@ -28,11 +28,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const plan = body.plan as string;
 
-    // Look up Stripe price ID from pricing_tiers table, fallback to env vars
+    // Look up Stripe price ID from pricing_tiers table
     const admin = createAdminClient();
+
+    // Query only columns guaranteed to exist (stripe_product_id may not exist)
     const { data: tier } = await admin
       .from("pricing_tiers")
-      .select("id, name, monthly_price, stripe_price_id_monthly, stripe_product_id")
+      .select("id, name, monthly_price, stripe_price_id_monthly")
       .ilike("name", plan)
       .single();
 
@@ -42,18 +44,13 @@ export async function POST(request: NextRequest) {
 
     // Auto-create Stripe Product + Price if tier exists but price ID is missing
     if (!priceId && tier && tier.monthly_price > 0) {
-      let productId = tier.stripe_product_id;
-
-      if (!productId) {
-        const product = await stripe.products.create({
-          name: `Buildwrk ${tier.name}`,
-          metadata: { tier_id: tier.id, plan: plan.toLowerCase() },
-        });
-        productId = product.id;
-      }
+      const product = await stripe.products.create({
+        name: `Buildwrk ${tier.name}`,
+        metadata: { tier_id: tier.id, plan: plan.toLowerCase() },
+      });
 
       const newPrice = await stripe.prices.create({
-        product: productId,
+        product: product.id,
         unit_amount: Math.round(tier.monthly_price * 100),
         currency: "usd",
         recurring: { interval: "month" },
@@ -62,10 +59,10 @@ export async function POST(request: NextRequest) {
 
       priceId = newPrice.id;
 
-      // Persist back to DB (best-effort, ignore errors from missing columns)
+      // Persist price ID back to DB (best-effort)
       admin
         .from("pricing_tiers")
-        .update({ stripe_price_id_monthly: newPrice.id, stripe_product_id: productId })
+        .update({ stripe_price_id_monthly: newPrice.id })
         .eq("id", tier.id)
         .then(() => {});
     }
