@@ -204,18 +204,6 @@ export default function APClient({
     notes: "",
   });
 
-  // Record payment modal state
-  const [showPayModal, setShowPayModal] = useState(false);
-  const [payInvoice, setPayInvoice] = useState<InvoiceRow | null>(null);
-  const [payData, setPayData] = useState({
-    amount: "",
-    method: "check",
-    reference_number: "",
-    payment_date: new Date().toISOString().split("T")[0],
-    notes: "",
-  });
-  const [paying, setPaying] = useState(false);
-  const [payError, setPayError] = useState("");
 
 
   function openDetail(inv: InvoiceRow) {
@@ -242,58 +230,6 @@ export default function APClient({
     setSaveError("");
   }
 
-  function openPayModal(inv: InvoiceRow) {
-    setPayInvoice(inv);
-    setPayData({
-      amount: String(inv.balance_due),
-      method: "check",
-      reference_number: "",
-      payment_date: new Date().toISOString().split("T")[0],
-      notes: "",
-    });
-    setPayError("");
-    setShowPayModal(true);
-  }
-
-  function closePayModal() {
-    setShowPayModal(false);
-    setPayInvoice(null);
-    setPayError("");
-  }
-
-  async function handleRecordPayment() {
-    if (!payInvoice) return;
-    setPaying(true);
-    setPayError("");
-
-    try {
-      const res = await fetch("/api/financial/payments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          invoice_id: payInvoice.id,
-          payment_date: payData.payment_date,
-          amount: parseFloat(payData.amount),
-          method: payData.method,
-          reference_number: payData.reference_number || undefined,
-          notes: payData.notes || undefined,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to record payment");
-      }
-
-      closePayModal();
-      closeDetail();
-      router.refresh();
-    } catch (err: unknown) {
-      setPayError(err instanceof Error ? err.message : "Failed to record payment");
-    } finally {
-      setPaying(false);
-    }
-  }
 
   async function handleSave() {
     if (!selectedInvoice) return;
@@ -486,7 +422,6 @@ export default function APClient({
                       <th>{t("aging")}</th>
                       <th>{t("status")}</th>
                       <th>JE</th>
-                      <th>{t("actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -563,17 +498,6 @@ export default function APClient({
                               </span>
                             ) : (
                               <span style={{ color: "var(--muted)" }}>--</span>
-                            )}
-                          </td>
-                          <td onClick={(e) => e.stopPropagation()}>
-                            {inv.status !== "paid" && inv.status !== "voided" && (
-                              <button
-                                className="ui-btn ui-btn-primary ui-btn-sm"
-                                onClick={() => openPayModal(inv)}
-                                style={{ fontSize: "0.75rem", padding: "4px 10px" }}
-                              >
-                                {t("pay")}
-                              </button>
                             )}
                           </td>
                         </tr>
@@ -873,18 +797,6 @@ export default function APClient({
                       )}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
-                      {selectedInvoice.status !== "paid" && selectedInvoice.status !== "voided" && (
-                        <>
-                          <button
-                            className="ui-btn ui-btn-outline ui-btn-sm"
-                            onClick={() => { closeDetail(); openPayModal(selectedInvoice); }}
-                            style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-green)" }}
-                          >
-                            <DollarSign size={14} />
-                            {t("recordPayment")}
-                          </button>
-                        </>
-                      )}
                       <Link
                         href={`/financial/invoices/${selectedInvoice.id}`}
                         className="ui-btn ui-btn-outline ui-btn-sm"
@@ -972,121 +884,6 @@ export default function APClient({
                   </div>
                 </>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Record Payment Modal */}
-      {showPayModal && payInvoice && (
-        <div className="ticket-modal-overlay" onClick={closePayModal}>
-          <div className="ticket-modal" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
-            <div className="ticket-modal-header">
-              <h3>{t("recordPayment")} - {payInvoice.invoice_number}</h3>
-              <button className="ticket-modal-close" onClick={closePayModal}>
-                <X size={18} />
-              </button>
-            </div>
-
-            {payError && (
-              <div style={{
-                background: "rgba(220, 38, 38, 0.08)", color: "var(--color-red)",
-                padding: "10px 16px", borderRadius: 8, fontSize: "0.85rem",
-                fontWeight: 500, margin: "0 24px 12px", border: "1px solid var(--color-red)",
-              }}>
-                {payError}
-              </div>
-            )}
-
-            <div className="ticket-detail-body">
-              <div style={{ marginBottom: 16, padding: "12px 16px", background: "var(--surface)", borderRadius: 8 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{t("vendorName")}</span>
-                  <span style={{ fontWeight: 500 }}>{payInvoice.vendor_name}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{t("balanceDue")}</span>
-                  <span style={{ fontWeight: 700, color: "var(--color-red)" }}>{formatCurrency(payInvoice.balance_due)}</span>
-                </div>
-              </div>
-
-              <div className="ap-pay-form">
-                <div className="vendor-form-field">
-                  <label>{t("paymentAmount")}</label>
-                  <input
-                    type="number"
-                    className="ui-input"
-                    step="0.01"
-                    min="0.01"
-                    max={payInvoice.balance_due}
-                    value={payData.amount}
-                    onChange={(e) => setPayData({ ...payData, amount: e.target.value })}
-                  />
-                </div>
-                <div className="vendor-form-field">
-                  <label>{t("paymentDate")}</label>
-                  <input
-                    type="date"
-                    className="ui-input"
-                    value={payData.payment_date}
-                    onChange={(e) => setPayData({ ...payData, payment_date: e.target.value })}
-                  />
-                </div>
-                <div className="vendor-form-field">
-                  <label>{t("method")}</label>
-                  <select
-                    className="ui-input"
-                    value={payData.method}
-                    onChange={(e) => setPayData({ ...payData, method: e.target.value })}
-                  >
-                    <option value="check">Check</option>
-                    <option value="ach">ACH</option>
-                    <option value="wire">Wire Transfer</option>
-                    <option value="credit_card">Credit Card</option>
-                    <option value="bank_transfer">Bank Transfer</option>
-                    <option value="cash">Cash</option>
-                  </select>
-                </div>
-                <div className="vendor-form-field">
-                  <label>{t("referenceNumber")}</label>
-                  <input
-                    type="text"
-                    className="ui-input"
-                    placeholder="Check #, ACH ref, etc."
-                    value={payData.reference_number}
-                    onChange={(e) => setPayData({ ...payData, reference_number: e.target.value })}
-                  />
-                </div>
-                <div className="vendor-form-field full-width">
-                  <label>{t("notes")}</label>
-                  <textarea
-                    className="ui-input"
-                    rows={2}
-                    value={payData.notes}
-                    onChange={(e) => setPayData({ ...payData, notes: e.target.value })}
-                    style={{ resize: "vertical", minHeight: 40, width: "100%" }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 16, borderTop: "1px solid var(--border)", marginTop: 16 }}>
-                <button
-                  className="ui-btn ui-btn-outline ui-btn-sm"
-                  onClick={closePayModal}
-                  disabled={paying}
-                >
-                  {t("cancel")}
-                </button>
-                <button
-                  className="ui-btn ui-btn-primary ui-btn-sm"
-                  onClick={handleRecordPayment}
-                  disabled={paying || !payData.amount || parseFloat(payData.amount) <= 0}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-                >
-                  {paying ? <Loader2 size={14} className="spin" /> : <DollarSign size={14} />}
-                  {paying ? t("processing") : t("recordPayment")}
-                </button>
-              </div>
             </div>
           </div>
         </div>

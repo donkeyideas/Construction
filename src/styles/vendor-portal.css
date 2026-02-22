@@ -915,41 +915,6 @@
   color: var(--color-green, #16a34a);
 }
 
-/* ===== AP Dashboard Tabs ===== */
-
-.ap-tabs {
-  display: flex;
-  gap: 8px;
-  border-bottom: 2px solid var(--border);
-  margin-bottom: 20px;
-}
-
-.ap-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  transition: color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-}
-
-.ap-tab:hover {
-  color: var(--text);
-}
-
-.ap-tab.active {
-  color: var(--text);
-  border-bottom-color: var(--color-blue, #2563eb);
-  font-weight: 600;
-}
 
 /* ===== AP Aging Badges ===== */
 
