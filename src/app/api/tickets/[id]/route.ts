@@ -7,6 +7,7 @@ import {
   updateTicket,
   addTicketComment,
 } from "@/lib/queries/tickets";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // GET /api/tickets/[id] — Get ticket detail with comments
@@ -116,6 +117,21 @@ export async function PATCH(
       return NextResponse.json({ error }, { status: 400 });
     }
 
+    if (body.status && body.status !== existing.status) {
+      try {
+        const statusLabel = body.status.replace(/_/g, " ");
+        await createNotifications(supabase, {
+          companyId: userCtx.companyId,
+          actorUserId: userCtx.userId,
+          title: `Ticket #${existing.ticket_number || id.slice(0, 8)} ${statusLabel}`,
+          message: `Ticket "${existing.title}" has been marked as ${statusLabel}.`,
+          notificationType: body.status === "resolved" || body.status === "closed" ? "approval" : "info",
+          entityType: "ticket",
+          entityId: id,
+        });
+      } catch (e) { console.warn("Notification failed:", e); }
+    }
+
     return NextResponse.json(ticket);
   } catch (err) {
     console.error("PATCH /api/tickets/[id] error:", err);
@@ -223,6 +239,18 @@ export async function POST(
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `Reply on Ticket #${existing.ticket_number || id.slice(0, 8)}`,
+        message: body.body.trim().slice(0, 200),
+        notificationType: "info",
+        entityType: "ticket",
+        entityId: id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json(comment, { status: 201 });
   } catch (err) {

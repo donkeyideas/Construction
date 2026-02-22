@@ -7,6 +7,7 @@ import {
   type TicketStatus,
   type TicketPriority,
 } from "@/lib/queries/tickets";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // GET /api/tickets — List tickets for the current user's company
@@ -93,6 +94,18 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `New Ticket: ${body.title.trim()}`,
+        message: body.description?.trim() ? body.description.trim().slice(0, 200) : undefined,
+        notificationType: body.priority === "urgent" || body.priority === "high" ? "alert" : "info",
+        entityType: "ticket",
+        entityId: ticket?.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json(ticket, { status: 201 });
   } catch (err) {
