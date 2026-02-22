@@ -82,10 +82,7 @@ export default function OnboardingClient({ statuses }: Props) {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <ClipboardCheck size={22} />
-            Onboarding Checklist
-          </h2>
+          <h2>Onboarding Checklist</h2>
           <p className="admin-header-sub">
             Track company onboarding progress across the platform
           </p>

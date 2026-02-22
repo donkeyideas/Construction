@@ -285,17 +285,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>
-            <Flag
-              size={28}
-              style={{
-                display: "inline",
-                verticalAlign: "middle",
-                marginRight: 10,
-              }}
-            />
-            Feature Flags
-          </h2>
+          <h2>Feature Flags</h2>
           <p className="admin-header-sub">
             Manage feature flags to control feature availability across plans
           </p>

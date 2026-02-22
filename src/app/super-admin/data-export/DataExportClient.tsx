@@ -79,10 +79,7 @@ export default function DataExportClient() {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Download size={22} />
-            Data Export
-          </h2>
+          <h2>Data Export</h2>
           <p className="admin-header-sub">
             Download platform data as CSV files
           </p>

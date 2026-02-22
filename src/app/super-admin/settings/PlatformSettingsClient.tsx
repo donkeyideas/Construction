@@ -146,17 +146,7 @@ export default function PlatformSettingsClient({ settings }: Props) {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>
-            <Settings
-              size={28}
-              style={{
-                display: "inline",
-                verticalAlign: "middle",
-                marginRight: 10,
-              }}
-            />
-            Platform Settings
-          </h2>
+          <h2>Platform Settings</h2>
           <p className="admin-header-sub">
             Configure general platform settings, integrations, and preferences
           </p>

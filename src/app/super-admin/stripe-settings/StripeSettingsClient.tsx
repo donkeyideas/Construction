@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CreditCard,
   Key,
   Shield,
   Check,
@@ -165,13 +164,7 @@ export default function StripeSettingsClient({ settings, initialMode }: Props) {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>
-            <CreditCard
-              size={28}
-              style={{ display: "inline", verticalAlign: "middle", marginRight: 10 }}
-            />
-            {t("stripeSettings")}
-          </h2>
+          <h2>{t("stripeSettings")}</h2>
           <p className="admin-header-sub">{t("stripeSettingsDesc")}</p>
         </div>
       </div>
