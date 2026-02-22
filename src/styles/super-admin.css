@@ -30,7 +30,7 @@
 }
 
 .sa-kpi-card {
-  background: var(--card-bg);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
@@ -99,7 +99,7 @@
 
 /* ===== Card ===== */
 .sa-card {
-  background: var(--card-bg);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 24px;

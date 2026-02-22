@@ -11,6 +11,11 @@ import {
   Cell,
   LineChart,
   Line,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
   XAxis,
   YAxis,
   Tooltip,
@@ -44,7 +49,6 @@ import {
   Minus as MinusIcon,
   Bot,
   Target,
-  Trash2,
   FlaskConical,
 } from "lucide-react";
 import type {
@@ -58,6 +62,7 @@ import type {
   SeoRecommendation,
   AeoOverview,
   CroOverview,
+  AeoScoresOverview,
 } from "@/lib/queries/super-admin-seo";
 import "@/styles/seo.css";
 
@@ -89,6 +94,7 @@ interface Props {
   keywords: Keyword[];
   aeoOverview: AeoOverview;
   croOverview: CroOverview;
+  aeoScores: AeoScoresOverview;
 }
 
 /* ──────────────────────────────────────────────
@@ -200,6 +206,7 @@ export default function SeoClient({
   keywords,
   aeoOverview,
   croOverview,
+  aeoScores,
 }: Props) {
   const t = useTranslations("superAdmin");
   const locale = useLocale();
@@ -228,17 +235,6 @@ export default function SeoClient({
   const [kwDifficulty, setKwDifficulty] = useState("");
   const [kwIntent, setKwIntent] = useState("informational");
   const [kwTargetUrl, setKwTargetUrl] = useState("");
-
-  // AEO state
-  const [showAddAeoEntry, setShowAddAeoEntry] = useState(false);
-  const [aeoSaving, setAeoSaving] = useState(false);
-  const [aeoFormError, setAeoFormError] = useState("");
-  const [aeoQuery, setAeoQuery] = useState("");
-  const [aeoEngine, setAeoEngine] = useState("chatgpt");
-  const [aeoType, setAeoType] = useState("mention");
-  const [aeoUrl, setAeoUrl] = useState("");
-  const [aeoSnippet, setAeoSnippet] = useState("");
-  const [aeoDate, setAeoDate] = useState("");
 
   // CRO state
   const [croSubTab, setCroSubTab] = useState<"funnel" | "performance" | "abtests">("funnel");
@@ -353,49 +349,6 @@ export default function SeoClient({
       setFormError(t("networkError"));
     } finally {
       setSaving(false);
-    }
-  }
-
-  /* ── add AEO entry handler ── */
-  async function handleAddAeoEntry(e: React.FormEvent) {
-    e.preventDefault();
-    if (!aeoQuery.trim()) return;
-
-    setAeoSaving(true);
-    setAeoFormError("");
-
-    try {
-      const res = await fetch("/api/super-admin/aeo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: aeoQuery.trim(),
-          ai_engine: aeoEngine,
-          mention_type: aeoType,
-          url_cited: aeoUrl.trim() || null,
-          snippet_text: aeoSnippet.trim() || null,
-          tracked_date: aeoDate || null,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setAeoFormError(data.error || "Failed to save");
-        return;
-      }
-
-      setAeoQuery("");
-      setAeoEngine("chatgpt");
-      setAeoType("mention");
-      setAeoUrl("");
-      setAeoSnippet("");
-      setAeoDate("");
-      setShowAddAeoEntry(false);
-      router.refresh();
-    } catch {
-      setAeoFormError("Network error");
-    } finally {
-      setAeoSaving(false);
     }
   }
 
@@ -614,7 +567,8 @@ export default function SeoClient({
                           cx="50%"
                           cy="50%"
                           outerRadius={100}
-                          label={({ name, value }: { name?: string; value?: number }) => `${name ?? ""} (${value ?? 0})`}
+                          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                          label={((entry: any) => `${entry.name ?? ""} (${entry.value ?? 0})`) as any}
                         >
                           {intentData.map((_, i) => (
                             <Cell
@@ -1134,7 +1088,15 @@ export default function SeoClient({
               </div>
             )}
 
-            {!trafficLoading && trafficData?.configured === false && (
+            {!trafficLoading && trafficData?.error && (
+              <div className="sa-empty">
+                <AlertTriangle size={40} style={{ color: "var(--color-amber)" }} />
+                <div className="sa-empty-title">{t("seoAnalyticsError")}</div>
+                <div className="sa-empty-desc">{trafficData.error}</div>
+              </div>
+            )}
+
+            {!trafficLoading && !trafficData?.error && trafficData?.configured === false && (
               <div className="sa-empty">
                 <TrendingUp size={40} style={{ color: "var(--muted)" }} />
                 <div className="sa-empty-title">{t("seoConfigureGA")}</div>
@@ -1155,6 +1117,7 @@ export default function SeoClient({
 
             {!trafficLoading &&
               trafficData &&
+              !trafficData.error &&
               trafficData.configured !== false && (
                 <>
                   {/* KPI cards */}
@@ -1227,10 +1190,30 @@ export default function SeoClient({
                       <div className="seo-chart-wrap">
                         <ResponsiveContainer width="100%" height={300}>
                           <LineChart data={trafficData.daily}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis />
-                            <Tooltip />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                            <XAxis
+                              dataKey="date"
+                              tick={{ fill: "var(--muted)", fontSize: 11 }}
+                              tickFormatter={(v: string) => {
+                                if (!v || v.length < 8) return v;
+                                const y = v.slice(0, 4);
+                                const m = v.slice(4, 6);
+                                const d = v.slice(6, 8);
+                                return new Date(`${y}-${m}-${d}`).toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
+                              }}
+                            />
+                            <YAxis tick={{ fill: "var(--muted)", fontSize: 11 }} />
+                            <Tooltip
+                              contentStyle={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "0.8rem" }}
+                              labelFormatter={(v) => {
+                                const s = String(v);
+                                if (!s || s.length < 8) return s;
+                                const y = s.slice(0, 4);
+                                const m = s.slice(4, 6);
+                                const d = s.slice(6, 8);
+                                return new Date(`${y}-${m}-${d}`).toLocaleDateString(dateLocale, { month: "long", day: "numeric", year: "numeric" });
+                              }}
+                            />
                             <Legend />
                             <Line
                               type="monotone"
@@ -1308,7 +1291,7 @@ export default function SeoClient({
                       )}
                     </div>
 
-                    {/* Traffic sources bar chart */}
+                    {/* Traffic sources donut chart */}
                     <div className="sa-card">
                       <div className="sa-card-title">
                         {t("seoTrafficSources")}
@@ -1316,24 +1299,30 @@ export default function SeoClient({
                       {trafficData.sources && trafficData.sources.length > 0 ? (
                         <div className="seo-chart-wrap">
                           <ResponsiveContainer width="100%" height={300}>
-                            <BarChart
-                              data={trafficData.sources}
-                              layout="vertical"
-                            >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis type="number" />
-                              <YAxis
-                                type="category"
-                                dataKey="source"
-                                width={120}
-                              />
-                              <Tooltip />
-                              <Bar
+                            <PieChart>
+                              <Pie
+                                data={trafficData.sources}
                                 dataKey="sessions"
-                                fill={CHART_COLORS[2]}
-                                radius={[0, 4, 4, 0]}
+                                nameKey="source"
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={100}
+                                paddingAngle={2}
+                                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                                label={((entry: any) => `${entry.source ?? ""} ${((entry.percent ?? 0) * 100).toFixed(0)}%`) as any}
+                                labelLine={false}
+                              >
+                                {trafficData.sources.map((_: unknown, i: number) => (
+                                  <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip
+                                contentStyle={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "0.8rem" }}
+                                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                                formatter={(value: any) => [Number(value).toLocaleString(dateLocale), "Sessions"]}
                               />
-                            </BarChart>
+                            </PieChart>
                           </ResponsiveContainer>
                         </div>
                       ) : (
@@ -1738,204 +1727,162 @@ export default function SeoClient({
            ════════════════════════════════════ */}
         {activeTab === "aeo" && (
           <>
-            {aeoOverview.totalMentions === 0 ? (
+            {aeoScores.pageScores.length === 0 ? (
               <div className="sa-empty">
                 <Bot size={40} style={{ color: "var(--muted)" }} />
                 <div className="sa-empty-title">{t("aeoNoData")}</div>
                 <div className="sa-empty-desc">{t("aeoNoDataDesc")}</div>
-                <button
-                  className="sa-action-btn primary"
-                  style={{ marginTop: 12 }}
-                  onClick={() => setShowAddAeoEntry(true)}
-                >
-                  <Plus size={14} /> {t("aeoAddEntry")}
-                </button>
               </div>
             ) : (
               <>
-                {/* KPI cards */}
-                <div className="sa-kpi-grid">
-                  <div className="sa-kpi-card">
-                    <div className="sa-kpi-header">
-                      <span className="sa-kpi-label">{t("aeoMentions")}</span>
-                      <Bot size={16} style={{ color: "var(--primary)" }} />
+                {/* Overall AEO Score + Radar Chart */}
+                <div className="sa-two-col">
+                  {/* Overall Score Card */}
+                  <div className="sa-card" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+                    <div className="sa-card-title" style={{ margin: 0 }}>
+                      <Bot size={18} /> {t("aeoOverallScore")}
                     </div>
-                    <div className="sa-kpi-value" style={{ color: "var(--primary)" }}>
-                      {aeoOverview.totalMentions}
+                    <div
+                      className="aeo-score-circle"
+                      style={{
+                        borderColor: aeoScores.overallScore >= 70 ? "var(--color-green)" : aeoScores.overallScore >= 40 ? "var(--color-amber)" : "var(--color-red)",
+                      }}
+                    >
+                      <span className="aeo-score-number" style={{
+                        color: aeoScores.overallScore >= 70 ? "var(--color-green)" : aeoScores.overallScore >= 40 ? "var(--color-amber)" : "var(--color-red)",
+                      }}>
+                        {aeoScores.overallScore}
+                      </span>
+                      <span className="aeo-score-label">/100</span>
                     </div>
-                  </div>
-                  <div className="sa-kpi-card">
-                    <div className="sa-kpi-header">
-                      <span className="sa-kpi-label">{t("aeoFeaturedSnippets")}</span>
-                      <Eye size={16} style={{ color: "var(--color-amber)" }} />
+                    <div style={{ fontSize: "0.82rem", color: "var(--muted)", textAlign: "center" }}>
+                      {aeoScores.overallScore >= 70
+                        ? t("aeoScoreExcellent")
+                        : aeoScores.overallScore >= 40
+                          ? t("aeoScoreGood")
+                          : t("aeoScorePoor")}
                     </div>
-                    <div className="sa-kpi-value" style={{ color: "var(--color-amber)" }}>
-                      {aeoOverview.featuredSnippets}
-                    </div>
-                  </div>
-                  <div className="sa-kpi-card">
-                    <div className="sa-kpi-header">
-                      <span className="sa-kpi-label">{t("aeoKnowledgePanels")}</span>
-                      <Lightbulb size={16} style={{ color: "#8b5cf6" }} />
-                    </div>
-                    <div className="sa-kpi-value" style={{ color: "#8b5cf6" }}>
-                      {aeoOverview.knowledgePanels}
-                    </div>
-                  </div>
-                  <div className="sa-kpi-card">
-                    <div className="sa-kpi-header">
-                      <span className="sa-kpi-label">{t("aeoPeopleAlsoAsk")}</span>
-                      <Search size={16} style={{ color: "#06b6d4" }} />
-                    </div>
-                    <div className="sa-kpi-value" style={{ color: "#06b6d4" }}>
-                      {aeoOverview.peopleAlsoAsk}
-                    </div>
-                  </div>
-                </div>
 
-                {/* AI Engine Coverage + Trend chart */}
-                <div className="seo-two-col">
-                  {/* Engine Coverage */}
-                  <div className="sa-card">
-                    <div className="sa-card-title">{t("aeoEngineCoverage")}</div>
-                    <table className="sa-table">
-                      <thead>
-                        <tr>
-                          <th>{t("aeoEngine")}</th>
-                          <th>{t("aeoMentionCount")}</th>
-                          <th>{t("aeoCoverage")}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {aeoOverview.engineCoverage.map((ec) => (
-                          <tr key={ec.engine}>
-                            <td>
-                              <span className={`aeo-engine-badge ${ec.engine}`}>
-                                {ec.engine === "chatgpt"
-                                  ? t("aeoChatGPT")
-                                  : ec.engine === "perplexity"
-                                  ? t("aeoPerplexity")
-                                  : ec.engine === "gemini"
-                                  ? t("aeoGemini")
-                                  : t("aeoGoogleAI")}
-                              </span>
-                            </td>
-                            <td>{ec.count}</td>
-                            <td>{ec.percentage}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Visibility Trend */}
-                  <div className="sa-card">
-                    <div className="sa-card-title">{t("aeoVisibilityTrend")}</div>
-                    {aeoOverview.trendData.length > 0 ? (
-                      <div className="seo-chart-wrap">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={aeoOverview.trendData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                            <XAxis
-                              dataKey="date"
-                              tick={{ fill: "var(--muted)", fontSize: 11 }}
-                              tickFormatter={(v) =>
-                                new Date(v).toLocaleDateString(dateLocale, {
-                                  month: "short",
-                                  day: "numeric",
-                                })
-                              }
-                            />
-                            <YAxis tick={{ fill: "var(--muted)", fontSize: 11 }} />
-                            <Tooltip
-                              contentStyle={{
-                                background: "var(--card-bg)",
-                                border: "1px solid var(--border)",
-                                borderRadius: "8px",
-                                fontSize: "0.8rem",
+                    {/* Dimension score bars */}
+                    <div style={{ width: "100%", marginTop: 8 }}>
+                      {aeoScores.dimensionAverages.map((dim) => (
+                        <div key={dim.dimension} className="aeo-dim-bar-row">
+                          <span className="aeo-dim-bar-label">{dim.dimension}</span>
+                          <div className="aeo-dim-bar-track">
+                            <div
+                              className="aeo-dim-bar-fill"
+                              style={{
+                                width: `${dim.score}%`,
+                                background: dim.score >= 70 ? "var(--color-green)" : dim.score >= 40 ? "var(--color-amber)" : "var(--color-red)",
                               }}
                             />
-                            <Line
-                              type="monotone"
-                              dataKey="mentions"
-                              stroke="#8b5cf6"
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                              name={t("aeoMentionCount")}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    ) : (
-                      <div className="sa-empty" style={{ padding: "40px 0" }}>
-                        <div className="sa-empty-desc">No trend data yet.</div>
-                      </div>
-                    )}
+                          </div>
+                          <span className="aeo-dim-bar-value">{dim.score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Radar Chart */}
+                  <div className="sa-card">
+                    <div className="sa-card-title">{t("aeoRadarTitle")}</div>
+                    <div className="seo-chart-wrap">
+                      <ResponsiveContainer width="100%" height={320}>
+                        <RadarChart
+                          data={aeoScores.dimensionAverages.map((d) => ({
+                            dimension: d.dimension.replace("AI Snippet Compatibility", "AI Snippets").replace("Direct Answer Readiness", "Direct Answers"),
+                            score: d.score,
+                            fullMark: 100,
+                          }))}
+                        >
+                          <PolarGrid stroke="var(--border)" />
+                          <PolarAngleAxis
+                            dataKey="dimension"
+                            tick={{ fill: "var(--muted)", fontSize: 11 }}
+                          />
+                          <PolarRadiusAxis
+                            angle={30}
+                            domain={[0, 100]}
+                            tick={{ fill: "var(--muted)", fontSize: 10 }}
+                          />
+                          <Radar
+                            name="AEO Score"
+                            dataKey="score"
+                            stroke="#8b5cf6"
+                            fill="#8b5cf6"
+                            fillOpacity={0.2}
+                            strokeWidth={2}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              background: "var(--bg)",
+                              border: "1px solid var(--border)",
+                              borderRadius: "8px",
+                              fontSize: "0.8rem",
+                            }}
+                            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                            formatter={(value: any) => [`${value}/100`, "Score"]}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
 
-                {/* Query Tracking table */}
+                {/* Page Scores Table */}
                 <div className="sa-card">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <div className="sa-card-title" style={{ margin: 0 }}>
-                      {t("aeoQueryTracking")}
-                    </div>
-                    <button
-                      className="sa-action-btn primary"
-                      onClick={() => setShowAddAeoEntry(true)}
-                    >
-                      <Plus size={14} /> {t("aeoAddEntry")}
-                    </button>
-                  </div>
+                  <div className="sa-card-title">{t("aeoPageScores")}</div>
                   <div className="sa-table-wrap">
                     <table className="sa-table">
                       <thead>
                         <tr>
-                          <th>{t("aeoQuery")}</th>
-                          <th>{t("aeoEngine")}</th>
-                          <th>{t("aeoType")}</th>
-                          <th>{t("aeoUrlCited")}</th>
-                          <th>{t("aeoDate")}</th>
+                          <th>{t("seoPage")}</th>
+                          <th style={{ textAlign: "center" }}>{t("aeoScore")}</th>
+                          <th style={{ textAlign: "center" }}>Schema</th>
+                          <th style={{ textAlign: "center" }}>FAQ</th>
+                          <th style={{ textAlign: "center" }}>Direct Ans.</th>
+                          <th style={{ textAlign: "center" }}>Entity</th>
+                          <th style={{ textAlign: "center" }}>Speakable</th>
+                          <th style={{ textAlign: "center" }}>AI Snippet</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {aeoOverview.queryTracking.slice(0, 20).map((entry) => (
-                          <tr key={entry.id}>
-                            <td style={{ fontWeight: 500 }}>{entry.query}</td>
-                            <td>
-                              <span className={`aeo-engine-badge ${entry.ai_engine}`}>
-                                {entry.ai_engine === "chatgpt"
-                                  ? t("aeoChatGPT")
-                                  : entry.ai_engine === "perplexity"
-                                  ? t("aeoPerplexity")
-                                  : entry.ai_engine === "gemini"
-                                  ? t("aeoGemini")
-                                  : t("aeoGoogleAI")}
+                        {aeoScores.pageScores
+                          .sort((a, b) => b.overallScore - a.overallScore)
+                          .map((page) => (
+                          <tr key={page.pageId}>
+                            <td style={{ fontWeight: 500 }}>
+                              <div>{page.title}</div>
+                              <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>/{page.slug}</div>
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              <span
+                                className={`sa-badge ${
+                                  page.overallScore >= 70
+                                    ? "sa-badge-green"
+                                    : page.overallScore >= 40
+                                      ? "sa-badge-amber"
+                                      : "sa-badge-red"
+                                }`}
+                                style={{ fontWeight: 700, fontSize: "0.82rem" }}
+                              >
+                                {page.overallScore}
                               </span>
                             </td>
-                            <td>
-                              <span className={`aeo-type-badge ${entry.mention_type}`}>
-                                {entry.mention_type === "featured_snippet"
-                                  ? t("aeoFeaturedSnippet")
-                                  : entry.mention_type === "knowledge_panel"
-                                  ? t("aeoKnowledgePanel")
-                                  : entry.mention_type === "people_also_ask"
-                                  ? t("aeoPAA")
-                                  : t("aeoMention")}
-                              </span>
-                            </td>
-                            <td>
-                              {entry.url_cited ? (
-                                <span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
-                                  {entry.url_cited}
+                            {page.dimensions.map((dim) => (
+                              <td key={dim.dimension} style={{ textAlign: "center" }}>
+                                <span
+                                  style={{
+                                    color: dim.score >= 70 ? "var(--color-green)" : dim.score >= 40 ? "var(--color-amber)" : "var(--color-red)",
+                                    fontWeight: 600,
+                                    fontSize: "0.82rem",
+                                  }}
+                                  title={dim.details}
+                                >
+                                  {dim.score}
                                 </span>
-                              ) : (
-                                <span style={{ color: "var(--muted)" }}>—</span>
-                              )}
-                            </td>
-                            <td style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
-                              {new Date(entry.tracked_date).toLocaleDateString(dateLocale)}
-                            </td>
+                              </td>
+                            ))}
                           </tr>
                         ))}
                       </tbody>
@@ -2418,123 +2365,6 @@ export default function SeoClient({
                   disabled={saving}
                 >
                   {saving ? t("adding") : t("addKeyword")}
-                </button>
-              </div>
-            </form>
-          </div>
-        </>
-      )}
-
-      {/* ════════════════════════════════════
-         ADD AEO ENTRY MODAL
-         ════════════════════════════════════ */}
-      {showAddAeoEntry && (
-        <>
-          <div
-            className="invite-modal-overlay"
-            onClick={() => setShowAddAeoEntry(false)}
-          />
-          <div className="invite-modal">
-            <button
-              className="invite-modal-close"
-              onClick={() => setShowAddAeoEntry(false)}
-            >
-              <X size={18} />
-            </button>
-            <div className="invite-modal-title">{t("aeoAddTitle")}</div>
-
-            {aeoFormError && <div className="invite-error">{aeoFormError}</div>}
-
-            <form onSubmit={handleAddAeoEntry}>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("aeoQuery")}</label>
-                <input
-                  type="text"
-                  className="invite-form-input"
-                  placeholder="e.g., best construction management software"
-                  value={aeoQuery}
-                  onChange={(e) => setAeoQuery(e.target.value)}
-                  required
-                />
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "12px",
-                }}
-              >
-                <div className="invite-form-group">
-                  <label className="invite-form-label">{t("aeoEngine")}</label>
-                  <select
-                    className="invite-form-select"
-                    value={aeoEngine}
-                    onChange={(e) => setAeoEngine(e.target.value)}
-                  >
-                    <option value="chatgpt">{t("aeoChatGPT")}</option>
-                    <option value="perplexity">{t("aeoPerplexity")}</option>
-                    <option value="gemini">{t("aeoGemini")}</option>
-                    <option value="google_ai_overview">{t("aeoGoogleAI")}</option>
-                  </select>
-                </div>
-                <div className="invite-form-group">
-                  <label className="invite-form-label">{t("aeoType")}</label>
-                  <select
-                    className="invite-form-select"
-                    value={aeoType}
-                    onChange={(e) => setAeoType(e.target.value)}
-                  >
-                    <option value="mention">{t("aeoMention")}</option>
-                    <option value="featured_snippet">{t("aeoFeaturedSnippet")}</option>
-                    <option value="knowledge_panel">{t("aeoKnowledgePanel")}</option>
-                    <option value="people_also_ask">{t("aeoPAA")}</option>
-                  </select>
-                </div>
-              </div>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("aeoUrlCited")}</label>
-                <input
-                  type="text"
-                  className="invite-form-input"
-                  placeholder="e.g., https://buildwrk.com/features"
-                  value={aeoUrl}
-                  onChange={(e) => setAeoUrl(e.target.value)}
-                />
-              </div>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("aeoSnippet")}</label>
-                <textarea
-                  className="invite-form-input"
-                  placeholder="The text snippet that appeared in the AI answer..."
-                  value={aeoSnippet}
-                  onChange={(e) => setAeoSnippet(e.target.value)}
-                  rows={3}
-                  style={{ resize: "vertical" }}
-                />
-              </div>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("aeoDate")}</label>
-                <input
-                  type="date"
-                  className="invite-form-input"
-                  value={aeoDate}
-                  onChange={(e) => setAeoDate(e.target.value)}
-                />
-              </div>
-              <div className="invite-modal-footer">
-                <button
-                  type="button"
-                  className="sa-action-btn"
-                  onClick={() => setShowAddAeoEntry(false)}
-                >
-                  {t("cancel")}
-                </button>
-                <button
-                  type="submit"
-                  className="sa-action-btn primary"
-                  disabled={aeoSaving}
-                >
-                  {aeoSaving ? t("adding") : t("aeoAddEntry")}
                 </button>
               </div>
             </form>

@@ -399,13 +399,13 @@ export async function getTechnicalSeoChecks(
         : `${duplicateTitleCount} duplicate meta title(s) detected`,
   });
 
-  // 5. Meta Title Length (ideal 50-60 chars)
+  // 5. Meta Title Length (ideal 30-60 chars)
   const titleLengthPages = pages.filter(
     (p) => p.meta_title && p.meta_title.trim().length > 0
   );
   const goodTitleLen = titleLengthPages.filter((p) => {
     const len = p.meta_title!.trim().length;
-    return len >= 50 && len <= 60;
+    return len >= 30 && len <= 60;
   }).length;
   checks.push({
     check: "Meta Title Length",
@@ -423,8 +423,8 @@ export async function getTechnicalSeoChecks(
         : "warning",
     description:
       goodTitleLen === titleLengthPages.length
-        ? "All meta titles are 50-60 characters"
-        : `${titleLengthPages.length - goodTitleLen} meta title(s) outside ideal 50-60 character range`,
+        ? "All meta titles are 30-60 characters"
+        : `${titleLengthPages.length - goodTitleLen} meta title(s) outside ideal 30-60 character range`,
   });
 
   // 6. Meta Description Length (ideal 120-160 chars)
@@ -964,9 +964,12 @@ export async function generateSeoRecommendations(
 }
 
 // ---------------------------------------------------------------------------
-// AEO Types
+// AEO Types (automated content scoring)
 // ---------------------------------------------------------------------------
 
+export type { AeoScoresOverview, AeoPageScore, AeoDimensionScore } from "@/lib/utils/aeo-scoring";
+
+// Keep legacy types for the aeo_tracking table (manual entries)
 export interface AeoTrackingEntry {
   id: string;
   query: string;
@@ -981,6 +984,7 @@ export interface AeoTrackingEntry {
   created_at: string;
 }
 
+// Legacy overview from manual tracking (kept for backwards compat)
 export interface AeoOverview {
   totalMentions: number;
   featuredSnippets: number;
@@ -1116,4 +1120,36 @@ export async function getCroAbTests(
     runningCount: abTests.filter((t) => t.status === "running").length,
     completedCount: abTests.filter((t) => t.status === "completed").length,
   };
+}
+
+// ---------------------------------------------------------------------------
+// 11. getAeoScores — Automated AEO content analysis
+// ---------------------------------------------------------------------------
+
+import { computeAeoOverview, type AeoScoresOverview } from "@/lib/utils/aeo-scoring";
+
+export async function getAeoScores(
+  supabase: SupabaseClient
+): Promise<AeoScoresOverview> {
+  const { data, error } = await supabase
+    .from("cms_pages")
+    .select("id, title, page_slug, meta_title, meta_description, og_image_url, sections, status")
+    .eq("status", "published");
+
+  if (error) {
+    console.error("getAeoScores error:", error);
+    return { overallScore: 0, dimensionAverages: [], pageScores: [] };
+  }
+
+  const pages = (data ?? []) as {
+    id: string;
+    title: string;
+    page_slug: string;
+    meta_title: string | null;
+    meta_description: string | null;
+    og_image_url: string | null;
+    sections: SectionItem[] | null;
+  }[];
+
+  return computeAeoOverview(pages);
 }
