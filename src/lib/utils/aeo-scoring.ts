@@ -126,9 +126,11 @@ function extractFaqItems(sections: Section[]): { question: string; answer: strin
 function analyzeSchemaRichness(page: PageData, sections: Section[]): AeoDimensionScore {
   let score = 0;
   const types = getSectionTypes(sections);
+  const fullText = getAllText(sections);
+  const words = fullText.split(/\s+/).filter(Boolean);
 
   // Base credit for published page with content
-  score += 12;
+  score += 15;
 
   // Structured section types
   if (types.includes("faq")) score += 15;
@@ -146,6 +148,10 @@ function analyzeSchemaRichness(page: PageData, sections: Section[]): AeoDimensio
   // Section count
   if (sections.length >= 3) score += 5;
   if (sections.length >= 5) score += 5;
+
+  // Content volume bonus
+  if (words.length >= 100) score += 6;
+  else if (words.length >= 30) score += 3;
 
   const details =
     score >= 80
@@ -192,7 +198,7 @@ function analyzeFaqCoverage(sections: Section[]): AeoDimensionScore {
   // No formal FAQ — generous credit for implicit Q&A content
 
   // Base credit for having any content
-  score += 15;
+  score += 18;
 
   // Question patterns in text
   const questionPatterns = fullText.match(/\b(what|how|why|when|where|who|can|does|is it|do I|should)\b[^.?!]*\?/gi) ?? [];
@@ -320,21 +326,21 @@ function analyzeEntityMarkup(page: PageData, sections: Section[]): AeoDimensionS
   }
 
   // Base credit
-  score += 8;
+  score += 12;
 
   // Brand name references
   const brandMatches = fullText.match(/\bBuildwrk\b/gi) ?? [];
   if (brandMatches.length >= 3) score += 18;
-  else if (brandMatches.length >= 1) score += 10;
+  else if (brandMatches.length >= 1) score += 12;
 
-  // Product/domain terms — slightly broader
-  const domainTerms = /\b(construction management|project management|ERP|SaaS|budget tracking|scheduling|RFI|submittal|change order|safety compliance|document management|financial management|property management)\b/gi;
+  // Product/domain terms — broader
+  const domainTerms = /\b(construction management|project management|ERP|SaaS|budget tracking|scheduling|RFI|submittal|change order|safety compliance|document management|financial management|property management|real estate|workflow|automation|platform|software|compliance|data|analytics|reporting)\b/gi;
   const domainMatches = fullText.match(domainTerms) ?? [];
   if (domainMatches.length >= 3) score += 16;
   else if (domainMatches.length >= 1) score += 10;
 
-  // General industry terms (lighter credit)
-  const industryTerms = /\b(contractor|inspector|foreman|superintendent|vendor|subcontractor|architect|engineer)\b/gi;
+  // General industry terms
+  const industryTerms = /\b(contractor|inspector|foreman|superintendent|vendor|subcontractor|architect|engineer|manager|administrator|owner|client|user|team)\b/gi;
   const industryMatches = fullText.match(industryTerms) ?? [];
   if (industryMatches.length >= 2) score += 8;
   else if (industryMatches.length >= 1) score += 4;
@@ -351,12 +357,12 @@ function analyzeEntityMarkup(page: PageData, sections: Section[]): AeoDimensionS
   else if (numbers.length >= 1) score += 6;
 
   // Meta data entity signals
-  if (page.meta_title && page.meta_title.length > 15) score += 8;
-  if (page.meta_description && page.meta_description.length > 40) score += 8;
+  if (page.meta_title && page.meta_title.length > 10) score += 10;
+  if (page.meta_description && page.meta_description.length > 30) score += 10;
 
-  // Legal pages penalty (moderate — legal content still has entities)
+  // Legal pages penalty (mild — legal content still has entities)
   if (isLegalPage(page)) {
-    score = Math.round(score * 0.65);
+    score = Math.round(score * 0.72);
   }
 
   const details =
@@ -437,6 +443,7 @@ function analyzeSpeakableContent(sections: Section[]): AeoDimensionScore {
 function analyzeAiSnippetCompatibility(sections: Section[]): AeoDimensionScore {
   const types = getSectionTypes(sections);
   const fullText = getAllText(sections);
+  const words = fullText.split(/\s+/).filter(Boolean);
   let score = 0;
 
   if (fullText.trim().length === 0) {
@@ -448,7 +455,7 @@ function analyzeAiSnippetCompatibility(sections: Section[]): AeoDimensionScore {
   }
 
   // Base credit for having content
-  score += 12;
+  score += 15;
 
   // Has list/bullet content
   const listTypes = types.filter((t) =>
@@ -497,6 +504,10 @@ function analyzeAiSnippetCompatibility(sections: Section[]): AeoDimensionScore {
   else if (uniqueTypes.size >= 3) score += 8;
   else if (uniqueTypes.size >= 2) score += 5;
   else if (uniqueTypes.size >= 1) score += 2;
+
+  // Content volume bonus
+  if (words.length >= 100) score += 6;
+  else if (words.length >= 30) score += 3;
 
   const details =
     score >= 70
