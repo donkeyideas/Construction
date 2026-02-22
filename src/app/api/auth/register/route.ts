@@ -133,7 +133,8 @@ export async function POST(request: Request) {
         .eq("id", userId);
     }
 
-    // Step 3: Create company record
+    // Step 3: Create company record (14-day free trial)
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
     const { data: companyData, error: companyError } = await supabase
       .from("companies")
       .insert({
@@ -145,6 +146,8 @@ export async function POST(request: Request) {
         website: body.website || null,
         selected_modules: body.selected_modules || [],
         subscription_plan: body.subscription_plan || "starter",
+        subscription_status: "trialing",
+        trial_ends_at: trialEndsAt,
       })
       .select("id")
       .single();

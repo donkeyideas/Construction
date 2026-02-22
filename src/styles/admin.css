@@ -636,7 +636,7 @@
 
 /* ===== Settings Form ===== */
 .settings-form {
-  max-width: 800px;
+  max-width: 100%;
 }
 
 .settings-form-section {

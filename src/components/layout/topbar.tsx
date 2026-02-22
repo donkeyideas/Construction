@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
-import { Search, Bell, Sun, Moon, Menu, LogOut, Settings, Trash2, SwatchBook, Shield } from "lucide-react";
+import { Search, Bell, Sun, Moon, Menu, LogOut, Settings, Trash2, SwatchBook, Shield, Clock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -48,6 +48,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   const [userId, setUserId] = useState("");
   const [auditGrade, setAuditGrade] = useState<string | null>(null);
   const [auditGradeLabel, setAuditGradeLabel] = useState<string | null>(null);
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
 
   // Real-time: increment badge when new messages arrive
   const { count: realtimeNewCount } = useRealtimeNotifications(userId);
@@ -78,6 +79,34 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           const total = (msgRes.count ?? 0) + (notifRes.count ?? 0);
           setUnreadCount(total);
         });
+
+        // Fetch trial_ends_at from company
+        supabase
+          .from("company_members")
+          .select("company_id")
+          .eq("user_id", data.user.id)
+          .eq("is_active", true)
+          .limit(1)
+          .single()
+          .then(({ data: member }) => {
+            if (!member) return;
+            supabase
+              .from("companies")
+              .select("trial_ends_at, subscription_status")
+              .eq("id", member.company_id)
+              .single()
+              .then(({ data: company }) => {
+                if (company?.trial_ends_at) {
+                  const trialEnd = new Date(company.trial_ends_at).getTime();
+                  const now = Date.now();
+                  const daysLeft = Math.max(0, Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24)));
+                  // Only show trial badge if status is trialing or trial hasn't expired
+                  if (company.subscription_status === "trialing" || (daysLeft > 0 && company.subscription_status !== "active")) {
+                    setTrialDaysLeft(daysLeft);
+                  }
+                }
+              });
+          });
       }
     });
   }, []);
@@ -198,6 +227,32 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             >
               <Trash2 size={16} />
               {resetting ? "Deleting..." : resetConfirm ? "Click to Confirm" : "Delete All Data"}
+            </button>
+          )}
+          {trialDaysLeft !== null && !isPortal && (
+            <button
+              className="trial-badge-btn"
+              onClick={() => router.push("/admin/settings?tab=subscription")}
+              title={`Free trial: ${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} remaining`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+                padding: "4px 12px",
+                borderRadius: "6px",
+                border: `1px solid ${trialDaysLeft <= 3 ? "var(--color-red)" : "var(--color-amber)"}`,
+                background: trialDaysLeft <= 3 ? "rgba(220, 38, 38, 0.06)" : "rgba(180, 83, 9, 0.06)",
+                color: trialDaysLeft <= 3 ? "var(--color-red)" : "var(--color-amber)",
+                fontWeight: 600,
+                fontSize: "0.78rem",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <Clock size={13} />
+              {trialDaysLeft === 0
+                ? "Trial expired"
+                : `${trialDaysLeft}d left in trial`}
             </button>
           )}
           {auditGrade && !isPortal && (

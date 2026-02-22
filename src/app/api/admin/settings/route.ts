@@ -1,8 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { updateCompanySettings } from "@/lib/queries/admin";
+import { getCompanyDetails, updateCompanySettings } from "@/lib/queries/admin";
 import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
+
+// ---------------------------------------------------------------------------
+// GET /api/admin/settings - Get company settings
+// ---------------------------------------------------------------------------
+
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const userCtx = await getCurrentUserCompany(supabase);
+
+    if (!userCtx) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const company = await getCompanyDetails(supabase, userCtx.companyId);
+
+    if (!company) {
+      return NextResponse.json({ error: "Company not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ company });
+  } catch (err) {
+    console.error("GET /api/admin/settings error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
 
 // ---------------------------------------------------------------------------
 // PATCH /api/admin/settings - Update company settings

@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import DataImportTab from "./DataImportTab";
 import { MODULES } from "@/lib/constants/modules";
+import { ArrowUpRight } from "lucide-react";
 
 import type { CompanyDetails } from "@/lib/queries/admin";
 
@@ -256,6 +257,20 @@ export default function SettingsClient({
   const plan = company.subscription_plan || "starter";
   const planInfo = PLAN_INFO[plan] || PLAN_INFO.starter;
   const PlanIcon = planInfo.icon;
+
+  // Plan-based module limits
+  const PLAN_MAX_MODULES: Record<string, number | null> = {
+    starter: 3,
+    professional: 6,
+    enterprise: null,
+  };
+  const PLAN_UPGRADE_TARGET: Record<string, string> = {
+    starter: "Professional",
+    professional: "Enterprise",
+  };
+  const maxModules = PLAN_MAX_MODULES[plan] ?? null;
+  const atModuleLimit = maxModules !== null && enabledModules.length >= maxModules;
+  const nextPlan = PLAN_UPGRADE_TARGET[plan];
 
   return (
     <div>
@@ -687,6 +702,51 @@ export default function SettingsClient({
               </div>
             </div>
 
+            {/* Trial Banner */}
+            {company.trial_ends_at && (company.subscription_status === "trialing" || !company.stripe_subscription_id) && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "16px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--color-amber)",
+                  background: "rgba(180, 83, 9, 0.06)",
+                  marginTop: "24px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "8px",
+                    background: "rgba(180, 83, 9, 0.12)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--color-amber)",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Zap size={20} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: "2px" }}>
+                    Free Trial
+                  </div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                    {(() => {
+                      const trialEnd = new Date(company.trial_ends_at!).getTime();
+                      const daysLeft = Math.max(0, Math.ceil((trialEnd - Date.now()) / (1000 * 60 * 60 * 24)));
+                      if (daysLeft === 0) return "Your trial has expired. Upgrade to continue using the platform.";
+                      return `You have ${daysLeft} day${daysLeft !== 1 ? "s" : ""} remaining in your free trial. No credit card required during trial.`;
+                    })()}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Stripe Manage */}
             <div className="settings-form-section" style={{ marginTop: "24px" }}>
               <div className="settings-form-section-title">{t("manageSubscription")}</div>
@@ -777,6 +837,67 @@ export default function SettingsClient({
               <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>
                 Enable or disable platform modules for your company. This controls which sections appear in the sidebar for all team members.
               </p>
+              {/* Module counter */}
+              {maxModules !== null && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    border: `1px solid ${atModuleLimit ? "var(--color-amber)" : "var(--border)"}`,
+                    background: atModuleLimit ? "rgba(180, 83, 9, 0.06)" : "var(--surface)",
+                    marginBottom: "16px",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  <span>
+                    <strong>{enabledModules.length}</strong> / {maxModules} modules selected
+                    <span style={{ color: "var(--muted)", marginLeft: "8px" }}>
+                      ({planInfo.label} plan)
+                    </span>
+                    {atModuleLimit && (
+                      <span style={{ color: "var(--color-amber)", marginLeft: "8px", fontWeight: 600 }}>
+                        — Limit reached
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
+              {/* Upgrade CTA when at limit */}
+              {atModuleLimit && nextPlan && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "14px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid var(--color-blue)",
+                    background: "rgba(37, 99, 235, 0.04)",
+                    marginBottom: "16px",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: "2px" }}>
+                      Need more modules?
+                    </div>
+                    <div style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
+                      Upgrade to the {nextPlan} plan to unlock {PLAN_MAX_MODULES[nextPlan.toLowerCase()] ?? "unlimited"} modules.
+                    </div>
+                  </div>
+                  <button
+                    className="btn-primary"
+                    style={{ whiteSpace: "nowrap", marginLeft: "16px" }}
+                    onClick={() => setActiveTab("subscription")}
+                  >
+                    <ArrowUpRight size={14} />
+                    Upgrade to {nextPlan}
+                  </button>
+                </div>
+              )}
               {moduleMessage && (
                 <div className={`settings-form-message ${moduleMessage.type}`} style={{ marginBottom: "16px" }}>
                   {moduleMessage.text}
@@ -792,6 +913,7 @@ export default function SettingsClient({
               >
                 {MODULES.map((mod) => {
                   const isSelected = enabledModules.includes(mod.key);
+                  const isDisabled = !canEdit || (!isSelected && atModuleLimit);
                   return (
                     <label
                       key={mod.key}
@@ -802,16 +924,16 @@ export default function SettingsClient({
                         padding: "14px 12px",
                         borderRadius: "10px",
                         border: `1.5px solid ${isSelected ? "var(--color-blue)" : "var(--border)"}`,
-                        background: isSelected ? "rgba(37, 99, 235, 0.04)" : "var(--surface)",
-                        cursor: canEdit ? "pointer" : "default",
+                        background: isSelected ? "rgba(37, 99, 235, 0.04)" : "transparent",
+                        cursor: isDisabled ? "not-allowed" : "pointer",
                         transition: "border-color 0.15s, background 0.15s",
-                        opacity: canEdit ? 1 : 0.7,
+                        opacity: isDisabled ? 0.5 : 1,
                       }}
                     >
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        disabled={!canEdit}
+                        disabled={isDisabled}
                         onChange={() => {
                           setEnabledModules((prev) =>
                             prev.includes(mod.key)
