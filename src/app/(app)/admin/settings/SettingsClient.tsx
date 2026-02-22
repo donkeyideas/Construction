@@ -750,81 +750,107 @@ export default function SettingsClient({
             {/* Stripe Manage */}
             <div className="settings-form-section" style={{ marginTop: "24px" }}>
               <div className="settings-form-section-title">{t("manageSubscription")}</div>
-              <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>
-                {t("manageSubscriptionDescription")}
-              </p>
-              {billingMessage && (
-                <div
-                  className={`settings-form-message ${billingMessage.type}`}
-                  style={{ marginBottom: "16px" }}
-                >
-                  {billingMessage.text}
-                </div>
-              )}
-              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                <button
-                  className="btn-primary"
-                  onClick={async () => {
-                    setBillingMessage(null);
-                    try {
-                      const res = await fetch("/api/stripe/portal", { method: "POST" });
-                      if (res.ok) {
-                        const { url } = await res.json();
-                        window.open(url, "_blank");
-                      } else {
-                        const data = await res.json().catch(() => ({}));
-                        setBillingMessage({
-                          type: "error",
-                          text: data.error || t("stripeBillingPortalNotConfigured"),
-                        });
-                      }
-                    } catch {
-                      setBillingMessage({
-                        type: "error",
-                        text: t("stripeBillingPortalNotConfiguredShort"),
-                      });
-                    }
-                  }}
-                >
-                  <ExternalLink size={14} />
-                  {t("manageBilling")}
-                </button>
-                {plan !== "enterprise" && (
-                  <button
-                    className="btn-secondary"
-                    onClick={async () => {
-                      setBillingMessage(null);
-                      try {
-                        const res = await fetch("/api/stripe/checkout", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            plan: plan === "starter" ? "professional" : "enterprise",
-                          }),
-                        });
-                        if (res.ok) {
-                          const { url } = await res.json();
-                          window.open(url, "_blank");
-                        } else {
-                          const data = await res.json().catch(() => ({}));
+              {company.stripe_customer_id ? (
+                <>
+                  <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>
+                    {t("manageSubscriptionDescription")}
+                  </p>
+                  {billingMessage && (
+                    <div
+                      className={`settings-form-message ${billingMessage.type}`}
+                      style={{ marginBottom: "16px" }}
+                    >
+                      {billingMessage.text}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                    <button
+                      className="btn-primary"
+                      onClick={async () => {
+                        setBillingMessage(null);
+                        try {
+                          const res = await fetch("/api/stripe/portal", { method: "POST" });
+                          if (res.ok) {
+                            const { url } = await res.json();
+                            window.open(url, "_blank");
+                          } else {
+                            const data = await res.json().catch(() => ({}));
+                            setBillingMessage({
+                              type: "error",
+                              text: data.error || t("stripeBillingPortalNotConfigured"),
+                            });
+                          }
+                        } catch {
                           setBillingMessage({
                             type: "error",
-                            text: data.error || t("stripeCheckoutNotConfigured"),
+                            text: t("stripeBillingPortalNotConfiguredShort"),
                           });
                         }
-                      } catch {
-                        setBillingMessage({
-                          type: "error",
-                          text: t("stripeCheckoutNotConfiguredShort"),
-                        });
-                      }
-                    }}
-                  >
-                    <Zap size={14} />
-                    {t("upgradeTo", { plan: plan === "starter" ? t("professional") : t("enterprise") })}
-                  </button>
-                )}
-              </div>
+                      }}
+                    >
+                      <ExternalLink size={14} />
+                      {t("manageBilling")}
+                    </button>
+                    {plan !== "enterprise" && (
+                      <button
+                        className="btn-secondary"
+                        onClick={async () => {
+                          setBillingMessage(null);
+                          try {
+                            const res = await fetch("/api/stripe/checkout", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                plan: plan === "starter" ? "professional" : "enterprise",
+                              }),
+                            });
+                            if (res.ok) {
+                              const { url } = await res.json();
+                              window.open(url, "_blank");
+                            } else {
+                              const data = await res.json().catch(() => ({}));
+                              setBillingMessage({
+                                type: "error",
+                                text: data.error || t("stripeCheckoutNotConfigured"),
+                              });
+                            }
+                          } catch {
+                            setBillingMessage({
+                              type: "error",
+                              text: t("stripeCheckoutNotConfiguredShort"),
+                            });
+                          }
+                        }}
+                      >
+                        <Zap size={14} />
+                        {t("upgradeTo", { plan: plan === "starter" ? t("professional") : t("enterprise") })}
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "16px",
+                    borderRadius: "8px",
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
+                  }}
+                >
+                  <CreditCard size={20} style={{ color: "var(--muted)", flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: "0.85rem", fontWeight: 500, marginBottom: "2px" }}>
+                      No billing account yet
+                    </div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
+                      You&apos;re currently on a free trial. Billing and upgrade options will be available once payment processing is configured.
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
