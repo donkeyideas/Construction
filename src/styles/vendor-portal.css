@@ -209,6 +209,7 @@
   padding: 24px;
   transition: box-shadow 0.2s, transform 0.2s;
   margin-bottom: 24px;
+  overflow: hidden;
 }
 .vendor-card:hover {
   box-shadow: 0 4px 20px rgba(0, 0, 0, .06);
@@ -518,6 +519,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
 }
 .vendor-doc-meta {
   font-size: 0.7rem;
