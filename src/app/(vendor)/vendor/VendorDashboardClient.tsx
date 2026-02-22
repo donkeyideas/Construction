@@ -20,6 +20,9 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Download,
+  Eye,
+  Image,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import type {
@@ -136,6 +139,28 @@ function PaginationControls({ page, setPage, totalItems }: { page: number; setPa
   );
 }
 
+function formatFileSize(bytes: number | null): string {
+  if (!bytes) return "—";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getFileTypeLabel(fileType: string | null): string {
+  if (!fileType) return "Document";
+  if (fileType.includes("pdf")) return "PDF";
+  if (fileType.includes("png")) return "PNG Image";
+  if (fileType.includes("jpeg") || fileType.includes("jpg")) return "JPEG Image";
+  if (fileType.includes("word") || fileType.includes("docx")) return "Word Document";
+  if (fileType.includes("excel") || fileType.includes("xlsx") || fileType.includes("spreadsheet")) return "Spreadsheet";
+  return fileType.split("/").pop()?.toUpperCase() || "Document";
+}
+
+function isPreviewableImage(fileType: string | null): boolean {
+  if (!fileType) return false;
+  return fileType.startsWith("image/");
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -195,6 +220,11 @@ export default function VendorDashboardClient({ dashboard }: Props) {
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Document preview modal state
+  const [previewDoc, setPreviewDoc] = useState<VendorDocumentItem | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   // Pagination state (3 items per page)
   const [invoicePage, setInvoicePage] = useState(0);
@@ -375,6 +405,26 @@ export default function VendorDashboardClient({ dashboard }: Props) {
       setDocModalMsg({ type: "error", text: "Network error. Please try again." });
     } finally {
       setDocModalUploading(false);
+    }
+  }
+
+  async function openDocPreview(doc: VendorDocumentItem) {
+    setPreviewDoc(doc);
+    setPreviewUrl(null);
+
+    if (!doc.document_id) return;
+
+    setLoadingPreview(true);
+    try {
+      const res = await fetch(`/api/vendor/documents/${doc.document_id}/download`);
+      if (res.ok) {
+        const data = await res.json();
+        setPreviewUrl(data.url ?? null);
+      }
+    } catch {
+      // Non-blocking — URL just won't be available
+    } finally {
+      setLoadingPreview(false);
     }
   }
 
@@ -732,7 +782,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                   {complianceDocs
                     .slice(complianceDocPage * PAGE_SIZE, (complianceDocPage + 1) * PAGE_SIZE)
                     .map((doc: VendorDocumentItem) => (
-                      <div key={doc.id} className="vendor-doc-item">
+                      <div key={doc.id} className="vendor-doc-item vendor-doc-clickable" onClick={() => openDocPreview(doc)}>
                         <div className="vendor-doc-info">
                           <div className="vendor-doc-icon"><FileText size={16} /></div>
                           <div>
@@ -743,6 +793,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                             </div>
                           </div>
                         </div>
+                        <Eye size={14} className="vendor-doc-view-icon" />
                       </div>
                     ))}
                   <PaginationControls page={complianceDocPage} setPage={setComplianceDocPage} totalItems={complianceDocs.length} />
@@ -780,7 +831,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
             {documents.length > 0 ? (
               <>
                 {documents.slice(docPage * PAGE_SIZE, (docPage + 1) * PAGE_SIZE).map((doc: VendorDocumentItem) => (
-                  <div key={doc.id} className="vendor-doc-item">
+                  <div key={doc.id} className="vendor-doc-item vendor-doc-clickable" onClick={() => openDocPreview(doc)}>
                     <div className="vendor-doc-info">
                       <div className="vendor-doc-icon">
                         <FileText size={16} />
@@ -798,16 +849,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                         </div>
                       </div>
                     </div>
-                    {doc.file_path && (
-                      <a
-                        href={doc.file_path}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="vendor-doc-download"
-                      >
-                        Download
-                      </a>
-                    )}
+                    <Eye size={14} className="vendor-doc-view-icon" />
                   </div>
                 ))}
                 <PaginationControls page={docPage} setPage={setDocPage} totalItems={documents.length} />
@@ -1162,6 +1204,90 @@ export default function VendorDashboardClient({ dashboard }: Props) {
             </div>
             <div className="vendor-modal-footer">
               <button className="vendor-modal-btn-cancel" onClick={() => setSelectedInvoice(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Document Preview Modal ===== */}
+      {previewDoc && (
+        <div className="vendor-modal-overlay" onClick={() => setPreviewDoc(null)}>
+          <div className="vendor-modal vendor-modal-wide" onClick={(e) => e.stopPropagation()}>
+            <div className="vendor-modal-header">
+              <h3>Document Details</h3>
+              <button className="vendor-modal-close" onClick={() => setPreviewDoc(null)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="vendor-modal-body">
+              {/* Document info */}
+              <div className="vendor-doc-preview-header">
+                <div className="vendor-doc-preview-icon">
+                  {isPreviewableImage(previewDoc.file_type) ? <Image size={28} /> : <FileText size={28} />}
+                </div>
+                <div>
+                  <div className="vendor-doc-preview-name">{previewDoc.doc_name}</div>
+                  <div className="vendor-doc-preview-meta">
+                    {getFileTypeLabel(previewDoc.file_type)}
+                    {previewDoc.file_size ? ` · ${formatFileSize(previewDoc.file_size)}` : ""}
+                  </div>
+                </div>
+              </div>
+
+              {/* Detail rows */}
+              <div>
+                <div className="vendor-invoice-detail-row">
+                  <span className="vendor-invoice-detail-label">Category</span>
+                  <span style={{ textTransform: "capitalize" }}>{previewDoc.doc_category || "General"}</span>
+                </div>
+                <div className="vendor-invoice-detail-row">
+                  <span className="vendor-invoice-detail-label">Uploaded</span>
+                  <span>
+                    {previewDoc.shared_at
+                      ? new Date(previewDoc.shared_at).toLocaleDateString("en-US", {
+                          month: "short", day: "numeric", year: "numeric",
+                        })
+                      : "—"}
+                  </span>
+                </div>
+                <div className="vendor-invoice-detail-row">
+                  <span className="vendor-invoice-detail-label">File Type</span>
+                  <span>{getFileTypeLabel(previewDoc.file_type)}</span>
+                </div>
+                {previewDoc.file_size && (
+                  <div className="vendor-invoice-detail-row">
+                    <span className="vendor-invoice-detail-label">File Size</span>
+                    <span>{formatFileSize(previewDoc.file_size)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Image preview */}
+              {isPreviewableImage(previewDoc.file_type) && previewUrl && (
+                <div className="vendor-doc-preview-image">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={previewUrl} alt={previewDoc.doc_name} />
+                </div>
+              )}
+
+              {/* Loading state */}
+              {loadingPreview && (
+                <div className="vendor-empty">Loading file...</div>
+              )}
+            </div>
+            <div className="vendor-modal-footer">
+              <button className="vendor-modal-btn-cancel" onClick={() => setPreviewDoc(null)}>Close</button>
+              {previewUrl && (
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="vendor-modal-btn-submit"
+                  style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  <Download size={14} /> Download
+                </a>
+              )}
             </div>
           </div>
         </div>

@@ -58,9 +58,11 @@ export interface VendorContractItem {
 
 export interface VendorDocumentItem {
   id: string;
+  document_id: string | null;
   doc_name: string;
   file_path: string | null;
   file_type: string | null;
+  file_size: number | null;
   shared_at: string | null;
   doc_category: string | null;
 }
@@ -154,7 +156,7 @@ export async function getVendorDashboardFull(
     // Shared documents (for Documents card)
     supabase
       .from("vendor_documents")
-      .select("id, shared_at, documents(name, file_path, file_type, ai_extracted_data)")
+      .select("id, shared_at, document_id, documents(name, file_path, file_type, file_size, ai_extracted_data)")
       .eq("vendor_contact_id", contact.id)
       .order("shared_at", { ascending: false })
       .limit(10),
@@ -226,12 +228,14 @@ export async function getVendorDashboardFull(
 
   // Build documents list
   const documentsList: VendorDocumentItem[] = docs.map((d: Record<string, unknown>) => {
-    const doc = d.documents as { name: string; file_path: string; file_type: string; ai_extracted_data: Record<string, string> | null } | null;
+    const doc = d.documents as { name: string; file_path: string; file_type: string; file_size: number | null; ai_extracted_data: Record<string, string> | null } | null;
     return {
       id: d.id as string,
+      document_id: (d.document_id as string) ?? null,
       doc_name: doc?.name ?? "Untitled Document",
       file_path: doc?.file_path ?? null,
       file_type: doc?.file_type ?? null,
+      file_size: doc?.file_size ?? null,
       shared_at: (d.shared_at as string) ?? null,
       doc_category: doc?.ai_extracted_data?.doc_type ?? null,
     };
