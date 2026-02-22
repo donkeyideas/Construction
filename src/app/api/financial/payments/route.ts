@@ -59,13 +59,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Resolve bank_account_id: use provided value, or fall back to default bank account
+    let bankAccountId = body.bank_account_id || null;
+    if (!bankAccountId) {
+      const { data: defaultBank } = await supabase
+        .from("bank_accounts")
+        .select("id")
+        .eq("company_id", userCompany.companyId)
+        .eq("is_default", true)
+        .limit(1)
+        .single();
+      bankAccountId = defaultBank?.id || null;
+    }
+
     const data: PaymentCreateData = {
       invoice_id: body.invoice_id,
       payment_date: body.payment_date,
       amount: body.amount,
       method: body.method,
       reference_number: body.reference_number,
-      bank_account_id: body.bank_account_id,
+      bank_account_id: bankAccountId,
       notes: body.notes,
     };
 

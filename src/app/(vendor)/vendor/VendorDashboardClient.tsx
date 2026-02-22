@@ -183,6 +183,21 @@ export default function VendorDashboardClient({ dashboard }: Props) {
       });
 
       if (res.ok) {
+        // If a file is attached, upload it to the documents library
+        if (invoiceFile) {
+          try {
+            const formData = new FormData();
+            formData.append("file", invoiceFile);
+            formData.append("doc_type", "general");
+            formData.append("doc_name", `Invoice ${invoiceNumber.trim()} — ${invoiceFile.name}`);
+            await fetch("/api/vendor/documents", {
+              method: "POST",
+              body: formData,
+            });
+          } catch {
+            // Non-blocking — invoice was created, file upload is best-effort
+          }
+        }
         setSubmitMsg({ type: "success", text: `Invoice ${invoiceNumber} submitted successfully!` });
         setInvoiceNumber("");
         setInvoiceAmount("");

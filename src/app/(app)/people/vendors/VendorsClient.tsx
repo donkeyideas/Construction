@@ -237,9 +237,9 @@ export default function VendorsClient({
           payment_date: vendorPayData.payment_date,
           amount: parseFloat(vendorPayData.amount),
           method: vendorPayData.method,
-          bank_account_id: vendorPayData.bank_account_id || undefined,
-          reference_number: vendorPayData.reference_number || undefined,
-          notes: vendorPayData.notes || undefined,
+          bank_account_id: vendorPayData.bank_account_id || null,
+          reference_number: vendorPayData.reference_number || null,
+          notes: vendorPayData.notes || null,
         }),
       });
       if (!res.ok) {
@@ -1054,12 +1054,12 @@ export default function VendorsClient({
                 </div>
                 <div className="vendor-form-field full-width">
                   <label>Notes</label>
-                  <textarea
+                  <input
+                    type="text"
                     className="ui-input"
                     value={vendorPayData.notes}
                     onChange={(e) => setVendorPayData({ ...vendorPayData, notes: e.target.value })}
-                    rows={2}
-                    style={{ resize: "vertical" }}
+                    placeholder="Optional notes"
                   />
                 </div>
               </div>
