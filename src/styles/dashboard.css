@@ -113,13 +113,19 @@
   flex-direction: column;
 }
 
+.dash-subchart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
 .dash-subchart-label {
   font-size: 0.72rem;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   font-weight: 500;
-  margin-bottom: 2px;
 }
 
 .dash-subchart-area {
@@ -132,9 +138,7 @@
 .dash-subchart-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  margin-top: 6px;
 }
 
 .dash-subchart-dots {

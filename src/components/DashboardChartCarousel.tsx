@@ -101,8 +101,8 @@ export default function DashboardChartCarousel(props: Props) {
   ];
 
   const equipmentCharts: SubChart[] = [
-    { label: "Status", component: <EquipmentStatusChart data={equipmentStatusBreakdown} total={equipmentTotal} /> },
     { label: "By Type", component: <EquipmentTypeChart data={equipmentTypeBreakdown} /> },
+    { label: "Status", component: <EquipmentStatusChart data={equipmentStatusBreakdown} total={equipmentTotal} /> },
   ];
 
   const defaultTab = showFinancials ? "financial" : "scheduling";
@@ -119,39 +119,41 @@ export default function DashboardChartCarousel(props: Props) {
 
     return (
       <div className="dash-subchart-carousel">
-        <div className="dash-subchart-label">{charts[idx]?.label}</div>
+        <div className="dash-subchart-header">
+          <div className="dash-subchart-label">{charts[idx]?.label}</div>
+          {charts.length > 1 && (
+            <div className="dash-subchart-nav">
+              <button
+                className="dash-subchart-arrow"
+                onClick={() => navigate(tabKey, charts, -1)}
+                aria-label="Previous chart"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <div className="dash-subchart-dots">
+                {charts.map((c, i) => (
+                  <button
+                    key={i}
+                    className={`dash-subchart-dot ${i === idx ? "active" : ""}`}
+                    onClick={() => setSubIdx((prev) => ({ ...prev, [tabKey]: i }))}
+                    aria-label={c.label}
+                    title={c.label}
+                  />
+                ))}
+              </div>
+              <button
+                className="dash-subchart-arrow"
+                onClick={() => navigate(tabKey, charts, 1)}
+                aria-label="Next chart"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
+        </div>
         <div className="dash-subchart-area">
           {charts[idx]?.component}
         </div>
-        {charts.length > 1 && (
-          <div className="dash-subchart-nav">
-            <button
-              className="dash-subchart-arrow"
-              onClick={() => navigate(tabKey, charts, -1)}
-              aria-label="Previous chart"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <div className="dash-subchart-dots">
-              {charts.map((c, i) => (
-                <button
-                  key={i}
-                  className={`dash-subchart-dot ${i === idx ? "active" : ""}`}
-                  onClick={() => setSubIdx((prev) => ({ ...prev, [tabKey]: i }))}
-                  aria-label={c.label}
-                  title={c.label}
-                />
-              ))}
-            </div>
-            <button
-              className="dash-subchart-arrow"
-              onClick={() => navigate(tabKey, charts, 1)}
-              aria-label="Next chart"
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        )}
       </div>
     );
   }
