@@ -96,14 +96,14 @@ BEGIN
       SELECT name INTO old_gl_name FROM chart_of_accounts WHERE id = old_gl_id;
 
       INSERT INTO journal_entries
-        (id, company_id, entry_number, entry_date, description, reference, status, created_by, total_debit, total_credit)
+        (id, company_id, entry_number, entry_date, description, reference, status, created_by)
       VALUES
         (je_id, bank.company_id,
          'JE-RECLASS-' || substring(bank.id::text from 1 for 8),
          CURRENT_DATE,
          'Reclassify ' || old_gl_name || ' → ' || acct_label,
          'reclass_bank:' || bank.id || ':old_gl',
-         'posted', creator_uid, old_gl_balance, old_gl_balance);
+         'posted', creator_uid);
 
       INSERT INTO journal_entry_lines
         (id, company_id, journal_entry_id, account_id, debit, credit, description, line_order)
@@ -125,14 +125,14 @@ BEGIN
       je_id := gen_random_uuid();
 
       INSERT INTO journal_entries
-        (id, company_id, entry_number, entry_date, description, reference, status, created_by, total_debit, total_credit)
+        (id, company_id, entry_number, entry_date, description, reference, status, created_by)
       VALUES
         (je_id, bank.company_id,
          'JE-RECLASS2-' || substring(bank.id::text from 1 for 8),
          CURRENT_DATE,
          'Reclassify Cash → ' || acct_label,
          'reclass_bank:' || bank.id || ':cash',
-         'posted', creator_uid, remaining, remaining);
+         'posted', creator_uid);
 
       INSERT INTO journal_entry_lines
         (id, company_id, journal_entry_id, account_id, debit, credit, description, line_order)
