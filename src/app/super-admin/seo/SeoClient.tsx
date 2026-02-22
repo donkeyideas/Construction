@@ -42,6 +42,10 @@ import {
   ArrowUp,
   ArrowDown,
   Minus as MinusIcon,
+  Bot,
+  Target,
+  Trash2,
+  FlaskConical,
 } from "lucide-react";
 import type {
   PlatformSeoOverview,
@@ -52,6 +56,8 @@ import type {
   PositionBucket,
   PlatformGeoPresence,
   SeoRecommendation,
+  AeoOverview,
+  CroOverview,
 } from "@/lib/queries/super-admin-seo";
 import "@/styles/seo.css";
 
@@ -81,6 +87,8 @@ interface Props {
   geo: PlatformGeoPresence;
   recommendations: SeoRecommendation[];
   keywords: Keyword[];
+  aeoOverview: AeoOverview;
+  croOverview: CroOverview;
 }
 
 /* ──────────────────────────────────────────────
@@ -95,6 +103,8 @@ const TABS = [
   { key: "traffic", icon: TrendingUp, label: "seoTabTraffic" },
   { key: "geo", icon: Globe, label: "seoTabGeo" },
   { key: "searchConsole", icon: Search, label: "seoTabSearchConsole" },
+  { key: "aeo", icon: Bot, label: "seoTabAeo" },
+  { key: "cro", icon: Target, label: "seoTabCro" },
   { key: "recommendations", icon: Lightbulb, label: "seoTabRecommendations" },
 ] as const;
 
@@ -188,6 +198,8 @@ export default function SeoClient({
   geo,
   recommendations,
   keywords,
+  aeoOverview,
+  croOverview,
 }: Props) {
   const t = useTranslations("superAdmin");
   const locale = useLocale();
@@ -217,6 +229,32 @@ export default function SeoClient({
   const [kwIntent, setKwIntent] = useState("informational");
   const [kwTargetUrl, setKwTargetUrl] = useState("");
 
+  // AEO state
+  const [showAddAeoEntry, setShowAddAeoEntry] = useState(false);
+  const [aeoSaving, setAeoSaving] = useState(false);
+  const [aeoFormError, setAeoFormError] = useState("");
+  const [aeoQuery, setAeoQuery] = useState("");
+  const [aeoEngine, setAeoEngine] = useState("chatgpt");
+  const [aeoType, setAeoType] = useState("mention");
+  const [aeoUrl, setAeoUrl] = useState("");
+  const [aeoSnippet, setAeoSnippet] = useState("");
+  const [aeoDate, setAeoDate] = useState("");
+
+  // CRO state
+  const [croSubTab, setCroSubTab] = useState<"funnel" | "performance" | "abtests">("funnel");
+  const [showAddAbTest, setShowAddAbTest] = useState(false);
+  const [croSaving, setCroSaving] = useState(false);
+  const [croFormError, setCroFormError] = useState("");
+  const [croTestName, setCroTestName] = useState("");
+  const [croPageUrl, setCroPageUrl] = useState("");
+  const [croVariantA, setCroVariantA] = useState("Control");
+  const [croVariantB, setCroVariantB] = useState("Variant B");
+  const [croMetricName, setCroMetricName] = useState("Conversion Rate");
+
+  // CRO funnel data from GA4 (lazy loaded)
+  const [croGaData, setCroGaData] = useState<any>(null);
+  const [croGaLoading, setCroGaLoading] = useState(false);
+
   /* ── traffic fetch ── */
   useEffect(() => {
     if (activeTab === "traffic" && !trafficData && !trafficLoading) {
@@ -240,6 +278,18 @@ export default function SeoClient({
         .finally(() => setGscLoading(false));
     }
   }, [activeTab, gscData, gscLoading]);
+
+  /* ── CRO GA4 data fetch (reuses analytics API) ── */
+  useEffect(() => {
+    if (activeTab === "cro" && !croGaData && !croGaLoading) {
+      setCroGaLoading(true);
+      fetch("/api/super-admin/analytics")
+        .then((r) => r.json())
+        .then((data) => setCroGaData(data))
+        .catch(() => setCroGaData({ configured: false }))
+        .finally(() => setCroGaLoading(false));
+    }
+  }, [activeTab, croGaData, croGaLoading]);
 
   /* ── copy handlers ── */
   const handleCopy = useCallback(async (id: string, text: string) => {
@@ -303,6 +353,90 @@ export default function SeoClient({
       setFormError(t("networkError"));
     } finally {
       setSaving(false);
+    }
+  }
+
+  /* ── add AEO entry handler ── */
+  async function handleAddAeoEntry(e: React.FormEvent) {
+    e.preventDefault();
+    if (!aeoQuery.trim()) return;
+
+    setAeoSaving(true);
+    setAeoFormError("");
+
+    try {
+      const res = await fetch("/api/super-admin/aeo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: aeoQuery.trim(),
+          ai_engine: aeoEngine,
+          mention_type: aeoType,
+          url_cited: aeoUrl.trim() || null,
+          snippet_text: aeoSnippet.trim() || null,
+          tracked_date: aeoDate || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setAeoFormError(data.error || "Failed to save");
+        return;
+      }
+
+      setAeoQuery("");
+      setAeoEngine("chatgpt");
+      setAeoType("mention");
+      setAeoUrl("");
+      setAeoSnippet("");
+      setAeoDate("");
+      setShowAddAeoEntry(false);
+      router.refresh();
+    } catch {
+      setAeoFormError("Network error");
+    } finally {
+      setAeoSaving(false);
+    }
+  }
+
+  /* ── add A/B test handler ── */
+  async function handleAddAbTest(e: React.FormEvent) {
+    e.preventDefault();
+    if (!croTestName.trim()) return;
+
+    setCroSaving(true);
+    setCroFormError("");
+
+    try {
+      const res = await fetch("/api/super-admin/cro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          test_name: croTestName.trim(),
+          page_url: croPageUrl.trim() || null,
+          variant_a_name: croVariantA.trim() || "Control",
+          variant_b_name: croVariantB.trim() || "Variant B",
+          metric_name: croMetricName.trim() || "Conversion Rate",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setCroFormError(data.error || "Failed to save");
+        return;
+      }
+
+      setCroTestName("");
+      setCroPageUrl("");
+      setCroVariantA("Control");
+      setCroVariantB("Variant B");
+      setCroMetricName("Conversion Rate");
+      setShowAddAbTest(false);
+      router.refresh();
+    } catch {
+      setCroFormError("Network error");
+    } finally {
+      setCroSaving(false);
     }
   }
 
@@ -1600,7 +1734,484 @@ export default function SeoClient({
         )}
 
         {/* ════════════════════════════════════
-           TAB 8 - RECOMMENDATIONS
+           TAB 8 - AEO (Answer Engine Optimization)
+           ════════════════════════════════════ */}
+        {activeTab === "aeo" && (
+          <>
+            {aeoOverview.totalMentions === 0 ? (
+              <div className="sa-empty">
+                <Bot size={40} style={{ color: "var(--muted)" }} />
+                <div className="sa-empty-title">{t("aeoNoData")}</div>
+                <div className="sa-empty-desc">{t("aeoNoDataDesc")}</div>
+                <button
+                  className="sa-action-btn primary"
+                  style={{ marginTop: 12 }}
+                  onClick={() => setShowAddAeoEntry(true)}
+                >
+                  <Plus size={14} /> {t("aeoAddEntry")}
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* KPI cards */}
+                <div className="sa-kpi-grid">
+                  <div className="sa-kpi-card">
+                    <div className="sa-kpi-header">
+                      <span className="sa-kpi-label">{t("aeoMentions")}</span>
+                      <Bot size={16} style={{ color: "var(--primary)" }} />
+                    </div>
+                    <div className="sa-kpi-value" style={{ color: "var(--primary)" }}>
+                      {aeoOverview.totalMentions}
+                    </div>
+                  </div>
+                  <div className="sa-kpi-card">
+                    <div className="sa-kpi-header">
+                      <span className="sa-kpi-label">{t("aeoFeaturedSnippets")}</span>
+                      <Eye size={16} style={{ color: "var(--color-amber)" }} />
+                    </div>
+                    <div className="sa-kpi-value" style={{ color: "var(--color-amber)" }}>
+                      {aeoOverview.featuredSnippets}
+                    </div>
+                  </div>
+                  <div className="sa-kpi-card">
+                    <div className="sa-kpi-header">
+                      <span className="sa-kpi-label">{t("aeoKnowledgePanels")}</span>
+                      <Lightbulb size={16} style={{ color: "#8b5cf6" }} />
+                    </div>
+                    <div className="sa-kpi-value" style={{ color: "#8b5cf6" }}>
+                      {aeoOverview.knowledgePanels}
+                    </div>
+                  </div>
+                  <div className="sa-kpi-card">
+                    <div className="sa-kpi-header">
+                      <span className="sa-kpi-label">{t("aeoPeopleAlsoAsk")}</span>
+                      <Search size={16} style={{ color: "#06b6d4" }} />
+                    </div>
+                    <div className="sa-kpi-value" style={{ color: "#06b6d4" }}>
+                      {aeoOverview.peopleAlsoAsk}
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Engine Coverage + Trend chart */}
+                <div className="seo-two-col">
+                  {/* Engine Coverage */}
+                  <div className="sa-card">
+                    <div className="sa-card-title">{t("aeoEngineCoverage")}</div>
+                    <table className="sa-table">
+                      <thead>
+                        <tr>
+                          <th>{t("aeoEngine")}</th>
+                          <th>{t("aeoMentionCount")}</th>
+                          <th>{t("aeoCoverage")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {aeoOverview.engineCoverage.map((ec) => (
+                          <tr key={ec.engine}>
+                            <td>
+                              <span className={`aeo-engine-badge ${ec.engine}`}>
+                                {ec.engine === "chatgpt"
+                                  ? t("aeoChatGPT")
+                                  : ec.engine === "perplexity"
+                                  ? t("aeoPerplexity")
+                                  : ec.engine === "gemini"
+                                  ? t("aeoGemini")
+                                  : t("aeoGoogleAI")}
+                              </span>
+                            </td>
+                            <td>{ec.count}</td>
+                            <td>{ec.percentage}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Visibility Trend */}
+                  <div className="sa-card">
+                    <div className="sa-card-title">{t("aeoVisibilityTrend")}</div>
+                    {aeoOverview.trendData.length > 0 ? (
+                      <div className="seo-chart-wrap">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={aeoOverview.trendData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                            <XAxis
+                              dataKey="date"
+                              tick={{ fill: "var(--muted)", fontSize: 11 }}
+                              tickFormatter={(v) =>
+                                new Date(v).toLocaleDateString(dateLocale, {
+                                  month: "short",
+                                  day: "numeric",
+                                })
+                              }
+                            />
+                            <YAxis tick={{ fill: "var(--muted)", fontSize: 11 }} />
+                            <Tooltip
+                              contentStyle={{
+                                background: "var(--card-bg)",
+                                border: "1px solid var(--border)",
+                                borderRadius: "8px",
+                                fontSize: "0.8rem",
+                              }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="mentions"
+                              stroke="#8b5cf6"
+                              strokeWidth={2}
+                              dot={{ r: 3 }}
+                              name={t("aeoMentionCount")}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <div className="sa-empty" style={{ padding: "40px 0" }}>
+                        <div className="sa-empty-desc">No trend data yet.</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Query Tracking table */}
+                <div className="sa-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <div className="sa-card-title" style={{ margin: 0 }}>
+                      {t("aeoQueryTracking")}
+                    </div>
+                    <button
+                      className="sa-action-btn primary"
+                      onClick={() => setShowAddAeoEntry(true)}
+                    >
+                      <Plus size={14} /> {t("aeoAddEntry")}
+                    </button>
+                  </div>
+                  <div className="sa-table-wrap">
+                    <table className="sa-table">
+                      <thead>
+                        <tr>
+                          <th>{t("aeoQuery")}</th>
+                          <th>{t("aeoEngine")}</th>
+                          <th>{t("aeoType")}</th>
+                          <th>{t("aeoUrlCited")}</th>
+                          <th>{t("aeoDate")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {aeoOverview.queryTracking.slice(0, 20).map((entry) => (
+                          <tr key={entry.id}>
+                            <td style={{ fontWeight: 500 }}>{entry.query}</td>
+                            <td>
+                              <span className={`aeo-engine-badge ${entry.ai_engine}`}>
+                                {entry.ai_engine === "chatgpt"
+                                  ? t("aeoChatGPT")
+                                  : entry.ai_engine === "perplexity"
+                                  ? t("aeoPerplexity")
+                                  : entry.ai_engine === "gemini"
+                                  ? t("aeoGemini")
+                                  : t("aeoGoogleAI")}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`aeo-type-badge ${entry.mention_type}`}>
+                                {entry.mention_type === "featured_snippet"
+                                  ? t("aeoFeaturedSnippet")
+                                  : entry.mention_type === "knowledge_panel"
+                                  ? t("aeoKnowledgePanel")
+                                  : entry.mention_type === "people_also_ask"
+                                  ? t("aeoPAA")
+                                  : t("aeoMention")}
+                              </span>
+                            </td>
+                            <td>
+                              {entry.url_cited ? (
+                                <span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
+                                  {entry.url_cited}
+                                </span>
+                              ) : (
+                                <span style={{ color: "var(--muted)" }}>—</span>
+                              )}
+                            </td>
+                            <td style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
+                              {new Date(entry.tracked_date).toLocaleDateString(dateLocale)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {/* ════════════════════════════════════
+           TAB 9 - CRO (Conversion Rate Optimization)
+           ════════════════════════════════════ */}
+        {activeTab === "cro" && (
+          <>
+            {/* Sub-tabs */}
+            <div className="seo-cro-subtabs">
+              <button
+                className={`seo-cro-subtab ${croSubTab === "funnel" ? "active" : ""}`}
+                onClick={() => setCroSubTab("funnel")}
+              >
+                {t("croFunnel")}
+              </button>
+              <button
+                className={`seo-cro-subtab ${croSubTab === "performance" ? "active" : ""}`}
+                onClick={() => setCroSubTab("performance")}
+              >
+                {t("croPerformance")}
+              </button>
+              <button
+                className={`seo-cro-subtab ${croSubTab === "abtests" ? "active" : ""}`}
+                onClick={() => setCroSubTab("abtests")}
+              >
+                {t("croAbTests")}
+              </button>
+            </div>
+
+            {/* ── Conversion Funnel ── */}
+            {croSubTab === "funnel" && (
+              <div className="sa-card">
+                <div className="sa-card-title">{t("croFunnel")}</div>
+                {croGaLoading ? (
+                  <div className="sa-empty" style={{ padding: "40px 0" }}>
+                    <div className="seo-spinner" />
+                  </div>
+                ) : !croGaData || !croGaData.configured ? (
+                  <div className="sa-empty">
+                    <TrendingUp size={40} style={{ color: "var(--muted)" }} />
+                    <div className="sa-empty-title">{t("croNoFunnelData")}</div>
+                    <div className="sa-empty-desc">{t("croNoFunnelDataDesc")}</div>
+                  </div>
+                ) : (() => {
+                  const visitors = croGaData.users || 0;
+                  const sessions = croGaData.sessions || 0;
+                  const pageViews = croGaData.pageViews || 0;
+                  const stages = [
+                    { label: t("croVisitors"), value: visitors, color: "#3b82f6" },
+                    { label: "Sessions", value: sessions, color: "#8b5cf6" },
+                    { label: "Page Views", value: pageViews, color: "#22c55e" },
+                  ];
+                  const maxVal = Math.max(...stages.map((s) => s.value), 1);
+
+                  return (
+                    <div className="cro-funnel">
+                      {stages.map((stage, idx) => (
+                        <div key={stage.label}>
+                          <div className="cro-funnel-stage">
+                            <div className="cro-funnel-label">{stage.label}</div>
+                            <div className="cro-funnel-bar-wrap">
+                              <div
+                                className="cro-funnel-bar"
+                                style={{
+                                  width: `${Math.max((stage.value / maxVal) * 100, 10)}%`,
+                                  background: stage.color,
+                                }}
+                              >
+                                {stage.value.toLocaleString()}
+                              </div>
+                            </div>
+                            {idx > 0 && (
+                              <div className="cro-funnel-rate">
+                                {stages[idx - 1].value > 0
+                                  ? `${((stage.value / stages[idx - 1].value) * 100).toFixed(1)}%`
+                                  : "—"}
+                              </div>
+                            )}
+                          </div>
+                          {idx < stages.length - 1 && (
+                            <div className="cro-funnel-arrow">▼</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* ── Page Performance ── */}
+            {croSubTab === "performance" && (
+              <div className="sa-card">
+                <div className="sa-card-title">{t("croPerformance")}</div>
+                {croGaLoading ? (
+                  <div className="sa-empty" style={{ padding: "40px 0" }}>
+                    <div className="seo-spinner" />
+                  </div>
+                ) : !croGaData || !croGaData.configured || !croGaData.topPages?.length ? (
+                  <div className="sa-empty">
+                    <BarChart3 size={40} style={{ color: "var(--muted)" }} />
+                    <div className="sa-empty-title">{t("croNoPageData")}</div>
+                    <div className="sa-empty-desc">{t("croNoPageDataDesc")}</div>
+                  </div>
+                ) : (
+                  <div className="sa-table-wrap">
+                    <table className="sa-table">
+                      <thead>
+                        <tr>
+                          <th>{t("croPagePath")}</th>
+                          <th>{t("croViews")}</th>
+                          <th>{t("croPerformanceScore")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {croGaData.topPages.slice(0, 15).map((page: any, idx: number) => {
+                          const views = page.views || 0;
+                          const maxViews = croGaData.topPages[0]?.views || 1;
+                          const ratio = views / maxViews;
+                          const score = ratio > 0.5 ? "good" : ratio > 0.2 ? "fair" : "poor";
+                          const badgeClass =
+                            score === "good"
+                              ? "sa-badge-green"
+                              : score === "fair"
+                              ? "sa-badge-amber"
+                              : "sa-badge-red";
+                          return (
+                            <tr key={idx}>
+                              <td style={{ fontWeight: 500, fontSize: "0.82rem" }}>
+                                {page.path}
+                              </td>
+                              <td>{views.toLocaleString()}</td>
+                              <td>
+                                <span className={`sa-badge ${badgeClass}`}>{score}</span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── A/B Tests ── */}
+            {croSubTab === "abtests" && (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <div className="cro-kpi-row" style={{ marginBottom: 0, flex: 1 }}>
+                    <div className="cro-kpi-item">
+                      <div className="cro-kpi-value" style={{ color: "#3b82f6" }}>
+                        {croOverview.runningCount}
+                      </div>
+                      <div className="cro-kpi-label">{t("croRunningTests")}</div>
+                    </div>
+                    <div className="cro-kpi-item">
+                      <div className="cro-kpi-value" style={{ color: "#22c55e" }}>
+                        {croOverview.completedCount}
+                      </div>
+                      <div className="cro-kpi-label">{t("croCompletedTests")}</div>
+                    </div>
+                  </div>
+                  <button
+                    className="sa-action-btn primary"
+                    style={{ marginLeft: 16 }}
+                    onClick={() => setShowAddAbTest(true)}
+                  >
+                    <Plus size={14} /> {t("croNewTest")}
+                  </button>
+                </div>
+
+                {croOverview.abTests.length === 0 ? (
+                  <div className="sa-empty">
+                    <FlaskConical size={40} style={{ color: "var(--muted)" }} />
+                    <div className="sa-empty-title">{t("croNoTests")}</div>
+                    <div className="sa-empty-desc">{t("croNoTestsDesc")}</div>
+                  </div>
+                ) : (
+                  <div>
+                    {croOverview.abTests.map((test) => {
+                      const rateA =
+                        test.variant_a_visitors > 0
+                          ? ((test.variant_a_conversions / test.variant_a_visitors) * 100).toFixed(1)
+                          : "0.0";
+                      const rateB =
+                        test.variant_b_visitors > 0
+                          ? ((test.variant_b_conversions / test.variant_b_visitors) * 100).toFixed(1)
+                          : "0.0";
+                      const sig = test.statistical_significance ?? 0;
+                      const sigColor =
+                        sig >= 95
+                          ? "#22c55e"
+                          : sig >= 80
+                          ? "#f59e0b"
+                          : "#ef4444";
+
+                      return (
+                        <div key={test.id} className="cro-test-card">
+                          <div className="cro-test-header">
+                            <div className="cro-test-name">{test.test_name}</div>
+                            <div className="cro-test-meta">
+                              {test.page_url && (
+                                <span>{test.page_url}</span>
+                              )}
+                              <span className={`cro-status-badge ${test.status}`}>
+                                {test.status === "running"
+                                  ? t("croRunning")
+                                  : test.status === "completed"
+                                  ? t("croCompleted")
+                                  : t("croPaused")}
+                              </span>
+                              {test.winner && test.winner !== "inconclusive" && (
+                                <span className="sa-badge sa-badge-green">
+                                  {t("croWinner")}: {test.winner === "A" ? test.variant_a_name : test.variant_b_name}
+                                </span>
+                              )}
+                              {test.winner === "inconclusive" && (
+                                <span className="sa-badge sa-badge-amber">
+                                  {t("croInconclusive")}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="cro-test-variants">
+                            <div className={`cro-variant-box ${test.winner === "A" ? "winner" : ""}`}>
+                              <div className="cro-variant-label">{test.variant_a_name}</div>
+                              <div className="cro-variant-rate">{rateA}%</div>
+                              <div className="cro-variant-sample">
+                                {test.variant_a_conversions} / {test.variant_a_visitors} {t("croConversions").toLowerCase()}
+                              </div>
+                            </div>
+                            <div className={`cro-variant-box ${test.winner === "B" ? "winner" : ""}`}>
+                              <div className="cro-variant-label">{test.variant_b_name}</div>
+                              <div className="cro-variant-rate">{rateB}%</div>
+                              <div className="cro-variant-sample">
+                                {test.variant_b_conversions} / {test.variant_b_visitors} {t("croConversions").toLowerCase()}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="cro-significance-wrap">
+                            <div className="cro-significance-label">
+                              <span>{t("croSignificance")}</span>
+                              <span>{sig}%</span>
+                            </div>
+                            <div className="cro-significance-bar">
+                              <div
+                                className="cro-significance-fill"
+                                style={{
+                                  width: `${Math.min(sig, 100)}%`,
+                                  background: sigColor,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {/* ════════════════════════════════════
+           TAB 10 - RECOMMENDATIONS
            ════════════════════════════════════ */}
         {activeTab === "recommendations" && (
           <>
@@ -1807,6 +2418,222 @@ export default function SeoClient({
                   disabled={saving}
                 >
                   {saving ? t("adding") : t("addKeyword")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* ════════════════════════════════════
+         ADD AEO ENTRY MODAL
+         ════════════════════════════════════ */}
+      {showAddAeoEntry && (
+        <>
+          <div
+            className="invite-modal-overlay"
+            onClick={() => setShowAddAeoEntry(false)}
+          />
+          <div className="invite-modal">
+            <button
+              className="invite-modal-close"
+              onClick={() => setShowAddAeoEntry(false)}
+            >
+              <X size={18} />
+            </button>
+            <div className="invite-modal-title">{t("aeoAddTitle")}</div>
+
+            {aeoFormError && <div className="invite-error">{aeoFormError}</div>}
+
+            <form onSubmit={handleAddAeoEntry}>
+              <div className="invite-form-group">
+                <label className="invite-form-label">{t("aeoQuery")}</label>
+                <input
+                  type="text"
+                  className="invite-form-input"
+                  placeholder="e.g., best construction management software"
+                  value={aeoQuery}
+                  onChange={(e) => setAeoQuery(e.target.value)}
+                  required
+                />
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}
+              >
+                <div className="invite-form-group">
+                  <label className="invite-form-label">{t("aeoEngine")}</label>
+                  <select
+                    className="invite-form-select"
+                    value={aeoEngine}
+                    onChange={(e) => setAeoEngine(e.target.value)}
+                  >
+                    <option value="chatgpt">{t("aeoChatGPT")}</option>
+                    <option value="perplexity">{t("aeoPerplexity")}</option>
+                    <option value="gemini">{t("aeoGemini")}</option>
+                    <option value="google_ai_overview">{t("aeoGoogleAI")}</option>
+                  </select>
+                </div>
+                <div className="invite-form-group">
+                  <label className="invite-form-label">{t("aeoType")}</label>
+                  <select
+                    className="invite-form-select"
+                    value={aeoType}
+                    onChange={(e) => setAeoType(e.target.value)}
+                  >
+                    <option value="mention">{t("aeoMention")}</option>
+                    <option value="featured_snippet">{t("aeoFeaturedSnippet")}</option>
+                    <option value="knowledge_panel">{t("aeoKnowledgePanel")}</option>
+                    <option value="people_also_ask">{t("aeoPAA")}</option>
+                  </select>
+                </div>
+              </div>
+              <div className="invite-form-group">
+                <label className="invite-form-label">{t("aeoUrlCited")}</label>
+                <input
+                  type="text"
+                  className="invite-form-input"
+                  placeholder="e.g., https://buildwrk.com/features"
+                  value={aeoUrl}
+                  onChange={(e) => setAeoUrl(e.target.value)}
+                />
+              </div>
+              <div className="invite-form-group">
+                <label className="invite-form-label">{t("aeoSnippet")}</label>
+                <textarea
+                  className="invite-form-input"
+                  placeholder="The text snippet that appeared in the AI answer..."
+                  value={aeoSnippet}
+                  onChange={(e) => setAeoSnippet(e.target.value)}
+                  rows={3}
+                  style={{ resize: "vertical" }}
+                />
+              </div>
+              <div className="invite-form-group">
+                <label className="invite-form-label">{t("aeoDate")}</label>
+                <input
+                  type="date"
+                  className="invite-form-input"
+                  value={aeoDate}
+                  onChange={(e) => setAeoDate(e.target.value)}
+                />
+              </div>
+              <div className="invite-modal-footer">
+                <button
+                  type="button"
+                  className="sa-action-btn"
+                  onClick={() => setShowAddAeoEntry(false)}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="sa-action-btn primary"
+                  disabled={aeoSaving}
+                >
+                  {aeoSaving ? t("adding") : t("aeoAddEntry")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* ════════════════════════════════════
+         ADD A/B TEST MODAL
+         ════════════════════════════════════ */}
+      {showAddAbTest && (
+        <>
+          <div
+            className="invite-modal-overlay"
+            onClick={() => setShowAddAbTest(false)}
+          />
+          <div className="invite-modal">
+            <button
+              className="invite-modal-close"
+              onClick={() => setShowAddAbTest(false)}
+            >
+              <X size={18} />
+            </button>
+            <div className="invite-modal-title">{t("croAddTestTitle")}</div>
+
+            {croFormError && <div className="invite-error">{croFormError}</div>}
+
+            <form onSubmit={handleAddAbTest}>
+              <div className="invite-form-group">
+                <label className="invite-form-label">{t("croTestName")}</label>
+                <input
+                  type="text"
+                  className="invite-form-input"
+                  placeholder="e.g., Homepage CTA button color test"
+                  value={croTestName}
+                  onChange={(e) => setCroTestName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="invite-form-group">
+                <label className="invite-form-label">{t("croPageUrl")}</label>
+                <input
+                  type="text"
+                  className="invite-form-input"
+                  placeholder="e.g., /pricing"
+                  value={croPageUrl}
+                  onChange={(e) => setCroPageUrl(e.target.value)}
+                />
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}
+              >
+                <div className="invite-form-group">
+                  <label className="invite-form-label">{t("croVariantA")}</label>
+                  <input
+                    type="text"
+                    className="invite-form-input"
+                    value={croVariantA}
+                    onChange={(e) => setCroVariantA(e.target.value)}
+                  />
+                </div>
+                <div className="invite-form-group">
+                  <label className="invite-form-label">{t("croVariantB")}</label>
+                  <input
+                    type="text"
+                    className="invite-form-input"
+                    value={croVariantB}
+                    onChange={(e) => setCroVariantB(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="invite-form-group">
+                <label className="invite-form-label">{t("croMetricName")}</label>
+                <input
+                  type="text"
+                  className="invite-form-input"
+                  placeholder="e.g., Conversion Rate"
+                  value={croMetricName}
+                  onChange={(e) => setCroMetricName(e.target.value)}
+                />
+              </div>
+              <div className="invite-modal-footer">
+                <button
+                  type="button"
+                  className="sa-action-btn"
+                  onClick={() => setShowAddAbTest(false)}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="sa-action-btn primary"
+                  disabled={croSaving}
+                >
+                  {croSaving ? t("adding") : t("croNewTest")}
                 </button>
               </div>
             </form>

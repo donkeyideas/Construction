@@ -1,6 +1,6 @@
 /* ===================================================
-   SEO & GEO Dashboard Styles
-   Super Admin - SEO Analytics
+   SEO, AEO & CRO Dashboard Styles
+   Super Admin - SEO, AEO & CRO Analytics
    =================================================== */
 
 /* ===== Score Gauge ===== */
@@ -387,5 +387,292 @@
   }
   .seo-chart-wrap {
     height: 220px;
+  }
+}
+
+/* ===================================================
+   AEO (Answer Engine Optimization) Styles
+   =================================================== */
+
+.aeo-engine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.aeo-engine-badge.chatgpt {
+  background: color-mix(in srgb, #22c55e 12%, var(--card-bg));
+  color: #22c55e;
+}
+.aeo-engine-badge.perplexity {
+  background: color-mix(in srgb, #3b82f6 12%, var(--card-bg));
+  color: #3b82f6;
+}
+.aeo-engine-badge.gemini {
+  background: color-mix(in srgb, #f59e0b 12%, var(--card-bg));
+  color: #f59e0b;
+}
+.aeo-engine-badge.google_ai_overview {
+  background: color-mix(in srgb, #8b5cf6 12%, var(--card-bg));
+  color: #8b5cf6;
+}
+
+.aeo-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--muted) 10%, var(--card-bg));
+  color: var(--muted);
+}
+.aeo-type-badge.featured_snippet {
+  background: color-mix(in srgb, #f59e0b 12%, var(--card-bg));
+  color: #f59e0b;
+}
+.aeo-type-badge.knowledge_panel {
+  background: color-mix(in srgb, #8b5cf6 12%, var(--card-bg));
+  color: #8b5cf6;
+}
+.aeo-type-badge.people_also_ask {
+  background: color-mix(in srgb, #06b6d4 12%, var(--card-bg));
+  color: #06b6d4;
+}
+
+/* ===================================================
+   CRO (Conversion Rate Optimization) Styles
+   =================================================== */
+
+/* CRO Sub-tabs (pill toggle) */
+.seo-cro-subtabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: var(--surface);
+  border-radius: 10px;
+  width: fit-content;
+}
+.seo-cro-subtab {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.seo-cro-subtab.active {
+  background: var(--card-bg);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.seo-cro-subtab:hover:not(.active) {
+  color: var(--text);
+}
+
+/* Conversion Funnel */
+.cro-funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 20px 0;
+}
+.cro-funnel-stage {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+}
+.cro-funnel-label {
+  font-weight: 500;
+  font-size: 0.88rem;
+  min-width: 120px;
+}
+.cro-funnel-bar-wrap {
+  flex: 1;
+}
+.cro-funnel-bar {
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: width 0.4s ease;
+  min-width: 60px;
+}
+.cro-funnel-rate {
+  font-size: 0.78rem;
+  color: var(--muted);
+  min-width: 80px;
+  text-align: right;
+}
+.cro-funnel-arrow {
+  display: flex;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.75rem;
+  padding: 2px 0 2px 136px;
+}
+
+/* A/B Test Cards */
+.cro-test-card {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  margin-bottom: 10px;
+}
+.cro-test-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.cro-test-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.cro-test-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.cro-test-variants {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.cro-variant-box {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+.cro-variant-box.winner {
+  border: 1px solid #22c55e;
+  background: color-mix(in srgb, #22c55e 6%, var(--surface));
+}
+.cro-variant-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.cro-variant-rate {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.cro-variant-sample {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.cro-significance-wrap {
+  margin-top: 8px;
+}
+.cro-significance-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.cro-significance-bar {
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.cro-significance-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* Status badges */
+.cro-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.cro-status-badge.running {
+  background: color-mix(in srgb, #3b82f6 12%, var(--card-bg));
+  color: #3b82f6;
+}
+.cro-status-badge.completed {
+  background: color-mix(in srgb, #22c55e 12%, var(--card-bg));
+  color: #22c55e;
+}
+.cro-status-badge.paused {
+  background: color-mix(in srgb, #f59e0b 12%, var(--card-bg));
+  color: #f59e0b;
+}
+
+/* CRO KPI row */
+.cro-kpi-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.cro-kpi-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: 8px;
+}
+.cro-kpi-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.cro-kpi-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Responsive for new sections */
+@media (max-width: 640px) {
+  .seo-cro-subtabs {
+    width: 100%;
+  }
+  .seo-cro-subtab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 8px;
+    font-size: 0.75rem;
+  }
+  .cro-test-variants {
+    grid-template-columns: 1fr;
+  }
+  .cro-funnel-label {
+    min-width: 80px;
+    font-size: 0.78rem;
+  }
+  .cro-funnel-rate {
+    min-width: 60px;
+  }
+  .cro-kpi-row {
+    flex-wrap: wrap;
+  }
+  .cro-kpi-item {
+    min-width: calc(50% - 8px);
   }
 }

@@ -47,7 +47,7 @@ export const adminDashboardNavigation: NavItem[] = [
     icon: "file-text",
     children: [
       { label: "Content Manager", href: "/admin-panel/content" },
-      { label: "SEO & GEO", href: "/admin-panel/seo" },
+      { label: "SEO, AEO & CRO", href: "/admin-panel/seo" },
     ],
   },
   {

@@ -611,7 +611,7 @@ export default function PlatformSettingsClient({ settings }: Props) {
             }}
           >
             <Globe size={18} style={{ color: "var(--primary)" }} />
-            <span style={{ flex: 1 }}>SEO & GEO</span>
+            <span style={{ flex: 1 }}>SEO, AEO & CRO</span>
             <span
               style={{
                 fontSize: "0.8rem",

@@ -10,11 +10,13 @@ import {
   getKeywordPositionDistribution,
   getPlatformGeoPresence,
   generateSeoRecommendations,
+  getAeoOverview,
+  getCroAbTests,
 } from "@/lib/queries/super-admin-seo";
 import SeoClient from "./SeoClient";
 
 export const metadata = {
-  title: "SEO & GEO - Super Admin - Buildwrk",
+  title: "SEO, AEO & CRO - Super Admin - Buildwrk",
 };
 
 export default async function SuperAdminSeoPage() {
@@ -28,7 +30,7 @@ export default async function SuperAdminSeoPage() {
     .select("*")
     .order("search_volume", { ascending: false });
 
-  const [overview, pages, technical, content, intentData, positionData, geo, recommendations] =
+  const [overview, pages, technical, content, intentData, positionData, geo, recommendations, aeoOverview, croOverview] =
     await Promise.all([
       getPlatformSeoOverview(supabase),
       getCmsPagesSeoAudit(supabase),
@@ -38,6 +40,8 @@ export default async function SuperAdminSeoPage() {
       getKeywordPositionDistribution(supabase),
       getPlatformGeoPresence(supabase),
       generateSeoRecommendations(supabase),
+      getAeoOverview(supabase),
+      getCroAbTests(supabase),
     ]);
 
   return (
@@ -51,6 +55,8 @@ export default async function SuperAdminSeoPage() {
       geo={geo}
       recommendations={recommendations}
       keywords={keywords ?? []}
+      aeoOverview={aeoOverview}
+      croOverview={croOverview}
     />
   );
 }

@@ -962,3 +962,158 @@ export async function generateSeoRecommendations(
 
   return recommendations;
 }
+
+// ---------------------------------------------------------------------------
+// AEO Types
+// ---------------------------------------------------------------------------
+
+export interface AeoTrackingEntry {
+  id: string;
+  query: string;
+  ai_engine: string;
+  mention_type: string;
+  url_cited: string | null;
+  position: number | null;
+  snippet_text: string | null;
+  confidence: string;
+  tracked_date: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface AeoOverview {
+  totalMentions: number;
+  featuredSnippets: number;
+  knowledgePanels: number;
+  peopleAlsoAsk: number;
+  engineCoverage: { engine: string; count: number; percentage: number }[];
+  queryTracking: AeoTrackingEntry[];
+  trendData: { date: string; mentions: number }[];
+}
+
+// ---------------------------------------------------------------------------
+// CRO Types
+// ---------------------------------------------------------------------------
+
+export interface CroAbTest {
+  id: string;
+  test_name: string;
+  page_url: string | null;
+  variant_a_name: string;
+  variant_b_name: string;
+  variant_a_conversions: number;
+  variant_a_visitors: number;
+  variant_b_conversions: number;
+  variant_b_visitors: number;
+  metric_name: string;
+  status: string;
+  winner: string | null;
+  statistical_significance: number | null;
+  start_date: string;
+  end_date: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CroOverview {
+  abTests: CroAbTest[];
+  runningCount: number;
+  completedCount: number;
+}
+
+// ---------------------------------------------------------------------------
+// 9. getAeoOverview
+// ---------------------------------------------------------------------------
+
+export async function getAeoOverview(
+  supabase: SupabaseClient
+): Promise<AeoOverview> {
+  const { data, error } = await supabase
+    .from("aeo_tracking")
+    .select("*")
+    .order("tracked_date", { ascending: false });
+
+  if (error) {
+    console.error("getAeoOverview error:", error);
+    return {
+      totalMentions: 0,
+      featuredSnippets: 0,
+      knowledgePanels: 0,
+      peopleAlsoAsk: 0,
+      engineCoverage: [],
+      queryTracking: [],
+      trendData: [],
+    };
+  }
+
+  const entries = (data ?? []) as AeoTrackingEntry[];
+  const totalMentions = entries.length;
+  const featuredSnippets = entries.filter(
+    (e) => e.mention_type === "featured_snippet"
+  ).length;
+  const knowledgePanels = entries.filter(
+    (e) => e.mention_type === "knowledge_panel"
+  ).length;
+  const peopleAlsoAsk = entries.filter(
+    (e) => e.mention_type === "people_also_ask"
+  ).length;
+
+  // Engine coverage
+  const engineMap = new Map<string, number>();
+  for (const e of entries) {
+    engineMap.set(e.ai_engine, (engineMap.get(e.ai_engine) ?? 0) + 1);
+  }
+  const engineCoverage = Array.from(engineMap.entries())
+    .map(([engine, count]) => ({
+      engine,
+      count,
+      percentage:
+        totalMentions > 0 ? Math.round((count / totalMentions) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // Trend data by date
+  const dateMap = new Map<string, number>();
+  for (const e of entries) {
+    dateMap.set(e.tracked_date, (dateMap.get(e.tracked_date) ?? 0) + 1);
+  }
+  const trendData = Array.from(dateMap.entries())
+    .map(([date, mentions]) => ({ date, mentions }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  return {
+    totalMentions,
+    featuredSnippets,
+    knowledgePanels,
+    peopleAlsoAsk,
+    engineCoverage,
+    queryTracking: entries,
+    trendData,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 10. getCroAbTests
+// ---------------------------------------------------------------------------
+
+export async function getCroAbTests(
+  supabase: SupabaseClient
+): Promise<CroOverview> {
+  const { data, error } = await supabase
+    .from("cro_ab_tests")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getCroAbTests error:", error);
+    return { abTests: [], runningCount: 0, completedCount: 0 };
+  }
+
+  const abTests = (data ?? []) as CroAbTest[];
+
+  return {
+    abTests,
+    runningCount: abTests.filter((t) => t.status === "running").length,
+    completedCount: abTests.filter((t) => t.status === "completed").length,
+  };
+}

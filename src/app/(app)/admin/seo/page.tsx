@@ -9,7 +9,7 @@ import {
 import SeoClient from "./SeoClient";
 
 export const metadata = {
-  title: "SEO & GEO Management - Buildwrk",
+  title: "SEO, AEO & CRO Management - Buildwrk",
 };
 
 export default async function SeoGeoPage() {
@@ -44,7 +44,7 @@ export default async function SeoGeoPage() {
       {/* Header */}
       <div className="content-header">
         <div>
-          <h2>SEO & GEO Management</h2>
+          <h2>SEO, AEO & CRO Management</h2>
           <p className="content-header-sub">
             Audit your search engine optimization and track geographic presence.
           </p>

@@ -46,7 +46,7 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
     ],
   },
   {
-    label: "seoGeo",
+    label: "seoAeoCro",
     href: "/super-admin/seo",
     icon: "globe",
   },
