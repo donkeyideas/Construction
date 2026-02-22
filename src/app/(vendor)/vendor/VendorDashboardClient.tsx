@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -221,10 +221,11 @@ export default function VendorDashboardClient({ dashboard }: Props) {
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Document preview modal state
+  // Document preview modal state + URL prefetch cache
   const [previewDoc, setPreviewDoc] = useState<VendorDocumentItem | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const urlCacheRef = useRef<Map<string, string>>(new Map());
 
   // Pagination state (3 items per page)
   const [invoicePage, setInvoicePage] = useState(0);
@@ -408,21 +409,45 @@ export default function VendorDashboardClient({ dashboard }: Props) {
     }
   }
 
+  // Prefetch signed URL on hover so it's ready by click time
+  const prefetchDocUrl = useCallback((doc: VendorDocumentItem) => {
+    if (!doc.document_id || urlCacheRef.current.has(doc.document_id)) return;
+    // Mark as in-flight to avoid duplicate fetches
+    urlCacheRef.current.set(doc.document_id, "");
+    fetch(`/api/vendor/documents/${doc.document_id}/download`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.url) urlCacheRef.current.set(doc.document_id!, data.url);
+      })
+      .catch(() => {});
+  }, []);
+
   async function openDocPreview(doc: VendorDocumentItem) {
     setPreviewDoc(doc);
+
+    if (!doc.document_id) { setPreviewUrl(null); return; }
+
+    // Check cache first (prefetched on hover)
+    const cached = urlCacheRef.current.get(doc.document_id);
+    if (cached) {
+      setPreviewUrl(cached);
+      setLoadingPreview(false);
+      return;
+    }
+
+    // Not cached yet — fetch now
     setPreviewUrl(null);
-
-    if (!doc.document_id) return;
-
     setLoadingPreview(true);
     try {
       const res = await fetch(`/api/vendor/documents/${doc.document_id}/download`);
       if (res.ok) {
         const data = await res.json();
-        setPreviewUrl(data.url ?? null);
+        const url = data.url ?? null;
+        setPreviewUrl(url);
+        if (url) urlCacheRef.current.set(doc.document_id, url);
       }
     } catch {
-      // Non-blocking — URL just won't be available
+      // Non-blocking
     } finally {
       setLoadingPreview(false);
     }
@@ -782,7 +807,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                   {complianceDocs
                     .slice(complianceDocPage * PAGE_SIZE, (complianceDocPage + 1) * PAGE_SIZE)
                     .map((doc: VendorDocumentItem) => (
-                      <div key={doc.id} className="vendor-doc-item vendor-doc-clickable" onClick={() => openDocPreview(doc)}>
+                      <div key={doc.id} className="vendor-doc-item vendor-doc-clickable" onClick={() => openDocPreview(doc)} onMouseEnter={() => prefetchDocUrl(doc)}>
                         <div className="vendor-doc-info">
                           <div className="vendor-doc-icon"><FileText size={16} /></div>
                           <div>
@@ -831,7 +856,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
             {documents.length > 0 ? (
               <>
                 {documents.slice(docPage * PAGE_SIZE, (docPage + 1) * PAGE_SIZE).map((doc: VendorDocumentItem) => (
-                  <div key={doc.id} className="vendor-doc-item vendor-doc-clickable" onClick={() => openDocPreview(doc)}>
+                  <div key={doc.id} className="vendor-doc-item vendor-doc-clickable" onClick={() => openDocPreview(doc)} onMouseEnter={() => prefetchDocUrl(doc)}>
                     <div className="vendor-doc-info">
                       <div className="vendor-doc-icon">
                         <FileText size={16} />
@@ -1262,16 +1287,22 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                 )}
               </div>
 
-              {/* Image preview */}
-              {isPreviewableImage(previewDoc.file_type) && previewUrl && (
-                <div className="vendor-doc-preview-image">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={previewUrl} alt={previewDoc.doc_name} />
-                </div>
+              {/* Image preview or loading skeleton */}
+              {isPreviewableImage(previewDoc.file_type) && (
+                loadingPreview ? (
+                  <div className="vendor-doc-preview-image vendor-doc-preview-skeleton">
+                    <div className="vendor-shimmer" />
+                  </div>
+                ) : previewUrl ? (
+                  <div className="vendor-doc-preview-image">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={previewUrl} alt={previewDoc.doc_name} />
+                  </div>
+                ) : null
               )}
 
-              {/* Loading state */}
-              {loadingPreview && (
+              {/* Non-image loading state */}
+              {!isPreviewableImage(previewDoc.file_type) && loadingPreview && (
                 <div className="vendor-empty">Loading file...</div>
               )}
             </div>

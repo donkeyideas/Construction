@@ -1273,3 +1273,23 @@
   max-height: 340px;
   object-fit: contain;
 }
+.vendor-doc-preview-skeleton {
+  height: 200px;
+  position: relative;
+}
+.vendor-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    var(--surface, #f5f0eb) 25%,
+    rgba(255,255,255,0.3) 50%,
+    var(--surface, #f5f0eb) 75%
+  );
+  background-size: 200% 100%;
+  animation: vendor-shimmer 1.5s infinite;
+}
+@keyframes vendor-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
