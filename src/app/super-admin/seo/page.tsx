@@ -13,6 +13,7 @@ import {
   getAeoOverview,
   getCroAbTests,
   getAeoScores,
+  getGeoScores,
 } from "@/lib/queries/super-admin-seo";
 import SeoClient from "./SeoClient";
 
@@ -31,7 +32,7 @@ export default async function SuperAdminSeoPage() {
     .select("*")
     .order("search_volume", { ascending: false });
 
-  const [overview, pages, technical, content, intentData, positionData, geo, recommendations, aeoOverview, croOverview, aeoScores] =
+  const [overview, pages, technical, content, intentData, positionData, geo, recommendations, aeoOverview, croOverview, aeoScores, geoScores] =
     await Promise.all([
       getPlatformSeoOverview(supabase),
       getCmsPagesSeoAudit(supabase),
@@ -44,6 +45,7 @@ export default async function SuperAdminSeoPage() {
       getAeoOverview(supabase),
       getCroAbTests(supabase),
       getAeoScores(supabase),
+      getGeoScores(supabase),
     ]);
 
   return (
@@ -60,6 +62,7 @@ export default async function SuperAdminSeoPage() {
       aeoOverview={aeoOverview}
       croOverview={croOverview}
       aeoScores={aeoScores}
+      geoScores={geoScores}
     />
   );
 }

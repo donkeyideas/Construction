@@ -1127,6 +1127,9 @@ export async function getCroAbTests(
 // ---------------------------------------------------------------------------
 
 import { computeAeoOverview, type AeoScoresOverview } from "@/lib/utils/aeo-scoring";
+import { computeGeoOverview, type GeoScoresOverview } from "@/lib/utils/geo-scoring";
+
+export type { GeoScoresOverview, GeoPageScore, GeoDimensionScore } from "@/lib/utils/geo-scoring";
 
 export async function getAeoScores(
   supabase: SupabaseClient
@@ -1152,4 +1155,35 @@ export async function getAeoScores(
   }[];
 
   return computeAeoOverview(pages);
+}
+
+// ---------------------------------------------------------------------------
+// 12. getGeoScores — Generative Engine Optimization content analysis
+// ---------------------------------------------------------------------------
+
+export async function getGeoScores(
+  supabase: SupabaseClient
+): Promise<GeoScoresOverview> {
+  const { data, error } = await supabase
+    .from("cms_pages")
+    .select("id, title, page_slug, meta_title, meta_description, og_image_url, sections, status, updated_at")
+    .eq("status", "published");
+
+  if (error) {
+    console.error("getGeoScores error:", error);
+    return { overallScore: 0, dimensionAverages: [], pageScores: [] };
+  }
+
+  const pages = (data ?? []) as {
+    id: string;
+    title: string;
+    page_slug: string;
+    meta_title: string | null;
+    meta_description: string | null;
+    og_image_url: string | null;
+    sections: SectionItem[] | null;
+    updated_at: string;
+  }[];
+
+  return computeGeoOverview(pages);
 }

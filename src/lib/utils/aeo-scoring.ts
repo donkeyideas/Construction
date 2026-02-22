@@ -3,9 +3,9 @@
 //
 // Analyzes CMS page sections for AI-readiness across 6 dimensions:
 //   1. Schema Richness — structured sections, meta data, OG images
-//   2. FAQ Coverage — FAQ items quantity and answer quality
-//   3. Direct Answer Readiness — concise, front-loaded answers
-//   4. Entity Markup — named entities, locations, numbers
+//   2. FAQ Coverage — Q&A content (formal FAQ sections + implicit Q&A patterns)
+//   3. Direct Answer Readiness — concise, front-loaded answers (penalizes legal)
+//   4. Entity Markup — named entities, locations, numbers (strict brand matching)
 //   5. Speakable Content — paragraph lengths, headers, structure
 //   6. AI Snippet Compatibility — lists, steps, Q&A, definitions
 // ---------------------------------------------------------------------------
@@ -81,6 +81,14 @@ function getAllText(sections: Section[]): string {
   return sections.map(getSectionText).join(" ");
 }
 
+// Detect legal/policy pages by slug or title
+function isLegalPage(page: PageData): boolean {
+  const slug = page.page_slug.toLowerCase();
+  const title = page.title.toLowerCase();
+  const legalPatterns = /(privacy|gdpr|terms|tos|legal|cookie|disclaimer|compliance|policy|dmca|coppa)/;
+  return legalPatterns.test(slug) || legalPatterns.test(title);
+}
+
 // Extract FAQ items from FAQ-type sections
 function extractFaqItems(sections: Section[]): { question: string; answer: string }[] {
   const items: { question: string; answer: string }[] = [];
@@ -89,7 +97,6 @@ function extractFaqItems(sections: Section[]): { question: string; answer: strin
     const content = section.content;
     if (!content || typeof content !== "object") continue;
 
-    // Support both {items: [{question, answer}]} and {faqs: [{q, a}]} formats
     const contentObj = content as Record<string, unknown>;
     const faqArray =
       (contentObj.items as unknown[]) ??
@@ -147,52 +154,72 @@ function analyzeSchemaRichness(page: PageData, sections: Section[]): AeoDimensio
 }
 
 // ---------------------------------------------------------------------------
-// 2. FAQ Coverage
+// 2. FAQ Coverage — Now gives partial credit for implicit Q&A patterns
 // ---------------------------------------------------------------------------
 
 function analyzeFaqCoverage(sections: Section[]): AeoDimensionScore {
   const faqItems = extractFaqItems(sections);
+  const fullText = getAllText(sections);
   let score = 0;
 
-  if (faqItems.length === 0) {
-    return {
-      dimension: "FAQ Coverage",
-      score: 0,
-      details: "No FAQ section found. Add structured Q&A content.",
-    };
+  if (faqItems.length > 0) {
+    // Has formal FAQ section
+    score += 25;
+
+    // Number of items (up to 35 points)
+    score += Math.min(faqItems.length * 5, 35);
+
+    // Answer quality — answers > 50 chars
+    const qualityAnswers = faqItems.filter((f) => f.answer.length > 50).length;
+    const qualityRatio = faqItems.length > 0 ? qualityAnswers / faqItems.length : 0;
+    score += Math.round(qualityRatio * 25);
+
+    // Answer depth — answers > 150 chars
+    const deepAnswers = faqItems.filter((f) => f.answer.length > 150).length;
+    const depthRatio = faqItems.length > 0 ? deepAnswers / faqItems.length : 0;
+    score += Math.round(depthRatio * 15);
+
+    const details =
+      score >= 80
+        ? `${faqItems.length} well-crafted FAQ items`
+        : score >= 50
+          ? `${faqItems.length} FAQ items; expand answers for better AI pickup`
+          : `${faqItems.length} FAQ items; needs more questions with detailed answers`;
+
+    return { dimension: "FAQ Coverage", score: clamp(score), details };
   }
 
-  // Has FAQ section
-  score += 25;
+  // No formal FAQ — check for implicit Q&A patterns in content
+  // Question patterns: "What is...?", "How does...?", "Why should...?"
+  const questionPatterns = fullText.match(/\b(what|how|why|when|where|who|can|does|is it|do I|should)\b[^.?!]*\?/gi) ?? [];
+  if (questionPatterns.length >= 3) score += 25;
+  else if (questionPatterns.length >= 1) score += 12;
 
-  // Number of items (up to 35 points)
-  score += Math.min(faqItems.length * 5, 35);
+  // Definition patterns that answer questions implicitly
+  const defPatterns = fullText.match(/\b(is a|refers to|means|helps you|allows you|enables|provides)\b/gi) ?? [];
+  if (defPatterns.length >= 5) score += 20;
+  else if (defPatterns.length >= 2) score += 10;
 
-  // Answer quality — answers > 50 chars
-  const qualityAnswers = faqItems.filter((f) => f.answer.length > 50).length;
-  const qualityRatio = faqItems.length > 0 ? qualityAnswers / faqItems.length : 0;
-  score += Math.round(qualityRatio * 25);
-
-  // Answer depth — answers > 150 chars
-  const deepAnswers = faqItems.filter((f) => f.answer.length > 150).length;
-  const depthRatio = faqItems.length > 0 ? deepAnswers / faqItems.length : 0;
-  score += Math.round(depthRatio * 15);
+  // Structured sections that serve as implicit Q&A
+  const types = getSectionTypes(sections);
+  if (types.includes("steps") || types.includes("modules") || types.includes("value_props")) score += 10;
+  if (types.includes("about")) score += 5;
 
   const details =
-    score >= 80
-      ? `${faqItems.length} well-crafted FAQ items`
-      : score >= 50
-        ? `${faqItems.length} FAQ items; expand answers for better AI pickup`
-        : `${faqItems.length} FAQ items; needs more questions with detailed answers`;
+    score >= 40
+      ? "No formal FAQ section, but content has Q&A patterns"
+      : score > 0
+        ? "Limited Q&A content; add a formal FAQ section for best results"
+        : "No FAQ section found. Add structured Q&A content.";
 
   return { dimension: "FAQ Coverage", score: clamp(score), details };
 }
 
 // ---------------------------------------------------------------------------
-// 3. Direct Answer Readiness
+// 3. Direct Answer Readiness — Now penalizes legal/dense text
 // ---------------------------------------------------------------------------
 
-function analyzeDirectAnswerReadiness(sections: Section[]): AeoDimensionScore {
+function analyzeDirectAnswerReadiness(page: PageData, sections: Section[]): AeoDimensionScore {
   const fullText = getAllText(sections);
   const words = fullText.split(/\s+/).filter(Boolean);
   let score = 0;
@@ -205,11 +232,15 @@ function analyzeDirectAnswerReadiness(sections: Section[]): AeoDimensionScore {
     };
   }
 
+  // Penalize legal/policy pages — they have lots of text but are poor for AI answers
+  const legal = isLegalPage(page);
+  const legalPenalty = legal ? 0.4 : 1.0; // legal pages cap at ~40% of raw score
+
   // Sufficient content volume
   if (words.length > 100) score += 15;
   if (words.length > 300) score += 10;
 
-  // Check for concise paragraphs
+  // Check for concise paragraphs (legal pages tend to have very long paragraphs)
   const paragraphs = fullText
     .split(/\n{2,}|\.\s+/)
     .map((p) => p.trim())
@@ -224,19 +255,23 @@ function analyzeDirectAnswerReadiness(sections: Section[]): AeoDimensionScore {
   const firstSentence = firstSectionText.split(/[.!?]/)[0]?.trim() ?? "";
   if (firstSentence.length > 10 && firstSentence.length < 200) score += 20;
 
-  // Has definitive statements (contains "is", "are", "provides", "offers")
+  // Has definitive statements
   const definitivePatterns = /\b(is|are|provides|offers|enables|helps|allows|delivers|includes)\b/gi;
   const definitiveMatches = fullText.match(definitivePatterns) ?? [];
   if (definitiveMatches.length >= 3) score += 15;
   else if (definitiveMatches.length >= 1) score += 8;
 
-  // Contains numbers/statistics (AI engines love concrete data)
+  // Contains numbers/statistics
   const numberMatches = fullText.match(/\d+(\.\d+)?%|\$[\d,]+|\d{2,}/g) ?? [];
   if (numberMatches.length >= 2) score += 15;
   else if (numberMatches.length >= 1) score += 8;
 
-  const details =
-    score >= 80
+  // Apply legal penalty
+  score = Math.round(score * legalPenalty);
+
+  const details = legal
+    ? "Legal/policy content is poorly suited for AI direct answers"
+    : score >= 80
       ? "Content is well-structured for direct AI answers"
       : score >= 50
         ? "Add concise lead paragraphs and definitive statements"
@@ -246,7 +281,7 @@ function analyzeDirectAnswerReadiness(sections: Section[]): AeoDimensionScore {
 }
 
 // ---------------------------------------------------------------------------
-// 4. Entity Markup
+// 4. Entity Markup — Stricter brand matching, less generic
 // ---------------------------------------------------------------------------
 
 function analyzeEntityMarkup(page: PageData, sections: Section[]): AeoDimensionScore {
@@ -261,39 +296,48 @@ function analyzeEntityMarkup(page: PageData, sections: Section[]): AeoDimensionS
     };
   }
 
-  // Brand/product name references
-  const brandPatterns = /\b(Buildwrk|construction|management|software|platform|ERP)\b/gi;
-  const brandMatches = fullText.match(brandPatterns) ?? [];
-  if (brandMatches.length >= 5) score += 25;
-  else if (brandMatches.length >= 2) score += 15;
-  else if (brandMatches.length >= 1) score += 8;
+  // Brand name references (strict — only actual brand name)
+  const brandMatches = fullText.match(/\bBuildwrk\b/gi) ?? [];
+  if (brandMatches.length >= 3) score += 20;
+  else if (brandMatches.length >= 1) score += 10;
 
-  // Capitalized proper nouns (approximation for entities)
-  const properNouns = fullText.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g) ?? [];
+  // Product/domain-specific terms (more specific than before)
+  const domainTerms = /\b(construction\s+management|project\s+management|ERP|SaaS|budget\s+tracking|schedule\s+management|RFI|submittal|change\s+order)\b/gi;
+  const domainMatches = fullText.match(domainTerms) ?? [];
+  if (domainMatches.length >= 3) score += 15;
+  else if (domainMatches.length >= 1) score += 8;
+
+  // Capitalized proper nouns (entities)
+  const properNouns = fullText.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/g) ?? [];
   const uniqueNouns = new Set(properNouns);
-  if (uniqueNouns.size >= 5) score += 20;
-  else if (uniqueNouns.size >= 2) score += 10;
+  if (uniqueNouns.size >= 5) score += 15;
+  else if (uniqueNouns.size >= 2) score += 8;
 
   // Numeric data (prices, percentages, quantities)
   const numbers = fullText.match(/\$[\d,]+\.?\d*|\d+%|\d{3,}/g) ?? [];
-  if (numbers.length >= 3) score += 20;
-  else if (numbers.length >= 1) score += 10;
+  if (numbers.length >= 3) score += 15;
+  else if (numbers.length >= 1) score += 8;
 
   // Location references
-  const locationPatterns = /\b(city|state|location|region|area|nationwide|global|local)\b/gi;
+  const locationPatterns = /\b(nationwide|global|worldwide|local|city|state|region)\b/gi;
   const locationMatches = fullText.match(locationPatterns) ?? [];
-  if (locationMatches.length >= 2) score += 15;
-  else if (locationMatches.length >= 1) score += 8;
+  if (locationMatches.length >= 2) score += 10;
+  else if (locationMatches.length >= 1) score += 5;
 
   // Page title and meta contribute to entity clarity
   if (page.meta_title && page.meta_title.length > 20) score += 10;
   if (page.meta_description && page.meta_description.length > 50) score += 10;
 
+  // Legal pages penalty — legal boilerplate has lots of generic "entities" that aren't real entities
+  if (isLegalPage(page)) {
+    score = Math.round(score * 0.5);
+  }
+
   const details =
     score >= 80
-      ? "Strong entity markup with brands, numbers, and locations"
+      ? "Strong entity markup with brands, numbers, and domain terms"
       : score >= 50
-        ? "Add more specific entities, data points, and location references"
+        ? "Add more specific entities, data points, and domain terminology"
         : "Needs more identifiable entities and structured data";
 
   return { dimension: "Entity Markup", score: clamp(score), details };
@@ -358,7 +402,7 @@ function analyzeSpeakableContent(sections: Section[]): AeoDimensionScore {
 }
 
 // ---------------------------------------------------------------------------
-// 6. AI Snippet Compatibility
+// 6. AI Snippet Compatibility — More generous detection
 // ---------------------------------------------------------------------------
 
 function analyzeAiSnippetCompatibility(sections: Section[]): AeoDimensionScore {
@@ -380,29 +424,39 @@ function analyzeAiSnippetCompatibility(sections: Section[]): AeoDimensionScore {
   }
 
   // Has Q&A format (FAQ section)
-  if (types.includes("faq")) score += 20;
+  if (types.includes("faq")) score += 15;
 
-  // Has definition-style content ("is a", "refers to", "means")
-  const definitionPatterns = /\b(is a|refers to|means|defined as|known as|described as)\b/gi;
+  // Has definition-style content (broadened patterns)
+  const definitionPatterns = /\b(is a|refers to|means|defined as|known as|described as|is the|are the|helps|enables|allows)\b/gi;
   const defMatches = fullText.match(definitionPatterns) ?? [];
-  if (defMatches.length >= 2) score += 20;
-  else if (defMatches.length >= 1) score += 12;
+  if (defMatches.length >= 4) score += 18;
+  else if (defMatches.length >= 2) score += 12;
+  else if (defMatches.length >= 1) score += 6;
 
   // Has numbered or structured lists in text
   const listPatterns = /\b(\d+\.|•|→|step \d|phase \d)/gi;
   const listMatches = fullText.match(listPatterns) ?? [];
-  if (listMatches.length >= 3) score += 15;
-  else if (listMatches.length >= 1) score += 8;
+  if (listMatches.length >= 3) score += 12;
+  else if (listMatches.length >= 1) score += 6;
 
-  // Has comparison or "vs" content (great for AI snippets)
+  // Has comparison or "vs" content
   const comparisonPatterns = /\b(vs\.?|versus|compared to|better than|unlike)\b/gi;
   const compMatches = fullText.match(comparisonPatterns) ?? [];
-  if (compMatches.length >= 1) score += 10;
+  if (compMatches.length >= 1) score += 8;
 
   // Content hierarchy (multiple section types = good hierarchy)
   const uniqueTypes = new Set(types);
-  if (uniqueTypes.size >= 4) score += 15;
-  else if (uniqueTypes.size >= 2) score += 8;
+  if (uniqueTypes.size >= 4) score += 12;
+  else if (uniqueTypes.size >= 2) score += 6;
+
+  // Short extractable sentences (AI loves concise snippets)
+  const sentences = fullText.split(/[.!?]+/).filter((s) => s.trim().length > 15);
+  const extractable = sentences.filter((s) => {
+    const wc = s.trim().split(/\s+/).length;
+    return wc >= 5 && wc <= 25;
+  });
+  const extractRatio = sentences.length > 0 ? extractable.length / sentences.length : 0;
+  score += Math.round(extractRatio * 15);
 
   const details =
     score >= 80
@@ -424,7 +478,7 @@ export function scorePageAeo(page: PageData): AeoPageScore {
   const dimensions: AeoDimensionScore[] = [
     analyzeSchemaRichness(page, sections),
     analyzeFaqCoverage(sections),
-    analyzeDirectAnswerReadiness(sections),
+    analyzeDirectAnswerReadiness(page, sections),
     analyzeEntityMarkup(page, sections),
     analyzeSpeakableContent(sections),
     analyzeAiSnippetCompatibility(sections),

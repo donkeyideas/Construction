@@ -63,6 +63,7 @@ import type {
   AeoOverview,
   CroOverview,
   AeoScoresOverview,
+  GeoScoresOverview,
 } from "@/lib/queries/super-admin-seo";
 import "@/styles/seo.css";
 
@@ -95,6 +96,7 @@ interface Props {
   aeoOverview: AeoOverview;
   croOverview: CroOverview;
   aeoScores: AeoScoresOverview;
+  geoScores: GeoScoresOverview;
 }
 
 /* ──────────────────────────────────────────────
@@ -207,6 +209,7 @@ export default function SeoClient({
   aeoOverview,
   croOverview,
   aeoScores,
+  geoScores,
 }: Props) {
   const t = useTranslations("superAdmin");
   const locale = useLocale();
@@ -1344,124 +1347,169 @@ export default function SeoClient({
            ════════════════════════════════════ */}
         {activeTab === "geo" && (
           <>
-            {/* KPI cards */}
-            <div className="sa-kpi-grid">
-              <div className="sa-kpi-card">
-                <div className="sa-kpi-info">
-                  <span className="sa-kpi-label">{t("seoCities")}</span>
-                  <span className="sa-kpi-value">{geo.totalCities}</span>
-                </div>
-                <div className="sa-kpi-icon">
-                  <MapPin size={20} />
-                </div>
+            {geoScores.pageScores.length === 0 ? (
+              <div className="sa-empty">
+                <Globe size={40} style={{ color: "var(--muted)" }} />
+                <div className="sa-empty-title">{t("geoNoData")}</div>
+                <div className="sa-empty-desc">{t("geoNoDataDesc")}</div>
               </div>
-
-              <div className="sa-kpi-card">
-                <div className="sa-kpi-info">
-                  <span className="sa-kpi-label">{t("seoStates")}</span>
-                  <span className="sa-kpi-value">{geo.totalStates}</span>
-                </div>
-                <div className="sa-kpi-icon">
-                  <Globe size={20} />
-                </div>
-              </div>
-
-              <div className="sa-kpi-card">
-                <div className="sa-kpi-info">
-                  <span className="sa-kpi-label">{t("seoProjects")}</span>
-                  <span className="sa-kpi-value">{geo.totalProjects}</span>
-                </div>
-                <div className="sa-kpi-icon">
-                  <BarChart3 size={20} />
-                </div>
-              </div>
-
-              <div className="sa-kpi-card">
-                <div className="sa-kpi-info">
-                  <span className="sa-kpi-label">{t("seoProperties")}</span>
-                  <span className="sa-kpi-value">{geo.totalProperties}</span>
-                </div>
-                <div className="sa-kpi-icon">
-                  <FileText size={20} />
-                </div>
-              </div>
-            </div>
-
-            {/* State distribution bar chart */}
-            {geo.stateDistribution.length > 0 && (
-              <div className="sa-card">
-                <div className="sa-card-title">
-                  {t("seoStateDistribution")}
-                </div>
-                <div className="seo-chart-wrap">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart
-                      data={geo.stateDistribution}
-                      layout="vertical"
+            ) : (
+              <>
+                {/* Overall GEO Score + Radar Chart */}
+                <div className="sa-two-col">
+                  {/* Overall Score Card */}
+                  <div className="sa-card" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+                    <div className="sa-card-title" style={{ margin: 0 }}>
+                      <Globe size={18} /> {t("geoOverallScore")}
+                    </div>
+                    <div
+                      className="aeo-score-circle"
+                      style={{
+                        borderColor: geoScores.overallScore >= 70 ? "var(--color-green)" : geoScores.overallScore >= 40 ? "var(--color-amber)" : "var(--color-red)",
+                      }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis
-                        type="category"
-                        dataKey="state"
-                        width={100}
-                      />
-                      <Tooltip />
-                      <Bar
-                        dataKey="count"
-                        fill={CHART_COLORS[0]}
-                        radius={[0, 4, 4, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
+                      <span className="aeo-score-number" style={{
+                        color: geoScores.overallScore >= 70 ? "var(--color-green)" : geoScores.overallScore >= 40 ? "var(--color-amber)" : "var(--color-red)",
+                      }}>
+                        {geoScores.overallScore}
+                      </span>
+                      <span className="aeo-score-label">/100</span>
+                    </div>
+                    <div style={{ fontSize: "0.82rem", color: "var(--muted)", textAlign: "center" }}>
+                      {geoScores.overallScore >= 70
+                        ? t("geoScoreExcellent")
+                        : geoScores.overallScore >= 40
+                          ? t("geoScoreGood")
+                          : t("geoScorePoor")}
+                    </div>
 
-            {/* Locations table */}
-            <div className="sa-card">
-              <div className="sa-card-title">{t("seoLocations")}</div>
-              {geo.locations.length === 0 ? (
-                <div className="sa-empty">
-                  <div className="sa-empty-title">{t("seoNoLocations")}</div>
-                  <div className="sa-empty-desc">
-                    {t("seoNoLocationsDesc")}
+                    {/* Dimension score bars */}
+                    <div style={{ width: "100%", marginTop: 8 }}>
+                      {geoScores.dimensionAverages.map((dim) => (
+                        <div key={dim.dimension} className="aeo-dim-bar-row">
+                          <span className="aeo-dim-bar-label">{dim.dimension}</span>
+                          <div className="aeo-dim-bar-track">
+                            <div
+                              className="aeo-dim-bar-fill"
+                              style={{
+                                width: `${dim.score}%`,
+                                background: dim.score >= 70 ? "var(--color-green)" : dim.score >= 40 ? "var(--color-amber)" : "var(--color-red)",
+                              }}
+                            />
+                          </div>
+                          <span className="aeo-dim-bar-value">{dim.score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Radar Chart */}
+                  <div className="sa-card">
+                    <div className="sa-card-title">{t("geoRadarTitle")}</div>
+                    <div className="seo-chart-wrap">
+                      <ResponsiveContainer width="100%" height={320}>
+                        <RadarChart
+                          data={geoScores.dimensionAverages.map((d) => ({
+                            dimension: d.dimension.replace("Topical Authority", "Authority").replace("Source Credibility", "Credibility").replace("Content Freshness", "Freshness").replace("Semantic Clarity", "Clarity").replace("AI Discoverability", "Discoverability"),
+                            score: d.score,
+                            fullMark: 100,
+                          }))}
+                        >
+                          <PolarGrid stroke="var(--border)" />
+                          <PolarAngleAxis
+                            dataKey="dimension"
+                            tick={{ fill: "var(--muted)", fontSize: 11 }}
+                          />
+                          <PolarRadiusAxis
+                            angle={30}
+                            domain={[0, 100]}
+                            tick={{ fill: "var(--muted)", fontSize: 10 }}
+                          />
+                          <Radar
+                            name="GEO Score"
+                            dataKey="score"
+                            stroke="#06b6d4"
+                            fill="#06b6d4"
+                            fillOpacity={0.2}
+                            strokeWidth={2}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              background: "var(--bg)",
+                              border: "1px solid var(--border)",
+                              borderRadius: "8px",
+                              fontSize: "0.8rem",
+                            }}
+                            formatter={(value: any) => [`${value}/100`, "Score"]}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div className="sa-table-wrap">
-                  <table className="sa-table">
-                    <thead>
-                      <tr>
-                        <th>{t("seoCity")}</th>
-                        <th>{t("seoState")}</th>
-                        <th>{t("seoProjects")}</th>
-                        <th>{t("seoProperties")}</th>
-                        <th>{t("seoTotalValue")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {geo.locations.map((loc, i) => (
-                        <tr key={i}>
-                          <td style={{ fontWeight: 500 }}>{loc.city}</td>
-                          <td>{loc.state}</td>
-                          <td>{loc.projectCount}</td>
-                          <td>{loc.propertyCount}</td>
-                          <td>
-                            {loc.totalValue.toLocaleString(dateLocale, {
-                              style: "currency",
-                              currency: "USD",
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0,
-                            })}
-                          </td>
+
+                {/* Page Scores Table */}
+                <div className="sa-card">
+                  <div className="sa-card-title">{t("geoPageScores")}</div>
+                  <div className="sa-table-wrap">
+                    <table className="sa-table">
+                      <thead>
+                        <tr>
+                          <th>{t("seoPage")}</th>
+                          <th style={{ textAlign: "center" }}>{t("geoScore")}</th>
+                          <th style={{ textAlign: "center" }}>Citability</th>
+                          <th style={{ textAlign: "center" }}>Authority</th>
+                          <th style={{ textAlign: "center" }}>Credibility</th>
+                          <th style={{ textAlign: "center" }}>Freshness</th>
+                          <th style={{ textAlign: "center" }}>Clarity</th>
+                          <th style={{ textAlign: "center" }}>Discoverability</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {geoScores.pageScores
+                          .sort((a, b) => b.overallScore - a.overallScore)
+                          .map((page) => (
+                          <tr key={page.pageId}>
+                            <td style={{ fontWeight: 500 }}>
+                              <div>{page.title}</div>
+                              <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>/{page.slug}</div>
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              <span
+                                className={`sa-badge ${
+                                  page.overallScore >= 70
+                                    ? "sa-badge-green"
+                                    : page.overallScore >= 40
+                                      ? "sa-badge-amber"
+                                      : "sa-badge-red"
+                                }`}
+                                style={{ fontWeight: 700, fontSize: "0.82rem" }}
+                              >
+                                {page.overallScore}
+                              </span>
+                            </td>
+                            {page.dimensions.map((dim) => (
+                              <td key={dim.dimension} style={{ textAlign: "center" }}>
+                                <span
+                                  style={{
+                                    color: dim.score >= 70 ? "var(--color-green)" : dim.score >= 40 ? "var(--color-amber)" : "var(--color-red)",
+                                    fontWeight: 600,
+                                    fontSize: "0.82rem",
+                                  }}
+                                  title={dim.details}
+                                >
+                                  {dim.score}
+                                </span>
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </>
         )}
 
@@ -1990,50 +2038,59 @@ export default function SeoClient({
                   <div className="sa-empty" style={{ padding: "40px 0" }}>
                     <div className="seo-spinner" />
                   </div>
-                ) : !croGaData || !croGaData.configured || !croGaData.topPages?.length ? (
-                  <div className="sa-empty">
-                    <BarChart3 size={40} style={{ color: "var(--muted)" }} />
-                    <div className="sa-empty-title">{t("croNoPageData")}</div>
-                    <div className="sa-empty-desc">{t("croNoPageDataDesc")}</div>
-                  </div>
-                ) : (
-                  <div className="sa-table-wrap">
-                    <table className="sa-table">
-                      <thead>
-                        <tr>
-                          <th>{t("croPagePath")}</th>
-                          <th>{t("croViews")}</th>
-                          <th>{t("croPerformanceScore")}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {croGaData.topPages.slice(0, 15).map((page: any, idx: number) => {
-                          const views = page.views || 0;
-                          const maxViews = croGaData.topPages[0]?.views || 1;
-                          const ratio = views / maxViews;
-                          const score = ratio > 0.5 ? "good" : ratio > 0.2 ? "fair" : "poor";
-                          const badgeClass =
-                            score === "good"
-                              ? "sa-badge-green"
-                              : score === "fair"
-                              ? "sa-badge-amber"
-                              : "sa-badge-red";
-                          return (
-                            <tr key={idx}>
-                              <td style={{ fontWeight: 500, fontSize: "0.82rem" }}>
-                                {page.path}
-                              </td>
-                              <td>{views.toLocaleString()}</td>
-                              <td>
-                                <span className={`sa-badge ${badgeClass}`}>{score}</span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                ) : (() => {
+                  const publicPages = (croGaData.topPages || []).filter((p: any) =>
+                    !p.path.startsWith("/super-admin") &&
+                    !p.path.startsWith("/admin") &&
+                    !p.path.startsWith("/dashboard") &&
+                    !p.path.startsWith("/api/") &&
+                    !p.path.startsWith("/(")
+                  );
+                  return !croGaData.configured || publicPages.length === 0 ? (
+                    <div className="sa-empty">
+                      <BarChart3 size={40} style={{ color: "var(--muted)" }} />
+                      <div className="sa-empty-title">{t("croNoPageData")}</div>
+                      <div className="sa-empty-desc">{t("croNoPageDataDesc")}</div>
+                    </div>
+                  ) : (
+                    <div className="sa-table-wrap">
+                      <table className="sa-table">
+                        <thead>
+                          <tr>
+                            <th>{t("croPagePath")}</th>
+                            <th>{t("croViews")}</th>
+                            <th>{t("croPerformanceScore")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {publicPages.slice(0, 15).map((page: any, idx: number) => {
+                            const views = page.views || 0;
+                            const maxViews = publicPages[0]?.views || 1;
+                            const ratio = views / maxViews;
+                            const score = ratio > 0.5 ? "good" : ratio > 0.2 ? "fair" : "poor";
+                            const badgeClass =
+                              score === "good"
+                                ? "sa-badge-green"
+                                : score === "fair"
+                                ? "sa-badge-amber"
+                                : "sa-badge-red";
+                            return (
+                              <tr key={idx}>
+                                <td style={{ fontWeight: 500, fontSize: "0.82rem" }}>
+                                  {page.path}
+                                </td>
+                                <td>{views.toLocaleString()}</td>
+                                <td>
+                                  <span className={`sa-badge ${badgeClass}`}>{score}</span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
