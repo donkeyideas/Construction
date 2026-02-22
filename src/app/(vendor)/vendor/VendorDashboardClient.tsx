@@ -189,7 +189,9 @@ export default function VendorDashboardClient({ dashboard }: Props) {
             const formData = new FormData();
             formData.append("file", invoiceFile);
             formData.append("doc_type", "general");
-            formData.append("doc_name", `Invoice ${invoiceNumber.trim()} — ${invoiceFile.name}`);
+            // Use short name: "Invoice INV-123 (original-file.pdf)"
+            const ext = invoiceFile.name.split(".").pop() || "";
+            formData.append("doc_name", `Invoice ${invoiceNumber.trim()}.${ext}`);
             await fetch("/api/vendor/documents", {
               method: "POST",
               body: formData,

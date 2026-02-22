@@ -494,6 +494,12 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
+  overflow: hidden;
+  flex: 1;
+}
+.vendor-doc-info > div:last-child {
+  min-width: 0;
+  overflow: hidden;
 }
 .vendor-doc-icon {
   width: 32px;
