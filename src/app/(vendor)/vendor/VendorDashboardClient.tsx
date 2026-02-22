@@ -131,6 +131,8 @@ export default function VendorDashboardClient({ dashboard }: Props) {
   const [submitMsg, setSubmitMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Upload state
+  const invoiceFileRef = useRef<HTMLInputElement>(null);
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
   const complianceFileRef = useRef<HTMLInputElement>(null);
   const documentFileRef = useRef<HTMLInputElement>(null);
   const [uploadingCompliance, setUploadingCompliance] = useState(false);
@@ -185,6 +187,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
         setInvoiceNumber("");
         setInvoiceAmount("");
         setInvoiceProjectId("");
+        setInvoiceFile(null);
         router.refresh();
       } else {
         const data = await res.json();
@@ -365,13 +368,34 @@ export default function VendorDashboardClient({ dashboard }: Props) {
 
               <div className="vendor-form-group">
                 <label className="vendor-form-label">{t("labelAttachFile")}</label>
-                <div className="vendor-file-upload">
+                <div
+                  className="vendor-file-upload"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => invoiceFileRef.current?.click()}
+                >
                   <div className="vendor-file-upload-text">
-                    <strong>Click to upload</strong> or drag and drop
-                    <br />
-                    PDF, PNG, or JPG up to 10MB
+                    {invoiceFile ? (
+                      <>{invoiceFile.name}</>
+                    ) : (
+                      <>
+                        <strong style={{ color: "var(--color-blue)" }}>Click to upload</strong> or drag and drop
+                        <br />
+                        PDF, PNG, or JPG up to 10MB
+                      </>
+                    )}
                   </div>
                 </div>
+                <input
+                  ref={invoiceFileRef}
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setInvoiceFile(file);
+                    e.target.value = "";
+                  }}
+                />
               </div>
 
               <button
@@ -397,18 +421,23 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                     <tr>
                       <th>Project</th>
                       <th>Contract</th>
-                      <th>Amount</th>
+                      <th>Contract Value</th>
+                      <th>Remaining</th>
                       <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {contracts.map((c: VendorContractItem) => {
                       const badge = getContractBadge(c.status);
+                      const remaining = c.amount - (c.amount_paid || 0);
                       return (
                         <tr key={c.id}>
                           <td style={{ fontWeight: 600 }}>{c.project_name}</td>
                           <td>{c.title}</td>
                           <td>{formatCurrency(c.amount)}</td>
+                          <td style={{ color: remaining < c.amount ? "var(--color-green)" : undefined }}>
+                            {formatCurrency(remaining)}
+                          </td>
                           <td>
                             <span className={badge.className}>{badge.label}</span>
                           </td>

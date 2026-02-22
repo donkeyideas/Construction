@@ -854,7 +854,7 @@ export default function VendorsClient({
                           {formatCurrency(pmt.amount)}
                         </td>
                         <td>{({ check: "Check", ach: "ACH", wire: "Wire Transfer", credit_card: "Credit Card", cash: "Cash", bank_transfer: "Bank Transfer" } as Record<string, string>)[pmt.method] || pmt.method}</td>
-                        <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
+                        <td style={{ color: "var(--muted)", fontSize: "0.82rem", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={pmt.reference_number || undefined}>
                           {pmt.reference_number || "--"}
                         </td>
                         <td>

@@ -2085,10 +2085,15 @@ export async function getAPPaymentHistory(
   if (bankIds.length > 0) {
     const { data: banks } = await supabase
       .from("bank_accounts")
-      .select("id, account_name")
+      .select("id, name, bank_name, account_number_last4")
       .in("id", bankIds);
     if (banks) {
-      for (const b of banks) bankMap.set(b.id, b.account_name);
+      for (const b of banks) {
+        const label = b.bank_name && b.account_number_last4
+          ? `${b.name} — ${b.bank_name} (••${b.account_number_last4})`
+          : b.name;
+        bankMap.set(b.id, label);
+      }
     }
   }
 

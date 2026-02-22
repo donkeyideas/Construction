@@ -52,6 +52,7 @@ export interface VendorContractItem {
   project_name: string;
   title: string;
   amount: number;
+  amount_paid: number;
   status: string;
 }
 
@@ -146,7 +147,7 @@ export async function getVendorDashboardFull(
     // All contracts (for My Contracts card)
     supabase
       .from("vendor_contracts")
-      .select("id, title, status, amount, projects(name)")
+      .select("id, title, status, amount, project_id, projects(name)")
       .eq("vendor_id", contact.id)
       .order("created_at", { ascending: false }),
     // Shared documents (for Documents card)
@@ -200,14 +201,24 @@ export async function getVendorDashboardFull(
     expiry_date: (c.expiry_date as string) ?? null,
   }));
 
-  // Build all contracts list
+  // Build all contracts list with amount_paid from invoices
   const contractsList: VendorContractItem[] = allContracts.map((c: Record<string, unknown>) => {
     const project = c.projects as { name: string } | null;
+    const projId = c.project_id as string | null;
+    // Sum amount_paid from invoices matching this contract's project and vendor
+    const paid = invoices
+      .filter((inv: Record<string, unknown>) => projId && inv.project_id === projId)
+      .reduce((sum: number, inv: Record<string, unknown>) => {
+        const totalAmt = (inv.total_amount as number) ?? 0;
+        const balanceDue = (inv.balance_due as number) ?? 0;
+        return sum + (totalAmt - balanceDue);
+      }, 0);
     return {
       id: c.id as string,
       project_name: project?.name ?? "Unknown Project",
       title: (c.title as string) ?? "",
       amount: (c.amount as number) ?? 0,
+      amount_paid: paid,
       status: (c.status as string) ?? "draft",
     };
   });
