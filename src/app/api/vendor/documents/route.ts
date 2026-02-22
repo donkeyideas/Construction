@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { storageUpload } from "@/lib/supabase/storage";
 
 // ---------------------------------------------------------------------------
 // POST /api/vendor/documents
@@ -58,49 +59,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage (uses storageUpload which auto-creates bucket)
     const timestamp = Date.now();
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const storagePath = `vendor/${contact.id}/${timestamp}_${safeName}`;
+    const storagePath = `${contact.company_id}/vendor-uploads/${timestamp}-${safeName}`;
 
-    const { error: uploadError } = await admin.storage
-      .from("documents")
-      .upload(storagePath, file, {
-        contentType: file.type,
-        upsert: false,
-      });
+    const { error: uploadError } = await storageUpload(storagePath, file, {
+      contentType: file.type,
+      upsert: false,
+    });
 
     if (uploadError) {
       console.error("Storage upload error:", uploadError);
-      // If bucket doesn't exist, provide helpful message
-      if (uploadError.message?.includes("not found") || uploadError.message?.includes("Bucket")) {
-        return NextResponse.json(
-          { error: "Storage not configured. Please ask your admin to create the 'documents' storage bucket in Supabase." },
-          { status: 500 }
-        );
-      }
       return NextResponse.json(
-        { error: "Failed to upload file." },
+        { error: `Failed to upload file: ${uploadError.message}` },
         { status: 500 }
       );
     }
 
-    // Get public URL
-    const { data: urlData } = admin.storage
-      .from("documents")
-      .getPublicUrl(storagePath);
+    // Get uploader display name for document metadata
+    const vendorName =
+      contact.company_name ||
+      `${contact.first_name || ""} ${contact.last_name || ""}`.trim() ||
+      "Vendor";
 
     // Insert into documents table (visible in admin Documents library)
+    // Use valid category ("correspondence") and folder_path for sidebar grouping
     const { data: doc, error: docError } = await admin
       .from("documents")
       .insert({
         company_id: contact.company_id,
         name: docName,
-        file_path: urlData.publicUrl,
+        file_path: storagePath,
         file_type: file.type,
         file_size: file.size,
         uploaded_by: user.id,
-        category: docType === "compliance" ? "Compliance" : "Vendor Upload",
+        category: "correspondence",
+        folder_path: "Vendor Uploads",
+        ai_extracted_data: {
+          uploader_name: vendorName,
+          doc_type: docType,
+        },
       })
       .select("id, name, file_path, file_type")
       .single();
