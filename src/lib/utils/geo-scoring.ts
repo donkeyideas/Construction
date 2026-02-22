@@ -353,6 +353,7 @@ function analyzeSemanticClarity(sections: Section[]): GeoDimensionScore {
 function analyzeAiDiscoverability(page: PageData, sections: Section[]): GeoDimensionScore {
   const types = getSectionTypes(sections);
   const fullText = getAllText(sections);
+  const words = fullText.split(/\s+/).filter(Boolean);
   let score = 0;
 
   if (fullText.trim().length === 0) {
@@ -360,17 +361,18 @@ function analyzeAiDiscoverability(page: PageData, sections: Section[]): GeoDimen
   }
 
   // Base credit for having content
-  score += 10;
+  score += 12;
 
   // Has FAQ section
-  if (types.includes("faq")) score += 15;
+  if (types.includes("faq")) score += 12;
 
   // Has any structured content sections
   const structuredCount = types.filter((t) =>
-    ["steps", "modules", "value_props", "modules_grid", "pricing", "about"].includes(t)
+    ["steps", "modules", "value_props", "modules_grid", "pricing", "about", "hero", "cta"].includes(t)
   ).length;
-  if (structuredCount >= 3) score += 15;
-  else if (structuredCount >= 1) score += 10;
+  if (structuredCount >= 4) score += 16;
+  else if (structuredCount >= 2) score += 12;
+  else if (structuredCount >= 1) score += 8;
 
   // Meta title present (any length counts)
   if (page.meta_title && page.meta_title.trim().length > 0) score += 12;
@@ -382,10 +384,11 @@ function analyzeAiDiscoverability(page: PageData, sections: Section[]): GeoDimen
   if (page.og_image_url) score += 5;
 
   // Has definition-style content — broader patterns
-  const defPatterns = /\b(is a|refers to|means|defined as|known as|is the|helps|enables|allows|provides|designed to|built for)\b/gi;
+  const defPatterns = /\b(is a|refers to|means|defined as|known as|is the|helps|enables|allows|provides|designed to|built for|ensures|streamlines|simplifies|manages|automates|tracks|supports|offers|includes|features|covers|handles|delivers|outlines|describes|explains)\b/gi;
   const defMatches = fullText.match(defPatterns) ?? [];
-  if (defMatches.length >= 3) score += 15;
-  else if (defMatches.length >= 1) score += 8;
+  if (defMatches.length >= 5) score += 15;
+  else if (defMatches.length >= 2) score += 10;
+  else if (defMatches.length >= 1) score += 6;
 
   // List content in text
   const listPatterns = /\b(\d+\.|•|→|step \d|phase \d)/gi;
@@ -395,8 +398,15 @@ function analyzeAiDiscoverability(page: PageData, sections: Section[]): GeoDimen
 
   // Multiple section types
   const uniqueTypes = new Set(types);
-  if (uniqueTypes.size >= 3) score += 8;
+  if (uniqueTypes.size >= 4) score += 10;
+  else if (uniqueTypes.size >= 3) score += 7;
   else if (uniqueTypes.size >= 2) score += 4;
+  else if (uniqueTypes.size >= 1) score += 2;
+
+  // Content volume — more text is more discoverable
+  if (words.length >= 200) score += 10;
+  else if (words.length >= 50) score += 6;
+  else if (words.length >= 20) score += 3;
 
   const details =
     score >= 70 ? "Highly discoverable by AI search engines"
