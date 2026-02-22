@@ -195,6 +195,8 @@ export default function VendorDashboardClient({ dashboard }: Props) {
   const [docModalType, setDocModalType] = useState<"general" | "compliance">("general");
   const [docModalUploading, setDocModalUploading] = useState(false);
   const [docModalMsg, setDocModalMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [docModalCertType, setDocModalCertType] = useState("insurance");
+  const [docModalExpiryDate, setDocModalExpiryDate] = useState("");
   const docModalFileRef = useRef<HTMLInputElement>(null);
 
   // Invoice detail modal state
@@ -365,6 +367,8 @@ export default function VendorDashboardClient({ dashboard }: Props) {
     setDocModalFile(null);
     setDocModalName("");
     setDocModalProject("");
+    setDocModalCertType("insurance");
+    setDocModalExpiryDate("");
     setDocModalMsg(null);
     setDocModalOpen(true);
   }
@@ -385,6 +389,10 @@ export default function VendorDashboardClient({ dashboard }: Props) {
     formData.append("doc_type", docModalType);
     formData.append("doc_name", docModalName || docModalFile.name);
     if (docModalProject) formData.append("project_id", docModalProject);
+    if (docModalType === "compliance") {
+      formData.append("cert_type", docModalCertType);
+      if (docModalExpiryDate) formData.append("expiry_date", docModalExpiryDate);
+    }
 
     try {
       const res = await fetch("/api/vendor/documents", {
@@ -1116,6 +1124,31 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                   <option value="compliance">Compliance / Certification</option>
                 </select>
               </div>
+
+              {/* Certification fields — only for compliance uploads */}
+              {docModalType === "compliance" && (
+                <>
+                  <div className="vendor-modal-field">
+                    <label>Certification Type</label>
+                    <select value={docModalCertType} onChange={(e) => setDocModalCertType(e.target.value)}>
+                      <option value="insurance">Insurance Certificate</option>
+                      <option value="license">License</option>
+                      <option value="w9">W-9</option>
+                      <option value="bond">Bond</option>
+                      <option value="safety">Safety Certification</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div className="vendor-modal-field">
+                    <label>Expiry Date (optional)</label>
+                    <input
+                      type="date"
+                      value={docModalExpiryDate}
+                      onChange={(e) => setDocModalExpiryDate(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
             <div className="vendor-modal-footer">
               <button className="vendor-modal-btn-cancel" onClick={() => setDocModalOpen(false)}>Cancel</button>

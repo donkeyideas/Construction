@@ -38,7 +38,9 @@ export default function UploadCertClient() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("doc_name", form.cert_name || file.name);
-      formData.append("doc_type", form.cert_type || "certification");
+      formData.append("doc_type", "compliance");
+      formData.append("cert_type", form.cert_type);
+      if (form.expiry_date) formData.append("expiry_date", form.expiry_date);
 
       const res = await fetch("/api/vendor/documents", {
         method: "POST",

@@ -130,6 +130,15 @@ interface ExpenseAccountOption {
   account_type: string;
 }
 
+interface VendorCertification {
+  id: string;
+  contact_id: string;
+  cert_name: string;
+  cert_type: string;
+  expiry_date: string | null;
+  status: string;
+}
+
 export default function VendorsClient({
   contacts,
   contracts,
@@ -139,6 +148,7 @@ export default function VendorsClient({
   vendorSummary = [],
   bankAccounts = [],
   expenseAccounts = [],
+  certifications = [],
 }: {
   contacts: Contact[];
   contracts: VendorContract[];
@@ -148,6 +158,7 @@ export default function VendorsClient({
   vendorSummary?: VendorPaymentSummary[];
   bankAccounts?: BankAccountOption[];
   expenseAccounts?: ExpenseAccountOption[];
+  certifications?: VendorCertification[];
 }) {
   const router = useRouter();
   const t = useTranslations("people");
@@ -669,6 +680,65 @@ export default function VendorsClient({
                     </span>
                   )}
                 </div>
+
+                {/* Compliance Status */}
+                {(() => {
+                  const vendorCerts = certifications.filter((c) => c.contact_id === v.id);
+                  const now = new Date();
+                  const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+                  const expiredCount = vendorCerts.filter((c) => c.expiry_date && new Date(c.expiry_date) < now).length;
+                  const expiringCount = vendorCerts.filter((c) => c.expiry_date && new Date(c.expiry_date) >= now && new Date(c.expiry_date) <= thirtyDays).length;
+                  const total = vendorCerts.length;
+
+                  let statusColor = "var(--muted)";
+                  let statusIcon = <FileText size={13} />;
+                  let statusText = "No documents";
+
+                  if (total > 0) {
+                    if (expiredCount > 0) {
+                      statusColor = "var(--color-red)";
+                      statusIcon = <XCircle size={13} />;
+                      statusText = `${total} cert${total > 1 ? "s" : ""} · ${expiredCount} expired`;
+                    } else if (expiringCount > 0) {
+                      statusColor = "var(--color-amber)";
+                      statusIcon = <AlertTriangle size={13} />;
+                      statusText = `${total} cert${total > 1 ? "s" : ""} · ${expiringCount} expiring`;
+                    } else {
+                      statusColor = "var(--color-green)";
+                      statusIcon = <CheckCircle2 size={13} />;
+                      statusText = `${total} cert${total > 1 ? "s" : ""} — All current`;
+                    }
+                  }
+
+                  return (
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      borderTop: "1px solid var(--border)",
+                      paddingTop: "8px",
+                      marginTop: "8px",
+                      fontSize: "0.8rem",
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--muted)" }}>
+                        <FileText size={13} />
+                        <span>Compliance</span>
+                      </div>
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        fontWeight: total > 0 ? 600 : 400,
+                        color: statusColor,
+                        fontStyle: total === 0 ? "italic" : "normal",
+                        fontSize: total === 0 ? "0.75rem" : "0.8rem",
+                      }}>
+                        {total > 0 && statusIcon}
+                        {statusText}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>

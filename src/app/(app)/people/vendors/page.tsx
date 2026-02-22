@@ -25,8 +25,8 @@ export default async function VendorsPage() {
 
   const { companyId } = userCompany;
 
-  // Fetch vendor contacts, vendor contracts, projects, payable invoices, payment history, vendor summary, bank accounts, and expense accounts in parallel
-  const [{ data: contacts }, { data: contracts }, { data: projects }, { data: payableInvoices }, paymentHistory, vendorSummary, bankAccounts, { data: expenseAccounts }] = await Promise.all([
+  // Fetch vendor contacts, vendor contracts, projects, payable invoices, payment history, vendor summary, bank accounts, expense accounts, and certifications in parallel
+  const [{ data: contacts }, { data: contracts }, { data: projects }, { data: payableInvoices }, paymentHistory, vendorSummary, bankAccounts, { data: expenseAccounts }, { data: certifications }] = await Promise.all([
     supabase
       .from("contacts")
       .select("*")
@@ -62,6 +62,11 @@ export default async function VendorsPage() {
       .in("account_type", ["expense", "cost_of_goods_sold"])
       .eq("is_active", true)
       .order("account_number"),
+    supabase
+      .from("certifications")
+      .select("id, contact_id, cert_name, cert_type, expiry_date, status")
+      .eq("company_id", companyId)
+      .order("expiry_date", { ascending: true }),
   ]);
 
   return (
@@ -96,6 +101,14 @@ export default async function VendorsPage() {
           account_number: a.account_number as string,
           name: a.name as string,
           account_type: a.account_type as string,
+        }))}
+        certifications={(certifications ?? []).map((c: Record<string, unknown>) => ({
+          id: c.id as string,
+          contact_id: c.contact_id as string,
+          cert_name: c.cert_name as string,
+          cert_type: c.cert_type as string,
+          expiry_date: c.expiry_date as string | null,
+          status: c.status as string,
         }))}
       />
     </div>

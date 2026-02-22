@@ -44,6 +44,8 @@ export async function POST(request: NextRequest) {
     const docType = (formData.get("doc_type") as string) || "general";
     const docName = (formData.get("doc_name") as string) || file?.name || "Untitled";
     const projectId = (formData.get("project_id") as string) || null;
+    const certType = (formData.get("cert_type") as string) || null;
+    const expiryDate = (formData.get("expiry_date") as string) || null;
 
     if (!file) {
       return NextResponse.json(
@@ -136,6 +138,19 @@ export async function POST(request: NextRequest) {
       document_id: doc.id,
       shared_at: new Date().toISOString(),
     });
+
+    // Create certifications record for compliance/certification uploads
+    if ((docType === "compliance" || docType === "certification") && certType) {
+      await admin.from("certifications").insert({
+        company_id: contact.company_id,
+        contact_id: contact.id,
+        cert_type: certType,
+        cert_name: docName,
+        expiry_date: expiryDate || null,
+        document_url: storagePath,
+        status: "valid",
+      });
+    }
 
     return NextResponse.json(
       { id: doc.id, name: doc.name, file_path: doc.file_path, file_type: doc.file_type },
