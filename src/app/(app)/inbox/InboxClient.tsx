@@ -166,7 +166,7 @@ export default function InboxClient({
           id: newNotif.id as string,
           kind: "notification",
           title: (newNotif.title as string) || t("inboxNotification"),
-          preview: ((newNotif.body as string) || "").slice(0, 120),
+          preview: ((newNotif.message as string) || "").slice(0, 120),
           sender_name: t("inboxSystem"),
           is_read: false,
           created_at: newNotif.created_at as string,
@@ -624,9 +624,9 @@ export default function InboxClient({
               <div className="inbox-detail-header">
                 <div className="inbox-detail-meta">
                   <span
-                    className={`inbox-type-badge inbox-type-${selectedItem.notification?.type || "info"}`}
+                    className={`inbox-type-badge inbox-type-${selectedItem.notification?.notification_type || "info"}`}
                   >
-                    {selectedItem.notification?.type || "info"}
+                    {selectedItem.notification?.notification_type || "info"}
                   </span>
                   <span className="inbox-detail-date">
                     {formatFullDate(selectedItem.created_at, dateLocale)}
@@ -635,7 +635,7 @@ export default function InboxClient({
                 <h3>{selectedItem.title}</h3>
               </div>
               <div className="inbox-detail-body">
-                {selectedItem.notification?.body || t("inboxNoAdditionalDetails")}
+                {selectedItem.notification?.message || t("inboxNoAdditionalDetails")}
               </div>
               {selectedItem.entity_type && (
                 <div className="inbox-detail-entity">

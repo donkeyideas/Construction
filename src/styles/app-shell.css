@@ -517,6 +517,33 @@
   justify-content: center;
 }
 
+/* Bell ring animation when there are unread notifications */
+@keyframes bell-ring {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-12deg); }
+  30% { transform: rotate(10deg); }
+  40% { transform: rotate(-8deg); }
+  50% { transform: rotate(5deg); }
+  60% { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.notif-btn.has-unread svg {
+  animation: bell-ring 0.8s ease-in-out;
+  color: var(--color-amber, #f59e0b);
+  transform-origin: top center;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.notif-btn.has-unread .notif-badge {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
 .avatar {
   width: 32px;
   height: 32px;

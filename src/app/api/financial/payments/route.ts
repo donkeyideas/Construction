@@ -4,6 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { recordPayment, getPayments } from "@/lib/queries/financial";
 import type { PaymentCreateData } from "@/lib/queries/financial";
 import { buildCompanyAccountMap, generatePaymentJournalEntry, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
+import { createNotifications } from "@/lib/utils/notifications";
 
 export async function GET(request: NextRequest) {
   try {
@@ -196,6 +197,19 @@ export async function POST(request: NextRequest) {
     } catch (bankErr) {
       console.warn("Bank balance sync failed for payment:", result.id, bankErr);
     }
+
+    try {
+      const amount = Number(data.amount).toLocaleString("en-US", { style: "currency", currency: "USD" });
+      await createNotifications(supabase, {
+        companyId: userCompany.companyId,
+        actorUserId: userCompany.userId,
+        title: `Payment of ${amount} recorded`,
+        message: `A payment of ${amount} has been recorded.`,
+        notificationType: "info",
+        entityType: "payment",
+        entityId: result.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json({ id: result.id }, { status: 201 });
   } catch (error) {

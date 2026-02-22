@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getBids, createBid, type BidStatus } from "@/lib/queries/crm";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // GET /api/crm/bids - List bids
@@ -91,6 +92,18 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `New Bid: ${body.bid_number.trim()}`,
+        message: `Bid "${body.bid_number.trim()}" for "${body.project_name.trim()}" has been created.`,
+        notificationType: "info",
+        entityType: "bid",
+        entityId: bid?.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json(bid, { status: 201 });
   } catch (err) {

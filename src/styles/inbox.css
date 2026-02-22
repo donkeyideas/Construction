@@ -379,6 +379,26 @@
   background: rgba(180, 83, 9, 0.15);
 }
 
+.inbox-type-approval {
+  background: rgba(22, 163, 74, 0.08);
+  color: var(--color-green, #16a34a);
+}
+
+.inbox-type-alert {
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--color-red, #dc2626);
+}
+
+.inbox-type-system {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.inbox-type-info {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--color-blue, #3b82f6);
+}
+
 /* ===== Detail Body ===== */
 .inbox-detail-body {
   font-size: 0.9rem;

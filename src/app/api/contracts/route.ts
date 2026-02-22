@@ -7,6 +7,7 @@ import {
   type ContractStatus,
   type ContractType,
 } from "@/lib/queries/contracts";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // GET /api/contracts — List contracts for the current user's company
@@ -96,6 +97,18 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `New Contract: ${body.title.trim()}`,
+        message: `A new contract "${body.title.trim()}" has been created.${body.party_name ? ` Party: ${body.party_name}.` : ""}`,
+        notificationType: "info",
+        entityType: "contract",
+        entityId: contract?.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json(contract, { status: 201 });
   } catch (err) {

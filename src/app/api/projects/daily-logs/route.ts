@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // POST /api/projects/daily-logs — Create a new daily log
@@ -65,6 +66,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `Daily Log for ${body.log_date}`,
+        message: `A daily log for ${body.log_date} has been submitted.`,
+        notificationType: "info",
+        entityType: "daily_log",
+        entityId: dailyLog.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json(dailyLog, { status: 201 });
   } catch (err) {

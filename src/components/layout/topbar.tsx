@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
 import { Search, Bell, Sun, Moon, Menu, LogOut, Settings, Trash2, SwatchBook, Shield } from "lucide-react";
@@ -110,6 +110,17 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   const gradeColor = auditGrade ? gradeColorMap[auditGrade] || "var(--muted)" : "var(--muted)";
 
   const totalUnread = unreadCount + realtimeNewCount;
+  const bellRef = useRef<HTMLButtonElement>(null);
+
+  // Re-trigger bell animation when new real-time notifications arrive
+  useEffect(() => {
+    if (realtimeNewCount > 0 && bellRef.current) {
+      const btn = bellRef.current;
+      btn.classList.remove("has-unread");
+      void btn.offsetWidth; // force reflow
+      btn.classList.add("has-unread");
+    }
+  }, [realtimeNewCount]);
 
   // Ctrl+K / Cmd+K shortcut
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -226,7 +237,12 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
               <Moon size={18} strokeWidth={2} />
             )}
           </button>
-          <button className="notif-btn" onClick={() => router.push("/inbox")} title="Inbox">
+          <button
+            ref={bellRef}
+            className={`notif-btn${totalUnread > 0 ? " has-unread" : ""}`}
+            onClick={() => router.push("/inbox")}
+            title="Inbox"
+          >
             <Bell size={20} />
             {totalUnread > 0 && <span className="notif-badge">{totalUnread > 99 ? "99+" : totalUnread}</span>}
           </button>

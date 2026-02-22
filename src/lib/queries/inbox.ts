@@ -30,8 +30,8 @@ export interface Notification {
   company_id: string;
   user_id: string;
   title: string;
-  body: string | null;
-  type: string;
+  message: string | null;
+  notification_type: string;
   entity_type: string | null;
   entity_id: string | null;
   is_read: boolean;
@@ -129,10 +129,10 @@ export async function getInboxItems(
       id: notif.id,
       kind: "notification",
       title: notif.title,
-      preview: notif.body
-        ? notif.body.length > 120
-          ? notif.body.slice(0, 120) + "..."
-          : notif.body
+      preview: notif.message
+        ? notif.message.length > 120
+          ? notif.message.slice(0, 120) + "..."
+          : notif.message
         : "",
       sender_name: null,
       is_read: notif.is_read,

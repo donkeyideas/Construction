@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { createNotifications } from "@/lib/utils/notifications";
 
 export async function GET(request: NextRequest) {
   try {
@@ -73,6 +74,18 @@ export async function POST(request: NextRequest) {
       console.error("POST /api/safety/inspections error:", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `Safety Inspection: ${body.inspection_type}`,
+        message: `A new ${body.inspection_type} safety inspection has been logged.`,
+        notificationType: "info",
+        entityType: "safety_inspection",
+        entityId: data.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json(data, { status: 201 });
   } catch (err) {

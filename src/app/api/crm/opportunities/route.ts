@@ -6,6 +6,7 @@ import {
   createOpportunity,
   type OpportunityStage,
 } from "@/lib/queries/crm";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // GET /api/crm/opportunities - List opportunities
@@ -91,6 +92,18 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `New Opportunity: ${body.name.trim()}`,
+        message: `A new opportunity "${body.name.trim()}" has been created.`,
+        notificationType: "info",
+        entityType: "opportunity",
+        entityId: opportunity?.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json(opportunity, { status: 201 });
   } catch (err) {

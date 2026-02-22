@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // POST /api/projects/submittals — Create a new Submittal
@@ -56,6 +57,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `Submittal ${submittal_number} created`,
+        message: `New submittal "${body.title.trim()}" submitted for review.`,
+        notificationType: "info",
+        entityType: "submittal",
+        entityId: data.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     console.error("POST /api/projects/submittals error:", err);
@@ -109,6 +122,20 @@ export async function PATCH(request: NextRequest) {
     if (error) {
       console.error("Update submittal error:", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    if (body.status === "approved" || body.status === "rejected") {
+      try {
+        await createNotifications(supabase, {
+          companyId: userCtx.companyId,
+          actorUserId: userCtx.userId,
+          title: `Submittal ${data.submittal_number} ${body.status}`,
+          message: `Submittal "${data.title}" has been ${body.status}.`,
+          notificationType: body.status === "approved" ? "approval" : "alert",
+          entityType: "submittal",
+          entityId: data.id,
+        });
+      } catch (e) { console.warn("Notification failed:", e); }
     }
 
     return NextResponse.json(data);

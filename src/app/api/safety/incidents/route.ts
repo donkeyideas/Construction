@@ -8,6 +8,7 @@ import {
   type IncidentSeverity,
   type IncidentType,
 } from "@/lib/queries/safety";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // GET /api/safety/incidents — List incidents for the current user's company
@@ -94,6 +95,18 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `Safety Incident: ${body.title.trim()}`,
+        message: `A safety incident "${body.title.trim()}" has been reported.${body.severity ? ` Severity: ${body.severity}.` : ""}`,
+        notificationType: "alert",
+        entityType: "safety_incident",
+        entityId: incident?.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json(incident, { status: 201 });
   } catch (err) {

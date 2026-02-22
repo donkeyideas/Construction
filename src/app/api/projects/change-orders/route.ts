@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { buildCompanyAccountMap, generateChangeOrderJournalEntry } from "@/lib/utils/invoice-accounting";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // POST /api/projects/change-orders — Create a new change order
@@ -71,6 +72,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `Change Order ${co_number} created`,
+        message: `New change order "${body.title.trim()}" submitted for review.`,
+        notificationType: "info",
+        entityType: "change_order",
+        entityId: changeOrder.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
+
     return NextResponse.json(changeOrder, { status: 201 });
   } catch (err) {
     console.error("POST /api/projects/change-orders error:", err);
@@ -139,6 +152,21 @@ export async function PATCH(request: NextRequest) {
         { error: error.message },
         { status: 400 }
       );
+    }
+
+    // Notify on status changes
+    if (body.status === "approved" || body.status === "rejected") {
+      try {
+        await createNotifications(supabase, {
+          companyId: userCtx.companyId,
+          actorUserId: userCtx.userId,
+          title: `Change Order ${changeOrder.co_number} ${body.status}`,
+          message: `Change order "${changeOrder.title}" has been ${body.status}.`,
+          notificationType: body.status === "approved" ? "approval" : "alert",
+          entityType: "change_order",
+          entityId: changeOrder.id,
+        });
+      } catch (e) { console.warn("Notification failed:", e); }
     }
 
     // Auto-generate journal entry when change order is approved (Phase 5)

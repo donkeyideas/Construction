@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // POST /api/projects/rfis — Create a new RFI
@@ -77,6 +78,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `RFI ${rfi_number}: ${body.subject.trim()}`,
+        message: `New RFI submitted: "${body.subject.trim()}"`,
+        notificationType: "info",
+        entityType: "rfi",
+        entityId: rfi.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
+
     return NextResponse.json(rfi, { status: 201 });
   } catch (err) {
     console.error("POST /api/projects/rfis error:", err);
@@ -148,6 +161,20 @@ export async function PATCH(request: NextRequest) {
         { error: error.message },
         { status: 400 }
       );
+    }
+
+    if (body.status === "closed") {
+      try {
+        await createNotifications(supabase, {
+          companyId: userCtx.companyId,
+          actorUserId: userCtx.userId,
+          title: `RFI ${rfi.rfi_number} answered`,
+          message: `RFI "${rfi.subject}" has been answered and closed.`,
+          notificationType: "info",
+          entityType: "rfi",
+          entityId: rfi.id,
+        });
+      } catch (e) { console.warn("Notification failed:", e); }
     }
 
     return NextResponse.json(rfi);

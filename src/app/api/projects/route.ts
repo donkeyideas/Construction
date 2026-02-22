@@ -6,6 +6,7 @@ import {
   getCurrentUserCompany,
   type ProjectStatus,
 } from "@/lib/queries/projects";
+import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
 // GET /api/projects - List projects for the current user's company
@@ -97,6 +98,18 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    try {
+      await createNotifications(supabase, {
+        companyId: userCtx.companyId,
+        actorUserId: userCtx.userId,
+        title: `New Project: ${body.name.trim()}`,
+        message: `A new project "${body.name.trim()}" has been created.`,
+        notificationType: "info",
+        entityType: "project",
+        entityId: project?.id,
+      });
+    } catch (e) { console.warn("Notification failed:", e); }
 
     return NextResponse.json(project, { status: 201 });
   } catch (err) {

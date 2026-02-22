@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById, updateInvoice } from "@/lib/queries/financial";
+import { createNotifications } from "@/lib/utils/notifications";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -76,6 +77,20 @@ export async function PATCH(
         { error: "Failed to update invoice" },
         { status: 500 }
       );
+    }
+
+    if (body.status) {
+      try {
+        await createNotifications(supabase, {
+          companyId: userCompany.companyId,
+          actorUserId: userCompany.userId,
+          title: `Invoice ${existing.invoice_number || id.slice(0, 8)} updated`,
+          message: `Invoice status changed to "${body.status}".`,
+          notificationType: body.status === "paid" ? "approval" : "info",
+          entityType: "invoice",
+          entityId: id,
+        });
+      } catch (e) { console.warn("Notification failed:", e); }
     }
 
     return NextResponse.json({ success: true });
