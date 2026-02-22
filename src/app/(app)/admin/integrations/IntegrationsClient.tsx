@@ -1,147 +1,118 @@
 "use client";
 
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
+import "@/styles/integrations.css";
+
+type CategoryKey =
+  | "accounting"
+  | "project_management"
+  | "payment"
+  | "communication"
+  | "productivity"
+  | "automation";
+
+interface Integration {
+  name: string;
+  descriptionKey: string;
+  categoryKey: string;
+  categoryClass: CategoryKey;
+}
+
+const INTEGRATIONS: Integration[] = [
+  {
+    name: "QuickBooks Online",
+    descriptionKey: "quickbooksDescription",
+    categoryKey: "categoryAccounting",
+    categoryClass: "accounting",
+  },
+  {
+    name: "Procore",
+    descriptionKey: "procoreDescription",
+    categoryKey: "categoryProjectManagement",
+    categoryClass: "project_management",
+  },
+  {
+    name: "PlanGrid",
+    descriptionKey: "plangridDescription",
+    categoryKey: "categoryDocuments",
+    categoryClass: "project_management",
+  },
+  {
+    name: "Stripe",
+    descriptionKey: "stripeDescription",
+    categoryKey: "categoryPayments",
+    categoryClass: "payment",
+  },
+  {
+    name: "Google Workspace",
+    descriptionKey: "googleWorkspaceDescription",
+    categoryKey: "categoryProductivity",
+    categoryClass: "productivity",
+  },
+  {
+    name: "Slack",
+    descriptionKey: "slackDescription",
+    categoryKey: "categoryCommunication",
+    categoryClass: "communication",
+  },
+  {
+    name: "Zapier",
+    descriptionKey: "zapierDescription",
+    categoryKey: "categoryAutomation",
+    categoryClass: "automation",
+  },
+  {
+    name: "Microsoft 365",
+    descriptionKey: "microsoft365Description",
+    categoryKey: "categoryProductivity",
+    categoryClass: "productivity",
+  },
+];
 
 export default function IntegrationsClient() {
   const t = useTranslations("adminPanel");
-  const locale = useLocale();
-  const dateLocale = locale === "es" ? "es" : "en-US";
-
-  const integrations = [
-    {
-      name: "QuickBooks Online",
-      description: t("quickbooksDescription"),
-      category: t("categoryAccounting"),
-      status: "not_connected",
-    },
-    {
-      name: "Procore",
-      description: t("procoreDescription"),
-      category: t("categoryProjectManagement"),
-      status: "not_connected",
-    },
-    {
-      name: "PlanGrid",
-      description: t("plangridDescription"),
-      category: t("categoryDocuments"),
-      status: "not_connected",
-    },
-    {
-      name: "Stripe",
-      description: t("stripeDescription"),
-      category: t("categoryPayments"),
-      status: "not_connected",
-    },
-    {
-      name: "Google Workspace",
-      description: t("googleWorkspaceDescription"),
-      category: t("categoryProductivity"),
-      status: "not_connected",
-    },
-    {
-      name: "Slack",
-      description: t("slackDescription"),
-      category: t("categoryCommunication"),
-      status: "not_connected",
-    },
-    {
-      name: "Zapier",
-      description: t("zapierDescription"),
-      category: t("categoryAutomation"),
-      status: "not_connected",
-    },
-    {
-      name: "Microsoft 365",
-      description: t("microsoft365Description"),
-      category: t("categoryProductivity"),
-      status: "not_connected",
-    },
-  ];
 
   return (
-    <div className="page-container">
-      <div className="page-header">
+    <div>
+      <div className="integrations-header">
         <div>
-          <h1>{t("integrations")}</h1>
-          <p className="page-subtitle">
+          <h2>{t("integrations")}</h2>
+          <p className="integrations-header-sub">
             {t("connectYourToolsAndServices")}
           </p>
         </div>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-          gap: "1rem",
-        }}
-      >
-        {integrations.map((int) => (
-          <div
-            key={int.name}
-            className="card"
-            style={{
-              padding: "1.25rem",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              background: "var(--card-bg)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                marginBottom: "0.5rem",
-              }}
-            >
-              <h3 style={{ margin: 0, fontSize: "1rem" }}>{int.name}</h3>
+      <div className="integrations-grid">
+        {INTEGRATIONS.map((int) => (
+          <div key={int.name} className="integrations-card">
+            <div className="integrations-card-header">
+              <div className="integrations-card-info">
+                <div className="integrations-card-name">
+                  {int.name}
+                </div>
+                <div className="integrations-card-desc">
+                  {t(int.descriptionKey)}
+                </div>
+              </div>
               <span
-                style={{
-                  fontSize: "0.7rem",
-                  padding: "2px 8px",
-                  borderRadius: 12,
-                  background: "#f3f4f6",
-                  color: "#6b7280",
-                }}
+                className={`integrations-category-badge ${int.categoryClass}`}
               >
-                {int.category}
+                {t(int.categoryKey)}
               </span>
             </div>
-            <p
-              style={{
-                margin: "0 0 1rem",
-                fontSize: "0.85rem",
-                color: "var(--text-secondary)",
-              }}
-            >
-              {int.description}
-            </p>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "0.8rem",
-                  color: "#6b7280",
-                }}
-              >
+
+            <div className="integrations-card-actions">
+              <div className="integrations-card-sync">
+                <span
+                  className="integrations-dot disconnected"
+                />
                 {t("notConnected")}
-              </span>
+              </div>
               <button
-                className="btn-secondary"
-                style={{
-                  padding: "0.35rem 1rem",
-                  fontSize: "0.8rem",
-                  borderRadius: 6,
-                  cursor: "not-allowed",
-                  opacity: 0.6,
-                }}
+                className="ui-btn ui-btn-sm ui-btn-secondary"
                 disabled
+                style={{ marginLeft: "auto", opacity: 0.6 }}
               >
                 {t("connect")}
               </button>

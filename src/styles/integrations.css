@@ -277,6 +277,16 @@
   color: var(--color-red);
 }
 
+.integrations-category-badge.productivity {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+}
+
+.integrations-category-badge.automation {
+  background: var(--color-amber-light);
+  color: var(--color-amber);
+}
+
 [data-theme="dark"] .integrations-category-badge.accounting {
   background: rgba(29, 78, 216, 0.15);
 }
@@ -291,6 +301,14 @@
 
 [data-theme="dark"] .integrations-category-badge.payment {
   background: rgba(220, 38, 38, 0.15);
+}
+
+[data-theme="dark"] .integrations-category-badge.productivity {
+  background: rgba(29, 78, 216, 0.15);
+}
+
+[data-theme="dark"] .integrations-category-badge.automation {
+  background: rgba(180, 83, 9, 0.15);
 }
 
 /* ===== Card Sync Info ===== */
