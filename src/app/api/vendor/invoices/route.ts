@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
     // Use admin client to bypass RLS (vendor users don't have company_members)
     const admin = createAdminClient();
 
+    // balance_due is a GENERATED column — do not include it in inserts
     const { data: invoice, error: insertError } = await admin
       .from("invoices")
       .insert({
@@ -108,7 +109,6 @@ export async function POST(request: NextRequest) {
         subtotal: amount,
         tax_amount: taxAmt,
         total_amount: totalAmount,
-        balance_due: totalAmount,
         amount_paid: 0,
         status: "submitted",
         notes: description || null,
