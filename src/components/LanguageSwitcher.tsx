@@ -4,13 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { Globe } from "lucide-react";
-
-type Locale = "en" | "es";
-
-const SUPPORTED_LOCALES: { code: Locale; label: string; flag: string }[] = [
-  { code: "en", label: "English", flag: "\u{1F1FA}\u{1F1F8}" },
-  { code: "es", label: "Espa\u00F1ol", flag: "\u{1F1EA}\u{1F1F8}" },
-];
+import { SUPPORTED_LOCALES, LOCALE_META, type Locale } from "@/i18n/locales";
 
 export default function LanguageSwitcher() {
   const router = useRouter();
@@ -27,7 +21,7 @@ export default function LanguageSwitcher() {
     router.refresh();
   }
 
-  const current = SUPPORTED_LOCALES.find((l) => l.code === locale);
+  const current = LOCALE_META[locale];
 
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
@@ -48,7 +42,7 @@ export default function LanguageSwitcher() {
         title="Change language"
       >
         <Globe size={14} />
-        {current?.flag} {current?.label}
+        {current?.flag} {current?.nativeName}
       </button>
 
       {open && (
@@ -63,32 +57,46 @@ export default function LanguageSwitcher() {
             borderRadius: "8px",
             boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
             zIndex: 100,
-            overflow: "hidden",
-            minWidth: "140px",
+            overflow: "hidden auto",
+            minWidth: "200px",
+            maxHeight: "320px",
           }}>
-            {SUPPORTED_LOCALES.map((l) => (
-              <button
-                key={l.code}
-                onClick={() => switchLocale(l.code)}
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  border: "none",
-                  borderBottom: "1px solid var(--border)",
-                  background: l.code === locale ? "rgba(59, 130, 246, 0.05)" : "transparent",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  color: "var(--foreground)",
-                  fontSize: "0.85rem",
-                  textAlign: "left",
-                  fontWeight: l.code === locale ? 600 : 400,
-                }}
-              >
-                {l.flag} {l.label}
-              </button>
-            ))}
+            {SUPPORTED_LOCALES.map((code) => {
+              const meta = LOCALE_META[code];
+              return (
+                <button
+                  key={code}
+                  onClick={() => switchLocale(code)}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "none",
+                    borderBottom: "1px solid var(--border)",
+                    background: code === locale ? "rgba(59, 130, 246, 0.05)" : "transparent",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    color: "var(--foreground)",
+                    fontSize: "0.85rem",
+                    textAlign: "left",
+                    fontWeight: code === locale ? 600 : 400,
+                  }}
+                >
+                  <span>{meta.flag}</span>
+                  <span>{meta.nativeName}</span>
+                  {meta.nativeName !== meta.label && (
+                    <span style={{
+                      fontSize: "0.7rem",
+                      color: "var(--muted)",
+                      marginInlineStart: "auto",
+                    }}>
+                      {meta.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </>
       )}

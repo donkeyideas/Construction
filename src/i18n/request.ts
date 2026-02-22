@@ -1,9 +1,6 @@
 import { getRequestConfig } from "next-intl/server";
 import { cookies } from "next/headers";
-
-export type Locale = "en" | "es";
-export const DEFAULT_LOCALE: Locale = "en";
-export const SUPPORTED_LOCALES: Locale[] = ["en", "es"];
+import { DEFAULT_LOCALE, isValidLocale, type Locale } from "./locales";
 
 export default getRequestConfig(async () => {
   let locale: Locale = DEFAULT_LOCALE;
@@ -11,7 +8,7 @@ export default getRequestConfig(async () => {
   try {
     const cookieStore = await cookies();
     const raw = cookieStore.get("locale")?.value;
-    if (raw === "en" || raw === "es") {
+    if (isValidLocale(raw)) {
       locale = raw;
     }
   } catch {

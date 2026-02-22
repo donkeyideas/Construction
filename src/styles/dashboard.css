@@ -90,6 +90,128 @@
   margin-bottom: 24px;
 }
 
+/* ===== Dashboard Chart Carousel ===== */
+.dash-chart-carousel .ui-tabs-list {
+  border-bottom: none;
+  gap: 0;
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.dash-chart-carousel .ui-tabs-trigger {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.dash-chart-carousel .ui-tabs-content {
+  padding-top: 0;
+}
+
+.dash-subchart-carousel {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-subchart-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.dash-subchart-area {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-subchart-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.dash-subchart-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dash-subchart-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: none;
+  background: var(--border);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.dash-subchart-dot.active {
+  background: var(--color-amber);
+  transform: scale(1.3);
+}
+
+.dash-subchart-dot:hover:not(.active) {
+  background: var(--muted);
+}
+
+.dash-subchart-arrow {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.15s, border-color 0.15s;
+  padding: 0;
+}
+
+.dash-subchart-arrow:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+/* Safety KPI mini-grid */
+.dash-safety-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 30px 16px;
+  text-align: center;
+}
+
+.dash-safety-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dash-safety-kpi-value {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dash-safety-kpi-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
 /* Dashboard filter */
 .dash-filter {
   display: flex;
@@ -350,6 +472,10 @@ a.activity-item:hover {
   .charts-row {
     grid-template-columns: 1fr;
   }
+  .dash-chart-carousel .ui-tabs-trigger {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+  }
 }
 
 @media (max-width: 640px) {
@@ -364,5 +490,13 @@ a.activity-item:hover {
   }
   .dash-header h2 {
     font-size: 1.5rem;
+  }
+  .dash-safety-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 20px 16px;
+  }
+  .dash-subchart-area {
+    min-height: 180px;
   }
 }

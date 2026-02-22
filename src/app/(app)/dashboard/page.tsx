@@ -12,9 +12,14 @@ import {
   getDashboardKPIs,
   getProjectStatusBreakdown,
   getARAPAging,
+  getCashFlow,
   getPendingApprovals,
   getRecentActivity,
 } from "@/lib/queries/dashboard";
+import { getMonthlyIncomeExpenses } from "@/lib/queries/financial";
+import { getProjectsOverview } from "@/lib/queries/projects";
+import { getSafetyOverview } from "@/lib/queries/safety";
+import { getEquipmentOverview } from "@/lib/queries/equipment";
 import {
   formatCompactCurrency,
   formatCurrency,
@@ -22,7 +27,7 @@ import {
   formatRelativeTime,
 } from "@/lib/utils/format";
 import DashboardFilter from "@/components/DashboardFilter";
-import ARAPAgingChart from "@/components/charts/ARAPAgingChart";
+import DashboardChartCarousel from "@/components/DashboardChartCarousel";
 import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = {
@@ -131,6 +136,23 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
   const { items: pendingApprovals, totalCount: pendingApprovalsTotal } = pendingApprovalsResult;
 
+  // Fetch chart carousel data only if user can see charts
+  const [cashFlowData, monthlyIncomeExpenses, projectsOverview, safetyOverview, equipmentOverview] =
+    sections.charts
+      ? await Promise.all([
+          getCashFlow(supabase, companyId, selectedProjectId),
+          getMonthlyIncomeExpenses(supabase, companyId),
+          getProjectsOverview(supabase, companyId),
+          getSafetyOverview(supabase, companyId),
+          getEquipmentOverview(supabase, companyId),
+        ])
+      : [[] as { month: string; cashIn: number; cashOut: number; net: number }[], [] as { month: string; income: number; expenses: number }[], null, null, null];
+
+  const projectCompletionData = (projectsOverview?.projects ?? [])
+    .filter((p) => p.status === "active")
+    .slice(0, 8)
+    .map((p) => ({ name: p.name, completion_pct: Number(p.completion_pct) || 0 }));
+
   const isNewCompany =
     projectStatus.total === 0 &&
     pendingApprovals.length === 0 &&
@@ -183,9 +205,6 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     conicParts.length > 0
       ? `conic-gradient(${conicParts.join(", ")})`
       : "conic-gradient(var(--border) 0% 100%)";
-
-  // Check if cash flow has any data
-  const hasAgingData = agingData.some((b) => b.ar > 0 || b.ap > 0);
 
   // Find the selected project name for the header
   const selectedProjectName = selectedProjectId
@@ -264,16 +283,27 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       {/* Charts Row */}
       {sections.charts && (
         <div className="charts-row">
-          {sections.financials && (
-            <div className="card">
-              <div className="card-title">AR / AP Aging</div>
-              {!hasAgingData ? (
-                <EmptyState message="No outstanding invoices" />
-              ) : (
-                <ARAPAgingChart data={agingData} />
-              )}
-            </div>
-          )}
+          <div className="card dash-chart-carousel">
+            <DashboardChartCarousel
+              agingData={agingData}
+              cashFlowData={cashFlowData}
+              monthlyIncomeExpenses={monthlyIncomeExpenses}
+              budgetProjects={projectsOverview?.budgetProjects ?? []}
+              projectCompletionData={projectCompletionData}
+              incidentTrend={safetyOverview?.monthlyTrend ?? []}
+              incidentTypeBreakdown={safetyOverview?.typeBreakdown ?? []}
+              safetyKPIs={{
+                incidentsYTD: safetyOverview?.incidentsYTD ?? 0,
+                daysSinceLastIncident: safetyOverview?.daysSinceLastIncident ?? 0,
+                oshaRecordableCount: safetyOverview?.oshaRecordableCount ?? 0,
+              }}
+              equipmentStatusBreakdown={equipmentOverview?.statusBreakdown ?? []}
+              equipmentTotal={equipmentOverview?.stats?.total ?? 0}
+              equipmentTypeBreakdown={equipmentOverview?.typeBreakdown ?? []}
+              equipmentUtilizationRate={equipmentOverview?.utilizationRate ?? 0}
+              showFinancials={sections.financials}
+            />
+          </div>
 
           <div className="card">
             <div className="card-title">{t("projectStatus")}</div>

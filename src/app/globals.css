@@ -293,3 +293,22 @@ h1, h2, h3, h4 {
 .spin {
   animation: spin 1s linear infinite;
 }
+
+/* ===== Non-Latin Font Overrides ===== */
+html[lang="ar"] body,
+html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3, html[lang="ar"] h4 {
+  font-family: var(--font-arabic), var(--font-sans);
+}
+
+html[lang="hi"] body,
+html[lang="hi"] h1, html[lang="hi"] h2, html[lang="hi"] h3, html[lang="hi"] h4 {
+  font-family: var(--font-devanagari), var(--font-sans);
+}
+
+html[lang="zh"] body,
+html[lang="zh"] h1, html[lang="zh"] h2, html[lang="zh"] h3, html[lang="zh"] h4 {
+  font-family: var(--font-cjk), var(--font-sans);
+}
+
+/* ===== RTL Layout Overrides ===== */
+@import "../styles/rtl.css";
