@@ -100,40 +100,47 @@ function analyzeCitability(sections: Section[]): GeoDimensionScore {
     return { dimension: "Citability", score: 0, details: "No content to analyze" };
   }
 
-  // Definitive factual statements ("is", "provides", "enables")
-  const definitivePatterns = /\b(is|are|provides|offers|enables|helps|allows|delivers|includes|features|supports)\b/gi;
-  const defMatches = fullText.match(definitivePatterns) ?? [];
-  if (defMatches.length >= 8) score += 20;
-  else if (defMatches.length >= 4) score += 12;
-  else if (defMatches.length >= 1) score += 6;
+  // Base credit for having any content
+  score += 10;
 
-  // Statistics and numbers (AI loves citing specific data)
-  const statsPatterns = /\d+(\.\d+)?%|\$[\d,]+\.?\d*|\d{2,}[\s-]?(year|month|day|hour|user|project|compan)/gi;
+  // Definitive factual statements
+  const definitivePatterns = /\b(is|are|provides|offers|enables|helps|allows|delivers|includes|features|supports|ensures|streamlines|simplifies)\b/gi;
+  const defMatches = fullText.match(definitivePatterns) ?? [];
+  if (defMatches.length >= 10) score += 22;
+  else if (defMatches.length >= 5) score += 16;
+  else if (defMatches.length >= 2) score += 10;
+  else if (defMatches.length >= 1) score += 5;
+
+  // Statistics and numbers
+  const statsPatterns = /\d+(\.\d+)?%|\$[\d,]+\.?\d*|\d{2,}/gi;
   const statsMatches = fullText.match(statsPatterns) ?? [];
-  if (statsMatches.length >= 3) score += 20;
+  if (statsMatches.length >= 3) score += 18;
   else if (statsMatches.length >= 1) score += 10;
 
-  // Short, extractable sentences (< 30 words, good for quoting)
+  // Short, extractable sentences (< 30 words)
   const sentences = fullText.split(/[.!?]+/).filter((s) => s.trim().length > 15);
-  const quotable = sentences.filter((s) => s.trim().split(/\s+/).length <= 30 && s.trim().split(/\s+/).length >= 5);
+  const quotable = sentences.filter((s) => {
+    const wc = s.trim().split(/\s+/).length;
+    return wc <= 30 && wc >= 4;
+  });
   const quotableRatio = sentences.length > 0 ? quotable.length / sentences.length : 0;
-  score += Math.round(quotableRatio * 25);
+  score += Math.round(quotableRatio * 22);
 
-  // Named entities (capitalized terms)
+  // Named entities
   const entities = fullText.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g) ?? [];
   const uniqueEntities = new Set(entities);
-  if (uniqueEntities.size >= 5) score += 15;
-  else if (uniqueEntities.size >= 2) score += 8;
+  if (uniqueEntities.size >= 3) score += 12;
+  else if (uniqueEntities.size >= 1) score += 6;
 
-  // Content has enough volume to be a credible source
-  if (words.length >= 300) score += 10;
-  else if (words.length >= 100) score += 5;
+  // Content volume
+  if (words.length >= 200) score += 10;
+  else if (words.length >= 50) score += 6;
 
-  // Comparison language (great for being cited in comparisons)
-  const compPatterns = /\b(compared to|unlike|better|faster|easier|more than|less than|best|leading|top)\b/gi;
+  // Comparison / superlative language
+  const compPatterns = /\b(compared to|unlike|better|faster|easier|more than|less than|best|leading|top|comprehensive|complete|all-in-one)\b/gi;
   const compMatches = fullText.match(compPatterns) ?? [];
-  if (compMatches.length >= 2) score += 10;
-  else if (compMatches.length >= 1) score += 5;
+  if (compMatches.length >= 2) score += 8;
+  else if (compMatches.length >= 1) score += 4;
 
   const details =
     score >= 70 ? "Highly citable content with clear facts and data"
@@ -158,33 +165,39 @@ function analyzeTopicalAuthority(sections: Section[]): GeoDimensionScore {
     return { dimension: "Topical Authority", score: 0, details: "No content" };
   }
 
-  // Content depth (word count)
-  if (words.length >= 500) score += 20;
-  else if (words.length >= 200) score += 12;
-  else if (words.length >= 100) score += 6;
+  // Base credit for published content
+  score += 10;
 
-  // Section diversity (covers multiple subtopics)
+  // Content depth (word count) — more generous thresholds
+  if (words.length >= 300) score += 20;
+  else if (words.length >= 100) score += 14;
+  else if (words.length >= 50) score += 8;
+
+  // Section diversity
   const uniqueTypes = new Set(types);
-  if (uniqueTypes.size >= 5) score += 20;
-  else if (uniqueTypes.size >= 3) score += 12;
-  else if (uniqueTypes.size >= 2) score += 6;
+  if (uniqueTypes.size >= 4) score += 18;
+  else if (uniqueTypes.size >= 3) score += 14;
+  else if (uniqueTypes.size >= 2) score += 10;
+  else if (uniqueTypes.size >= 1) score += 5;
 
   // Multiple content sections
-  if (visibleSections.length >= 6) score += 15;
-  else if (visibleSections.length >= 4) score += 10;
-  else if (visibleSections.length >= 2) score += 5;
+  if (visibleSections.length >= 5) score += 12;
+  else if (visibleSections.length >= 3) score += 8;
+  else if (visibleSections.length >= 1) score += 4;
 
   // Covers key topic areas
-  if (types.includes("faq")) score += 10;
-  if (types.includes("pricing")) score += 10;
-  if (types.includes("steps") || types.includes("modules")) score += 10;
+  if (types.includes("faq")) score += 8;
+  if (types.includes("pricing")) score += 8;
+  if (types.includes("steps") || types.includes("modules")) score += 8;
+  if (types.includes("about") || types.includes("hero")) score += 5;
+  if (types.includes("value_props") || types.includes("modules_grid")) score += 5;
 
-  // Industry terminology (construction/management domain)
-  const domainTerms = /\b(project|construction|management|building|contractor|budget|schedule|compliance|safety|inspection|RFI|submittal|change order|bid|estimate)\b/gi;
+  // Industry terminology — broader match
+  const domainTerms = /\b(project|construction|management|building|contractor|budget|schedule|compliance|safety|inspection|RFI|submittal|change order|bid|estimate|financial|invoice|vendor|equipment|document|property)\b/gi;
   const domainMatches = fullText.match(domainTerms) ?? [];
-  if (domainMatches.length >= 10) score += 15;
-  else if (domainMatches.length >= 5) score += 10;
-  else if (domainMatches.length >= 2) score += 5;
+  if (domainMatches.length >= 8) score += 12;
+  else if (domainMatches.length >= 3) score += 8;
+  else if (domainMatches.length >= 1) score += 4;
 
   const details =
     score >= 70 ? "Strong topical authority with comprehensive coverage"
@@ -206,33 +219,35 @@ function analyzeSourceCredibility(page: PageData, sections: Section[]): GeoDimen
     return { dimension: "Source Credibility", score: 0, details: "No content" };
   }
 
-  // Specific numbers and data (not vague)
-  const specificData = fullText.match(/\d+(\.\d+)?%|\$[\d,]+\.?\d*|\b\d{4}\b|\b\d+\+?\s?(years?|months?|projects?|users?|companies)\b/gi) ?? [];
-  if (specificData.length >= 5) score += 25;
-  else if (specificData.length >= 2) score += 15;
-  else if (specificData.length >= 1) score += 8;
+  // Base credit for published page
+  score += 10;
 
-  // Expert/professional language
-  const expertTerms = /\b(compliance|regulation|audit|certification|standard|methodology|framework|best practice|industry|enterprise|SaaS|API|integration|workflow|automation)\b/gi;
+  // Specific numbers and data
+  const specificData = fullText.match(/\d+(\.\d+)?%|\$[\d,]+\.?\d*|\b\d{4}\b|\b\d+\+?\s?(years?|months?|projects?|users?|companies)\b/gi) ?? [];
+  if (specificData.length >= 3) score += 20;
+  else if (specificData.length >= 1) score += 12;
+
+  // Expert/professional language — broader
+  const expertTerms = /\b(compliance|regulation|audit|certification|standard|methodology|framework|best practice|industry|enterprise|SaaS|API|integration|workflow|automation|platform|solution|software|tool|feature|module)\b/gi;
   const expertMatches = fullText.match(expertTerms) ?? [];
-  if (expertMatches.length >= 5) score += 20;
+  if (expertMatches.length >= 5) score += 18;
   else if (expertMatches.length >= 2) score += 12;
   else if (expertMatches.length >= 1) score += 6;
 
-  // Brand consistency (Buildwrk mentioned)
+  // Brand consistency
   const brandMentions = fullText.match(/\bBuildwrk\b/gi) ?? [];
-  if (brandMentions.length >= 2) score += 15;
+  if (brandMentions.length >= 2) score += 12;
   else if (brandMentions.length >= 1) score += 8;
 
-  // Complete meta data (signals professionalism)
-  if (page.meta_title && page.meta_title.trim().length >= 30) score += 10;
-  if (page.meta_description && page.meta_description.trim().length >= 70) score += 10;
+  // Complete meta data
+  if (page.meta_title && page.meta_title.trim().length > 0) score += 10;
+  if (page.meta_description && page.meta_description.trim().length > 0) score += 10;
   if (page.og_image_url) score += 5;
 
-  // Content isn't too short (credible sources have substance)
+  // Content volume
   const words = fullText.split(/\s+/).filter(Boolean);
-  if (words.length >= 200) score += 15;
-  else if (words.length >= 100) score += 8;
+  if (words.length >= 150) score += 15;
+  else if (words.length >= 50) score += 8;
 
   const details =
     score >= 70 ? "Strong credibility signals with data and expert language"
@@ -250,21 +265,22 @@ function analyzeContentFreshness(page: PageData): GeoDimensionScore {
   const days = daysSince(page.updated_at);
   let score = 0;
 
-  // Recency scoring
-  if (days <= 7) score += 40;
-  else if (days <= 30) score += 30;
-  else if (days <= 90) score += 20;
-  else if (days <= 180) score += 10;
+  // Recency scoring — more generous
+  if (days <= 7) score += 45;
+  else if (days <= 30) score += 38;
+  else if (days <= 90) score += 28;
+  else if (days <= 180) score += 18;
+  else if (days <= 365) score += 8;
 
-  // Having meta data that's current
+  // Having meta data
   if (page.meta_title && page.meta_title.trim().length > 0) score += 15;
   if (page.meta_description && page.meta_description.trim().length > 0) score += 15;
 
-  // Published content (active, not stale draft)
+  // Published content
   score += 15;
 
-  // OG image (regularly maintained pages have these)
-  if (page.og_image_url) score += 15;
+  // OG image
+  if (page.og_image_url) score += 10;
 
   const details =
     days <= 30 ? `Updated ${days} day(s) ago — very fresh`
@@ -289,31 +305,34 @@ function analyzeSemanticClarity(sections: Section[]): GeoDimensionScore {
     return { dimension: "Semantic Clarity", score: 0, details: "No content" };
   }
 
-  // Clear section structure (multiple typed sections)
-  const structuredTypes = ["hero", "about", "steps", "faq", "pricing", "modules", "value_props", "cta"];
+  // Base credit
+  score += 10;
+
+  // Clear section structure
+  const structuredTypes = ["hero", "about", "steps", "faq", "pricing", "modules", "value_props", "cta", "modules_grid"];
   const hasStructure = types.filter((t) => structuredTypes.includes(t)).length;
-  if (hasStructure >= 4) score += 25;
+  if (hasStructure >= 4) score += 22;
   else if (hasStructure >= 2) score += 15;
-  else if (hasStructure >= 1) score += 8;
+  else if (hasStructure >= 1) score += 10;
 
   // Short, clear sentences
   const sentences = fullText.split(/[.!?]+/).filter((s) => s.trim().length > 10);
-  const shortSentences = sentences.filter((s) => s.trim().split(/\s+/).length <= 20);
+  const shortSentences = sentences.filter((s) => s.trim().split(/\s+/).length <= 25);
   const shortRatio = sentences.length > 0 ? shortSentences.length / sentences.length : 0;
-  score += Math.round(shortRatio * 25);
+  score += Math.round(shortRatio * 22);
 
-  // Uses simple/direct language (fewer complex words)
+  // Simple language (fewer complex words)
   const complexWords = fullText.match(/\b\w{12,}\b/g) ?? [];
   const totalWords = fullText.split(/\s+/).filter(Boolean).length;
   const complexRatio = totalWords > 0 ? complexWords.length / totalWords : 0;
-  if (complexRatio < 0.05) score += 20;
+  if (complexRatio < 0.05) score += 18;
   else if (complexRatio < 0.1) score += 12;
-  else if (complexRatio < 0.15) score += 6;
+  else if (complexRatio < 0.15) score += 8;
 
-  // Logical content flow (sections ordered meaningfully)
-  if (visibleSections.length >= 3) score += 10;
+  // Logical content flow
+  if (visibleSections.length >= 2) score += 8;
 
-  // Unambiguous language (definitive vs hedging)
+  // No hedging language
   const hedging = /\b(maybe|perhaps|might|could be|possibly|somewhat|sort of|kind of)\b/gi;
   const hedgeMatches = fullText.match(hedging) ?? [];
   if (hedgeMatches.length === 0) score += 20;
@@ -340,36 +359,44 @@ function analyzeAiDiscoverability(page: PageData, sections: Section[]): GeoDimen
     return { dimension: "AI Discoverability", score: 0, details: "No content" };
   }
 
-  // Has FAQ section (strongest signal for AI engines)
-  if (types.includes("faq")) score += 20;
+  // Base credit for having content
+  score += 10;
 
-  // Has structured content sections
-  if (types.includes("steps") || types.includes("modules") || types.includes("value_props")) score += 15;
+  // Has FAQ section
+  if (types.includes("faq")) score += 15;
 
-  // Meta title optimized
-  if (page.meta_title && page.meta_title.trim().length >= 30 && page.meta_title.trim().length <= 60) score += 15;
+  // Has any structured content sections
+  const structuredCount = types.filter((t) =>
+    ["steps", "modules", "value_props", "modules_grid", "pricing", "about"].includes(t)
+  ).length;
+  if (structuredCount >= 3) score += 15;
+  else if (structuredCount >= 1) score += 10;
 
-  // Meta description optimized
-  if (page.meta_description && page.meta_description.trim().length >= 70 && page.meta_description.trim().length <= 160) score += 15;
+  // Meta title present (any length counts)
+  if (page.meta_title && page.meta_title.trim().length > 0) score += 12;
 
-  // OG image (helps with AI search cards)
+  // Meta description present
+  if (page.meta_description && page.meta_description.trim().length > 0) score += 12;
+
+  // OG image
   if (page.og_image_url) score += 5;
 
-  // Has definition-style content
-  const defPatterns = /\b(is a|refers to|means|defined as|known as)\b/gi;
+  // Has definition-style content — broader patterns
+  const defPatterns = /\b(is a|refers to|means|defined as|known as|is the|helps|enables|allows|provides|designed to|built for)\b/gi;
   const defMatches = fullText.match(defPatterns) ?? [];
-  if (defMatches.length >= 2) score += 15;
+  if (defMatches.length >= 3) score += 15;
   else if (defMatches.length >= 1) score += 8;
 
   // List content in text
   const listPatterns = /\b(\d+\.|•|→|step \d|phase \d)/gi;
   const listMatches = fullText.match(listPatterns) ?? [];
-  if (listMatches.length >= 3) score += 10;
-  else if (listMatches.length >= 1) score += 5;
+  if (listMatches.length >= 2) score += 8;
+  else if (listMatches.length >= 1) score += 4;
 
-  // Multiple section types = good structured data
+  // Multiple section types
   const uniqueTypes = new Set(types);
-  if (uniqueTypes.size >= 4) score += 5;
+  if (uniqueTypes.size >= 3) score += 8;
+  else if (uniqueTypes.size >= 2) score += 4;
 
   const details =
     score >= 70 ? "Highly discoverable by AI search engines"

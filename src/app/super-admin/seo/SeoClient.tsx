@@ -42,11 +42,7 @@ import {
   ExternalLink,
   Eye,
   Clock,
-  MapPin,
   MousePointer,
-  ArrowUp,
-  ArrowDown,
-  Minus as MinusIcon,
   Bot,
   Target,
   FlaskConical,
@@ -92,7 +88,7 @@ interface Props {
   positionData: PositionBucket[];
   geo: PlatformGeoPresence;
   recommendations: SeoRecommendation[];
-  keywords: Keyword[];
+  keywords: Keyword[]; // used for future keyword tracking features
   aeoOverview: AeoOverview;
   croOverview: CroOverview;
   aeoScores: AeoScoresOverview;
@@ -129,31 +125,6 @@ const PIE_COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6"];
 /* ──────────────────────────────────────────────
    Helpers
    ────────────────────────────────────────────── */
-
-function getPositionTrend(
-  current: number | null,
-  previous: number | null
-): "up" | "down" | "neutral" | null {
-  if (current === null || previous === null) return null;
-  if (current < previous) return "up";
-  if (current > previous) return "down";
-  return "neutral";
-}
-
-function getIntentBadgeClass(intent: string | null): string {
-  switch (intent) {
-    case "transactional":
-      return "sa-badge-green";
-    case "commercial":
-      return "sa-badge-amber";
-    case "informational":
-      return "sa-badge-blue";
-    case "navigational":
-      return "sa-badge-red";
-    default:
-      return "";
-  }
-}
 
 function getScoreColor(score: number): string {
   if (score > 80) return "var(--color-green)";
@@ -219,7 +190,6 @@ export default function SeoClient({
   /* ── state ── */
   const [activeTab, setActiveTab] = useState("overview");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [showAddKeyword, setShowAddKeyword] = useState(false);
   const [filterCategory, setFilterCategory] = useState("all");
 
   // Traffic tab (client-side fetch from GA4 API)
@@ -229,15 +199,6 @@ export default function SeoClient({
   // Search Console tab (client-side fetch)
   const [gscData, setGscData] = useState<any>(null);
   const [gscLoading, setGscLoading] = useState(false);
-
-  // Add keyword form
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState("");
-  const [kwKeyword, setKwKeyword] = useState("");
-  const [kwVolume, setKwVolume] = useState("");
-  const [kwDifficulty, setKwDifficulty] = useState("");
-  const [kwIntent, setKwIntent] = useState("informational");
-  const [kwTargetUrl, setKwTargetUrl] = useState("");
 
   // CRO state
   const [croSubTab, setCroSubTab] = useState<"funnel" | "performance" | "abtests">("funnel");
@@ -313,47 +274,6 @@ export default function SeoClient({
     setCopiedId("all");
     setTimeout(() => setCopiedId(null), 2000);
   }, [filteredRecs]);
-
-  /* ── add keyword handler ── */
-  async function handleAddKeyword(e: React.FormEvent) {
-    e.preventDefault();
-    if (!kwKeyword.trim()) return;
-
-    setSaving(true);
-    setFormError("");
-
-    try {
-      const res = await fetch("/api/super-admin/seo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          keyword: kwKeyword.trim(),
-          search_volume: kwVolume ? parseInt(kwVolume) : null,
-          difficulty: kwDifficulty ? parseInt(kwDifficulty) : null,
-          intent: kwIntent,
-          target_url: kwTargetUrl.trim() || null,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setFormError(data.error || t("failedSave"));
-        return;
-      }
-
-      setKwKeyword("");
-      setKwVolume("");
-      setKwDifficulty("");
-      setKwIntent("informational");
-      setKwTargetUrl("");
-      setShowAddKeyword(false);
-      router.refresh();
-    } catch {
-      setFormError(t("networkError"));
-    } finally {
-      setSaving(false);
-    }
-  }
 
   /* ── add A/B test handler ── */
   async function handleAddAbTest(e: React.FormEvent) {
@@ -432,14 +352,6 @@ export default function SeoClient({
           <h2>{t("seoTitle")}</h2>
           <p className="admin-header-sub">{t("seoDesc")}</p>
         </div>
-        <div className="admin-header-actions">
-          <button
-            className="sa-action-btn primary"
-            onClick={() => setShowAddKeyword(true)}
-          >
-            <Plus size={14} /> {t("addKeyword")}
-          </button>
-        </div>
       </div>
 
       {/* Tabs bar */}
@@ -463,316 +375,217 @@ export default function SeoClient({
            ════════════════════════════════════ */}
         {activeTab === "overview" && (
           <>
-            {/* KPI cards */}
-            <div className="sa-kpi-grid">
-              <div className="sa-kpi-card">
-                <div className="sa-kpi-info">
-                  <span className="sa-kpi-label">{t("seoScore")}</span>
-                  <span
-                    className="sa-kpi-value"
-                    style={{ color: getScoreColor(overview.seoScore) }}
-                  >
+            {/* Score Dashboard — 4 optimization score cards */}
+            <div className="seo-overview-scores">
+              {/* SEO Score */}
+              <div className="sa-card seo-overview-score-card" onClick={() => setActiveTab("technical")} style={{ cursor: "pointer" }}>
+                <div className="seo-overview-score-header">
+                  <Search size={16} />
+                  <span>SEO</span>
+                </div>
+                <div
+                  className="aeo-score-circle"
+                  style={{
+                    borderColor: getScoreColor(overview.seoScore),
+                    width: 90, height: 90,
+                  }}
+                >
+                  <span className="aeo-score-number" style={{ color: getScoreColor(overview.seoScore), fontSize: "1.6rem" }}>
                     {overview.seoScore}
                   </span>
+                  <span className="aeo-score-label">/100</span>
                 </div>
-                <div className="sa-kpi-icon">
-                  <BarChart3 size={20} />
-                </div>
-              </div>
-
-              <div className="sa-kpi-card">
-                <div className="sa-kpi-info">
-                  <span className="sa-kpi-label">{t("seoPublishedPages")}</span>
-                  <span className="sa-kpi-value">
-                    {overview.publishedPages}{" "}
-                    <small style={{ color: "var(--muted)", fontWeight: 400 }}>
-                      / {overview.totalPages}
-                    </small>
-                  </span>
-                </div>
-                <div className="sa-kpi-icon">
-                  <FileText size={20} />
+                <div className="seo-overview-score-meta">
+                  <span>{overview.publishedPages} pages</span>
+                  <span>{overview.criticalIssues > 0 ? `${overview.criticalIssues} issues` : "No issues"}</span>
                 </div>
               </div>
 
-              <div className="sa-kpi-card">
-                <div className="sa-kpi-info">
-                  <span className="sa-kpi-label">
-                    {t("seoKeywordsTracked")}
-                  </span>
-                  <span className="sa-kpi-value">
-                    {overview.keywordsTracked}
-                  </span>
+              {/* GEO Score */}
+              <div className="sa-card seo-overview-score-card" onClick={() => setActiveTab("geo")} style={{ cursor: "pointer" }}>
+                <div className="seo-overview-score-header">
+                  <Globe size={16} />
+                  <span>GEO</span>
                 </div>
-                <div className="sa-kpi-icon">
-                  <Search size={20} />
+                <div
+                  className="aeo-score-circle"
+                  style={{
+                    borderColor: getScoreColor(geoScores.overallScore),
+                    width: 90, height: 90,
+                  }}
+                >
+                  <span className="aeo-score-number" style={{ color: getScoreColor(geoScores.overallScore), fontSize: "1.6rem" }}>
+                    {geoScores.overallScore}
+                  </span>
+                  <span className="aeo-score-label">/100</span>
+                </div>
+                <div className="seo-overview-score-meta">
+                  <span>AI Citability</span>
+                  <span>{geoScores.pageScores.length} pages scored</span>
                 </div>
               </div>
 
-              <div className="sa-kpi-card">
-                <div className="sa-kpi-info">
-                  <span className="sa-kpi-label">{t("seoAvgPosition")}</span>
-                  <span className="sa-kpi-value">
-                    {overview.avgPosition > 0
-                      ? overview.avgPosition.toFixed(1)
-                      : "-"}
-                  </span>
+              {/* AEO Score */}
+              <div className="sa-card seo-overview-score-card" onClick={() => setActiveTab("aeo")} style={{ cursor: "pointer" }}>
+                <div className="seo-overview-score-header">
+                  <Bot size={16} />
+                  <span>AEO</span>
                 </div>
-                <div className="sa-kpi-icon">
-                  <TrendingUp size={20} />
+                <div
+                  className="aeo-score-circle"
+                  style={{
+                    borderColor: getScoreColor(aeoScores.overallScore),
+                    width: 90, height: 90,
+                  }}
+                >
+                  <span className="aeo-score-number" style={{ color: getScoreColor(aeoScores.overallScore), fontSize: "1.6rem" }}>
+                    {aeoScores.overallScore}
+                  </span>
+                  <span className="aeo-score-label">/100</span>
+                </div>
+                <div className="seo-overview-score-meta">
+                  <span>AI Readiness</span>
+                  <span>{aeoScores.pageScores.length} pages scored</span>
                 </div>
               </div>
 
+              {/* CRO Score */}
+              <div className="sa-card seo-overview-score-card" onClick={() => setActiveTab("cro")} style={{ cursor: "pointer" }}>
+                <div className="seo-overview-score-header">
+                  <Target size={16} />
+                  <span>CRO</span>
+                </div>
+                <div
+                  className="aeo-score-circle"
+                  style={{
+                    borderColor: "#3b82f6",
+                    width: 90, height: 90,
+                  }}
+                >
+                  <span className="aeo-score-number" style={{ color: "#3b82f6", fontSize: "1.6rem" }}>
+                    {croOverview.abTests.length}
+                  </span>
+                  <span className="aeo-score-label">tests</span>
+                </div>
+                <div className="seo-overview-score-meta">
+                  <span>{croOverview.runningCount} running</span>
+                  <span>{croOverview.completedCount} completed</span>
+                </div>
+              </div>
             </div>
 
-            {/* Charts: position distribution + intent pie */}
+            {/* Radar charts: GEO + AEO side by side */}
             <div className="sa-two-col">
               <div className="sa-card">
                 <div className="sa-card-title">
-                  {t("seoPositionDistribution")}
+                  <Globe size={16} /> GEO — AI Citability Breakdown
                 </div>
-                {positionData.length > 0 ? (
+                {geoScores.dimensionAverages.length > 0 ? (
                   <div className="seo-chart-wrap">
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={positionData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="bucket" />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip />
-                        <Bar dataKey="count" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
-                      </BarChart>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <RadarChart
+                        data={geoScores.dimensionAverages.map((d) => ({
+                          dimension: d.dimension.replace("Topical Authority", "Authority").replace("Source Credibility", "Credibility").replace("Content Freshness", "Freshness").replace("Semantic Clarity", "Clarity").replace("AI Discoverability", "Discoverability"),
+                          score: d.score,
+                          fullMark: 100,
+                        }))}
+                      >
+                        <PolarGrid stroke="var(--border)" />
+                        <PolarAngleAxis dataKey="dimension" tick={{ fill: "var(--muted)", fontSize: 10 }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "var(--muted)", fontSize: 9 }} />
+                        <Radar name="GEO" dataKey="score" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} strokeWidth={2} />
+                        <Tooltip contentStyle={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "0.8rem" }} formatter={(value: any) => [`${value}/100`, "Score"]} />
+                      </RadarChart>
                     </ResponsiveContainer>
                   </div>
                 ) : (
                   <div className="sa-empty">
-                    <div className="sa-empty-title">
-                      {t("seoNoPositionData")}
-                    </div>
-                    <div className="sa-empty-desc">
-                      {t("seoNoPositionDataDesc")}
-                    </div>
+                    <div className="sa-empty-title">No GEO data</div>
                   </div>
                 )}
               </div>
 
               <div className="sa-card">
                 <div className="sa-card-title">
-                  {t("seoKeywordsByIntent")}
+                  <Bot size={16} /> AEO — AI Readiness Breakdown
                 </div>
-                {intentData.length > 0 ? (
+                {aeoScores.dimensionAverages.length > 0 ? (
                   <div className="seo-chart-wrap">
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={intentData}
-                          dataKey="count"
-                          nameKey="intent"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={100}
-                          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                          label={((entry: any) => `${entry.name ?? ""} (${entry.value ?? 0})`) as any}
-                        >
-                          {intentData.map((_, i) => (
-                            <Cell
-                              key={i}
-                              fill={PIE_COLORS[i % PIE_COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <RadarChart
+                        data={aeoScores.dimensionAverages.map((d) => ({
+                          dimension: d.dimension.replace("AI Snippet Compatibility", "AI Snippets").replace("Direct Answer Readiness", "Direct Answers"),
+                          score: d.score,
+                          fullMark: 100,
+                        }))}
+                      >
+                        <PolarGrid stroke="var(--border)" />
+                        <PolarAngleAxis dataKey="dimension" tick={{ fill: "var(--muted)", fontSize: 10 }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "var(--muted)", fontSize: 9 }} />
+                        <Radar name="AEO" dataKey="score" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.2} strokeWidth={2} />
+                        <Tooltip contentStyle={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "0.8rem" }} formatter={(value: any) => [`${value}/100`, "Score"]} />
+                      </RadarChart>
                     </ResponsiveContainer>
                   </div>
                 ) : (
                   <div className="sa-empty">
-                    <div className="sa-empty-title">
-                      {t("seoNoIntentData")}
-                    </div>
-                    <div className="sa-empty-desc">
-                      {t("seoNoIntentDataDesc")}
-                    </div>
+                    <div className="sa-empty-title">No AEO data</div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Top keywords table */}
-            <div className="sa-card">
-              <div className="sa-card-title">{t("seoTopKeywords")}</div>
-              <div className="sa-table-wrap">
-                <table className="sa-table">
-                  <thead>
-                    <tr>
-                      <th>{t("keyword")}</th>
-                      <th>{t("volume")}</th>
-                      <th>{t("position")}</th>
-                      <th>{t("trend")}</th>
-                      <th>{t("difficulty")}</th>
-                      <th>{t("intent")}</th>
-                      <th>{t("targetUrl")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {keywords.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          style={{
-                            textAlign: "center",
-                            padding: "40px",
-                            color: "var(--muted)",
-                          }}
-                        >
-                          {t("noKeywordsYet")}
-                        </td>
-                      </tr>
-                    ) : (
-                      keywords.slice(0, 10).map((k) => {
-                        const trend = getPositionTrend(
-                          k.current_position,
-                          k.previous_position
-                        );
-                        return (
-                          <tr key={k.id}>
-                            <td style={{ fontWeight: 500 }}>{k.keyword}</td>
-                            <td>
-                              {k.search_volume?.toLocaleString(dateLocale) ??
-                                "-"}
-                            </td>
-                            <td style={{ fontWeight: 600 }}>
-                              {k.current_position ?? "-"}
-                            </td>
-                            <td>
-                              {trend === "up" && (
-                                <span
-                                  style={{
-                                    color: "var(--color-green)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "3px",
-                                  }}
-                                >
-                                  <ArrowUp size={14} /> +
-                                  {(k.previous_position ?? 0) -
-                                    (k.current_position ?? 0)}
-                                </span>
-                              )}
-                              {trend === "down" && (
-                                <span
-                                  style={{
-                                    color: "var(--color-red)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "3px",
-                                  }}
-                                >
-                                  <ArrowDown size={14} /> -
-                                  {(k.current_position ?? 0) -
-                                    (k.previous_position ?? 0)}
-                                </span>
-                              )}
-                              {trend === "neutral" && (
-                                <span
-                                  style={{
-                                    color: "var(--muted)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "3px",
-                                  }}
-                                >
-                                  <MinusIcon size={14} /> 0
-                                </span>
-                              )}
-                              {trend === null && (
-                                <span style={{ color: "var(--muted)" }}>-</span>
-                              )}
-                            </td>
-                            <td>
-                              {k.difficulty != null ? (
-                                <span
-                                  style={{
-                                    color:
-                                      k.difficulty > 70
-                                        ? "var(--color-red)"
-                                        : k.difficulty > 40
-                                          ? "var(--color-amber)"
-                                          : "var(--color-green)",
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  {k.difficulty}
-                                </span>
-                              ) : (
-                                "-"
-                              )}
-                            </td>
-                            <td>
-                              {k.intent ? (
-                                <span
-                                  className={`sa-badge ${getIntentBadgeClass(k.intent)}`}
-                                  style={{ textTransform: "capitalize" }}
-                                >
-                                  {k.intent}
-                                </span>
-                              ) : (
-                                "-"
-                              )}
-                            </td>
-                            <td
-                              style={{
-                                color: "var(--muted)",
-                                fontSize: "0.8rem",
-                                maxWidth: "200px",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
-                              {k.target_url || "-"}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Quick Issues */}
-            {recommendations.filter((r) => r.severity === "critical").length >
-              0 && (
+            {/* SEO Health + Quick Issues */}
+            <div className="sa-two-col">
               <div className="sa-card">
-                <div className="sa-card-title">{t("seoQuickIssues")}</div>
-                {recommendations
-                  .filter((r) => r.severity === "critical")
-                  .slice(0, 5)
-                  .map((rec) => (
-                    <div
-                      key={rec.id}
-                      className="seo-rec-card"
-                      data-severity="critical"
-                    >
-                      <div className="seo-rec-header">
-                        <span className="seo-rec-severity critical">
-                          <XCircle size={14} />
-                          {rec.severity}
-                        </span>
-                        <span className="seo-rec-category">{rec.category}</span>
+                <div className="sa-card-title">{t("seoTechnicalScore")}</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {technical.slice(0, 6).map((check) => (
+                    <div key={check.check} className="aeo-dim-bar-row">
+                      <span className="aeo-dim-bar-label" style={{ fontSize: "0.78rem" }}>{check.check}</span>
+                      <div className="aeo-dim-bar-track">
+                        <div
+                          className="aeo-dim-bar-fill"
+                          style={{
+                            width: `${check.total > 0 ? (check.count / check.total) * 100 : 0}%`,
+                            background: check.status === "pass" ? "var(--color-green)" : check.status === "warning" ? "var(--color-amber)" : "var(--color-red)",
+                          }}
+                        />
                       </div>
-                      <div className="seo-rec-title">{rec.title}</div>
-                      <div className="seo-rec-desc">{rec.description}</div>
+                      <span className="aeo-dim-bar-value" style={{ fontSize: "0.78rem" }}>{check.count}/{check.total}</span>
                     </div>
                   ))}
-                <button
-                  className="sa-view-all"
-                  onClick={() => setActiveTab("recommendations")}
-                >
-                  {t("seoViewAll")}
-                </button>
+                </div>
               </div>
-            )}
+
+              <div className="sa-card">
+                <div className="sa-card-title">{t("seoQuickIssues")}</div>
+                {recommendations.filter((r) => r.severity === "critical").length === 0 ? (
+                  <div className="sa-empty" style={{ padding: "24px 0" }}>
+                    <CheckCircle size={32} style={{ color: "var(--color-green)" }} />
+                    <div className="sa-empty-title" style={{ color: "var(--color-green)" }}>No critical issues</div>
+                  </div>
+                ) : (
+                  <>
+                    {recommendations
+                      .filter((r) => r.severity === "critical")
+                      .slice(0, 3)
+                      .map((rec) => (
+                        <div key={rec.id} className="seo-rec-card" data-severity="critical" style={{ marginBottom: 8 }}>
+                          <div className="seo-rec-header">
+                            <span className="seo-rec-severity critical"><XCircle size={14} />{rec.severity}</span>
+                            <span className="seo-rec-category">{rec.category}</span>
+                          </div>
+                          <div className="seo-rec-title" style={{ fontSize: "0.82rem" }}>{rec.title}</div>
+                        </div>
+                      ))}
+                    <button className="sa-view-all" onClick={() => setActiveTab("recommendations")}>
+                      {t("seoViewAll")}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
           </>
         )}
 
@@ -2317,117 +2130,6 @@ export default function SeoClient({
           </>
         )}
       </div>
-
-      {/* ════════════════════════════════════
-         ADD KEYWORD MODAL
-         ════════════════════════════════════ */}
-      {showAddKeyword && (
-        <>
-          <div
-            className="invite-modal-overlay"
-            onClick={() => setShowAddKeyword(false)}
-          />
-          <div className="invite-modal">
-            <button
-              className="invite-modal-close"
-              onClick={() => setShowAddKeyword(false)}
-            >
-              <X size={18} />
-            </button>
-            <div className="invite-modal-title">{t("addKeyword")}</div>
-            <div className="invite-modal-desc">{t("trackKeywordDesc")}</div>
-
-            {formError && <div className="invite-error">{formError}</div>}
-
-            <form onSubmit={handleAddKeyword}>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("keyword")}</label>
-                <input
-                  type="text"
-                  className="invite-form-input"
-                  placeholder={t("keywordPlaceholder")}
-                  value={kwKeyword}
-                  onChange={(e) => setKwKeyword(e.target.value)}
-                  required
-                />
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "12px",
-                }}
-              >
-                <div className="invite-form-group">
-                  <label className="invite-form-label">
-                    {t("searchVolume")}
-                  </label>
-                  <input
-                    type="number"
-                    className="invite-form-input"
-                    placeholder={t("volumePlaceholder")}
-                    value={kwVolume}
-                    onChange={(e) => setKwVolume(e.target.value)}
-                  />
-                </div>
-                <div className="invite-form-group">
-                  <label className="invite-form-label">
-                    {t("difficultyLabel")}
-                  </label>
-                  <input
-                    type="number"
-                    className="invite-form-input"
-                    placeholder={t("difficultyPlaceholder")}
-                    min="0"
-                    max="100"
-                    value={kwDifficulty}
-                    onChange={(e) => setKwDifficulty(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("intent")}</label>
-                <select
-                  className="invite-form-select"
-                  value={kwIntent}
-                  onChange={(e) => setKwIntent(e.target.value)}
-                >
-                  <option value="informational">{t("informational")}</option>
-                  <option value="commercial">{t("commercial")}</option>
-                  <option value="transactional">{t("transactional")}</option>
-                  <option value="navigational">{t("navigational")}</option>
-                </select>
-              </div>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("targetUrl")}</label>
-                <input
-                  type="text"
-                  className="invite-form-input"
-                  placeholder={t("targetUrlPlaceholder")}
-                  value={kwTargetUrl}
-                  onChange={(e) => setKwTargetUrl(e.target.value)}
-                />
-              </div>
-              <div className="invite-modal-footer">
-                <button
-                  type="button"
-                  className="sa-action-btn"
-                  onClick={() => setShowAddKeyword(false)}
-                >
-                  {t("cancel")}
-                </button>
-                <button
-                  type="submit"
-                  className="sa-action-btn primary"
-                  disabled={saving}
-                >
-                  {saving ? t("adding") : t("addKeyword")}
-                </button>
-              </div>
-            </form>
-          </div>
-        </>
-      )}
 
       {/* ════════════════════════════════════
          ADD A/B TEST MODAL

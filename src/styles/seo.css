@@ -509,6 +509,62 @@
 }
 
 /* ===================================================
+   Overview Score Dashboard
+   =================================================== */
+
+.seo-overview-scores {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.seo-overview-score-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 12px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.seo-overview-score-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.seo-overview-score-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+}
+
+.seo-overview-score-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .seo-overview-scores {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .seo-overview-scores {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===================================================
    CRO (Conversion Rate Optimization) Styles
    =================================================== */
 
