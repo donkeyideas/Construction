@@ -43,6 +43,14 @@ const FIX_ACTIONS: Record<string, { label: string; endpoint: string }> = {
     label: "Post All Draft Entries",
     endpoint: "/api/financial/audit/post-drafts",
   },
+  "invoice-je-coverage": {
+    label: "Create Missing JEs",
+    endpoint: "/api/financial/audit/fix-invoices",
+  },
+  "missing-gl-mappings": {
+    label: "Auto-Map GL Accounts",
+    endpoint: "/api/financial/audit/fix-invoices",
+  },
 };
 
 function AuditCheck({
