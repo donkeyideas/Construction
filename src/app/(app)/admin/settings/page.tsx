@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
@@ -29,12 +28,10 @@ export default async function AdminSettingsPage() {
   }
 
   return (
-    <Suspense>
-      <SettingsClient
-        company={company}
-        memberCount={members.filter((m) => m.is_active).length}
-        currentUserRole={currentUserRole}
-      />
-    </Suspense>
+    <SettingsClient
+      company={company}
+      memberCount={members.filter((m) => m.is_active).length}
+      currentUserRole={currentUserRole}
+    />
   );
 }

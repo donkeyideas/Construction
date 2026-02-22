@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Settings,
@@ -151,17 +151,17 @@ export default function SettingsClient({
   const [billingMessage, setBillingMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Handle ?success=true redirect from Stripe Checkout
-  const searchParams = useSearchParams();
   useEffect(() => {
-    if (searchParams.get("success") === "true") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("success") === "true") {
       setActiveTab("subscription");
       setBillingMessage({ type: "success", text: "Subscription activated! Your plan has been upgraded." });
       router.replace("/admin/settings?tab=subscription", { scroll: false });
     }
-    if (searchParams.get("tab") === "subscription") {
+    if (params.get("tab") === "subscription") {
       setActiveTab("subscription");
     }
-  }, [searchParams, router]);
+  }, [router]);
 
   const canEdit = currentUserRole === "owner" || currentUserRole === "admin";
 
