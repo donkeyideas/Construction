@@ -11,6 +11,8 @@ import "@/styles/admin.css";
 import "@/styles/super-admin.css";
 import "@/styles/tickets.css";
 import "@/styles/content.css";
+import "@/styles/variant-corporate.css";
+import "@/styles/variant-corporate-shell.css";
 
 export default function SuperAdminLayout({
   children,
