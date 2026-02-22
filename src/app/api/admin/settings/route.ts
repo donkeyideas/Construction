@@ -54,6 +54,7 @@ export async function PATCH(request: NextRequest) {
       "website",
       "logo_url",
       "settings",
+      "selected_modules",
     ];
 
     for (const field of allowedFields) {

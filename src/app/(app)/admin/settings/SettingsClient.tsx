@@ -19,12 +19,14 @@ import {
   Rocket,
   Ticket,
   Database,
+  LayoutGrid,
 } from "lucide-react";
 import DataImportTab from "./DataImportTab";
+import { MODULES } from "@/lib/constants/modules";
 
 import type { CompanyDetails } from "@/lib/queries/admin";
 
-type TabKey = "general" | "subscription" | "integrations" | "data-import";
+type TabKey = "general" | "subscription" | "modules" | "integrations" | "data-import";
 
 const INDUSTRIES = [
   "General Contracting",
@@ -81,6 +83,7 @@ export default function SettingsClient({
   const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: "general", label: t("general"), icon: <Settings size={15} /> },
     { key: "subscription", label: t("subscription"), icon: <CreditCard size={15} /> },
+    { key: "modules", label: "Modules", icon: <LayoutGrid size={15} /> },
     { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
     { key: "data-import", label: "Data Import", icon: <Database size={15} /> },
   ];
@@ -149,6 +152,13 @@ export default function SettingsClient({
 
   // Billing state
   const [billingMessage, setBillingMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Module state
+  const [enabledModules, setEnabledModules] = useState<string[]>(
+    (company.selected_modules as string[]) || []
+  );
+  const [savingModules, setSavingModules] = useState(false);
+  const [moduleMessage, setModuleMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Handle ?success=true redirect from Stripe Checkout
   useEffect(() => {
@@ -755,6 +765,177 @@ export default function SettingsClient({
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== Modules Tab ===== */}
+        {activeTab === "modules" && (
+          <div className="settings-form">
+            <div className="settings-form-section">
+              <div className="settings-form-section-title">Active Modules</div>
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>
+                Enable or disable platform modules for your company. This controls which sections appear in the sidebar for all team members.
+              </p>
+              {moduleMessage && (
+                <div className={`settings-form-message ${moduleMessage.type}`} style={{ marginBottom: "16px" }}>
+                  {moduleMessage.text}
+                </div>
+              )}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                  marginBottom: "24px",
+                }}
+              >
+                {MODULES.map((mod) => {
+                  const isSelected = enabledModules.includes(mod.key);
+                  return (
+                    <label
+                      key={mod.key}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "10px",
+                        padding: "14px 12px",
+                        borderRadius: "10px",
+                        border: `1.5px solid ${isSelected ? "var(--color-blue)" : "var(--border)"}`,
+                        background: isSelected ? "rgba(37, 99, 235, 0.04)" : "var(--surface)",
+                        cursor: canEdit ? "pointer" : "default",
+                        transition: "border-color 0.15s, background 0.15s",
+                        opacity: canEdit ? 1 : 0.7,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        disabled={!canEdit}
+                        onChange={() => {
+                          setEnabledModules((prev) =>
+                            prev.includes(mod.key)
+                              ? prev.filter((k) => k !== mod.key)
+                              : [...prev, mod.key]
+                          );
+                          setModuleMessage(null);
+                        }}
+                        style={{
+                          position: "absolute",
+                          opacity: 0,
+                          width: 0,
+                          height: 0,
+                          pointerEvents: "none",
+                        }}
+                      />
+                      <div
+                        style={{
+                          width: "34px",
+                          height: "34px",
+                          borderRadius: "8px",
+                          background: `${mod.color}18`,
+                          color: mod.color,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.7rem",
+                          fontWeight: 700,
+                          letterSpacing: "0.02em",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {mod.icon}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div
+                          style={{
+                            fontSize: "0.82rem",
+                            fontWeight: 600,
+                            color: "var(--text)",
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {mod.name}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.72rem",
+                            color: "var(--muted)",
+                            lineHeight: 1.4,
+                            marginTop: "2px",
+                          }}
+                        >
+                          {mod.description}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          borderRadius: "4px",
+                          border: `1.5px solid ${isSelected ? "var(--color-blue)" : "var(--border)"}`,
+                          background: isSelected ? "var(--color-blue)" : "transparent",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          marginLeft: "auto",
+                          marginTop: "2px",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        {isSelected && (
+                          <svg
+                            width="11"
+                            height="11"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#fff"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+              {canEdit && (
+                <div className="settings-form-actions">
+                  <button
+                    className="btn-primary"
+                    disabled={savingModules}
+                    onClick={async () => {
+                      setSavingModules(true);
+                      setModuleMessage(null);
+                      try {
+                        const res = await fetch("/api/admin/settings", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ selected_modules: enabledModules }),
+                        });
+                        if (res.ok) {
+                          setModuleMessage({ type: "success", text: "Modules updated. Sidebar will reflect changes on next page load." });
+                          router.refresh();
+                        } else {
+                          const data = await res.json();
+                          setModuleMessage({ type: "error", text: data.error || "Failed to save modules." });
+                        }
+                      } catch {
+                        setModuleMessage({ type: "error", text: "Network error. Please try again." });
+                      } finally {
+                        setSavingModules(false);
+                      }
+                    }}
+                  >
+                    <Save size={16} />
+                    {savingModules ? "Saving..." : "Save Modules"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

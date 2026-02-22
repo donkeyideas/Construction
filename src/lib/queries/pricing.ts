@@ -16,6 +16,7 @@ export interface PricingTier {
   max_projects: number | null;
   max_properties: number | null;
   max_storage_gb: number | null;
+  max_modules: number | null;
   stripe_price_id_monthly: string | null;
   stripe_price_id_annual: string | null;
 }

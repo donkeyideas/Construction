@@ -49,6 +49,7 @@ export interface CompanyDetails {
   subscription_status: string;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  selected_modules: string[];
   trial_ends_at: string | null;
   created_at: string;
   updated_at: string;

@@ -1,9 +1,20 @@
 "use client";
 
-import { useState, FormEvent, useCallback } from "react";
+import { useState, useEffect, FormEvent, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { MODULES } from "@/lib/constants/modules";
+
+interface PricingTier {
+  id: string;
+  name: string;
+  price_monthly: number;
+  price_yearly: number;
+  max_modules: number | null;
+  max_users: number | null;
+  max_projects: number | null;
+}
 
 const COMPANY_TYPES = [
   "General Contractor",
@@ -23,82 +34,6 @@ const COMPANY_SIZES = [
   "201-500 employees",
   "500+ employees",
 ] as const;
-
-interface ModuleOption {
-  key: string;
-  name: string;
-  description: string;
-  color: string;
-  icon: string;
-  defaultChecked: boolean;
-}
-
-const MODULES: ModuleOption[] = [
-  {
-    key: "project_management",
-    name: "Project Management",
-    description: "Scheduling, tasks, timelines",
-    color: "#2563eb",
-    icon: "PM",
-    defaultChecked: true,
-  },
-  {
-    key: "property_management",
-    name: "Property Management",
-    description: "Tenants, leases, maintenance",
-    color: "#059669",
-    icon: "PR",
-    defaultChecked: false,
-  },
-  {
-    key: "financial_management",
-    name: "Financial Management",
-    description: "Budgets, invoices, payments",
-    color: "#d97706",
-    icon: "FM",
-    defaultChecked: true,
-  },
-  {
-    key: "document_management",
-    name: "Document Management",
-    description: "Files, contracts, blueprints",
-    color: "#7c3aed",
-    icon: "DM",
-    defaultChecked: false,
-  },
-  {
-    key: "people_workforce",
-    name: "People & Workforce",
-    description: "Crew tracking, HR, timesheets",
-    color: "#dc2626",
-    icon: "PW",
-    defaultChecked: false,
-  },
-  {
-    key: "crm_business_dev",
-    name: "CRM & Business Dev",
-    description: "Leads, clients, proposals",
-    color: "#0891b2",
-    icon: "CR",
-    defaultChecked: false,
-  },
-  {
-    key: "ai_intelligence",
-    name: "AI Intelligence",
-    description: "Smart insights, predictions",
-    color: "#9333ea",
-    icon: "AI",
-    defaultChecked: true,
-  },
-  {
-    key: "reporting_analytics",
-    name: "Reporting & Analytics",
-    description: "Dashboards, KPIs, exports",
-    color: "#0d9488",
-    icon: "RA",
-    defaultChecked: false,
-  },
-];
 
 function generateSlug(name: string): string {
   return name
@@ -127,6 +62,18 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Pricing tiers (fetched on mount)
+  const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([]);
+
+  useEffect(() => {
+    fetch("/api/pricing")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setPricingTiers(data);
+      })
+      .catch(() => {});
+  }, []);
+
   // Step 1 fields
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -146,10 +93,21 @@ export default function RegisterPage() {
   const [promoValidating, setPromoValidating] = useState(false);
   const [promoStatus, setPromoStatus] = useState<"idle" | "valid" | "invalid">("idle");
 
-  // Step 3 fields
+  // Step 3 fields (Plan selection)
+  const [selectedPlan, setSelectedPlan] = useState("starter");
+
+  // Step 4 fields (Modules)
   const [selectedModules, setSelectedModules] = useState<string[]>(
     MODULES.filter((m) => m.defaultChecked).map((m) => m.key)
   );
+
+  // Derive module limit from selected plan
+  const maxModulesForPlan = (() => {
+    const tier = pricingTiers.find(
+      (t) => t.name.toLowerCase() === selectedPlan.toLowerCase()
+    );
+    return tier?.max_modules ?? null; // null = unlimited
+  })();
 
   const passwordStrength = getPasswordStrength(password);
 
@@ -164,9 +122,12 @@ export default function RegisterPage() {
   );
 
   function toggleModule(key: string) {
-    setSelectedModules((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-    );
+    setSelectedModules((prev) => {
+      if (prev.includes(key)) return prev.filter((k) => k !== key);
+      // Enforce max_modules limit
+      if (maxModulesForPlan !== null && prev.length >= maxModulesForPlan) return prev;
+      return [...prev, key];
+    });
   }
 
   function validateStep1(): boolean {
@@ -229,6 +190,15 @@ export default function RegisterPage() {
     }
   }
 
+  function handleStep3Next() {
+    setError("");
+    // Trim modules down to max if user changed plan
+    if (maxModulesForPlan !== null && selectedModules.length > maxModulesForPlan) {
+      setSelectedModules((prev) => prev.slice(0, maxModulesForPlan));
+    }
+    setStep(4);
+  }
+
   async function validatePromo() {
     if (!promoCode.trim()) return;
     setPromoValidating(true);
@@ -267,6 +237,7 @@ export default function RegisterPage() {
           phone: phone || null,
           website: website || null,
           selected_modules: selectedModules,
+          subscription_plan: selectedPlan,
           accepted_terms: true,
           promo_code: promoCode.trim() || null,
         }),
@@ -319,7 +290,7 @@ export default function RegisterPage() {
     <div className="auth-card">
       <h1 className="auth-title">Create your account</h1>
       <p className="auth-subtitle">
-        Get started with Buildwrk in three quick steps.
+        Get started with Buildwrk in four quick steps.
       </p>
 
       {/* Step Indicator */}
@@ -341,9 +312,17 @@ export default function RegisterPage() {
           <span className="auth-step-label">Company</span>
         </div>
         <div
-          className={`auth-step ${step === 3 ? "auth-step-active" : ""}`}
+          className={`auth-step ${step === 3 ? "auth-step-active" : ""} ${step > 3 ? "auth-step-done" : ""}`}
         >
-          <span className="auth-step-number">3</span>
+          <span className="auth-step-number">
+            {step > 3 ? checkIcon : "3"}
+          </span>
+          <span className="auth-step-label">Plan</span>
+        </div>
+        <div
+          className={`auth-step ${step === 4 ? "auth-step-active" : ""}`}
+        >
+          <span className="auth-step-number">4</span>
           <span className="auth-step-label">Modules</span>
         </div>
       </div>
@@ -676,17 +655,145 @@ export default function RegisterPage() {
         </form>
       )}
 
-      {/* Step 3: Select Modules */}
+      {/* Step 3: Select Plan */}
       {step === 3 && (
-        <form onSubmit={handleSubmit}>
+        <div>
           <p style={{
             fontSize: "0.85rem",
             color: "var(--muted)",
             marginBottom: "20px",
             lineHeight: 1.5,
           }}>
+            Choose a plan to get started. You can upgrade anytime.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
+            {(pricingTiers.length > 0
+              ? pricingTiers
+              : [
+                  { id: "starter", name: "Starter", price_monthly: 0, price_yearly: 0, max_modules: 3, max_users: 5, max_projects: 3 },
+                  { id: "professional", name: "Professional", price_monthly: 79, price_yearly: 790, max_modules: 6, max_users: 25, max_projects: null },
+                  { id: "enterprise", name: "Enterprise", price_monthly: 199, price_yearly: 1990, max_modules: null, max_users: null, max_projects: null },
+                ]
+            ).map((tier) => {
+              const isSelected = selectedPlan === tier.name.toLowerCase();
+              return (
+                <label
+                  key={tier.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "14px",
+                    padding: "16px",
+                    borderRadius: "10px",
+                    border: `1.5px solid ${isSelected ? "var(--color-blue)" : "var(--border)"}`,
+                    background: isSelected ? "rgba(37, 99, 235, 0.04)" : "var(--bg)",
+                    cursor: "pointer",
+                    transition: "border-color 0.15s, background 0.15s",
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="plan"
+                    checked={isSelected}
+                    onChange={() => setSelectedPlan(tier.name.toLowerCase())}
+                    style={{ position: "absolute", opacity: 0, width: 0, height: 0 }}
+                  />
+                  <div
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      borderRadius: "50%",
+                      border: `2px solid ${isSelected ? "var(--color-blue)" : "var(--border)"}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {isSelected && (
+                      <div
+                        style={{
+                          width: "10px",
+                          height: "10px",
+                          borderRadius: "50%",
+                          background: "var(--color-blue)",
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)" }}>
+                      {tier.name}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "2px" }}>
+                      {tier.max_modules === null ? "Unlimited modules" : `Up to ${tier.max_modules} modules`}
+                      {" · "}
+                      {tier.max_users === null ? "Unlimited users" : `${tier.max_users} users`}
+                      {" · "}
+                      {tier.max_projects === null ? "Unlimited projects" : `${tier.max_projects} projects`}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text)" }}>
+                      {tier.price_monthly === 0 ? "Free" : `$${tier.price_monthly}`}
+                    </div>
+                    {tier.price_monthly > 0 && (
+                      <div style={{ fontSize: "0.7rem", color: "var(--muted)" }}>/month</div>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", gap: "12px" }}>
+            <button
+              type="button"
+              className="auth-btn-secondary"
+              onClick={() => {
+                setError("");
+                setStep(2);
+              }}
+              style={{ flex: "0 0 auto", width: "auto", padding: "0 24px" }}
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              className="auth-btn"
+              onClick={handleStep3Next}
+              style={{ flex: 1 }}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Select Modules */}
+      {step === 4 && (
+        <form onSubmit={handleSubmit}>
+          <p style={{
+            fontSize: "0.85rem",
+            color: "var(--muted)",
+            marginBottom: "8px",
+            lineHeight: 1.5,
+          }}>
             Choose the modules you need. You can always change these later.
           </p>
+          {maxModulesForPlan !== null && (
+            <p style={{
+              fontSize: "0.8rem",
+              color: selectedModules.length >= maxModulesForPlan ? "var(--color-amber)" : "var(--muted)",
+              marginBottom: "20px",
+              fontWeight: 500,
+            }}>
+              {selectedModules.length} / {maxModulesForPlan} modules selected
+              {selectedModules.length >= maxModulesForPlan && " — upgrade your plan for more"}
+            </p>
+          )}
 
           <div
             style={{
@@ -698,6 +805,7 @@ export default function RegisterPage() {
           >
             {MODULES.map((mod) => {
               const isSelected = selectedModules.includes(mod.key);
+              const isDisabled = !isSelected && maxModulesForPlan !== null && selectedModules.length >= maxModulesForPlan;
               return (
                 <label
                   key={mod.key}
@@ -709,14 +817,16 @@ export default function RegisterPage() {
                     borderRadius: "10px",
                     border: `1.5px solid ${isSelected ? "var(--color-blue)" : "var(--border)"}`,
                     background: isSelected ? "rgba(37, 99, 235, 0.04)" : "var(--bg)",
-                    cursor: "pointer",
-                    transition: "border-color 0.15s, background 0.15s",
+                    cursor: isDisabled ? "not-allowed" : "pointer",
+                    opacity: isDisabled ? 0.5 : 1,
+                    transition: "border-color 0.15s, background 0.15s, opacity 0.15s",
                   }}
                 >
                   <input
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleModule(mod.key)}
+                    disabled={isDisabled}
                     style={{
                       position: "absolute",
                       opacity: 0,
@@ -807,7 +917,7 @@ export default function RegisterPage() {
               className="auth-btn-secondary"
               onClick={() => {
                 setError("");
-                setStep(2);
+                setStep(3);
               }}
               disabled={loading}
               style={{ flex: "0 0 auto", width: "auto", padding: "0 24px" }}

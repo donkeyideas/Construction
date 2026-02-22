@@ -33,6 +33,7 @@ interface PricingTier {
   max_projects: number | null;
   max_properties: number | null;
   max_storage_gb: number | null;
+  max_modules: number | null;
   stripe_product_id: string | null;
   stripe_price_id_monthly: string | null;
   stripe_price_id_annual: string | null;
@@ -43,9 +44,9 @@ interface PricingClientProps {
 }
 
 const DEFAULT_TIERS: PricingTier[] = [
-  { name: "Starter", monthly_price: 99, annual_price: 79, features: ["Up to 10 users", "Up to 5 projects", "Up to 10 properties", "10 GB storage", "Email support"], is_popular: false, max_users: 10, max_projects: 5, max_properties: 10, max_storage_gb: 10, stripe_product_id: null, stripe_price_id_monthly: null, stripe_price_id_annual: null },
-  { name: "Professional", monthly_price: 299, annual_price: 249, features: ["Up to 50 users", "Up to 25 projects", "Up to 50 properties", "50 GB storage", "Priority support", "API access", "Automation rules"], is_popular: true, max_users: 50, max_projects: 25, max_properties: 50, max_storage_gb: 50, stripe_product_id: null, stripe_price_id_monthly: null, stripe_price_id_annual: null },
-  { name: "Enterprise", monthly_price: 599, annual_price: 499, features: ["Unlimited users", "Unlimited projects", "Unlimited properties", "250 GB storage", "Dedicated support", "SSO & SAML", "Custom integrations", "All 4 portals"], is_popular: false, max_users: null, max_projects: null, max_properties: null, max_storage_gb: 250, stripe_product_id: null, stripe_price_id_monthly: null, stripe_price_id_annual: null },
+  { name: "Starter", monthly_price: 99, annual_price: 79, features: ["Up to 10 users", "Up to 5 projects", "Up to 10 properties", "10 GB storage", "Email support"], is_popular: false, max_users: 10, max_projects: 5, max_properties: 10, max_storage_gb: 10, max_modules: 3, stripe_product_id: null, stripe_price_id_monthly: null, stripe_price_id_annual: null },
+  { name: "Professional", monthly_price: 299, annual_price: 249, features: ["Up to 50 users", "Up to 25 projects", "Up to 50 properties", "50 GB storage", "Priority support", "API access", "Automation rules"], is_popular: true, max_users: 50, max_projects: 25, max_properties: 50, max_storage_gb: 50, max_modules: 6, stripe_product_id: null, stripe_price_id_monthly: null, stripe_price_id_annual: null },
+  { name: "Enterprise", monthly_price: 599, annual_price: 499, features: ["Unlimited users", "Unlimited projects", "Unlimited properties", "250 GB storage", "Dedicated support", "SSO & SAML", "Custom integrations", "All 4 portals"], is_popular: false, max_users: null, max_projects: null, max_properties: null, max_storage_gb: 250, max_modules: null, stripe_product_id: null, stripe_price_id_monthly: null, stripe_price_id_annual: null },
 ];
 
 export default function PricingClient({ initialTiers }: PricingClientProps) {
@@ -120,7 +121,8 @@ export default function PricingClient({ initialTiers }: PricingClientProps) {
     setTiers((prev) => [...prev, {
       name: "New Tier", monthly_price: 0, annual_price: 0, features: [],
       is_popular: false, max_users: null, max_projects: null, max_properties: null,
-      max_storage_gb: null, stripe_price_id_monthly: null, stripe_price_id_annual: null,
+      max_storage_gb: null, max_modules: null,
+      stripe_price_id_monthly: null, stripe_price_id_annual: null,
       stripe_product_id: null,
     }]);
     setExpandedTier(idx);
@@ -347,6 +349,13 @@ export default function PricingClient({ initialTiers }: PricingClientProps) {
                   <input type="number" className="settings-field-input" min={0} placeholder={t("unlimited")} value={tier.max_storage_gb ?? ""} onChange={(e) => updateTier(idx, "max_storage_gb", e.target.value ? Number(e.target.value) : null)} style={{ marginTop: "6px" }} />
                 </div>
                 <HardDrive size={18} style={{ color: "var(--muted)" }} />
+              </div>
+              <div className="sa-kpi-card" style={{ padding: "14px" }}>
+                <div className="sa-kpi-info">
+                  <span className="sa-kpi-label">Max Modules</span>
+                  <input type="number" className="settings-field-input" min={0} max={8} placeholder={t("unlimited")} value={tier.max_modules ?? ""} onChange={(e) => updateTier(idx, "max_modules", e.target.value ? Number(e.target.value) : null)} style={{ marginTop: "6px" }} />
+                </div>
+                <FolderKanban size={18} style={{ color: "var(--muted)" }} />
               </div>
             </div>
 

@@ -15,6 +15,7 @@ interface RegisterBody {
   company_size?: string | null;
   website?: string | null;
   selected_modules?: string[] | null;
+  subscription_plan?: string | null;
   accepted_terms?: boolean;
 }
 
@@ -143,6 +144,7 @@ export async function POST(request: Request) {
         company_size: body.company_size || null,
         website: body.website || null,
         selected_modules: body.selected_modules || [],
+        subscription_plan: body.subscription_plan || "starter",
       })
       .select("id")
       .single();

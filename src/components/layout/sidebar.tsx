@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 import CompanySwitcher from "@/components/CompanySwitcher";
 import { useTranslations } from "next-intl";
 import { getImportBadges, isImportComplete, type ImportProgress } from "@/lib/utils/import-guide";
+import { MODULE_NAV_MAP, ALWAYS_VISIBLE_NAV, type ModuleKey } from "@/lib/constants/modules";
 
 const iconMap: Record<string, React.ElementType> = {
   "layout-dashboard": LayoutDashboard,
@@ -67,6 +68,16 @@ function filterNavByRole(items: NavItem[], role: string | null): NavItem[] {
   const allowed = ROLE_NAV_ACCESS[role];
   if (!allowed || allowed.includes("*")) return items;
   return items.filter((item) => allowed.includes(item.label));
+}
+
+function filterNavByModules(items: NavItem[], modules: string[] | null): NavItem[] {
+  if (!modules || modules.length === 0) return items; // null/empty = show all
+  const allowedLabels = new Set(ALWAYS_VISIBLE_NAV);
+  for (const mod of modules) {
+    const labels = MODULE_NAV_MAP[mod as ModuleKey];
+    if (labels) labels.forEach((l) => allowedLabels.add(l));
+  }
+  return items.filter((item) => allowedLabels.has(item.label));
 }
 
 function safeT(t: (key: string) => string, key: string): string {
@@ -158,6 +169,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [selectedModules, setSelectedModules] = useState<string[] | null>(null);
   const [inboxUnread, setInboxUnread] = useState(0);
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
 
@@ -182,7 +194,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         const { data: company } = await supabase
           .from("companies")
-          .select("name, logo_url, import_progress")
+          .select("name, logo_url, import_progress, selected_modules")
           .eq("id", member.company_id)
           .single();
 
@@ -191,6 +203,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           setLogoUrl(company.logo_url);
           if (company.import_progress) {
             setImportProgress(company.import_progress as ImportProgress);
+          }
+          if (company.selected_modules) {
+            setSelectedModules(company.selected_modules as string[]);
           }
         }
 
@@ -218,13 +233,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   }, []);
 
   const filteredNav = useMemo(
-    () => filterNavByRole(appNavigation, userRole),
-    [userRole]
+    () => filterNavByModules(filterNavByRole(appNavigation, userRole), selectedModules),
+    [userRole, selectedModules]
   );
 
   const filteredBottomNav = useMemo(
-    () => filterNavByRole(appBottomNav, userRole),
-    [userRole]
+    () => filterNavByModules(filterNavByRole(appBottomNav, userRole), selectedModules),
+    [userRole, selectedModules]
   );
 
   const importBadgeMap = useMemo(() => {
