@@ -106,16 +106,16 @@ BEGIN
          'posted', creator_uid);
 
       INSERT INTO journal_entry_lines
-        (id, company_id, journal_entry_id, account_id, debit, credit, description, line_order)
+        (id, company_id, journal_entry_id, account_id, debit, credit, description)
       VALUES
         (gen_random_uuid(), bank.company_id, je_id, new_gl_id,
-         old_gl_balance, 0, 'Reclassify to ' || acct_label, 1);
+         old_gl_balance, 0, 'Reclassify to ' || acct_label);
 
       INSERT INTO journal_entry_lines
-        (id, company_id, journal_entry_id, account_id, debit, credit, description, line_order)
+        (id, company_id, journal_entry_id, account_id, debit, credit, description)
       VALUES
         (gen_random_uuid(), bank.company_id, je_id, old_gl_id,
-         0, old_gl_balance, 'Reclassify from ' || old_gl_name, 2);
+         0, old_gl_balance, 'Reclassify from ' || old_gl_name);
     END IF;
 
     -- ── Reclassification JE 2: 1000 Cash → New GL (remaining balance) ──
@@ -135,16 +135,16 @@ BEGIN
          'posted', creator_uid);
 
       INSERT INTO journal_entry_lines
-        (id, company_id, journal_entry_id, account_id, debit, credit, description, line_order)
+        (id, company_id, journal_entry_id, account_id, debit, credit, description)
       VALUES
         (gen_random_uuid(), bank.company_id, je_id, new_gl_id,
-         remaining, 0, 'Reclassify Cash to ' || acct_label, 1);
+         remaining, 0, 'Reclassify Cash to ' || acct_label);
 
       INSERT INTO journal_entry_lines
-        (id, company_id, journal_entry_id, account_id, debit, credit, description, line_order)
+        (id, company_id, journal_entry_id, account_id, debit, credit, description)
       VALUES
         (gen_random_uuid(), bank.company_id, je_id, cash_1000_id,
-         0, remaining, 'Reclassify Cash to bank account', 2);
+         0, remaining, 'Reclassify Cash to bank account');
     END IF;
 
   END LOOP;
