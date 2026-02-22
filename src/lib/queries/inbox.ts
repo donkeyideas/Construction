@@ -50,7 +50,7 @@ export interface PlatformAnnouncement {
   created_at: string;
 }
 
-export type InboxItemKind = "message" | "notification" | "announcement";
+export type InboxItemKind = "message" | "notification" | "announcement" | "support";
 
 export interface InboxItem {
   id: string;
@@ -424,4 +424,192 @@ export async function getActiveAnnouncements(
   return (data ?? []).filter(
     (a) => !a.expires_at || new Date(a.expires_at) > now
   );
+}
+
+// ---------------------------------------------------------------------------
+// Support Ticket types (user-facing)
+// ---------------------------------------------------------------------------
+
+export interface UserSupportTicket {
+  id: string;
+  ticket_number: number;
+  subject: string;
+  description: string | null;
+  status: "open" | "in_progress" | "waiting" | "resolved" | "closed";
+  priority: "low" | "medium" | "high" | "urgent";
+  category: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TicketMessageItem {
+  id: string;
+  ticket_id: string;
+  user_id: string | null;
+  message: string;
+  is_internal: boolean;
+  created_at: string;
+  user_full_name: string | null;
+  user_email: string | null;
+}
+
+export interface UserTicketDetail extends UserSupportTicket {
+  messages: TicketMessageItem[];
+}
+
+export interface CreateTicketData {
+  user_id: string;
+  company_id: string;
+  subject: string;
+  description: string;
+  category: string;
+  priority: string;
+}
+
+// ---------------------------------------------------------------------------
+// getUserSupportTickets — fetch user's own support tickets
+// ---------------------------------------------------------------------------
+
+export async function getUserSupportTickets(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<UserSupportTicket[]> {
+  const { data, error } = await supabase
+    .from("support_tickets")
+    .select(
+      "id, ticket_number, subject, description, status, priority, category, created_at, updated_at"
+    )
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.error("getUserSupportTickets error:", error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// getUserTicketWithMessages — fetch a ticket with non-internal messages
+// ---------------------------------------------------------------------------
+
+export async function getUserTicketWithMessages(
+  supabase: SupabaseClient,
+  ticketId: string,
+  userId: string
+): Promise<UserTicketDetail | null> {
+  // Fetch ticket (RLS ensures user can only see own tickets)
+  const { data: ticket, error } = await supabase
+    .from("support_tickets")
+    .select(
+      "id, ticket_number, subject, description, status, priority, category, created_at, updated_at"
+    )
+    .eq("id", ticketId)
+    .eq("user_id", userId)
+    .single();
+
+  if (error || !ticket) {
+    console.error("getUserTicketWithMessages error:", error);
+    return null;
+  }
+
+  // Fetch messages, excluding internal admin notes
+  const { data: messages, error: msgError } = await supabase
+    .from("support_ticket_messages")
+    .select(
+      "id, ticket_id, user_id, message, is_internal, created_at, user_profiles(full_name, email)"
+    )
+    .eq("ticket_id", ticketId)
+    .eq("is_internal", false)
+    .order("created_at", { ascending: true });
+
+  if (msgError) {
+    console.error("getUserTicketMessages error:", msgError);
+  }
+
+  return {
+    ...ticket,
+    messages: (messages ?? []).map((m) => {
+      const profile = m.user_profiles as unknown as {
+        full_name: string | null;
+        email: string | null;
+      } | null;
+      return {
+        id: m.id,
+        ticket_id: m.ticket_id,
+        user_id: m.user_id,
+        message: m.message,
+        is_internal: m.is_internal,
+        created_at: m.created_at,
+        user_full_name: profile?.full_name ?? null,
+        user_email: profile?.email ?? null,
+      };
+    }),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// createUserSupportTicket — create a new support ticket
+// ---------------------------------------------------------------------------
+
+export async function createUserSupportTicket(
+  supabase: SupabaseClient,
+  data: CreateTicketData
+): Promise<{ ticket: UserSupportTicket | null; error: string | null }> {
+  const { data: result, error } = await supabase
+    .from("support_tickets")
+    .insert({
+      user_id: data.user_id,
+      company_id: data.company_id,
+      subject: data.subject,
+      description: data.description,
+      category: data.category,
+      priority: data.priority,
+    })
+    .select(
+      "id, ticket_number, subject, description, status, priority, category, created_at, updated_at"
+    )
+    .single();
+
+  if (error) {
+    console.error("createUserSupportTicket error:", error);
+    return { ticket: null, error: error.message };
+  }
+
+  return { ticket: result, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// addUserTicketMessage — add a non-internal message to a ticket
+// ---------------------------------------------------------------------------
+
+export async function addUserTicketMessage(
+  supabase: SupabaseClient,
+  ticketId: string,
+  userId: string,
+  message: string
+): Promise<{ success: boolean; error?: string }> {
+  const { error: msgError } = await supabase
+    .from("support_ticket_messages")
+    .insert({
+      ticket_id: ticketId,
+      user_id: userId,
+      message,
+      is_internal: false,
+    });
+
+  if (msgError) {
+    console.error("addUserTicketMessage error:", msgError);
+    return { success: false, error: msgError.message };
+  }
+
+  // Update ticket's updated_at
+  await supabase
+    .from("support_tickets")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", ticketId);
+
+  return { success: true };
 }

@@ -15,8 +15,17 @@ import {
   Inbox,
   CheckCheck,
   Megaphone,
+  Headphones,
 } from "lucide-react";
-import type { InboxItem, CompanyMember, Message, PlatformAnnouncement } from "@/lib/queries/inbox";
+import type {
+  InboxItem,
+  CompanyMember,
+  Message,
+  PlatformAnnouncement,
+  UserSupportTicket,
+  UserTicketDetail,
+  TicketMessageItem,
+} from "@/lib/queries/inbox";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -52,7 +61,7 @@ function formatFullDate(dateStr: string, dateLocale: string): string {
   });
 }
 
-type TabFilter = "all" | "messages" | "notifications" | "announcements";
+type TabFilter = "all" | "messages" | "notifications" | "announcements" | "support";
 
 // ---------------------------------------------------------------------------
 // Component Props
@@ -65,6 +74,55 @@ interface InboxClientProps {
   companyId: string;
   members: CompanyMember[];
   announcements: PlatformAnnouncement[];
+  supportTickets: UserSupportTicket[];
+}
+
+// ---------------------------------------------------------------------------
+// Support ticket helpers
+// ---------------------------------------------------------------------------
+
+function ticketStatusClass(status: string): string {
+  switch (status) {
+    case "open": return "inbox-ticket-status open";
+    case "in_progress": return "inbox-ticket-status in-progress";
+    case "waiting": return "inbox-ticket-status waiting";
+    case "resolved": return "inbox-ticket-status resolved";
+    case "closed": return "inbox-ticket-status closed";
+    default: return "inbox-ticket-status";
+  }
+}
+
+function ticketStatusLabel(status: string): string {
+  switch (status) {
+    case "open": return "Open";
+    case "in_progress": return "In Progress";
+    case "waiting": return "Waiting";
+    case "resolved": return "Resolved";
+    case "closed": return "Closed";
+    default: return status;
+  }
+}
+
+function ticketPriorityClass(priority: string): string {
+  switch (priority) {
+    case "urgent": return "inbox-ticket-priority urgent";
+    case "high": return "inbox-ticket-priority high";
+    case "medium": return "inbox-ticket-priority medium";
+    case "low": return "inbox-ticket-priority low";
+    default: return "inbox-ticket-priority";
+  }
+}
+
+function ticketCategoryLabel(category: string): string {
+  switch (category) {
+    case "general": return "General";
+    case "billing": return "Billing";
+    case "technical": return "Technical";
+    case "feature_request": return "Feature Request";
+    case "bug_report": return "Bug Report";
+    case "account": return "Account";
+    default: return category;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -78,6 +136,7 @@ export default function InboxClient({
   companyId,
   members,
   announcements,
+  supportTickets: initialSupportTickets,
 }: InboxClientProps) {
   const t = useTranslations("app");
   const locale = useLocale();
@@ -121,6 +180,21 @@ export default function InboxClient({
   // Reply form state
   const [replyBody, setReplyBody] = useState("");
   const [replySending, setReplySending] = useState(false);
+
+  // Support ticket state
+  const [tickets, setTickets] = useState<UserSupportTicket[]>(initialSupportTickets);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [selectedTicketDetail, setSelectedTicketDetail] = useState<UserTicketDetail | null>(null);
+  const [loadingTicketDetail, setLoadingTicketDetail] = useState(false);
+  const [showCreateTicket, setShowCreateTicket] = useState(false);
+  const [ticketSubject, setTicketSubject] = useState("");
+  const [ticketDescription, setTicketDescription] = useState("");
+  const [ticketCategory, setTicketCategory] = useState("general");
+  const [ticketPriority, setTicketPriority] = useState("medium");
+  const [ticketCreating, setTicketCreating] = useState(false);
+  const [ticketError, setTicketError] = useState("");
+  const [ticketReplyBody, setTicketReplyBody] = useState("");
+  const [ticketReplySending, setTicketReplySending] = useState(false);
 
   // ---------------------------------------------------------------------------
   // Real-time: incoming messages
@@ -188,6 +262,27 @@ export default function InboxClient({
   // Filtered items
   // ---------------------------------------------------------------------------
 
+  // Convert support tickets to InboxItems for the "all" tab
+  const supportTicketItems: InboxItem[] = useMemo(
+    () =>
+      tickets.map((t) => ({
+        id: `ticket-${t.id}`,
+        kind: "support" as InboxItem["kind"],
+        title: `#${t.ticket_number} ${t.subject}`,
+        preview: t.description
+          ? t.description.length > 120
+            ? t.description.slice(0, 120) + "..."
+            : t.description
+          : "",
+        sender_name: ticketStatusLabel(t.status),
+        is_read: t.status === "resolved" || t.status === "closed",
+        created_at: t.updated_at || t.created_at,
+        entity_type: "support_ticket",
+        entity_id: t.id,
+      })),
+    [tickets]
+  );
+
   const filtered = useMemo(() => {
     // For announcements tab, use announcementItems only
     if (activeTab === "announcements") {
@@ -203,8 +298,15 @@ export default function InboxClient({
       return result;
     }
 
-    // For "all" tab, merge announcements with regular items
-    let result = activeTab === "all" ? [...items, ...announcementItems] : items;
+    // Support tab handled separately (not via InboxItem filtering)
+    if (activeTab === "support") {
+      return [];
+    }
+
+    // For "all" tab, merge announcements and support tickets with regular items
+    let result = activeTab === "all"
+      ? [...items, ...announcementItems, ...supportTicketItems]
+      : items;
 
     if (activeTab === "messages") {
       result = result.filter((i) => i.kind === "message");
@@ -229,14 +331,15 @@ export default function InboxClient({
     );
 
     return result;
-  }, [items, announcementItems, activeTab, search]);
+  }, [items, announcementItems, supportTicketItems, activeTab, search]);
 
   const selectedItem = useMemo(
     () =>
       items.find((i) => i.id === selectedId) ??
       announcementItems.find((i) => i.id === selectedId) ??
+      supportTicketItems.find((i) => i.id === selectedId) ??
       null,
-    [items, announcementItems, selectedId]
+    [items, announcementItems, supportTicketItems, selectedId]
   );
 
   // ---------------------------------------------------------------------------
@@ -458,12 +561,156 @@ export default function InboxClient({
   );
 
   // ---------------------------------------------------------------------------
+  // Support ticket: select ticket
+  // ---------------------------------------------------------------------------
+
+  const handleSelectTicket = useCallback(
+    async (ticket: UserSupportTicket) => {
+      setSelectedTicketId(ticket.id);
+      setSelectedId(null);
+      setTicketReplyBody("");
+      setLoadingTicketDetail(true);
+
+      try {
+        const res = await fetch(`/api/inbox/support-tickets/${ticket.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSelectedTicketDetail(data.ticket);
+        }
+      } catch (err) {
+        console.error("Failed to load ticket detail:", err);
+      } finally {
+        setLoadingTicketDetail(false);
+      }
+    },
+    []
+  );
+
+  // When clicking a support ticket from "all" tab (InboxItem)
+  const handleSelectSupportItem = useCallback(
+    (item: InboxItem) => {
+      if (item.entity_id) {
+        const ticket = tickets.find((t) => t.id === item.entity_id);
+        if (ticket) {
+          setActiveTab("support");
+          handleSelectTicket(ticket);
+        }
+      }
+    },
+    [tickets, handleSelectTicket]
+  );
+
+  // ---------------------------------------------------------------------------
+  // Support ticket: create
+  // ---------------------------------------------------------------------------
+
+  const handleCreateTicket = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!ticketSubject.trim() || !ticketDescription.trim()) return;
+
+      setTicketCreating(true);
+      setTicketError("");
+
+      try {
+        const res = await fetch("/api/inbox/support-tickets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subject: ticketSubject,
+            description: ticketDescription,
+            category: ticketCategory,
+            priority: ticketPriority,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          setTicketError(data.error || "Failed to create ticket");
+          return;
+        }
+
+        const data = await res.json();
+        if (data.ticket) {
+          setTickets((prev) => [data.ticket, ...prev]);
+        }
+
+        // Reset form
+        setTicketSubject("");
+        setTicketDescription("");
+        setTicketCategory("general");
+        setTicketPriority("medium");
+        setShowCreateTicket(false);
+      } catch (err) {
+        console.error("Failed to create ticket:", err);
+        setTicketError("An unexpected error occurred");
+      } finally {
+        setTicketCreating(false);
+      }
+    },
+    [ticketSubject, ticketDescription, ticketCategory, ticketPriority]
+  );
+
+  // ---------------------------------------------------------------------------
+  // Support ticket: reply
+  // ---------------------------------------------------------------------------
+
+  const handleTicketReply = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!selectedTicketId || !ticketReplyBody.trim()) return;
+
+      setTicketReplySending(true);
+
+      try {
+        const res = await fetch(`/api/inbox/support-tickets/${selectedTicketId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: ticketReplyBody }),
+        });
+
+        if (res.ok) {
+          // Refresh ticket detail
+          const detailRes = await fetch(`/api/inbox/support-tickets/${selectedTicketId}`);
+          if (detailRes.ok) {
+            const data = await detailRes.json();
+            setSelectedTicketDetail(data.ticket);
+          }
+          setTicketReplyBody("");
+        }
+      } catch (err) {
+        console.error("Failed to send ticket reply:", err);
+      } finally {
+        setTicketReplySending(false);
+      }
+    },
+    [selectedTicketId, ticketReplyBody]
+  );
+
+  // Filtered support tickets for the Support tab
+  const filteredTickets = useMemo(() => {
+    if (activeTab !== "support") return [];
+    let result = tickets;
+    if (search.trim()) {
+      const term = search.toLowerCase();
+      result = result.filter(
+        (t) =>
+          t.subject.toLowerCase().includes(term) ||
+          (t.description && t.description.toLowerCase().includes(term)) ||
+          String(t.ticket_number).includes(term)
+      );
+    }
+    return result;
+  }, [tickets, activeTab, search]);
+
+  // ---------------------------------------------------------------------------
   // Tab counts
   // ---------------------------------------------------------------------------
 
   const msgCount = items.filter((i) => i.kind === "message").length;
   const notifCount = items.filter((i) => i.kind === "notification").length;
   const annCount = announcementItems.length;
+  const ticketCount = tickets.length;
 
   // ---------------------------------------------------------------------------
   // Render
@@ -484,12 +731,17 @@ export default function InboxClient({
         <button
           className="btn-primary"
           onClick={() => {
-            setShowCompose(true);
-            setComposeError("");
+            if (activeTab === "support") {
+              setShowCreateTicket(true);
+              setTicketError("");
+            } else {
+              setShowCompose(true);
+              setComposeError("");
+            }
           }}
         >
           <Plus size={16} />
-          {t("inboxCompose")}
+          {activeTab === "support" ? t("inboxNewTicket") : t("inboxCompose")}
         </button>
       </div>
 
@@ -534,6 +786,21 @@ export default function InboxClient({
             <span className="inbox-tab-count">{annCount}</span>
           )}
         </button>
+        <button
+          className={`inbox-tab ${activeTab === "support" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("support");
+            setSelectedId(null);
+            setSelectedTicketId(null);
+            setSelectedTicketDetail(null);
+          }}
+        >
+          <Headphones size={14} />
+          {t("inboxSupport")}
+          {ticketCount > 0 && (
+            <span className="inbox-tab-count">{ticketCount}</span>
+          )}
+        </button>
       </div>
 
       {/* Search */}
@@ -551,75 +818,252 @@ export default function InboxClient({
       <div className="inbox-layout">
         {/* Left: List */}
         <div className="inbox-list">
-          {filtered.length === 0 && (
-            <div className="inbox-empty">
-              <div className="inbox-empty-icon">
-                <Inbox size={28} />
-              </div>
-              <h3>{t("inboxNoItems")}</h3>
-              <p>
-                {search.trim()
-                  ? t("inboxNoSearchResults")
-                  : activeTab === "messages"
-                    ? t("inboxNoMessages")
-                    : activeTab === "notifications"
-                      ? t("inboxNoNotifications")
-                      : activeTab === "announcements"
-                        ? t("inboxNoAnnouncements")
-                        : t("inboxEmpty")}
-              </p>
-            </div>
+          {/* Support tab: show tickets */}
+          {activeTab === "support" && (
+            <>
+              {filteredTickets.length === 0 && (
+                <div className="inbox-empty">
+                  <div className="inbox-empty-icon">
+                    <Headphones size={28} />
+                  </div>
+                  <h3>{t("inboxNoItems")}</h3>
+                  <p>
+                    {search.trim()
+                      ? t("inboxNoSearchResults")
+                      : t("inboxNoSupportTickets")}
+                  </p>
+                </div>
+              )}
+              {filteredTickets.map((ticket) => (
+                <div
+                  key={ticket.id}
+                  className={`inbox-item ${selectedTicketId === ticket.id ? "selected" : ""}`}
+                  onClick={() => handleSelectTicket(ticket)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSelectTicket(ticket);
+                  }}
+                >
+                  <div className="inbox-item-icon">
+                    <Headphones size={16} />
+                  </div>
+                  <div className="inbox-item-content">
+                    <div className="inbox-item-top">
+                      <span className={ticketStatusClass(ticket.status)}>
+                        {ticketStatusLabel(ticket.status)}
+                      </span>
+                      <span className="inbox-item-time">
+                        {formatRelativeTime(ticket.updated_at || ticket.created_at, dateLocale)}
+                      </span>
+                    </div>
+                    <div className="inbox-item-title">
+                      #{ticket.ticket_number} {ticket.subject}
+                    </div>
+                    <div className="inbox-item-preview">
+                      <span className="inbox-ticket-category-label">
+                        {ticketCategoryLabel(ticket.category)}
+                      </span>
+                      {ticket.description && (
+                        <> &middot; {ticket.description.length > 80
+                          ? ticket.description.slice(0, 80) + "..."
+                          : ticket.description}</>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
           )}
 
-          {filtered.map((item) => (
-            <div
-              key={item.id}
-              className={`inbox-item ${!item.is_read ? "unread" : ""} ${selectedId === item.id ? "selected" : ""}`}
-              onClick={() => handleSelectItem(item)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSelectItem(item);
-              }}
-            >
-              <div className="inbox-item-icon">
-                {item.kind === "message" ? (
-                  <Mail size={16} />
-                ) : item.kind === "announcement" ? (
-                  <Megaphone size={16} />
-                ) : (
-                  <Bell size={16} />
-                )}
-              </div>
-
-              <div className="inbox-item-content">
-                <div className="inbox-item-top">
-                  <span className="inbox-item-sender">
-                    {item.sender_name || t("inboxSystem")}
-                  </span>
-                  <span className="inbox-item-time">
-                    {formatRelativeTime(item.created_at, dateLocale)}
-                  </span>
+          {/* Other tabs: show filtered InboxItems */}
+          {activeTab !== "support" && (
+            <>
+              {filtered.length === 0 && (
+                <div className="inbox-empty">
+                  <div className="inbox-empty-icon">
+                    <Inbox size={28} />
+                  </div>
+                  <h3>{t("inboxNoItems")}</h3>
+                  <p>
+                    {search.trim()
+                      ? t("inboxNoSearchResults")
+                      : activeTab === "messages"
+                        ? t("inboxNoMessages")
+                        : activeTab === "notifications"
+                          ? t("inboxNoNotifications")
+                          : activeTab === "announcements"
+                            ? t("inboxNoAnnouncements")
+                            : t("inboxEmpty")}
+                  </p>
                 </div>
-                <div className="inbox-item-title">{item.title}</div>
-                <div className="inbox-item-preview">{item.preview}</div>
-              </div>
+              )}
 
-              {!item.is_read && <span className="inbox-item-dot" />}
-            </div>
-          ))}
+              {filtered.map((item) => (
+                <div
+                  key={item.id}
+                  className={`inbox-item ${!item.is_read ? "unread" : ""} ${selectedId === item.id ? "selected" : ""}`}
+                  onClick={() => {
+                    if (item.kind === "support") {
+                      handleSelectSupportItem(item);
+                    } else {
+                      handleSelectItem(item);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      if (item.kind === "support") {
+                        handleSelectSupportItem(item);
+                      } else {
+                        handleSelectItem(item);
+                      }
+                    }
+                  }}
+                >
+                  <div className="inbox-item-icon">
+                    {item.kind === "message" ? (
+                      <Mail size={16} />
+                    ) : item.kind === "announcement" ? (
+                      <Megaphone size={16} />
+                    ) : item.kind === "support" ? (
+                      <Headphones size={16} />
+                    ) : (
+                      <Bell size={16} />
+                    )}
+                  </div>
+
+                  <div className="inbox-item-content">
+                    <div className="inbox-item-top">
+                      <span className="inbox-item-sender">
+                        {item.sender_name || t("inboxSystem")}
+                      </span>
+                      <span className="inbox-item-time">
+                        {formatRelativeTime(item.created_at, dateLocale)}
+                      </span>
+                    </div>
+                    <div className="inbox-item-title">{item.title}</div>
+                    <div className="inbox-item-preview">{item.preview}</div>
+                  </div>
+
+                  {!item.is_read && <span className="inbox-item-dot" />}
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         {/* Right: Detail */}
         <div className="inbox-detail">
-          {!selectedItem && (
+          {/* Support ticket detail (when on support tab) */}
+          {activeTab === "support" && !selectedTicketId && (
+            <div className="inbox-detail-empty">
+              <Headphones size={40} />
+              <p>{t("inboxSelectItem")}</p>
+            </div>
+          )}
+
+          {activeTab === "support" && selectedTicketId && (
+            <div className="inbox-detail-content">
+              {loadingTicketDetail && (
+                <div className="inbox-thread-loading">
+                  {t("inboxLoadingConversation")}
+                </div>
+              )}
+
+              {!loadingTicketDetail && selectedTicketDetail && (
+                <>
+                  <div className="inbox-detail-header">
+                    <div className="inbox-detail-meta">
+                      <span className={ticketStatusClass(selectedTicketDetail.status)}>
+                        {ticketStatusLabel(selectedTicketDetail.status)}
+                      </span>
+                      <span className={ticketPriorityClass(selectedTicketDetail.priority)}>
+                        {selectedTicketDetail.priority}
+                      </span>
+                      <span className="inbox-ticket-category-label">
+                        {ticketCategoryLabel(selectedTicketDetail.category)}
+                      </span>
+                      <span className="inbox-detail-date">
+                        {formatFullDate(selectedTicketDetail.created_at, dateLocale)}
+                      </span>
+                    </div>
+                    <h3>#{selectedTicketDetail.ticket_number} {selectedTicketDetail.subject}</h3>
+                  </div>
+
+                  {selectedTicketDetail.description && (
+                    <div className="inbox-detail-body" style={{ whiteSpace: "pre-wrap" }}>
+                      {selectedTicketDetail.description}
+                    </div>
+                  )}
+
+                  {/* Ticket message thread */}
+                  <div className="inbox-thread">
+                    {selectedTicketDetail.messages.length === 0 && (
+                      <div className="inbox-thread-loading" style={{ color: "var(--color-text-muted)" }}>
+                        {t("inboxNoMessages")}
+                      </div>
+                    )}
+                    {selectedTicketDetail.messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`inbox-thread-message ${msg.user_id === userId ? "sent" : "received"}`}
+                      >
+                        <div className="inbox-thread-message-header">
+                          <strong>
+                            {msg.user_id === userId
+                              ? t("inboxYou")
+                              : msg.user_full_name || msg.user_email || t("inboxSupportTeam")}
+                          </strong>
+                          <span className="inbox-thread-message-time">
+                            {formatFullDate(msg.created_at, dateLocale)}
+                          </span>
+                        </div>
+                        <div className="inbox-thread-message-body">
+                          {msg.message}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Reply form for tickets (only if not resolved/closed) */}
+                  {selectedTicketDetail.status !== "resolved" &&
+                    selectedTicketDetail.status !== "closed" && (
+                    <form className="inbox-reply-form" onSubmit={handleTicketReply}>
+                      <textarea
+                        className="inbox-reply-textarea"
+                        placeholder={t("inboxTicketReplyPlaceholder")}
+                        value={ticketReplyBody}
+                        onChange={(e) => setTicketReplyBody(e.target.value)}
+                        rows={4}
+                      />
+                      <div className="inbox-reply-actions">
+                        <button
+                          type="submit"
+                          className="btn-primary"
+                          disabled={ticketReplySending || !ticketReplyBody.trim()}
+                        >
+                          <Send size={14} />
+                          {ticketReplySending ? t("inboxSending") : t("inboxSendReply")}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Regular detail views (non-support tabs) */}
+          {activeTab !== "support" && !selectedItem && (
             <div className="inbox-detail-empty">
               <Mail size={40} />
               <p>{t("inboxSelectItem")}</p>
             </div>
           )}
 
-          {selectedItem && selectedItem.kind === "notification" && (
+          {activeTab !== "support" && selectedItem && selectedItem.kind === "notification" && (
             <div className="inbox-detail-content">
               <div className="inbox-detail-header">
                 <div className="inbox-detail-meta">
@@ -648,7 +1092,7 @@ export default function InboxClient({
             </div>
           )}
 
-          {selectedItem && selectedItem.kind === "announcement" && (
+          {activeTab !== "support" && selectedItem && selectedItem.kind === "announcement" && (
             <div className="inbox-detail-content">
               <div className="inbox-detail-header">
                 <div className="inbox-detail-meta">
@@ -673,7 +1117,7 @@ export default function InboxClient({
             </div>
           )}
 
-          {selectedItem && selectedItem.kind === "message" && (
+          {activeTab !== "support" && selectedItem && selectedItem.kind === "message" && (
             <div className="inbox-detail-content">
               <div className="inbox-detail-header">
                 <div className="inbox-detail-meta">
@@ -906,6 +1350,119 @@ export default function InboxClient({
                 >
                   <Send size={14} />
                   {composeSending ? t("inboxSending") : t("inboxSendMessage")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Ticket Modal */}
+      {showCreateTicket && (
+        <div
+          className="inbox-compose-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowCreateTicket(false);
+          }}
+        >
+          <div className="inbox-compose">
+            <div className="inbox-compose-header">
+              <h3>{t("inboxNewTicket")}</h3>
+              <button
+                className="inbox-compose-close"
+                onClick={() => setShowCreateTicket(false)}
+                title={t("inboxClose")}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {ticketError && (
+              <div className="form-error">{ticketError}</div>
+            )}
+
+            <form onSubmit={handleCreateTicket}>
+              <div className="inbox-compose-field">
+                <label className="form-label" htmlFor="ticket-subject">
+                  {t("inboxTicketSubject")}
+                </label>
+                <input
+                  id="ticket-subject"
+                  className="form-input"
+                  type="text"
+                  placeholder={t("inboxTicketSubjectPlaceholder")}
+                  value={ticketSubject}
+                  onChange={(e) => setTicketSubject(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="inbox-compose-field">
+                <label className="form-label" htmlFor="ticket-category">
+                  {t("inboxTicketCategory")}
+                </label>
+                <select
+                  id="ticket-category"
+                  className="form-select"
+                  value={ticketCategory}
+                  onChange={(e) => setTicketCategory(e.target.value)}
+                >
+                  <option value="general">General</option>
+                  <option value="billing">Billing</option>
+                  <option value="technical">Technical</option>
+                  <option value="feature_request">Feature Request</option>
+                  <option value="bug_report">Bug Report</option>
+                  <option value="account">Account</option>
+                </select>
+              </div>
+
+              <div className="inbox-compose-field">
+                <label className="form-label" htmlFor="ticket-priority">
+                  {t("inboxTicketPriority")}
+                </label>
+                <select
+                  id="ticket-priority"
+                  className="form-select"
+                  value={ticketPriority}
+                  onChange={(e) => setTicketPriority(e.target.value)}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+
+              <div className="inbox-compose-field">
+                <label className="form-label" htmlFor="ticket-description">
+                  {t("inboxTicketDescription")}
+                </label>
+                <textarea
+                  id="ticket-description"
+                  className="form-textarea"
+                  placeholder={t("inboxTicketDescriptionPlaceholder")}
+                  value={ticketDescription}
+                  onChange={(e) => setTicketDescription(e.target.value)}
+                  rows={8}
+                  required
+                />
+              </div>
+
+              <div className="inbox-compose-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowCreateTicket(false)}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={ticketCreating || !ticketSubject.trim() || !ticketDescription.trim()}
+                >
+                  <Send size={14} />
+                  {ticketCreating ? t("inboxSending") : t("inboxSubmitTicket")}
                 </button>
               </div>
             </form>

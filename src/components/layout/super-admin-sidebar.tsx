@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, FileText,
   Globe, ChevronRight, CreditCard, Settings,
-  Shield, Wrench,
+  Shield, Wrench, Headphones,
 } from "lucide-react";
 import {
   superAdminNavigation,
@@ -23,6 +23,7 @@ const iconMap: Record<string, React.ElementType> = {
   "credit-card": CreditCard,
   shield: Shield,
   wrench: Wrench,
+  headphones: Headphones,
   settings: Settings,
 };
 

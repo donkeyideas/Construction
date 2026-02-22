@@ -27,6 +27,11 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
     icon: "users",
   },
   {
+    label: "supportTickets",
+    href: "/super-admin/support-tickets",
+    icon: "headphones",
+  },
+  {
     label: "content",
     icon: "file-text",
     children: [
@@ -54,7 +59,6 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
     label: "operations",
     icon: "shield",
     children: [
-      { label: "supportTickets", href: "/super-admin/support-tickets" },
       { label: "auditLogs", href: "/super-admin/audit-logs" },
       { label: "systemHealth", href: "/super-admin/system-health" },
     ],
