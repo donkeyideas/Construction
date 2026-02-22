@@ -155,7 +155,7 @@ export async function POST(request: Request) {
         supabase.from("tickets").delete().eq("company_id", cid),
         supabase.from("messages").delete().eq("company_id", cid),
         supabase.from("notifications").delete().eq("company_id", cid),
-        supabase.from("audit_log").delete().eq("company_id", cid),
+        supabase.from("audit_logs").delete().eq("company_id", cid),
         supabase.from("subscription_events").delete().eq("company_id", cid),
       ]);
       // Delete projects, properties, units, leases, maintenance (which depend on projects/properties)
@@ -1526,7 +1526,7 @@ export async function POST(request: Request) {
       { action: "submit_daily_log", entity_type: "daily_log", details: { name: "Daily Log - Feb 12, 2026", ref: "RMC-001" }, user_id: userIds.superintendent, created_at: "2026-02-12T16:00:00Z" },
     ];
 
-    await supabase.from("audit_log").insert(
+    await supabase.from("audit_logs").insert(
       auditEntries.map((e) => ({ company_id: companyId, ...e }))
     );
 

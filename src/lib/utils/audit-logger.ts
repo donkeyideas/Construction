@@ -26,7 +26,7 @@ export async function logAuditEvent({
   ipAddress,
 }: LogAuditEventParams): Promise<void> {
   try {
-    await supabase.from("audit_log").insert({
+    await supabase.from("audit_logs").insert({
       company_id: companyId,
       user_id: userId,
       action,

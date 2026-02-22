@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { validatePromoCode, redeemPromoCode } from "@/lib/queries/promo-codes";
+import { logAuditEvent } from "@/lib/utils/audit-logger";
 
 interface RegisterBody {
   email: string;
@@ -194,6 +195,16 @@ export async function POST(request: Request) {
         );
       }
     }
+
+    logAuditEvent({
+      supabase,
+      companyId,
+      userId,
+      action: "company_registered",
+      entityType: "company",
+      entityId: companyId,
+      details: { company_name, email },
+    });
 
     return NextResponse.json(
       {

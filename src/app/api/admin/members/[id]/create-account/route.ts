@@ -134,7 +134,7 @@ export async function POST(
     }
 
     // Log in audit
-    await admin.from("audit_log").insert({
+    await admin.from("audit_logs").insert({
       company_id: userCtx.companyId,
       user_id: userCtx.userId,
       action: "create",

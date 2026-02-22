@@ -263,11 +263,11 @@ export async function getAuditLog(
   limit: number = 50
 ): Promise<AuditLogEntry[]> {
   const { data, error } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select(
       `
       *,
-      user_profile:user_profiles!audit_log_user_profile_fkey(id, full_name, email)
+      user_profile:user_profiles(id, full_name, email)
     `
     )
     .eq("company_id", companyId)

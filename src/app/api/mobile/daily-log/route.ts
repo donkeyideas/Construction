@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Also log to audit_log
-    await supabase.from("audit_log").insert({
+    await supabase.from("audit_logs").insert({
       company_id: userCtx.companyId,
       user_id: userCtx.userId,
       action: "submit_daily_log",

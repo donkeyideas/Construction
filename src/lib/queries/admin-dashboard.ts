@@ -85,7 +85,7 @@ export async function getAllVendors(supabase: SupabaseClient, companyId: string)
 
 export async function getAuditLog(supabase: SupabaseClient, companyId: string, limit = 50) {
   const { data } = await supabase
-    .from("audit_log")
+    .from("audit_logs")
     .select("id, action, entity_type, entity_id, details, created_at, user_id")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false })

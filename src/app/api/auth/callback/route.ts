@@ -87,7 +87,7 @@ async function trackOAuthLogin(supabase: any, user: { id: string; email?: string
       is_current: true,
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     }),
-    supabase.from("audit_log").insert({
+    supabase.from("audit_logs").insert({
       company_id: companyId,
       user_id: user.id,
       action: "user_login_oauth",

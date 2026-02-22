@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { validatePromoCode, redeemPromoCode } from "@/lib/queries/promo-codes";
+import { logAuditEvent } from "@/lib/utils/audit-logger";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -68,6 +69,15 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    logAuditEvent({
+      supabase,
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      action: "promo_code_redeemed",
+      entityType: "promo_code",
+      details: { code, plan_granted: promo.plan_granted, duration_days: promo.duration_days },
+    });
 
     return NextResponse.json({
       message: "Promo code redeemed successfully.",

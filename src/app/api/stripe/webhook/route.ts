@@ -52,6 +52,13 @@ export async function POST(request: NextRequest) {
             plan_to: plan,
             stripe_event_id: event.id,
           });
+
+          await supabase.from("audit_logs").insert({
+            company_id: companyId,
+            action: "subscription_upgraded",
+            entity_type: "subscription",
+            details: { plan, stripe_event_id: event.id },
+          });
         }
         break;
       }
@@ -112,6 +119,13 @@ export async function POST(request: NextRequest) {
             plan_from: company.subscription_plan,
             stripe_event_id: event.id,
           });
+
+          await supabase.from("audit_logs").insert({
+            company_id: company.id,
+            action: "subscription_canceled",
+            entity_type: "subscription",
+            details: { plan_from: company.subscription_plan, stripe_event_id: event.id },
+          });
         }
         break;
       }
@@ -141,6 +155,13 @@ export async function POST(request: NextRequest) {
             company_id: company.id,
             event_type: "payment_failed",
             stripe_event_id: event.id,
+          });
+
+          await supabase.from("audit_logs").insert({
+            company_id: company.id,
+            action: "payment_failed",
+            entity_type: "subscription",
+            details: { stripe_event_id: event.id },
           });
         }
         break;

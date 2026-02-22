@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { inviteMember, type MemberRole } from "@/lib/queries/admin";
+import { logAuditEvent } from "@/lib/utils/audit-logger";
 
 // ---------------------------------------------------------------------------
 // POST /api/admin/members - Invite a new member to the company
@@ -74,6 +75,15 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    logAuditEvent({
+      supabase,
+      companyId: userCtx.companyId,
+      userId: userCtx.userId,
+      action: "member_invited",
+      entityType: "company_member",
+      details: { email: body.email.trim(), role },
+    });
 
     return NextResponse.json(member, { status: 201 });
   } catch (err) {

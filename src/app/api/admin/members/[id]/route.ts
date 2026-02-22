@@ -6,6 +6,7 @@ import {
   deactivateMember,
   type MemberRole,
 } from "@/lib/queries/admin";
+import { logAuditEvent } from "@/lib/utils/audit-logger";
 
 const VALID_ROLES: MemberRole[] = [
   "admin",
@@ -82,6 +83,16 @@ export async function PATCH(
       return NextResponse.json({ error }, { status: 400 });
     }
 
+    logAuditEvent({
+      supabase,
+      companyId: userCtx.companyId,
+      userId: userCtx.userId,
+      action: "member_role_changed",
+      entityType: "company_member",
+      entityId: id,
+      details: { from_role: member.role, to_role: role },
+    });
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("PATCH /api/admin/members/[id] error:", err);
@@ -155,6 +166,15 @@ export async function DELETE(
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    logAuditEvent({
+      supabase,
+      companyId: userCtx.companyId,
+      userId: userCtx.userId,
+      action: "member_deactivated",
+      entityType: "company_member",
+      entityId: id,
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {
