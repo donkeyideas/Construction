@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
@@ -22,13 +22,9 @@ import {
   FileText,
   CreditCard,
   DollarSign,
-  Settings,
-  KeyRound,
-  Check,
   Loader2,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
-import { GATEWAY_PROVIDERS } from "@/lib/payments/gateway";
 import ImportModal from "@/components/ImportModal";
 import PrequalificationChecklist from "@/components/PrequalificationChecklist";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -182,126 +178,61 @@ export default function VendorsClient({
   const [showContractDelete, setShowContractDelete] = useState(false);
   const [contractDeleting, setContractDeleting] = useState(false);
 
-  // Payment gateway state
-  const [gatewayStatus, setGatewayStatus] = useState<{
-    hasGateway: boolean;
-    provider: string | null;
-    isActive: boolean;
-    onboardedAt: string | null;
-    accountName: string | null;
-    accountStatus: { connected: boolean; accountName: string | null } | null;
-  } | null>(null);
-  const [gatewayLoading, setGatewayLoading] = useState(true);
-  const [gatewaySaving, setGatewaySaving] = useState(false);
-  const [gatewayError, setGatewayError] = useState("");
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const [gatewayFields, setGatewayFields] = useState<Record<string, string>>({});
-  const [checkingOut, setCheckingOut] = useState<string | null>(null);
-  const [verifyMessage, setVerifyMessage] = useState<{ type: "success" | "info"; text: string } | null>(null);
+  // Vendor payment state (record manual payment)
+  const [showVendorPayModal, setShowVendorPayModal] = useState(false);
+  const [vendorPayInvoice, setVendorPayInvoice] = useState<PayableInvoice | null>(null);
+  const [vendorPayData, setVendorPayData] = useState({
+    amount: "",
+    method: "check",
+    reference_number: "",
+    payment_date: new Date().toISOString().split("T")[0],
+    notes: "",
+  });
+  const [vendorPaying, setVendorPaying] = useState(false);
+  const [vendorPayError, setVendorPayError] = useState("");
 
-  useEffect(() => {
-    async function fetchGatewayStatus() {
-      try {
-        const res = await fetch("/api/payments/gateway/status", { method: "POST" });
-        if (res.ok) setGatewayStatus(await res.json());
-      } catch { /* ignore */ }
-      setGatewayLoading(false);
-    }
-    fetchGatewayStatus();
-  }, []);
-
-  // Auto-verify payment on return from checkout
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const paymentStatus = url.searchParams.get("payment");
-    const invoiceId = url.searchParams.get("invoice");
-
-    if (paymentStatus === "success" && invoiceId) {
-      url.searchParams.delete("payment");
-      url.searchParams.delete("invoice");
-      window.history.replaceState({}, "", url.pathname + url.search);
-      setTab("payments");
-
-      (async () => {
-        try {
-          const res = await fetch("/api/financial/vendor-payments/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ invoice_id: invoiceId }),
-          });
-          const data = await res.json();
-          if (data.recorded) {
-            setVerifyMessage({ type: "success", text: "Payment recorded successfully! Journal entry auto-generated." });
-            router.refresh();
-          } else {
-            setVerifyMessage({ type: "info", text: data.message || "Payment pending verification." });
-          }
-        } catch {
-          setVerifyMessage({ type: "info", text: "Payment may have been processed. Refresh to check." });
-        }
-        setTimeout(() => setVerifyMessage(null), 8000);
-      })();
-    } else if (paymentStatus === "canceled") {
-      url.searchParams.delete("payment");
-      window.history.replaceState({}, "", url.pathname + url.search);
-      setTab("payments");
-      setVerifyMessage({ type: "info", text: "Payment was canceled." });
-      setTimeout(() => setVerifyMessage(null), 5000);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function handleSaveGateway() {
-    if (!selectedProvider) return;
-    const providerInfo = GATEWAY_PROVIDERS.find((p) => p.key === selectedProvider);
-    if (!providerInfo) return;
-    if (!gatewayFields.secret_key?.trim() && !gatewayFields.client_id?.trim()) {
-      setGatewayError("API key is required");
-      return;
-    }
-    setGatewaySaving(true);
-    setGatewayError("");
-    try {
-      const res = await fetch("/api/payments/gateway/onboard", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: selectedProvider, credentials: gatewayFields }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setGatewayError(data.error || "Failed to save"); return; }
-      setGatewayStatus({
-        hasGateway: true, provider: selectedProvider, isActive: true,
-        onboardedAt: new Date().toISOString(),
-        accountName: data.accountName || selectedProvider,
-        accountStatus: { connected: true, accountName: data.accountName },
-      });
-      setSelectedProvider(null);
-      setGatewayFields({});
-    } catch { setGatewayError("Network error"); } finally { setGatewaySaving(false); }
+  function openVendorPayModal(inv: PayableInvoice) {
+    setVendorPayInvoice(inv);
+    setVendorPayData({
+      amount: String(inv.balance_due || inv.total_amount),
+      method: "check",
+      reference_number: "",
+      payment_date: new Date().toISOString().split("T")[0],
+      notes: "",
+    });
+    setVendorPayError("");
+    setShowVendorPayModal(true);
   }
 
-  async function handleDisconnectGateway() {
-    if (!confirm("Disconnect payment provider? This will disable online vendor payments.")) return;
+  async function handleVendorRecordPayment() {
+    if (!vendorPayInvoice) return;
+    setVendorPaying(true);
+    setVendorPayError("");
     try {
-      const res = await fetch("/api/payments/gateway/disconnect", { method: "POST" });
-      if (res.ok) {
-        setGatewayStatus({ hasGateway: false, provider: null, isActive: false, onboardedAt: null, accountName: null, accountStatus: null });
+      const res = await fetch("/api/financial/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoice_id: vendorPayInvoice.id,
+          payment_date: vendorPayData.payment_date,
+          amount: parseFloat(vendorPayData.amount),
+          method: vendorPayData.method,
+          reference_number: vendorPayData.reference_number || undefined,
+          notes: vendorPayData.notes || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to record payment");
       }
-    } catch { /* ignore */ }
-  }
-
-  async function handlePayOnline(inv: PayableInvoice) {
-    setCheckingOut(inv.id);
-    try {
-      const res = await fetch("/api/financial/vendor-payments/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invoice_id: inv.id, return_path: "/people/vendors" }),
-      });
-      const data = await res.json();
-      if (!res.ok) { alert(data.error || "Failed to create checkout session"); return; }
-      if (data.url) window.location.href = data.url;
-    } catch { alert("Network error creating checkout session"); } finally { setCheckingOut(null); }
+      setShowVendorPayModal(false);
+      setVendorPayInvoice(null);
+      router.refresh();
+    } catch (err: unknown) {
+      setVendorPayError(err instanceof Error ? err.message : "Failed to record payment");
+    } finally {
+      setVendorPaying(false);
+    }
   }
 
   async function handleImport(rows: Record<string, string>[]) {
@@ -591,8 +522,7 @@ export default function VendorsClient({
           className={`people-tab ${tab === "payments" ? "active" : ""}`}
           onClick={() => setTab("payments")}
         >
-          <CreditCard size={14} style={{ verticalAlign: "middle", marginRight: 4 }} />
-          {t("tabPaymentSettings") ?? "Payments"}
+          Payments
         </button>
       </div>
 
@@ -771,170 +701,13 @@ export default function VendorsClient({
       {/* Payments Tab */}
       {tab === "payments" && (
         <div>
-          {/* Payment verification banner */}
-          {verifyMessage && (
-            <div style={{
-              padding: "12px 18px", borderRadius: 10, marginBottom: 20,
-              display: "flex", alignItems: "center", gap: 10,
-              fontSize: "0.88rem", fontWeight: 500,
-              background: verifyMessage.type === "success"
-                ? "color-mix(in srgb, var(--color-green) 10%, transparent)"
-                : "color-mix(in srgb, var(--color-blue) 10%, transparent)",
-              color: verifyMessage.type === "success" ? "var(--color-green)" : "var(--color-blue)",
-              border: `1px solid ${verifyMessage.type === "success" ? "color-mix(in srgb, var(--color-green) 25%, transparent)" : "color-mix(in srgb, var(--color-blue) 25%, transparent)"}`,
-            }}>
-              {verifyMessage.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-              {verifyMessage.text}
-              <button
-                style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "inherit", padding: 4 }}
-                onClick={() => setVerifyMessage(null)}
-              >
-                <X size={14} />
-              </button>
-            </div>
-          )}
-
-          {/* Gateway Connection Card */}
-          <div className="fin-chart-card" style={{ marginBottom: 20 }}>
-            <div style={{ marginBottom: 16 }}>
-              <h3 style={{ fontFamily: "var(--font-serif)", fontSize: "1.05rem", fontWeight: 700, marginBottom: 4 }}>
-                Payment Provider
-              </h3>
-              <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: 0 }}>
-                Connect a payment provider to pay vendors online directly from this page.
-              </p>
-            </div>
-
-            {gatewayLoading ? (
-              <p style={{ color: "var(--muted)", textAlign: "center", padding: "16px 0", fontSize: "0.85rem" }}>
-                <Loader2 size={14} className="spin" style={{ display: "inline-block", marginRight: 6 }} />
-                Checking connection...
-              </p>
-            ) : gatewayStatus?.isActive && gatewayStatus.accountStatus?.connected ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderRadius: 10, background: "color-mix(in srgb, var(--color-green) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--color-green) 20%, transparent)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <CheckCircle2 size={20} style={{ color: "var(--color-green)" }} />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: "0.92rem" }}>
-                      {GATEWAY_PROVIDERS.find((p) => p.key === gatewayStatus.provider)?.name || gatewayStatus.provider}
-                      <span style={{ marginLeft: 8, fontSize: "0.73rem", padding: "2px 8px", borderRadius: 12, background: "color-mix(in srgb, var(--color-green) 15%, transparent)", color: "var(--color-green)" }}>
-                        Connected
-                      </span>
-                    </div>
-                    <div style={{ fontSize: "0.8rem", color: "var(--muted)", marginTop: 2 }}>
-                      {gatewayStatus.accountName || "Active"}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  className="ui-btn ui-btn-sm ui-btn-outline"
-                  style={{ color: "var(--color-red)", borderColor: "var(--color-red)" }}
-                  onClick={handleDisconnectGateway}
-                >
-                  Disconnect
-                </button>
-              </div>
-            ) : selectedProvider ? (
-              (() => {
-                const providerInfo = GATEWAY_PROVIDERS.find((p) => p.key === selectedProvider);
-                if (!providerInfo) return null;
-                return (
-                  <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: 18 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                      <div style={{ fontWeight: 600, fontSize: "0.92rem" }}>
-                        {providerInfo.name} — Enter API Keys
-                      </div>
-                      <button
-                        className="ui-btn ui-btn-sm ui-btn-ghost"
-                        onClick={() => { setSelectedProvider(null); setGatewayFields({}); setGatewayError(""); }}
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                    {providerInfo.fields.map((field) => (
-                      <div key={field.key} style={{ marginBottom: 12 }}>
-                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 500, marginBottom: 4 }}>
-                          {field.label}
-                        </label>
-                        <input
-                          type={field.type}
-                          placeholder={field.placeholder}
-                          value={gatewayFields[field.key] || ""}
-                          onChange={(e) => setGatewayFields((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                          style={{
-                            width: "100%", padding: "8px 12px", borderRadius: 8,
-                            border: "1px solid var(--border)", background: "var(--bg)",
-                            color: "var(--text)", fontSize: "0.85rem", fontFamily: "monospace",
-                          }}
-                        />
-                      </div>
-                    ))}
-                    {gatewayError && (
-                      <p style={{ color: "var(--color-red)", fontSize: "0.82rem", margin: "0 0 10px 0" }}>{gatewayError}</p>
-                    )}
-                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                      <button className="btn-secondary" onClick={() => { setSelectedProvider(null); setGatewayFields({}); setGatewayError(""); }}>
-                        {t("cancel")}
-                      </button>
-                      <button
-                        className="btn-primary"
-                        disabled={gatewaySaving}
-                        onClick={handleSaveGateway}
-                        style={{ display: "flex", alignItems: "center", gap: 6 }}
-                      >
-                        {gatewaySaving ? <Loader2 size={14} className="spin" /> : <Check size={14} />}
-                        Save & Connect
-                      </button>
-                    </div>
-                  </div>
-                );
-              })()
-            ) : (
-              <div>
-                <p style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 14 }}>
-                  Select a payment provider to enable online vendor payments:
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
-                  {GATEWAY_PROVIDERS.map((gp) => (
-                    <div
-                      key={gp.key}
-                      style={{
-                        padding: "16px 18px", borderRadius: 10,
-                        border: "1px solid var(--border)", background: "var(--bg)",
-                        opacity: gp.available ? 1 : 0.5,
-                      }}
-                    >
-                      <div style={{ fontWeight: 600, fontSize: "0.92rem", marginBottom: 4 }}>{gp.name}</div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 10 }}>{gp.description}</div>
-                      {gp.available ? (
-                        <button
-                          className="btn-primary"
-                          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: "0.82rem", padding: "6px 12px" }}
-                          onClick={() => { setSelectedProvider(gp.key); setGatewayFields({}); setGatewayError(""); }}
-                        >
-                          <KeyRound size={14} />
-                          Connect
-                        </button>
-                      ) : (
-                        <span style={{ fontSize: "0.78rem", color: "var(--muted)", fontStyle: "italic" }}>
-                          Coming Soon
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Outstanding Invoices Table */}
-          <div style={{ marginBottom: 12 }}>
-            <h3 style={{ fontFamily: "var(--font-serif)", fontSize: "1.05rem", fontWeight: 700, marginBottom: 4 }}>
-              Outstanding Invoices
-            </h3>
-            <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: 0 }}>
-              {payableInvoices.length} unpaid invoice{payableInvoices.length !== 1 ? "s" : ""} totaling{" "}
-              {formatCurrency(payableInvoices.reduce((s, i) => s + (i.balance_due || 0), 0))}
+          {/* Summary */}
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: 0 }}>
+              {payableInvoices.length} outstanding invoice{payableInvoices.length !== 1 ? "s" : ""} totaling{" "}
+              <strong style={{ color: "var(--text)" }}>
+                {formatCurrency(payableInvoices.reduce((s, i) => s + (i.balance_due || 0), 0))}
+              </strong>
             </p>
           </div>
 
@@ -944,14 +717,14 @@ export default function VendorsClient({
                 <table className="invoice-table">
                   <thead>
                     <tr>
-                      <th>{t("invoiceNumber") ?? "Invoice #"}</th>
+                      <th>Invoice #</th>
                       <th>Vendor</th>
-                      <th>{t("project") ?? "Project"}</th>
+                      <th>Project</th>
                       <th>Due Date</th>
-                      <th style={{ textAlign: "right" }}>{t("amount") ?? "Amount"}</th>
+                      <th style={{ textAlign: "right" }}>Amount</th>
                       <th style={{ textAlign: "right" }}>Balance Due</th>
-                      <th>{t("status")}</th>
-                      <th>{t("actions") ?? "Actions"}</th>
+                      <th>Status</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -964,7 +737,7 @@ export default function VendorsClient({
                         <tr key={inv.id}>
                           <td>
                             <Link
-                              href={`/financial/ap?status=${inv.status}`}
+                              href="/financial/ap"
                               style={{ fontWeight: 600, color: "var(--color-blue)", textDecoration: "none" }}
                             >
                               {inv.invoice_number}
@@ -989,33 +762,14 @@ export default function VendorsClient({
                             <span className={`inv-status inv-status-${inv.status}`}>{inv.status}</span>
                           </td>
                           <td>
-                            <div style={{ display: "flex", gap: 4 }}>
-                              <Link
-                                href={`/financial/ap`}
-                                className="ui-btn ui-btn-primary ui-btn-sm"
-                                style={{ fontSize: "0.75rem", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: 3 }}
-                              >
-                                <DollarSign size={12} />
-                                Pay
-                              </Link>
-                              {gatewayStatus?.isActive && (
-                                <button
-                                  className="ui-btn ui-btn-sm"
-                                  onClick={() => handlePayOnline(inv)}
-                                  disabled={checkingOut === inv.id}
-                                  style={{
-                                    fontSize: "0.75rem", padding: "4px 10px",
-                                    background: "var(--color-green)", color: "#fff",
-                                    border: "none", borderRadius: 6,
-                                    cursor: checkingOut === inv.id ? "wait" : "pointer",
-                                    display: "inline-flex", alignItems: "center", gap: 3,
-                                  }}
-                                >
-                                  {checkingOut === inv.id ? <Loader2 size={12} className="spin" /> : <CreditCard size={12} />}
-                                  Online
-                                </button>
-                              )}
-                            </div>
+                            <button
+                              className="ui-btn ui-btn-primary ui-btn-sm"
+                              onClick={() => openVendorPayModal(inv)}
+                              style={{ fontSize: "0.75rem", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: 3 }}
+                            >
+                              <DollarSign size={12} />
+                              Record Payment
+                            </button>
                           </td>
                         </tr>
                       );
@@ -1033,6 +787,117 @@ export default function VendorsClient({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Vendor Record Payment Modal */}
+      {showVendorPayModal && vendorPayInvoice && (
+        <div className="ticket-modal-overlay" onClick={() => { setShowVendorPayModal(false); setVendorPayInvoice(null); }}>
+          <div className="ticket-modal" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+            <div className="ticket-modal-header">
+              <h3>Record Payment - {vendorPayInvoice.invoice_number}</h3>
+              <button className="ticket-modal-close" onClick={() => { setShowVendorPayModal(false); setVendorPayInvoice(null); }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {vendorPayError && (
+              <div style={{
+                background: "rgba(220, 38, 38, 0.08)", color: "var(--color-red)",
+                padding: "10px 16px", borderRadius: 8, fontSize: "0.85rem",
+                fontWeight: 500, margin: "0 24px 12px", border: "1px solid var(--color-red)",
+              }}>
+                {vendorPayError}
+              </div>
+            )}
+
+            <div className="ticket-detail-body">
+              <div style={{ marginBottom: 16, padding: "12px 16px", background: "var(--surface)", borderRadius: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Vendor</span>
+                  <span style={{ fontWeight: 500 }}>{vendorPayInvoice.vendor_name || "—"}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Balance Due</span>
+                  <span style={{ fontWeight: 600, color: "var(--color-red)" }}>
+                    {formatCurrency(vendorPayInvoice.balance_due || vendorPayInvoice.total_amount)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="ap-pay-form">
+                <div className="vendor-form-field">
+                  <label>Amount</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="ui-input"
+                    value={vendorPayData.amount}
+                    onChange={(e) => setVendorPayData({ ...vendorPayData, amount: e.target.value })}
+                  />
+                </div>
+                <div className="vendor-form-field">
+                  <label>Method</label>
+                  <select
+                    className="ui-input"
+                    value={vendorPayData.method}
+                    onChange={(e) => setVendorPayData({ ...vendorPayData, method: e.target.value })}
+                  >
+                    <option value="check">Check</option>
+                    <option value="ach">ACH</option>
+                    <option value="wire">Wire Transfer</option>
+                    <option value="credit_card">Credit Card</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="cash">Cash</option>
+                  </select>
+                </div>
+                <div className="vendor-form-field">
+                  <label>Payment Date</label>
+                  <input
+                    type="date"
+                    className="ui-input"
+                    value={vendorPayData.payment_date}
+                    onChange={(e) => setVendorPayData({ ...vendorPayData, payment_date: e.target.value })}
+                  />
+                </div>
+                <div className="vendor-form-field">
+                  <label>Reference #</label>
+                  <input
+                    type="text"
+                    className="ui-input"
+                    value={vendorPayData.reference_number}
+                    onChange={(e) => setVendorPayData({ ...vendorPayData, reference_number: e.target.value })}
+                    placeholder="Check # or ref"
+                  />
+                </div>
+                <div className="vendor-form-field full-width">
+                  <label>Notes</label>
+                  <textarea
+                    className="ui-input"
+                    value={vendorPayData.notes}
+                    onChange={(e) => setVendorPayData({ ...vendorPayData, notes: e.target.value })}
+                    rows={2}
+                    style={{ resize: "vertical" }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 16 }}>
+                <button className="btn-secondary" onClick={() => { setShowVendorPayModal(false); setVendorPayInvoice(null); }}>
+                  {t("cancel")}
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={handleVendorRecordPayment}
+                  disabled={vendorPaying || !vendorPayData.amount}
+                  style={{ display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  {vendorPaying ? <Loader2 size={14} className="spin" /> : <DollarSign size={14} />}
+                  {vendorPaying ? "Recording..." : "Record Payment"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

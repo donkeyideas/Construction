@@ -919,7 +919,7 @@
 
 .ap-tabs {
   display: flex;
-  gap: 0;
+  gap: 8px;
   border-bottom: 2px solid var(--border);
   margin-bottom: 20px;
 }

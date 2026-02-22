@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
@@ -19,14 +19,8 @@ import {
   Upload,
   CreditCard,
   Users,
-  FileText,
-  Settings,
-  KeyRound,
-  Check,
-  CheckCircle2,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
-import { GATEWAY_PROVIDERS } from "@/lib/payments/gateway";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type { APPaymentRow, VendorPaymentSummary } from "@/lib/queries/financial";
@@ -223,145 +217,6 @@ export default function APClient({
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
 
-  // Auto-verify payment on return from checkout
-  const [verifyMessage, setVerifyMessage] = useState<{ type: "success" | "info"; text: string } | null>(null);
-
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const paymentStatus = url.searchParams.get("payment");
-    const invoiceId = url.searchParams.get("invoice");
-
-    if (paymentStatus === "success" && invoiceId) {
-      // Clean URL
-      url.searchParams.delete("payment");
-      url.searchParams.delete("invoice");
-      window.history.replaceState({}, "", url.pathname + url.search);
-
-      // Auto-verify payment
-      (async () => {
-        try {
-          const res = await fetch("/api/financial/vendor-payments/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ invoice_id: invoiceId }),
-          });
-          const data = await res.json();
-          if (data.recorded) {
-            setVerifyMessage({ type: "success", text: "Payment recorded successfully! Journal entry auto-generated." });
-            router.refresh();
-          } else {
-            setVerifyMessage({ type: "info", text: data.message || "Payment pending verification. It may take a moment to process." });
-          }
-        } catch {
-          setVerifyMessage({ type: "info", text: "Payment may have been processed. Refresh to check status." });
-        }
-        setTimeout(() => setVerifyMessage(null), 8000);
-      })();
-    } else if (paymentStatus === "canceled") {
-      url.searchParams.delete("payment");
-      window.history.replaceState({}, "", url.pathname + url.search);
-      setVerifyMessage({ type: "info", text: "Payment was canceled." });
-      setTimeout(() => setVerifyMessage(null), 5000);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Payment gateway state
-  const [gatewayStatus, setGatewayStatus] = useState<{
-    hasGateway: boolean;
-    provider: string | null;
-    isActive: boolean;
-    onboardedAt: string | null;
-    accountName: string | null;
-    accountStatus: { connected: boolean; accountName: string | null } | null;
-  } | null>(null);
-  const [gatewayLoading, setGatewayLoading] = useState(true);
-  const [gatewaySaving, setGatewaySaving] = useState(false);
-  const [gatewayError, setGatewayError] = useState("");
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const [gatewayFields, setGatewayFields] = useState<Record<string, string>>({});
-
-  // Checkout processing state
-  const [checkingOut, setCheckingOut] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchGatewayStatus() {
-      try {
-        const res = await fetch("/api/payments/gateway/status", { method: "POST" });
-        if (res.ok) setGatewayStatus(await res.json());
-      } catch { /* ignore */ }
-      setGatewayLoading(false);
-    }
-    fetchGatewayStatus();
-  }, []);
-
-  async function handleSaveGateway() {
-    if (!selectedProvider) return;
-    const providerInfo = GATEWAY_PROVIDERS.find((p) => p.key === selectedProvider);
-    if (!providerInfo) return;
-    if (!gatewayFields.secret_key?.trim() && !gatewayFields.client_id?.trim()) {
-      setGatewayError("API key is required");
-      return;
-    }
-    setGatewaySaving(true);
-    setGatewayError("");
-    try {
-      const res = await fetch("/api/payments/gateway/onboard", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: selectedProvider, credentials: gatewayFields }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setGatewayError(data.error || "Failed to save"); return; }
-      setGatewayStatus({
-        hasGateway: true,
-        provider: selectedProvider,
-        isActive: true,
-        onboardedAt: new Date().toISOString(),
-        accountName: data.accountName || selectedProvider,
-        accountStatus: { connected: true, accountName: data.accountName },
-      });
-      setSelectedProvider(null);
-      setGatewayFields({});
-    } catch {
-      setGatewayError("Network error");
-    } finally {
-      setGatewaySaving(false);
-    }
-  }
-
-  async function handleDisconnectGateway() {
-    if (!confirm("Disconnect payment provider? This will disable online vendor payments.")) return;
-    try {
-      const res = await fetch("/api/payments/gateway/disconnect", { method: "POST" });
-      if (res.ok) {
-        setGatewayStatus({ hasGateway: false, provider: null, isActive: false, onboardedAt: null, accountName: null, accountStatus: null });
-      }
-    } catch { /* ignore */ }
-  }
-
-  async function handlePayOnline(inv: InvoiceRow) {
-    setCheckingOut(inv.id);
-    try {
-      const res = await fetch("/api/financial/vendor-payments/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invoice_id: inv.id }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || "Failed to create checkout session");
-        return;
-      }
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch {
-      alert("Network error creating checkout session");
-    } finally {
-      setCheckingOut(null);
-    }
-  }
 
   function openDetail(inv: InvoiceRow) {
     setSelectedInvoice(inv);
@@ -570,63 +425,25 @@ export default function APClient({
         </div>
       </div>
 
-      {/* Payment verification banner */}
-      {verifyMessage && (
-        <div style={{
-          padding: "12px 18px",
-          borderRadius: 10,
-          marginBottom: 20,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          fontSize: "0.88rem",
-          fontWeight: 500,
-          background: verifyMessage.type === "success"
-            ? "color-mix(in srgb, var(--color-green) 10%, transparent)"
-            : "color-mix(in srgb, var(--color-blue) 10%, transparent)",
-          color: verifyMessage.type === "success" ? "var(--color-green)" : "var(--color-blue)",
-          border: `1px solid ${verifyMessage.type === "success" ? "color-mix(in srgb, var(--color-green) 25%, transparent)" : "color-mix(in srgb, var(--color-blue) 25%, transparent)"}`,
-        }}>
-          {verifyMessage.type === "success" ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-          {verifyMessage.text}
-          <button
-            style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "inherit", padding: 4 }}
-            onClick={() => setVerifyMessage(null)}
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
-
       {/* Tabs */}
       <div className="ap-tabs">
         <button
           className={`ap-tab ${currentTab === "outstanding" ? "active" : ""}`}
           onClick={() => switchTab("outstanding")}
         >
-          <Receipt size={14} />
           {t("tabOutstanding")}
         </button>
         <button
           className={`ap-tab ${currentTab === "payments" ? "active" : ""}`}
           onClick={() => switchTab("payments")}
         >
-          <CreditCard size={14} />
           {t("tabPaymentHistory")}
         </button>
         <button
           className={`ap-tab ${currentTab === "vendors" ? "active" : ""}`}
           onClick={() => switchTab("vendors")}
         >
-          <Users size={14} />
           {t("tabVendorSummary")}
-        </button>
-        <button
-          className={`ap-tab ${currentTab === "settings" ? "active" : ""}`}
-          onClick={() => switchTab("settings")}
-        >
-          <Settings size={14} />
-          {t("tabPaymentSettings") ?? "Payment Settings"}
         </button>
       </div>
 
@@ -750,41 +567,13 @@ export default function APClient({
                           </td>
                           <td onClick={(e) => e.stopPropagation()}>
                             {inv.status !== "paid" && inv.status !== "voided" && (
-                              <div style={{ display: "flex", gap: 4 }}>
-                                <button
-                                  className="ui-btn ui-btn-primary ui-btn-sm"
-                                  onClick={() => openPayModal(inv)}
-                                  style={{ fontSize: "0.75rem", padding: "4px 10px" }}
-                                >
-                                  {t("pay")}
-                                </button>
-                                {gatewayStatus?.isActive && (
-                                  <button
-                                    className="ui-btn ui-btn-sm"
-                                    onClick={() => handlePayOnline(inv)}
-                                    disabled={checkingOut === inv.id}
-                                    style={{
-                                      fontSize: "0.75rem",
-                                      padding: "4px 10px",
-                                      background: "var(--color-green)",
-                                      color: "#fff",
-                                      border: "none",
-                                      borderRadius: 6,
-                                      cursor: checkingOut === inv.id ? "wait" : "pointer",
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: 3,
-                                    }}
-                                  >
-                                    {checkingOut === inv.id ? (
-                                      <Loader2 size={12} className="spin" />
-                                    ) : (
-                                      <CreditCard size={12} />
-                                    )}
-                                    Online
-                                  </button>
-                                )}
-                              </div>
+                              <button
+                                className="ui-btn ui-btn-primary ui-btn-sm"
+                                onClick={() => openPayModal(inv)}
+                                style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+                              >
+                                {t("pay")}
+                              </button>
                             )}
                           </td>
                         </tr>
@@ -953,171 +742,6 @@ export default function APClient({
         </>
       )}
 
-      {/* ============ PAYMENT SETTINGS TAB ============ */}
-      {currentTab === "settings" && (
-        <div className="fin-chart-card">
-          <div style={{ marginBottom: 20 }}>
-            <h3 style={{ fontFamily: "var(--font-serif)", fontSize: "1.1rem", fontWeight: 700, marginBottom: 4 }}>
-              {t("onlinePaymentsTitle") ?? "Online Payments"}
-            </h3>
-            <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: 0 }}>
-              {t("vendorPaymentSettingsDesc") ?? "Connect a payment provider to pay vendors online. Your API keys are stored securely and used only for processing payments."}
-            </p>
-          </div>
-
-          {gatewayLoading ? (
-            <p style={{ color: "var(--muted)", textAlign: "center", padding: "24px 0", fontSize: "0.85rem" }}>
-              <Loader2 size={14} className="spin" style={{ display: "inline-block", marginRight: 6 }} />
-              Checking connection...
-            </p>
-          ) : gatewayStatus?.isActive && gatewayStatus.accountStatus?.connected ? (
-            /* Connected state */
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderRadius: 10, background: "color-mix(in srgb, var(--color-green) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--color-green) 20%, transparent)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <CheckCircle2 size={20} style={{ color: "var(--color-green)" }} />
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>
-                    {GATEWAY_PROVIDERS.find((p) => p.key === gatewayStatus.provider)?.name || gatewayStatus.provider}
-                    <span style={{ marginLeft: 8, fontSize: "0.75rem", padding: "2px 8px", borderRadius: 12, background: "color-mix(in srgb, var(--color-green) 15%, transparent)", color: "var(--color-green)" }}>
-                      Connected
-                    </span>
-                  </div>
-                  <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: 2 }}>
-                    {gatewayStatus.accountName || "Active"}
-                  </div>
-                </div>
-              </div>
-              <button
-                className="ui-btn ui-btn-sm ui-btn-outline"
-                style={{ color: "var(--color-red)", borderColor: "var(--color-red)" }}
-                onClick={handleDisconnectGateway}
-              >
-                Disconnect
-              </button>
-            </div>
-          ) : selectedProvider ? (
-            /* API key input form */
-            (() => {
-              const providerInfo = GATEWAY_PROVIDERS.find((p) => p.key === selectedProvider);
-              if (!providerInfo) return null;
-              return (
-                <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                    <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>
-                      {providerInfo.name} — Enter API Keys
-                    </div>
-                    <button
-                      className="ui-btn ui-btn-sm ui-btn-ghost"
-                      onClick={() => { setSelectedProvider(null); setGatewayFields({}); setGatewayError(""); }}
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                  <p style={{ fontSize: "0.82rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
-                    Enter your {providerInfo.name} API credentials. Keys are validated and stored securely.
-                  </p>
-                  {providerInfo.fields.map((field) => (
-                    <div key={field.key} style={{ marginBottom: 14 }}>
-                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 500, marginBottom: 4 }}>
-                        {field.label}
-                      </label>
-                      <input
-                        type={field.type}
-                        placeholder={field.placeholder}
-                        value={gatewayFields[field.key] || ""}
-                        onChange={(e) => setGatewayFields((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                        style={{
-                          width: "100%",
-                          padding: "8px 12px",
-                          borderRadius: 8,
-                          border: "1px solid var(--border)",
-                          background: "var(--bg)",
-                          color: "var(--text)",
-                          fontSize: "0.85rem",
-                          fontFamily: "monospace",
-                        }}
-                      />
-                    </div>
-                  ))}
-                  {gatewayError && (
-                    <p style={{ color: "var(--color-red)", fontSize: "0.82rem", margin: "0 0 12px 0" }}>
-                      {gatewayError}
-                    </p>
-                  )}
-                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                    <button
-                      className="ui-btn ui-btn-sm ui-btn-outline"
-                      onClick={() => { setSelectedProvider(null); setGatewayFields({}); setGatewayError(""); }}
-                    >
-                      {t("cancel")}
-                    </button>
-                    <button
-                      className="ui-btn ui-btn-sm ui-btn-primary"
-                      disabled={gatewaySaving}
-                      onClick={handleSaveGateway}
-                      style={{ display: "flex", alignItems: "center", gap: 6 }}
-                    >
-                      {gatewaySaving ? <Loader2 size={14} className="spin" /> : <Check size={14} />}
-                      Save & Connect
-                    </button>
-                  </div>
-                </div>
-              );
-            })()
-          ) : (
-            /* No gateway — show provider selection */
-            <div>
-              <p style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 16 }}>
-                Select a payment provider to enable online vendor payments:
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
-                {GATEWAY_PROVIDERS.map((gp) => (
-                  <div
-                    key={gp.key}
-                    style={{
-                      padding: "18px 20px",
-                      borderRadius: 10,
-                      border: "1px solid var(--border)",
-                      background: "var(--bg)",
-                      opacity: gp.available ? 1 : 0.5,
-                      transition: "box-shadow 0.15s",
-                    }}
-                  >
-                    <div style={{ fontWeight: 600, fontSize: "0.95rem", marginBottom: 4 }}>{gp.name}</div>
-                    <div style={{ fontSize: "0.8rem", color: "var(--muted)", marginBottom: 12 }}>{gp.description}</div>
-                    {gp.available ? (
-                      <button
-                        className="ui-btn ui-btn-sm ui-btn-primary"
-                        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                        onClick={() => { setSelectedProvider(gp.key); setGatewayFields({}); setGatewayError(""); }}
-                      >
-                        <KeyRound size={14} />
-                        Connect
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: "0.78rem", color: "var(--muted)", fontStyle: "italic" }}>
-                        Coming Soon
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Info about payment flow */}
-          <div style={{ marginTop: 24, padding: "16px 20px", borderRadius: 10, background: "var(--surface)", border: "1px solid var(--border)" }}>
-            <div style={{ fontWeight: 600, fontSize: "0.88rem", marginBottom: 8 }}>How Vendor Payments Work</div>
-            <div style={{ fontSize: "0.82rem", color: "var(--muted)", lineHeight: 1.6 }}>
-              <p style={{ margin: "0 0 6px 0" }}>1. Connect your payment provider above with your API keys.</p>
-              <p style={{ margin: "0 0 6px 0" }}>2. An &ldquo;Online&rdquo; button appears next to each unpaid vendor invoice in the Outstanding tab.</p>
-              <p style={{ margin: "0 0 6px 0" }}>3. Click &ldquo;Online&rdquo; to process payment through your provider. A journal entry is auto-generated.</p>
-              <p style={{ margin: 0 }}>4. You can still record manual payments (check, ACH, wire) using the &ldquo;Pay&rdquo; button.</p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Invoice Detail Modal */}
       {selectedInvoice && (
         <div className="ticket-modal-overlay" onClick={closeDetail}>
@@ -1259,25 +883,6 @@ export default function APClient({
                             <DollarSign size={14} />
                             {t("recordPayment")}
                           </button>
-                          {gatewayStatus?.isActive && (
-                            <button
-                              className="ui-btn ui-btn-sm"
-                              onClick={() => { closeDetail(); handlePayOnline(selectedInvoice); }}
-                              disabled={checkingOut === selectedInvoice.id}
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 4,
-                                background: "var(--color-green)",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: 6,
-                              }}
-                            >
-                              {checkingOut === selectedInvoice.id ? <Loader2 size={14} className="spin" /> : <CreditCard size={14} />}
-                              Pay Online
-                            </button>
-                          )}
                         </>
                       )}
                       <Link
@@ -1439,7 +1044,7 @@ export default function APClient({
                     <option value="wire">Wire Transfer</option>
                     <option value="credit_card">Credit Card</option>
                     <option value="bank_transfer">Bank Transfer</option>
-                    <option value="online">Online Payment</option>
+                    <option value="cash">Cash</option>
                   </select>
                 </div>
                 <div className="vendor-form-field">
