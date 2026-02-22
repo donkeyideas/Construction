@@ -18,6 +18,8 @@ import {
   Phone,
   DollarSign,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import type {
@@ -116,6 +118,24 @@ function getContractBadge(status: string): { label: string; className: string } 
   }
 }
 
+const PAGE_SIZE = 3;
+
+function PaginationControls({ page, setPage, totalItems }: { page: number; setPage: (p: number) => void; totalItems: number }) {
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  if (totalPages <= 1) return null;
+  return (
+    <div className="vendor-pagination">
+      <button disabled={page === 0} onClick={() => setPage(page - 1)}>
+        <ChevronLeft size={14} /> Prev
+      </button>
+      <span className="vendor-pagination-info">{page + 1} of {totalPages}</span>
+      <button disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
+        Next <ChevronRight size={14} />
+      </button>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -175,6 +195,12 @@ export default function VendorDashboardClient({ dashboard }: Props) {
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Pagination state (3 items per page)
+  const [invoicePage, setInvoicePage] = useState(0);
+  const [contractPage, setContractPage] = useState(0);
+  const [complianceDocPage, setComplianceDocPage] = useState(0);
+  const [docPage, setDocPage] = useState(0);
 
   const contactName =
     contact?.company_name ||
@@ -537,7 +563,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {contracts.map((c: VendorContractItem) => {
+                    {contracts.slice(contractPage * PAGE_SIZE, (contractPage + 1) * PAGE_SIZE).map((c: VendorContractItem) => {
                       const badge = getContractBadge(c.status);
                       const remaining = c.amount - (c.amount_paid || 0);
                       return (
@@ -556,6 +582,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                     })}
                   </tbody>
                 </table>
+                <PaginationControls page={contractPage} setPage={setContractPage} totalItems={contracts.length} />
               </div>
             ) : (
               <div className="vendor-empty">No contracts found</div>
@@ -583,7 +610,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentInvoices.map((inv: VendorRecentInvoice) => {
+                    {recentInvoices.slice(invoicePage * PAGE_SIZE, (invoicePage + 1) * PAGE_SIZE).map((inv: VendorRecentInvoice) => {
                       const badge = getStatusBadge(inv.status);
                       return (
                         <tr key={inv.id} className="vendor-row-clickable" onClick={() => openInvoiceDetail(inv)}>
@@ -607,6 +634,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                     })}
                   </tbody>
                 </table>
+                <PaginationControls page={invoicePage} setPage={setInvoicePage} totalItems={recentInvoices.length} />
               </div>
             ) : (
               <div className="vendor-empty">{t("noInvoicesFound")}</div>
@@ -693,29 +721,34 @@ export default function VendorDashboardClient({ dashboard }: Props) {
             )}
 
             {/* Compliance documents uploaded by vendor */}
-            {documents.filter((d: VendorDocumentItem) => d.doc_category === "compliance").length > 0 && (
-              <div style={{ marginTop: certifications.length > 0 ? 12 : 0 }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted, #78716c)", marginBottom: 8 }}>
-                  Uploaded Documents
-                </div>
-                {documents
-                  .filter((d: VendorDocumentItem) => d.doc_category === "compliance")
-                  .map((doc: VendorDocumentItem) => (
-                    <div key={doc.id} className="vendor-doc-item">
-                      <div className="vendor-doc-info">
-                        <div className="vendor-doc-icon"><FileText size={16} /></div>
-                        <div>
-                          <div className="vendor-doc-name">{doc.doc_name}</div>
-                          <div className="vendor-doc-meta">
-                            {doc.file_type || "Document"}
-                            {doc.shared_at && ` · ${new Date(doc.shared_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+            {(() => {
+              const complianceDocs = documents.filter((d: VendorDocumentItem) => d.doc_category === "compliance");
+              if (complianceDocs.length === 0) return null;
+              return (
+                <div style={{ marginTop: certifications.length > 0 ? 12 : 0 }}>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted, #78716c)", marginBottom: 8 }}>
+                    Uploaded Documents
+                  </div>
+                  {complianceDocs
+                    .slice(complianceDocPage * PAGE_SIZE, (complianceDocPage + 1) * PAGE_SIZE)
+                    .map((doc: VendorDocumentItem) => (
+                      <div key={doc.id} className="vendor-doc-item">
+                        <div className="vendor-doc-info">
+                          <div className="vendor-doc-icon"><FileText size={16} /></div>
+                          <div>
+                            <div className="vendor-doc-name">{doc.doc_name}</div>
+                            <div className="vendor-doc-meta">
+                              {doc.file_type || "Document"}
+                              {doc.shared_at && ` · ${new Date(doc.shared_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-              </div>
-            )}
+                    ))}
+                  <PaginationControls page={complianceDocPage} setPage={setComplianceDocPage} totalItems={complianceDocs.length} />
+                </div>
+              );
+            })()}
 
             {certifications.length === 0 && documents.filter((d: VendorDocumentItem) => d.doc_category === "compliance").length === 0 && (
               <div className="vendor-empty">{t("noCertsFound")}</div>
@@ -745,37 +778,40 @@ export default function VendorDashboardClient({ dashboard }: Props) {
             )}
 
             {documents.length > 0 ? (
-              documents.map((doc: VendorDocumentItem) => (
-                <div key={doc.id} className="vendor-doc-item">
-                  <div className="vendor-doc-info">
-                    <div className="vendor-doc-icon">
-                      <FileText size={16} />
-                    </div>
-                    <div>
-                      <div className="vendor-doc-name">{doc.doc_name}</div>
-                      <div className="vendor-doc-meta">
-                        {doc.file_type || "Document"}
-                        {doc.shared_at &&
-                          ` · Shared ${new Date(doc.shared_at).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}`}
+              <>
+                {documents.slice(docPage * PAGE_SIZE, (docPage + 1) * PAGE_SIZE).map((doc: VendorDocumentItem) => (
+                  <div key={doc.id} className="vendor-doc-item">
+                    <div className="vendor-doc-info">
+                      <div className="vendor-doc-icon">
+                        <FileText size={16} />
+                      </div>
+                      <div>
+                        <div className="vendor-doc-name">{doc.doc_name}</div>
+                        <div className="vendor-doc-meta">
+                          {doc.file_type || "Document"}
+                          {doc.shared_at &&
+                            ` · Shared ${new Date(doc.shared_at).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}`}
+                        </div>
                       </div>
                     </div>
+                    {doc.file_path && (
+                      <a
+                        href={doc.file_path}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="vendor-doc-download"
+                      >
+                        Download
+                      </a>
+                    )}
                   </div>
-                  {doc.file_path && (
-                    <a
-                      href={doc.file_path}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="vendor-doc-download"
-                    >
-                      Download
-                    </a>
-                  )}
-                </div>
-              ))
+                ))}
+                <PaginationControls page={docPage} setPage={setDocPage} totalItems={documents.length} />
+              </>
             ) : (
               <div className="vendor-empty">No documents shared yet</div>
             )}

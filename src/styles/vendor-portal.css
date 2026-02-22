@@ -1169,3 +1169,41 @@
 .vendor-data-table tbody tr.vendor-row-clickable:hover {
   background: var(--surface, #f5f0eb);
 }
+
+/* ===== Vendor Pagination ===== */
+.vendor-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 0 4px;
+  border-top: 1px solid var(--border, #d6d3d1);
+  margin-top: 8px;
+}
+.vendor-pagination button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1px solid var(--border, #d6d3d1);
+  border-radius: 6px;
+  background: var(--bg, #ffffff);
+  color: var(--text, #1c1917);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.vendor-pagination button:hover:not(:disabled) {
+  background: var(--surface, #f5f0eb);
+  border-color: var(--amber, #b45309);
+}
+.vendor-pagination button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.vendor-pagination-info {
+  font-size: 0.78rem;
+  color: var(--muted, #78716c);
+  font-weight: 500;
+}
