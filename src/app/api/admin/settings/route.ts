@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { updateCompanySettings } from "@/lib/queries/admin";
+import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
 
 // ---------------------------------------------------------------------------
 // PATCH /api/admin/settings - Update company settings
@@ -77,6 +78,19 @@ export async function PATCH(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    // Audit log (fire-and-forget)
+    const { ipAddress } = extractRequestMeta(request);
+    logAuditEvent({
+      supabase,
+      companyId: userCtx.companyId,
+      userId: userCtx.userId,
+      action: "update_company_settings",
+      entityType: "company",
+      entityId: userCtx.companyId,
+      details: { fields_changed: Object.keys(updatePayload) },
+      ipAddress,
+    });
 
     return NextResponse.json(company);
   } catch (err) {

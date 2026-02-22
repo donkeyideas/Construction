@@ -935,31 +935,6 @@ export async function generateSeoRecommendations(
     });
   }
 
-  // --- GEO recommendations ---
-
-  const geo = geoResult;
-  if (geo.totalProjects === 0 && geo.totalProperties === 0) {
-    recommendations.push({
-      id: String(idx++),
-      severity: "info",
-      category: "geo",
-      title: "No geographic presence data found",
-      description:
-        "There are no projects or properties with city/state data. Consider adding location data to improve local SEO.",
-      actionText:
-        "Add city and state information to projects and properties for local SEO coverage",
-    });
-  } else if (geo.totalStates <= 1) {
-    recommendations.push({
-      id: String(idx++),
-      severity: "info",
-      category: "geo",
-      title: "Limited geographic diversity",
-      description: `All projects and properties are concentrated in ${geo.totalStates} state(s). Consider expanding geographic presence for broader local SEO impact.`,
-      actionText: `Current coverage: ${geo.stateDistribution.map((s) => s.state).join(", ")}. Consider creating location-specific landing pages.`,
-    });
-  }
-
   return recommendations;
 }
 

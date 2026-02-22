@@ -15,18 +15,11 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import type { SecuritySettingsRow } from "@/lib/queries/security";
+import type { AuditLogEntry } from "@/lib/queries/admin";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
-
-interface AuditLogEntry {
-  id: string;
-  created_at: string;
-  action: string;
-  entity_type: string;
-  details: Record<string, string> | null;
-}
 
 interface SessionEntry {
   id: string;
@@ -363,6 +356,7 @@ function AuditPanel({ logs, t, dateLocale }: { logs: AuditLogEntry[]; t: ReturnT
             <thead>
               <tr>
                 <th>{t("date")}</th>
+                <th>{t("user")}</th>
                 <th>{t("action")}</th>
                 <th>{t("entity")}</th>
                 <th>{t("details")}</th>
@@ -372,13 +366,16 @@ function AuditPanel({ logs, t, dateLocale }: { logs: AuditLogEntry[]; t: ReturnT
               {logs.map((log) => (
                 <tr key={log.id}>
                   <td style={{ whiteSpace: "nowrap" }}>{formatDate(log.created_at)}</td>
+                  <td>
+                    {log.user_profile?.full_name || log.user_profile?.email || "System"}
+                  </td>
                   <td style={{ textTransform: "capitalize" }}>
                     {log.action?.replace(/_/g, " ")}
                   </td>
                   <td style={{ textTransform: "capitalize" }}>
-                    {log.entity_type?.replace(/_/g, " ")}
+                    {log.entity_type?.replace(/_/g, " ") || "\u2014"}
                   </td>
-                  <td>{log.details?.name || log.details?.ref || "\u2014"}</td>
+                  <td>{(log.details as Record<string, string>)?.name || (log.details as Record<string, string>)?.ref || "\u2014"}</td>
                 </tr>
               ))}
             </tbody>

@@ -7,7 +7,6 @@ import {
   Settings,
   CreditCard,
   Plug,
-  ScrollText,
   Save,
   Upload,
   Loader2,
@@ -23,9 +22,9 @@ import {
 } from "lucide-react";
 import DataImportTab from "./DataImportTab";
 
-import type { CompanyDetails, AuditLogEntry } from "@/lib/queries/admin";
+import type { CompanyDetails } from "@/lib/queries/admin";
 
-type TabKey = "general" | "subscription" | "integrations" | "data-import" | "audit";
+type TabKey = "general" | "subscription" | "integrations" | "data-import";
 
 const INDUSTRIES = [
   "General Contracting",
@@ -62,31 +61,14 @@ const INTEGRATIONS = [
   { name: "Dropbox Business", desc: "Cloud document storage and plan room sync" },
 ];
 
-function formatAction(action: string): string {
-  return action
-    .split("_")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
-function formatEntity(entityType: string | null): string {
-  if (!entityType) return "--";
-  return entityType
-    .split("_")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
 interface SettingsClientProps {
   company: CompanyDetails;
-  auditLog: AuditLogEntry[];
   memberCount: number;
   currentUserRole: string;
 }
 
 export default function SettingsClient({
   company,
-  auditLog,
   memberCount,
   currentUserRole,
 }: SettingsClientProps) {
@@ -101,7 +83,6 @@ export default function SettingsClient({
     { key: "subscription", label: t("subscription"), icon: <CreditCard size={15} /> },
     { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
     { key: "data-import", label: "Data Import", icon: <Database size={15} /> },
-    { key: "audit", label: t("auditLog"), icon: <ScrollText size={15} /> },
   ];
 
   const PLAN_INFO: Record<string, { label: string; icon: typeof Zap; color: string; features: string[] }> = {
@@ -761,64 +742,6 @@ export default function SettingsClient({
 
         {/* ===== Data Import Tab ===== */}
         {activeTab === "data-import" && <DataImportTab />}
-
-        {/* ===== Audit Log Tab ===== */}
-        {activeTab === "audit" && (
-          <div>
-            {auditLog.length === 0 ? (
-              <div className="admin-empty">
-                <div className="admin-empty-icon">
-                  <ScrollText size={32} />
-                </div>
-                <div className="admin-empty-title">{t("noAuditEntriesYet")}</div>
-                <div className="admin-empty-desc">
-                  {t("activityWillAppearHere")}
-                </div>
-              </div>
-            ) : (
-              <div className="audit-table-wrap">
-                <table className="audit-table">
-                  <thead>
-                    <tr>
-                      <th>{t("action")}</th>
-                      <th>{t("user")}</th>
-                      <th>{t("entity")}</th>
-                      <th>{t("timestamp")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {auditLog.map((entry) => (
-                      <tr key={entry.id}>
-                        <td>
-                          <span className="audit-action">
-                            {formatAction(entry.action)}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="audit-user">
-                            {entry.user_profile?.full_name ||
-                              entry.user_profile?.email ||
-                              t("system")}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="audit-entity">
-                            {formatEntity(entry.entity_type)}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="audit-timestamp">
-                            {formatDateTime(entry.created_at)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -140,7 +140,7 @@ export async function POST(
       action: "create",
       entity_type: "user_account",
       entity_id: userId,
-      new_data: {
+      details: {
         email: member.invited_email,
         role: member.role,
         full_name: fullName || null,

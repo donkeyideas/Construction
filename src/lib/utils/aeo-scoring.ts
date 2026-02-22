@@ -128,7 +128,7 @@ function analyzeSchemaRichness(page: PageData, sections: Section[]): AeoDimensio
   const types = getSectionTypes(sections);
 
   // Base credit for published page with content
-  score += 10;
+  score += 12;
 
   // Structured section types
   if (types.includes("faq")) score += 15;
@@ -189,31 +189,41 @@ function analyzeFaqCoverage(sections: Section[]): AeoDimensionScore {
     };
   }
 
-  // No formal FAQ — give substantial credit for implicit Q&A content
+  // No formal FAQ — generous credit for implicit Q&A content
+
+  // Base credit for having any content
+  score += 15;
 
   // Question patterns in text
   const questionPatterns = fullText.match(/\b(what|how|why|when|where|who|can|does|is it|do I|should)\b[^.?!]*\?/gi) ?? [];
   if (questionPatterns.length >= 3) score += 22;
-  else if (questionPatterns.length >= 1) score += 12;
+  else if (questionPatterns.length >= 1) score += 14;
 
   // Definition/answer patterns (these implicitly answer questions)
-  const defPatterns = fullText.match(/\b(is a|refers to|means|helps you|allows you|enables|provides|designed to|built for|ensures|streamlines|simplifies|manages|tracks|automates)\b/gi) ?? [];
+  const defPatterns = fullText.match(/\b(is a|refers to|means|helps you|allows you|enables|provides|designed to|built for|ensures|streamlines|simplifies|manages|tracks|automates|includes|features|covers|addresses|handles|processes|outlines|describes|explains|details)\b/gi) ?? [];
   if (defPatterns.length >= 6) score += 22;
-  else if (defPatterns.length >= 3) score += 15;
-  else if (defPatterns.length >= 1) score += 8;
+  else if (defPatterns.length >= 3) score += 16;
+  else if (defPatterns.length >= 1) score += 10;
 
-  // Structured sections that serve as implicit Q&A (steps, modules, value_props all implicitly answer "how does it work?" / "what features?")
+  // Structured sections that serve as implicit Q&A
   if (types.includes("steps")) score += 12;
   if (types.includes("modules") || types.includes("modules_grid")) score += 10;
   if (types.includes("value_props")) score += 10;
   if (types.includes("about")) score += 8;
   if (types.includes("pricing")) score += 8;
-  if (types.includes("hero")) score += 5;
+  if (types.includes("hero")) score += 6;
+  if (types.includes("cta")) score += 4;
 
-  // Content with clear headings/titles in sections (each section title acts like a question)
+  // Content with clear headings/titles in sections
   const sectionCount = sections.length;
-  if (sectionCount >= 5) score += 8;
-  else if (sectionCount >= 3) score += 5;
+  if (sectionCount >= 5) score += 10;
+  else if (sectionCount >= 3) score += 6;
+  else if (sectionCount >= 1) score += 3;
+
+  // Content volume — longer content implicitly answers more questions
+  const words = fullText.split(/\s+/).filter(Boolean);
+  if (words.length >= 200) score += 10;
+  else if (words.length >= 50) score += 5;
 
   const details =
     score >= 50
@@ -243,7 +253,7 @@ function analyzeDirectAnswerReadiness(page: PageData, sections: Section[]): AeoD
   }
 
   const legal = isLegalPage(page);
-  const legalPenalty = legal ? 0.45 : 1.0;
+  const legalPenalty = legal ? 0.6 : 1.0;
 
   // Base credit
   score += 8;
@@ -344,9 +354,9 @@ function analyzeEntityMarkup(page: PageData, sections: Section[]): AeoDimensionS
   if (page.meta_title && page.meta_title.length > 15) score += 8;
   if (page.meta_description && page.meta_description.length > 40) score += 8;
 
-  // Legal pages penalty
+  // Legal pages penalty (moderate — legal content still has entities)
   if (isLegalPage(page)) {
-    score = Math.round(score * 0.5);
+    score = Math.round(score * 0.65);
   }
 
   const details =
@@ -438,12 +448,14 @@ function analyzeAiSnippetCompatibility(sections: Section[]): AeoDimensionScore {
   }
 
   // Base credit for having content
-  score += 10;
+  score += 12;
 
   // Has list/bullet content
-  if (types.includes("steps") || types.includes("modules") || types.includes("value_props") || types.includes("modules_grid")) {
-    score += 18;
-  }
+  const listTypes = types.filter((t) =>
+    ["steps", "modules", "value_props", "modules_grid"].includes(t)
+  );
+  if (listTypes.length >= 2) score += 20;
+  else if (listTypes.length >= 1) score += 14;
 
   // Has FAQ
   if (types.includes("faq")) score += 12;
@@ -451,12 +463,18 @@ function analyzeAiSnippetCompatibility(sections: Section[]): AeoDimensionScore {
   // Has about/hero (introductory snippets)
   if (types.includes("about") || types.includes("hero")) score += 8;
 
+  // Has pricing (comparison snippets)
+  if (types.includes("pricing")) score += 6;
+
+  // Has CTA (action snippets)
+  if (types.includes("cta")) score += 4;
+
   // Definition-style content — very broad matching
-  const definitionPatterns = /\b(is a|refers to|means|defined as|known as|is the|helps|enables|allows|provides|designed to|built for|ensures|streamlines|simplifies|manages|automates|tracks|supports|offers)\b/gi;
+  const definitionPatterns = /\b(is a|refers to|means|defined as|known as|is the|helps|enables|allows|provides|designed to|built for|ensures|streamlines|simplifies|manages|automates|tracks|supports|offers|includes|features|covers|handles|delivers|processes|outlines)\b/gi;
   const defMatches = fullText.match(definitionPatterns) ?? [];
   if (defMatches.length >= 5) score += 16;
   else if (defMatches.length >= 2) score += 10;
-  else if (defMatches.length >= 1) score += 5;
+  else if (defMatches.length >= 1) score += 6;
 
   // Numbered or structured lists in text
   const listPatterns = /\b(\d+\.|•|→|step \d|phase \d)/gi;
@@ -471,12 +489,14 @@ function analyzeAiSnippetCompatibility(sections: Section[]): AeoDimensionScore {
     return wc >= 4 && wc <= 25;
   });
   const extractRatio = sentences.length > 0 ? extractable.length / sentences.length : 0;
-  score += Math.round(extractRatio * 15);
+  score += Math.round(extractRatio * 16);
 
   // Content hierarchy
   const uniqueTypes = new Set(types);
-  if (uniqueTypes.size >= 3) score += 10;
+  if (uniqueTypes.size >= 4) score += 12;
+  else if (uniqueTypes.size >= 3) score += 8;
   else if (uniqueTypes.size >= 2) score += 5;
+  else if (uniqueTypes.size >= 1) score += 2;
 
   const details =
     score >= 70

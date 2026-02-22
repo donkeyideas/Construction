@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getCompanyDetails, getAuditLog, getCompanyMembers } from "@/lib/queries/admin";
+import { getCompanyDetails, getCompanyMembers } from "@/lib/queries/admin";
 import SettingsClient from "./SettingsClient";
 
 export const metadata = {
@@ -18,9 +18,8 @@ export default async function AdminSettingsPage() {
 
   const { companyId, role: currentUserRole } = userCompany;
 
-  const [company, auditLog, members] = await Promise.all([
+  const [company, members] = await Promise.all([
     getCompanyDetails(supabase, companyId),
-    getAuditLog(supabase, companyId, 50),
     getCompanyMembers(supabase, companyId),
   ]);
 
@@ -31,7 +30,6 @@ export default async function AdminSettingsPage() {
   return (
     <SettingsClient
       company={company}
-      auditLog={auditLog}
       memberCount={members.filter((m) => m.is_active).length}
       currentUserRole={currentUserRole}
     />

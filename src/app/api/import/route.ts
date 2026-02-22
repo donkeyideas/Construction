@@ -10,6 +10,7 @@ import {
 } from "@/lib/utils/invoice-accounting";
 import { backfillMissingJournalEntries } from "@/lib/utils/backfill-journal-entries";
 import { ensureBankAccountGLLink } from "@/lib/utils/bank-gl-linkage";
+import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
 
 // ---------------------------------------------------------------------------
 // POST /api/import — Generic bulk import endpoint
@@ -1672,6 +1673,18 @@ export async function POST(request: NextRequest) {
         // Non-blocking: don't fail the import if backfill fails
       }
     }
+
+    // Audit log (fire-and-forget)
+    const { ipAddress } = extractRequestMeta(request);
+    logAuditEvent({
+      supabase,
+      companyId,
+      userId,
+      action: "import_data",
+      entityType: entity,
+      details: { total: rows.length, success: successCount, errors: errors.length },
+      ipAddress,
+    });
 
     return NextResponse.json({
       success: successCount,

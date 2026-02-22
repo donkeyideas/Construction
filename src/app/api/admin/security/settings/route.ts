@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getSecuritySettings, upsertSecuritySettings } from "@/lib/queries/security";
+import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
 
 // ---------------------------------------------------------------------------
 // GET /api/admin/security/settings - Get security settings for company
@@ -59,6 +60,18 @@ export async function PATCH(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
     }
+
+    // Audit log (fire-and-forget)
+    const { ipAddress } = extractRequestMeta(request);
+    logAuditEvent({
+      supabase,
+      companyId: userCtx.companyId,
+      userId: userCtx.userId,
+      action: "update_security_settings",
+      entityType: "security_settings",
+      details: { changes: Object.keys(body) },
+      ipAddress,
+    });
 
     return NextResponse.json(settings);
   } catch (err) {

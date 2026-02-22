@@ -37,15 +37,12 @@ import {
   XCircle,
   Copy,
   Check,
-  Plus,
-  X,
   ExternalLink,
   Eye,
   Clock,
   MousePointer,
   Bot,
   Target,
-  FlaskConical,
 } from "lucide-react";
 import type {
   PlatformSeoOverview,
@@ -57,7 +54,6 @@ import type {
   PlatformGeoPresence,
   SeoRecommendation,
   AeoOverview,
-  CroOverview,
   AeoScoresOverview,
   GeoScoresOverview,
 } from "@/lib/queries/super-admin-seo";
@@ -90,7 +86,6 @@ interface Props {
   recommendations: SeoRecommendation[];
   keywords: Keyword[]; // used for future keyword tracking features
   aeoOverview: AeoOverview;
-  croOverview: CroOverview;
   aeoScores: AeoScoresOverview;
   geoScores: GeoScoresOverview;
 }
@@ -178,7 +173,6 @@ export default function SeoClient({
   recommendations,
   keywords,
   aeoOverview,
-  croOverview,
   aeoScores,
   geoScores,
 }: Props) {
@@ -201,15 +195,7 @@ export default function SeoClient({
   const [gscLoading, setGscLoading] = useState(false);
 
   // CRO state
-  const [croSubTab, setCroSubTab] = useState<"funnel" | "performance" | "abtests">("funnel");
-  const [showAddAbTest, setShowAddAbTest] = useState(false);
-  const [croSaving, setCroSaving] = useState(false);
-  const [croFormError, setCroFormError] = useState("");
-  const [croTestName, setCroTestName] = useState("");
-  const [croPageUrl, setCroPageUrl] = useState("");
-  const [croVariantA, setCroVariantA] = useState("Control");
-  const [croVariantB, setCroVariantB] = useState("Variant B");
-  const [croMetricName, setCroMetricName] = useState("Conversion Rate");
+  const [croSubTab, setCroSubTab] = useState<"funnel" | "performance">("funnel");
 
   // CRO funnel data from GA4 (lazy loaded)
   const [croGaData, setCroGaData] = useState<any>(null);
@@ -274,47 +260,6 @@ export default function SeoClient({
     setCopiedId("all");
     setTimeout(() => setCopiedId(null), 2000);
   }, [filteredRecs]);
-
-  /* ── add A/B test handler ── */
-  async function handleAddAbTest(e: React.FormEvent) {
-    e.preventDefault();
-    if (!croTestName.trim()) return;
-
-    setCroSaving(true);
-    setCroFormError("");
-
-    try {
-      const res = await fetch("/api/super-admin/cro", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          test_name: croTestName.trim(),
-          page_url: croPageUrl.trim() || null,
-          variant_a_name: croVariantA.trim() || "Control",
-          variant_b_name: croVariantB.trim() || "Variant B",
-          metric_name: croMetricName.trim() || "Conversion Rate",
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setCroFormError(data.error || "Failed to save");
-        return;
-      }
-
-      setCroTestName("");
-      setCroPageUrl("");
-      setCroVariantA("Control");
-      setCroVariantB("Variant B");
-      setCroMetricName("Conversion Rate");
-      setShowAddAbTest(false);
-      router.refresh();
-    } catch {
-      setCroFormError("Network error");
-    } finally {
-      setCroSaving(false);
-    }
-  }
 
   /* ── derived data ── */
   const sortedRecs = [...filteredRecs].sort((a, b) => {
@@ -449,7 +394,7 @@ export default function SeoClient({
                 </div>
               </div>
 
-              {/* CRO Score */}
+              {/* CRO Card */}
               <div className="sa-card seo-overview-score-card" onClick={() => setActiveTab("cro")} style={{ cursor: "pointer" }}>
                 <div className="seo-overview-score-header">
                   <Target size={16} />
@@ -462,14 +407,11 @@ export default function SeoClient({
                     width: 90, height: 90,
                   }}
                 >
-                  <span className="aeo-score-number" style={{ color: "#3b82f6", fontSize: "1.6rem" }}>
-                    {croOverview.abTests.length}
-                  </span>
-                  <span className="aeo-score-label">tests</span>
+                  <Target size={28} style={{ color: "#3b82f6" }} />
                 </div>
                 <div className="seo-overview-score-meta">
-                  <span>{croOverview.runningCount} running</span>
-                  <span>{croOverview.completedCount} completed</span>
+                  <span>Funnel & Performance</span>
+                  <span>View GA4 data</span>
                 </div>
               </div>
             </div>
@@ -629,7 +571,7 @@ export default function SeoClient({
                                 width: `${Math.min((page.metaTitleLength / 70) * 100, 100)}%`,
                                 backgroundColor: getLengthColor(
                                   page.metaTitleLength,
-                                  50,
+                                  30,
                                   60
                                 ),
                               }}
@@ -1774,12 +1716,6 @@ export default function SeoClient({
               >
                 {t("croPerformance")}
               </button>
-              <button
-                className={`seo-cro-subtab ${croSubTab === "abtests" ? "active" : ""}`}
-                onClick={() => setCroSubTab("abtests")}
-              >
-                {t("croAbTests")}
-              </button>
             </div>
 
             {/* ── Conversion Funnel ── */}
@@ -1907,123 +1843,6 @@ export default function SeoClient({
               </div>
             )}
 
-            {/* ── A/B Tests ── */}
-            {croSubTab === "abtests" && (
-              <>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                  <div className="cro-kpi-row" style={{ marginBottom: 0, flex: 1 }}>
-                    <div className="cro-kpi-item">
-                      <div className="cro-kpi-value" style={{ color: "#3b82f6" }}>
-                        {croOverview.runningCount}
-                      </div>
-                      <div className="cro-kpi-label">{t("croRunningTests")}</div>
-                    </div>
-                    <div className="cro-kpi-item">
-                      <div className="cro-kpi-value" style={{ color: "#22c55e" }}>
-                        {croOverview.completedCount}
-                      </div>
-                      <div className="cro-kpi-label">{t("croCompletedTests")}</div>
-                    </div>
-                  </div>
-                  <button
-                    className="sa-action-btn primary"
-                    style={{ marginLeft: 16 }}
-                    onClick={() => setShowAddAbTest(true)}
-                  >
-                    <Plus size={14} /> {t("croNewTest")}
-                  </button>
-                </div>
-
-                {croOverview.abTests.length === 0 ? (
-                  <div className="sa-empty">
-                    <FlaskConical size={40} style={{ color: "var(--muted)" }} />
-                    <div className="sa-empty-title">{t("croNoTests")}</div>
-                    <div className="sa-empty-desc">{t("croNoTestsDesc")}</div>
-                  </div>
-                ) : (
-                  <div>
-                    {croOverview.abTests.map((test) => {
-                      const rateA =
-                        test.variant_a_visitors > 0
-                          ? ((test.variant_a_conversions / test.variant_a_visitors) * 100).toFixed(1)
-                          : "0.0";
-                      const rateB =
-                        test.variant_b_visitors > 0
-                          ? ((test.variant_b_conversions / test.variant_b_visitors) * 100).toFixed(1)
-                          : "0.0";
-                      const sig = test.statistical_significance ?? 0;
-                      const sigColor =
-                        sig >= 95
-                          ? "#22c55e"
-                          : sig >= 80
-                          ? "#f59e0b"
-                          : "#ef4444";
-
-                      return (
-                        <div key={test.id} className="cro-test-card">
-                          <div className="cro-test-header">
-                            <div className="cro-test-name">{test.test_name}</div>
-                            <div className="cro-test-meta">
-                              {test.page_url && (
-                                <span>{test.page_url}</span>
-                              )}
-                              <span className={`cro-status-badge ${test.status}`}>
-                                {test.status === "running"
-                                  ? t("croRunning")
-                                  : test.status === "completed"
-                                  ? t("croCompleted")
-                                  : t("croPaused")}
-                              </span>
-                              {test.winner && test.winner !== "inconclusive" && (
-                                <span className="sa-badge sa-badge-green">
-                                  {t("croWinner")}: {test.winner === "A" ? test.variant_a_name : test.variant_b_name}
-                                </span>
-                              )}
-                              {test.winner === "inconclusive" && (
-                                <span className="sa-badge sa-badge-amber">
-                                  {t("croInconclusive")}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="cro-test-variants">
-                            <div className={`cro-variant-box ${test.winner === "A" ? "winner" : ""}`}>
-                              <div className="cro-variant-label">{test.variant_a_name}</div>
-                              <div className="cro-variant-rate">{rateA}%</div>
-                              <div className="cro-variant-sample">
-                                {test.variant_a_conversions} / {test.variant_a_visitors} {t("croConversions").toLowerCase()}
-                              </div>
-                            </div>
-                            <div className={`cro-variant-box ${test.winner === "B" ? "winner" : ""}`}>
-                              <div className="cro-variant-label">{test.variant_b_name}</div>
-                              <div className="cro-variant-rate">{rateB}%</div>
-                              <div className="cro-variant-sample">
-                                {test.variant_b_conversions} / {test.variant_b_visitors} {t("croConversions").toLowerCase()}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="cro-significance-wrap">
-                            <div className="cro-significance-label">
-                              <span>{t("croSignificance")}</span>
-                              <span>{sig}%</span>
-                            </div>
-                            <div className="cro-significance-bar">
-                              <div
-                                className="cro-significance-fill"
-                                style={{
-                                  width: `${Math.min(sig, 100)}%`,
-                                  background: sigColor,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
-            )}
           </>
         )}
 
@@ -2131,104 +1950,6 @@ export default function SeoClient({
         )}
       </div>
 
-      {/* ════════════════════════════════════
-         ADD A/B TEST MODAL
-         ════════════════════════════════════ */}
-      {showAddAbTest && (
-        <>
-          <div
-            className="invite-modal-overlay"
-            onClick={() => setShowAddAbTest(false)}
-          />
-          <div className="invite-modal">
-            <button
-              className="invite-modal-close"
-              onClick={() => setShowAddAbTest(false)}
-            >
-              <X size={18} />
-            </button>
-            <div className="invite-modal-title">{t("croAddTestTitle")}</div>
-
-            {croFormError && <div className="invite-error">{croFormError}</div>}
-
-            <form onSubmit={handleAddAbTest}>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("croTestName")}</label>
-                <input
-                  type="text"
-                  className="invite-form-input"
-                  placeholder="e.g., Homepage CTA button color test"
-                  value={croTestName}
-                  onChange={(e) => setCroTestName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("croPageUrl")}</label>
-                <input
-                  type="text"
-                  className="invite-form-input"
-                  placeholder="e.g., /pricing"
-                  value={croPageUrl}
-                  onChange={(e) => setCroPageUrl(e.target.value)}
-                />
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "12px",
-                }}
-              >
-                <div className="invite-form-group">
-                  <label className="invite-form-label">{t("croVariantA")}</label>
-                  <input
-                    type="text"
-                    className="invite-form-input"
-                    value={croVariantA}
-                    onChange={(e) => setCroVariantA(e.target.value)}
-                  />
-                </div>
-                <div className="invite-form-group">
-                  <label className="invite-form-label">{t("croVariantB")}</label>
-                  <input
-                    type="text"
-                    className="invite-form-input"
-                    value={croVariantB}
-                    onChange={(e) => setCroVariantB(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="invite-form-group">
-                <label className="invite-form-label">{t("croMetricName")}</label>
-                <input
-                  type="text"
-                  className="invite-form-input"
-                  placeholder="e.g., Conversion Rate"
-                  value={croMetricName}
-                  onChange={(e) => setCroMetricName(e.target.value)}
-                />
-              </div>
-              <div className="invite-modal-footer">
-                <button
-                  type="button"
-                  className="sa-action-btn"
-                  onClick={() => setShowAddAbTest(false)}
-                >
-                  {t("cancel")}
-                </button>
-                <button
-                  type="submit"
-                  className="sa-action-btn primary"
-                  disabled={croSaving}
-                >
-                  {croSaving ? t("adding") : t("croNewTest")}
-                </button>
-              </div>
-            </form>
-          </div>
-        </>
-      )}
     </>
   );
 }

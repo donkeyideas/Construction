@@ -66,10 +66,23 @@ function LoginFormInner({
       });
 
       if (signInError) {
+        // Track failed login (fire-and-forget)
+        fetch("/api/auth/login-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "failed", email, failureReason: signInError.message }),
+        }).catch(() => {});
         setError(signInError.message);
         setLoading(false);
         return;
       }
+
+      // Track successful login (fire-and-forget)
+      fetch("/api/auth/login-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "success", email }),
+      }).catch(() => {});
 
       const destination = await resolveDestination(data.user.id);
       router.push(destination);

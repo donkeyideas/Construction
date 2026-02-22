@@ -61,8 +61,7 @@ export interface AuditLogEntry {
   action: string;
   entity_type: string | null;
   entity_id: string | null;
-  old_data: Record<string, unknown> | null;
-  new_data: Record<string, unknown> | null;
+  details: Record<string, unknown> | null;
   ip_address: string | null;
   created_at: string;
   user_profile?: {

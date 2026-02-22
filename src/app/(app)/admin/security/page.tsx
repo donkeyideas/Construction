@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getSecuritySettings } from "@/lib/queries/security";
+import { getAuditLog } from "@/lib/queries/admin";
 import SecurityClient from "./SecurityClient";
 
 export const metadata = { title: "Security & Audit - Buildwrk" };
@@ -13,20 +14,15 @@ export default async function SecurityPage() {
 
   const { companyId, role } = userCompany;
 
-  const [settings, auditResult] = await Promise.all([
+  const [settings, auditLogs] = await Promise.all([
     getSecuritySettings(supabase, companyId),
-    supabase
-      .from("audit_log")
-      .select("*")
-      .eq("company_id", companyId)
-      .order("created_at", { ascending: false })
-      .limit(50),
+    getAuditLog(supabase, companyId, 50),
   ]);
 
   return (
     <SecurityClient
       settings={settings}
-      auditLogs={auditResult.data ?? []}
+      auditLogs={auditLogs}
       currentUserRole={role}
     />
   );
