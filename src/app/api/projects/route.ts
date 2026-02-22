@@ -7,6 +7,7 @@ import {
   type ProjectStatus,
 } from "@/lib/queries/projects";
 import { createNotifications } from "@/lib/utils/notifications";
+import { checkPlanLimit, planLimitError } from "@/lib/utils/plan-limits";
 
 // ---------------------------------------------------------------------------
 // GET /api/projects - List projects for the current user's company
@@ -58,6 +59,10 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    // Enforce plan limit on projects
+    const limitCheck = await checkPlanLimit(supabase, userCtx.companyId, "projects");
+    if (!limitCheck.allowed) return planLimitError(limitCheck);
 
     const body = await request.json();
 

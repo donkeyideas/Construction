@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { inviteMember, type MemberRole } from "@/lib/queries/admin";
 import { logAuditEvent } from "@/lib/utils/audit-logger";
+import { checkPlanLimit, planLimitError } from "@/lib/utils/plan-limits";
 
 // ---------------------------------------------------------------------------
 // POST /api/admin/members - Invite a new member to the company
@@ -36,6 +37,10 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    // Enforce plan limit on team members
+    const limitCheck = await checkPlanLimit(supabase, userCtx.companyId, "users");
+    if (!limitCheck.allowed) return planLimitError(limitCheck);
 
     const body = await request.json();
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProperties, createProperty } from "@/lib/queries/properties";
+import { checkPlanLimit, planLimitError } from "@/lib/utils/plan-limits";
 
 export async function GET() {
   try {
@@ -28,6 +29,10 @@ export async function POST(request: NextRequest) {
     if (!ctx) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Enforce plan limit on properties
+    const limitCheck = await checkPlanLimit(supabase, ctx.companyId, "properties");
+    if (!limitCheck.allowed) return planLimitError(limitCheck);
 
     const body = await request.json();
 

@@ -7,6 +7,7 @@ import {
   type DocumentFilters,
 } from "@/lib/queries/documents";
 import { storageUpload } from "@/lib/supabase/storage";
+import { checkPlanLimit, planLimitError } from "@/lib/utils/plan-limits";
 
 /* ------------------------------------------------------------------
    GET /api/documents - List documents for the current company
@@ -63,6 +64,10 @@ export async function POST(request: NextRequest) {
     if (!userCtx) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Enforce plan limit on storage
+    const limitCheck = await checkPlanLimit(supabase, userCtx.companyId, "storage_gb");
+    if (!limitCheck.allowed) return planLimitError(limitCheck);
 
     const contentType = request.headers.get("content-type") ?? "";
 
