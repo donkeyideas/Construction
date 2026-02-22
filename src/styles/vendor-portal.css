@@ -200,6 +200,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
+.vendor-two-col > * {
+  min-width: 0;
+}
 
 /* ===== Cards ===== */
 .vendor-card {
