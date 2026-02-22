@@ -35,7 +35,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--card-bg);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 16px 18px;
@@ -107,7 +107,7 @@
   font-weight: 500;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--card-bg);
+  background: var(--bg);
   color: var(--muted);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -148,7 +148,7 @@
   font-size: 0.82rem;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--card-bg);
+  background: var(--bg);
   color: var(--text);
   width: 220px;
   outline: none;
@@ -172,7 +172,7 @@
   font-weight: 500;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--card-bg);
+  background: var(--bg);
   color: var(--muted);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -214,7 +214,7 @@
 }
 
 .system-map-dashboard {
-  background: var(--card-bg);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
   border-left: 4px solid var(--dashboard-color, var(--border));

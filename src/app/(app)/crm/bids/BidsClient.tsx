@@ -215,12 +215,13 @@ export default function BidsClient({
             alignItems: "center",
             gap: 10,
             padding: "12px 18px",
-            background: "var(--color-amber-light)",
+            background: "color-mix(in srgb, var(--color-amber) 12%, var(--bg))",
             border: "1px solid var(--color-amber)",
             borderRadius: 10,
             marginBottom: 20,
             fontSize: "0.85rem",
             fontWeight: 500,
+            color: "var(--text)",
           }}
         >
           <AlertTriangle size={18} style={{ color: "var(--color-amber)" }} />

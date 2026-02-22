@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Target,
@@ -393,6 +394,9 @@ export default function CRMPipelineClient({
           </p>
         </div>
         <div className="crm-header-actions">
+          <Link href="/crm/bids" className="ui-btn ui-btn-md ui-btn-secondary">
+            {t("bidManagement")}
+          </Link>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
             {t("importCsv")}

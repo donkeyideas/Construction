@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import {
@@ -28,19 +27,6 @@ export default async function CRMPipelinePage() {
   ]);
 
   return (
-    <div>
-      {/* Header with Bid Management Link */}
-      <div className="crm-header">
-        <div style={{ flex: 1 }} />
-        <div className="crm-header-actions">
-          <Link href="/crm/bids" className="ui-btn ui-btn-md ui-btn-secondary">
-            Bid Management
-          </Link>
-        </div>
-      </div>
-
-      {/* Client Component with Interactive Pipeline */}
-      <CRMPipelineClient opportunities={opportunities} summary={summary} />
-    </div>
+    <CRMPipelineClient opportunities={opportunities} summary={summary} />
   );
 }
