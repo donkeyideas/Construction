@@ -101,12 +101,19 @@ export default function RegisterPage() {
     MODULES.filter((m) => m.defaultChecked).map((m) => m.key)
   );
 
-  // Derive module limit from selected plan
+  // Derive module limit from selected plan (use API data, fall back to defaults)
+  const FALLBACK_MAX_MODULES: Record<string, number | null> = {
+    starter: 3,
+    professional: 6,
+    enterprise: null,
+  };
+
   const maxModulesForPlan = (() => {
     const tier = pricingTiers.find(
       (t) => t.name.toLowerCase() === selectedPlan.toLowerCase()
     );
-    return tier?.max_modules ?? null; // null = unlimited
+    if (tier) return tier.max_modules;
+    return FALLBACK_MAX_MODULES[selectedPlan] ?? null;
   })();
 
   const passwordStrength = getPasswordStrength(password);
@@ -192,11 +199,24 @@ export default function RegisterPage() {
 
   function handleStep3Next() {
     setError("");
-    // Trim modules down to max if user changed plan
+    // Always trim modules down to the plan limit when entering step 4
     if (maxModulesForPlan !== null && selectedModules.length > maxModulesForPlan) {
       setSelectedModules((prev) => prev.slice(0, maxModulesForPlan));
     }
     setStep(4);
+  }
+
+  // Also block submit if somehow over limit
+  function validateStep4(): boolean {
+    if (maxModulesForPlan !== null && selectedModules.length > maxModulesForPlan) {
+      setError(`Your plan allows up to ${maxModulesForPlan} modules. Please deselect some.`);
+      return false;
+    }
+    if (selectedModules.length === 0) {
+      setError("Please select at least one module.");
+      return false;
+    }
+    return true;
   }
 
   async function validatePromo() {
@@ -220,6 +240,7 @@ export default function RegisterPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    if (!validateStep4()) return;
     setLoading(true);
 
     try {
@@ -781,17 +802,20 @@ export default function RegisterPage() {
             marginBottom: "8px",
             lineHeight: 1.5,
           }}>
-            Choose the modules you need. You can always change these later.
+            {maxModulesForPlan !== null
+              ? `Your ${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan includes up to ${maxModulesForPlan} modules. Pick the ones that matter most — you can change these later.`
+              : "Choose the modules you need. You can always change these later."
+            }
           </p>
           {maxModulesForPlan !== null && (
             <p style={{
-              fontSize: "0.8rem",
-              color: selectedModules.length >= maxModulesForPlan ? "var(--color-amber)" : "var(--muted)",
+              fontSize: "0.85rem",
+              color: selectedModules.length >= maxModulesForPlan ? "var(--color-amber)" : "var(--color-blue)",
               marginBottom: "20px",
-              fontWeight: 500,
+              fontWeight: 600,
             }}>
               {selectedModules.length} / {maxModulesForPlan} modules selected
-              {selectedModules.length >= maxModulesForPlan && " — upgrade your plan for more"}
+              {selectedModules.length >= maxModulesForPlan && " — limit reached"}
             </p>
           )}
 
