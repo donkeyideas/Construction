@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Settings,
@@ -146,6 +146,22 @@ export default function SettingsClient({
   const [promoInput, setPromoInput] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoMessage, setPromoMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Billing state
+  const [billingMessage, setBillingMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Handle ?success=true redirect from Stripe Checkout
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("success") === "true") {
+      setActiveTab("subscription");
+      setBillingMessage({ type: "success", text: "Subscription activated! Your plan has been upgraded." });
+      router.replace("/admin/settings?tab=subscription", { scroll: false });
+    }
+    if (searchParams.get("tab") === "subscription") {
+      setActiveTab("subscription");
+    }
+  }, [searchParams, router]);
 
   const canEdit = currentUserRole === "owner" || currentUserRole === "admin";
 
@@ -667,20 +683,36 @@ export default function SettingsClient({
               <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>
                 {t("manageSubscriptionDescription")}
               </p>
+              {billingMessage && (
+                <div
+                  className={`settings-form-message ${billingMessage.type}`}
+                  style={{ marginBottom: "16px" }}
+                >
+                  {billingMessage.text}
+                </div>
+              )}
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                 <button
                   className="btn-primary"
                   onClick={async () => {
+                    setBillingMessage(null);
                     try {
                       const res = await fetch("/api/stripe/portal", { method: "POST" });
                       if (res.ok) {
                         const { url } = await res.json();
                         window.open(url, "_blank");
                       } else {
-                        alert(t("stripeBillingPortalNotConfigured"));
+                        const data = await res.json().catch(() => ({}));
+                        setBillingMessage({
+                          type: "error",
+                          text: data.error || t("stripeBillingPortalNotConfigured"),
+                        });
                       }
                     } catch {
-                      alert(t("stripeBillingPortalNotConfiguredShort"));
+                      setBillingMessage({
+                        type: "error",
+                        text: t("stripeBillingPortalNotConfiguredShort"),
+                      });
                     }
                   }}
                 >
@@ -691,6 +723,7 @@ export default function SettingsClient({
                   <button
                     className="btn-secondary"
                     onClick={async () => {
+                      setBillingMessage(null);
                       try {
                         const res = await fetch("/api/stripe/checkout", {
                           method: "POST",
@@ -703,10 +736,17 @@ export default function SettingsClient({
                           const { url } = await res.json();
                           window.open(url, "_blank");
                         } else {
-                          alert(t("stripeCheckoutNotConfigured"));
+                          const data = await res.json().catch(() => ({}));
+                          setBillingMessage({
+                            type: "error",
+                            text: data.error || t("stripeCheckoutNotConfigured"),
+                          });
                         }
                       } catch {
-                        alert(t("stripeCheckoutNotConfiguredShort"));
+                        setBillingMessage({
+                          type: "error",
+                          text: t("stripeCheckoutNotConfiguredShort"),
+                        });
                       }
                     }}
                   >

@@ -19,6 +19,7 @@ import {
   FolderKanban,
   Building2,
   HardDrive,
+  RefreshCw,
 } from "lucide-react";
 
 interface PricingTier {
@@ -32,6 +33,7 @@ interface PricingTier {
   max_projects: number | null;
   max_properties: number | null;
   max_storage_gb: number | null;
+  stripe_product_id: string | null;
   stripe_price_id_monthly: string | null;
   stripe_price_id_annual: string | null;
 }
@@ -41,9 +43,9 @@ interface PricingClientProps {
 }
 
 const DEFAULT_TIERS: PricingTier[] = [
-  { name: "Starter", monthly_price: 99, annual_price: 79, features: ["Up to 10 users", "Up to 5 projects", "Up to 10 properties", "10 GB storage", "Email support"], is_popular: false, max_users: 10, max_projects: 5, max_properties: 10, max_storage_gb: 10, stripe_price_id_monthly: null, stripe_price_id_annual: null },
-  { name: "Professional", monthly_price: 299, annual_price: 249, features: ["Up to 50 users", "Up to 25 projects", "Up to 50 properties", "50 GB storage", "Priority support", "API access", "Automation rules"], is_popular: true, max_users: 50, max_projects: 25, max_properties: 50, max_storage_gb: 50, stripe_price_id_monthly: null, stripe_price_id_annual: null },
-  { name: "Enterprise", monthly_price: 599, annual_price: 499, features: ["Unlimited users", "Unlimited projects", "Unlimited properties", "250 GB storage", "Dedicated support", "SSO & SAML", "Custom integrations", "All 4 portals"], is_popular: false, max_users: null, max_projects: null, max_properties: null, max_storage_gb: 250, stripe_price_id_monthly: null, stripe_price_id_annual: null },
+  { name: "Starter", monthly_price: 99, annual_price: 79, features: ["Up to 10 users", "Up to 5 projects", "Up to 10 properties", "10 GB storage", "Email support"], is_popular: false, max_users: 10, max_projects: 5, max_properties: 10, max_storage_gb: 10, stripe_product_id: null, stripe_price_id_monthly: null, stripe_price_id_annual: null },
+  { name: "Professional", monthly_price: 299, annual_price: 249, features: ["Up to 50 users", "Up to 25 projects", "Up to 50 properties", "50 GB storage", "Priority support", "API access", "Automation rules"], is_popular: true, max_users: 50, max_projects: 25, max_properties: 50, max_storage_gb: 50, stripe_product_id: null, stripe_price_id_monthly: null, stripe_price_id_annual: null },
+  { name: "Enterprise", monthly_price: 599, annual_price: 499, features: ["Unlimited users", "Unlimited projects", "Unlimited properties", "250 GB storage", "Dedicated support", "SSO & SAML", "Custom integrations", "All 4 portals"], is_popular: false, max_users: null, max_projects: null, max_properties: null, max_storage_gb: 250, stripe_product_id: null, stripe_price_id_monthly: null, stripe_price_id_annual: null },
 ];
 
 export default function PricingClient({ initialTiers }: PricingClientProps) {
@@ -60,6 +62,7 @@ export default function PricingClient({ initialTiers }: PricingClientProps) {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [newFeatureInputs, setNewFeatureInputs] = useState<Record<number, string>>({});
   const [expandedTier, setExpandedTier] = useState<number | null>(0);
+  const [syncing, setSyncing] = useState(false);
 
   async function handleSave() {
     setSaving(true);
@@ -87,6 +90,27 @@ export default function PricingClient({ initialTiers }: PricingClientProps) {
     }
   }
 
+  async function handleStripeSync() {
+    setSyncing(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/super-admin/stripe-sync", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.tiers) {
+        setTiers(data.tiers.map((tier: PricingTier & { features: string[] | string }) => ({
+          ...tier, features: Array.isArray(tier.features) ? tier.features : [],
+        })));
+        setMessage({ type: "success", text: "Pricing tiers synced to Stripe. Price IDs have been auto-filled." });
+      } else {
+        setMessage({ type: "error", text: data.error || "Failed to sync with Stripe." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Network error while syncing with Stripe." });
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   function updateTier(index: number, field: string, value: string | number | boolean | null) {
     setTiers((prev) => prev.map((tier, i) => (i === index ? { ...tier, [field]: value } : tier)));
   }
@@ -97,6 +121,7 @@ export default function PricingClient({ initialTiers }: PricingClientProps) {
       name: "New Tier", monthly_price: 0, annual_price: 0, features: [],
       is_popular: false, max_users: null, max_projects: null, max_properties: null,
       max_storage_gb: null, stripe_price_id_monthly: null, stripe_price_id_annual: null,
+      stripe_product_id: null,
     }]);
     setExpandedTier(idx);
   }
@@ -147,6 +172,10 @@ export default function PricingClient({ initialTiers }: PricingClientProps) {
         <div style={{ display: "flex", gap: "8px" }}>
           <button className="sa-action-btn" onClick={addTier}>
             <Plus size={15} /> {t("addTier")}
+          </button>
+          <button className="sa-action-btn" onClick={handleStripeSync} disabled={syncing} title="Create Stripe Products & Prices for all tiers">
+            {syncing ? <Loader2 size={15} className="spin-icon" /> : <RefreshCw size={15} />}
+            {syncing ? "Syncing..." : "Sync to Stripe"}
           </button>
           <button className="sa-action-btn primary" onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 size={15} className="spin-icon" /> : <Save size={15} />}

@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const { data: tier } = await admin
       .from("pricing_tiers")
       .select("stripe_price_id_monthly")
-      .eq("name", plan)
+      .ilike("name", plan)
       .single();
 
     const priceId = tier?.stripe_price_id_monthly
