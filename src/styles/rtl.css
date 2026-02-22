@@ -1,0 +1,138 @@
+/* ===== RTL (Right-to-Left) Overrides for Arabic ===== */
+/* Applied via [dir="rtl"] on <html> element */
+
+/* ── Sidebar: flip from left to right ── */
+[dir="rtl"] .sidebar {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+/* ── Nav links ── */
+[dir="rtl"] .nav-link {
+  text-align: right;
+  border-left: none;
+  border-right: 3px solid transparent;
+  padding: 9px 20px 9px 18px;
+}
+
+[dir="rtl"] .nav-link.active {
+  border-left-color: transparent;
+  border-right-color: var(--color-blue);
+}
+
+[dir="rtl"] .nav-link .label::after {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .nav-badge,
+[dir="rtl"] .nav-import-badge,
+[dir="rtl"] .nav-link .chevron {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .nav-child {
+  padding: 6px 51px 6px 18px;
+}
+
+[dir="rtl"] .nav-child::after {
+  left: auto;
+  right: 51px;
+}
+
+/* ── Topbar ── */
+[dir="rtl"] .topbar {
+  left: 0;
+  right: var(--sidebar-w);
+  transition: right 0.25s ease;
+}
+
+[dir="rtl"] .search-btn kbd {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* ── Main content ── */
+[dir="rtl"] .main {
+  margin-left: 0;
+  margin-right: var(--sidebar-w);
+  transition: margin-right 0.25s;
+}
+
+/* ── Sidebar toggle (mobile) ── */
+[dir="rtl"] .sidebar-toggle {
+  left: auto;
+  right: 12px;
+}
+
+/* ── Notification badge ── */
+[dir="rtl"] .notif-badge {
+  right: auto;
+  left: -4px;
+}
+
+/* ── Search result items ── */
+[dir="rtl"] .search-result-item {
+  text-align: right;
+}
+
+[dir="rtl"] .search-modal-input {
+  text-align: right;
+}
+
+/* ── View all link underline ── */
+[dir="rtl"] .view-all::after {
+  left: auto;
+  right: 0;
+}
+
+/* ── Homepage hero ── */
+[dir="rtl"] .hp-hero {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .hp-nav-links a::after {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .hp-pricing-period {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+[dir="rtl"] .hp-faq-item summary::after {
+  margin-left: 0;
+  margin-right: 16px;
+}
+
+/* ── Theme toggle position ── */
+[dir="rtl"] .hp-theme-toggle {
+  right: auto;
+  left: 24px;
+}
+
+/* ── Responsive: mobile RTL ── */
+@media (max-width: 1023px) {
+  [dir="rtl"] .sidebar {
+    transform: translateX(100%);
+  }
+
+  [dir="rtl"] .sidebar.open {
+    transform: translateX(0);
+  }
+
+  [dir="rtl"] .topbar {
+    right: 0;
+    left: 0;
+    padding-left: 0;
+    padding-right: 56px;
+  }
+
+  [dir="rtl"] .main {
+    margin-right: 0;
+  }
+}
