@@ -45,6 +45,7 @@ export interface VendorCertification {
   cert_name: string;
   cert_type: string | null;
   expiry_date: string | null;
+  created_at: string | null;
 }
 
 export interface VendorContractItem {
@@ -137,7 +138,7 @@ export async function getVendorDashboardFull(
     // All certifications
     supabase
       .from("certifications")
-      .select("id, cert_name, cert_type, expiry_date")
+      .select("id, cert_name, cert_type, expiry_date, created_at")
       .eq("contact_id", contact.id)
       .order("expiry_date", { ascending: true }),
     // Outstanding invoices for stats
@@ -202,6 +203,7 @@ export async function getVendorDashboardFull(
     cert_name: (c.cert_name as string) ?? "Unnamed",
     cert_type: (c.cert_type as string) ?? null,
     expiry_date: (c.expiry_date as string) ?? null,
+    created_at: (c.created_at as string) ?? null,
   }));
 
   // Build all contracts list with amount_paid from invoices

@@ -168,23 +168,7 @@ function isPreviewableImage(fileType: string | null): boolean {
 export default function VendorDashboardClient({ dashboard }: Props) {
   const t = useTranslations("vendor");
   const router = useRouter();
-  const { contact, activeProjects, recentInvoices, certifications: rawCertifications, contracts, documents, stats } = dashboard;
-
-  // Merge compliance documents (uploaded before cert tracking) into certifications list
-  // Documents that already have a matching certification (by name) are not duplicated
-  const certifications: VendorCertification[] = (() => {
-    const complianceDocs = documents.filter((d: VendorDocumentItem) => d.doc_category === "compliance");
-    const certNames = new Set(rawCertifications.map((c: VendorCertification) => c.cert_name.toLowerCase()));
-    const virtualCerts: VendorCertification[] = complianceDocs
-      .filter((d: VendorDocumentItem) => !certNames.has(d.doc_name.toLowerCase()))
-      .map((d: VendorDocumentItem) => ({
-        id: `doc-${d.id}`,
-        cert_name: d.doc_name,
-        cert_type: null,
-        expiry_date: null, // shows as "On File" with green dot
-      }));
-    return [...rawCertifications, ...virtualCerts];
-  })();
+  const { contact, activeProjects, recentInvoices, certifications, contracts, documents, stats } = dashboard;
 
   // Invoice submission form state
   const [invoiceProjectId, setInvoiceProjectId] = useState("");
@@ -776,7 +760,13 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                                 day: "numeric",
                                 year: "numeric",
                               })}`
-                            : "On File"}
+                            : cert.created_at
+                              ? `Submitted: ${new Date(cert.created_at).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}`
+                              : "On File"}
                         </div>
                       </div>
                       <div className="vendor-compliance-status">
@@ -819,38 +809,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
               </>
             )}
 
-            {/* Compliance documents uploaded by vendor */}
-            {(() => {
-              const complianceDocs = documents.filter((d: VendorDocumentItem) => d.doc_category === "compliance");
-              if (complianceDocs.length === 0) return null;
-              return (
-                <div style={{ marginTop: certifications.length > 0 ? 12 : 0 }}>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted, #78716c)", marginBottom: 8 }}>
-                    Uploaded Documents
-                  </div>
-                  {complianceDocs
-                    .slice(complianceDocPage * PAGE_SIZE, (complianceDocPage + 1) * PAGE_SIZE)
-                    .map((doc: VendorDocumentItem) => (
-                      <div key={doc.id} className="vendor-doc-item vendor-doc-clickable" onClick={() => openDocPreview(doc)} onMouseEnter={() => prefetchDocUrl(doc)}>
-                        <div className="vendor-doc-info">
-                          <div className="vendor-doc-icon"><FileText size={16} /></div>
-                          <div>
-                            <div className="vendor-doc-name">{doc.doc_name}</div>
-                            <div className="vendor-doc-meta">
-                              {doc.file_type || "Document"}
-                              {doc.shared_at && ` · ${new Date(doc.shared_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
-                            </div>
-                          </div>
-                        </div>
-                        <Eye size={14} className="vendor-doc-view-icon" />
-                      </div>
-                    ))}
-                  <PaginationControls page={complianceDocPage} setPage={setComplianceDocPage} totalItems={complianceDocs.length} />
-                </div>
-              );
-            })()}
-
-            {certifications.length === 0 && documents.filter((d: VendorDocumentItem) => d.doc_category === "compliance").length === 0 && (
+            {certifications.length === 0 && (
               <div className="vendor-empty">{t("noCertsFound")}</div>
             )}
           </div>
