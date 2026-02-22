@@ -87,18 +87,28 @@ export async function POST() {
         metadata: { tier_id: tier.id, billing: "annual" },
       });
 
-      // 4. Save IDs to DB
-      const { error: updateError } = await admin
+      // 4. Save IDs to DB (update price IDs first, then product ID separately
+      //    in case stripe_product_id column doesn't exist yet)
+      const { error: priceUpdateError } = await admin
         .from("pricing_tiers")
         .update({
-          stripe_product_id: productId,
           stripe_price_id_monthly: monthlyPrice.id,
           stripe_price_id_annual: annualPrice.id,
         })
         .eq("id", tier.id);
 
-      if (updateError) {
-        console.error(`Failed to update tier ${tier.name}:`, updateError);
+      if (priceUpdateError) {
+        console.error(`Failed to update price IDs for tier ${tier.name}:`, priceUpdateError);
+      }
+
+      // Try saving product ID separately (column may not exist in older schemas)
+      const { error: productUpdateError } = await admin
+        .from("pricing_tiers")
+        .update({ stripe_product_id: productId })
+        .eq("id", tier.id);
+
+      if (productUpdateError) {
+        console.error(`Failed to update product ID for tier ${tier.name}:`, productUpdateError);
       }
 
       syncedTiers.push({

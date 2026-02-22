@@ -32,13 +32,43 @@ export async function POST(request: NextRequest) {
     const admin = createAdminClient();
     const { data: tier } = await admin
       .from("pricing_tiers")
-      .select("stripe_price_id_monthly")
+      .select("id, name, monthly_price, stripe_price_id_monthly, stripe_product_id")
       .ilike("name", plan)
       .single();
 
-    const priceId = tier?.stripe_price_id_monthly
+    let priceId = tier?.stripe_price_id_monthly
       || (plan === "professional" ? process.env.STRIPE_PRICE_PROFESSIONAL : undefined)
       || (plan === "enterprise" ? process.env.STRIPE_PRICE_ENTERPRISE : undefined);
+
+    // Auto-create Stripe Product + Price if tier exists but price ID is missing
+    if (!priceId && tier && tier.monthly_price > 0) {
+      let productId = tier.stripe_product_id;
+
+      if (!productId) {
+        const product = await stripe.products.create({
+          name: `Buildwrk ${tier.name}`,
+          metadata: { tier_id: tier.id, plan: plan.toLowerCase() },
+        });
+        productId = product.id;
+      }
+
+      const newPrice = await stripe.prices.create({
+        product: productId,
+        unit_amount: Math.round(tier.monthly_price * 100),
+        currency: "usd",
+        recurring: { interval: "month" },
+        metadata: { tier_id: tier.id, billing: "monthly" },
+      });
+
+      priceId = newPrice.id;
+
+      // Persist back to DB (best-effort, ignore errors from missing columns)
+      admin
+        .from("pricing_tiers")
+        .update({ stripe_price_id_monthly: newPrice.id, stripe_product_id: productId })
+        .eq("id", tier.id)
+        .then(() => {});
+    }
 
     if (!priceId) {
       return NextResponse.json(
