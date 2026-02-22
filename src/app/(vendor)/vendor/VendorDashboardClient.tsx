@@ -634,7 +634,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
               </div>
             )}
 
-            {certifications.length > 0 ? (
+            {certifications.length > 0 && (
               <>
                 {certifications.map((cert: VendorCertification) => {
                   const status = getCertStatus(cert.expiry_date);
@@ -690,7 +690,34 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                   })}
                 </div>
               </>
-            ) : (
+            )}
+
+            {/* Compliance documents uploaded by vendor */}
+            {documents.filter((d: VendorDocumentItem) => d.doc_category === "compliance").length > 0 && (
+              <div style={{ marginTop: certifications.length > 0 ? 12 : 0 }}>
+                <div style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--muted, #78716c)", marginBottom: 8 }}>
+                  Uploaded Documents
+                </div>
+                {documents
+                  .filter((d: VendorDocumentItem) => d.doc_category === "compliance")
+                  .map((doc: VendorDocumentItem) => (
+                    <div key={doc.id} className="vendor-doc-item">
+                      <div className="vendor-doc-info">
+                        <div className="vendor-doc-icon"><FileText size={16} /></div>
+                        <div>
+                          <div className="vendor-doc-name">{doc.doc_name}</div>
+                          <div className="vendor-doc-meta">
+                            {doc.file_type || "Document"}
+                            {doc.shared_at && ` · ${new Date(doc.shared_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {certifications.length === 0 && documents.filter((d: VendorDocumentItem) => d.doc_category === "compliance").length === 0 && (
               <div className="vendor-empty">{t("noCertsFound")}</div>
             )}
           </div>
