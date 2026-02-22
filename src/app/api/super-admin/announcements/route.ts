@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isPlatformAdmin } from "@/lib/queries/super-admin";
 import { NextResponse } from "next/server";
+import { createPlatformNotifications } from "@/lib/utils/notifications";
 
 export async function POST(request: Request) {
   try {
@@ -48,6 +49,16 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    // Notify all users across all companies about the new announcement
+    try {
+      await createPlatformNotifications({
+        actorUserId: user?.id || "",
+        title: `Announcement: ${title}`,
+        message: content.length > 200 ? content.slice(0, 200) + "..." : content,
+        entityType: "announcement",
+      });
+    } catch (e) { console.warn("Platform notification failed:", e); }
 
     return NextResponse.json(
       { message: "Announcement created." },
