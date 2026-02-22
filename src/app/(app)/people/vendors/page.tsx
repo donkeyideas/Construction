@@ -25,8 +25,8 @@ export default async function VendorsPage() {
 
   const { companyId } = userCompany;
 
-  // Fetch vendor contacts, vendor contracts, projects, payable invoices, payment history, and vendor summary in parallel
-  const [{ data: contacts }, { data: contracts }, { data: projects }, { data: payableInvoices }, paymentHistory, vendorSummary, bankAccounts] = await Promise.all([
+  // Fetch vendor contacts, vendor contracts, projects, payable invoices, payment history, vendor summary, bank accounts, and expense accounts in parallel
+  const [{ data: contacts }, { data: contracts }, { data: projects }, { data: payableInvoices }, paymentHistory, vendorSummary, bankAccounts, { data: expenseAccounts }] = await Promise.all([
     supabase
       .from("contacts")
       .select("*")
@@ -55,6 +55,13 @@ export default async function VendorsPage() {
     getAPPaymentHistory(supabase, companyId),
     getAPVendorSummary(supabase, companyId),
     getBankAccounts(supabase, companyId),
+    supabase
+      .from("chart_of_accounts")
+      .select("id, account_number, name, account_type")
+      .eq("company_id", companyId)
+      .in("account_type", ["expense", "cost_of_goods_sold"])
+      .eq("is_active", true)
+      .order("account_number"),
   ]);
 
   return (
@@ -83,6 +90,12 @@ export default async function VendorsPage() {
           account_type: ba.account_type,
           account_number_last4: ba.account_number_last4,
           is_default: ba.is_default,
+        }))}
+        expenseAccounts={(expenseAccounts ?? []).map((a: Record<string, unknown>) => ({
+          id: a.id as string,
+          account_number: a.account_number as string,
+          name: a.name as string,
+          account_type: a.account_type as string,
         }))}
       />
     </div>

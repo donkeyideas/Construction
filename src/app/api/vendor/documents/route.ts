@@ -83,6 +83,21 @@ export async function POST(request: NextRequest) {
       `${contact.first_name || ""} ${contact.last_name || ""}`.trim() ||
       "Vendor";
 
+    // Ensure vendor user has a user_profiles entry (documents.uploaded_by has FK to user_profiles)
+    const { data: existingProfile } = await admin
+      .from("user_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (!existingProfile) {
+      await admin.from("user_profiles").insert({
+        id: user.id,
+        email: user.email ?? "",
+        full_name: `${contact.first_name || ""} ${contact.last_name || ""}`.trim() || vendorName,
+      });
+    }
+
     // Insert into documents table (visible in admin Documents library)
     // Use valid category ("correspondence") and folder_path for sidebar grouping
     const { data: doc, error: docError } = await admin
@@ -114,6 +129,7 @@ export async function POST(request: NextRequest) {
 
     // Link document to vendor contact (vendor_documents table)
     await admin.from("vendor_documents").insert({
+      company_id: contact.company_id,
       vendor_contact_id: contact.id,
       document_id: doc.id,
       shared_at: new Date().toISOString(),

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { recordPayment, getPayments } from "@/lib/queries/financial";
 import type { PaymentCreateData } from "@/lib/queries/financial";
-import { buildCompanyAccountMap, generatePaymentJournalEntry } from "@/lib/utils/invoice-accounting";
+import { buildCompanyAccountMap, generatePaymentJournalEntry, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
 
 export async function GET(request: NextRequest) {
   try {
@@ -88,16 +88,48 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to record payment" }, { status: 500 });
     }
 
-    // Auto-generate journal entry for the payment (non-blocking)
+    // Auto-generate journal entries for the payment (non-blocking)
     try {
       const { data: invoice } = await supabase
         .from("invoices")
-        .select("id, invoice_number, invoice_type, project_id, vendor_name, client_name")
+        .select("id, invoice_number, invoice_type, total_amount, subtotal, tax_amount, invoice_date, status, project_id, property_id, vendor_name, client_name, gl_account_id, retainage_pct, retainage_held")
         .eq("id", data.invoice_id)
         .single();
 
       if (invoice) {
         const accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
+
+        // If admin selected a GL account during payment, update the invoice
+        const glAccountId = body.gl_account_id || null;
+        if (glAccountId && !invoice.gl_account_id) {
+          await supabase
+            .from("invoices")
+            .update({ gl_account_id: glAccountId })
+            .eq("id", invoice.id);
+          invoice.gl_account_id = glAccountId;
+        }
+
+        // Ensure invoice JE exists (DR Expense/CR AP for payable, DR AR/CR Revenue for receivable)
+        // Without this, the expense never hits the P&L
+        const { data: existingInvJE } = await supabase
+          .from("journal_entries")
+          .select("id")
+          .eq("company_id", userCompany.companyId)
+          .eq("reference", `invoice:${invoice.id}`)
+          .limit(1)
+          .single();
+
+        if (!existingInvJE && invoice.gl_account_id) {
+          await generateInvoiceJournalEntry(
+            supabase,
+            userCompany.companyId,
+            userCompany.userId,
+            invoice,
+            accountMap
+          );
+        }
+
+        // Generate payment JE (DR AP/CR Cash for payable, DR Cash/CR AR for receivable)
         await generatePaymentJournalEntry(
           supabase,
           userCompany.companyId,

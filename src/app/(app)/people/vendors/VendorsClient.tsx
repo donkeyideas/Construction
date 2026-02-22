@@ -123,6 +123,13 @@ interface BankAccountOption {
   is_default: boolean;
 }
 
+interface ExpenseAccountOption {
+  id: string;
+  account_number: string;
+  name: string;
+  account_type: string;
+}
+
 export default function VendorsClient({
   contacts,
   contracts,
@@ -131,6 +138,7 @@ export default function VendorsClient({
   paymentHistory = [],
   vendorSummary = [],
   bankAccounts = [],
+  expenseAccounts = [],
 }: {
   contacts: Contact[];
   contracts: VendorContract[];
@@ -139,6 +147,7 @@ export default function VendorsClient({
   paymentHistory?: APPaymentRow[];
   vendorSummary?: VendorPaymentSummary[];
   bankAccounts?: BankAccountOption[];
+  expenseAccounts?: ExpenseAccountOption[];
 }) {
   const router = useRouter();
   const t = useTranslations("people");
@@ -202,6 +211,7 @@ export default function VendorsClient({
   const [vendorPayData, setVendorPayData] = useState({
     amount: "",
     bank_account_id: defaultBankId,
+    gl_account_id: "",
     method: "check",
     reference_number: "",
     payment_date: new Date().toISOString().split("T")[0],
@@ -215,6 +225,7 @@ export default function VendorsClient({
     setVendorPayData({
       amount: String(inv.balance_due || inv.total_amount),
       bank_account_id: defaultBankId,
+      gl_account_id: "",
       method: "check",
       reference_number: "",
       payment_date: new Date().toISOString().split("T")[0],
@@ -238,6 +249,7 @@ export default function VendorsClient({
           amount: parseFloat(vendorPayData.amount),
           method: vendorPayData.method,
           bank_account_id: vendorPayData.bank_account_id || null,
+          gl_account_id: vendorPayData.gl_account_id || null,
           reference_number: vendorPayData.reference_number || null,
           notes: vendorPayData.notes || null,
         }),
@@ -1015,6 +1027,21 @@ export default function VendorsClient({
                     {bankAccounts.map((ba) => (
                       <option key={ba.id} value={ba.id}>
                         {ba.name} — {ba.bank_name}{ba.account_number_last4 ? ` (••${ba.account_number_last4})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="vendor-form-field">
+                  <label>Expense Account</label>
+                  <select
+                    className="ui-input"
+                    value={vendorPayData.gl_account_id}
+                    onChange={(e) => setVendorPayData({ ...vendorPayData, gl_account_id: e.target.value })}
+                  >
+                    <option value="">— Select GL Account —</option>
+                    {(expenseAccounts ?? []).map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.account_number} — {a.name}
                       </option>
                     ))}
                   </select>
