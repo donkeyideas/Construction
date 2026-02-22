@@ -4,6 +4,7 @@ import { FileText, ArrowLeft, Printer, Download, BookOpen, AlertCircle } from "l
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById } from "@/lib/queries/financial";
+import { getBankAccounts } from "@/lib/queries/banking";
 import { formatCurrency } from "@/lib/utils/format";
 import { findLinkedJournalEntries } from "@/lib/utils/je-linkage";
 import type { LineItem, PaymentRow } from "@/lib/queries/financial";
@@ -46,7 +47,10 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
     );
   }
 
-  const invoice = await getInvoiceById(supabase, id);
+  const [invoice, bankAccounts] = await Promise.all([
+    getInvoiceById(supabase, id),
+    getBankAccounts(supabase, userCompany.companyId),
+  ]);
 
   if (!invoice) {
     notFound();
@@ -131,6 +135,13 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             invoiceId={id}
             balanceDue={Number(invoice.balance_due) || 0}
             invoiceType={invoice.invoice_type}
+            bankAccounts={bankAccounts.map((ba) => ({
+              id: ba.id,
+              name: ba.name,
+              bank_name: ba.bank_name,
+              account_number_last4: ba.account_number_last4,
+              is_default: ba.is_default,
+            }))}
           />
           <button className="ui-btn ui-btn-outline ui-btn-md" type="button">
             <Printer size={16} />

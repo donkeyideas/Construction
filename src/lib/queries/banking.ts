@@ -14,6 +14,7 @@ export interface BankAccountRow {
   routing_number_last4: string | null;
   current_balance: number;
   is_default: boolean;
+  gl_account_id: string | null;
   created_at: string;
   updated_at?: string;
 }

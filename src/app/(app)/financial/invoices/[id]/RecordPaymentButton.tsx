@@ -4,16 +4,26 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DollarSign, X, Loader2 } from "lucide-react";
 
+interface BankAccountOption {
+  id: string;
+  name: string;
+  bank_name: string;
+  account_number_last4: string | null;
+  is_default: boolean;
+}
+
 interface RecordPaymentButtonProps {
   invoiceId: string;
   balanceDue: number;
   invoiceType: string;
+  bankAccounts?: BankAccountOption[];
 }
 
 export default function RecordPaymentButton({
   invoiceId,
   balanceDue,
   invoiceType,
+  bankAccounts = [],
 }: RecordPaymentButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -22,8 +32,10 @@ export default function RecordPaymentButton({
 
   const today = new Date().toISOString().split("T")[0];
 
+  const defaultBankId = bankAccounts.find((b) => b.is_default)?.id || bankAccounts[0]?.id || "";
   const [amount, setAmount] = useState(balanceDue);
   const [paymentDate, setPaymentDate] = useState(today);
+  const [bankAccountId, setBankAccountId] = useState(defaultBankId);
   const [method, setMethod] = useState("Check");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [notes, setNotes] = useState("");
@@ -35,6 +47,7 @@ export default function RecordPaymentButton({
   function handleOpen() {
     setAmount(balanceDue);
     setPaymentDate(today);
+    setBankAccountId(defaultBankId);
     setMethod("Check");
     setReferenceNumber("");
     setNotes("");
@@ -74,6 +87,7 @@ export default function RecordPaymentButton({
           payment_date: paymentDate,
           amount,
           method,
+          bank_account_id: bankAccountId || undefined,
           reference_number: referenceNumber || undefined,
           notes: notes || undefined,
         }),
@@ -280,6 +294,27 @@ export default function RecordPaymentButton({
                     style={inputStyle}
                   />
                 </div>
+
+                {/* Bank Account */}
+                {bankAccounts.length > 0 && (
+                  <div>
+                    <label style={labelStyle}>
+                      Bank Account <span style={{ color: "var(--color-red)" }}>*</span>
+                    </label>
+                    <select
+                      value={bankAccountId}
+                      onChange={(e) => setBankAccountId(e.target.value)}
+                      required
+                      style={{ ...inputStyle, cursor: "pointer" }}
+                    >
+                      {bankAccounts.map((ba) => (
+                        <option key={ba.id} value={ba.id}>
+                          {ba.name} — {ba.bank_name}{ba.account_number_last4 ? ` (••${ba.account_number_last4})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Method */}
                 <div>

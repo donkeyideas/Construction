@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getBankAccounts, createBankAccount } from "@/lib/queries/financial";
 import type { BankAccountCreateData } from "@/lib/queries/financial";
+import { ensureBankAccountGLLink } from "@/lib/utils/bank-gl-linkage";
 
 export async function GET() {
   try {
@@ -53,6 +54,21 @@ export async function POST(request: NextRequest) {
 
     if (!result) {
       return NextResponse.json({ error: "Failed to create bank account" }, { status: 500 });
+    }
+
+    // Auto-link to GL account (find or create)
+    try {
+      await ensureBankAccountGLLink(
+        supabase,
+        userCompany.companyId,
+        result.id,
+        data.name,
+        data.account_type,
+        data.current_balance,
+        userCompany.userId
+      );
+    } catch (linkErr) {
+      console.error("GL linkage warning (bank account created OK):", linkErr);
     }
 
     return NextResponse.json({ id: result.id }, { status: 201 });

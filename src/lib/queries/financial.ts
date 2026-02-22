@@ -1733,6 +1733,7 @@ export interface BankAccountRow {
   account_type: string;
   current_balance: number;
   is_default: boolean;
+  gl_account_id: string | null;
   created_at: string;
 }
 
@@ -1744,6 +1745,7 @@ export interface BankAccountCreateData {
   account_type: string;
   current_balance: number;
   is_default?: boolean;
+  gl_account_id?: string;
 }
 
 export async function getBankAccounts(

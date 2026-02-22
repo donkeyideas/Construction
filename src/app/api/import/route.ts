@@ -9,6 +9,7 @@ import {
   inferGLAccountFromDescription,
 } from "@/lib/utils/invoice-accounting";
 import { backfillMissingJournalEntries } from "@/lib/utils/backfill-journal-entries";
+import { ensureBankAccountGLLink } from "@/lib/utils/bank-gl-linkage";
 
 // ---------------------------------------------------------------------------
 // POST /api/import — Generic bulk import endpoint
@@ -764,19 +765,30 @@ export async function POST(request: NextRequest) {
       case "bank_accounts": {
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
-          const { error } = await supabase.from("bank_accounts").insert({
+          const balance = r.current_balance ? parseFloat(r.current_balance) : 0;
+          const { data: inserted, error } = await supabase.from("bank_accounts").insert({
             company_id: companyId,
             name: r.name || "",
             bank_name: r.bank_name || "",
             account_type: r.account_type || "checking",
             account_number_last4: r.account_number_last4 || "",
             routing_number_last4: r.routing_number_last4 || "",
-            current_balance: r.current_balance ? parseFloat(r.current_balance) : 0,
-          });
+            current_balance: balance,
+          }).select("id").single();
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
           } else {
             successCount++;
+            // Auto-link to GL account
+            try {
+              await ensureBankAccountGLLink(
+                supabase, companyId, inserted.id,
+                r.name || "", r.account_type || "checking",
+                balance, userId
+              );
+            } catch (linkErr) {
+              console.error(`GL linkage warning for bank "${r.name}":`, linkErr);
+            }
           }
         }
         break;

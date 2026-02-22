@@ -392,6 +392,7 @@ export async function generatePaymentJournalEntry(
     amount: number;
     payment_date: string;
     method: string;
+    bank_account_id?: string;
   },
   invoice: {
     id: string;
@@ -407,13 +408,26 @@ export async function generatePaymentJournalEntry(
 
   if (!accountMap.cashId) return null;
 
+  // Resolve bank-specific GL account when a bank_account_id is provided
+  let cashGlAccountId = accountMap.cashId;
+  if (payment.bank_account_id) {
+    const { data: bankRow } = await supabase
+      .from("bank_accounts")
+      .select("gl_account_id")
+      .eq("id", payment.bank_account_id)
+      .single();
+    if (bankRow?.gl_account_id) {
+      cashGlAccountId = bankRow.gl_account_id;
+    }
+  }
+
   let debitAccountId: string;
   let creditAccountId: string;
   let description: string;
 
   if (invoice.invoice_type === "receivable") {
     if (!accountMap.arId) return null;
-    debitAccountId = accountMap.cashId;
+    debitAccountId = cashGlAccountId;
     creditAccountId = accountMap.arId;
     description = `Payment on ${invoice.invoice_number}` +
       (invoice.client_name ? ` from ${invoice.client_name}` : "") +
@@ -421,7 +435,7 @@ export async function generatePaymentJournalEntry(
   } else {
     if (!accountMap.apId) return null;
     debitAccountId = accountMap.apId;
-    creditAccountId = accountMap.cashId;
+    creditAccountId = cashGlAccountId;
     description = `Payment on ${invoice.invoice_number}` +
       (invoice.vendor_name ? ` to ${invoice.vendor_name}` : "") +
       ` (${payment.method})`;

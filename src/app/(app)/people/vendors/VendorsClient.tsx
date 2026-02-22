@@ -114,6 +114,15 @@ const EMPTY_CONTRACT_FORM = {
   insurance_expiry: "",
 };
 
+interface BankAccountOption {
+  id: string;
+  name: string;
+  bank_name: string;
+  account_type: string;
+  account_number_last4: string | null;
+  is_default: boolean;
+}
+
 export default function VendorsClient({
   contacts,
   contracts,
@@ -121,6 +130,7 @@ export default function VendorsClient({
   payableInvoices = [],
   paymentHistory = [],
   vendorSummary = [],
+  bankAccounts = [],
 }: {
   contacts: Contact[];
   contracts: VendorContract[];
@@ -128,6 +138,7 @@ export default function VendorsClient({
   payableInvoices?: PayableInvoice[];
   paymentHistory?: APPaymentRow[];
   vendorSummary?: VendorPaymentSummary[];
+  bankAccounts?: BankAccountOption[];
 }) {
   const router = useRouter();
   const t = useTranslations("people");
@@ -187,8 +198,10 @@ export default function VendorsClient({
   // Vendor payment state (record manual payment)
   const [showVendorPayModal, setShowVendorPayModal] = useState(false);
   const [vendorPayInvoice, setVendorPayInvoice] = useState<PayableInvoice | null>(null);
+  const defaultBankId = bankAccounts.find((b) => b.is_default)?.id || bankAccounts[0]?.id || "";
   const [vendorPayData, setVendorPayData] = useState({
     amount: "",
+    bank_account_id: defaultBankId,
     method: "check",
     reference_number: "",
     payment_date: new Date().toISOString().split("T")[0],
@@ -201,6 +214,7 @@ export default function VendorsClient({
     setVendorPayInvoice(inv);
     setVendorPayData({
       amount: String(inv.balance_due || inv.total_amount),
+      bank_account_id: defaultBankId,
       method: "check",
       reference_number: "",
       payment_date: new Date().toISOString().split("T")[0],
@@ -223,6 +237,7 @@ export default function VendorsClient({
           payment_date: vendorPayData.payment_date,
           amount: parseFloat(vendorPayData.amount),
           method: vendorPayData.method,
+          bank_account_id: vendorPayData.bank_account_id || undefined,
           reference_number: vendorPayData.reference_number || undefined,
           notes: vendorPayData.notes || undefined,
         }),
@@ -990,6 +1005,21 @@ export default function VendorsClient({
                   />
                 </div>
                 <div className="vendor-form-field">
+                  <label>Bank Account</label>
+                  <select
+                    className="ui-input"
+                    value={vendorPayData.bank_account_id}
+                    onChange={(e) => setVendorPayData({ ...vendorPayData, bank_account_id: e.target.value })}
+                  >
+                    {bankAccounts.length === 0 && <option value="">No bank accounts</option>}
+                    {bankAccounts.map((ba) => (
+                      <option key={ba.id} value={ba.id}>
+                        {ba.name} — {ba.bank_name}{ba.account_number_last4 ? ` (••${ba.account_number_last4})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="vendor-form-field">
                   <label>Method</label>
                   <select
                     className="ui-input"
@@ -1000,7 +1030,6 @@ export default function VendorsClient({
                     <option value="ach">ACH</option>
                     <option value="wire">Wire Transfer</option>
                     <option value="credit_card">Credit Card</option>
-                    <option value="bank_transfer">Bank Transfer</option>
                     <option value="cash">Cash</option>
                   </select>
                 </div>

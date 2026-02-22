@@ -2,6 +2,7 @@ import { Truck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAPPaymentHistory, getAPVendorSummary } from "@/lib/queries/financial";
+import { getBankAccounts } from "@/lib/queries/banking";
 import VendorsClient from "./VendorsClient";
 
 export const metadata = {
@@ -25,7 +26,7 @@ export default async function VendorsPage() {
   const { companyId } = userCompany;
 
   // Fetch vendor contacts, vendor contracts, projects, payable invoices, payment history, and vendor summary in parallel
-  const [{ data: contacts }, { data: contracts }, { data: projects }, { data: payableInvoices }, paymentHistory, vendorSummary] = await Promise.all([
+  const [{ data: contacts }, { data: contracts }, { data: projects }, { data: payableInvoices }, paymentHistory, vendorSummary, bankAccounts] = await Promise.all([
     supabase
       .from("contacts")
       .select("*")
@@ -53,6 +54,7 @@ export default async function VendorsPage() {
       .order("due_date", { ascending: true }),
     getAPPaymentHistory(supabase, companyId),
     getAPVendorSummary(supabase, companyId),
+    getBankAccounts(supabase, companyId),
   ]);
 
   return (
@@ -74,6 +76,14 @@ export default async function VendorsPage() {
         }))}
         paymentHistory={paymentHistory}
         vendorSummary={vendorSummary}
+        bankAccounts={bankAccounts.map((ba) => ({
+          id: ba.id,
+          name: ba.name,
+          bank_name: ba.bank_name,
+          account_type: ba.account_type,
+          account_number_last4: ba.account_number_last4,
+          is_default: ba.is_default,
+        }))}
       />
     </div>
   );
