@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import type { ClockEvent } from "@/lib/queries/employee-portal";
 import { getEmployeeRateMap, createLaborAccrualJE } from "@/lib/utils/labor-cost";
@@ -220,60 +221,61 @@ export async function POST(request: NextRequest) {
       project_name: project?.name ?? undefined,
     };
 
-    // On clock-out: create/update labor accrual JE (fire-and-forget)
+    // On clock-out: create/update labor accrual JE
+    // Uses admin client to bypass RLS (employees may not have JE write access)
     if (event_type === "clock_out") {
-      (async () => {
-        try {
-          const todayStr = new Date().toISOString().slice(0, 10);
+      try {
+        const adminSb = createAdminClient();
+        const todayStr = new Date().toISOString().slice(0, 10);
 
-          // Fetch all of today's clock events for this user
-          const { data: todayData } = await supabase
-            .from("clock_events")
-            .select("id, event_type, timestamp, project_id")
-            .eq("user_id", userCtx.userId)
-            .eq("company_id", userCtx.companyId)
-            .gte("timestamp", `${todayStr}T00:00:00.000Z`)
-            .lt("timestamp", `${todayStr}T23:59:59.999Z`)
-            .order("timestamp", { ascending: true });
+        // Fetch all of today's clock events for this user
+        const { data: todayData } = await adminSb
+          .from("clock_events")
+          .select("id, event_type, timestamp, project_id")
+          .eq("user_id", userCtx.userId)
+          .eq("company_id", userCtx.companyId)
+          .gte("timestamp", `${todayStr}T00:00:00.000Z`)
+          .lt("timestamp", `${todayStr}T23:59:59.999Z`)
+          .order("timestamp", { ascending: true });
 
-          const todayEvents = (todayData ?? []) as ClockEvent[];
-          const todayHours = calculateTodayHours(todayEvents);
+        const todayEvents = (todayData ?? []) as ClockEvent[];
+        const todayHours = calculateTodayHours(todayEvents);
 
-          if (todayHours <= 0) return;
-
+        if (todayHours > 0) {
           // Look up hourly rate
-          const rateMap = await getEmployeeRateMap(supabase, userCtx.companyId);
+          const rateMap = await getEmployeeRateMap(adminSb, userCtx.companyId);
           const rate = rateMap.get(userCtx.userId);
-          if (!rate) return;
 
-          // Get employee name
-          const { data: profile } = await supabase
-            .from("user_profiles")
-            .select("full_name, email")
-            .eq("id", userCtx.userId)
-            .maybeSingle();
+          if (rate) {
+            // Get employee name
+            const { data: profile } = await adminSb
+              .from("user_profiles")
+              .select("full_name, email")
+              .eq("id", userCtx.userId)
+              .maybeSingle();
 
-          const employeeName = profile?.full_name || profile?.email || "Employee";
+            const employeeName = profile?.full_name || profile?.email || "Employee";
 
-          // Find project from the most recent clock event (if any)
-          const lastWithProject = [...todayEvents]
-            .reverse()
-            .find((e) => e.project_id);
+            // Find project from the most recent clock event (if any)
+            const lastWithProject = [...todayEvents]
+              .reverse()
+              .find((e) => e.project_id);
 
-          await createLaborAccrualJE(
-            supabase,
-            userCtx.companyId,
-            userCtx.userId,
-            employeeName,
-            todayHours,
-            rate,
-            todayStr,
-            lastWithProject?.project_id ?? undefined
-          );
-        } catch (jeErr) {
-          console.error("Labor accrual JE error (non-blocking):", jeErr);
+            await createLaborAccrualJE(
+              adminSb,
+              userCtx.companyId,
+              userCtx.userId,
+              employeeName,
+              todayHours,
+              rate,
+              todayStr,
+              lastWithProject?.project_id ?? undefined
+            );
+          }
         }
-      })();
+      } catch (jeErr) {
+        console.error("Labor accrual JE error (non-blocking):", jeErr);
+      }
     }
 
     return NextResponse.json(result, { status: 201 });
