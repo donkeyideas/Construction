@@ -731,7 +731,8 @@ export default function SettingsClient({
                   </span>
                 </div>
               )}
-              {subDetails?.currentPeriodEnd && !subDetails.cancelAtPeriodEnd && (
+              {subDetails?.currentPeriodEnd && !subDetails.cancelAtPeriodEnd &&
+                company.subscription_status !== "canceling" && (
                 <div className="subscription-info-row">
                   <span className="subscription-info-label">Renewal Date</span>
                   <span className="subscription-info-value">
@@ -746,7 +747,8 @@ export default function SettingsClient({
                   </span>
                 </div>
               )}
-              {subDetails?.cancelAtPeriodEnd && subDetails.currentPeriodEnd && (
+              {(subDetails?.cancelAtPeriodEnd || company.subscription_status === "canceling") &&
+                subDetails?.currentPeriodEnd && (
                 <div className="subscription-info-row">
                   <span className="subscription-info-label" style={{ color: "var(--color-red)" }}>
                     Cancels On
