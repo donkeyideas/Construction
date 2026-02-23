@@ -63,6 +63,7 @@ export async function GET(
     let companyAnalytics: Record<string, {
       subscription_plan: string;
       subscription_status: string;
+      subscription_ends_at: string | null;
       projects: number;
       invoices: number;
       contacts: number;
@@ -90,7 +91,7 @@ export async function GET(
             .in("company_id", companyIds),
           admin
             .from("companies")
-            .select("id, subscription_plan, subscription_status")
+            .select("id, subscription_plan, subscription_status, subscription_ends_at")
             .in("id", companyIds),
         ]);
 
@@ -100,6 +101,7 @@ export async function GET(
         companyAnalytics[cid] = {
           subscription_plan: company?.subscription_plan ?? "starter",
           subscription_status: company?.subscription_status ?? "active",
+          subscription_ends_at: company?.subscription_ends_at ?? null,
           projects: (projectsResult.data ?? []).filter((p) => p.company_id === cid).length,
           invoices: (invoicesResult.data ?? []).filter((i) => i.company_id === cid).length,
           contacts: (contactsResult.data ?? []).filter((c) => c.company_id === cid).length,

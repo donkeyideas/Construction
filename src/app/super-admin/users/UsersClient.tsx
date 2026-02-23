@@ -40,6 +40,7 @@ interface UserAnalytics {
   companyAnalytics: Record<string, {
     subscription_plan: string;
     subscription_status: string;
+    subscription_ends_at: string | null;
     projects: number;
     invoices: number;
     contacts: number;
@@ -659,17 +660,44 @@ export default function UsersClient({ users }: Props) {
                                 </span>
                               )}
                             </div>
-                            {ca && (
-                              <span style={{
-                                display: "inline-block", padding: "1px 7px", borderRadius: 6,
-                                fontSize: "0.68rem", fontWeight: 600,
-                                background: ca.subscription_status === "active" ? "rgba(22, 163, 74, 0.08)" : "var(--surface)",
-                                color: ca.subscription_status === "active" ? "var(--color-green)" : "var(--muted)",
-                              }}>
-                                <CreditCard size={10} style={{ marginRight: 3 }} />
-                                {ca.subscription_plan.charAt(0).toUpperCase() + ca.subscription_plan.slice(1)}
-                              </span>
-                            )}
+                            {ca && (() => {
+                              const status = ca.subscription_status;
+                              const plan = ca.subscription_plan.charAt(0).toUpperCase() + ca.subscription_plan.slice(1);
+                              let badgeBg = "rgba(22, 163, 74, 0.08)";
+                              let badgeColor = "var(--color-green)";
+                              let label = plan;
+
+                              if (status === "canceling") {
+                                badgeBg = "rgba(220, 38, 38, 0.08)";
+                                badgeColor = "var(--color-red)";
+                                const endDate = ca.subscription_ends_at
+                                  ? new Date(ca.subscription_ends_at).toLocaleDateString(dateLocale, { month: "short", day: "numeric" })
+                                  : "";
+                                label = endDate ? `Canceling — ends ${endDate}` : "Canceling";
+                              } else if (status === "trialing") {
+                                badgeBg = "rgba(29, 78, 216, 0.08)";
+                                badgeColor = "var(--color-blue)";
+                                label = "Trial";
+                              } else if (status === "past_due") {
+                                badgeBg = "rgba(220, 38, 38, 0.08)";
+                                badgeColor = "var(--color-red)";
+                                label = "Past Due";
+                              } else if (status !== "active") {
+                                badgeBg = "var(--surface)";
+                                badgeColor = "var(--muted)";
+                              }
+
+                              return (
+                                <span style={{
+                                  display: "inline-flex", alignItems: "center", padding: "1px 7px", borderRadius: 6,
+                                  fontSize: "0.68rem", fontWeight: 600,
+                                  background: badgeBg, color: badgeColor,
+                                }}>
+                                  <CreditCard size={10} style={{ marginRight: 3 }} />
+                                  {label}
+                                </span>
+                              );
+                            })()}
                           </div>
 
                           {/* Company details row */}
@@ -706,8 +734,10 @@ export default function UsersClient({ users }: Props) {
                                   key={mod}
                                   style={{
                                     display: "inline-block", padding: "1px 6px", borderRadius: 5,
-                                    fontSize: "0.68rem", fontWeight: 600,
-                                    background: "rgba(59, 130, 246, 0.08)", color: "var(--color-blue)",
+                                    fontSize: "0.68rem", fontWeight: 500,
+                                    background: "rgba(255, 255, 255, 0.04)",
+                                    border: "1px solid var(--border)",
+                                    color: "var(--muted)",
                                   }}
                                 >
                                   {mod.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}

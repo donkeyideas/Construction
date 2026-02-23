@@ -565,7 +565,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
 
               <pre
                 style={{
-                  background: "var(--background, #fff)",
+                  background: "var(--surface)",
                   border: "1px solid var(--border)",
                   borderRadius: 6,
                   padding: "12px",
@@ -574,6 +574,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
                   fontSize: "0.78rem",
                   lineHeight: 1.5,
                   margin: 0,
+                  color: "var(--foreground)",
                 }}
               >
                 {JSON.stringify(log.details, null, 2)}
