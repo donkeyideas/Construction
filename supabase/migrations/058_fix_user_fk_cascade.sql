@@ -253,7 +253,7 @@ EXCEPTION WHEN undefined_table THEN NULL; END $$;
 
 -- markup_annotations → CASCADE (per-user annotations)
 DO $$ BEGIN
-  SELECT pg_temp.fix_fk('markup_annotations',      'created_by', 'users', 'auth', 'CASCADE');
+  PERFORM pg_temp.fix_fk('markup_annotations',      'created_by', 'users', 'auth', 'CASCADE');
 EXCEPTION WHEN undefined_table THEN NULL; END $$;
 
 
