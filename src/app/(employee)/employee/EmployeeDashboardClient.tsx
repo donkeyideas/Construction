@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  CalendarDays,
 } from "lucide-react";
 import type {
   EmployeeDashboardData,
@@ -307,6 +308,57 @@ export default function EmployeeDashboardClient({
     todayTotalMs += Date.now() - pendingClockIn.getTime();
   }
   const todayHours = Math.round((todayTotalMs / 3_600_000) * 100) / 100;
+
+  // Live session hours (only when clocked in — server only counts completed pairs)
+  const liveSessionHours = pendingClockIn
+    ? Math.round(((Date.now() - pendingClockIn.getTime()) / 3_600_000) * 100) / 100
+    : 0;
+  // Week total = server completed pairs + current live session
+  const weekTotalLive = dashboard.hoursThisWeek + liveSessionHours;
+
+  // Build timecard rows (Mon-Sun)
+  const weekMonday = (() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay();
+    const diff = (day + 6) % 7;
+    d.setDate(d.getDate() - diff);
+    return d;
+  })();
+  const todayDateStr = new Date().toISOString().slice(0, 10);
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekMonday);
+    d.setDate(weekMonday.getDate() + i);
+    return d;
+  });
+  const timecardRows = weekDays.map((day) => {
+    const dayStr = day.toISOString().slice(0, 10);
+    const dayEvents = dashboard.weekClockEvents
+      .filter((e) => e.timestamp.slice(0, 10) === dayStr)
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    const clockIns = dayEvents.filter((e) => e.event_type === "clock_in");
+    const clockOuts = dayEvents.filter((e) => e.event_type === "clock_out");
+    const firstIn = clockIns.length > 0 ? clockIns[0].timestamp : null;
+    const lastOut = clockOuts.length > 0 ? clockOuts[clockOuts.length - 1].timestamp : null;
+    // Calculate hours for this day from paired events
+    let dayMs = 0;
+    let pIn: Date | null = null;
+    for (const e of dayEvents) {
+      if (e.event_type === "clock_in") pIn = new Date(e.timestamp);
+      else if (e.event_type === "clock_out" && pIn) {
+        dayMs += new Date(e.timestamp).getTime() - pIn.getTime();
+        pIn = null;
+      }
+    }
+    const isToday = dayStr === todayDateStr;
+    // If today and still clocked in, add live elapsed
+    if (isToday && pIn) {
+      dayMs += Date.now() - pIn.getTime();
+    }
+    const hours = dayMs > 0 ? Math.round((dayMs / 3_600_000) * 100) / 100 : 0;
+    const isLive = isToday && isClockedIn && pIn !== null;
+    return { date: day, dayStr, firstIn, lastOut, hours, isToday, isLive };
+  });
 
   // Open modal
   function openModal(type: ModalType) {
@@ -849,8 +901,8 @@ export default function EmployeeDashboardClient({
               </div>
               <div className="emp-kpi">
                 <div className="emp-kpi-label">{t("thisWeek")}</div>
-                <div className="emp-kpi-value">
-                  {dashboard.hoursThisWeek.toFixed(1)}h
+                <div className="emp-kpi-value" suppressHydrationWarning>
+                  {weekTotalLive.toFixed(1)}h
                 </div>
               </div>
               <div className="emp-kpi">
@@ -868,6 +920,56 @@ export default function EmployeeDashboardClient({
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Weekly Timecard */}
+          <div className="vendor-card">
+            <div className="vendor-card-title">
+              <CalendarDays size={18} />
+              {t("weeklyTimecard")}
+            </div>
+            <table className="emp-timecard-table">
+              <thead>
+                <tr>
+                  <th>{t("timecardDay")}</th>
+                  <th>{t("clockInLabel")}</th>
+                  <th>{t("clockOutLabel")}</th>
+                  <th style={{ textAlign: "right" }}>{t("timecardHours")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {timecardRows.map((row) => (
+                  <tr key={row.dayStr} className={row.isToday ? "emp-timecard-today" : ""}>
+                    <td>
+                      {row.date.toLocaleDateString(undefined, { weekday: "short", month: "numeric", day: "numeric" })}
+                    </td>
+                    <td>
+                      {row.firstIn
+                        ? new Date(row.firstIn).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+                        : <span className="emp-timecard-dash">&mdash;</span>}
+                    </td>
+                    <td>
+                      {row.lastOut
+                        ? new Date(row.lastOut).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+                        : row.isLive
+                          ? <span style={{ color: "var(--color-green)", fontWeight: 500 }}>{t("timecardLive")}</span>
+                          : <span className="emp-timecard-dash">&mdash;</span>}
+                    </td>
+                    <td style={{ textAlign: "right" }} suppressHydrationWarning>
+                      {row.hours > 0
+                        ? <>{row.hours.toFixed(1)}h{row.isLive ? <span style={{ color: "var(--color-green)", fontSize: "0.75rem", marginLeft: 4 }}>●</span> : null}</>
+                        : <span className="emp-timecard-dash">&mdash;</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="emp-timecard-total">
+                  <td colSpan={3} style={{ textAlign: "right" }}>{t("weekTotal")}</td>
+                  <td style={{ textAlign: "right" }} suppressHydrationWarning>{weekTotalLive.toFixed(1)}h</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
 
           {/* Today's Assignments */}

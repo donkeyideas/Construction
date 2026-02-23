@@ -22,6 +22,7 @@ export interface EmployeeDashboardData {
     todayEvents: ClockEvent[];
   };
   hoursThisWeek: number;
+  weekClockEvents: ClockEvent[];
   pendingTimesheets: number;
   recentPayslip: { period: string; net_pay: number } | null;
   certifications: { total: number; expiring: number };
@@ -122,6 +123,27 @@ function getISOWeekMonday(date: Date): Date {
 }
 
 /**
+ * Calculate total completed hours from paired clock_in/clock_out events.
+ * Does NOT count still-clocked-in time (client handles live timer).
+ */
+function calculateHoursFromEvents(events: ClockEvent[]): number {
+  const sorted = [...events].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+  let totalMs = 0;
+  let pendingIn: Date | null = null;
+  for (const e of sorted) {
+    if (e.event_type === "clock_in") {
+      pendingIn = new Date(e.timestamp);
+    } else if (e.event_type === "clock_out" && pendingIn) {
+      totalMs += new Date(e.timestamp).getTime() - pendingIn.getTime();
+      pendingIn = null;
+    }
+  }
+  return Math.round((totalMs / 3_600_000) * 100) / 100;
+}
+
+/**
  * Compute certification status from expiry_date.
  */
 function computeCertStatus(
@@ -186,16 +208,17 @@ export async function getEmployeeDashboard(
       .lt("timestamp", `${todayStr}T23:59:59.999Z`)
       .order("timestamp", { ascending: false }),
 
-    // Time entries for current week (sum hours)
+    // Week clock events (Mon-Sun) for hours calculation + timecard
     supabase
-      .from("time_entries")
-      .select("hours")
+      .from("clock_events")
+      .select("*, projects(name)")
       .eq("user_id", userId)
       .eq("company_id", companyId)
-      .gte("entry_date", weekStartStr)
-      .lte("entry_date", weekEndStr),
+      .gte("timestamp", `${weekStartStr}T00:00:00.000Z`)
+      .lte("timestamp", `${weekEndStr}T23:59:59.999Z`)
+      .order("timestamp", { ascending: true }),
 
-    // Pending time entries count
+    // Pending time entries count (placeholder — time_entries not used by clock system)
     supabase
       .from("time_entries")
       .select("id", { count: "exact" })
@@ -309,11 +332,23 @@ export async function getEmployeeDashboard(
   const lastEvent = todayEvents.length > 0 ? todayEvents[0] : null;
   const isClockedIn = lastEvent?.event_type === "clock_in";
 
-  // Sum hours this week
-  const hoursThisWeek = (weekHoursRes.data ?? []).reduce(
-    (sum: number, row: { hours: number | null }) => sum + (row.hours ?? 0),
-    0
+  // Parse week clock events and calculate hours
+  const weekClockEvents: ClockEvent[] = (weekHoursRes.data ?? []).map(
+    (row: Record<string, unknown>) => {
+      const project = row.projects as { name: string } | null;
+      return {
+        id: row.id as string,
+        company_id: row.company_id as string,
+        user_id: row.user_id as string,
+        event_type: row.event_type as "clock_in" | "clock_out",
+        timestamp: row.timestamp as string,
+        project_id: (row.project_id as string) ?? null,
+        notes: (row.notes as string) ?? null,
+        project_name: project?.name ?? undefined,
+      };
+    }
   );
+  const hoursThisWeek = calculateHoursFromEvents(weekClockEvents);
 
   // Pending timesheets count
   const pendingTimesheets = pendingRes.count ?? 0;
@@ -374,6 +409,7 @@ export async function getEmployeeDashboard(
       todayEvents,
     },
     hoursThisWeek: Math.round(hoursThisWeek * 100) / 100,
+    weekClockEvents,
     pendingTimesheets,
     recentPayslip,
     certifications: { total: certTotal, expiring: certExpiring },
