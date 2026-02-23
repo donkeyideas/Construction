@@ -27,6 +27,7 @@ import {
 } from "@stripe/react-stripe-js";
 
 import type { CompanyDetails } from "@/lib/queries/admin";
+import type { PricingTier } from "@/lib/queries/pricing";
 
 type TabKey = "general" | "subscription" | "modules" | "integrations";
 
@@ -69,12 +70,14 @@ interface SettingsClientProps {
   company: CompanyDetails;
   memberCount: number;
   currentUserRole: string;
+  pricingTiers: PricingTier[];
 }
 
 export default function SettingsClient({
   company,
   memberCount,
   currentUserRole,
+  pricingTiers,
 }: SettingsClientProps) {
   const router = useRouter();
   const t = useTranslations("adminPanel");
@@ -89,21 +92,39 @@ export default function SettingsClient({
     { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
   ];
 
+  // Build tier lookup by lowercase name
+  const tiersByName: Record<string, PricingTier> = {};
+  for (const tier of pricingTiers) {
+    tiersByName[tier.name.toLowerCase()] = tier;
+  }
+
+  const PLAN_COLORS: Record<string, string> = {
+    starter: "var(--color-blue)",
+    professional: "var(--color-amber)",
+    enterprise: "var(--color-green)",
+  };
+
   const PLAN_INFO: Record<string, { label: string; color: string; features: string[] }> = {
     starter: {
-      label: t("starter"),
-      color: "var(--color-blue)",
-      features: [t("upTo5Users"), t("threeActiveProjects"), t("basicReporting"), t("emailSupport")],
+      label: tiersByName.starter?.name || t("starter"),
+      color: PLAN_COLORS.starter,
+      features: tiersByName.starter?.features?.length
+        ? tiersByName.starter.features
+        : [t("upTo5Users"), t("threeActiveProjects"), t("basicReporting"), t("emailSupport")],
     },
     professional: {
-      label: t("professional"),
-      color: "var(--color-amber)",
-      features: [t("upTo25Users"), t("unlimitedProjects"), t("advancedReporting"), t("prioritySupport"), t("apiAccess")],
+      label: tiersByName.professional?.name || t("professional"),
+      color: PLAN_COLORS.professional,
+      features: tiersByName.professional?.features?.length
+        ? tiersByName.professional.features
+        : [t("upTo25Users"), t("unlimitedProjects"), t("advancedReporting"), t("prioritySupport"), t("apiAccess")],
     },
     enterprise: {
-      label: t("enterprise"),
-      color: "var(--color-green)",
-      features: [t("unlimitedUsers"), t("unlimitedProjects"), t("customReporting"), t("dedicatedSupport"), t("ssoSaml"), t("customIntegrations")],
+      label: tiersByName.enterprise?.name || t("enterprise"),
+      color: PLAN_COLORS.enterprise,
+      features: tiersByName.enterprise?.features?.length
+        ? tiersByName.enterprise.features
+        : [t("unlimitedUsers"), t("unlimitedProjects"), t("customReporting"), t("dedicatedSupport"), t("ssoSaml"), t("customIntegrations")],
     },
   };
 
@@ -367,11 +388,11 @@ export default function SettingsClient({
   const plan = company.subscription_plan || "starter";
   const planInfo = PLAN_INFO[plan] || PLAN_INFO.starter;
 
-  // Plan-based module limits
+  // Plan-based module limits — from pricing tiers if available
   const PLAN_MAX_MODULES: Record<string, number | null> = {
-    starter: 3,
-    professional: 6,
-    enterprise: null,
+    starter: tiersByName.starter?.max_modules ?? 3,
+    professional: tiersByName.professional?.max_modules ?? 6,
+    enterprise: tiersByName.enterprise?.max_modules ?? null,
   };
   const PLAN_UPGRADE_TARGET: Record<string, string> = {
     starter: "Professional",
@@ -894,7 +915,7 @@ export default function SettingsClient({
               )}
 
               {/* Billing interval toggle */}
-              {plan !== "enterprise" && (
+              {(
                 <div style={{ marginBottom: "16px" }}>
                   <div
                     style={{
@@ -931,126 +952,89 @@ export default function SettingsClient({
 
               {/* Plan cards — always show all three tiers */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "16px" }}>
-                {/* Starter */}
-                <div
-                  style={{
-                    border: plan === "starter" ? "1.5px solid var(--color-blue)" : "1.5px solid var(--border)",
-                    borderRadius: "10px",
-                    padding: "16px",
-                    background: plan === "starter" ? "rgba(59, 130, 246, 0.04)" : "transparent",
-                    opacity: plan === "starter" ? 1 : 0.7,
-                  }}
-                >
-                  <div style={{ marginBottom: "8px" }}>
-                    <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Starter</span>
-                  </div>
-                  <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
-                    Free
-                  </div>
-                  <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
-                    Up to 5 users, 3 projects, basic reporting
-                  </div>
-                  {plan === "starter" ? (
-                    <div style={{ textAlign: "center", padding: "8px 0", fontSize: "0.85rem", fontWeight: 600, color: "var(--color-blue)" }}>
-                      Current Plan
-                    </div>
-                  ) : (
-                    <button
-                      className="btn-secondary"
-                      style={{ width: "100%", justifyContent: "center" }}
-                      disabled
-                    >
-                      Starter
-                    </button>
-                  )}
-                </div>
+                {(["starter", "professional", "enterprise"] as const).map((tierKey) => {
+                  const tier = tiersByName[tierKey];
+                  const tierColor = PLAN_COLORS[tierKey] || "var(--color-blue)";
+                  const tierLabel = tier?.name || tierKey.charAt(0).toUpperCase() + tierKey.slice(1);
+                  const monthlyPrice = tier?.monthly_price ?? 0;
+                  const annualPrice = tier?.annual_price ?? 0;
+                  const displayPrice = billingInterval === "annual" ? annualPrice : monthlyPrice;
+                  const annualTotal = annualPrice * 12;
+                  const annualSavings = (monthlyPrice * 12) - annualTotal;
+                  const isCurrent = plan === tierKey;
+                  const isLowerTier =
+                    (tierKey === "starter" && plan !== "starter") ||
+                    (tierKey === "professional" && plan === "enterprise");
+                  const isUpgrade =
+                    (tierKey === "professional" && plan === "starter") ||
+                    (tierKey === "enterprise" && plan !== "enterprise");
 
-                {/* Professional */}
-                <div
-                  style={{
-                    border: plan === "professional" ? "1.5px solid var(--color-amber)" : "1.5px solid var(--border)",
-                    borderRadius: "10px",
-                    padding: "16px",
-                    background: plan === "professional" ? "rgba(180, 83, 9, 0.04)" : "transparent",
-                    opacity: plan === "professional" ? 1 : (plan === "enterprise" ? 0.7 : 1),
-                  }}
-                >
-                  <div style={{ marginBottom: "8px" }}>
-                    <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Professional</span>
-                  </div>
-                  <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
-                    ${billingInterval === "annual" ? "249" : "299"}
-                    <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "var(--muted)" }}>/mo</span>
-                  </div>
-                  {billingInterval === "annual" && (
-                    <div style={{ fontSize: "0.75rem", color: "var(--color-green)", marginBottom: "8px" }}>
-                      $2,988/yr (save $600)
-                    </div>
-                  )}
-                  <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
-                    Up to 25 users, 50 projects, 6 modules
-                  </div>
-                  {plan === "professional" ? (
-                    <div style={{ textAlign: "center", padding: "8px 0", fontSize: "0.85rem", fontWeight: 600, color: "var(--color-amber)" }}>
-                      Current Plan
-                    </div>
-                  ) : plan === "starter" ? (
-                    <button
-                      className="btn-primary"
-                      style={{ width: "100%", justifyContent: "center" }}
-                      onClick={() => openCheckout("professional", billingInterval)}
-                    >
-                      Upgrade to Professional
-                    </button>
-                  ) : (
-                    <button
-                      className="btn-secondary"
-                      style={{ width: "100%", justifyContent: "center" }}
-                      disabled
-                    >
-                      Professional
-                    </button>
-                  )}
-                </div>
+                  // Build description from tier limits
+                  const descParts: string[] = [];
+                  if (tier) {
+                    descParts.push(tier.max_users ? `Up to ${tier.max_users} users` : "Unlimited users");
+                    descParts.push(tier.max_projects ? `${tier.max_projects} projects` : "Unlimited projects");
+                    if (tier.max_modules) descParts.push(`${tier.max_modules} modules`);
+                    else descParts.push("All modules");
+                  }
+                  const description = descParts.length > 0
+                    ? descParts.join(", ")
+                    : tierKey === "starter"
+                      ? "Up to 5 users, 3 projects, basic reporting"
+                      : tierKey === "professional"
+                        ? "Up to 25 users, 50 projects, 6 modules"
+                        : "Unlimited users, projects, all modules";
 
-                {/* Enterprise */}
-                <div
-                  style={{
-                    border: plan === "enterprise" ? "1.5px solid var(--color-green)" : "1.5px solid var(--border)",
-                    borderRadius: "10px",
-                    padding: "16px",
-                    background: plan === "enterprise" ? "rgba(22, 163, 74, 0.04)" : "transparent",
-                  }}
-                >
-                  <div style={{ marginBottom: "8px" }}>
-                    <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Enterprise</span>
-                  </div>
-                  <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
-                    ${billingInterval === "annual" ? "499" : "599"}
-                    <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "var(--muted)" }}>/mo</span>
-                  </div>
-                  {billingInterval === "annual" && (
-                    <div style={{ fontSize: "0.75rem", color: "var(--color-green)", marginBottom: "8px" }}>
-                      $5,988/yr (save $1,200)
-                    </div>
-                  )}
-                  <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
-                    Unlimited users, projects, all modules
-                  </div>
-                  {plan === "enterprise" ? (
-                    <div style={{ textAlign: "center", padding: "8px 0", fontSize: "0.85rem", fontWeight: 600, color: "var(--color-green)" }}>
-                      Current Plan
-                    </div>
-                  ) : (
-                    <button
-                      className="btn-primary"
-                      style={{ width: "100%", justifyContent: "center" }}
-                      onClick={() => openCheckout("enterprise", billingInterval)}
+                  return (
+                    <div
+                      key={tierKey}
+                      style={{
+                        border: `1.5px solid ${isCurrent ? tierColor : "var(--border)"}`,
+                        borderRadius: "10px",
+                        padding: "16px",
+                        background: isCurrent ? `${tierColor}08` : "transparent",
+                        opacity: isLowerTier ? 0.7 : 1,
+                      }}
                     >
-                      Upgrade to Enterprise
-                    </button>
-                  )}
-                </div>
+                      <div style={{ marginBottom: "8px" }}>
+                        <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>{tierLabel}</span>
+                      </div>
+                      <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
+                        ${Math.round(displayPrice).toLocaleString()}
+                        <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "var(--muted)" }}>/mo</span>
+                      </div>
+                      {billingInterval === "annual" && annualSavings > 0 && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--color-green)", marginBottom: "8px" }}>
+                          ${annualTotal.toLocaleString()}/yr (save ${annualSavings.toLocaleString()})
+                        </div>
+                      )}
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
+                        {description}
+                      </div>
+                      {isCurrent ? (
+                        <div style={{ textAlign: "center", padding: "8px 0", fontSize: "0.85rem", fontWeight: 600, color: tierColor }}>
+                          Current Plan
+                        </div>
+                      ) : isUpgrade ? (
+                        <button
+                          className="btn-primary"
+                          style={{ width: "100%", justifyContent: "center" }}
+                          onClick={() => openCheckout(tierKey, billingInterval)}
+                        >
+                          Upgrade to {tierLabel}
+                        </button>
+                      ) : (
+                        <button
+                          className="btn-secondary"
+                          style={{ width: "100%", justifyContent: "center" }}
+                          disabled
+                        >
+                          {tierLabel}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Manage Billing (for existing Stripe customers) */}
@@ -1139,8 +1123,8 @@ export default function SettingsClient({
                       </>
                     ) : (
                       <>
-                        Your paid subscription will be canceled at the end of the current billing period.
-                        After that, your account will revert to the free Starter plan with limited features.
+                        Your plan will be changed to Starter at the end of the current billing period.
+                        Some features available on your current plan will no longer be accessible.
                       </>
                     )}
                   </div>
@@ -1209,8 +1193,8 @@ export default function SettingsClient({
                   </div>
                   <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 12, lineHeight: 1.6 }}>
                     Your subscription will remain active until the end of your current billing period.
-                    After that, your account will be downgraded to the free Starter plan.
-                    You can resubscribe at any time.
+                    After that, your account access will be suspended.
+                    You can resubscribe at any time to restore access.
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button

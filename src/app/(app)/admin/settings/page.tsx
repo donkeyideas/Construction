@@ -18,9 +18,10 @@ export default async function AdminSettingsPage() {
 
   const { companyId, role: currentUserRole } = userCompany;
 
-  const [company, members] = await Promise.all([
+  const [company, members, { data: pricingTiers }] = await Promise.all([
     getCompanyDetails(supabase, companyId),
     getCompanyMembers(supabase, companyId),
+    supabase.from("pricing_tiers").select("*").order("sort_order", { ascending: true }),
   ]);
 
   if (!company) {
@@ -32,6 +33,7 @@ export default async function AdminSettingsPage() {
       company={company}
       memberCount={members.filter((m) => m.is_active).length}
       currentUserRole={currentUserRole}
+      pricingTiers={pricingTiers ?? []}
     />
   );
 }

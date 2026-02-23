@@ -5,6 +5,7 @@ import {
   FileWarning,
   Clock,
   Rocket,
+  Upload,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
@@ -500,6 +501,10 @@ function WelcomeState({ companyName, t }: { companyName: string; t: any }) {
           </a>
           <a href="/people" style={{ padding: "10px 20px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, textDecoration: "none", fontSize: "0.85rem", fontWeight: 500, color: "var(--text)" }}>
             {t("inviteTeam")}
+          </a>
+          <a href="/admin/import" style={{ padding: "10px 20px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, textDecoration: "none", fontSize: "0.85rem", fontWeight: 500, color: "var(--text)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Upload size={14} />
+            {t("importData")}
           </a>
         </div>
       </div>
