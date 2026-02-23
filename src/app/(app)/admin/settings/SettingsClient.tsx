@@ -303,6 +303,13 @@ export default function SettingsClient({
     if (params.get("tab") === "subscription") {
       setActiveTab("subscription");
     }
+    if (params.get("suspended") === "true") {
+      setActiveTab("subscription");
+      setBillingMessage({
+        type: "error",
+        text: "Your 30-day grace period has ended. Please resubscribe to restore access to your data.",
+      });
+    }
   }, [router]);
 
   const canEdit = currentUserRole === "owner" || currentUserRole === "admin";

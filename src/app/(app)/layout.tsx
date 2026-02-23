@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { CorporateSidebar } from "@/components/layout/sidebar-corporate";
 import { Topbar } from "@/components/layout/topbar";
 import { VariantSelectorModal } from "@/components/variant-selector-modal";
+import { GracePeriodBanner } from "@/components/layout/GracePeriodBanner";
 import { useTheme } from "@/components/theme-provider";
 import { usePathname } from "next/navigation";
 import "@/styles/app-shell.css";
@@ -67,6 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         breadcrumb={getBreadcrumb(pathname)}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
+      <GracePeriodBanner />
       <main className="main">{children}</main>
       <VariantSelectorModal />
     </>

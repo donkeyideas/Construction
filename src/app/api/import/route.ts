@@ -11,6 +11,7 @@ import {
 import { backfillMissingJournalEntries } from "@/lib/utils/backfill-journal-entries";
 import { ensureBankAccountGLLink } from "@/lib/utils/bank-gl-linkage";
 import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
 // POST /api/import — Generic bulk import endpoint

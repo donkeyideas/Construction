@@ -20,7 +20,7 @@ export const DEFAULT_META_TITLE =
   "Buildwrk | Construction Management Software & Property Management Platform";
 
 export const DEFAULT_META_DESCRIPTION =
-  "All-in-one Buildwrk for general contractors, developers & property managers. Job costing, Gantt scheduling, lease management & AI analytics. 14-day free trial — no credit card required.";
+  "All-in-one Buildwrk for general contractors, developers & property managers. Job costing, Gantt scheduling, lease management & AI analytics. Available in 8 languages. 14-day free trial.";
 
 export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
   {
@@ -143,6 +143,10 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
         {
           title: "Enterprise Security",
           body: "Row-level data isolation, encrypted storage, role-based access, and full audit logging.",
+        },
+        {
+          title: "Available in 8 Languages",
+          body: "Built-in support for English, Spanish, French, German, Portuguese, Arabic, Hindi, and Chinese — so your global teams work in their preferred language.",
         },
       ],
     },
@@ -299,7 +303,12 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CmsSection[] = [
         {
           question: "Does Buildwrk work for my region?",
           answer:
-            "Yes. Buildwrk is used by general contractors, real estate developers, and property managers across the United States, Canada, and internationally. The platform supports multiple currencies, tax configurations, and regional compliance requirements including certified payroll and prevailing wage tracking.",
+            "Yes. Buildwrk is used by general contractors, real estate developers, and property managers across the United States, Canada, and internationally. The platform is available in 8 languages — English, Spanish, French, German, Portuguese, Arabic, Hindi, and Chinese — and supports multiple currencies, tax configurations, and regional compliance requirements including certified payroll and prevailing wage tracking.",
+        },
+        {
+          question: "What languages does Buildwrk support?",
+          answer:
+            "Buildwrk is available in 8 languages: English, Spanish, French, German, Portuguese (Brazilian), Arabic, Hindi, and Chinese. Every part of the platform — dashboards, reports, notifications, and field worker mobile views — is fully translated. Your team members can each choose their preferred language, making Buildwrk ideal for international construction firms and multilingual crews.",
         },
         {
           question: "What types of construction companies use Buildwrk?",

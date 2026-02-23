@@ -4,6 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoices, createInvoice } from "@/lib/queries/financial";
 import type { InvoiceFilters, InvoiceCreateData } from "@/lib/queries/financial";
 import { buildCompanyAccountMap, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 export async function GET(request: NextRequest) {
   try {

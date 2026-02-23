@@ -50,6 +50,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   const [auditGrade, setAuditGrade] = useState<string | null>(null);
   const [auditGradeLabel, setAuditGradeLabel] = useState<string | null>(null);
   const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null);
+  const [graceDaysLeft, setGraceDaysLeft] = useState<number | null>(null);
 
   // Real-time: increment badge when new messages arrive
   const { count: realtimeNewCount } = useRealtimeNotifications(userId);
@@ -93,11 +94,20 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             if (!member) return;
             supabase
               .from("companies")
-              .select("trial_ends_at, subscription_status, stripe_subscription_id")
+              .select("trial_ends_at, subscription_status, stripe_subscription_id, grace_period_ends_at")
               .eq("id", member.company_id)
               .single()
               .then(({ data: company }) => {
                 if (!company) return;
+
+                // Grace period detection
+                if (company.subscription_status === "grace_period" && company.grace_period_ends_at) {
+                  const graceEnd = new Date(company.grace_period_ends_at).getTime();
+                  const daysLeft = Math.max(0, Math.ceil((graceEnd - Date.now()) / (1000 * 60 * 60 * 24)));
+                  setGraceDaysLeft(daysLeft);
+                  return; // Don't show trial badge during grace period
+                }
+
                 // Show trial badge if:
                 // 1. Has trial_ends_at and status is trialing, OR
                 // 2. No stripe subscription (hasn't paid) regardless of status
@@ -272,6 +282,32 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
               {trialDaysLeft === 0
                 ? "Trial expired"
                 : `${trialDaysLeft}d left in trial`}
+            </button>
+          )}
+          {graceDaysLeft !== null && !isPortal && (
+            <button
+              className="trial-badge-btn"
+              onClick={() => router.push("/admin/settings?tab=subscription")}
+              title={`Read-only mode: ${graceDaysLeft} day${graceDaysLeft !== 1 ? "s" : ""} remaining`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+                padding: "4px 12px",
+                borderRadius: "6px",
+                border: `1px solid ${graceDaysLeft <= 7 ? "var(--color-red)" : "var(--color-amber)"}`,
+                background: graceDaysLeft <= 7 ? "rgba(220, 38, 38, 0.06)" : "rgba(180, 83, 9, 0.06)",
+                color: graceDaysLeft <= 7 ? "var(--color-red)" : "var(--color-amber)",
+                fontWeight: 600,
+                fontSize: "0.78rem",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <Clock size={13} />
+              {graceDaysLeft === 0
+                ? "Account suspended"
+                : `Read-only: ${graceDaysLeft}d left`}
             </button>
           )}
           {auditGrade && !isPortal && (

@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
               stripe_subscription_id: typeof session.subscription === "string"
                 ? session.subscription
                 : null,
+              grace_period_ends_at: null, // Clear grace period on resubscription
               updated_at: new Date().toISOString(),
             })
             .eq("id", companyId);
@@ -101,12 +102,19 @@ export async function POST(request: NextRequest) {
             : subscription.status === "canceled" ? "canceled"
             : "active";
 
+          const updatePayload: Record<string, unknown> = {
+            subscription_status: status,
+            updated_at: new Date().toISOString(),
+          };
+
+          // Clear grace period when subscription becomes active again
+          if (status === "active") {
+            updatePayload.grace_period_ends_at = null;
+          }
+
           await supabase
             .from("companies")
-            .update({
-              subscription_status: status,
-              updated_at: new Date().toISOString(),
-            })
+            .update(updatePayload)
             .eq("id", company.id);
         }
         break;
@@ -125,26 +133,38 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (company) {
+          // Start 30-day read-only grace period instead of immediate cancellation
+          const gracePeriodEndsAt = new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000
+          ).toISOString();
+
           await supabase
             .from("companies")
             .update({
-              subscription_status: "canceled",
+              subscription_status: "grace_period",
+              grace_period_ends_at: gracePeriodEndsAt,
+              stripe_subscription_id: null,
               updated_at: new Date().toISOString(),
             })
             .eq("id", company.id);
 
           await supabase.from("subscription_events").insert({
             company_id: company.id,
-            event_type: "canceled",
+            event_type: "grace_period_started",
             plan_from: company.subscription_plan,
             stripe_event_id: event.id,
+            metadata: { grace_period_ends_at: gracePeriodEndsAt },
           });
 
           await supabase.from("audit_logs").insert({
             company_id: company.id,
-            action: "subscription_canceled",
+            action: "grace_period_started",
             entity_type: "subscription",
-            details: { plan_from: company.subscription_plan, stripe_event_id: event.id },
+            details: {
+              plan_from: company.subscription_plan,
+              stripe_event_id: event.id,
+              grace_period_ends_at: gracePeriodEndsAt,
+            },
           });
         }
         break;

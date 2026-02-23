@@ -8,6 +8,7 @@ import {
 } from "@/lib/queries/projects";
 import { createNotifications } from "@/lib/utils/notifications";
 import { checkPlanLimit, planLimitError } from "@/lib/utils/plan-limits";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
 // GET /api/projects - List projects for the current user's company

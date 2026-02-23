@@ -119,6 +119,16 @@ export default async function HomePage() {
         description:
           "All-in-one Buildwrk and real estate management platform for general contractors, developers, and property managers.",
         offers: jsonLdOffers,
+        availableLanguage: [
+          "English",
+          "Spanish",
+          "French",
+          "German",
+          "Portuguese",
+          "Arabic",
+          "Hindi",
+          "Chinese",
+        ],
         featureList: [
           "Project Management with Gantt Charts",
           "Job Costing by CSI Division",
@@ -130,6 +140,7 @@ export default async function HomePage() {
           "AI-Powered Analytics and Chat",
           "Role-Based Access Control",
           "Real-Time Dashboards",
+          "Multi-Language Support in 8 Languages",
         ],
       },
       ...(faqItems.length > 0
@@ -341,6 +352,7 @@ function ValuePropsSection({ c }: { c: any }) {
     <svg key="1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
     <svg key="2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
     <svg key="3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
+    <svg key="4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>,
   ];
 
   return (

@@ -52,6 +52,7 @@ export interface CompanyDetails {
   selected_modules: string[];
   trial_ends_at: string | null;
   subscription_ends_at: string | null;
+  grace_period_ends_at: string | null;
   created_at: string;
   updated_at: string;
 }

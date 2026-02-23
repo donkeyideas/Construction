@@ -111,6 +111,7 @@ export async function POST() {
         subscription_status: sub.status === "active" ? "active" : sub.status,
         stripe_subscription_id: sub.id,
         trial_ends_at: null, // Clear trial since they've subscribed
+        grace_period_ends_at: null, // Clear grace period on resubscription
         updated_at: new Date().toISOString(),
       })
       .eq("id", userCtx.companyId);

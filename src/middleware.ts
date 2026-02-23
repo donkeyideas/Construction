@@ -28,6 +28,40 @@ let cachedFlags: { maintenance_mode: boolean; registration_enabled: boolean } | 
 let cacheTs = 0;
 const CACHE_TTL = 60_000;
 
+/* ─── Subscription status cache (60s TTL) ─── */
+const subCache = new Map<string, { status: string; graceEndsAt: string | null; ts: number }>();
+
+async function getCompanySubStatus(companyId: string): Promise<{ status: string; graceEndsAt: string | null }> {
+  const now = Date.now();
+  const cached = subCache.get(companyId);
+  if (cached && now - cached.ts < CACHE_TTL) {
+    return { status: cached.status, graceEndsAt: cached.graceEndsAt };
+  }
+
+  try {
+    const admin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { data } = await admin
+      .from("companies")
+      .select("subscription_status, grace_period_ends_at")
+      .eq("id", companyId)
+      .single();
+
+    const result = {
+      status: data?.subscription_status || "active",
+      graceEndsAt: data?.grace_period_ends_at || null,
+    };
+    subCache.set(companyId, { ...result, ts: now });
+    return result;
+  } catch {
+    return { status: "active", graceEndsAt: null };
+  }
+}
+
 async function getPlatformFlags(): Promise<{ maintenance_mode: boolean; registration_enabled: boolean }> {
   const now = Date.now();
   if (cachedFlags && now - cacheTs < CACHE_TTL) return cachedFlags;
@@ -268,6 +302,43 @@ export async function middleware(request: NextRequest) {
         const url = request.nextUrl.clone();
         url.pathname = "/dashboard";
         return NextResponse.redirect(url);
+      }
+    }
+
+    // ─── Subscription suspension guard ───
+    // Fully suspended companies can only access the settings page (to resubscribe).
+    // Grace period (read-only) is enforced at the API layer, not here.
+    if (
+      !portalType ||
+      portalType === "executive" ||
+      portalType === "admin" ||
+      !portalType
+    ) {
+      // Only check for internal company users (not tenant/vendor/employee portals)
+      const { data: memberForSub } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (memberForSub) {
+        const subStatus = await getCompanySubStatus(memberForSub.company_id);
+
+        const isSuspended =
+          subStatus.status === "suspended" ||
+          (subStatus.status === "grace_period" &&
+            subStatus.graceEndsAt &&
+            new Date(subStatus.graceEndsAt).getTime() < Date.now());
+
+        if (isSuspended && !pathname.startsWith("/admin/settings")) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/admin/settings";
+          url.searchParams.set("tab", "subscription");
+          url.searchParams.set("suspended", "true");
+          return NextResponse.redirect(url);
+        }
       }
     }
   }
