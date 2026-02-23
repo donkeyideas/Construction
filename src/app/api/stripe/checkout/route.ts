@@ -97,7 +97,23 @@ export async function POST(request: NextRequest) {
     }
 
     const origin = request.headers.get("origin") || "https://construction-gamma-six.vercel.app";
+    const embedded = body.embedded === true;
 
+    if (embedded) {
+      // Embedded checkout — returns client_secret for in-page rendering
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        mode: "subscription",
+        line_items: [{ price: priceId, quantity: 1 }],
+        ui_mode: "embedded",
+        return_url: `${origin}/admin/settings?tab=subscription&success=true&session_id={CHECKOUT_SESSION_ID}`,
+        metadata: { company_id: userCtx.companyId, plan },
+      });
+
+      return NextResponse.json({ clientSecret: session.client_secret });
+    }
+
+    // Hosted checkout — redirects to Stripe
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",

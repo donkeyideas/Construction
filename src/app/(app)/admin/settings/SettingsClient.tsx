@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -22,6 +22,11 @@ import {
 } from "lucide-react";
 import { MODULES } from "@/lib/constants/modules";
 import { ArrowUpRight } from "lucide-react";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  EmbeddedCheckoutProvider,
+  EmbeddedCheckout,
+} from "@stripe/react-stripe-js";
 
 import type { CompanyDetails } from "@/lib/queries/admin";
 
@@ -158,7 +163,75 @@ export default function SettingsClient({
   const [savingModules, setSavingModules] = useState(false);
   const [moduleMessage, setModuleMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Handle ?success=true redirect from Stripe Checkout
+  // Embedded checkout state
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
+  const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
+  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
+
+  // Load Stripe publishable key on mount
+  useEffect(() => {
+    fetch("/api/stripe/publishable-key")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.publishableKey) {
+          setStripePromise(loadStripe(data.publishableKey));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const openCheckout = useCallback(async (targetPlan: string) => {
+    setBillingMessage(null);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: targetPlan, embedded: true }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.clientSecret) {
+          setCheckoutClientSecret(data.clientSecret);
+          setCheckoutPlan(targetPlan);
+          setCheckoutOpen(true);
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setBillingMessage({
+          type: "error",
+          text: data.error || "Failed to start checkout.",
+        });
+      }
+    } catch {
+      setBillingMessage({ type: "error", text: "Network error. Please try again." });
+    }
+  }, []);
+
+  const handleCheckoutComplete = useCallback(async () => {
+    setCheckoutOpen(false);
+    setCheckoutClientSecret(null);
+    setBillingMessage({ type: "success", text: "Syncing your subscription..." });
+    try {
+      const res = await fetch("/api/stripe/sync-subscription", { method: "POST" });
+      const data = await res.json();
+      if (data.synced) {
+        setBillingMessage({
+          type: "success",
+          text: `Subscription activated! You are now on the ${data.plan.charAt(0).toUpperCase() + data.plan.slice(1)} plan.`,
+        });
+        setTimeout(() => {
+          window.location.href = "/admin/settings?tab=subscription";
+        }, 1500);
+      } else {
+        setBillingMessage({ type: "success", text: "Payment received! Refresh the page to see your updated plan." });
+      }
+    } catch {
+      setBillingMessage({ type: "success", text: "Payment received! Refresh the page to see your updated plan." });
+    }
+  }, []);
+
+  // Handle ?success=true redirect from Stripe Checkout (embedded return_url)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("success") === "true") {
@@ -809,33 +882,7 @@ export default function SettingsClient({
                 {plan !== "enterprise" && (
                   <button
                     className="btn-secondary"
-                    onClick={async () => {
-                      setBillingMessage(null);
-                      try {
-                        const res = await fetch("/api/stripe/checkout", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            plan: plan === "starter" ? "professional" : "enterprise",
-                          }),
-                        });
-                        if (res.ok) {
-                          const { url } = await res.json();
-                          window.open(url, "_blank");
-                        } else {
-                          const data = await res.json().catch(() => ({}));
-                          setBillingMessage({
-                            type: "error",
-                            text: data.error || t("stripeCheckoutNotConfigured"),
-                          });
-                        }
-                      } catch {
-                        setBillingMessage({
-                          type: "error",
-                          text: t("stripeCheckoutNotConfiguredShort"),
-                        });
-                      }
-                    }}
+                    onClick={() => openCheckout(plan === "starter" ? "professional" : "enterprise")}
                   >
                     <Zap size={14} />
                     {t("upgradeTo", { plan: plan === "starter" ? t("professional") : t("enterprise") })}
@@ -1101,6 +1148,79 @@ export default function SettingsClient({
         )}
 
       </div>
+
+      {/* Embedded Checkout Modal */}
+      {checkoutOpen && checkoutClientSecret && stripePromise && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(4px)",
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setCheckoutOpen(false);
+              setCheckoutClientSecret(null);
+            }
+          }}
+        >
+          <div
+            style={{
+              background: "var(--bg, #fff)",
+              borderRadius: "12px",
+              width: "min(600px, 95vw)",
+              maxHeight: "90vh",
+              overflow: "auto",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "16px 20px",
+                borderBottom: "1px solid var(--border)",
+              }}
+            >
+              <div style={{ fontWeight: 600, fontSize: "1rem" }}>
+                Upgrade to {checkoutPlan ? checkoutPlan.charAt(0).toUpperCase() + checkoutPlan.slice(1) : ""}
+              </div>
+              <button
+                onClick={() => {
+                  setCheckoutOpen(false);
+                  setCheckoutClientSecret(null);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--muted)",
+                  padding: "4px",
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ padding: "0" }}>
+              <EmbeddedCheckoutProvider
+                stripe={stripePromise}
+                options={{
+                  clientSecret: checkoutClientSecret,
+                  onComplete: handleCheckoutComplete,
+                }}
+              >
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
