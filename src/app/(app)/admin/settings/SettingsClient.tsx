@@ -166,6 +166,7 @@ export default function SettingsClient({
   // Embedded checkout state
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
 
@@ -181,13 +182,13 @@ export default function SettingsClient({
       .catch(() => {});
   }, []);
 
-  const openCheckout = useCallback(async (targetPlan: string) => {
+  const openCheckout = useCallback(async (targetPlan: string, billing: "monthly" | "annual" = "monthly") => {
     setBillingMessage(null);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: targetPlan, embedded: true }),
+        body: JSON.stringify({ plan: targetPlan, billing, embedded: true }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -835,12 +836,9 @@ export default function SettingsClient({
               </div>
             )}
 
-            {/* Stripe Manage */}
+            {/* Manage / Upgrade */}
             <div className="settings-form-section" style={{ marginTop: "24px" }}>
               <div className="settings-form-section-title">{t("manageSubscription")}</div>
-              <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>
-                {t("manageSubscriptionDescription")}
-              </p>
               {billingMessage && (
                 <div
                   className={`settings-form-message ${billingMessage.type}`}
@@ -849,46 +847,147 @@ export default function SettingsClient({
                   {billingMessage.text}
                 </div>
               )}
-              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                {company.stripe_customer_id && (
-                  <button
-                    className="btn-primary"
-                    onClick={async () => {
-                      setBillingMessage(null);
-                      try {
-                        const res = await fetch("/api/stripe/portal", { method: "POST" });
-                        if (res.ok) {
-                          const { url } = await res.json();
-                          window.open(url, "_blank");
-                        } else {
-                          const data = await res.json().catch(() => ({}));
-                          setBillingMessage({
-                            type: "error",
-                            text: data.error || t("stripeBillingPortalNotConfigured"),
-                          });
-                        }
-                      } catch {
-                        setBillingMessage({
-                          type: "error",
-                          text: t("stripeBillingPortalNotConfiguredShort"),
-                        });
-                      }
+
+              {/* Billing interval toggle */}
+              {plan !== "enterprise" && (
+                <div style={{ marginBottom: "16px" }}>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      borderRadius: "8px",
+                      border: "1px solid var(--border)",
+                      overflow: "hidden",
                     }}
                   >
-                    <ExternalLink size={14} />
-                    {t("manageBilling")}
-                  </button>
-                )}
-                {plan !== "enterprise" && (
-                  <button
-                    className="btn-secondary"
-                    onClick={() => openCheckout(plan === "starter" ? "professional" : "enterprise")}
+                    {(["monthly", "annual"] as const).map((interval) => (
+                      <button
+                        key={interval}
+                        onClick={() => setBillingInterval(interval)}
+                        style={{
+                          padding: "6px 16px",
+                          fontSize: "0.82rem",
+                          fontWeight: billingInterval === interval ? 600 : 400,
+                          background: billingInterval === interval ? "var(--color-blue)" : "transparent",
+                          color: billingInterval === interval ? "#fff" : "var(--text)",
+                          border: "none",
+                          cursor: "pointer",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        {interval === "monthly" ? "Monthly" : "Annual"}
+                        {interval === "annual" && (
+                          <span style={{ marginLeft: "6px", fontSize: "0.72rem", opacity: 0.85 }}>Save ~17%</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upgrade cards for plans above current */}
+              {plan !== "enterprise" && (
+                <div style={{ display: "grid", gridTemplateColumns: plan === "starter" ? "1fr 1fr" : "1fr", gap: "12px", marginBottom: "16px" }}>
+                  {plan === "starter" && (
+                    <div
+                      style={{
+                        border: "1.5px solid var(--color-amber)",
+                        borderRadius: "10px",
+                        padding: "16px",
+                        background: "rgba(180, 83, 9, 0.04)",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                        <Rocket size={18} style={{ color: "var(--color-amber)" }} />
+                        <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Professional</span>
+                      </div>
+                      <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
+                        ${billingInterval === "annual" ? "249" : "299"}
+                        <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "var(--muted)" }}>/mo</span>
+                      </div>
+                      {billingInterval === "annual" && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--color-green)", marginBottom: "8px" }}>
+                          $2,988/yr (save $600)
+                        </div>
+                      )}
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
+                        Up to 25 users, 50 projects, 6 modules
+                      </div>
+                      <button
+                        className="btn-primary"
+                        style={{ width: "100%", justifyContent: "center" }}
+                        onClick={() => openCheckout("professional", billingInterval)}
+                      >
+                        <Zap size={14} />
+                        Upgrade to Professional
+                      </button>
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      border: "1.5px solid var(--color-green)",
+                      borderRadius: "10px",
+                      padding: "16px",
+                      background: "rgba(22, 163, 74, 0.04)",
+                    }}
                   >
-                    <Zap size={14} />
-                    {t("upgradeTo", { plan: plan === "starter" ? t("professional") : t("enterprise") })}
-                  </button>
-                )}
-              </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                      <Crown size={18} style={{ color: "var(--color-green)" }} />
+                      <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Enterprise</span>
+                    </div>
+                    <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
+                      ${billingInterval === "annual" ? "499" : "599"}
+                      <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "var(--muted)" }}>/mo</span>
+                    </div>
+                    {billingInterval === "annual" && (
+                      <div style={{ fontSize: "0.75rem", color: "var(--color-green)", marginBottom: "8px" }}>
+                        $5,988/yr (save $1,200)
+                      </div>
+                    )}
+                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
+                      Unlimited users, projects, all modules
+                    </div>
+                    <button
+                      className="btn-primary"
+                      style={{ width: "100%", justifyContent: "center" }}
+                      onClick={() => openCheckout("enterprise", billingInterval)}
+                    >
+                      <Crown size={14} />
+                      Upgrade to Enterprise
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Manage Billing (for existing Stripe customers) */}
+              {company.stripe_customer_id && (
+                <button
+                  className="btn-secondary"
+                  onClick={async () => {
+                    setBillingMessage(null);
+                    try {
+                      const res = await fetch("/api/stripe/portal", { method: "POST" });
+                      if (res.ok) {
+                        const { url } = await res.json();
+                        window.open(url, "_blank");
+                      } else {
+                        const data = await res.json().catch(() => ({}));
+                        setBillingMessage({
+                          type: "error",
+                          text: data.error || t("stripeBillingPortalNotConfigured"),
+                        });
+                      }
+                    } catch {
+                      setBillingMessage({
+                        type: "error",
+                        text: t("stripeBillingPortalNotConfiguredShort"),
+                      });
+                    }
+                  }}
+                >
+                  <ExternalLink size={14} />
+                  {t("manageBilling")}
+                </button>
+              )}
             </div>
           </div>
         )}

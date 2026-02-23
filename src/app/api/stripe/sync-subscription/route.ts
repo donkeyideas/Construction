@@ -100,6 +100,9 @@ export async function POST() {
       }
     }
 
+    const previousPlan = company.subscription_plan || "starter";
+    const isUpgrade = plan !== previousPlan;
+
     // Update company
     const { error: updateError } = await admin
       .from("companies")
@@ -116,6 +119,28 @@ export async function POST() {
       console.error("Failed to sync subscription:", updateError);
       return NextResponse.json({ error: "Failed to update" }, { status: 500 });
     }
+
+    // Record subscription event for super-admin revenue tracking
+    const price = sub.items.data[0]?.price;
+    const amount = price ? (price.unit_amount ?? 0) / 100 : 0;
+
+    await admin.from("subscription_events").insert({
+      company_id: userCtx.companyId,
+      event_type: isUpgrade ? "upgraded" : "renewed",
+      plan_from: previousPlan,
+      plan_to: plan,
+      amount,
+      stripe_event_id: `sync_${sub.id}_${Date.now()}`,
+    }).then(() => {});
+
+    // Audit log
+    await admin.from("audit_logs").insert({
+      company_id: userCtx.companyId,
+      user_id: userCtx.userId,
+      action: isUpgrade ? "subscription_upgraded" : "subscription_synced",
+      entity_type: "subscription",
+      details: { plan_from: previousPlan, plan_to: plan, subscription_id: sub.id },
+    }).then(() => {});
 
     return NextResponse.json({
       synced: true,

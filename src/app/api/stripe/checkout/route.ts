@@ -27,44 +27,61 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const plan = body.plan as string;
+    const billing = (body.billing as string) || "monthly"; // "monthly" or "annual"
 
     // Look up Stripe price ID from pricing_tiers table
     const admin = createAdminClient();
 
-    // Query only columns guaranteed to exist (stripe_product_id may not exist)
     const { data: tier } = await admin
       .from("pricing_tiers")
-      .select("id, name, monthly_price, stripe_price_id_monthly")
+      .select("id, name, monthly_price, annual_price, stripe_price_id_monthly, stripe_price_id_annual")
       .ilike("name", plan)
       .single();
 
-    let priceId = tier?.stripe_price_id_monthly
-      || (plan === "professional" ? process.env.STRIPE_PRICE_PROFESSIONAL : undefined)
-      || (plan === "enterprise" ? process.env.STRIPE_PRICE_ENTERPRISE : undefined);
+    // Choose price based on billing interval
+    let priceId = billing === "annual"
+      ? tier?.stripe_price_id_annual
+      : tier?.stripe_price_id_monthly;
+
+    // Fallback to env vars for monthly
+    if (!priceId && billing === "monthly") {
+      priceId = (plan === "professional" ? process.env.STRIPE_PRICE_PROFESSIONAL : undefined)
+        || (plan === "enterprise" ? process.env.STRIPE_PRICE_ENTERPRISE : undefined);
+    }
 
     // Auto-create Stripe Product + Price if tier exists but price ID is missing
-    if (!priceId && tier && tier.monthly_price > 0) {
-      const product = await stripe.products.create({
-        name: `Buildwrk ${tier.name}`,
-        metadata: { tier_id: tier.id, plan: plan.toLowerCase() },
-      });
+    if (!priceId && tier) {
+      const unitPrice = billing === "annual"
+        ? (tier.annual_price || tier.monthly_price || 0)
+        : (tier.monthly_price || 0);
 
-      const newPrice = await stripe.prices.create({
-        product: product.id,
-        unit_amount: Math.round(tier.monthly_price * 100),
-        currency: "usd",
-        recurring: { interval: "month" },
-        metadata: { tier_id: tier.id, billing: "monthly" },
-      });
+      if (unitPrice > 0) {
+        const product = await stripe.products.create({
+          name: `Buildwrk ${tier.name}`,
+          metadata: { tier_id: tier.id, plan: plan.toLowerCase() },
+        });
 
-      priceId = newPrice.id;
+        const interval = billing === "annual" ? "year" : "month";
+        const amount = billing === "annual"
+          ? Math.round(unitPrice * 100 * 12) // annual_price is per-month, multiply by 12
+          : Math.round(unitPrice * 100);
 
-      // Persist price ID back to DB (best-effort)
-      admin
-        .from("pricing_tiers")
-        .update({ stripe_price_id_monthly: newPrice.id })
-        .eq("id", tier.id)
-        .then(() => {});
+        const newPrice = await stripe.prices.create({
+          product: product.id,
+          unit_amount: amount,
+          currency: "usd",
+          recurring: { interval },
+          metadata: { tier_id: tier.id, billing },
+        });
+
+        priceId = newPrice.id;
+
+        // Persist price ID back to DB (best-effort)
+        const updateField = billing === "annual"
+          ? { stripe_price_id_annual: newPrice.id }
+          : { stripe_price_id_monthly: newPrice.id };
+        admin.from("pricing_tiers").update(updateField).eq("id", tier.id).then(() => {});
+      }
     }
 
     if (!priceId) {
