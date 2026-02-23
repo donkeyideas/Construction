@@ -405,7 +405,7 @@ export default function EmployeeDashboardClient({
           {dashboard.role.charAt(0).toUpperCase() + dashboard.role.slice(1)}
         </p>
         <div className="vendor-welcome-details">
-          <div className="vendor-welcome-detail">
+          <div className="vendor-welcome-detail" suppressHydrationWarning>
             <Clock size={16} />
             {todayHours.toFixed(1)}h today
           </div>
@@ -442,14 +442,14 @@ export default function EmployeeDashboardClient({
               >
                 {isClockedIn ? "Clocked In" : "Clocked Out"}
               </div>
-              <div className="emp-clock-time">{elapsed}</div>
+              <div className="emp-clock-time" suppressHydrationWarning>{elapsed}</div>
               {isClockedIn && lastEvent && (
-                <div className="emp-clock-duration">
+                <div className="emp-clock-duration" suppressHydrationWarning>
                   Started at {formatTime(lastEvent.timestamp)}
                 </div>
               )}
               {!isClockedIn && lastEvent && (
-                <div className="emp-clock-duration">
+                <div className="emp-clock-duration" suppressHydrationWarning>
                   Last clocked out at {formatTime(lastEvent.timestamp)}
                 </div>
               )}
@@ -484,7 +484,7 @@ export default function EmployeeDashboardClient({
                         className={`emp-timeline-dot ${event.event_type === "clock_in" ? "emp-timeline-dot-in" : "emp-timeline-dot-out"}`}
                       />
                       <div className="emp-timeline-content">
-                        <div className="emp-timeline-time">
+                        <div className="emp-timeline-time" suppressHydrationWarning>
                           {formatTime(event.timestamp)}
                         </div>
                         <div className="emp-timeline-label">
@@ -641,7 +641,7 @@ export default function EmployeeDashboardClient({
             <div className="emp-kpi-row">
               <div className="emp-kpi">
                 <div className="emp-kpi-label">Today</div>
-                <div className="emp-kpi-value">{todayHours.toFixed(1)}h</div>
+                <div className="emp-kpi-value" suppressHydrationWarning>{todayHours.toFixed(1)}h</div>
               </div>
               <div className="emp-kpi">
                 <div className="emp-kpi-label">This Week</div>
@@ -708,7 +708,7 @@ export default function EmployeeDashboardClient({
                       <div className="emp-activity-text">
                         {activityText(event)}
                       </div>
-                      <div className="emp-activity-time">
+                      <div className="emp-activity-time" suppressHydrationWarning>
                         {formatRelativeTime(event.timestamp)}
                       </div>
                     </div>
