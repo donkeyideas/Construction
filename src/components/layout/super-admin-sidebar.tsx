@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, FileText,
   Globe, ChevronRight, CreditCard, Settings,
-  Shield, Wrench, Headphones,
+  Shield, Wrench, Headphones, TrendingUp,
 } from "lucide-react";
 import {
   superAdminNavigation,
@@ -24,6 +24,7 @@ const iconMap: Record<string, React.ElementType> = {
   shield: Shield,
   wrench: Wrench,
   headphones: Headphones,
+  "trending-up": TrendingUp,
   settings: Settings,
 };
 

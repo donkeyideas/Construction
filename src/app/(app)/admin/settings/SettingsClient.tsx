@@ -931,7 +931,6 @@ export default function SettingsClient({
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                      <Crown size={18} style={{ color: "var(--color-green)" }} />
                       <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Enterprise</span>
                     </div>
                     <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
@@ -951,7 +950,6 @@ export default function SettingsClient({
                       style={{ width: "100%", justifyContent: "center" }}
                       onClick={() => openCheckout("enterprise", billingInterval)}
                     >
-                      <Crown size={14} />
                       Upgrade to Enterprise
                     </button>
                   </div>
