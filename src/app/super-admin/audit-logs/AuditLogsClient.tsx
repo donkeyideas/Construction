@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Shield,
   Activity,
@@ -563,22 +563,26 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
                 </div>
               )}
 
-              <pre
-                style={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 6,
-                  padding: "12px",
-                  overflow: "auto",
-                  maxHeight: "300px",
-                  fontSize: "0.78rem",
+              {log.details && typeof log.details === "object" && Object.keys(log.details).length > 0 && (
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
+                  gap: "6px 16px",
+                  fontSize: "0.82rem",
                   lineHeight: 1.5,
-                  margin: 0,
-                  color: "var(--foreground)",
-                }}
-              >
-                {JSON.stringify(log.details, null, 2)}
-              </pre>
+                }}>
+                  {Object.entries(log.details as Record<string, unknown>).map(([key, value]) => (
+                    <React.Fragment key={key}>
+                      <span style={{ color: "var(--muted)", fontWeight: 500, whiteSpace: "nowrap" }}>
+                        {key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                      </span>
+                      <span style={{ color: "var(--foreground)", wordBreak: "break-all" }}>
+                        {value === null ? "—" : String(value)}
+                      </span>
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })()}
