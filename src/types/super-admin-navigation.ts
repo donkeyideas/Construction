@@ -27,6 +27,11 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
     icon: "users",
   },
   {
+    label: "inbox",
+    href: "/super-admin/inbox",
+    icon: "mail",
+  },
+  {
     label: "supportTickets",
     href: "/super-admin/support-tickets",
     icon: "headphones",

@@ -630,6 +630,7 @@
     "promoCodes": "Aktionscodes",
     "stripeSettings": "Stripe-Einstellungen",
     "operations": "Betrieb",
+    "inbox": "Posteingang",
     "supportTickets": "Support-Tickets",
     "auditLogs": "Audit-Protokolle",
     "systemHealth": "Systemzustand",

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
+import ContactForm from "@/components/ContactForm";
 import "@/styles/cms-page.css";
 
 /* ------------------------------------------------------------------ */
@@ -190,6 +191,8 @@ export default async function CmsPageRoute({
     <div className="cms-page">
       <div className="cms-page-container">
         {sorted.map((section, index) => renderSection(section, index))}
+
+        {slug === "contact" && <ContactForm />}
 
         <div className="cms-back-link-wrap">
           <Link href="/" className="cms-back-link">

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import { HomepageThemeToggle } from "@/components/homepage-theme-toggle";
+import CustomPlanCard from "@/components/CustomPlanCard";
 import { createClient } from "@/lib/supabase/server";
 import {
   DEFAULT_HOMEPAGE_SECTIONS,
@@ -407,6 +408,7 @@ function PricingSection({ c }: { c: any }) {
               </Link>
             </div>
           ))}
+          <CustomPlanCard />
         </div>
       </div>
     </section>

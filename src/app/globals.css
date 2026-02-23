@@ -209,7 +209,7 @@ h1, h2, h3, h4 {
 /* PRICING */
 .hp-pricing { padding: 100px 24px; background: var(--bg); }
 .hp-pricing h2 { text-align: center; font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
-.hp-pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1080px; margin: 0 auto; align-items: start; }
+.hp-pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 1320px; margin: 0 auto; align-items: start; }
 .hp-pricing-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 40px 32px; position: relative; transition: transform 0.3s, box-shadow 0.3s; }
 .hp-pricing-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
 .hp-pricing-featured { border-color: var(--color-blue); box-shadow: 0 4px 24px rgba(29, 78, 216, 0.12); }
@@ -228,6 +228,28 @@ h1, h2, h3, h4 {
 .hp-pricing-btn:hover { border-color: var(--color-blue); color: var(--color-blue); }
 .hp-pricing-btn-primary { background: var(--color-blue); color: #fff; border-color: var(--color-blue); }
 .hp-pricing-btn-primary:hover { background: var(--color-blue-dark); border-color: var(--color-blue-dark); color: #fff; }
+
+/* Custom pricing card */
+.hp-custom-card { border-style: dashed; border-color: var(--color-amber); }
+.hp-custom-card:hover { border-color: var(--color-amber); box-shadow: 0 8px 30px rgba(180, 83, 9, 0.1); }
+.hp-custom-price-text { font-size: 2.2rem; font-weight: 700; color: var(--color-amber); }
+.hp-pricing-btn-custom { background: transparent; border: 2px solid var(--color-amber); color: var(--color-amber); cursor: pointer; font-family: inherit; }
+.hp-pricing-btn-custom:hover { background: var(--color-amber); color: #fff; border-color: var(--color-amber); }
+
+/* Custom plan modal overlay */
+.custom-plan-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(4px); }
+.custom-plan-modal { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.custom-plan-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.custom-plan-modal-header h3 { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.custom-plan-close { background: none; border: none; font-size: 1.6rem; color: var(--muted); cursor: pointer; padding: 0; line-height: 1; }
+.custom-plan-close:hover { color: var(--text); }
+.custom-plan-modal-body { padding: 24px; }
+
+/* Module checkboxes grid */
+.custom-plan-modules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+.custom-plan-module-check { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text); cursor: pointer; padding: 6px 8px; border-radius: 6px; transition: background 0.2s; }
+.custom-plan-module-check:hover { background: var(--border); }
+.custom-plan-module-check input[type="checkbox"] { accent-color: var(--color-blue); }
 
 /* FAQ */
 .hp-faq { padding: 80px 24px 100px; background: var(--surface); }
@@ -260,7 +282,7 @@ h1, h2, h3, h4 {
 /* RESPONSIVE */
 @media (max-width: 1024px) {
   .hp-cards-grid { grid-template-columns: repeat(2, 1fr); }
-  .hp-pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+  .hp-pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 680px; margin: 0 auto; }
   .hp-value-grid { grid-template-columns: repeat(2, 1fr); }
   .hp-footer-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -279,9 +301,11 @@ h1, h2, h3, h4 {
   .hp-value-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
   .hp-steps-row { flex-direction: column; gap: 36px; }
   .hp-steps-row::before { display: none; }
+  .hp-pricing-grid { grid-template-columns: 1fr; max-width: 440px; }
   .hp-cards-grid { grid-template-columns: 1fr; max-width: 400px; }
   .hp-cta-section h2 { font-size: 1.8rem; }
   .hp-footer-grid { grid-template-columns: 1fr 1fr; }
+  .custom-plan-modules-grid { grid-template-columns: 1fr; }
 }
 
 /* ===== Utility: Spin Animation ===== */
