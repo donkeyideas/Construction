@@ -10,6 +10,7 @@ import {
   buildCompanyAccountMap,
   generateEquipmentPurchaseJournalEntry,
 } from "@/lib/utils/invoice-accounting";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
 // GET /api/equipment — List equipment for the current user's company
@@ -63,6 +64,9 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const subBlock = await checkSubscriptionAccess(userCtx.companyId, "POST");
+    if (subBlock) return subBlock;
 
     const body = await request.json();
 

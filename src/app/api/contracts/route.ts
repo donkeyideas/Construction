@@ -8,6 +8,7 @@ import {
   type ContractType,
 } from "@/lib/queries/contracts";
 import { createNotifications } from "@/lib/utils/notifications";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
 // GET /api/contracts — List contracts for the current user's company
@@ -61,6 +62,9 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const subBlock = await checkSubscriptionAccess(userCtx.companyId, "POST");
+    if (subBlock) return subBlock;
 
     const body = await request.json();
 

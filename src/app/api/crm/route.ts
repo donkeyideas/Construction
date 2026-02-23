@@ -19,6 +19,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const subBlock = await checkSubscriptionAccess(userCtx.companyId, "POST");
+    if (subBlock) return subBlock;
+
     const body = await request.json();
 
     // Validate required fields

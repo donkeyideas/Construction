@@ -63,6 +63,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const subBlock = await checkSubscriptionAccess(userCtx.companyId, "POST");
+    if (subBlock) return subBlock;
+
     const body = await request.json();
     const entity = body.entity as string;
     const rows = body.rows as Record<string, string>[];

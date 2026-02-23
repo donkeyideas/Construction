@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const subBlock = await checkSubscriptionAccess(userCtx.companyId, "POST");
+    if (subBlock) return subBlock;
+
     // Enforce plan limit on projects
     const limitCheck = await checkPlanLimit(supabase, userCtx.companyId, "projects");
     if (!limitCheck.allowed) return planLimitError(limitCheck);

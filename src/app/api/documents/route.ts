@@ -8,6 +8,7 @@ import {
 } from "@/lib/queries/documents";
 import { storageUpload } from "@/lib/supabase/storage";
 import { checkPlanLimit, planLimitError } from "@/lib/utils/plan-limits";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 /* ------------------------------------------------------------------
    GET /api/documents - List documents for the current company
@@ -64,6 +65,9 @@ export async function POST(request: NextRequest) {
     if (!userCtx) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const subBlock = await checkSubscriptionAccess(userCtx.companyId, "POST");
+    if (subBlock) return subBlock;
 
     // Enforce plan limit on storage
     const limitCheck = await checkPlanLimit(supabase, userCtx.companyId, "storage_gb");

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getJournalEntries, createJournalEntry, getChartOfAccounts } from "@/lib/queries/financial";
 import type { JournalEntryCreateData } from "@/lib/queries/financial";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,6 +48,9 @@ export async function POST(request: NextRequest) {
     if (!userCompany) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const subBlock = await checkSubscriptionAccess(userCompany.companyId, "POST");
+    if (subBlock) return subBlock;
 
     const body = await request.json();
 

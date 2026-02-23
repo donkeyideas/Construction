@@ -5,6 +5,7 @@ import {
   getContractById,
   updateContract,
 } from "@/lib/queries/contracts";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
 // GET /api/contracts/[id] — Get contract detail
@@ -73,6 +74,9 @@ export async function PATCH(
       );
     }
 
+    const subBlock = await checkSubscriptionAccess(userCtx.companyId, "PATCH");
+    if (subBlock) return subBlock;
+
     // Verify the contract exists and belongs to the company
     const existing = await getContractById(supabase, id);
     if (!existing || existing.company_id !== userCtx.companyId) {
@@ -119,6 +123,9 @@ export async function DELETE(
         { status: 401 }
       );
     }
+
+    const subBlock2 = await checkSubscriptionAccess(userCtx.companyId, "DELETE");
+    if (subBlock2) return subBlock2;
 
     // Verify the contract exists and belongs to the company
     const existing = await getContractById(supabase, id);

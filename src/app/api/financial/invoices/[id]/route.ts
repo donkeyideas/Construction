@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById, updateInvoice } from "@/lib/queries/financial";
 import { createNotifications } from "@/lib/utils/notifications";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -58,6 +59,9 @@ export async function PATCH(
         { status: 401 }
       );
     }
+
+    const subBlock = await checkSubscriptionAccess(userCompany.companyId, "PATCH");
+    if (subBlock) return subBlock;
 
     // Verify the invoice belongs to this company
     const existing = await getInvoiceById(supabase, id);
@@ -118,6 +122,9 @@ export async function DELETE(
         { status: 401 }
       );
     }
+
+    const subBlock2 = await checkSubscriptionAccess(userCompany.companyId, "DELETE");
+    if (subBlock2) return subBlock2;
 
     // Soft delete: set status to voided
     const success = await updateInvoice(supabase, id, { status: "voided" });

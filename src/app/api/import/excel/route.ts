@@ -12,6 +12,7 @@ import {
   buildCompanyAccountMap,
   inferGLAccountFromDescription,
 } from "@/lib/utils/invoice-accounting";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
 // POST /api/import/excel — Master Excel template import
@@ -37,6 +38,9 @@ export async function POST(request: NextRequest) {
     if (!userCtx) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const subBlock = await checkSubscriptionAccess(userCtx.companyId, "POST");
+    if (subBlock) return subBlock;
 
     const { companyId, userId } = userCtx;
 

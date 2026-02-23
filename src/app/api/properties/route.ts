@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProperties, createProperty } from "@/lib/queries/properties";
 import { checkPlanLimit, planLimitError } from "@/lib/utils/plan-limits";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 export async function GET() {
   try {
@@ -29,6 +30,9 @@ export async function POST(request: NextRequest) {
     if (!ctx) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const subBlock = await checkSubscriptionAccess(ctx.companyId, "POST");
+    if (subBlock) return subBlock;
 
     // Enforce plan limit on properties
     const limitCheck = await checkPlanLimit(supabase, ctx.companyId, "properties");

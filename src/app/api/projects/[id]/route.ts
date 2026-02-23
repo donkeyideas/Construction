@@ -7,6 +7,7 @@ import {
   deleteProject,
   getCurrentUserCompany,
 } from "@/lib/queries/projects";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
 // GET /api/projects/[id] - Get single project with stats
@@ -80,6 +81,9 @@ export async function PATCH(
       );
     }
 
+    const subBlock = await checkSubscriptionAccess(userCtx.companyId, "PATCH");
+    if (subBlock) return subBlock;
+
     // Verify the project exists and belongs to the company
     const existing = await getProjectById(supabase, id);
     if (!existing || existing.project.company_id !== userCtx.companyId) {
@@ -126,6 +130,9 @@ export async function DELETE(
         { status: 401 }
       );
     }
+
+    const subBlock2 = await checkSubscriptionAccess(userCtx.companyId, "DELETE");
+    if (subBlock2) return subBlock2;
 
     // Verify the project exists and belongs to the company
     const existing = await getProjectById(supabase, id);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getJournalEntryById, postJournalEntry, voidJournalEntry } from "@/lib/queries/financial";
+import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -40,6 +41,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const subBlock = await checkSubscriptionAccess(userCompany.companyId, "PATCH");
+    if (subBlock) return subBlock;
+
     const body = await request.json();
     const action = body.action;
 
@@ -75,6 +79,9 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     if (!userCompany) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const subBlock2 = await checkSubscriptionAccess(userCompany.companyId, "DELETE");
+    if (subBlock2) return subBlock2;
 
     const entry = await getJournalEntryById(supabase, id);
     if (!entry) {
