@@ -748,13 +748,15 @@ export default function SettingsClient({
                 </div>
               )}
               {(subDetails?.cancelAtPeriodEnd || company.subscription_status === "canceling") &&
-                subDetails?.currentPeriodEnd && (
+                (subDetails?.currentPeriodEnd || company.subscription_ends_at) && (
                 <div className="subscription-info-row">
                   <span className="subscription-info-label" style={{ color: "var(--color-red)" }}>
                     Cancels On
                   </span>
                   <span className="subscription-info-value" style={{ color: "var(--color-red)" }} suppressHydrationWarning>
-                    {new Date(subDetails.currentPeriodEnd).toLocaleDateString(undefined, {
+                    {new Date(
+                      subDetails?.currentPeriodEnd || company.subscription_ends_at!
+                    ).toLocaleDateString(undefined, {
                       year: "numeric", month: "long", day: "numeric",
                     })}
                   </span>

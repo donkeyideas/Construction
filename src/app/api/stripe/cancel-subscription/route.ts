@@ -54,11 +54,16 @@ export async function POST() {
       ? subscription.items.data[0].price.unit_amount / 100
       : 0;
 
-    // Update company status
+    // Update company status + store the end date
+    const endsAt = subscription.current_period_end
+      ? new Date(subscription.current_period_end * 1000).toISOString()
+      : null;
+
     await admin
       .from("companies")
       .update({
         subscription_status: "canceling",
+        subscription_ends_at: endsAt,
         updated_at: new Date().toISOString(),
       })
       .eq("id", userCtx.companyId);

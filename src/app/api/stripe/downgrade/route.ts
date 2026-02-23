@@ -69,10 +69,15 @@ export async function POST(request: NextRequest) {
         ? sub.items.data[0].price.unit_amount / 100
         : 0;
 
+      const endsAt = sub.current_period_end
+        ? new Date(sub.current_period_end * 1000).toISOString()
+        : null;
+
       await admin
         .from("companies")
         .update({
           subscription_status: "canceling",
+          subscription_ends_at: endsAt,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userCtx.companyId);
