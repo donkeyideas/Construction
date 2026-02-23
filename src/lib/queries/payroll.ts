@@ -517,21 +517,37 @@ export async function getApprovedTimeEntries(
   periodStart: string,
   periodEnd: string
 ): Promise<TimeEntryGroup[]> {
-  const { data, error } = await supabase
-    .from("time_entries")
-    .select("id, user_id, entry_date, hours, user_profiles(full_name, email)")
-    .eq("company_id", companyId)
-    .eq("status", "approved")
-    .gte("entry_date", periodStart)
-    .lte("entry_date", periodEnd)
-    .order("entry_date", { ascending: true });
+  // Fetch approved time_entries AND clock_events in parallel
+  const [timeRes, clockRes] = await Promise.all([
+    supabase
+      .from("time_entries")
+      .select("id, user_id, entry_date, hours, user_profiles(full_name, email)")
+      .eq("company_id", companyId)
+      .eq("status", "approved")
+      .gte("entry_date", periodStart)
+      .lte("entry_date", periodEnd)
+      .order("entry_date", { ascending: true }),
 
-  if (error) {
-    console.error("Error fetching approved time entries:", error);
-    return [];
+    supabase
+      .from("clock_events")
+      .select("id, user_id, event_type, timestamp")
+      .eq("company_id", companyId)
+      .gte("timestamp", `${periodStart}T00:00:00.000Z`)
+      .lte("timestamp", `${periodEnd}T23:59:59.999Z`)
+      .order("timestamp", { ascending: true }),
+  ]);
+
+  if (timeRes.error) {
+    console.error("Error fetching approved time entries:", timeRes.error);
+  }
+  if (clockRes.error) {
+    console.error("Error fetching clock events for payroll:", clockRes.error);
   }
 
-  if (!data || data.length === 0) return [];
+  const timeData = timeRes.data ?? [];
+  const clockData = clockRes.data ?? [];
+
+  if (timeData.length === 0 && clockData.length === 0) return [];
 
   // Group entries by user_id
   const userMap = new Map<
@@ -543,7 +559,8 @@ export async function getApprovedTimeEntries(
     }
   >();
 
-  for (const row of data) {
+  // --- Add time_entries to userMap ---
+  for (const row of timeData) {
     const profile = (row as Record<string, unknown>).user_profiles as {
       full_name: string | null;
       email: string | null;
@@ -562,6 +579,77 @@ export async function getApprovedTimeEntries(
       entry_date: row.entry_date,
       hours: row.hours ?? 0,
     });
+  }
+
+  // --- Add clock_events to userMap (paired clock_in/clock_out → hours) ---
+  if (clockData.length > 0) {
+    // Group clock events by user_id + date
+    const clockGroups: Record<
+      string,
+      { userId: string; date: string; events: typeof clockData }
+    > = {};
+    for (const evt of clockData) {
+      const dateStr = (evt.timestamp as string).slice(0, 10);
+      const key = `${evt.user_id}:${dateStr}`;
+      if (!clockGroups[key]) {
+        clockGroups[key] = { userId: evt.user_id, date: dateStr, events: [] };
+      }
+      clockGroups[key].events.push(evt);
+    }
+
+    // Get profiles for clock event users not already in userMap
+    const clockUserIds = [
+      ...new Set(clockData.map((e) => e.user_id as string)),
+    ].filter((uid) => !userMap.has(uid));
+
+    if (clockUserIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("user_profiles")
+        .select("id, full_name, email")
+        .in("id", clockUserIds);
+
+      for (const p of profiles ?? []) {
+        if (!userMap.has(p.id)) {
+          userMap.set(p.id, {
+            employee_name: p.full_name ?? "Unknown",
+            employee_email: p.email ?? "",
+            entries: [],
+          });
+        }
+      }
+    }
+
+    // Calculate hours from paired in/out events and add to userMap
+    for (const group of Object.values(clockGroups)) {
+      let totalMs = 0;
+      let pendingIn: Date | null = null;
+      for (const evt of group.events) {
+        if (evt.event_type === "clock_in") {
+          pendingIn = new Date(evt.timestamp as string);
+        } else if (evt.event_type === "clock_out" && pendingIn) {
+          totalMs +=
+            new Date(evt.timestamp as string).getTime() - pendingIn.getTime();
+          pendingIn = null;
+        }
+      }
+      const hours = Math.round((totalMs / 3_600_000) * 100) / 100;
+      if (hours <= 0) continue;
+
+      // Ensure user entry exists in userMap
+      if (!userMap.has(group.userId)) {
+        userMap.set(group.userId, {
+          employee_name: "Unknown",
+          employee_email: "",
+          entries: [],
+        });
+      }
+
+      userMap.get(group.userId)!.entries.push({
+        id: `clock:${group.userId}:${group.date}`,
+        entry_date: group.date,
+        hours,
+      });
+    }
   }
 
   // Calculate regular vs overtime hours per user
