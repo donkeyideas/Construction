@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Loader2,
   CalendarDays,
+  Activity,
 } from "lucide-react";
 import type {
   EmployeeDashboardData,
@@ -359,6 +360,73 @@ export default function EmployeeDashboardClient({
     const isLive = isToday && isClockedIn && pIn !== null;
     return { date: day, dayStr, firstIn, lastOut, hours, isToday, isLive };
   });
+
+  // Build unified activity feed from all data sources
+  type ActivityItem = { id: string; type: string; title: string; detail: string; timestamp: string; color: string };
+  const allActivity: ActivityItem[] = [
+    ...todayEvents.map((e) => ({
+      id: `clock-${e.id}`,
+      type: "clock",
+      title: e.event_type === "clock_in" ? t("clockedInAction") : t("clockedOutAction"),
+      detail: e.project_name || "",
+      timestamp: e.timestamp,
+      color: e.event_type === "clock_in" ? "var(--color-green)" : "var(--color-red)",
+    })),
+    ...recentDailyLogs.map((l) => ({
+      id: `log-${l.id}`,
+      type: "daily-log",
+      title: l.work_performed ? (l.work_performed.length > 50 ? l.work_performed.slice(0, 50) + "..." : l.work_performed) : t("dailyLogEntry"),
+      detail: l.project_name || "",
+      timestamp: l.log_date + "T12:00:00Z",
+      color: "var(--color-blue)",
+    })),
+    ...recentSafetyIncidents.map((s) => ({
+      id: `safety-${s.id}`,
+      type: "safety",
+      title: s.title,
+      detail: s.project_name || "",
+      timestamp: s.created_at,
+      color: s.severity === "high" || s.severity === "critical" ? "var(--color-red)" : "var(--color-amber)",
+    })),
+    ...recentRfis.map((r) => ({
+      id: `rfi-${r.id}`,
+      type: "rfi",
+      title: r.subject,
+      detail: r.project_name || "",
+      timestamp: r.created_at,
+      color: "var(--color-purple, #8b5cf6)",
+    })),
+    ...recentPhotos.map((p) => ({
+      id: `photo-${p.id}`,
+      type: "photo",
+      title: p.name.length > 50 ? p.name.slice(0, 50) + "..." : p.name,
+      detail: p.project_name || "",
+      timestamp: p.created_at,
+      color: "var(--color-teal, #14b8a6)",
+    })),
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
+
+  const activityIcon = (type: string) => {
+    switch (type) {
+      case "clock": return <Clock size={14} />;
+      case "daily-log": return <FileText size={14} />;
+      case "safety": return <ShieldAlert size={14} />;
+      case "rfi": return <HelpCircle size={14} />;
+      case "photo": return <Camera size={14} />;
+      default: return <Activity size={14} />;
+    }
+  };
+
+  const activityLabel = (type: string) => {
+    switch (type) {
+      case "clock": return t("timeClock");
+      case "daily-log": return t("dailyLogs");
+      case "safety": return t("safetyReports");
+      case "rfi": return t("rfis");
+      case "photo": return t("photos");
+      default: return "";
+    }
+  };
 
   // Open modal
   function openModal(type: ModalType) {
@@ -752,6 +820,56 @@ export default function EmployeeDashboardClient({
             )}
           </div>
 
+          {/* Weekly Timecard */}
+          <div className="vendor-card">
+            <div className="vendor-card-title">
+              <CalendarDays size={18} />
+              {t("weeklyTimecard")}
+            </div>
+            <table className="emp-timecard-table">
+              <thead>
+                <tr>
+                  <th>{t("timecardDay")}</th>
+                  <th>{t("clockInLabel")}</th>
+                  <th>{t("clockOutLabel")}</th>
+                  <th style={{ textAlign: "right" }}>{t("timecardHours")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {timecardRows.map((row) => (
+                  <tr key={row.dayStr} className={row.isToday ? "emp-timecard-today" : ""}>
+                    <td>
+                      {row.date.toLocaleDateString(undefined, { weekday: "short", month: "numeric", day: "numeric" })}
+                    </td>
+                    <td>
+                      {row.firstIn
+                        ? new Date(row.firstIn).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+                        : <span className="emp-timecard-dash">&mdash;</span>}
+                    </td>
+                    <td>
+                      {row.lastOut
+                        ? new Date(row.lastOut).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+                        : row.isLive
+                          ? <span style={{ color: "var(--color-green)", fontWeight: 500 }}>{t("timecardLive")}</span>
+                          : <span className="emp-timecard-dash">&mdash;</span>}
+                    </td>
+                    <td style={{ textAlign: "right" }} suppressHydrationWarning>
+                      {row.hours > 0
+                        ? <>{row.hours.toFixed(1)}h{row.isLive ? <span style={{ color: "var(--color-green)", fontSize: "0.75rem", marginLeft: 4 }}>●</span> : null}</>
+                        : <span className="emp-timecard-dash">&mdash;</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="emp-timecard-total">
+                  <td colSpan={3} style={{ textAlign: "right" }}>{t("weekTotal")}</td>
+                  <td style={{ textAlign: "right" }} suppressHydrationWarning>{weekTotalLive.toFixed(1)}h</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
           {/* Daily Logs Card */}
           <div className="vendor-card">
             <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
@@ -922,56 +1040,6 @@ export default function EmployeeDashboardClient({
             </div>
           </div>
 
-          {/* Weekly Timecard */}
-          <div className="vendor-card">
-            <div className="vendor-card-title">
-              <CalendarDays size={18} />
-              {t("weeklyTimecard")}
-            </div>
-            <table className="emp-timecard-table">
-              <thead>
-                <tr>
-                  <th>{t("timecardDay")}</th>
-                  <th>{t("clockInLabel")}</th>
-                  <th>{t("clockOutLabel")}</th>
-                  <th style={{ textAlign: "right" }}>{t("timecardHours")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {timecardRows.map((row) => (
-                  <tr key={row.dayStr} className={row.isToday ? "emp-timecard-today" : ""}>
-                    <td>
-                      {row.date.toLocaleDateString(undefined, { weekday: "short", month: "numeric", day: "numeric" })}
-                    </td>
-                    <td>
-                      {row.firstIn
-                        ? new Date(row.firstIn).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
-                        : <span className="emp-timecard-dash">&mdash;</span>}
-                    </td>
-                    <td>
-                      {row.lastOut
-                        ? new Date(row.lastOut).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
-                        : row.isLive
-                          ? <span style={{ color: "var(--color-green)", fontWeight: 500 }}>{t("timecardLive")}</span>
-                          : <span className="emp-timecard-dash">&mdash;</span>}
-                    </td>
-                    <td style={{ textAlign: "right" }} suppressHydrationWarning>
-                      {row.hours > 0
-                        ? <>{row.hours.toFixed(1)}h{row.isLive ? <span style={{ color: "var(--color-green)", fontSize: "0.75rem", marginLeft: 4 }}>●</span> : null}</>
-                        : <span className="emp-timecard-dash">&mdash;</span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="emp-timecard-total">
-                  <td colSpan={3} style={{ textAlign: "right" }}>{t("weekTotal")}</td>
-                  <td style={{ textAlign: "right" }} suppressHydrationWarning>{weekTotalLive.toFixed(1)}h</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
           {/* Today's Assignments */}
           <div className="vendor-card">
             <div className="vendor-card-title">
@@ -997,25 +1065,25 @@ export default function EmployeeDashboardClient({
             </div>
           </div>
 
-          {/* Recent Activity */}
+          {/* Recent Activity (unified feed) */}
           <div className="vendor-card">
             <div className="vendor-card-title">
-              <Clock size={18} />
+              <Activity size={18} />
               {t("recentActivity")}
             </div>
-            {todayEvents.length > 0 ? (
+            {allActivity.length > 0 ? (
               <div className="emp-activity-list">
-                {todayEvents.slice(0, 6).map((event) => (
-                  <div key={event.id} className="emp-activity-item emp-clickable" onClick={() => viewActivityDetail(event)}>
-                    <div className="emp-activity-icon">
-                      <Clock size={14} />
+                {allActivity.map((item) => (
+                  <div key={item.id} className="emp-activity-item">
+                    <div className="emp-activity-icon" style={{ color: item.color }}>
+                      {activityIcon(item.type)}
                     </div>
-                    <div>
-                      <div className="emp-activity-text">
-                        {activityText(event, t)}
-                      </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="emp-activity-text">{item.title}</div>
                       <div className="emp-activity-time" suppressHydrationWarning>
-                        {formatRelativeTime(event.timestamp, t)}
+                        <span style={{ color: item.color, fontWeight: 500, fontSize: "0.7rem", marginRight: 6 }}>{activityLabel(item.type)}</span>
+                        {item.detail && <>{item.detail} &middot; </>}
+                        {formatRelativeTime(item.timestamp, t)}
                       </div>
                     </div>
                   </div>
@@ -1023,14 +1091,8 @@ export default function EmployeeDashboardClient({
               </div>
             ) : (
               <div className="emp-empty-state">
-                <Clock
-                  size={32}
-                  style={{ color: "var(--muted)", marginBottom: 8 }}
-                />
+                <Activity size={32} style={{ color: "var(--muted)", marginBottom: 8 }} />
                 <p>{t("noActivity")}</p>
-                <p className="emp-empty-sub">
-                  {t("clockInPrompt")}
-                </p>
               </div>
             )}
           </div>
