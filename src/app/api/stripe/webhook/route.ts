@@ -26,11 +26,31 @@ export async function POST(request: NextRequest) {
     const event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     const supabase = createAdminClient();
 
+    // Idempotency: skip already-processed events to handle Stripe retries safely
+    const { data: existingEvent } = await supabase
+      .from("subscription_events")
+      .select("id")
+      .eq("stripe_event_id", event.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingEvent) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
+    const ALLOWED_PLANS = ["starter", "professional", "enterprise"];
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
         const companyId = session.metadata?.company_id;
         const plan = session.metadata?.plan;
+
+        // Validate plan against allowed tiers
+        if (plan && !ALLOWED_PLANS.includes(plan)) {
+          console.warn(`Stripe webhook: invalid plan "${plan}" in metadata for company ${companyId}`);
+          return NextResponse.json({ received: true, error: "invalid_plan" });
+        }
 
         // Only handle subscription checkouts here
         if (companyId && plan) {

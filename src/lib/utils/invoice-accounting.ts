@@ -36,11 +36,14 @@ export async function buildCompanyAccountMap(
   supabase: SupabaseClient,
   companyId: string
 ): Promise<CompanyAccountMap> {
+  // Order by account_number ASC so the lowest-numbered matching account is
+  // consistently selected first (deterministic ordering for first-match logic).
   const { data: accounts } = await supabase
     .from("chart_of_accounts")
     .select("id, account_number, name, account_type, sub_type, normal_balance")
     .eq("company_id", companyId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .order("account_number", { ascending: true });
 
   const map: CompanyAccountMap = {
     cashId: null,
@@ -297,7 +300,12 @@ export async function generateInvoiceJournalEntry(
         project_id: invoice.project_id ?? undefined,
       });
     } else if (taxAmount > 0) {
-      // No tax payable account — include tax in revenue (less accurate but keeps books balanced)
+      // No Sales Tax Payable account found — include tax in revenue to keep books balanced.
+      // WARNING: This overstates revenue on the Income Statement by the tax amount.
+      // To fix, add a "Sales Tax Payable" liability account in Chart of Accounts.
+      console.warn(
+        `[invoice-accounting] No Sales Tax Payable account found. Tax of $${taxAmount.toFixed(2)} on ${invoice.invoice_number} added to revenue. Add a Sales Tax Payable account to fix.`
+      );
       lines[lines.length - 1].credit += taxAmount;
     }
 
@@ -502,12 +510,19 @@ export async function generateChangeOrderJournalEntry(
   if (isOwnerCO && changeOrder.amount > 0) {
     // Owner adds scope/money → DR AR / CR Change Order Revenue
     debitAccountId = accountMap.arId;
-    // Look for "Change Order Revenue" (4010) or fall back to any revenue account
     creditAccountId = findAccountByPattern(accountMap, "change order") || findDefaultRevenueAccount(accountMap);
-  } else {
+  } else if (isOwnerCO && changeOrder.amount < 0) {
+    // Owner reduces scope → DR Revenue / CR AR (reversal of revenue recognition)
+    debitAccountId = findAccountByPattern(accountMap, "change order") || findDefaultRevenueAccount(accountMap);
+    creditAccountId = accountMap.arId;
+  } else if (changeOrder.amount > 0) {
     // Cost increase → DR Expense / CR AP
     debitAccountId = findDefaultExpenseAccount(accountMap);
     creditAccountId = accountMap.apId;
+  } else {
+    // Cost decrease/credit → DR AP / CR Expense (reversal)
+    debitAccountId = accountMap.apId;
+    creditAccountId = findDefaultExpenseAccount(accountMap);
   }
 
   if (!debitAccountId || !creditAccountId) return null;
@@ -523,6 +538,69 @@ export async function generateChangeOrderJournalEntry(
       { account_id: debitAccountId, debit: amount, credit: 0, description, project_id: changeOrder.project_id },
       { account_id: creditAccountId, debit: 0, credit: amount, description, project_id: changeOrder.project_id },
     ],
+  };
+
+  const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+  return result ? { journalEntryId: result.id } : null;
+}
+
+/**
+ * Generate a REVERSING journal entry when a previously-approved CO is rejected.
+ * Swaps debits and credits from the original CO JE to undo its impact.
+ */
+export async function generateChangeOrderReversalJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  changeOrder: {
+    id: string;
+    co_number: string;
+    amount: number;
+    reason: string;
+    project_id: string;
+    title?: string;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ journalEntryId: string } | null> {
+  if (changeOrder.amount === 0) return null;
+
+  // Look up the original JE to get the exact accounts used
+  const { data: originalJE } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("reference", `change_order:${changeOrder.id}`)
+    .limit(1)
+    .maybeSingle();
+
+  if (!originalJE) return null; // No JE to reverse
+
+  const { data: originalLines } = await supabase
+    .from("journal_entry_lines")
+    .select("account_id, debit, credit, description, project_id")
+    .eq("journal_entry_id", originalJE.id);
+
+  if (!originalLines || originalLines.length === 0) return null;
+
+  // Swap debits and credits to create the reversal
+  const reversalLines = originalLines.map((line) => ({
+    account_id: line.account_id,
+    debit: line.credit,
+    credit: line.debit,
+    description: `Reversal: ${line.description || ""}`.trim(),
+    project_id: line.project_id ?? undefined,
+  }));
+
+  const description = `Reversal - Change Order ${changeOrder.co_number}` +
+    (changeOrder.title ? ` - ${changeOrder.title}` : "") + " (rejected)";
+
+  const entryData: JournalEntryCreateData = {
+    entry_number: `JE-CO-REV-${changeOrder.co_number}`,
+    entry_date: new Date().toISOString().split("T")[0],
+    description,
+    reference: `change_order_reversal:${changeOrder.id}`,
+    project_id: changeOrder.project_id,
+    lines: reversalLines,
   };
 
   const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);

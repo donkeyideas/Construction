@@ -1,7 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { validatePromoCode, redeemPromoCode } from "@/lib/queries/promo-codes";
 import { logAuditEvent } from "@/lib/utils/audit-logger";
+import { checkRateLimit } from "@/lib/utils/rate-limiter";
 
 interface RegisterBody {
   email: string;
@@ -19,8 +20,32 @@ interface RegisterBody {
   accepted_terms?: boolean;
 }
 
-export async function POST(request: Request) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function cleanupRegistration(supabase: any, userId?: string, companyId?: string) {
+  if (companyId) {
+    try { await supabase.from("companies").delete().eq("id", companyId); }
+    catch (e) { console.error("Cleanup: failed to delete company", companyId, e); }
+  }
+  if (userId) {
+    try { await supabase.from("user_profiles").delete().eq("id", userId); }
+    catch (e) { console.error("Cleanup: failed to delete profile", userId, e); }
+    try { await supabase.auth.admin.deleteUser(userId); }
+    catch (e) { console.error("Cleanup: failed to delete auth user", userId, e); }
+  }
+}
+
+export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 registration attempts per IP per hour
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const { allowed, retryAfterMs } = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many registration attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+      );
+    }
+
     // Check if company registration is enabled
     const checkAdmin = createAdminClient();
     const { data: regSetting } = await checkAdmin
@@ -98,8 +123,9 @@ export async function POST(request: Request) {
           { status: 409 }
         );
       }
+      console.error("Registration auth error:", authError.message);
       return NextResponse.json(
-        { error: authError.message },
+        { error: "Registration failed. Please check your information and try again." },
         { status: 400 }
       );
     }
@@ -117,8 +143,7 @@ export async function POST(request: Request) {
       });
 
     if (profileError) {
-      // Attempt cleanup: delete auth user
-      await supabase.auth.admin.deleteUser(userId);
+      await cleanupRegistration(supabase, userId);
       return NextResponse.json(
         { error: "Failed to create user profile. Please try again." },
         { status: 500 }
@@ -153,9 +178,7 @@ export async function POST(request: Request) {
       .single();
 
     if (companyError) {
-      // Attempt cleanup: delete profile and auth user
-      await supabase.from("user_profiles").delete().eq("id", userId);
-      await supabase.auth.admin.deleteUser(userId);
+      await cleanupRegistration(supabase, userId);
       return NextResponse.json(
         { error: "Failed to create company. Please try again." },
         { status: 500 }
@@ -174,10 +197,7 @@ export async function POST(request: Request) {
       });
 
     if (memberError) {
-      // Attempt cleanup: delete company, profile, and auth user
-      await supabase.from("companies").delete().eq("id", companyId);
-      await supabase.from("user_profiles").delete().eq("id", userId);
-      await supabase.auth.admin.deleteUser(userId);
+      await cleanupRegistration(supabase, userId, companyId);
       return NextResponse.json(
         { error: "Failed to set up company membership. Please try again." },
         { status: 500 }

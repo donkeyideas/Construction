@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { buildCompanyAccountMap, generateChangeOrderJournalEntry } from "@/lib/utils/invoice-accounting";
+import { buildCompanyAccountMap, generateChangeOrderJournalEntry, generateChangeOrderReversalJournalEntry } from "@/lib/utils/invoice-accounting";
 import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
@@ -189,6 +189,29 @@ export async function PATCH(request: NextRequest) {
         );
       } catch (jeErr) {
         console.warn("Change order JE generation failed:", changeOrder.id, jeErr);
+      }
+    }
+
+    // Generate REVERSING journal entry when a previously-approved CO is rejected
+    if (body.status === "rejected" && changeOrder && changeOrder.amount !== 0) {
+      try {
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generateChangeOrderReversalJournalEntry(
+          supabase,
+          userCtx.companyId,
+          userCtx.userId,
+          {
+            id: changeOrder.id,
+            co_number: changeOrder.co_number,
+            amount: changeOrder.amount,
+            reason: changeOrder.reason || "design_change",
+            project_id: changeOrder.project_id,
+            title: changeOrder.title,
+          },
+          accountMap
+        );
+      } catch (jeErr) {
+        console.warn("Change order reversal JE failed:", changeOrder.id, jeErr);
       }
     }
 

@@ -80,6 +80,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // --- Import bounds & sanitization ---
+    const MAX_IMPORT_ROWS = 10000;
+    if (rows.length > MAX_IMPORT_ROWS) {
+      return NextResponse.json(
+        { error: `Import exceeds maximum of ${MAX_IMPORT_ROWS} rows. Please split into smaller batches.` },
+        { status: 400 }
+      );
+    }
+
+    // Strip HTML tags from all string values to prevent stored XSS
+    for (const row of rows) {
+      for (const key of Object.keys(row)) {
+        if (typeof row[key] === "string") {
+          row[key] = row[key].replace(/<[^>]*>/g, "").replace(/[<>]/g, "").trim();
+        }
+      }
+    }
+
+    // Safe numeric parser: rejects Infinity, NaN, and values outside bounds
+    const safeParseNumber = (val: string | undefined, fallback = 0, min = -1e12, max = 1e12): number => {
+      if (!val) return fallback;
+      const n = parseFloat(val);
+      if (!Number.isFinite(n)) return fallback;
+      return Math.max(min, Math.min(max, n));
+    };
+
     const { companyId, userId } = userCtx;
     let successCount = 0;
     const errors: string[] = [];
@@ -269,8 +295,8 @@ export async function POST(request: NextRequest) {
             model: r.model || "",
             serial_number: r.serial_number || "",
             status: r.status || "available",
-            purchase_cost: parseFloat(r.purchase_cost) || 0,
-            hourly_rate: parseFloat(r.hourly_rate) || 0,
+            purchase_cost: safeParseNumber(r.purchase_cost, 0, 0, 1e9),
+            hourly_rate: safeParseNumber(r.hourly_rate, 0, 0, 1e6),
             purchase_date: r.purchase_date || null,
             last_maintenance_date: r.last_maintenance_date || null,
             next_maintenance_date: r.next_maintenance_date || null,
@@ -299,9 +325,9 @@ export async function POST(request: NextRequest) {
               project_id: pid,
               csi_code: r.csi_code || "",
               description: r.description || "",
-              budgeted_amount: parseFloat(r.budgeted_amount) || 0,
-              committed_amount: parseFloat(r.committed_amount) || 0,
-              actual_amount: parseFloat(r.actual_amount) || 0,
+              budgeted_amount: safeParseNumber(r.budgeted_amount, 0, -1e9, 1e9),
+              committed_amount: safeParseNumber(r.committed_amount, 0, -1e9, 1e9),
+              actual_amount: safeParseNumber(r.actual_amount, 0, -1e9, 1e9),
             });
           if (error) {
             errors.push(`Row ${i + 2}: ${error.message}`);
@@ -986,8 +1012,8 @@ export async function POST(request: NextRequest) {
           const invoiceDate = r.invoice_date || new Date().toISOString().split("T")[0];
           const projectId = await resolveProjectId(r);
           const invoiceType = (r.invoice_type || "receivable") as "payable" | "receivable";
-          const subtotal = r.amount ? parseFloat(r.amount) : 0;
-          const taxAmount = r.tax_amount ? parseFloat(r.tax_amount) : 0;
+          const subtotal = safeParseNumber(r.amount, 0, -1e9, 1e9);
+          const taxAmount = safeParseNumber(r.tax_amount, 0, 0, 1e9);
           const totalAmount = subtotal + taxAmount;
           const status = r.status || "draft";
 
@@ -1010,9 +1036,9 @@ export async function POST(request: NextRequest) {
           }
 
           // Retainage fields
-          const retainagePct = r.retainage_pct ? parseFloat(r.retainage_pct) : 0;
+          const retainagePct = safeParseNumber(r.retainage_pct, 0, 0, 100);
           const retainageHeld = r.retainage_held
-            ? parseFloat(r.retainage_held)
+            ? safeParseNumber(r.retainage_held, 0, 0, 1e9)
             : retainagePct > 0 ? totalAmount * (retainagePct / 100) : 0;
 
           // For paid invoices: set amount_paid = total_amount

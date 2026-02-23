@@ -60,6 +60,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate payment doesn't exceed invoice balance due
+    const { data: targetInvoice } = await supabase
+      .from("invoices")
+      .select("total_amount, amount_paid")
+      .eq("id", body.invoice_id)
+      .eq("company_id", userCompany.companyId)
+      .single();
+
+    if (!targetInvoice) {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
+
+    const balanceDue = (targetInvoice.total_amount ?? 0) - (targetInvoice.amount_paid ?? 0);
+    if (body.amount > balanceDue + 0.01) {
+      return NextResponse.json(
+        { error: `Payment amount ($${Number(body.amount).toFixed(2)}) exceeds balance due ($${balanceDue.toFixed(2)})` },
+        { status: 400 }
+      );
+    }
+
     // Resolve bank_account_id: use provided value, or fall back to default bank account
     let bankAccountId = body.bank_account_id || null;
     if (!bankAccountId) {
@@ -180,19 +200,12 @@ export async function POST(request: NextRequest) {
 
       if (bankAccountId && invoice) {
         // Payable payment: cash goes out (subtract). Receivable payment: cash comes in (add).
+        // Uses atomic RPC to prevent race conditions from concurrent payments.
         const adjustment = invoice.invoice_type === "payable" ? -data.amount : data.amount;
-        const { data: bank } = await supabase
-          .from("bank_accounts")
-          .select("current_balance")
-          .eq("id", bankAccountId)
-          .single();
-
-        if (bank) {
-          await supabase
-            .from("bank_accounts")
-            .update({ current_balance: bank.current_balance + adjustment })
-            .eq("id", bankAccountId);
-        }
+        await supabase.rpc("adjust_bank_balance", {
+          p_bank_id: bankAccountId,
+          p_adjustment: adjustment,
+        });
       }
     } catch (bankErr) {
       console.warn("Bank balance sync failed for payment:", result.id, bankErr);

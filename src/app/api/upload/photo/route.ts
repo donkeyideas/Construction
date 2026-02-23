@@ -29,13 +29,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File too large. Max 10MB." }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop() || "jpg";
+    // Extension whitelist — prevents uploading .html, .exe, etc. disguised as images
+    const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"]);
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      return NextResponse.json(
+        { error: `File extension .${ext} not allowed. Use: ${[...ALLOWED_EXTENSIONS].join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate file magic bytes to ensure actual image content (not a renamed .html/.exe)
+    const headerBytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    const isJPEG = headerBytes[0] === 0xFF && headerBytes[1] === 0xD8 && headerBytes[2] === 0xFF;
+    const isPNG = headerBytes[0] === 0x89 && headerBytes[1] === 0x50 && headerBytes[2] === 0x4E && headerBytes[3] === 0x47;
+    const isGIF = headerBytes[0] === 0x47 && headerBytes[1] === 0x49 && headerBytes[2] === 0x46 && headerBytes[3] === 0x38;
+    const isWebP = headerBytes[0] === 0x52 && headerBytes[1] === 0x49 && headerBytes[2] === 0x46 && headerBytes[3] === 0x46;
+    // HEIC/HEIF starts with ftyp box at offset 4
+    const isHEIC = headerBytes[4] === 0x66 && headerBytes[5] === 0x74 && headerBytes[6] === 0x79 && headerBytes[7] === 0x70;
+
+    if (!isJPEG && !isPNG && !isGIF && !isWebP && !isHEIC) {
+      return NextResponse.json({ error: "File content does not match a supported image format" }, { status: 400 });
+    }
+
+    // Determine content type from actual file content, not client-provided MIME
+    const detectedContentType = isJPEG ? "image/jpeg"
+      : isPNG ? "image/png"
+      : isGIF ? "image/gif"
+      : isWebP ? "image/webp"
+      : "image/heic";
+
     const fileName = `${userCompany.companyId}/${pathPrefix}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(fileName, file, {
-        contentType: file.type,
+        contentType: detectedContentType,
         upsert: false,
       });
 
@@ -47,7 +76,7 @@ export async function POST(req: NextRequest) {
         const { error: fallbackErr } = await supabase.storage
           .from("public")
           .upload(fallbackName, file, {
-            contentType: file.type,
+            contentType: detectedContentType,
             upsert: false,
           });
 

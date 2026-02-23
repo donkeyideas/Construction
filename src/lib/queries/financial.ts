@@ -13,7 +13,14 @@ async function paginatedQuery<T = Record<string, unknown>>(
   const all: T[] = [];
   let from = 0;
   for (;;) {
-    const { data } = await queryFn(from, from + PAGE_SIZE - 1);
+    const { data, error } = await queryFn(from, from + PAGE_SIZE - 1);
+    if (error) {
+      const msg = typeof error === "object" && error !== null && "message" in error
+        ? (error as { message: string }).message
+        : String(error);
+      console.error(`paginatedQuery error at offset ${from}:`, msg);
+      throw new Error(`Query failed at offset ${from}: ${msg}`);
+    }
     if (!data || data.length === 0) break;
     all.push(...data);
     if (data.length < PAGE_SIZE) break;
@@ -658,6 +665,9 @@ export async function getAgingBuckets(
     );
     const amount = row.balance_due ?? 0;
 
+    // Aging convention: "0-30 days" = Current (due within 30 days or not yet overdue).
+    // Boundaries are inclusive on the upper end: a 30-day-old invoice is in bucket 0,
+    // a 31-day-old invoice moves to bucket 1. This matches standard AP/AR aging reports.
     let bucketIndex: number;
     if (daysOverdue <= 30) {
       bucketIndex = 0;
@@ -1323,14 +1333,19 @@ export async function getIncomeStatement(
 
   for (const row of trialBalance) {
     const num = parseInt(row.account_number);
-    // Revenue accounts have credit normal balance, so amount = credit - debit
-    if (row.account_type === "revenue" || (num >= 4000 && num < 5000)) {
+    // Classify by account_type (authoritative), not number ranges, to support
+    // custom chart of accounts structures. Number ranges are only used for the
+    // COGS vs OpEx sub-split within the expense type.
+    if (row.account_type === "revenue") {
+      // Revenue accounts have credit normal balance, so amount = credit - debit
       revenue.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.credit - row.debit });
-    } else if (num >= 5000 && num < 6000) {
-      // COGS: debit normal balance, so amount = debit - credit
-      cogs.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.debit - row.credit });
-    } else if (row.account_type === "expense" || (num >= 6000 && num < 7000)) {
-      opex.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.debit - row.credit });
+    } else if (row.account_type === "expense") {
+      // COGS sub-split: accounts 5000-5999 are Cost of Goods Sold
+      if (num >= 5000 && num < 6000) {
+        cogs.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.debit - row.credit });
+      } else {
+        opex.push({ account_id: row.account_id, account_number: row.account_number, name: row.account_name, amount: row.debit - row.credit });
+      }
     }
   }
 
@@ -1480,10 +1495,22 @@ export async function getBalanceSheet(
 
   // Net Income (Revenue - Expenses) flows into Equity as Retained Earnings
   // This is essential for the accounting equation: Assets = Liabilities + Equity
+  // IMPORTANT: If a real "Retained Earnings" account (3200) already exists in the
+  // trial balance, it was pushed into equity[] above. Adding another synthetic line
+  // would double-count net income. In that case we show "Net Income (Current Period)"
+  // to represent un-closed temporary accounts without duplicating retained earnings.
   if (trialBalance.length > 0) {
-    const retainedEarnings = totalRevenue - totalExpenses;
-    if (Math.abs(retainedEarnings) > 0.01) {
-      equity.push({ account_number: "3200", name: "Retained Earnings", amount: retainedEarnings });
+    const netIncome = totalRevenue - totalExpenses;
+    if (Math.abs(netIncome) > 0.01) {
+      const hasRetainedEarnings = equity.some(
+        e => e.account_number === "3200" ||
+          e.name.toLowerCase().includes("retained earnings")
+      );
+      equity.push({
+        account_number: hasRetainedEarnings ? "" : "3200",
+        name: hasRetainedEarnings ? "Net Income (Current Period)" : "Retained Earnings (Computed)",
+        amount: netIncome,
+      });
     }
   }
 
