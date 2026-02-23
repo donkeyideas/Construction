@@ -19,6 +19,9 @@ import {
   BarChart3,
   Banknote,
   Shield,
+  Activity,
+  ClipboardList,
+  List,
 } from "lucide-react";
 import type {
   PayrollRun,
@@ -27,6 +30,10 @@ import type {
   PayrollTaxConfig,
   PayrollItem,
 } from "@/lib/queries/payroll";
+import type { TimeEntry } from "@/lib/queries/people";
+import ActivityTab from "./ActivityTab";
+import type { EmployeeActivity } from "./ActivityTab";
+import TimeTab from "./TimeTab";
 
 /* ------------------------------------------------------------------
    Types
@@ -55,6 +62,13 @@ interface EmployeeContact {
   contact_type: string;
 }
 
+interface TimeUserGroup {
+  userId: string;
+  name: string;
+  email: string;
+  entries: TimeEntry[];
+}
+
 interface PayrollClientProps {
   payrollRuns: PayrollRun[];
   payRates: EmployeePayRate[];
@@ -65,9 +79,25 @@ interface PayrollClientProps {
   companyId: string;
   userRole: string;
   employeeContacts: EmployeeContact[];
+  // Activity data
+  activities: EmployeeActivity[];
+  todayISO: string;
+  rateMap: Record<string, number>;
+  // Time data
+  timeUsers: TimeUserGroup[];
+  timeEntries: TimeEntry[];
+  allTimeEntries: TimeEntry[];
+  timePendingCount: number;
+  weekDates: string[];
+  weekStartISO: string;
+  weekEndISO: string;
+  prevWeekISO: string;
+  nextWeekISO: string;
+  // Tab control
+  defaultTab: string;
 }
 
-type TabKey = "dashboard" | "run" | "employees" | "tax" | "reports";
+type TabKey = "dashboard" | "activity" | "weekly" | "allEntries" | "run" | "employees" | "tax" | "reports";
 
 /* ------------------------------------------------------------------
    Helpers
@@ -117,11 +147,26 @@ export default function PayrollClient({
   companyId,
   userRole,
   employeeContacts,
+  activities,
+  todayISO,
+  rateMap,
+  timeUsers,
+  timeEntries,
+  allTimeEntries,
+  timePendingCount,
+  weekDates,
+  weekStartISO,
+  weekEndISO,
+  prevWeekISO,
+  nextWeekISO,
+  defaultTab,
 }: PayrollClientProps) {
   const router = useRouter();
   const isAdmin = ["owner", "admin"].includes(userRole);
 
-  const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
+  const validTabs: TabKey[] = ["dashboard", "activity", "weekly", "allEntries", "run", "employees", "tax", "reports"];
+  const initialTab = validTabs.includes(defaultTab as TabKey) ? (defaultTab as TabKey) : "dashboard";
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
 
   // Run Payroll state
   const [periodStart, setPeriodStart] = useState("");
@@ -192,6 +237,9 @@ export default function PayrollClient({
      ---------------------------------------------------------------- */
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: "dashboard", label: "Dashboard", icon: <BarChart3 size={16} /> },
+    { key: "activity", label: "Activity", icon: <Activity size={16} /> },
+    { key: "weekly", label: "Timesheet", icon: <ClipboardList size={16} /> },
+    { key: "allEntries", label: "All Entries", icon: <List size={16} /> },
     { key: "run", label: "Run Payroll", icon: <Play size={16} /> },
     { key: "employees", label: "Employee Setup", icon: <Users size={16} /> },
     { key: "tax", label: "Tax Config", icon: <Settings size={16} /> },
@@ -691,6 +739,51 @@ export default function PayrollClient({
             )}
           </div>
         </>
+      )}
+
+      {/* ── Activity Tab ── */}
+      {activeTab === "activity" && (
+        <ActivityTab
+          activities={activities}
+          todayISO={todayISO}
+          rateMap={rateMap}
+        />
+      )}
+
+      {/* ── Timesheet (Weekly) Tab ── */}
+      {activeTab === "weekly" && (
+        <TimeTab
+          view="weekly"
+          users={timeUsers}
+          entries={timeEntries}
+          allEntries={allTimeEntries}
+          pendingCount={timePendingCount}
+          weekDates={weekDates}
+          weekStartISO={weekStartISO}
+          weekEndISO={weekEndISO}
+          prevWeekISO={prevWeekISO}
+          nextWeekISO={nextWeekISO}
+          userRole={userRole}
+          rateMap={rateMap}
+        />
+      )}
+
+      {/* ── All Entries Tab ── */}
+      {activeTab === "allEntries" && (
+        <TimeTab
+          view="all"
+          users={timeUsers}
+          entries={timeEntries}
+          allEntries={allTimeEntries}
+          pendingCount={timePendingCount}
+          weekDates={weekDates}
+          weekStartISO={weekStartISO}
+          weekEndISO={weekEndISO}
+          prevWeekISO={prevWeekISO}
+          nextWeekISO={nextWeekISO}
+          userRole={userRole}
+          rateMap={rateMap}
+        />
       )}
 
       {/* ── Run Payroll Tab ── */}
