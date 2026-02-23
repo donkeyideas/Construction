@@ -202,6 +202,9 @@
   text-decoration: none;
   transition: transform 0.2s, box-shadow 0.2s;
   color: var(--text);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .emp-quick-action:hover {

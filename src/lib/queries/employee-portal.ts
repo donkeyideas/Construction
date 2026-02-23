@@ -25,6 +25,10 @@ export interface EmployeeDashboardData {
   pendingTimesheets: number;
   recentPayslip: { period: string; net_pay: number } | null;
   certifications: { total: number; expiring: number };
+  employeeName: string;
+  companyName: string;
+  role: string;
+  projects: { id: string; name: string }[];
 }
 
 export interface EmployeeTimesheet {
@@ -128,56 +132,92 @@ export async function getEmployeeDashboard(
   const weekStartStr = weekMonday.toISOString().slice(0, 10);
   const weekEndStr = weekSunday.toISOString().slice(0, 10);
 
-  const [clockEventsRes, weekHoursRes, pendingRes, payslipRes, contactRes] =
-    await Promise.all([
-      // Today's clock events
-      supabase
-        .from("clock_events")
-        .select("*, projects(name)")
-        .eq("user_id", userId)
-        .eq("company_id", companyId)
-        .gte("timestamp", `${todayStr}T00:00:00.000Z`)
-        .lt("timestamp", `${todayStr}T23:59:59.999Z`)
-        .order("timestamp", { ascending: false }),
+  const [
+    clockEventsRes,
+    weekHoursRes,
+    pendingRes,
+    payslipRes,
+    contactRes,
+    profileRes,
+    companyRes,
+    projectsRes,
+    memberRes,
+  ] = await Promise.all([
+    // Today's clock events
+    supabase
+      .from("clock_events")
+      .select("*, projects(name)")
+      .eq("user_id", userId)
+      .eq("company_id", companyId)
+      .gte("timestamp", `${todayStr}T00:00:00.000Z`)
+      .lt("timestamp", `${todayStr}T23:59:59.999Z`)
+      .order("timestamp", { ascending: false }),
 
-      // Time entries for current week (sum hours)
-      supabase
-        .from("time_entries")
-        .select("hours")
-        .eq("user_id", userId)
-        .eq("company_id", companyId)
-        .gte("entry_date", weekStartStr)
-        .lte("entry_date", weekEndStr),
+    // Time entries for current week (sum hours)
+    supabase
+      .from("time_entries")
+      .select("hours")
+      .eq("user_id", userId)
+      .eq("company_id", companyId)
+      .gte("entry_date", weekStartStr)
+      .lte("entry_date", weekEndStr),
 
-      // Pending time entries count
-      supabase
-        .from("time_entries")
-        .select("id", { count: "exact" })
-        .eq("user_id", userId)
-        .eq("company_id", companyId)
-        .eq("status", "pending"),
+    // Pending time entries count
+    supabase
+      .from("time_entries")
+      .select("id", { count: "exact" })
+      .eq("user_id", userId)
+      .eq("company_id", companyId)
+      .eq("status", "pending"),
 
-      // Latest payslip from a paid payroll run
-      supabase
-        .from("payroll_items")
-        .select(
-          "net_pay, payroll_runs!inner(period_start, period_end, pay_date, status)"
-        )
-        .eq("user_id", userId)
-        .eq("company_id", companyId)
-        .eq("payroll_runs.status", "paid")
-        .order("payroll_runs(pay_date)", { ascending: false })
-        .limit(1),
+    // Latest payslip from a paid payroll run
+    supabase
+      .from("payroll_items")
+      .select(
+        "net_pay, payroll_runs!inner(period_start, period_end, pay_date, status)"
+      )
+      .eq("user_id", userId)
+      .eq("company_id", companyId)
+      .eq("payroll_runs.status", "paid")
+      .order("payroll_runs(pay_date)", { ascending: false })
+      .limit(1),
 
-      // Find contact record for this user (for certifications)
-      supabase
-        .from("contacts")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("company_id", companyId)
-        .limit(1)
-        .maybeSingle(),
-    ]);
+    // Find contact record for this user (for certifications)
+    supabase
+      .from("contacts")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("company_id", companyId)
+      .limit(1)
+      .maybeSingle(),
+
+    // Employee profile name
+    supabase
+      .from("user_profiles")
+      .select("full_name, email")
+      .eq("id", userId)
+      .single(),
+
+    // Company name
+    supabase.from("companies").select("name").eq("id", companyId).single(),
+
+    // Active projects for modal dropdowns
+    supabase
+      .from("projects")
+      .select("id, name")
+      .eq("company_id", companyId)
+      .in("status", ["active", "in_progress", "planning"])
+      .order("name"),
+
+    // Employee role
+    supabase
+      .from("company_members")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("company_id", companyId)
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   // Parse clock events
   const todayEvents: ClockEvent[] = (clockEventsRes.data ?? []).map(
@@ -267,6 +307,15 @@ export async function getEmployeeDashboard(
     pendingTimesheets,
     recentPayslip,
     certifications: { total: certTotal, expiring: certExpiring },
+    employeeName:
+      profileRes.data?.full_name ||
+      profileRes.data?.email ||
+      "Employee",
+    companyName: companyRes.data?.name || "My Company",
+    role: memberRes.data?.role || "employee",
+    projects: (projectsRes.data ?? []).map(
+      (p: { id: string; name: string }) => ({ id: p.id, name: p.name })
+    ),
   };
 }
 
