@@ -14,6 +14,9 @@ import {
   X,
   Building2,
   Briefcase,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
 } from "lucide-react";
 import type {
   EmployeeDashboardData,
@@ -101,7 +104,45 @@ const S = {
 // Component
 // ---------------------------------------------------------------------------
 
-type ModalType = "daily-log" | "safety" | "photo" | "rfi" | null;
+type ModalType = "daily-log" | "safety" | "photo" | "rfi"
+  | "view-daily-log" | "view-safety" | "view-rfi"
+  | null;
+
+const ITEMS_PER_PAGE = 3;
+
+function PaginationControls({
+  currentPage,
+  totalItems,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+  if (totalPages <= 1) return null;
+  return (
+    <div className="emp-pagination">
+      <button
+        className="emp-pagination-btn"
+        disabled={currentPage === 0}
+        onClick={() => onPageChange(currentPage - 1)}
+      >
+        <ChevronLeft size={14} />
+      </button>
+      <span className="emp-pagination-info">
+        Page {currentPage + 1} of {totalPages}
+      </span>
+      <button
+        className="emp-pagination-btn"
+        disabled={currentPage >= totalPages - 1}
+        onClick={() => onPageChange(currentPage + 1)}
+      >
+        <ChevronRight size={14} />
+      </button>
+    </div>
+  );
+}
 
 export default function EmployeeDashboardClient({
   dashboard,
@@ -139,6 +180,16 @@ export default function EmployeeDashboardClient({
   const [photoProject, setPhotoProject] = useState("");
   const [photoActivity, setPhotoActivity] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+
+  // Pagination state
+  const [dailyLogPage, setDailyLogPage] = useState(0);
+  const [safetyPage, setSafetyPage] = useState(0);
+  const [rfiPage, setRfiPage] = useState(0);
+
+  // Detail modal state
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [detailData, setDetailData] = useState<Record<string, any> | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   // Daily Log form
   const [dlProject, setDlProject] = useState("");
@@ -305,6 +356,7 @@ export default function EmployeeDashboardClient({
           project_name: projectName,
           work_performed: dlWork.trim(),
         }, ...prev].slice(0, 5));
+        setDailyLogPage(0);
         setModalMsg({
           type: "success",
           text: "Daily log submitted successfully!",
@@ -356,6 +408,7 @@ export default function EmployeeDashboardClient({
           created_at: new Date().toISOString(),
           project_name: projectName,
         }, ...prev].slice(0, 5));
+        setSafetyPage(0);
         setModalMsg({
           type: "success",
           text: "Safety report submitted successfully!",
@@ -372,6 +425,26 @@ export default function EmployeeDashboardClient({
       setModalMsg({ type: "error", text: "Network error. Please try again." });
     } finally {
       setModalSubmitting(false);
+    }
+  }
+
+  // View detail modal
+  async function viewDetail(type: "view-daily-log" | "view-safety" | "view-rfi", id: string) {
+    setActiveModal(type);
+    setDetailLoading(true);
+    setDetailData(null);
+    const endpoints: Record<string, string> = {
+      "view-daily-log": `/api/employee/daily-log?id=${id}`,
+      "view-safety": `/api/employee/safety-incident?id=${id}`,
+      "view-rfi": `/api/employee/rfi?id=${id}`,
+    };
+    try {
+      const res = await fetch(endpoints[type]);
+      if (res.ok) setDetailData(await res.json());
+    } catch {
+      // silent
+    } finally {
+      setDetailLoading(false);
     }
   }
 
@@ -451,6 +524,7 @@ export default function EmployeeDashboardClient({
           created_at: new Date().toISOString(),
           project_name: projectName,
         }, ...prev].slice(0, 5));
+        setRfiPage(0);
         setModalMsg({
           type: "success",
           text: "RFI submitted successfully!",
@@ -601,25 +675,30 @@ export default function EmployeeDashboardClient({
               </button>
             </div>
             {recentDailyLogs.length > 0 ? (
-              <div className="emp-activity-list">
-                {recentDailyLogs.map((log) => (
-                  <div key={log.id} className="emp-assignment-item">
-                    <div className="emp-assignment-dot" style={{ background: "var(--color-blue)" }} />
-                    <div className="emp-assignment-info">
-                      <div className="emp-assignment-task">
-                        {log.work_performed
-                          ? log.work_performed.length > 60
-                            ? log.work_performed.slice(0, 60) + "..."
-                            : log.work_performed
-                          : "Daily log entry"}
-                      </div>
-                      <div className="emp-assignment-project">
-                        {log.project_name || "No project"} &middot; {fmtDate(log.log_date)}
+              <>
+                <div className="emp-activity-list">
+                  {recentDailyLogs
+                    .slice(dailyLogPage * ITEMS_PER_PAGE, (dailyLogPage + 1) * ITEMS_PER_PAGE)
+                    .map((log) => (
+                    <div key={log.id} className="emp-assignment-item emp-clickable" onClick={() => viewDetail("view-daily-log", log.id)}>
+                      <div className="emp-assignment-dot" style={{ background: "var(--color-blue)" }} />
+                      <div className="emp-assignment-info">
+                        <div className="emp-assignment-task">
+                          {log.work_performed
+                            ? log.work_performed.length > 60
+                              ? log.work_performed.slice(0, 60) + "..."
+                              : log.work_performed
+                            : "Daily log entry"}
+                        </div>
+                        <div className="emp-assignment-project">
+                          {log.project_name || "No project"} &middot; {fmtDate(log.log_date)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                <PaginationControls currentPage={dailyLogPage} totalItems={recentDailyLogs.length} onPageChange={setDailyLogPage} />
+              </>
             ) : (
               <div className="vendor-empty">No daily logs yet. Submit your first log.</div>
             )}
@@ -636,40 +715,45 @@ export default function EmployeeDashboardClient({
               </button>
             </div>
             {recentSafetyIncidents.length > 0 ? (
-              <div className="emp-activity-list">
-                {recentSafetyIncidents.map((inc) => {
-                  const sevColor =
-                    inc.severity === "critical" || inc.severity === "high"
-                      ? "var(--color-red)"
-                      : inc.severity === "medium"
-                        ? "var(--color-amber)"
-                        : "var(--color-green)";
-                  return (
-                    <div key={inc.id} className="emp-assignment-item">
-                      <div className="emp-assignment-dot" style={{ background: sevColor }} />
-                      <div className="emp-assignment-info">
-                        <div className="emp-assignment-task">{inc.title}</div>
-                        <div className="emp-assignment-project">
-                          {inc.project_name || "General"} &middot; {fmtDate(inc.created_at)}
+              <>
+                <div className="emp-activity-list">
+                  {recentSafetyIncidents
+                    .slice(safetyPage * ITEMS_PER_PAGE, (safetyPage + 1) * ITEMS_PER_PAGE)
+                    .map((inc) => {
+                    const sevColor =
+                      inc.severity === "critical" || inc.severity === "high"
+                        ? "var(--color-red)"
+                        : inc.severity === "medium"
+                          ? "var(--color-amber)"
+                          : "var(--color-green)";
+                    return (
+                      <div key={inc.id} className="emp-assignment-item emp-clickable" onClick={() => viewDetail("view-safety", inc.id)}>
+                        <div className="emp-assignment-dot" style={{ background: sevColor }} />
+                        <div className="emp-assignment-info">
+                          <div className="emp-assignment-task">{inc.title}</div>
+                          <div className="emp-assignment-project">
+                            {inc.project_name || "General"} &middot; {fmtDate(inc.created_at)}
+                          </div>
                         </div>
+                        <span
+                          className="badge"
+                          style={{
+                            background: sevColor,
+                            color: "#fff",
+                            fontSize: "0.68rem",
+                            padding: "2px 8px",
+                            borderRadius: 4,
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {inc.severity}
+                        </span>
                       </div>
-                      <span
-                        className="badge"
-                        style={{
-                          background: sevColor,
-                          color: "#fff",
-                          fontSize: "0.68rem",
-                          padding: "2px 8px",
-                          borderRadius: 4,
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {inc.severity}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+                <PaginationControls currentPage={safetyPage} totalItems={recentSafetyIncidents.length} onPageChange={setSafetyPage} />
+              </>
             ) : (
               <div className="vendor-empty">No safety reports filed.</div>
             )}
@@ -839,44 +923,49 @@ export default function EmployeeDashboardClient({
               </button>
             </div>
             {recentRfis.length > 0 ? (
-              <div className="emp-activity-list">
-                {recentRfis.map((rfi) => {
-                  const prioColor =
-                    rfi.priority === "urgent" || rfi.priority === "high"
-                      ? "var(--color-red)"
-                      : rfi.priority === "medium"
-                        ? "var(--color-amber)"
-                        : "var(--color-blue)";
-                  const statusColor =
-                    rfi.status === "closed" || rfi.status === "answered"
-                      ? "var(--color-green)"
-                      : "var(--color-amber)";
-                  return (
-                    <div key={rfi.id} className="emp-assignment-item">
-                      <div className="emp-assignment-dot" style={{ background: prioColor }} />
-                      <div className="emp-assignment-info">
-                        <div className="emp-assignment-task">{rfi.subject}</div>
-                        <div className="emp-assignment-project">
-                          {rfi.project_name || "No project"} &middot; {fmtDate(rfi.created_at)}
+              <>
+                <div className="emp-activity-list">
+                  {recentRfis
+                    .slice(rfiPage * ITEMS_PER_PAGE, (rfiPage + 1) * ITEMS_PER_PAGE)
+                    .map((rfi) => {
+                    const prioColor =
+                      rfi.priority === "urgent" || rfi.priority === "high"
+                        ? "var(--color-red)"
+                        : rfi.priority === "medium"
+                          ? "var(--color-amber)"
+                          : "var(--color-blue)";
+                    const statusColor =
+                      rfi.status === "closed" || rfi.status === "answered"
+                        ? "var(--color-green)"
+                        : "var(--color-amber)";
+                    return (
+                      <div key={rfi.id} className="emp-assignment-item emp-clickable" onClick={() => viewDetail("view-rfi", rfi.id)}>
+                        <div className="emp-assignment-dot" style={{ background: prioColor }} />
+                        <div className="emp-assignment-info">
+                          <div className="emp-assignment-task">{rfi.subject}</div>
+                          <div className="emp-assignment-project">
+                            {rfi.project_name || "No project"} &middot; {fmtDate(rfi.created_at)}
+                          </div>
                         </div>
+                        <span
+                          style={{
+                            fontSize: "0.68rem",
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: 4,
+                            background: statusColor,
+                            color: "#fff",
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {rfi.status}
+                        </span>
                       </div>
-                      <span
-                        style={{
-                          fontSize: "0.68rem",
-                          fontWeight: 600,
-                          padding: "2px 8px",
-                          borderRadius: 4,
-                          background: statusColor,
-                          color: "#fff",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {rfi.status}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+                <PaginationControls currentPage={rfiPage} totalItems={recentRfis.length} onPageChange={setRfiPage} />
+              </>
             ) : (
               <div className="vendor-empty">No RFIs submitted yet.</div>
             )}
@@ -1291,6 +1380,223 @@ export default function EmployeeDashboardClient({
               >
                 {modalSubmitting ? "Submitting..." : "Submit RFI"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Daily Log Detail Modal ===== */}
+      {activeModal === "view-daily-log" && (
+        <div className="vendor-modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="vendor-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
+            <div className="vendor-modal-header">
+              <h3>Daily Log Details</h3>
+              <button className="vendor-modal-close" onClick={() => setActiveModal(null)}><X size={18} /></button>
+            </div>
+            <div className="vendor-modal-body">
+              {detailLoading && (
+                <div className="emp-detail-loading"><Loader2 size={24} className="emp-spin" /> Loading...</div>
+              )}
+              {!detailLoading && !detailData && (
+                <div className="vendor-empty">Could not load daily log details.</div>
+              )}
+              {!detailLoading && detailData && (
+                <div className="emp-detail-grid">
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Project</span>
+                    <span className="emp-detail-value">{detailData.project_name || "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Date</span>
+                    <span className="emp-detail-value">{detailData.log_date}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Status</span>
+                    <span className="emp-detail-value" style={{ textTransform: "capitalize" }}>{detailData.status || "draft"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Weather</span>
+                    <span className="emp-detail-value" style={{ textTransform: "capitalize" }}>{detailData.weather_conditions || "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Crew Size</span>
+                    <span className="emp-detail-value">{detailData.crew_size ?? "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row emp-detail-full">
+                    <span className="emp-detail-label">Work Performed</span>
+                    <span className="emp-detail-value">{detailData.work_performed || "N/A"}</span>
+                  </div>
+                  {detailData.materials_received && (
+                    <div className="emp-detail-row emp-detail-full">
+                      <span className="emp-detail-label">Materials Received</span>
+                      <span className="emp-detail-value">{detailData.materials_received}</span>
+                    </div>
+                  )}
+                  {detailData.delays && (
+                    <div className="emp-detail-row emp-detail-full">
+                      <span className="emp-detail-label">Delays</span>
+                      <span className="emp-detail-value">{detailData.delays}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="vendor-modal-footer">
+              <button className="vendor-modal-btn-cancel" onClick={() => setActiveModal(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Safety Incident Detail Modal ===== */}
+      {activeModal === "view-safety" && (
+        <div className="vendor-modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="vendor-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
+            <div className="vendor-modal-header">
+              <h3>Safety Incident Details</h3>
+              <button className="vendor-modal-close" onClick={() => setActiveModal(null)}><X size={18} /></button>
+            </div>
+            <div className="vendor-modal-body">
+              {detailLoading && (
+                <div className="emp-detail-loading"><Loader2 size={24} className="emp-spin" /> Loading...</div>
+              )}
+              {!detailLoading && !detailData && (
+                <div className="vendor-empty">Could not load incident details.</div>
+              )}
+              {!detailLoading && detailData && (
+                <div className="emp-detail-grid">
+                  <div className="emp-detail-row emp-detail-full">
+                    <span className="emp-detail-label">Title</span>
+                    <span className="emp-detail-value">{detailData.title}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Incident Number</span>
+                    <span className="emp-detail-value">{detailData.incident_number || "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Project</span>
+                    <span className="emp-detail-value">{detailData.project?.name || "General"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Severity</span>
+                    <span className="emp-detail-value" style={{ textTransform: "capitalize" }}>{detailData.severity}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Status</span>
+                    <span className="emp-detail-value" style={{ textTransform: "capitalize" }}>{detailData.status}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Incident Date</span>
+                    <span className="emp-detail-value">{detailData.incident_date || "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Location</span>
+                    <span className="emp-detail-value">{detailData.location || "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">OSHA Recordable</span>
+                    <span className="emp-detail-value">{detailData.osha_recordable ? "Yes" : "No"}</span>
+                  </div>
+                  <div className="emp-detail-row emp-detail-full">
+                    <span className="emp-detail-label">Description</span>
+                    <span className="emp-detail-value">{detailData.description || "N/A"}</span>
+                  </div>
+                  {detailData.corrective_actions && (
+                    <div className="emp-detail-row emp-detail-full">
+                      <span className="emp-detail-label">Corrective Actions</span>
+                      <span className="emp-detail-value">{detailData.corrective_actions}</span>
+                    </div>
+                  )}
+                  {detailData.root_cause && (
+                    <div className="emp-detail-row emp-detail-full">
+                      <span className="emp-detail-label">Root Cause</span>
+                      <span className="emp-detail-value">{detailData.root_cause}</span>
+                    </div>
+                  )}
+                  {detailData.witnesses && (
+                    <div className="emp-detail-row emp-detail-full">
+                      <span className="emp-detail-label">Witnesses</span>
+                      <span className="emp-detail-value">{detailData.witnesses}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="vendor-modal-footer">
+              <button className="vendor-modal-btn-cancel" onClick={() => setActiveModal(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== RFI Detail Modal ===== */}
+      {activeModal === "view-rfi" && (
+        <div className="vendor-modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="vendor-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
+            <div className="vendor-modal-header">
+              <h3>RFI Details</h3>
+              <button className="vendor-modal-close" onClick={() => setActiveModal(null)}><X size={18} /></button>
+            </div>
+            <div className="vendor-modal-body">
+              {detailLoading && (
+                <div className="emp-detail-loading"><Loader2 size={24} className="emp-spin" /> Loading...</div>
+              )}
+              {!detailLoading && !detailData && (
+                <div className="vendor-empty">Could not load RFI details.</div>
+              )}
+              {!detailLoading && detailData && (
+                <div className="emp-detail-grid">
+                  <div className="emp-detail-row emp-detail-full">
+                    <span className="emp-detail-label">Subject</span>
+                    <span className="emp-detail-value">{detailData.subject}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">RFI Number</span>
+                    <span className="emp-detail-value">{detailData.rfi_number || "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Project</span>
+                    <span className="emp-detail-value">{detailData.project_name || "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Priority</span>
+                    <span className="emp-detail-value" style={{ textTransform: "capitalize" }}>{detailData.priority}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Status</span>
+                    <span className="emp-detail-value" style={{ textTransform: "capitalize" }}>{detailData.status}</span>
+                  </div>
+                  {detailData.due_date && (
+                    <div className="emp-detail-row">
+                      <span className="emp-detail-label">Due Date</span>
+                      <span className="emp-detail-value">{detailData.due_date}</span>
+                    </div>
+                  )}
+                  {detailData.cost_impact != null && (
+                    <div className="emp-detail-row">
+                      <span className="emp-detail-label">Cost Impact</span>
+                      <span className="emp-detail-value">${Number(detailData.cost_impact).toLocaleString()}</span>
+                    </div>
+                  )}
+                  {detailData.schedule_impact_days != null && (
+                    <div className="emp-detail-row">
+                      <span className="emp-detail-label">Schedule Impact</span>
+                      <span className="emp-detail-value">{detailData.schedule_impact_days} days</span>
+                    </div>
+                  )}
+                  <div className="emp-detail-row emp-detail-full">
+                    <span className="emp-detail-label">Question</span>
+                    <span className="emp-detail-value">{detailData.question || "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row emp-detail-full">
+                    <span className="emp-detail-label">Answer</span>
+                    <span className="emp-detail-value">{detailData.answer || "Not yet answered"}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="vendor-modal-footer">
+              <button className="vendor-modal-btn-cancel" onClick={() => setActiveModal(null)}>Close</button>
             </div>
           </div>
         </div>

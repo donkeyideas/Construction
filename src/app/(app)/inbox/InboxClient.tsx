@@ -1081,14 +1081,6 @@ export default function InboxClient({
               <div className="inbox-detail-body">
                 {selectedItem.notification?.message || t("inboxNoAdditionalDetails")}
               </div>
-              {selectedItem.entity_type && (
-                <div className="inbox-detail-entity">
-                  {t("inboxRelated")}: {selectedItem.entity_type}
-                  {selectedItem.entity_id
-                    ? ` (${selectedItem.entity_id.slice(0, 8)}...)`
-                    : ""}
-                </div>
-              )}
             </div>
           )}
 

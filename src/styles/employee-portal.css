@@ -1073,6 +1073,115 @@
 }
 
 /* =================================================================
+   PAGINATION
+   ================================================================= */
+
+.emp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 0 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.emp-pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.emp-pagination-btn:hover:not(:disabled) {
+  background: var(--surface);
+}
+
+.emp-pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.emp-pagination-info {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* =================================================================
+   DETAIL MODALS
+   ================================================================= */
+
+.emp-clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.emp-clickable:hover {
+  background: var(--surface);
+}
+
+.emp-detail-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.emp-spin {
+  animation: emp-spin 1s linear infinite;
+}
+
+@keyframes emp-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.emp-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.emp-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.emp-detail-row.emp-detail-full {
+  grid-column: 1 / -1;
+}
+
+.emp-detail-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.emp-detail-value {
+  font-size: 0.85rem;
+  color: var(--text);
+  font-weight: 500;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* =================================================================
    RESPONSIVE
    ================================================================= */
 
@@ -1130,5 +1239,9 @@
 
   .emp-week-header-right {
     flex-wrap: wrap;
+  }
+
+  .emp-detail-grid {
+    grid-template-columns: 1fr;
   }
 }
