@@ -55,12 +55,19 @@ interface Props {
   users: UserRow[];
 }
 
-function formatDate(dateStr: string, loc: string): string {
-  return new Date(dateStr).toLocaleDateString(loc, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+function formatDate(dateStr: string, _loc: string): string {
+  const d = new Date(dateStr);
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+
+function getAccountAge(createdAt: string): string {
+  const joined = new Date(createdAt);
+  const days = Math.floor((Date.now() - joined.getTime()) / (1000 * 60 * 60 * 24));
+  if (days < 1) return "<1d";
+  if (days < 30) return `${days}d`;
+  if (days < 365) return `${Math.floor(days / 30)}mo`;
+  return `${(days / 365).toFixed(1)}yr`;
 }
 
 function getInitials(name: string | null, email: string): string {
@@ -532,14 +539,7 @@ export default function UsersClient({ users }: Props) {
                       </div>
                       <div style={{ ...miniStatStyle, background: "var(--surface)" }}>
                         <div style={miniStatValue}>
-                          {(() => {
-                            const joined = new Date(selectedUser.created_at);
-                            const days = Math.floor((Date.now() - joined.getTime()) / (1000 * 60 * 60 * 24));
-                            if (days < 1) return "<1d";
-                            if (days < 30) return `${days}d`;
-                            if (days < 365) return `${Math.floor(days / 30)}mo`;
-                            return `${(days / 365).toFixed(1)}yr`;
-                          })()}
+                          {getAccountAge(selectedUser.created_at)}
                         </div>
                         <div style={miniStatLabel}>Account Age</div>
                       </div>
@@ -671,7 +671,7 @@ export default function UsersClient({ users }: Props) {
                                 badgeBg = "rgba(220, 38, 38, 0.08)";
                                 badgeColor = "var(--color-red)";
                                 const endDate = ca.subscription_ends_at
-                                  ? new Date(ca.subscription_ends_at).toLocaleDateString(dateLocale, { month: "short", day: "numeric" })
+                                  ? formatDate(ca.subscription_ends_at, dateLocale).replace(/,\s*\d{4}$/, "")
                                   : "";
                                 label = endDate ? `Canceling — ends ${endDate}` : "Canceling";
                               } else if (status === "trialing") {
