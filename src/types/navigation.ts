@@ -123,6 +123,7 @@ export const appNavigation: NavItem[] = [
       { label: "Time & Attendance", href: "/people/time" },
       { label: "Employee Activity", href: "/people/activity" },
       { label: "Payroll", href: "/people/payroll" },
+      { label: "Reconcile", href: "/people/reconcile" },
       { label: "Certifications", href: "/people/certifications" },
       { label: "Vendors", href: "/people/vendors" },
     ],
