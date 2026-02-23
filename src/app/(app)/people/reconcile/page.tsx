@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPayrollRuns } from "@/lib/queries/payroll";
+import { getEmployeeRateMap, createLaborAccrualJE } from "@/lib/utils/labor-cost";
 import ReconcileClient from "./ReconcileClient";
 
 export const metadata = { title: "Labor Reconcile - Buildwrk" };
@@ -85,6 +87,103 @@ export default async function ReconcilePage() {
         wagesPayableId = a.id; wagesPayableName = a.name; break;
       }
     }
+  }
+
+  // -----------------------------------------------------------------------
+  // 1b. Backfill: create missing labor JEs for clock events that have hours
+  //     but no corresponding labor:* JE. Uses admin client to bypass RLS.
+  // -----------------------------------------------------------------------
+  try {
+    const adminSb = createAdminClient();
+
+    // Get all existing labor JE references for this company
+    const { data: existingJEs } = await adminSb
+      .from("journal_entries")
+      .select("reference")
+      .eq("company_id", companyId)
+      .eq("status", "posted")
+      .like("reference", "labor:%");
+
+    const existingRefs = new Set(
+      (existingJEs ?? []).map((je) => je.reference as string)
+    );
+
+    // Get clock events from last 30 days grouped by user+date
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sinceDate = thirtyDaysAgo.toISOString();
+
+    const { data: clockEvents } = await adminSb
+      .from("clock_events")
+      .select("user_id, event_type, timestamp, project_id")
+      .eq("company_id", companyId)
+      .gte("timestamp", sinceDate)
+      .order("timestamp", { ascending: true });
+
+    if (clockEvents && clockEvents.length > 0) {
+      // Group events by user_id + date
+      const groups: Record<
+        string,
+        { userId: string; date: string; events: typeof clockEvents; projectId?: string }
+      > = {};
+      for (const evt of clockEvents) {
+        const dateStr = evt.timestamp.slice(0, 10);
+        const key = `${evt.user_id}:${dateStr}`;
+        if (!groups[key]) {
+          groups[key] = { userId: evt.user_id, date: dateStr, events: [] };
+        }
+        groups[key].events.push(evt);
+        if (evt.project_id) groups[key].projectId = evt.project_id;
+      }
+
+      // Find groups with completed shifts but no JE
+      const rateMap = await getEmployeeRateMap(adminSb, companyId);
+      const { data: profiles } = await adminSb
+        .from("user_profiles")
+        .select("id, full_name, email");
+      const nameMap: Record<string, string> = {};
+      for (const p of profiles ?? []) {
+        nameMap[p.id] = p.full_name || p.email || "Employee";
+      }
+
+      for (const group of Object.values(groups)) {
+        const ref = `labor:${group.userId}:${group.date}`;
+        if (existingRefs.has(ref)) continue; // JE already exists
+
+        // Calculate hours from paired in/out events
+        let totalMs = 0;
+        let pendingIn: Date | null = null;
+        for (const evt of group.events) {
+          if (evt.event_type === "clock_in") {
+            pendingIn = new Date(evt.timestamp);
+          } else if (evt.event_type === "clock_out" && pendingIn) {
+            totalMs += new Date(evt.timestamp).getTime() - pendingIn.getTime();
+            pendingIn = null;
+          }
+        }
+        const hours = Math.round((totalMs / 3_600_000) * 100) / 100;
+        if (hours <= 0) continue; // No completed shifts
+
+        const rate = rateMap.get(group.userId);
+        if (!rate) continue; // No rate configured
+
+        const name = nameMap[group.userId] || "Employee";
+
+        await createLaborAccrualJE(
+          adminSb,
+          companyId,
+          group.userId,
+          name,
+          hours,
+          rate,
+          group.date,
+          group.projectId
+        );
+        console.log(`[reconcile-backfill] Created JE for ${name} on ${group.date}: ${hours}h @ $${rate}/h`);
+      }
+    }
+  } catch (backfillErr) {
+    console.error("[reconcile-backfill] Error:", backfillErr);
   }
 
   // -----------------------------------------------------------------------
