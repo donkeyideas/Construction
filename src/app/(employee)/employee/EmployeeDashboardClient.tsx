@@ -387,29 +387,13 @@ export default function EmployeeDashboardClient({
     }
   }
 
-  // Quick actions
-  const quickActions = [
-    {
-      label: "Daily Log",
-      icon: <FileText size={20} />,
-      modal: "daily-log" as ModalType,
-    },
-    {
-      label: "Safety Check",
-      icon: <ShieldAlert size={20} />,
-      modal: "safety" as ModalType,
-    },
-    {
-      label: "Photo Upload",
-      icon: <Camera size={20} />,
-      modal: "photo" as ModalType,
-    },
-    {
-      label: "RFI",
-      icon: <HelpCircle size={20} />,
-      modal: "rfi" as ModalType,
-    },
-  ];
+  // Format short date for tables
+  function fmtDate(iso: string): string {
+    return new Date(iso).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  }
 
   return (
     <div>
@@ -522,16 +506,89 @@ export default function EmployeeDashboardClient({
             )}
           </div>
 
-          {/* Action Cards (2x2 grid) */}
-          <div className="emp-quick-grid">
-            {quickActions.map((action) => (
-              <div key={action.label} className="vendor-card" style={{ cursor: "pointer" }} onClick={() => openModal(action.modal)}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "12px 0" }}>
-                  <div className="emp-quick-icon">{action.icon}</div>
-                  <span className="emp-quick-label">{action.label}</span>
-                </div>
+          {/* Daily Logs Card */}
+          <div className="vendor-card">
+            <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <FileText size={18} /> Daily Logs
+              </span>
+              <button className="vendor-btn-upload" onClick={() => openModal("daily-log")}>
+                + New Log
+              </button>
+            </div>
+            {dashboard.recentDailyLogs.length > 0 ? (
+              <div className="emp-activity-list">
+                {dashboard.recentDailyLogs.map((log) => (
+                  <div key={log.id} className="emp-assignment-item">
+                    <div className="emp-assignment-dot" style={{ background: "var(--color-blue)" }} />
+                    <div className="emp-assignment-info">
+                      <div className="emp-assignment-task">
+                        {log.work_performed
+                          ? log.work_performed.length > 60
+                            ? log.work_performed.slice(0, 60) + "..."
+                            : log.work_performed
+                          : "Daily log entry"}
+                      </div>
+                      <div className="emp-assignment-project">
+                        {log.project_name || "No project"} &middot; {fmtDate(log.log_date)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="vendor-empty">No daily logs yet. Submit your first log.</div>
+            )}
+          </div>
+
+          {/* Safety Check Card */}
+          <div className="vendor-card">
+            <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <ShieldAlert size={18} /> Safety Reports
+              </span>
+              <button className="vendor-btn-upload" onClick={() => openModal("safety")}>
+                + New Report
+              </button>
+            </div>
+            {dashboard.recentSafetyIncidents.length > 0 ? (
+              <div className="emp-activity-list">
+                {dashboard.recentSafetyIncidents.map((inc) => {
+                  const sevColor =
+                    inc.severity === "critical" || inc.severity === "high"
+                      ? "var(--color-red)"
+                      : inc.severity === "medium"
+                        ? "var(--color-amber)"
+                        : "var(--color-green)";
+                  return (
+                    <div key={inc.id} className="emp-assignment-item">
+                      <div className="emp-assignment-dot" style={{ background: sevColor }} />
+                      <div className="emp-assignment-info">
+                        <div className="emp-assignment-task">{inc.title}</div>
+                        <div className="emp-assignment-project">
+                          {inc.project_name || "General"} &middot; {fmtDate(inc.created_at)}
+                        </div>
+                      </div>
+                      <span
+                        className="badge"
+                        style={{
+                          background: sevColor,
+                          color: "#fff",
+                          fontSize: "0.68rem",
+                          padding: "2px 8px",
+                          borderRadius: 4,
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {inc.severity}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="vendor-empty">No safety reports filed.</div>
+            )}
           </div>
 
           {/* Pay & Certifications Summary */}
@@ -669,6 +726,75 @@ export default function EmployeeDashboardClient({
                   Clock in to start tracking your time
                 </p>
               </div>
+            )}
+          </div>
+
+          {/* Photo Upload Card */}
+          <div className="vendor-card">
+            <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Camera size={18} /> Photos
+              </span>
+              <button className="vendor-btn-upload" onClick={() => openModal("photo")}>
+                + Upload
+              </button>
+            </div>
+            <div className="vendor-empty">
+              Photo uploads coming soon. Use Documents page in the meantime.
+            </div>
+          </div>
+
+          {/* RFI Card */}
+          <div className="vendor-card">
+            <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <HelpCircle size={18} /> RFIs
+              </span>
+              <button className="vendor-btn-upload" onClick={() => openModal("rfi")}>
+                + New RFI
+              </button>
+            </div>
+            {dashboard.recentRfis.length > 0 ? (
+              <div className="emp-activity-list">
+                {dashboard.recentRfis.map((rfi) => {
+                  const prioColor =
+                    rfi.priority === "urgent" || rfi.priority === "high"
+                      ? "var(--color-red)"
+                      : rfi.priority === "medium"
+                        ? "var(--color-amber)"
+                        : "var(--color-blue)";
+                  const statusColor =
+                    rfi.status === "closed" || rfi.status === "answered"
+                      ? "var(--color-green)"
+                      : "var(--color-amber)";
+                  return (
+                    <div key={rfi.id} className="emp-assignment-item">
+                      <div className="emp-assignment-dot" style={{ background: prioColor }} />
+                      <div className="emp-assignment-info">
+                        <div className="emp-assignment-task">{rfi.subject}</div>
+                        <div className="emp-assignment-project">
+                          {rfi.project_name || "No project"} &middot; {fmtDate(rfi.created_at)}
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: "0.68rem",
+                          fontWeight: 600,
+                          padding: "2px 8px",
+                          borderRadius: 4,
+                          background: statusColor,
+                          color: "#fff",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {rfi.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="vendor-empty">No RFIs submitted yet.</div>
             )}
           </div>
         </div>

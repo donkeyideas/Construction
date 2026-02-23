@@ -29,6 +29,27 @@ export interface EmployeeDashboardData {
   companyName: string;
   role: string;
   projects: { id: string; name: string }[];
+  recentDailyLogs: {
+    id: string;
+    log_date: string;
+    project_name: string | null;
+    work_performed: string | null;
+  }[];
+  recentSafetyIncidents: {
+    id: string;
+    title: string;
+    severity: string;
+    created_at: string;
+    project_name: string | null;
+  }[];
+  recentRfis: {
+    id: string;
+    subject: string;
+    priority: string;
+    status: string;
+    created_at: string;
+    project_name: string | null;
+  }[];
 }
 
 export interface EmployeeTimesheet {
@@ -142,6 +163,9 @@ export async function getEmployeeDashboard(
     companyRes,
     projectsRes,
     memberRes,
+    dailyLogsRes,
+    safetyRes,
+    rfisRes,
   ] = await Promise.all([
     // Today's clock events
     supabase
@@ -217,6 +241,33 @@ export async function getEmployeeDashboard(
       .eq("company_id", companyId)
       .limit(1)
       .maybeSingle(),
+
+    // Recent daily logs (last 5)
+    supabase
+      .from("daily_logs")
+      .select("id, log_date, work_performed, projects(name)")
+      .eq("company_id", companyId)
+      .eq("created_by", userId)
+      .order("log_date", { ascending: false })
+      .limit(5),
+
+    // Recent safety incidents (last 5)
+    supabase
+      .from("safety_incidents")
+      .select("id, title, severity, created_at, projects(name)")
+      .eq("company_id", companyId)
+      .eq("reported_by", userId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+
+    // Recent RFIs (last 5)
+    supabase
+      .from("rfis")
+      .select("id, subject, priority, status, created_at, projects(name)")
+      .eq("company_id", companyId)
+      .eq("submitted_by", userId)
+      .order("created_at", { ascending: false })
+      .limit(5),
   ]);
 
   // Parse clock events
@@ -315,6 +366,33 @@ export async function getEmployeeDashboard(
     role: memberRes.data?.role || "employee",
     projects: (projectsRes.data ?? []).map(
       (p: { id: string; name: string }) => ({ id: p.id, name: p.name })
+    ),
+    recentDailyLogs: (dailyLogsRes.data ?? []).map(
+      (r: Record<string, unknown>) => ({
+        id: r.id as string,
+        log_date: r.log_date as string,
+        project_name: (r.projects as { name: string } | null)?.name ?? null,
+        work_performed: (r.work_performed as string) ?? null,
+      })
+    ),
+    recentSafetyIncidents: (safetyRes.data ?? []).map(
+      (r: Record<string, unknown>) => ({
+        id: r.id as string,
+        title: r.title as string,
+        severity: r.severity as string,
+        created_at: r.created_at as string,
+        project_name: (r.projects as { name: string } | null)?.name ?? null,
+      })
+    ),
+    recentRfis: (rfisRes.data ?? []).map(
+      (r: Record<string, unknown>) => ({
+        id: r.id as string,
+        subject: r.subject as string,
+        priority: r.priority as string,
+        status: r.status as string,
+        created_at: r.created_at as string,
+        project_name: (r.projects as { name: string } | null)?.name ?? null,
+      })
     ),
   };
 }
