@@ -43,7 +43,16 @@ export async function POST() {
     const subscription = await stripe.subscriptions.update(
       company.stripe_subscription_id,
       { cancel_at_period_end: true }
-    ) as unknown as { cancel_at: number | null; current_period_end: number | null };
+    ) as unknown as {
+      cancel_at: number | null;
+      current_period_end: number | null;
+      items: { data: Array<{ price: { unit_amount: number | null } }> };
+    };
+
+    // Get the subscription amount for the event record
+    const subAmount = subscription.items?.data?.[0]?.price?.unit_amount
+      ? subscription.items.data[0].price.unit_amount / 100
+      : 0;
 
     // Update company status
     await admin
@@ -60,7 +69,7 @@ export async function POST() {
       event_type: "canceled",
       plan_from: company.subscription_plan,
       plan_to: company.subscription_plan,
-      amount: 0,
+      amount: subAmount,
       stripe_event_id: `cancel_${company.stripe_subscription_id}_${Date.now()}`,
     });
 

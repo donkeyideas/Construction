@@ -60,7 +60,14 @@ export async function POST(request: NextRequest) {
       const sub = await stripe.subscriptions.update(
         company.stripe_subscription_id,
         { cancel_at_period_end: true }
-      ) as unknown as { current_period_end: number | null };
+      ) as unknown as {
+        current_period_end: number | null;
+        items: { data: Array<{ price: { unit_amount: number | null } }> };
+      };
+
+      const subAmount = sub.items?.data?.[0]?.price?.unit_amount
+        ? sub.items.data[0].price.unit_amount / 100
+        : 0;
 
       await admin
         .from("companies")
@@ -75,7 +82,7 @@ export async function POST(request: NextRequest) {
         event_type: "downgraded",
         plan_from: company.subscription_plan,
         plan_to: "starter",
-        amount: 0,
+        amount: subAmount,
         stripe_event_id: `downgrade_${company.stripe_subscription_id}_${Date.now()}`,
       });
 
@@ -151,7 +158,14 @@ export async function POST(request: NextRequest) {
         }],
         proration_behavior: "none",
       }
-    ) as unknown as { current_period_end: number | null };
+    ) as unknown as {
+      current_period_end: number | null;
+      items: { data: Array<{ price: { unit_amount: number | null } }> };
+    };
+
+    const downgradeAmount = updatedSub.items?.data?.[0]?.price?.unit_amount
+      ? updatedSub.items.data[0].price.unit_amount / 100
+      : 0;
 
     // Update company record
     await admin
@@ -168,7 +182,7 @@ export async function POST(request: NextRequest) {
       event_type: "downgraded",
       plan_from: company.subscription_plan,
       plan_to: targetPlan,
-      amount: 0,
+      amount: downgradeAmount,
       stripe_event_id: `downgrade_${company.stripe_subscription_id}_${Date.now()}`,
     });
 
