@@ -65,7 +65,19 @@ CREATE OR REPLACE FUNCTION pg_temp.fix_fk(
 ) RETURNS VOID AS $$
 DECLARE
   constraint_name TEXT;
+  tbl_exists BOOLEAN;
 BEGIN
+  -- Skip silently if the table or column does not exist
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = p_table AND column_name = p_column
+  ) INTO tbl_exists;
+
+  IF NOT tbl_exists THEN
+    RAISE NOTICE 'fix_fk: skipping %.% (table or column does not exist)', p_table, p_column;
+    RETURN;
+  END IF;
+
   -- Find all FK constraints for this column → target table
   FOR constraint_name IN
     SELECT tc.constraint_name
