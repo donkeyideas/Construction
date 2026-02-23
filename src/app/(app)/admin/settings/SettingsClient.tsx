@@ -14,9 +14,7 @@ import {
   X,
   ExternalLink,
   Check,
-  Crown,
   Zap,
-  Rocket,
   Ticket,
   LayoutGrid,
 } from "lucide-react";
@@ -91,22 +89,19 @@ export default function SettingsClient({
     { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
   ];
 
-  const PLAN_INFO: Record<string, { label: string; icon: typeof Zap; color: string; features: string[] }> = {
+  const PLAN_INFO: Record<string, { label: string; color: string; features: string[] }> = {
     starter: {
       label: t("starter"),
-      icon: Zap,
       color: "var(--color-blue)",
       features: [t("upTo5Users"), t("threeActiveProjects"), t("basicReporting"), t("emailSupport")],
     },
     professional: {
       label: t("professional"),
-      icon: Rocket,
       color: "var(--color-amber)",
       features: [t("upTo25Users"), t("unlimitedProjects"), t("advancedReporting"), t("prioritySupport"), t("apiAccess")],
     },
     enterprise: {
       label: t("enterprise"),
-      icon: Crown,
       color: "var(--color-green)",
       features: [t("unlimitedUsers"), t("unlimitedProjects"), t("customReporting"), t("dedicatedSupport"), t("ssoSaml"), t("customIntegrations")],
     },
@@ -371,7 +366,6 @@ export default function SettingsClient({
 
   const plan = company.subscription_plan || "starter";
   const planInfo = PLAN_INFO[plan] || PLAN_INFO.starter;
-  const PlanIcon = planInfo.icon;
 
   // Plan-based module limits
   const PLAN_MAX_MODULES: Record<string, number | null> = {
@@ -674,20 +668,6 @@ export default function SettingsClient({
           <div className="settings-form">
             <div className="subscription-card">
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-                <div
-                  style={{
-                    width: "44px",
-                    height: "44px",
-                    borderRadius: "10px",
-                    background: `${planInfo.color}15`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: planInfo.color,
-                  }}
-                >
-                  <PlanIcon size={22} />
-                </div>
                 <div>
                   <div className="subscription-plan-name">{t("planName", { plan: planInfo.label })}</div>
                   <div
@@ -949,67 +929,119 @@ export default function SettingsClient({
                 </div>
               )}
 
-              {/* Upgrade cards for plans above current */}
-              {plan !== "enterprise" && (
-                <div style={{ display: "grid", gridTemplateColumns: plan === "starter" ? "1fr 1fr" : "1fr", gap: "12px", marginBottom: "16px" }}>
-                  {plan === "starter" && (
-                    <div
-                      style={{
-                        border: "1.5px solid var(--color-amber)",
-                        borderRadius: "10px",
-                        padding: "16px",
-                        background: "rgba(180, 83, 9, 0.04)",
-                      }}
+              {/* Plan cards — always show all three tiers */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "16px" }}>
+                {/* Starter */}
+                <div
+                  style={{
+                    border: plan === "starter" ? "1.5px solid var(--color-blue)" : "1.5px solid var(--border)",
+                    borderRadius: "10px",
+                    padding: "16px",
+                    background: plan === "starter" ? "rgba(59, 130, 246, 0.04)" : "transparent",
+                    opacity: plan === "starter" ? 1 : 0.7,
+                  }}
+                >
+                  <div style={{ marginBottom: "8px" }}>
+                    <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Starter</span>
+                  </div>
+                  <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
+                    Free
+                  </div>
+                  <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
+                    Up to 5 users, 3 projects, basic reporting
+                  </div>
+                  {plan === "starter" ? (
+                    <div style={{ textAlign: "center", padding: "8px 0", fontSize: "0.85rem", fontWeight: 600, color: "var(--color-blue)" }}>
+                      Current Plan
+                    </div>
+                  ) : (
+                    <button
+                      className="btn-secondary"
+                      style={{ width: "100%", justifyContent: "center" }}
+                      disabled
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                        <Rocket size={18} style={{ color: "var(--color-amber)" }} />
-                        <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Professional</span>
-                      </div>
-                      <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
-                        ${billingInterval === "annual" ? "249" : "299"}
-                        <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "var(--muted)" }}>/mo</span>
-                      </div>
-                      {billingInterval === "annual" && (
-                        <div style={{ fontSize: "0.75rem", color: "var(--color-green)", marginBottom: "8px" }}>
-                          $2,988/yr (save $600)
-                        </div>
-                      )}
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
-                        Up to 25 users, 50 projects, 6 modules
-                      </div>
-                      <button
-                        className="btn-primary"
-                        style={{ width: "100%", justifyContent: "center" }}
-                        onClick={() => openCheckout("professional", billingInterval)}
-                      >
-                        <Zap size={14} />
-                        Upgrade to Professional
-                      </button>
+                      Starter
+                    </button>
+                  )}
+                </div>
+
+                {/* Professional */}
+                <div
+                  style={{
+                    border: plan === "professional" ? "1.5px solid var(--color-amber)" : "1.5px solid var(--border)",
+                    borderRadius: "10px",
+                    padding: "16px",
+                    background: plan === "professional" ? "rgba(180, 83, 9, 0.04)" : "transparent",
+                    opacity: plan === "professional" ? 1 : (plan === "enterprise" ? 0.7 : 1),
+                  }}
+                >
+                  <div style={{ marginBottom: "8px" }}>
+                    <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Professional</span>
+                  </div>
+                  <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
+                    ${billingInterval === "annual" ? "249" : "299"}
+                    <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "var(--muted)" }}>/mo</span>
+                  </div>
+                  {billingInterval === "annual" && (
+                    <div style={{ fontSize: "0.75rem", color: "var(--color-green)", marginBottom: "8px" }}>
+                      $2,988/yr (save $600)
                     </div>
                   )}
-                  <div
-                    style={{
-                      border: "1.5px solid var(--color-green)",
-                      borderRadius: "10px",
-                      padding: "16px",
-                      background: "rgba(22, 163, 74, 0.04)",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                      <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Enterprise</span>
+                  <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
+                    Up to 25 users, 50 projects, 6 modules
+                  </div>
+                  {plan === "professional" ? (
+                    <div style={{ textAlign: "center", padding: "8px 0", fontSize: "0.85rem", fontWeight: 600, color: "var(--color-amber)" }}>
+                      Current Plan
                     </div>
-                    <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
-                      ${billingInterval === "annual" ? "499" : "599"}
-                      <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "var(--muted)" }}>/mo</span>
+                  ) : plan === "starter" ? (
+                    <button
+                      className="btn-primary"
+                      style={{ width: "100%", justifyContent: "center" }}
+                      onClick={() => openCheckout("professional", billingInterval)}
+                    >
+                      Upgrade to Professional
+                    </button>
+                  ) : (
+                    <button
+                      className="btn-secondary"
+                      style={{ width: "100%", justifyContent: "center" }}
+                      disabled
+                    >
+                      Professional
+                    </button>
+                  )}
+                </div>
+
+                {/* Enterprise */}
+                <div
+                  style={{
+                    border: plan === "enterprise" ? "1.5px solid var(--color-green)" : "1.5px solid var(--border)",
+                    borderRadius: "10px",
+                    padding: "16px",
+                    background: plan === "enterprise" ? "rgba(22, 163, 74, 0.04)" : "transparent",
+                  }}
+                >
+                  <div style={{ marginBottom: "8px" }}>
+                    <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>Enterprise</span>
+                  </div>
+                  <div style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "4px" }}>
+                    ${billingInterval === "annual" ? "499" : "599"}
+                    <span style={{ fontSize: "0.8rem", fontWeight: 400, color: "var(--muted)" }}>/mo</span>
+                  </div>
+                  {billingInterval === "annual" && (
+                    <div style={{ fontSize: "0.75rem", color: "var(--color-green)", marginBottom: "8px" }}>
+                      $5,988/yr (save $1,200)
                     </div>
-                    {billingInterval === "annual" && (
-                      <div style={{ fontSize: "0.75rem", color: "var(--color-green)", marginBottom: "8px" }}>
-                        $5,988/yr (save $1,200)
-                      </div>
-                    )}
-                    <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
-                      Unlimited users, projects, all modules
+                  )}
+                  <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
+                    Unlimited users, projects, all modules
+                  </div>
+                  {plan === "enterprise" ? (
+                    <div style={{ textAlign: "center", padding: "8px 0", fontSize: "0.85rem", fontWeight: 600, color: "var(--color-green)" }}>
+                      Current Plan
                     </div>
+                  ) : (
                     <button
                       className="btn-primary"
                       style={{ width: "100%", justifyContent: "center" }}
@@ -1017,9 +1049,9 @@ export default function SettingsClient({
                     >
                       Upgrade to Enterprise
                     </button>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
 
               {/* Manage Billing (for existing Stripe customers) */}
               {company.stripe_customer_id && (
