@@ -522,21 +522,16 @@ export default function EmployeeDashboardClient({
             )}
           </div>
 
-          {/* Quick Actions */}
-          <div className="vendor-card">
-            <div className="vendor-card-title">Quick Actions</div>
-            <div className="emp-quick-grid">
-              {quickActions.map((action) => (
-                <button
-                  key={action.label}
-                  className="emp-quick-action"
-                  onClick={() => openModal(action.modal)}
-                >
+          {/* Action Cards (2x2 grid) */}
+          <div className="emp-quick-grid">
+            {quickActions.map((action) => (
+              <div key={action.label} className="vendor-card" style={{ cursor: "pointer" }} onClick={() => openModal(action.modal)}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "12px 0" }}>
                   <div className="emp-quick-icon">{action.icon}</div>
                   <span className="emp-quick-label">{action.label}</span>
-                </button>
-              ))}
-            </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Pay & Certifications Summary */}
