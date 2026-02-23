@@ -21,7 +21,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { MODULES } from "@/lib/constants/modules";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   EmbeddedCheckoutProvider,
@@ -171,6 +171,18 @@ export default function SettingsClient({
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [confirmDowngrade, setConfirmDowngrade] = useState(false);
+  const [downgradeLoading, setDowngradeLoading] = useState(false);
+
+  // Subscription details from Stripe
+  const [subDetails, setSubDetails] = useState<{
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    cancelAt: string | null;
+    canceledAt: string | null;
+    interval: string;
+    amount: number | null;
+  } | null>(null);
 
   // Load Stripe publishable key on mount
   useEffect(() => {
@@ -183,6 +195,18 @@ export default function SettingsClient({
       })
       .catch(() => {});
   }, []);
+
+  // Fetch subscription details from Stripe (renewal/cancel dates)
+  useEffect(() => {
+    if (company.stripe_subscription_id) {
+      fetch("/api/stripe/subscription-details")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.subscription) setSubDetails(data.subscription);
+        })
+        .catch(() => {});
+    }
+  }, [company.stripe_subscription_id]);
 
   const openCheckout = useCallback(async (targetPlan: string, billing: "monthly" | "annual" = "monthly") => {
     setBillingMessage(null);
@@ -707,6 +731,41 @@ export default function SettingsClient({
                   </span>
                 </div>
               )}
+              {subDetails?.currentPeriodEnd && !subDetails.cancelAtPeriodEnd && (
+                <div className="subscription-info-row">
+                  <span className="subscription-info-label">Renewal Date</span>
+                  <span className="subscription-info-value">
+                    {new Date(subDetails.currentPeriodEnd).toLocaleDateString(undefined, {
+                      year: "numeric", month: "long", day: "numeric",
+                    })}
+                    {subDetails.interval && (
+                      <span style={{ color: "var(--muted)", marginLeft: 6, fontSize: "0.8rem" }}>
+                        ({subDetails.interval === "year" ? "Annual" : "Monthly"})
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
+              {subDetails?.cancelAtPeriodEnd && subDetails.currentPeriodEnd && (
+                <div className="subscription-info-row">
+                  <span className="subscription-info-label" style={{ color: "var(--color-red)" }}>
+                    Cancels On
+                  </span>
+                  <span className="subscription-info-value" style={{ color: "var(--color-red)" }}>
+                    {new Date(subDetails.currentPeriodEnd).toLocaleDateString(undefined, {
+                      year: "numeric", month: "long", day: "numeric",
+                    })}
+                  </span>
+                </div>
+              )}
+              {subDetails?.amount !== null && subDetails?.amount !== undefined && (
+                <div className="subscription-info-row">
+                  <span className="subscription-info-label">Billing Amount</span>
+                  <span className="subscription-info-value">
+                    ${subDetails.amount.toFixed(2)}/{subDetails.interval === "year" ? "yr" : "mo"}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Plan Features */}
@@ -997,6 +1056,19 @@ export default function SettingsClient({
                       Cancel Subscription
                     </button>
                   )}
+                  {/* Downgrade button (enterprise→professional, professional→starter) */}
+                  {company.stripe_subscription_id &&
+                    company.subscription_status !== "canceling" &&
+                    plan !== "starter" && (
+                    <button
+                      className="btn-secondary"
+                      style={{ color: "var(--color-amber)", borderColor: "rgba(180,83,9,0.3)" }}
+                      onClick={() => setConfirmDowngrade(true)}
+                    >
+                      <ArrowDownRight size={14} />
+                      Downgrade to {plan === "enterprise" ? "Professional" : "Starter"}
+                    </button>
+                  )}
                   {company.subscription_status === "canceling" && (
                     <div style={{
                       display: "inline-flex", alignItems: "center", gap: 6,
@@ -1007,6 +1079,83 @@ export default function SettingsClient({
                       Subscription will end at the current billing period
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Downgrade confirmation */}
+              {confirmDowngrade && (
+                <div style={{
+                  marginTop: "12px",
+                  background: "rgba(180, 83, 9, 0.04)",
+                  border: "1px solid rgba(180, 83, 9, 0.2)",
+                  borderRadius: 10,
+                  padding: "16px",
+                }}>
+                  <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--color-amber)", marginBottom: 6 }}>
+                    Downgrade to {plan === "enterprise" ? "Professional" : "Starter"}?
+                  </div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 12, lineHeight: 1.6 }}>
+                    {plan === "enterprise" ? (
+                      <>
+                        Your plan will be changed to Professional. The new pricing takes effect
+                        at your next billing cycle — you keep Enterprise features until then.
+                        Some Enterprise-only features (unlimited users, SSO, custom integrations) will no longer be available.
+                      </>
+                    ) : (
+                      <>
+                        Your paid subscription will be canceled at the end of the current billing period.
+                        After that, your account will revert to the free Starter plan with limited features.
+                      </>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      className="btn-primary"
+                      style={{ backgroundColor: "var(--color-amber)", fontSize: "0.82rem" }}
+                      disabled={downgradeLoading}
+                      onClick={async () => {
+                        setDowngradeLoading(true);
+                        setBillingMessage(null);
+                        const targetPlan = plan === "enterprise" ? "professional" : "starter";
+                        try {
+                          const res = await fetch("/api/stripe/downgrade", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ plan: targetPlan }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || "Failed to downgrade");
+                          setBillingMessage({
+                            type: "success",
+                            text: data.effective_at
+                              ? `Plan changed to ${targetPlan}. Effective ${new Date(data.effective_at).toLocaleDateString()}.`
+                              : data.message || "Plan downgraded successfully.",
+                          });
+                          setConfirmDowngrade(false);
+                          setTimeout(() => window.location.reload(), 2000);
+                        } catch (err) {
+                          setBillingMessage({
+                            type: "error",
+                            text: err instanceof Error ? err.message : "Failed to downgrade",
+                          });
+                        } finally {
+                          setDowngradeLoading(false);
+                        }
+                      }}
+                    >
+                      {downgradeLoading
+                        ? "Processing..."
+                        : `Yes, downgrade to ${plan === "enterprise" ? "Professional" : "Starter"}`}
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      style={{ fontSize: "0.82rem" }}
+                      onClick={() => setConfirmDowngrade(false)}
+                      disabled={downgradeLoading}
+                    >
+                      Keep Current Plan
+                    </button>
+                  </div>
                 </div>
               )}
 

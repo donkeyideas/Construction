@@ -1,5 +1,5 @@
 -- ============================================================
--- ConstructionERP Database Schema
+-- Buildwrk Database Schema
 -- Multi-tenant SaaS with RLS
 -- ============================================================
 

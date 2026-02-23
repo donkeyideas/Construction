@@ -1,5 +1,5 @@
 -- ============================================================
--- ConstructionERP Seed Data
+-- Buildwrk Seed Data
 -- Production reference data for Construction & Real Estate ERP
 -- ============================================================
 
@@ -371,10 +371,10 @@ comment on table role_permission_defaults is
 insert into cms_pages (page_slug, title, status, published_at, meta_title, meta_description, sections)
 values (
   'homepage',
-  'ConstructionERP - Build Smarter',
+  'Buildwrk - Build Smarter',
   'published',
   now(),
-  'ConstructionERP - Construction Project Management and Real Estate Operations',
+  'Buildwrk - Construction Project Management and Real Estate Operations',
   'All-in-one platform for construction project management, financial tracking, real estate operations, and team collaboration. Streamline your business from bid to closeout.',
   '[
     {
@@ -453,7 +453,7 @@ values (
         "section_title": "What Our Customers Say",
         "testimonials": [
           {
-            "quote": "ConstructionERP replaced four different software tools for us. Everything from daily logs to job costing is in one place now.",
+            "quote": "Buildwrk replaced four different software tools for us. Everything from daily logs to job costing is in one place now.",
             "author": "Project Manager",
             "company": "General Contractor",
             "role": "Commercial Construction"
@@ -492,10 +492,10 @@ on conflict (page_slug) do nothing;
 insert into cms_pages (page_slug, title, status, meta_title, meta_description, sections)
 values (
   'features',
-  'Features - ConstructionERP',
+  'Features - Buildwrk',
   'draft',
   'Features - Construction Project Management Software',
-  'Explore the full feature set of ConstructionERP: project management, financial tracking, real estate operations, CRM, document management, and AI-powered insights.',
+  'Explore the full feature set of Buildwrk: project management, financial tracking, real estate operations, CRM, document management, and AI-powered insights.',
   '[
     {
       "type": "hero",
@@ -503,7 +503,7 @@ values (
       "visible": true,
       "content": {
         "headline": "Powerful Features for Every Phase of Construction",
-        "subheadline": "From pre-construction planning through project closeout and property management, ConstructionERP covers every aspect of your business."
+        "subheadline": "From pre-construction planning through project closeout and property management, Buildwrk covers every aspect of your business."
       }
     },
     {
@@ -572,7 +572,7 @@ on conflict (page_slug) do nothing;
 insert into cms_pages (page_slug, title, status, meta_title, meta_description, sections)
 values (
   'pricing',
-  'Pricing - ConstructionERP',
+  'Pricing - Buildwrk',
   'draft',
   'Pricing Plans - Construction Project Management Software',
   'Simple, transparent pricing for construction companies of all sizes. Start free and scale as you grow.',
@@ -663,10 +663,10 @@ on conflict (page_slug) do nothing;
 insert into cms_pages (page_slug, title, status, meta_title, meta_description, sections)
 values (
   'about',
-  'About - ConstructionERP',
+  'About - Buildwrk',
   'draft',
-  'About ConstructionERP - Built for the Construction Industry',
-  'ConstructionERP was built by construction professionals who understand the challenges of managing projects, finances, and properties. Learn more about our mission.',
+  'About Buildwrk - Built for the Construction Industry',
+  'Buildwrk was built by construction professionals who understand the challenges of managing projects, finances, and properties. Learn more about our mission.',
   '[
     {
       "type": "hero",
@@ -683,7 +683,7 @@ values (
       "visible": true,
       "content": {
         "title": "Our Mission",
-        "body": "Construction companies deserve software that works the way they do. Too many tools are built for generic project management and force contractors to adapt their workflows. ConstructionERP is purpose-built for the construction and real estate industries, with native support for CSI MasterFormat cost codes, AIA billing, retainage tracking, daily field logs, and everything else that makes this industry unique."
+        "body": "Construction companies deserve software that works the way they do. Too many tools are built for generic project management and force contractors to adapt their workflows. Buildwrk is purpose-built for the construction and real estate industries, with native support for CSI MasterFormat cost codes, AIA billing, retainage tracking, daily field logs, and everything else that makes this industry unique."
       }
     },
     {
@@ -719,7 +719,7 @@ on conflict (page_slug) do nothing;
 
 insert into platform_announcements (title, content, target_audience, is_active, published_at)
 values (
-  'Welcome to ConstructionERP',
+  'Welcome to Buildwrk',
   'Your all-in-one platform for construction project management and real estate operations. Get started by creating your first project or importing your existing data. Visit the Help Center for step-by-step guides on setting up your chart of accounts, inviting team members, and configuring your first project.',
   'all',
   true,

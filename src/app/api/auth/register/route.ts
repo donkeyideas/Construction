@@ -201,6 +201,19 @@ export async function POST(request: Request) {
       }
     }
 
+    // Record subscription event for revenue tracking
+    supabase
+      .from("subscription_events")
+      .insert({
+        company_id: companyId,
+        event_type: "created",
+        plan_from: null,
+        plan_to: body.subscription_plan || "starter",
+        amount: 0,
+        stripe_event_id: `register_${companyId}_${Date.now()}`,
+      })
+      .then(() => {});
+
     logAuditEvent({
       supabase,
       companyId,

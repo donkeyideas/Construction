@@ -1,5 +1,5 @@
 -- ============================================================
--- ConstructionERP Row Level Security Policies
+-- Buildwrk Row Level Security Policies
 -- Multi-tenant isolation via company_id
 -- ============================================================
 -- IMPORTANT: company_id is NOT in the JWT. All tenant lookups
