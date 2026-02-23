@@ -257,7 +257,7 @@ export async function getTimeEntriesFromClockEvents(
 ): Promise<TimeEntry[]> {
   let query = supabase
     .from("clock_events")
-    .select("*, projects(name, code)")
+    .select("id, company_id, user_id, event_type, timestamp, project_id, notes, created_at, projects(name)")
     .eq("company_id", companyId)
     .order("timestamp", { ascending: true });
 
@@ -275,7 +275,7 @@ export async function getTimeEntriesFromClockEvents(
 
   const { data, error } = await query;
   if (error) {
-    console.error("getTimeEntriesFromClockEvents error:", error);
+    console.error("getTimeEntriesFromClockEvents error:", error.message, error.details);
     return [];
   }
   if (!data || data.length === 0) return [];
@@ -328,7 +328,7 @@ export async function getTimeEntriesFromClockEvents(
 
     const hours = Math.round((totalMs / 3_600_000) * 100) / 100;
     const profile = profileMap.get(userId) ?? null;
-    const project = sorted[0]?.projects as { name: string | null; code: string | null } | null;
+    const projJoin = (sorted[0] as Record<string, unknown>)?.projects as { name: string } | null;
 
     entries.push({
       id: `ce-${userId}-${dateStr}`,
@@ -349,7 +349,7 @@ export async function getTimeEntriesFromClockEvents(
       approved_by: null,
       created_at: sorted[0]?.timestamp as string ?? dateStr,
       user_profile: profile ? { full_name: profile.full_name, email: profile.email } : null,
-      project: project ? { name: project.name, code: project.code } : null,
+      project: projJoin ? { name: projJoin.name, code: null } : null,
     });
   }
 
