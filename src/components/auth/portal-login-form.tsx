@@ -77,6 +77,21 @@ function LoginFormInner({
         return;
       }
 
+      // Verify the user has a profile — orphaned auth users (deleted via
+      // super-admin) still pass signInWithPassword but have no profile row.
+      const { data: profileCheck } = await supabase
+        .from("user_profiles")
+        .select("id")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      if (!profileCheck) {
+        await supabase.auth.signOut();
+        setError("This account no longer exists. Please create a new account.");
+        setLoading(false);
+        return;
+      }
+
       // Track successful login (fire-and-forget)
       fetch("/api/auth/login-event", {
         method: "POST",
