@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getTimeEntries, type TimeEntry } from "@/lib/queries/people";
+import { getTimeEntries, getTimeEntriesFromClockEvents, type TimeEntry } from "@/lib/queries/people";
 import TimeClient from "./TimeClient";
 
 export const metadata = {
@@ -68,19 +68,34 @@ export default async function TimeAttendancePage({
     formatDateISO(addDays(weekStart, i))
   );
 
-  // Fetch time entries for this week (always needed for weekly tab)
-  // + fetch ALL entries when on "all" view
-  const [entries, allEntries] = await Promise.all([
-    getTimeEntries(supabase, companyId, {
-      dateRange: {
-        start: formatDateISO(weekStart),
-        end: formatDateISO(weekEnd),
-      },
-    }),
+  // Fetch time entries from both tables (time_entries + clock_events)
+  // and merge them, deduplicating by user+date
+  const weekFilter = {
+    dateRange: {
+      start: formatDateISO(weekStart),
+      end: formatDateISO(weekEnd),
+    },
+  };
+
+  const [manualEntries, clockEntries, allManual, allClock] = await Promise.all([
+    getTimeEntries(supabase, companyId, weekFilter),
+    getTimeEntriesFromClockEvents(supabase, companyId, weekFilter),
     currentView === "all"
       ? getTimeEntries(supabase, companyId)
       : Promise.resolve([]),
+    currentView === "all"
+      ? getTimeEntriesFromClockEvents(supabase, companyId)
+      : Promise.resolve([]),
   ]);
+
+  // Merge: manual time_entries take precedence over clock-derived ones
+  function mergeEntries(manual: TimeEntry[], clock: TimeEntry[]): TimeEntry[] {
+    const seen = new Set(manual.map((e) => `${e.user_id}::${e.entry_date}`));
+    return [...manual, ...clock.filter((e) => !seen.has(`${e.user_id}::${e.entry_date}`))];
+  }
+
+  const entries = mergeEntries(manualEntries, clockEntries);
+  const allEntries = mergeEntries(allManual, allClock);
 
   // Group by user
   const userMap = new Map<

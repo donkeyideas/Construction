@@ -245,6 +245,119 @@ export async function getTimeEntries(
   }));
 }
 
+/**
+ * Build TimeEntry records from clock_events by pairing clock_in/clock_out
+ * per user per day. This fills the gap where the clock system writes to
+ * clock_events but the Time & Attendance page reads time_entries.
+ */
+export async function getTimeEntriesFromClockEvents(
+  supabase: SupabaseClient,
+  companyId: string,
+  filters?: TimeEntryFilters
+): Promise<TimeEntry[]> {
+  let query = supabase
+    .from("clock_events")
+    .select("*, projects(name, code)")
+    .eq("company_id", companyId)
+    .order("timestamp", { ascending: true });
+
+  if (filters?.userId) {
+    query = query.eq("user_id", filters.userId);
+  }
+  if (filters?.projectId) {
+    query = query.eq("project_id", filters.projectId);
+  }
+  if (filters?.dateRange) {
+    query = query
+      .gte("timestamp", `${filters.dateRange.start}T00:00:00.000Z`)
+      .lte("timestamp", `${filters.dateRange.end}T23:59:59.999Z`);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error("getTimeEntriesFromClockEvents error:", error);
+    return [];
+  }
+  if (!data || data.length === 0) return [];
+
+  // Fetch user profiles for all unique user IDs
+  const userIds = [...new Set(data.map((r) => r.user_id as string))];
+  const { data: profiles } = await supabase
+    .from("user_profiles")
+    .select("id, full_name, email")
+    .in("id", userIds);
+  const profileMap = new Map(
+    (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+  );
+
+  // Group events by user + date, then pair clock_in/clock_out
+  const dayMap = new Map<string, typeof data>();
+  for (const row of data ?? []) {
+    const dateStr = (row.timestamp as string).slice(0, 10);
+    const key = `${row.user_id}::${dateStr}`;
+    if (!dayMap.has(key)) dayMap.set(key, []);
+    dayMap.get(key)!.push(row);
+  }
+
+  const entries: TimeEntry[] = [];
+  for (const [key, events] of dayMap) {
+    const [userId, dateStr] = key.split("::");
+    const sorted = events.sort(
+      (a, b) => new Date(a.timestamp as string).getTime() - new Date(b.timestamp as string).getTime()
+    );
+
+    // Calculate hours from paired events
+    let totalMs = 0;
+    let pendingIn: Date | null = null;
+    let firstClockIn: string | null = null;
+    let lastClockOut: string | null = null;
+    let projectId: string | null = null;
+
+    for (const evt of sorted) {
+      if (evt.event_type === "clock_in") {
+        pendingIn = new Date(evt.timestamp as string);
+        if (!firstClockIn) firstClockIn = evt.timestamp as string;
+        if (!projectId && evt.project_id) projectId = evt.project_id as string;
+      } else if (evt.event_type === "clock_out" && pendingIn) {
+        const out = new Date(evt.timestamp as string);
+        totalMs += out.getTime() - pendingIn.getTime();
+        lastClockOut = evt.timestamp as string;
+        pendingIn = null;
+      }
+    }
+
+    const hours = Math.round((totalMs / 3_600_000) * 100) / 100;
+    const profile = profileMap.get(userId) ?? null;
+    const project = sorted[0]?.projects as { name: string | null; code: string | null } | null;
+
+    entries.push({
+      id: `ce-${userId}-${dateStr}`,
+      company_id: companyId,
+      user_id: userId,
+      project_id: projectId,
+      entry_date: dateStr,
+      clock_in: firstClockIn,
+      clock_out: lastClockOut,
+      hours: hours > 0 ? hours : null,
+      break_minutes: null,
+      work_type: null,
+      cost_code: null,
+      notes: pendingIn ? "Still clocked in" : null,
+      gps_lat: null,
+      gps_lng: null,
+      status: "approved" as TimeEntryStatus,
+      approved_by: null,
+      created_at: sorted[0]?.timestamp as string ?? dateStr,
+      user_profile: profile ? { full_name: profile.full_name, email: profile.email } : null,
+      project: project ? { name: project.name, code: project.code } : null,
+    });
+  }
+
+  return entries.sort(
+    (a, b) => new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime()
+  );
+}
+
 export async function createTimeEntry(
   supabase: SupabaseClient,
   companyId: string,

@@ -719,7 +719,7 @@ export default function EmployeeDashboardClient({
         <h2>{t("welcome", { name: dashboard.employeeName })}</h2>
         <p>
           {dashboard.companyName} &mdash;{" "}
-          {dashboard.role.charAt(0).toUpperCase() + dashboard.role.slice(1)}
+          {dashboard.role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
         </p>
         <div className="vendor-welcome-details">
           <div className="vendor-welcome-detail" suppressHydrationWarning>
