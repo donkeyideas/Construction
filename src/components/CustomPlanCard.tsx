@@ -31,6 +31,185 @@ const FEATURES = [
   "White-glove onboarding",
 ];
 
+/* ── shared inline styles ── */
+const S = {
+  overlay: {
+    position: "fixed" as const,
+    inset: 0,
+    zIndex: 9999,
+    background: "rgba(0,0,0,0.55)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    backdropFilter: "blur(6px)",
+  },
+  modal: {
+    background: "var(--card-bg)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--card-radius)",
+    maxWidth: 600,
+    width: "100%",
+    maxHeight: "90vh",
+    overflowY: "auto" as const,
+    boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+  },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "20px 24px",
+    borderBottom: "1px solid var(--border)",
+  },
+  headerTitle: {
+    fontSize: "1.1rem",
+    fontWeight: 700,
+    margin: 0,
+    color: "var(--text)",
+  },
+  closeBtn: {
+    background: "none",
+    border: "none",
+    fontSize: "1.5rem",
+    color: "var(--muted)",
+    cursor: "pointer",
+    padding: "4px 8px",
+    lineHeight: 1,
+    borderRadius: 6,
+  },
+  body: {
+    padding: 24,
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 16,
+  },
+  row: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 16,
+  },
+  field: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 6,
+  },
+  label: {
+    fontSize: "0.78rem",
+    fontWeight: 600,
+    color: "var(--muted)",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.04em",
+    margin: 0,
+  },
+  input: {
+    padding: "9px 12px",
+    border: "1px solid var(--border)",
+    borderRadius: 8,
+    fontSize: "0.875rem",
+    fontFamily: "var(--font-sans)",
+    background: "var(--surface)",
+    color: "var(--text)",
+    outline: "none",
+    width: "100%",
+    boxSizing: "border-box" as const,
+  },
+  textarea: {
+    padding: "9px 12px",
+    border: "1px solid var(--border)",
+    borderRadius: 8,
+    fontSize: "0.875rem",
+    fontFamily: "var(--font-sans)",
+    background: "var(--surface)",
+    color: "var(--text)",
+    outline: "none",
+    resize: "vertical" as const,
+    minHeight: 80,
+    lineHeight: 1.5,
+    width: "100%",
+    boxSizing: "border-box" as const,
+  },
+  select: {
+    padding: "9px 12px",
+    border: "1px solid var(--border)",
+    borderRadius: 8,
+    fontSize: "0.875rem",
+    fontFamily: "var(--font-sans)",
+    background: "var(--surface)",
+    color: "var(--text)",
+    outline: "none",
+    cursor: "pointer",
+    width: "100%",
+    boxSizing: "border-box" as const,
+  },
+  modulesGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 6,
+    marginTop: 4,
+  },
+  moduleCheck: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    fontSize: "0.85rem",
+    color: "var(--text)",
+    cursor: "pointer",
+    padding: "7px 10px",
+    borderRadius: 8,
+    border: "1px solid var(--border)",
+    background: "var(--surface)",
+  },
+  moduleCheckActive: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    fontSize: "0.85rem",
+    color: "var(--text)",
+    cursor: "pointer",
+    padding: "7px 10px",
+    borderRadius: 8,
+    border: "1px solid var(--color-blue)",
+    background: "var(--color-blue-light)",
+  },
+  checkbox: {
+    accentColor: "var(--color-blue)",
+    width: 16,
+    height: 16,
+  },
+  submitBtn: {
+    display: "block",
+    width: "100%",
+    padding: "12px 24px",
+    background: "var(--color-blue)",
+    color: "#fff",
+    border: "none",
+    borderRadius: 8,
+    fontSize: "0.92rem",
+    fontWeight: 600,
+    fontFamily: "var(--font-sans)",
+    cursor: "pointer",
+    marginTop: 4,
+  },
+  alertSuccess: {
+    padding: "12px 16px",
+    borderRadius: 8,
+    fontSize: "0.9rem",
+    lineHeight: 1.5,
+    background: "rgba(22,163,74,0.1)",
+    border: "1px solid rgba(22,163,74,0.25)",
+    color: "var(--color-green)",
+  },
+  alertError: {
+    padding: "12px 16px",
+    borderRadius: 8,
+    fontSize: "0.9rem",
+    lineHeight: 1.5,
+    background: "rgba(220,38,38,0.1)",
+    border: "1px solid rgba(220,38,38,0.25)",
+    color: "var(--color-red)",
+  },
+};
+
 export default function CustomPlanCard() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -85,7 +264,7 @@ export default function CustomPlanCard() {
           modules_interested: modules,
           budget_range: budgetRange || null,
           message: message.trim(),
-          website, // honeypot
+          website,
         }),
       });
 
@@ -138,19 +317,19 @@ export default function CustomPlanCard() {
         </button>
       </div>
 
-      {/* Modal overlay */}
+      {/* Modal */}
       {open && (
         <div
-          className="custom-plan-overlay"
+          style={S.overlay}
           onClick={(e) => {
             if (e.target === e.currentTarget) setOpen(false);
           }}
         >
-          <div className="custom-plan-modal">
-            <div className="custom-plan-modal-header">
-              <h3>Request a Custom Plan</h3>
+          <div style={S.modal}>
+            <div style={S.header}>
+              <h3 style={S.headerTitle}>Request a Custom Plan</h3>
               <button
-                className="custom-plan-close"
+                style={S.closeBtn}
                 onClick={() => setOpen(false)}
                 aria-label="Close"
               >
@@ -159,20 +338,14 @@ export default function CustomPlanCard() {
             </div>
 
             {result?.type === "success" ? (
-              <div className="custom-plan-modal-body">
-                <div className="contact-form-alert contact-form-alert-success">
-                  {result.text}
-                </div>
-                <button
-                  className="contact-form-submit"
-                  onClick={() => setOpen(false)}
-                  style={{ marginTop: "1rem" }}
-                >
+              <div style={S.body}>
+                <div style={S.alertSuccess}>{result.text}</div>
+                <button style={S.submitBtn} onClick={() => setOpen(false)}>
                   Close
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="custom-plan-modal-body">
+              <form onSubmit={handleSubmit} style={S.body}>
                 {/* Honeypot */}
                 <div
                   style={{ position: "absolute", left: "-9999px" }}
@@ -189,29 +362,34 @@ export default function CustomPlanCard() {
                 </div>
 
                 {result?.type === "error" && (
-                  <div className="contact-form-alert contact-form-alert-error">
-                    {result.text}
-                  </div>
+                  <div style={S.alertError}>{result.text}</div>
                 )}
 
-                <div className="contact-form-row">
-                  <div className="contact-form-field">
-                    <label htmlFor="cp-name">Name *</label>
+                {/* Row 1: Name + Email */}
+                <div style={S.row}>
+                  <div style={S.field}>
+                    <label htmlFor="cp-name" style={S.label}>
+                      Name *
+                    </label>
                     <input
                       id="cp-name"
                       type="text"
                       required
+                      style={S.input}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Your full name"
                     />
                   </div>
-                  <div className="contact-form-field">
-                    <label htmlFor="cp-email">Email *</label>
+                  <div style={S.field}>
+                    <label htmlFor="cp-email" style={S.label}>
+                      Email *
+                    </label>
                     <input
                       id="cp-email"
                       type="email"
                       required
+                      style={S.input}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@company.com"
@@ -219,23 +397,30 @@ export default function CustomPlanCard() {
                   </div>
                 </div>
 
-                <div className="contact-form-row">
-                  <div className="contact-form-field">
-                    <label htmlFor="cp-phone">Phone</label>
+                {/* Row 2: Phone + Company */}
+                <div style={S.row}>
+                  <div style={S.field}>
+                    <label htmlFor="cp-phone" style={S.label}>
+                      Phone
+                    </label>
                     <input
                       id="cp-phone"
                       type="tel"
+                      style={S.input}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="(555) 123-4567"
                     />
                   </div>
-                  <div className="contact-form-field">
-                    <label htmlFor="cp-company">Company Name *</label>
+                  <div style={S.field}>
+                    <label htmlFor="cp-company" style={S.label}>
+                      Company Name *
+                    </label>
                     <input
                       id="cp-company"
                       type="text"
                       required
+                      style={S.input}
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Your company"
@@ -243,11 +428,15 @@ export default function CustomPlanCard() {
                   </div>
                 </div>
 
-                <div className="contact-form-row">
-                  <div className="contact-form-field">
-                    <label htmlFor="cp-size">Company Size</label>
+                {/* Row 3: Size + Budget */}
+                <div style={S.row}>
+                  <div style={S.field}>
+                    <label htmlFor="cp-size" style={S.label}>
+                      Company Size
+                    </label>
                     <select
                       id="cp-size"
+                      style={S.select}
                       value={companySize}
                       onChange={(e) => setCompanySize(e.target.value)}
                     >
@@ -259,10 +448,13 @@ export default function CustomPlanCard() {
                       ))}
                     </select>
                   </div>
-                  <div className="contact-form-field">
-                    <label htmlFor="cp-budget">Budget Range</label>
+                  <div style={S.field}>
+                    <label htmlFor="cp-budget" style={S.label}>
+                      Budget Range
+                    </label>
                     <select
                       id="cp-budget"
+                      style={S.select}
                       value={budgetRange}
                       onChange={(e) => setBudgetRange(e.target.value)}
                     >
@@ -275,13 +467,22 @@ export default function CustomPlanCard() {
                   </div>
                 </div>
 
-                <div className="contact-form-field">
-                  <label>Modules of Interest</label>
-                  <div className="custom-plan-modules-grid">
+                {/* Modules */}
+                <div style={S.field}>
+                  <label style={S.label}>Modules of Interest</label>
+                  <div style={S.modulesGrid}>
                     {MODULES.map((mod) => (
-                      <label key={mod} className="custom-plan-module-check">
+                      <label
+                        key={mod}
+                        style={
+                          modules.includes(mod)
+                            ? S.moduleCheckActive
+                            : S.moduleCheck
+                        }
+                      >
                         <input
                           type="checkbox"
+                          style={S.checkbox}
                           checked={modules.includes(mod)}
                           onChange={() => toggleModule(mod)}
                         />
@@ -291,14 +492,16 @@ export default function CustomPlanCard() {
                   </div>
                 </div>
 
-                <div className="contact-form-field">
-                  <label htmlFor="cp-message">
+                {/* Message */}
+                <div style={S.field}>
+                  <label htmlFor="cp-message" style={S.label}>
                     Tell us about your needs *
                   </label>
                   <textarea
                     id="cp-message"
                     required
                     rows={4}
+                    style={S.textarea}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Describe your project requirements, team size, timeline, and any special needs..."
@@ -307,7 +510,11 @@ export default function CustomPlanCard() {
 
                 <button
                   type="submit"
-                  className="contact-form-submit"
+                  style={{
+                    ...S.submitBtn,
+                    opacity: saving ? 0.6 : 1,
+                    cursor: saving ? "not-allowed" : "pointer",
+                  }}
                   disabled={saving}
                 >
                   {saving ? "Submitting..." : "Submit Request"}
