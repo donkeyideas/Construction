@@ -45,7 +45,7 @@ export async function getUserPortalType(
     .eq("user_id", userId)
     .eq("is_active", true)
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (membership) {
     if (membership.role === "admin") {

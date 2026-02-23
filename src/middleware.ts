@@ -189,7 +189,7 @@ export async function middleware(request: NextRequest) {
         .eq("user_id", user.id)
         .eq("is_active", true)
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (membership?.role === "admin") {
         url.pathname = "/admin-panel";
@@ -209,7 +209,7 @@ export async function middleware(request: NextRequest) {
       .eq("user_id", user.id)
       .eq("is_active", true)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (membership && membership.role !== "owner" && membership.role !== "admin") {
       const url = request.nextUrl.clone();

@@ -186,7 +186,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           .eq("user_id", user.id)
           .eq("is_active", true)
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (!member) return;
 

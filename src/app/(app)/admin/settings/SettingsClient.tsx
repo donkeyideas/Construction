@@ -719,14 +719,14 @@ export default function SettingsClient({
               </div>
               <div className="subscription-info-row">
                 <span className="subscription-info-label">{t("memberSince")}</span>
-                <span className="subscription-info-value">
+                <span className="subscription-info-value" suppressHydrationWarning>
                   {formatDateTime(company.created_at)}
                 </span>
               </div>
               {company.trial_ends_at && (
                 <div className="subscription-info-row">
                   <span className="subscription-info-label">{t("trialEnds")}</span>
-                  <span className="subscription-info-value">
+                  <span className="subscription-info-value" suppressHydrationWarning>
                     {formatDateTime(company.trial_ends_at)}
                   </span>
                 </div>
@@ -735,7 +735,7 @@ export default function SettingsClient({
                 company.subscription_status !== "canceling" && (
                 <div className="subscription-info-row">
                   <span className="subscription-info-label">Renewal Date</span>
-                  <span className="subscription-info-value">
+                  <span className="subscription-info-value" suppressHydrationWarning>
                     {new Date(subDetails.currentPeriodEnd).toLocaleDateString(undefined, {
                       year: "numeric", month: "long", day: "numeric",
                     })}
@@ -753,7 +753,7 @@ export default function SettingsClient({
                   <span className="subscription-info-label" style={{ color: "var(--color-red)" }}>
                     Cancels On
                   </span>
-                  <span className="subscription-info-value" style={{ color: "var(--color-red)" }}>
+                  <span className="subscription-info-value" style={{ color: "var(--color-red)" }} suppressHydrationWarning>
                     {new Date(subDetails.currentPeriodEnd).toLocaleDateString(undefined, {
                       year: "numeric", month: "long", day: "numeric",
                     })}

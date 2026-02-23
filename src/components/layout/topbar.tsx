@@ -87,7 +87,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           .eq("user_id", data.user.id)
           .eq("is_active", true)
           .limit(1)
-          .single()
+          .maybeSingle()
           .then(({ data: member }) => {
             if (!member) return;
             supabase

@@ -43,7 +43,7 @@ export async function getCurrentUserCompany(
       .eq("company_id", preferredCompanyId)
       .eq("is_active", true)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (preferred) {
       const company = preferred.companies as unknown as { name: string } | null;
@@ -63,7 +63,7 @@ export async function getCurrentUserCompany(
     .eq("user_id", user.id)
     .eq("is_active", true)
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (memberError || !membership) {
     return null;
