@@ -4,6 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPayrollRunDetail } from "@/lib/queries/payroll";
 import { voidJournalEntry } from "@/lib/queries/financial";
 import { buildCompanyAccountMap, generatePayrollRunJournalEntry } from "@/lib/utils/invoice-accounting";
+import { reverseLaborAccrualsForPeriod } from "@/lib/utils/labor-cost";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -105,8 +106,25 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       updatePayload.approved_at = new Date().toISOString();
     }
 
-    // Handle "paid" transition: generate journal entry
+    // Handle "paid" transition: reverse daily labor accruals, then generate payroll JE
     if (newStatus === "paid") {
+      // Reverse daily labor accrual JEs for this pay period to prevent double-counting
+      const employeeUserIds = detail.items.map(
+        (item: { user_id: string }) => item.user_id
+      );
+      const { reversedCount, totalAmount } = await reverseLaborAccrualsForPeriod(
+        supabase,
+        userCtx.companyId,
+        detail.period_start,
+        detail.period_end,
+        employeeUserIds
+      );
+      if (reversedCount > 0) {
+        console.log(
+          `Reversed ${reversedCount} labor accruals ($${totalAmount}) for payroll run ${id}`
+        );
+      }
+
       const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
       const jeResult = await generatePayrollRunJournalEntry(
         supabase,

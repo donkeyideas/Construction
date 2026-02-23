@@ -254,3 +254,79 @@ export async function createLaborAccrualJE(
     ],
   });
 }
+
+// ---------------------------------------------------------------------------
+// Reverse Labor Accruals — called when payroll run is marked "paid"
+// ---------------------------------------------------------------------------
+
+/**
+ * Delete daily labor accrual JEs for a given pay period so the payroll run JE
+ * becomes the sole expense record (prevents double-counting).
+ *
+ * Looks for journal_entries with `reference LIKE 'labor:%'` in the date range.
+ * Optionally filters to only specific user IDs (from the payroll run items).
+ */
+export async function reverseLaborAccrualsForPeriod(
+  supabase: SupabaseClient,
+  companyId: string,
+  periodStart: string,
+  periodEnd: string,
+  userIds?: string[]
+): Promise<{ reversedCount: number; totalAmount: number }> {
+  // Find all labor accrual JEs in the period
+  // A pay period typically has ≤ 14 days × N employees — well under 1000 rows
+  const { data: accrualJEs } = await supabase
+    .from("journal_entries")
+    .select("id, reference")
+    .eq("company_id", companyId)
+    .eq("status", "posted")
+    .like("reference", "labor:%")
+    .gte("entry_date", periodStart)
+    .lte("entry_date", periodEnd);
+
+  if (!accrualJEs || accrualJEs.length === 0) {
+    return { reversedCount: 0, totalAmount: 0 };
+  }
+
+  // If userIds provided, filter to only those employees
+  let targetJEs = accrualJEs;
+  if (userIds && userIds.length > 0) {
+    const userIdSet = new Set(userIds);
+    targetJEs = accrualJEs.filter((je) => {
+      // reference format: "labor:{userId}:{date}"
+      const parts = (je.reference as string).split(":");
+      return parts.length >= 2 && userIdSet.has(parts[1]);
+    });
+  }
+
+  if (targetJEs.length === 0) {
+    return { reversedCount: 0, totalAmount: 0 };
+  }
+
+  const jeIds = targetJEs.map((je) => je.id as string);
+
+  // Sum up the debit amounts to know how much was reversed
+  const { data: lines } = await supabase
+    .from("journal_entry_lines")
+    .select("debit")
+    .in("journal_entry_id", jeIds)
+    .gt("debit", 0);
+
+  const totalAmount = (lines ?? []).reduce(
+    (sum, l) => sum + Number(l.debit ?? 0),
+    0
+  );
+
+  // Delete lines first, then headers
+  await supabase
+    .from("journal_entry_lines")
+    .delete()
+    .in("journal_entry_id", jeIds);
+
+  await supabase
+    .from("journal_entries")
+    .delete()
+    .in("id", jeIds);
+
+  return { reversedCount: targetJEs.length, totalAmount: Math.round(totalAmount * 100) / 100 };
+}
