@@ -163,8 +163,26 @@ export default function SettingsClient({
     const params = new URLSearchParams(window.location.search);
     if (params.get("success") === "true") {
       setActiveTab("subscription");
-      setBillingMessage({ type: "success", text: "Subscription activated! Your plan has been upgraded." });
-      router.replace("/admin/settings?tab=subscription", { scroll: false });
+      setBillingMessage({ type: "success", text: "Syncing your subscription..." });
+      // Sync subscription with Stripe to update plan in DB, then reload
+      fetch("/api/stripe/sync-subscription", { method: "POST" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.synced) {
+            setBillingMessage({ type: "success", text: `Subscription activated! You are now on the ${data.plan.charAt(0).toUpperCase() + data.plan.slice(1)} plan.` });
+            // Full reload to refresh all server-fetched data (plan, modules, trial)
+            setTimeout(() => {
+              window.location.href = "/admin/settings?tab=subscription";
+            }, 1500);
+          } else {
+            setBillingMessage({ type: "success", text: "Subscription activated! Refresh the page to see your updated plan." });
+            router.replace("/admin/settings?tab=subscription", { scroll: false });
+          }
+        })
+        .catch(() => {
+          setBillingMessage({ type: "success", text: "Subscription activated! Refresh the page to see your updated plan." });
+          router.replace("/admin/settings?tab=subscription", { scroll: false });
+        });
     }
     if (params.get("tab") === "subscription") {
       setActiveTab("subscription");
