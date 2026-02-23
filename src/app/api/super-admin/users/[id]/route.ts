@@ -229,7 +229,9 @@ export async function DELETE(
       console.warn("cleanup_user_references RPC unavailable:", rpcError.message);
     }
 
-    // 3. Delete user_profile (clears the user_profiles → auth.users FK)
+    // 3. Delete user_profiles FIRST (breaks the user_profiles→auth.users FK)
+    //    This must happen before deleting the auth user because Supabase
+    //    GoTrue checks for FK refs before deleting from auth.users.
     const { error: profileError } = await admin
       .from("user_profiles")
       .delete()
@@ -248,6 +250,17 @@ export async function DELETE(
     const { error: authError } = await admin.auth.admin.deleteUser(id);
     if (authError) {
       console.error("Failed to delete auth user:", authError);
+      // CRITICAL: user_profiles is already deleted. Try to restore it to
+      // avoid leaving an orphaned auth user with no profile.
+      const { data: authUser } = await admin.auth.admin.getUserById(id);
+      if (authUser?.user) {
+        await admin.from("user_profiles").upsert({
+          id,
+          email: authUser.user.email ?? "unknown",
+          full_name: authUser.user.user_metadata?.full_name ?? "Deleted User",
+        });
+        console.error("Restored user_profiles after auth deletion failure");
+      }
       return NextResponse.json(
         {
           error: `Failed to delete auth user: ${authError.message}`,

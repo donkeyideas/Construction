@@ -260,6 +260,20 @@ export async function middleware(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
+    // Orphaned auth user (profile deleted but auth.users still exists).
+    // Clear their session cookies and redirect to login.
+    if (!profile) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      const clearResponse = NextResponse.redirect(url);
+      for (const cookie of request.cookies.getAll()) {
+        if (cookie.name.startsWith("sb-")) {
+          clearResponse.cookies.delete(cookie.name);
+        }
+      }
+      return clearResponse;
+    }
+
     // Platform admins can go anywhere
     if (profile?.is_platform_admin) {
       return supabaseResponse;
