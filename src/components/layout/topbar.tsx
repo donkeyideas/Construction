@@ -45,6 +45,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   });
 
   const [unreadCount, setUnreadCount] = useState(0);
+  const [inboxNewCount, setInboxNewCount] = useState(0);
   const [userId, setUserId] = useState("");
   const [auditGrade, setAuditGrade] = useState<string | null>(null);
   const [auditGradeLabel, setAuditGradeLabel] = useState<string | null>(null);
@@ -117,6 +118,17 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
     });
   }, []);
 
+  // Fetch super-admin inbox new count (contact_submissions)
+  useEffect(() => {
+    if (!isSuperAdmin) return;
+    fetch("/api/super-admin/inbox/count")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setInboxNewCount(data.newCount ?? 0);
+      })
+      .catch(() => {});
+  }, [isSuperAdmin, pathname]);
+
   // Fetch audit grade on mount and on navigation changes
   useEffect(() => {
     fetch("/api/financial/audit-grade")
@@ -144,7 +156,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   };
   const gradeColor = auditGrade ? gradeColorMap[auditGrade] || "var(--muted)" : "var(--muted)";
 
-  const totalUnread = unreadCount + realtimeNewCount;
+  const totalUnread = unreadCount + realtimeNewCount + inboxNewCount;
   const bellRef = useRef<HTMLButtonElement>(null);
 
   // Re-trigger bell animation when new real-time notifications arrive
@@ -301,7 +313,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           <button
             ref={bellRef}
             className={`notif-btn${totalUnread > 0 ? " has-unread" : ""}`}
-            onClick={() => router.push("/inbox")}
+            onClick={() => router.push(isSuperAdmin ? "/super-admin/inbox" : "/inbox")}
             title="Inbox"
           >
             <Bell size={20} />

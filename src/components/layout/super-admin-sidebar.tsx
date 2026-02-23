@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, FileText,
   Globe, ChevronRight, CreditCard, Settings,
-  Shield, Wrench, Headphones, TrendingUp,
+  Shield, Wrench, Headphones, TrendingUp, Mail,
 } from "lucide-react";
 import {
   superAdminNavigation,
@@ -18,6 +18,7 @@ const iconMap: Record<string, React.ElementType> = {
   "layout-dashboard": LayoutDashboard,
   "building-2": Building2,
   users: Users,
+  mail: Mail,
   "file-text": FileText,
   globe: Globe,
   "credit-card": CreditCard,
@@ -28,7 +29,15 @@ const iconMap: Record<string, React.ElementType> = {
   settings: Settings,
 };
 
-function NavItemComponent({ item, t }: { item: SuperAdminNavItem; t: (key: string) => string }) {
+function NavItemComponent({
+  item,
+  t,
+  badge,
+}: {
+  item: SuperAdminNavItem;
+  t: (key: string) => string;
+  badge?: number;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const Icon = iconMap[item.icon] || LayoutDashboard;
@@ -72,6 +81,26 @@ function NavItemComponent({ item, t }: { item: SuperAdminNavItem; t: (key: strin
       <Link href={item.href!} className={`nav-link ${isActive ? "active" : ""}`}>
         <Icon />
         <span className="label">{(t as any)(item.label)}</span>
+        {badge != null && badge > 0 && (
+          <span
+            style={{
+              marginLeft: "auto",
+              background: "var(--color-red)",
+              color: "#fff",
+              fontSize: "0.7rem",
+              fontWeight: 700,
+              minWidth: 20,
+              height: 20,
+              borderRadius: 10,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 6px",
+            }}
+          >
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
       </Link>
     </div>
   );
@@ -84,6 +113,17 @@ interface SuperAdminSidebarProps {
 
 export function SuperAdminSidebar({ isOpen, onClose }: SuperAdminSidebarProps) {
   const t = useTranslations("saNav");
+  const pathname = usePathname();
+  const [inboxNewCount, setInboxNewCount] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/super-admin/inbox/count")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setInboxNewCount(data.newCount ?? 0);
+      })
+      .catch(() => {});
+  }, [pathname]);
 
   return (
     <>
@@ -96,7 +136,12 @@ export function SuperAdminSidebar({ isOpen, onClose }: SuperAdminSidebarProps) {
         </div>
         <nav className="sidebar-nav">
           {superAdminNavigation.map((item) => (
-            <NavItemComponent key={item.label} item={item} t={t as any} />
+            <NavItemComponent
+              key={item.label}
+              item={item}
+              t={t as any}
+              badge={item.label === "inbox" ? inboxNewCount : undefined}
+            />
           ))}
         </nav>
         <div className="sidebar-bottom" />
