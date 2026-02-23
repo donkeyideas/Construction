@@ -12,13 +12,18 @@ export default function LanguageSwitcher() {
   const [open, setOpen] = useState(false);
 
   async function switchLocale(newLocale: Locale) {
+    if (newLocale === locale) {
+      setOpen(false);
+      return;
+    }
     await fetch("/api/locale", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ locale: newLocale }),
     });
-    setOpen(false);
-    router.refresh();
+    // Full reload required — router.refresh() doesn't re-render root layout
+    // where NextIntlClientProvider loads messages
+    window.location.reload();
   }
 
   const current = LOCALE_META[locale];
