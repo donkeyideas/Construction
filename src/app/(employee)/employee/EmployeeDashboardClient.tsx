@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   Clock,
   FileText,
@@ -42,20 +43,22 @@ function formatTime(isoString: string): string {
   return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-function formatRelativeTime(isoString: string): string {
+type TFunc = (key: string, values?: Record<string, string | number>) => string;
+
+function formatRelativeTime(isoString: string, t: TFunc): string {
   const diff = Date.now() - new Date(isoString).getTime();
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return t("justNow");
+  if (minutes < 60) return t("minutesAgo", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("hoursAgo", { count: hours });
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return t("daysAgo", { count: days });
 }
 
-function activityText(event: ClockEvent): string {
+function activityText(event: ClockEvent, t: TFunc): string {
   const action =
-    event.event_type === "clock_in" ? "Clocked in" : "Clocked out";
+    event.event_type === "clock_in" ? t("clockedInAction") : t("clockedOutAction");
   const project = event.project_name ? ` at ${event.project_name}` : "";
   return `${action}${project}`;
 }
@@ -119,6 +122,7 @@ function PaginationControls({
   totalItems: number;
   onPageChange: (page: number) => void;
 }) {
+  const t = useTranslations("employeeDashboard");
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
   if (totalPages <= 1) return null;
   return (
@@ -131,7 +135,7 @@ function PaginationControls({
         <ChevronLeft size={14} />
       </button>
       <span className="emp-pagination-info">
-        Page {currentPage + 1} of {totalPages}
+        {t("page", { current: currentPage + 1, total: totalPages })}
       </span>
       <button
         className="emp-pagination-btn"
@@ -149,6 +153,8 @@ export default function EmployeeDashboardClient({
 }: {
   dashboard: EmployeeDashboardData;
 }) {
+  const t = useTranslations("employeeDashboard");
+
   // Clock state
   const [isClockedIn, setIsClockedIn] = useState(
     dashboard.clockStatus.isClockedIn
@@ -329,7 +335,7 @@ export default function EmployeeDashboardClient({
     if (!dlProject || !dlWork.trim()) {
       setModalMsg({
         type: "error",
-        text: "Please select a project and describe the work performed.",
+        text: t("dailyLogValidation"),
       });
       return;
     }
@@ -359,18 +365,18 @@ export default function EmployeeDashboardClient({
         setDailyLogPage(0);
         setModalMsg({
           type: "success",
-          text: "Daily log submitted successfully!",
+          text: t("dailyLogSuccess"),
         });
         setTimeout(() => setActiveModal(null), 1200);
       } else {
         const data = await res.json();
         setModalMsg({
           type: "error",
-          text: data.error || "Failed to submit daily log.",
+          text: data.error || t("failedSubmitDailyLog"),
         });
       }
     } catch {
-      setModalMsg({ type: "error", text: "Network error. Please try again." });
+      setModalMsg({ type: "error", text: t("networkError") });
     } finally {
       setModalSubmitting(false);
     }
@@ -381,7 +387,7 @@ export default function EmployeeDashboardClient({
     if (!saTitle.trim() || !saDescription.trim()) {
       setModalMsg({
         type: "error",
-        text: "Please provide a title and description.",
+        text: t("safetyValidation"),
       });
       return;
     }
@@ -411,18 +417,18 @@ export default function EmployeeDashboardClient({
         setSafetyPage(0);
         setModalMsg({
           type: "success",
-          text: "Safety report submitted successfully!",
+          text: t("safetySuccess"),
         });
         setTimeout(() => setActiveModal(null), 1200);
       } else {
         const data = await res.json();
         setModalMsg({
           type: "error",
-          text: data.error || "Failed to submit safety report.",
+          text: data.error || t("failedSubmitSafety"),
         });
       }
     } catch {
-      setModalMsg({ type: "error", text: "Network error. Please try again." });
+      setModalMsg({ type: "error", text: t("networkError") });
     } finally {
       setModalSubmitting(false);
     }
@@ -451,7 +457,7 @@ export default function EmployeeDashboardClient({
   // Submit Photo to Document Library
   async function submitPhoto() {
     if (!photoFile) {
-      setModalMsg({ type: "error", text: "Please select a photo to upload." });
+      setModalMsg({ type: "error", text: t("photoValidation") });
       return;
     }
     setModalSubmitting(true);
@@ -478,14 +484,14 @@ export default function EmployeeDashboardClient({
         body: formData,
       });
       if (res.ok) {
-        setModalMsg({ type: "success", text: "Photo uploaded to Document Library!" });
+        setModalMsg({ type: "success", text: t("photoSuccess") });
         setTimeout(() => setActiveModal(null), 1200);
       } else {
         const data = await res.json();
-        setModalMsg({ type: "error", text: data.error || "Failed to upload photo." });
+        setModalMsg({ type: "error", text: data.error || t("failedUploadPhoto") });
       }
     } catch {
-      setModalMsg({ type: "error", text: "Network error. Please try again." });
+      setModalMsg({ type: "error", text: t("networkError") });
     } finally {
       setModalSubmitting(false);
     }
@@ -496,7 +502,7 @@ export default function EmployeeDashboardClient({
     if (!rfiProject || !rfiSubject.trim() || !rfiQuestion.trim()) {
       setModalMsg({
         type: "error",
-        text: "Please select a project, enter a subject, and describe the question.",
+        text: t("rfiValidation"),
       });
       return;
     }
@@ -527,18 +533,18 @@ export default function EmployeeDashboardClient({
         setRfiPage(0);
         setModalMsg({
           type: "success",
-          text: "RFI submitted successfully!",
+          text: t("rfiSuccess"),
         });
         setTimeout(() => setActiveModal(null), 1200);
       } else {
         const data = await res.json();
         setModalMsg({
           type: "error",
-          text: data.error || "Failed to submit RFI.",
+          text: data.error || t("failedSubmitRfi"),
         });
       }
     } catch {
-      setModalMsg({ type: "error", text: "Network error. Please try again." });
+      setModalMsg({ type: "error", text: t("networkError") });
     } finally {
       setModalSubmitting(false);
     }
@@ -557,7 +563,7 @@ export default function EmployeeDashboardClient({
     <div>
       {/* ===== Welcome Banner ===== */}
       <div className="vendor-welcome-card">
-        <h2>Welcome, {dashboard.employeeName}</h2>
+        <h2>{t("welcome", { name: dashboard.employeeName })}</h2>
         <p>
           {dashboard.companyName} &mdash;{" "}
           {dashboard.role.charAt(0).toUpperCase() + dashboard.role.slice(1)}
@@ -565,20 +571,21 @@ export default function EmployeeDashboardClient({
         <div className="vendor-welcome-details">
           <div className="vendor-welcome-detail" suppressHydrationWarning>
             <Clock size={16} />
-            {todayHours.toFixed(1)}h today
+            {t("hoursToday", { hours: todayHours.toFixed(1) })}
           </div>
           <div className="vendor-welcome-detail">
             <Building2 size={16} />
-            {dashboard.projects.length} Active Project
-            {dashboard.projects.length !== 1 ? "s" : ""}
+            {dashboard.projects.length !== 1
+              ? t("activeProjectsPlural", { count: dashboard.projects.length })
+              : t("activeProjects", { count: dashboard.projects.length })}
           </div>
           {isClockedIn ? (
             <span className="vendor-welcome-badge" style={{ background: "var(--color-green)" }}>
-              Clocked In
+              {t("clockedIn")}
             </span>
           ) : (
             <span className="vendor-welcome-badge" style={{ background: "var(--muted)" }}>
-              Clocked Out
+              {t("clockedOut")}
             </span>
           )}
         </div>
@@ -592,27 +599,27 @@ export default function EmployeeDashboardClient({
           <div className="vendor-card">
             <div className="vendor-card-title">
               <Clock size={18} />
-              Time Clock
+              {t("timeClock")}
             </div>
             <div style={{ textAlign: "center", padding: "8px 0 16px" }}>
               <div
                 className={`emp-clock-status ${isClockedIn ? "clocked-in" : "clocked-out"}`}
               >
-                {isClockedIn ? "Clocked In" : "Clocked Out"}
+                {isClockedIn ? t("clockedIn") : t("clockedOut")}
               </div>
               <div className="emp-clock-time" suppressHydrationWarning>{elapsed}</div>
               {isClockedIn && lastEvent && (
                 <div className="emp-clock-duration" suppressHydrationWarning>
-                  Started at {formatTime(lastEvent.timestamp)}
+                  {t("startedAt", { time: formatTime(lastEvent.timestamp) })}
                 </div>
               )}
               {!isClockedIn && lastEvent && (
                 <div className="emp-clock-duration" suppressHydrationWarning>
-                  Last clocked out at {formatTime(lastEvent.timestamp)}
+                  {t("lastClockedOut", { time: formatTime(lastEvent.timestamp) })}
                 </div>
               )}
               {!isClockedIn && !lastEvent && (
-                <div className="emp-clock-duration">No clock events today</div>
+                <div className="emp-clock-duration">{t("noClockEvents")}</div>
               )}
               {error && <div className="emp-clock-error">{error}</div>}
               <button
@@ -622,10 +629,10 @@ export default function EmployeeDashboardClient({
                 style={{ marginTop: 8 }}
               >
                 {loading
-                  ? "Processing..."
+                  ? t("processing")
                   : isClockedIn
-                    ? "Clock Out"
-                    : "Clock In"}
+                    ? t("clockOut")
+                    : t("clockIn")}
               </button>
             </div>
 
@@ -633,7 +640,7 @@ export default function EmployeeDashboardClient({
             {todayEvents.length > 0 && (
               <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 8 }}>
                 <div className="emp-section-title">
-                  <ClipboardList size={16} /> Today&apos;s Timeline
+                  <ClipboardList size={16} /> {t("todaysTimeline")}
                 </div>
                 <div className="emp-timeline">
                   {todayEvents.slice(0, 6).map((event) => (
@@ -647,8 +654,8 @@ export default function EmployeeDashboardClient({
                         </div>
                         <div className="emp-timeline-label">
                           {event.event_type === "clock_in"
-                            ? "Clocked In"
-                            : "Clocked Out"}
+                            ? t("clockedIn")
+                            : t("clockedOut")}
                           {event.project_name && (
                             <span className="emp-timeline-project">
                               {" "}
@@ -668,10 +675,10 @@ export default function EmployeeDashboardClient({
           <div className="vendor-card">
             <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <FileText size={18} /> Daily Logs
+                <FileText size={18} /> {t("dailyLogs")}
               </span>
               <button className="vendor-btn-upload" onClick={() => openModal("daily-log")}>
-                + New Log
+                {t("newLog")}
               </button>
             </div>
             {recentDailyLogs.length > 0 ? (
@@ -688,10 +695,10 @@ export default function EmployeeDashboardClient({
                             ? log.work_performed.length > 60
                               ? log.work_performed.slice(0, 60) + "..."
                               : log.work_performed
-                            : "Daily log entry"}
+                            : t("dailyLogEntry")}
                         </div>
                         <div className="emp-assignment-project">
-                          {log.project_name || "No project"} &middot; {fmtDate(log.log_date)}
+                          {log.project_name || t("noProject")} &middot; {fmtDate(log.log_date)}
                         </div>
                       </div>
                     </div>
@@ -700,7 +707,7 @@ export default function EmployeeDashboardClient({
                 <PaginationControls currentPage={dailyLogPage} totalItems={recentDailyLogs.length} onPageChange={setDailyLogPage} />
               </>
             ) : (
-              <div className="vendor-empty">No daily logs yet. Submit your first log.</div>
+              <div className="vendor-empty">{t("noDailyLogs")}</div>
             )}
           </div>
 
@@ -708,10 +715,10 @@ export default function EmployeeDashboardClient({
           <div className="vendor-card">
             <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <ShieldAlert size={18} /> Safety Reports
+                <ShieldAlert size={18} /> {t("safetyReports")}
               </span>
               <button className="vendor-btn-upload" onClick={() => openModal("safety")}>
-                + New Report
+                {t("newReport")}
               </button>
             </div>
             {recentSafetyIncidents.length > 0 ? (
@@ -732,7 +739,7 @@ export default function EmployeeDashboardClient({
                         <div className="emp-assignment-info">
                           <div className="emp-assignment-task">{inc.title}</div>
                           <div className="emp-assignment-project">
-                            {inc.project_name || "General"} &middot; {fmtDate(inc.created_at)}
+                            {inc.project_name || t("general")} &middot; {fmtDate(inc.created_at)}
                           </div>
                         </div>
                         <span
@@ -755,7 +762,7 @@ export default function EmployeeDashboardClient({
                 <PaginationControls currentPage={safetyPage} totalItems={recentSafetyIncidents.length} onPageChange={setSafetyPage} />
               </>
             ) : (
-              <div className="vendor-empty">No safety reports filed.</div>
+              <div className="vendor-empty">{t("noSafetyReports")}</div>
             )}
           </div>
 
@@ -766,7 +773,7 @@ export default function EmployeeDashboardClient({
                 <div className="emp-summary-icon">
                   <DollarSign size={18} />
                 </div>
-                <div className="emp-summary-label">Last Paycheck</div>
+                <div className="emp-summary-label">{t("lastPaycheck")}</div>
                 <div className="emp-summary-value">
                   $
                   {dashboard.recentPayslip.net_pay.toLocaleString("en-US", {
@@ -784,13 +791,13 @@ export default function EmployeeDashboardClient({
                 <div className="emp-summary-icon">
                   <Award size={18} />
                 </div>
-                <div className="emp-summary-label">Certifications</div>
+                <div className="emp-summary-label">{t("certifications")}</div>
                 <div className="emp-summary-value">
                   {dashboard.certifications.total}
                 </div>
                 {dashboard.certifications.expiring > 0 && (
                   <div className="emp-summary-meta emp-summary-warning">
-                    {dashboard.certifications.expiring} expiring soon
+                    {t("expiringSoon", { count: dashboard.certifications.expiring })}
                   </div>
                 )}
               </div>
@@ -804,28 +811,28 @@ export default function EmployeeDashboardClient({
           <div className="vendor-card">
             <div className="vendor-card-title">
               <Briefcase size={18} />
-              Overview
+              {t("overview")}
             </div>
             <div className="emp-kpi-row">
               <div className="emp-kpi">
-                <div className="emp-kpi-label">Today</div>
+                <div className="emp-kpi-label">{t("today")}</div>
                 <div className="emp-kpi-value" suppressHydrationWarning>{todayHours.toFixed(1)}h</div>
               </div>
               <div className="emp-kpi">
-                <div className="emp-kpi-label">This Week</div>
+                <div className="emp-kpi-label">{t("thisWeek")}</div>
                 <div className="emp-kpi-value">
                   {dashboard.hoursThisWeek.toFixed(1)}h
                 </div>
               </div>
               <div className="emp-kpi">
-                <div className="emp-kpi-label">Pending</div>
+                <div className="emp-kpi-label">{t("pending")}</div>
                 <div className="emp-kpi-value">
                   {dashboard.pendingTimesheets}
                 </div>
               </div>
               {dashboard.certifications.expiring > 0 && (
                 <div className="emp-kpi emp-kpi-alert">
-                  <div className="emp-kpi-label">Expiring Certs</div>
+                  <div className="emp-kpi-label">{t("expiringCerts")}</div>
                   <div className="emp-kpi-value">
                     {dashboard.certifications.expiring}
                   </div>
@@ -838,7 +845,7 @@ export default function EmployeeDashboardClient({
           <div className="vendor-card">
             <div className="vendor-card-title">
               <ClipboardList size={18} />
-              Today&apos;s Assignments
+              {t("todaysAssignments")}
             </div>
             <div className="emp-assignments-list">
               <div className="emp-assignment-item">
@@ -848,13 +855,13 @@ export default function EmployeeDashboardClient({
                 />
                 <div className="emp-assignment-info">
                   <div className="emp-assignment-task">
-                    No assignments scheduled
+                    {t("noAssignments")}
                   </div>
                   <div className="emp-assignment-project">
-                    Tasks will appear here when assigned
+                    {t("assignmentsHint")}
                   </div>
                 </div>
-                <span className="badge badge-blue">Info</span>
+                <span className="badge badge-blue">{t("info")}</span>
               </div>
             </div>
           </div>
@@ -863,7 +870,7 @@ export default function EmployeeDashboardClient({
           <div className="vendor-card">
             <div className="vendor-card-title">
               <Clock size={18} />
-              Recent Activity
+              {t("recentActivity")}
             </div>
             {todayEvents.length > 0 ? (
               <div className="emp-activity-list">
@@ -874,10 +881,10 @@ export default function EmployeeDashboardClient({
                     </div>
                     <div>
                       <div className="emp-activity-text">
-                        {activityText(event)}
+                        {activityText(event, t)}
                       </div>
                       <div className="emp-activity-time" suppressHydrationWarning>
-                        {formatRelativeTime(event.timestamp)}
+                        {formatRelativeTime(event.timestamp, t)}
                       </div>
                     </div>
                   </div>
@@ -889,9 +896,9 @@ export default function EmployeeDashboardClient({
                   size={32}
                   style={{ color: "var(--muted)", marginBottom: 8 }}
                 />
-                <p>No activity today</p>
+                <p>{t("noActivity")}</p>
                 <p className="emp-empty-sub">
-                  Clock in to start tracking your time
+                  {t("clockInPrompt")}
                 </p>
               </div>
             )}
@@ -901,14 +908,14 @@ export default function EmployeeDashboardClient({
           <div className="vendor-card">
             <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Camera size={18} /> Photos
+                <Camera size={18} /> {t("photos")}
               </span>
               <button className="vendor-btn-upload" onClick={() => openModal("photo")}>
-                + Upload
+                {t("upload")}
               </button>
             </div>
             <div className="vendor-empty">
-              Upload site photos. Files are saved to the Document Library.
+              {t("photosHint")}
             </div>
           </div>
 
@@ -916,10 +923,10 @@ export default function EmployeeDashboardClient({
           <div className="vendor-card">
             <div className="vendor-card-title" style={{ justifyContent: "space-between" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <HelpCircle size={18} /> RFIs
+                <HelpCircle size={18} /> {t("rfis")}
               </span>
               <button className="vendor-btn-upload" onClick={() => openModal("rfi")}>
-                + New RFI
+                {t("newRfi")}
               </button>
             </div>
             {recentRfis.length > 0 ? (
@@ -944,7 +951,7 @@ export default function EmployeeDashboardClient({
                         <div className="emp-assignment-info">
                           <div className="emp-assignment-task">{rfi.subject}</div>
                           <div className="emp-assignment-project">
-                            {rfi.project_name || "No project"} &middot; {fmtDate(rfi.created_at)}
+                            {rfi.project_name || t("noProject")} &middot; {fmtDate(rfi.created_at)}
                           </div>
                         </div>
                         <span
@@ -967,7 +974,7 @@ export default function EmployeeDashboardClient({
                 <PaginationControls currentPage={rfiPage} totalItems={recentRfis.length} onPageChange={setRfiPage} />
               </>
             ) : (
-              <div className="vendor-empty">No RFIs submitted yet.</div>
+              <div className="vendor-empty">{t("noRfis")}</div>
             )}
           </div>
         </div>
@@ -981,7 +988,7 @@ export default function EmployeeDashboardClient({
         >
           <div className="vendor-modal" onClick={(e) => e.stopPropagation()}>
             <div className="vendor-modal-header">
-              <h3>Submit Daily Log</h3>
+              <h3>{t("submitDailyLog")}</h3>
               <button
                 className="vendor-modal-close"
                 onClick={() => setActiveModal(null)}
@@ -1008,13 +1015,13 @@ export default function EmployeeDashboardClient({
                 </div>
               )}
               <div className="vendor-modal-field">
-                <label>Project</label>
+                <label>{t("project")}</label>
                 <select
                   style={S.select}
                   value={dlProject}
                   onChange={(e) => setDlProject(e.target.value)}
                 >
-                  <option value="">— Select Project —</option>
+                  <option value="">{t("selectProject")}</option>
                   {dashboard.projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -1023,7 +1030,7 @@ export default function EmployeeDashboardClient({
                 </select>
               </div>
               <div className="vendor-modal-field">
-                <label>Date</label>
+                <label>{t("date")}</label>
                 <input
                   type="date"
                   style={S.input}
@@ -1032,38 +1039,38 @@ export default function EmployeeDashboardClient({
                 />
               </div>
               <div className="vendor-modal-field">
-                <label>Work Performed</label>
+                <label>{t("workPerformed")}</label>
                 <textarea
                   style={S.textarea}
                   value={dlWork}
                   onChange={(e) => setDlWork(e.target.value)}
-                  placeholder="Describe the work completed today..."
+                  placeholder={t("workPerformedPlaceholder")}
                   rows={4}
                 />
               </div>
               <div className="vendor-modal-field">
-                <label>Weather</label>
+                <label>{t("weather")}</label>
                 <select
                   style={S.select}
                   value={dlWeather}
                   onChange={(e) => setDlWeather(e.target.value)}
                 >
-                  <option value="clear">Clear</option>
-                  <option value="cloudy">Cloudy</option>
-                  <option value="rain">Rain</option>
-                  <option value="snow">Snow</option>
-                  <option value="windy">Windy</option>
-                  <option value="extreme_heat">Extreme Heat</option>
+                  <option value="clear">{t("weatherClear")}</option>
+                  <option value="cloudy">{t("weatherCloudy")}</option>
+                  <option value="rain">{t("weatherRain")}</option>
+                  <option value="snow">{t("weatherSnow")}</option>
+                  <option value="windy">{t("weatherWindy")}</option>
+                  <option value="extreme_heat">{t("weatherExtremeHeat")}</option>
                 </select>
               </div>
               <div className="vendor-modal-field">
-                <label>Crew Size (optional)</label>
+                <label>{t("crewSize")}</label>
                 <input
                   type="number"
                   style={S.input}
                   value={dlCrewSize}
                   onChange={(e) => setDlCrewSize(e.target.value)}
-                  placeholder="e.g., 12"
+                  placeholder={t("crewSizePlaceholder")}
                   min="0"
                 />
               </div>
@@ -1073,14 +1080,14 @@ export default function EmployeeDashboardClient({
                 className="vendor-modal-btn-cancel"
                 onClick={() => setActiveModal(null)}
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="vendor-modal-btn-submit"
                 disabled={modalSubmitting}
                 onClick={submitDailyLog}
               >
-                {modalSubmitting ? "Submitting..." : "Submit Daily Log"}
+                {modalSubmitting ? t("submitting") : t("submitDailyLog")}
               </button>
             </div>
           </div>
@@ -1095,7 +1102,7 @@ export default function EmployeeDashboardClient({
         >
           <div className="vendor-modal" onClick={(e) => e.stopPropagation()}>
             <div className="vendor-modal-header">
-              <h3>Report Safety Issue</h3>
+              <h3>{t("reportSafetyIssue")}</h3>
               <button
                 className="vendor-modal-close"
                 onClick={() => setActiveModal(null)}
@@ -1122,13 +1129,13 @@ export default function EmployeeDashboardClient({
                 </div>
               )}
               <div className="vendor-modal-field">
-                <label>Project (optional)</label>
+                <label>{t("projectOptional")}</label>
                 <select
                   style={S.select}
                   value={saProject}
                   onChange={(e) => setSaProject(e.target.value)}
                 >
-                  <option value="">— Select Project —</option>
+                  <option value="">{t("selectProject")}</option>
                   {dashboard.projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -1137,36 +1144,36 @@ export default function EmployeeDashboardClient({
                 </select>
               </div>
               <div className="vendor-modal-field">
-                <label>Title</label>
+                <label>{t("title")}</label>
                 <input
                   type="text"
                   style={S.input}
                   value={saTitle}
                   onChange={(e) => setSaTitle(e.target.value)}
-                  placeholder="e.g., Unsecured scaffolding on Level 3"
+                  placeholder={t("titlePlaceholder")}
                 />
               </div>
               <div className="vendor-modal-field">
-                <label>Description</label>
+                <label>{t("description")}</label>
                 <textarea
                   style={S.textarea}
                   value={saDescription}
                   onChange={(e) => setSaDescription(e.target.value)}
-                  placeholder="Describe the safety issue in detail..."
+                  placeholder={t("descriptionPlaceholder")}
                   rows={4}
                 />
               </div>
               <div className="vendor-modal-field">
-                <label>Severity</label>
+                <label>{t("severity")}</label>
                 <select
                   style={S.select}
                   value={saSeverity}
                   onChange={(e) => setSaSeverity(e.target.value)}
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
+                  <option value="low">{t("low")}</option>
+                  <option value="medium">{t("medium")}</option>
+                  <option value="high">{t("high")}</option>
+                  <option value="critical">{t("critical")}</option>
                 </select>
               </div>
             </div>
@@ -1175,14 +1182,14 @@ export default function EmployeeDashboardClient({
                 className="vendor-modal-btn-cancel"
                 onClick={() => setActiveModal(null)}
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="vendor-modal-btn-submit"
                 disabled={modalSubmitting}
                 onClick={submitSafetyCheck}
               >
-                {modalSubmitting ? "Submitting..." : "Submit Report"}
+                {modalSubmitting ? t("submitting") : t("submitReport")}
               </button>
             </div>
           </div>
@@ -1197,7 +1204,7 @@ export default function EmployeeDashboardClient({
         >
           <div className="vendor-modal" onClick={(e) => e.stopPropagation()}>
             <div className="vendor-modal-header">
-              <h3>Upload Photo</h3>
+              <h3>{t("uploadPhoto")}</h3>
               <button
                 className="vendor-modal-close"
                 onClick={() => setActiveModal(null)}
@@ -1224,13 +1231,13 @@ export default function EmployeeDashboardClient({
                 </div>
               )}
               <div className="vendor-modal-field">
-                <label>Project</label>
+                <label>{t("project")}</label>
                 <select
                   style={S.select}
                   value={photoProject}
                   onChange={(e) => setPhotoProject(e.target.value)}
                 >
-                  <option value="">— General (no project) —</option>
+                  <option value="">{t("generalNoProject")}</option>
                   {dashboard.projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -1239,17 +1246,17 @@ export default function EmployeeDashboardClient({
                 </select>
               </div>
               <div className="vendor-modal-field">
-                <label>Activity / Description</label>
+                <label>{t("activityDescription")}</label>
                 <input
                   type="text"
                   style={S.input}
                   value={photoActivity}
                   onChange={(e) => setPhotoActivity(e.target.value)}
-                  placeholder="e.g., Foundation pour, Steel framing..."
+                  placeholder={t("activityPlaceholder")}
                 />
               </div>
               <div className="vendor-modal-field">
-                <label>Photo</label>
+                <label>{t("photo")}</label>
                 <input
                   type="file"
                   accept="image/*"
@@ -1269,14 +1276,14 @@ export default function EmployeeDashboardClient({
                 className="vendor-modal-btn-cancel"
                 onClick={() => setActiveModal(null)}
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="vendor-modal-btn-submit"
                 onClick={submitPhoto}
                 disabled={modalSubmitting}
               >
-                {modalSubmitting ? "Uploading..." : "Upload Photo"}
+                {modalSubmitting ? t("uploading") : t("uploadPhoto")}
               </button>
             </div>
           </div>
@@ -1291,7 +1298,7 @@ export default function EmployeeDashboardClient({
         >
           <div className="vendor-modal" onClick={(e) => e.stopPropagation()}>
             <div className="vendor-modal-header">
-              <h3>Submit RFI</h3>
+              <h3>{t("submitRfi")}</h3>
               <button
                 className="vendor-modal-close"
                 onClick={() => setActiveModal(null)}
@@ -1318,13 +1325,13 @@ export default function EmployeeDashboardClient({
                 </div>
               )}
               <div className="vendor-modal-field">
-                <label>Project</label>
+                <label>{t("project")}</label>
                 <select
                   style={S.select}
                   value={rfiProject}
                   onChange={(e) => setRfiProject(e.target.value)}
                 >
-                  <option value="">— Select Project —</option>
+                  <option value="">{t("selectProject")}</option>
                   {dashboard.projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -1333,36 +1340,36 @@ export default function EmployeeDashboardClient({
                 </select>
               </div>
               <div className="vendor-modal-field">
-                <label>Subject</label>
+                <label>{t("subject")}</label>
                 <input
                   type="text"
                   style={S.input}
                   value={rfiSubject}
                   onChange={(e) => setRfiSubject(e.target.value)}
-                  placeholder="e.g., Clarification on foundation spec"
+                  placeholder={t("subjectPlaceholder")}
                 />
               </div>
               <div className="vendor-modal-field">
-                <label>Question / Details</label>
+                <label>{t("questionDetails")}</label>
                 <textarea
                   style={S.textarea}
                   value={rfiQuestion}
                   onChange={(e) => setRfiQuestion(e.target.value)}
-                  placeholder="Describe your question or request for information..."
+                  placeholder={t("questionPlaceholder")}
                   rows={4}
                 />
               </div>
               <div className="vendor-modal-field">
-                <label>Priority</label>
+                <label>{t("priority")}</label>
                 <select
                   style={S.select}
                   value={rfiPriority}
                   onChange={(e) => setRfiPriority(e.target.value)}
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
+                  <option value="low">{t("low")}</option>
+                  <option value="medium">{t("medium")}</option>
+                  <option value="high">{t("high")}</option>
+                  <option value="urgent">{t("urgent")}</option>
                 </select>
               </div>
             </div>
@@ -1371,14 +1378,14 @@ export default function EmployeeDashboardClient({
                 className="vendor-modal-btn-cancel"
                 onClick={() => setActiveModal(null)}
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="vendor-modal-btn-submit"
                 disabled={modalSubmitting}
                 onClick={submitRfi}
               >
-                {modalSubmitting ? "Submitting..." : "Submit RFI"}
+                {modalSubmitting ? t("submitting") : t("submitRfi")}
               </button>
             </div>
           </div>
