@@ -119,13 +119,16 @@ function PaginationControls({
   currentPage,
   totalItems,
   onPageChange,
+  perPage,
 }: {
   currentPage: number;
   totalItems: number;
   onPageChange: (page: number) => void;
+  perPage?: number;
 }) {
   const t = useTranslations("employeeDashboard");
-  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+  const pageSize = perPage ?? ITEMS_PER_PAGE;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   if (totalPages <= 1) return null;
   return (
     <div className="emp-pagination">
@@ -195,6 +198,7 @@ export default function EmployeeDashboardClient({
   const [safetyPage, setSafetyPage] = useState(0);
   const [rfiPage, setRfiPage] = useState(0);
   const [photoPage, setPhotoPage] = useState(0);
+  const [activityPage, setActivityPage] = useState(0);
 
   // Detail modal state
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -404,7 +408,7 @@ export default function EmployeeDashboardClient({
       timestamp: p.created_at,
       color: "var(--color-teal, #14b8a6)",
     })),
-  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const activityIcon = (type: string) => {
     switch (type) {
@@ -1072,23 +1076,28 @@ export default function EmployeeDashboardClient({
               {t("recentActivity")}
             </div>
             {allActivity.length > 0 ? (
-              <div className="emp-activity-list">
-                {allActivity.map((item) => (
-                  <div key={item.id} className="emp-activity-item">
-                    <div className="emp-activity-icon" style={{ color: item.color }}>
-                      {activityIcon(item.type)}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="emp-activity-text">{item.title}</div>
-                      <div className="emp-activity-time" suppressHydrationWarning>
-                        <span style={{ color: item.color, fontWeight: 500, fontSize: "0.7rem", marginRight: 6 }}>{activityLabel(item.type)}</span>
-                        {item.detail && <>{item.detail} &middot; </>}
-                        {formatRelativeTime(item.timestamp, t)}
+              <>
+                <div className="emp-activity-list">
+                  {allActivity
+                    .slice(activityPage * 7, (activityPage + 1) * 7)
+                    .map((item) => (
+                    <div key={item.id} className="emp-activity-item">
+                      <div className="emp-activity-icon" style={{ color: item.color }}>
+                        {activityIcon(item.type)}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="emp-activity-text">{item.title}</div>
+                        <div className="emp-activity-time" suppressHydrationWarning>
+                          <span style={{ color: item.color, fontWeight: 500, fontSize: "0.7rem", marginRight: 6 }}>{activityLabel(item.type)}</span>
+                          {item.detail && <>{item.detail} &middot; </>}
+                          {formatRelativeTime(item.timestamp, t)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                <PaginationControls currentPage={activityPage} totalItems={allActivity.length} onPageChange={setActivityPage} perPage={7} />
+              </>
             ) : (
               <div className="emp-empty-state">
                 <Activity size={32} style={{ color: "var(--muted)", marginBottom: 8 }} />
