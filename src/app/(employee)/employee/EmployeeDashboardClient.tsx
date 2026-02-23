@@ -108,7 +108,7 @@ const S = {
 // ---------------------------------------------------------------------------
 
 type ModalType = "daily-log" | "safety" | "photo" | "rfi"
-  | "view-daily-log" | "view-safety" | "view-rfi"
+  | "view-daily-log" | "view-safety" | "view-rfi" | "view-photo" | "view-activity"
   | null;
 
 const ITEMS_PER_PAGE = 3;
@@ -173,6 +173,7 @@ export default function EmployeeDashboardClient({
   const [recentDailyLogs, setRecentDailyLogs] = useState(dashboard.recentDailyLogs);
   const [recentSafetyIncidents, setRecentSafetyIncidents] = useState(dashboard.recentSafetyIncidents);
   const [recentRfis, setRecentRfis] = useState(dashboard.recentRfis);
+  const [recentPhotos, setRecentPhotos] = useState(dashboard.recentPhotos ?? []);
 
   // Modal state
   const [activeModal, setActiveModal] = useState<ModalType>(null);
@@ -191,6 +192,7 @@ export default function EmployeeDashboardClient({
   const [dailyLogPage, setDailyLogPage] = useState(0);
   const [safetyPage, setSafetyPage] = useState(0);
   const [rfiPage, setRfiPage] = useState(0);
+  const [photoPage, setPhotoPage] = useState(0);
 
   // Detail modal state
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -435,7 +437,7 @@ export default function EmployeeDashboardClient({
   }
 
   // View detail modal
-  async function viewDetail(type: "view-daily-log" | "view-safety" | "view-rfi", id: string) {
+  async function viewDetail(type: "view-daily-log" | "view-safety" | "view-rfi" | "view-photo", id: string) {
     setActiveModal(type);
     setDetailLoading(true);
     setDetailData(null);
@@ -443,6 +445,7 @@ export default function EmployeeDashboardClient({
       "view-daily-log": `/api/employee/daily-log?id=${id}`,
       "view-safety": `/api/employee/safety-incident?id=${id}`,
       "view-rfi": `/api/employee/rfi?id=${id}`,
+      "view-photo": `/api/employee/photo?id=${id}`,
     };
     try {
       const res = await fetch(endpoints[type]);
@@ -452,6 +455,19 @@ export default function EmployeeDashboardClient({
     } finally {
       setDetailLoading(false);
     }
+  }
+
+  // View activity detail (clock event — no API needed, data is local)
+  function viewActivityDetail(event: ClockEvent) {
+    setDetailData({
+      event_type: event.event_type === "clock_in" ? "Clock In" : "Clock Out",
+      timestamp: event.timestamp,
+      time: formatTime(event.timestamp),
+      project: event.project_name || "No project",
+      notes: event.notes || null,
+    });
+    setDetailLoading(false);
+    setActiveModal("view-activity");
   }
 
   // Submit Photo to Document Library
@@ -484,6 +500,19 @@ export default function EmployeeDashboardClient({
         body: formData,
       });
       if (res.ok) {
+        const newDoc = await res.json();
+        const projectName = photoProject
+          ? dashboard.projects.find(p => p.id === photoProject)?.name ?? null
+          : null;
+        setRecentPhotos(prev => [{
+          id: newDoc.id ?? `temp-${Date.now()}`,
+          name: docName,
+          category: "photos",
+          file_type: photoFile.type,
+          created_at: new Date().toISOString(),
+          project_name: projectName,
+        }, ...prev].slice(0, 10));
+        setPhotoPage(0);
         setModalMsg({ type: "success", text: t("photoSuccess") });
         setTimeout(() => setActiveModal(null), 1200);
       } else {
@@ -875,7 +904,7 @@ export default function EmployeeDashboardClient({
             {todayEvents.length > 0 ? (
               <div className="emp-activity-list">
                 {todayEvents.slice(0, 6).map((event) => (
-                  <div key={event.id} className="emp-activity-item">
+                  <div key={event.id} className="emp-activity-item emp-clickable" onClick={() => viewActivityDetail(event)}>
                     <div className="emp-activity-icon">
                       <Clock size={14} />
                     </div>
@@ -914,9 +943,32 @@ export default function EmployeeDashboardClient({
                 {t("upload")}
               </button>
             </div>
-            <div className="vendor-empty">
-              {t("photosHint")}
-            </div>
+            {recentPhotos.length > 0 ? (
+              <>
+                <div className="emp-activity-list">
+                  {recentPhotos
+                    .slice(photoPage * ITEMS_PER_PAGE, (photoPage + 1) * ITEMS_PER_PAGE)
+                    .map((photo) => (
+                    <div key={photo.id} className="emp-assignment-item emp-clickable" onClick={() => viewDetail("view-photo", photo.id)}>
+                      <div className="emp-assignment-dot" style={{ background: "var(--color-blue)" }} />
+                      <div className="emp-assignment-info">
+                        <div className="emp-assignment-task">
+                          {photo.name.length > 50 ? photo.name.slice(0, 50) + "..." : photo.name}
+                        </div>
+                        <div className="emp-assignment-project">
+                          {photo.project_name || t("general")} &middot; {fmtDate(photo.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <PaginationControls currentPage={photoPage} totalItems={recentPhotos.length} onPageChange={setPhotoPage} />
+              </>
+            ) : (
+              <div className="vendor-empty">
+                {t("photosHint")}
+              </div>
+            )}
           </div>
 
           {/* RFI Card */}
@@ -1599,6 +1651,108 @@ export default function EmployeeDashboardClient({
                     <span className="emp-detail-label">Answer</span>
                     <span className="emp-detail-value">{detailData.answer || "Not yet answered"}</span>
                   </div>
+                </div>
+              )}
+            </div>
+            <div className="vendor-modal-footer">
+              <button className="vendor-modal-btn-cancel" onClick={() => setActiveModal(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Photo Detail Modal ===== */}
+      {activeModal === "view-photo" && (
+        <div className="vendor-modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="vendor-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
+            <div className="vendor-modal-header">
+              <h3>Photo Details</h3>
+              <button className="vendor-modal-close" onClick={() => setActiveModal(null)}><X size={18} /></button>
+            </div>
+            <div className="vendor-modal-body">
+              {detailLoading && (
+                <div className="emp-detail-loading"><Loader2 size={24} className="emp-spin" /> Loading...</div>
+              )}
+              {!detailLoading && !detailData && (
+                <div className="vendor-empty">Could not load photo details.</div>
+              )}
+              {!detailLoading && detailData && (
+                <div className="emp-detail-grid">
+                  <div className="emp-detail-row emp-detail-full">
+                    <span className="emp-detail-label">Name</span>
+                    <span className="emp-detail-value">{detailData.name}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Project</span>
+                    <span className="emp-detail-value">{detailData.project_name || "General"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">File Type</span>
+                    <span className="emp-detail-value">{detailData.file_type}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Size</span>
+                    <span className="emp-detail-value">
+                      {detailData.file_size
+                        ? detailData.file_size > 1024 * 1024
+                          ? `${(detailData.file_size / (1024 * 1024)).toFixed(1)} MB`
+                          : `${(detailData.file_size / 1024).toFixed(0)} KB`
+                        : "N/A"}
+                    </span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Uploaded</span>
+                    <span className="emp-detail-value">{detailData.created_at?.split("T")[0] || "N/A"}</span>
+                  </div>
+                  {detailData.tags && detailData.tags.length > 0 && (
+                    <div className="emp-detail-row emp-detail-full">
+                      <span className="emp-detail-label">Tags</span>
+                      <span className="emp-detail-value">{detailData.tags.join(", ")}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="vendor-modal-footer">
+              <button className="vendor-modal-btn-cancel" onClick={() => setActiveModal(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Activity Detail Modal ===== */}
+      {activeModal === "view-activity" && (
+        <div className="vendor-modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="vendor-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+            <div className="vendor-modal-header">
+              <h3>Activity Details</h3>
+              <button className="vendor-modal-close" onClick={() => setActiveModal(null)}><X size={18} /></button>
+            </div>
+            <div className="vendor-modal-body">
+              {detailData && (
+                <div className="emp-detail-grid">
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Event</span>
+                    <span className="emp-detail-value">{detailData.event_type}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Time</span>
+                    <span className="emp-detail-value">{detailData.time}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Date</span>
+                    <span className="emp-detail-value">{detailData.timestamp?.split("T")[0] || "N/A"}</span>
+                  </div>
+                  <div className="emp-detail-row">
+                    <span className="emp-detail-label">Project</span>
+                    <span className="emp-detail-value">{detailData.project}</span>
+                  </div>
+                  {detailData.notes && (
+                    <div className="emp-detail-row emp-detail-full">
+                      <span className="emp-detail-label">Notes</span>
+                      <span className="emp-detail-value">{detailData.notes}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

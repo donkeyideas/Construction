@@ -50,6 +50,14 @@ export interface EmployeeDashboardData {
     created_at: string;
     project_name: string | null;
   }[];
+  recentPhotos: {
+    id: string;
+    name: string;
+    category: string;
+    file_type: string;
+    created_at: string;
+    project_name: string | null;
+  }[];
 }
 
 export interface EmployeeTimesheet {
@@ -166,6 +174,7 @@ export async function getEmployeeDashboard(
     dailyLogsRes,
     safetyRes,
     rfisRes,
+    photosRes,
   ] = await Promise.all([
     // Today's clock events
     supabase
@@ -268,6 +277,16 @@ export async function getEmployeeDashboard(
       .eq("submitted_by", userId)
       .order("created_at", { ascending: false })
       .limit(5),
+
+    // Recent photos (documents with category 'photos', uploaded by this user)
+    supabase
+      .from("documents")
+      .select("id, name, category, file_type, created_at, projects(name)")
+      .eq("company_id", companyId)
+      .eq("uploaded_by", userId)
+      .eq("category", "photos")
+      .order("created_at", { ascending: false })
+      .limit(10),
   ]);
 
   // Parse clock events
@@ -390,6 +409,16 @@ export async function getEmployeeDashboard(
         subject: r.subject as string,
         priority: r.priority as string,
         status: r.status as string,
+        created_at: r.created_at as string,
+        project_name: (r.projects as { name: string } | null)?.name ?? null,
+      })
+    ),
+    recentPhotos: (photosRes.data ?? []).map(
+      (r: Record<string, unknown>) => ({
+        id: r.id as string,
+        name: r.name as string,
+        category: r.category as string,
+        file_type: r.file_type as string,
         created_at: r.created_at as string,
         project_name: (r.projects as { name: string } | null)?.name ?? null,
       })

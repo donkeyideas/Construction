@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { createNotifications } from "@/lib/utils/notifications";
 
@@ -43,8 +44,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Use admin client for insert to bypass RLS (auth already verified above)
+    const admin = createAdminClient();
+
     // Auto-generate RFI number: count existing RFIs for this project + 1
-    const { count } = await supabase
+    const { count } = await admin
       .from("rfis")
       .select("id", { count: "exact", head: true })
       .eq("company_id", userCtx.companyId)
@@ -53,7 +57,7 @@ export async function POST(request: NextRequest) {
     const rfiNum = (count ?? 0) + 1;
     const rfi_number = `RFI-${String(rfiNum).padStart(3, "0")}`;
 
-    const { data: rfi, error } = await supabase
+    const { data: rfi, error } = await admin
       .from("rfis")
       .insert({
         company_id: userCtx.companyId,
