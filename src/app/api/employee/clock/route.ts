@@ -225,11 +225,13 @@ export async function POST(request: NextRequest) {
     // Uses admin client to bypass RLS (employees may not have JE write access)
     if (event_type === "clock_out") {
       try {
+        console.log("[labor-je] Clock-out detected, starting JE creation...");
         const adminSb = createAdminClient();
         const todayStr = new Date().toISOString().slice(0, 10);
+        console.log("[labor-je] todayStr:", todayStr, "userId:", userCtx.userId);
 
         // Fetch all of today's clock events for this user
-        const { data: todayData } = await adminSb
+        const { data: todayData, error: evtErr } = await adminSb
           .from("clock_events")
           .select("id, event_type, timestamp, project_id")
           .eq("user_id", userCtx.userId)
@@ -238,13 +240,17 @@ export async function POST(request: NextRequest) {
           .lt("timestamp", `${todayStr}T23:59:59.999Z`)
           .order("timestamp", { ascending: true });
 
+        if (evtErr) console.error("[labor-je] Error fetching events:", evtErr);
+
         const todayEvents = (todayData ?? []) as ClockEvent[];
         const todayHours = calculateTodayHours(todayEvents);
+        console.log("[labor-je] events:", todayEvents.length, "hours:", todayHours);
 
         if (todayHours > 0) {
           // Look up hourly rate
           const rateMap = await getEmployeeRateMap(adminSb, userCtx.companyId);
           const rate = rateMap.get(userCtx.userId);
+          console.log("[labor-je] rateMap size:", rateMap.size, "rate for user:", rate);
 
           if (rate) {
             // Get employee name
@@ -261,6 +267,7 @@ export async function POST(request: NextRequest) {
               .reverse()
               .find((e) => e.project_id);
 
+            console.log("[labor-je] Creating JE:", employeeName, todayHours, "h @", rate, "$/h =", Math.round(todayHours * rate * 100) / 100);
             await createLaborAccrualJE(
               adminSb,
               userCtx.companyId,
@@ -271,10 +278,15 @@ export async function POST(request: NextRequest) {
               todayStr,
               lastWithProject?.project_id ?? undefined
             );
+            console.log("[labor-je] JE created successfully");
+          } else {
+            console.warn("[labor-je] No rate found for user", userCtx.userId);
           }
+        } else {
+          console.warn("[labor-je] todayHours <= 0, skipping JE");
         }
       } catch (jeErr) {
-        console.error("Labor accrual JE error (non-blocking):", jeErr);
+        console.error("[labor-je] JE creation error:", jeErr);
       }
     }
 

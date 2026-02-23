@@ -200,6 +200,8 @@ export async function createLaborAccrualJE(
     companyId
   );
 
+  console.log("[labor-cost] Accounts found:", { wagesExpenseId, wagesPayableId });
+
   if (!wagesExpenseId || !wagesPayableId) {
     console.warn(
       `[labor-cost] Could not find or create Wages Expense / Wages Payable for company ${companyId}. Skipping labor JE.`
@@ -208,7 +210,7 @@ export async function createLaborAccrualJE(
   }
 
   // Check for existing JE with same reference — delete if found (replace pattern)
-  const { data: existing } = await supabase
+  const { data: existing, error: lookupErr } = await supabase
     .from("journal_entries")
     .select("id")
     .eq("company_id", companyId)
@@ -216,7 +218,10 @@ export async function createLaborAccrualJE(
     .limit(1)
     .maybeSingle();
 
+  if (lookupErr) console.error("[labor-cost] Lookup error:", lookupErr);
+
   if (existing) {
+    console.log("[labor-cost] Replacing existing JE:", existing.id);
     // Delete lines first, then header
     await supabase
       .from("journal_entry_lines")
@@ -230,7 +235,9 @@ export async function createLaborAccrualJE(
   const shortId = crypto.randomUUID().slice(0, 4).toUpperCase();
   const entryNumber = `LAB-${datePart}-${shortId}`;
 
-  await createPostedJournalEntry(supabase, companyId, userId, {
+  console.log("[labor-cost] Creating JE:", { entryNumber, reference, amount });
+
+  const jeResult = await createPostedJournalEntry(supabase, companyId, userId, {
     entry_number: entryNumber,
     entry_date: date,
     description: `Labor accrual — ${employeeName} — ${hours}h @ $${rate}/h`,
@@ -253,6 +260,12 @@ export async function createLaborAccrualJE(
       },
     ],
   });
+
+  if (jeResult) {
+    console.log("[labor-cost] JE created successfully:", jeResult.id);
+  } else {
+    console.error("[labor-cost] createPostedJournalEntry returned null — JE creation failed");
+  }
 }
 
 // ---------------------------------------------------------------------------
