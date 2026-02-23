@@ -470,12 +470,13 @@ export default function EmployeeDashboardClient({
     }
   }
 
-  // Format short date for tables
+  // Format short date for tables — timezone-safe (no Date constructor)
   function fmtDate(iso: string): string {
-    return new Date(iso).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
+    const parts = iso.split("T")[0].split("-");
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${months[m - 1]} ${d}`;
   }
 
   return (
