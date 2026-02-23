@@ -251,10 +251,20 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
                 <div className="fin-chart-card" style={{ flex: 1, padding: 12, textAlign: "center" }}>
                   <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>Today</div>
                   <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{selectedEmployee.todayHours}h</div>
+                  {rateMap[selectedEmployee.userId] && selectedEmployee.todayHours > 0 && (
+                    <div style={{ fontSize: "0.82rem", color: "var(--success, #16a34a)", fontWeight: 600, marginTop: 2 }}>
+                      {fmtCost(selectedEmployee.todayHours, rateMap[selectedEmployee.userId])}
+                    </div>
+                  )}
                 </div>
                 <div className="fin-chart-card" style={{ flex: 1, padding: 12, textAlign: "center" }}>
                   <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>Week</div>
                   <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{selectedEmployee.weekHours}h</div>
+                  {rateMap[selectedEmployee.userId] && selectedEmployee.weekHours > 0 && (
+                    <div style={{ fontSize: "0.82rem", color: "var(--success, #16a34a)", fontWeight: 600, marginTop: 2 }}>
+                      {fmtCost(selectedEmployee.weekHours, rateMap[selectedEmployee.userId])}
+                    </div>
+                  )}
                 </div>
               </div>
 
