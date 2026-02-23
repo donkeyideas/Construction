@@ -120,7 +120,7 @@ export default function RevenueClient({ stats, events }: Props) {
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
             <div className="sa-kpi-label">{t("estimatedMRR")}</div>
-            <div className="sa-kpi-value">
+            <div className="sa-kpi-value" suppressHydrationWarning>
               {formatCurrency(stats.estimatedMRR)}
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function RevenueClient({ stats, events }: Props) {
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
             <div className="sa-kpi-label">{t("estimatedARR")}</div>
-            <div className="sa-kpi-value">
+            <div className="sa-kpi-value" suppressHydrationWarning>
               {formatCurrency(stats.estimatedARR)}
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function RevenueClient({ stats, events }: Props) {
                 <div key={item.plan} className="rev-plan-row">
                   <div className="rev-plan-info">
                     <span className="rev-plan-name">{capitalize(item.plan)}</span>
-                    <span className="rev-plan-meta">
+                    <span className="rev-plan-meta" suppressHydrationWarning>
                       {item.count} {item.count === 1 ? t("company") : t("companiesLabel")}{" "}
                       &middot; {formatCurrency(item.monthlyPrice)}/{t("mo")}
                     </span>
@@ -210,7 +210,7 @@ export default function RevenueClient({ stats, events }: Props) {
                       style={{ width: `${Math.max(barWidth, 2)}%` }}
                     />
                   </div>
-                  <div className="rev-plan-revenue">
+                  <div className="rev-plan-revenue" suppressHydrationWarning>
                     {formatCurrency(monthlyRevenue)}
                     <span className="rev-plan-revenue-label">/{t("mo")}</span>
                   </div>
@@ -325,6 +325,7 @@ export default function RevenueClient({ stats, events }: Props) {
                           fontSize: "0.82rem",
                           whiteSpace: "nowrap",
                         }}
+                        suppressHydrationWarning
                       >
                         {formatDateTime(evt.created_at, dateLocale)}
                       </td>
