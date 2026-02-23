@@ -9,6 +9,7 @@ CREATE OR REPLACE FUNCTION public.adjust_bank_balance(
 ) RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = 'public'
 AS $$
 BEGIN
   UPDATE bank_accounts
