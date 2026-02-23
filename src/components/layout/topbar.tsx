@@ -129,8 +129,9 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
       .catch(() => {});
   }, [isSuperAdmin, pathname]);
 
-  // Fetch audit grade on mount and on navigation changes
+  // Fetch audit grade on mount and on navigation changes (skip on super-admin pages)
   useEffect(() => {
+    if (isSuperAdmin) return;
     fetch("/api/financial/audit-grade")
       .then((res) => {
         if (res.ok) return res.json();
@@ -145,7 +146,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
       .catch(() => {
         // Silently fail — audit grade is non-critical
       });
-  }, [pathname]);
+  }, [pathname, isSuperAdmin]);
 
   const gradeColorMap: Record<string, string> = {
     A: "var(--color-green)",

@@ -454,7 +454,7 @@ export default function EmailTemplatesClient({ templates }: Props) {
                         {t.is_active ? <><Check size={12} /> Active</> : "Inactive"}
                       </button>
                     </td>
-                    <td style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
+                    <td style={{ color: "var(--muted)", fontSize: "0.8rem" }} suppressHydrationWarning>
                       {formatDate(t.updated_at || t.created_at)}
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
