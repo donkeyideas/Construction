@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getTimeEntries, getTimeEntriesFromClockEvents, type TimeEntry } from "@/lib/queries/people";
+import { getEmployeeRateMap, rateMapToRecord } from "@/lib/utils/labor-cost";
 import TimeClient from "./TimeClient";
 
 export const metadata = {
@@ -77,7 +78,7 @@ export default async function TimeAttendancePage({
     },
   };
 
-  const [manualEntries, clockEntries, allManual, allClock] = await Promise.all([
+  const [manualEntries, clockEntries, allManual, allClock, rateMap] = await Promise.all([
     getTimeEntries(supabase, companyId, weekFilter),
     getTimeEntriesFromClockEvents(supabase, companyId, weekFilter),
     currentView === "all"
@@ -86,6 +87,7 @@ export default async function TimeAttendancePage({
     currentView === "all"
       ? getTimeEntriesFromClockEvents(supabase, companyId)
       : Promise.resolve([]),
+    getEmployeeRateMap(supabase, companyId),
   ]);
 
   // Merge: manual time_entries take precedence over clock-derived ones
@@ -140,6 +142,7 @@ export default async function TimeAttendancePage({
       prevWeekISO={formatDateISO(prevWeek)}
       nextWeekISO={formatDateISO(nextWeek)}
       userRole={userCompany.role}
+      rateMap={rateMapToRecord(rateMap)}
     />
   );
 }

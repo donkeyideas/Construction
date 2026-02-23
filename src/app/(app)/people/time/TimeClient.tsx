@@ -55,6 +55,13 @@ interface TimeClientProps {
   prevWeekISO: string;
   nextWeekISO: string;
   userRole: string;
+  rateMap: Record<string, number>; // userId → hourlyRate
+}
+
+function fmtCost(hours: number, rate: number | undefined): string {
+  if (!rate) return "--";
+  const cost = hours * rate;
+  return cost > 0 ? `$${cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "--";
 }
 
 export default function TimeClient({
@@ -69,6 +76,7 @@ export default function TimeClient({
   prevWeekISO,
   nextWeekISO,
   userRole,
+  rateMap,
 }: TimeClientProps) {
   const router = useRouter();
   const t = useTranslations("people");
@@ -435,6 +443,7 @@ export default function TimeClient({
                         );
                       })}
                       <th className="total-col">{t("total")}</th>
+                      <th className="total-col">Cost</th>
                       <th>{t("status")}</th>
                     </tr>
                   </thead>
@@ -485,6 +494,9 @@ export default function TimeClient({
                           <td className="total-col">
                             {totalHours > 0 ? totalHours.toFixed(1) : "--"}
                           </td>
+                          <td className="total-col" style={{ color: "var(--success, #16a34a)", fontWeight: 600 }}>
+                            {fmtCost(totalHours, rateMap[user.userId])}
+                          </td>
                           <td>
                             <span className={`time-status time-status-${overallStatus}`}>
                               {overallStatus === "pending"
@@ -513,6 +525,22 @@ export default function TimeClient({
                 {allEntries.reduce((sum, e) => sum + (Number(e.hours) || 0), 0).toFixed(1)}
               </strong>{" "}
               {t("totalHours")}
+              {(() => {
+                const totalCost = allEntries.reduce((sum, e) => {
+                  const h = Number(e.hours) || 0;
+                  const r = rateMap[e.user_id];
+                  return r ? sum + h * r : sum;
+                }, 0);
+                return totalCost > 0 ? (
+                  <>
+                    {" "}&mdash;{" "}
+                    <strong style={{ color: "var(--success, #16a34a)" }}>
+                      ${totalCost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </strong>{" "}
+                    total cost
+                  </>
+                ) : null;
+              })()}
             </div>
           </div>
 
@@ -534,6 +562,7 @@ export default function TimeClient({
                       <th style={{ textAlign: "left" }}>{t("employee")}</th>
                       <th style={{ textAlign: "left" }}>{t("project")}</th>
                       <th>{t("hours")}</th>
+                      <th>Cost</th>
                       <th>{t("costCode")}</th>
                       <th style={{ textAlign: "left", minWidth: 200 }}>{t("description")}</th>
                       <th>{t("status")}</th>
@@ -578,6 +607,9 @@ export default function TimeClient({
                             <div className="timesheet-cell has-hours">
                               {Number(entry.hours || 0).toFixed(1)}
                             </div>
+                          </td>
+                          <td style={{ color: "var(--success, #16a34a)", fontWeight: 600 }}>
+                            {fmtCost(Number(entry.hours || 0), rateMap[entry.user_id])}
                           </td>
                           <td style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "0.8rem" }}>
                             {entry.cost_code || "--"}

@@ -35,9 +35,16 @@ interface EmployeeActivity {
 interface ActivityClientProps {
   activities: EmployeeActivity[];
   todayISO: string;
+  rateMap: Record<string, number>;
 }
 
-export default function ActivityClient({ activities, todayISO }: ActivityClientProps) {
+function fmtCost(hours: number, rate: number | undefined): string {
+  if (!rate) return "--";
+  const cost = hours * rate;
+  return cost > 0 ? `$${cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "--";
+}
+
+export default function ActivityClient({ activities, todayISO, rateMap }: ActivityClientProps) {
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeActivity | null>(null);
   const [filter, setFilter] = useState<"all" | "clocked_in" | "clocked_out" | "no_activity">("all");
 
@@ -162,7 +169,9 @@ export default function ActivityClient({ activities, todayISO }: ActivityClientP
                 <th>Status</th>
                 <th>Last Event</th>
                 <th>Today</th>
+                <th>Today $</th>
                 <th>This Week</th>
+                <th>Week $</th>
                 <th>Details</th>
               </tr>
             </thead>
@@ -181,8 +190,14 @@ export default function ActivityClient({ activities, todayISO }: ActivityClientP
                   <td>
                     <span style={{ fontWeight: 600 }}>{activity.todayHours}h</span>
                   </td>
+                  <td style={{ color: "var(--success, #16a34a)", fontWeight: 600 }}>
+                    {fmtCost(activity.todayHours, rateMap[activity.userId])}
+                  </td>
                   <td>
                     <span style={{ fontWeight: 600 }}>{activity.weekHours}h</span>
+                  </td>
+                  <td style={{ color: "var(--success, #16a34a)", fontWeight: 600 }}>
+                    {fmtCost(activity.weekHours, rateMap[activity.userId])}
                   </td>
                   <td>
                     {activity.todayEvents.length > 0 ? (

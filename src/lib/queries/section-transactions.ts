@@ -286,6 +286,9 @@ function mapJELine(line: JELineRow, extra?: { projectNameMap?: Map<string, strin
   } else if (ref.startsWith("maintenance:") || ref.startsWith("equip_maintenance:")) {
     source = "Maintenance JE";
     sourceHref = "/properties/maintenance";
+  } else if (ref.startsWith("labor:")) {
+    source = "Labor Accrual JE";
+    sourceHref = "/people/activity";
   } else if (ref.startsWith("contract:")) {
     source = "Contract JE";
     sourceHref = "/projects/contracts";
@@ -622,7 +625,7 @@ export async function getPeopleTransactions(
       .or("name.ilike.%payroll%,name.ilike.%salary%,name.ilike.%wage%,name.ilike.%fica%,name.ilike.%futa%,name.ilike.%suta%"),
     supabase.from("journal_entries").select("id, entry_number, entry_date, description, reference, status")
       .eq("company_id", companyId).eq("status", "posted")
-      .or("reference.like.payroll_run:%,reference.like.payroll:%").limit(100),
+      .or("reference.like.payroll_run:%,reference.like.payroll:%,reference.like.labor:%").limit(500),
     supabase.from("payroll_runs").select("id, period_start, period_end, pay_date, status, total_gross, total_net, total_employer_taxes, employee_count")
       .eq("company_id", companyId).in("status", ["approved", "paid"])
       .order("pay_date", { ascending: false }).limit(100),

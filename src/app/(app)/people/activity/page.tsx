@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getEmployeeRateMap, rateMapToRecord } from "@/lib/utils/labor-cost";
 import ActivityClient from "./ActivityClient";
 
 export const metadata = { title: "Employee Activity - Buildwrk" };
@@ -19,8 +20,8 @@ export default async function EmployeeActivityPage() {
   weekStart.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
   const weekStartISO = weekStart.toISOString().slice(0, 10);
 
-  // Fetch clock events for this week and employee names in parallel
-  const [clockRes, employeeRes] = await Promise.all([
+  // Fetch clock events, employee names, and pay rates in parallel
+  const [clockRes, employeeRes, rateMap] = await Promise.all([
     supabase
       .from("clock_events")
       .select("id, user_id, event_type, timestamp, project_id, notes, created_at")
@@ -34,6 +35,7 @@ export default async function EmployeeActivityPage() {
       .eq("contact_type", "employee")
       .eq("is_active", true)
       .not("user_id", "is", null),
+    getEmployeeRateMap(supabase, companyId),
   ]);
 
   const clockEvents = clockRes.data ?? [];
@@ -168,6 +170,7 @@ export default async function EmployeeActivityPage() {
     <ActivityClient
       activities={JSON.parse(JSON.stringify(activities))}
       todayISO={todayISO}
+      rateMap={rateMapToRecord(rateMap)}
     />
   );
 }
