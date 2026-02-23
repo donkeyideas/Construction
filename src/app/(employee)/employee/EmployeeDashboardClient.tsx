@@ -122,6 +122,11 @@ export default function EmployeeDashboardClient({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Local copies of server data so we can update after client-side submissions
+  const [recentDailyLogs, setRecentDailyLogs] = useState(dashboard.recentDailyLogs);
+  const [recentSafetyIncidents, setRecentSafetyIncidents] = useState(dashboard.recentSafetyIncidents);
+  const [recentRfis, setRecentRfis] = useState(dashboard.recentRfis);
+
   // Modal state
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [modalSubmitting, setModalSubmitting] = useState(false);
@@ -129,6 +134,11 @@ export default function EmployeeDashboardClient({
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  // Photo upload form
+  const [photoProject, setPhotoProject] = useState("");
+  const [photoActivity, setPhotoActivity] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   // Daily Log form
   const [dlProject, setDlProject] = useState("");
@@ -258,6 +268,9 @@ export default function EmployeeDashboardClient({
     setRfiSubject("");
     setRfiQuestion("");
     setRfiPriority("medium");
+    setPhotoProject("");
+    setPhotoActivity("");
+    setPhotoFile(null);
   }
 
   // Submit Daily Log
@@ -284,6 +297,14 @@ export default function EmployeeDashboardClient({
         }),
       });
       if (res.ok) {
+        const newLog = await res.json();
+        const projectName = dashboard.projects.find(p => p.id === dlProject)?.name ?? null;
+        setRecentDailyLogs(prev => [{
+          id: newLog.id ?? `temp-${Date.now()}`,
+          log_date: dlDate,
+          project_name: projectName,
+          work_performed: dlWork.trim(),
+        }, ...prev].slice(0, 5));
         setModalMsg({
           type: "success",
           text: "Daily log submitted successfully!",
@@ -326,6 +347,15 @@ export default function EmployeeDashboardClient({
         }),
       });
       if (res.ok) {
+        const newInc = await res.json();
+        const projectName = saProject ? dashboard.projects.find(p => p.id === saProject)?.name ?? null : null;
+        setRecentSafetyIncidents(prev => [{
+          id: newInc.id ?? `temp-${Date.now()}`,
+          title: saTitle.trim(),
+          severity: saSeverity,
+          created_at: new Date().toISOString(),
+          project_name: projectName,
+        }, ...prev].slice(0, 5));
         setModalMsg({
           type: "success",
           text: "Safety report submitted successfully!",
@@ -337,6 +367,49 @@ export default function EmployeeDashboardClient({
           type: "error",
           text: data.error || "Failed to submit safety report.",
         });
+      }
+    } catch {
+      setModalMsg({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setModalSubmitting(false);
+    }
+  }
+
+  // Submit Photo to Document Library
+  async function submitPhoto() {
+    if (!photoFile) {
+      setModalMsg({ type: "error", text: "Please select a photo to upload." });
+      return;
+    }
+    setModalSubmitting(true);
+    setModalMsg(null);
+    try {
+      const projectName = photoProject
+        ? dashboard.projects.find(p => p.id === photoProject)?.name ?? "Project"
+        : "General";
+      const docName = [projectName, photoActivity, photoFile.name]
+        .filter(Boolean)
+        .join(" - ");
+
+      const formData = new FormData();
+      formData.append("file", photoFile);
+      formData.append("name", docName);
+      formData.append("category", "photos");
+      if (photoProject) formData.append("project_id", photoProject);
+      if (photoActivity) {
+        formData.append("tags", JSON.stringify([photoActivity]));
+      }
+
+      const res = await fetch("/api/documents", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        setModalMsg({ type: "success", text: "Photo uploaded to Document Library!" });
+        setTimeout(() => setActiveModal(null), 1200);
+      } else {
+        const data = await res.json();
+        setModalMsg({ type: "error", text: data.error || "Failed to upload photo." });
       }
     } catch {
       setModalMsg({ type: "error", text: "Network error. Please try again." });
@@ -368,6 +441,16 @@ export default function EmployeeDashboardClient({
         }),
       });
       if (res.ok) {
+        const newRfi = await res.json();
+        const projectName = dashboard.projects.find(p => p.id === rfiProject)?.name ?? null;
+        setRecentRfis(prev => [{
+          id: newRfi.id ?? `temp-${Date.now()}`,
+          subject: rfiSubject.trim(),
+          priority: rfiPriority,
+          status: "open",
+          created_at: new Date().toISOString(),
+          project_name: projectName,
+        }, ...prev].slice(0, 5));
         setModalMsg({
           type: "success",
           text: "RFI submitted successfully!",
@@ -516,9 +599,9 @@ export default function EmployeeDashboardClient({
                 + New Log
               </button>
             </div>
-            {dashboard.recentDailyLogs.length > 0 ? (
+            {recentDailyLogs.length > 0 ? (
               <div className="emp-activity-list">
-                {dashboard.recentDailyLogs.map((log) => (
+                {recentDailyLogs.map((log) => (
                   <div key={log.id} className="emp-assignment-item">
                     <div className="emp-assignment-dot" style={{ background: "var(--color-blue)" }} />
                     <div className="emp-assignment-info">
@@ -551,9 +634,9 @@ export default function EmployeeDashboardClient({
                 + New Report
               </button>
             </div>
-            {dashboard.recentSafetyIncidents.length > 0 ? (
+            {recentSafetyIncidents.length > 0 ? (
               <div className="emp-activity-list">
-                {dashboard.recentSafetyIncidents.map((inc) => {
+                {recentSafetyIncidents.map((inc) => {
                   const sevColor =
                     inc.severity === "critical" || inc.severity === "high"
                       ? "var(--color-red)"
@@ -740,7 +823,7 @@ export default function EmployeeDashboardClient({
               </button>
             </div>
             <div className="vendor-empty">
-              Photo uploads coming soon. Use Documents page in the meantime.
+              Upload site photos. Files are saved to the Document Library.
             </div>
           </div>
 
@@ -754,9 +837,9 @@ export default function EmployeeDashboardClient({
                 + New RFI
               </button>
             </div>
-            {dashboard.recentRfis.length > 0 ? (
+            {recentRfis.length > 0 ? (
               <div className="emp-activity-list">
-                {dashboard.recentRfis.map((rfi) => {
+                {recentRfis.map((rfi) => {
                   const prioColor =
                     rfi.priority === "urgent" || rfi.priority === "high"
                       ? "var(--color-red)"
@@ -1024,7 +1107,7 @@ export default function EmployeeDashboardClient({
         >
           <div className="vendor-modal" onClick={(e) => e.stopPropagation()}>
             <div className="vendor-modal-header">
-              <h3>Photo Upload</h3>
+              <h3>Upload Photo</h3>
               <button
                 className="vendor-modal-close"
                 onClick={() => setActiveModal(null)}
@@ -1033,45 +1116,77 @@ export default function EmployeeDashboardClient({
               </button>
             </div>
             <div className="vendor-modal-body">
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "32px 16px",
-                }}
-              >
-                <Camera
-                  size={48}
-                  style={{ color: "var(--muted)", marginBottom: 16 }}
-                />
-                <p
-                  style={{
-                    fontSize: "0.9rem",
-                    fontWeight: 600,
-                    color: "var(--text)",
-                    margin: "0 0 8px 0",
-                  }}
+              {modalMsg && (
+                <div
+                  className={
+                    modalMsg.type === "success"
+                      ? "vendor-msg-success"
+                      : "vendor-msg-error"
+                  }
                 >
-                  Coming Soon
-                </p>
-                <p
-                  style={{
-                    fontSize: "0.82rem",
-                    color: "var(--muted)",
-                    margin: 0,
-                  }}
+                  {modalMsg.type === "success" && (
+                    <CheckCircle2
+                      size={14}
+                      style={{ marginRight: 6, verticalAlign: "middle" }}
+                    />
+                  )}
+                  {modalMsg.text}
+                </div>
+              )}
+              <div className="vendor-modal-field">
+                <label>Project</label>
+                <select
+                  style={S.select}
+                  value={photoProject}
+                  onChange={(e) => setPhotoProject(e.target.value)}
                 >
-                  Photo upload from the field will be available in a future
-                  update. Use the Documents page to upload files in the
-                  meantime.
-                </p>
+                  <option value="">— General (no project) —</option>
+                  {dashboard.projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               </div>
+              <div className="vendor-modal-field">
+                <label>Activity / Description</label>
+                <input
+                  type="text"
+                  style={S.input}
+                  value={photoActivity}
+                  onChange={(e) => setPhotoActivity(e.target.value)}
+                  placeholder="e.g., Foundation pour, Steel framing..."
+                />
+              </div>
+              <div className="vendor-modal-field">
+                <label>Photo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  style={S.input}
+                  onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                />
+              </div>
+              {photoFile && (
+                <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: 4 }}>
+                  {photoFile.name} ({(photoFile.size / 1024).toFixed(0)} KB)
+                </div>
+              )}
             </div>
             <div className="vendor-modal-footer">
               <button
                 className="vendor-modal-btn-cancel"
                 onClick={() => setActiveModal(null)}
               >
-                Close
+                Cancel
+              </button>
+              <button
+                className="vendor-modal-btn-submit"
+                onClick={submitPhoto}
+                disabled={modalSubmitting}
+              >
+                {modalSubmitting ? "Uploading..." : "Upload Photo"}
               </button>
             </div>
           </div>
