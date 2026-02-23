@@ -1181,6 +1181,23 @@
   word-break: break-word;
 }
 
+.emp-photo-preview {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.emp-photo-img {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
 /* =================================================================
    RESPONSIVE
    ================================================================= */

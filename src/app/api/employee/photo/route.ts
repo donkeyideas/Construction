@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { storageSignedUrl } from "@/lib/supabase/storage";
 
 // GET /api/employee/photo?id=<uuid>
 export async function GET(request: NextRequest) {
@@ -27,9 +28,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    // Generate a signed URL for the image (1 hour expiry)
+    let image_url: string | null = null;
+    if (data.file_path) {
+      const { data: signedData } = await storageSignedUrl(data.file_path, 3600);
+      image_url = signedData?.signedUrl ?? null;
+    }
+
     return NextResponse.json({
       ...data,
       project_name: (data.projects as { name: string } | null)?.name ?? null,
+      image_url,
     });
   } catch (err) {
     console.error("GET /api/employee/photo error:", err);

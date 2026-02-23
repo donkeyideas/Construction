@@ -1664,7 +1664,7 @@ export default function EmployeeDashboardClient({
       {/* ===== Photo Detail Modal ===== */}
       {activeModal === "view-photo" && (
         <div className="vendor-modal-overlay" onClick={() => setActiveModal(null)}>
-          <div className="vendor-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
+          <div className="vendor-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640 }}>
             <div className="vendor-modal-header">
               <h3>Photo Details</h3>
               <button className="vendor-modal-close" onClick={() => setActiveModal(null)}><X size={18} /></button>
@@ -1677,40 +1677,48 @@ export default function EmployeeDashboardClient({
                 <div className="vendor-empty">Could not load photo details.</div>
               )}
               {!detailLoading && detailData && (
-                <div className="emp-detail-grid">
-                  <div className="emp-detail-row emp-detail-full">
-                    <span className="emp-detail-label">Name</span>
-                    <span className="emp-detail-value">{detailData.name}</span>
-                  </div>
-                  <div className="emp-detail-row">
-                    <span className="emp-detail-label">Project</span>
-                    <span className="emp-detail-value">{detailData.project_name || "General"}</span>
-                  </div>
-                  <div className="emp-detail-row">
-                    <span className="emp-detail-label">File Type</span>
-                    <span className="emp-detail-value">{detailData.file_type}</span>
-                  </div>
-                  <div className="emp-detail-row">
-                    <span className="emp-detail-label">Size</span>
-                    <span className="emp-detail-value">
-                      {detailData.file_size
-                        ? detailData.file_size > 1024 * 1024
-                          ? `${(detailData.file_size / (1024 * 1024)).toFixed(1)} MB`
-                          : `${(detailData.file_size / 1024).toFixed(0)} KB`
-                        : "N/A"}
-                    </span>
-                  </div>
-                  <div className="emp-detail-row">
-                    <span className="emp-detail-label">Uploaded</span>
-                    <span className="emp-detail-value">{detailData.created_at?.split("T")[0] || "N/A"}</span>
-                  </div>
-                  {detailData.tags && detailData.tags.length > 0 && (
-                    <div className="emp-detail-row emp-detail-full">
-                      <span className="emp-detail-label">Tags</span>
-                      <span className="emp-detail-value">{detailData.tags.join(", ")}</span>
+                <>
+                  {detailData.image_url && (
+                    <div className="emp-photo-preview">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={detailData.image_url}
+                        alt={detailData.name}
+                        className="emp-photo-img"
+                      />
                     </div>
                   )}
-                </div>
+                  <div className="emp-detail-grid">
+                    <div className="emp-detail-row emp-detail-full">
+                      <span className="emp-detail-label">Name</span>
+                      <span className="emp-detail-value">{detailData.name}</span>
+                    </div>
+                    <div className="emp-detail-row">
+                      <span className="emp-detail-label">Project</span>
+                      <span className="emp-detail-value">{detailData.project_name || "General"}</span>
+                    </div>
+                    <div className="emp-detail-row">
+                      <span className="emp-detail-label">Size</span>
+                      <span className="emp-detail-value">
+                        {detailData.file_size
+                          ? detailData.file_size > 1024 * 1024
+                            ? `${(detailData.file_size / (1024 * 1024)).toFixed(1)} MB`
+                            : `${(detailData.file_size / 1024).toFixed(0)} KB`
+                          : "N/A"}
+                      </span>
+                    </div>
+                    <div className="emp-detail-row">
+                      <span className="emp-detail-label">Uploaded</span>
+                      <span className="emp-detail-value">{detailData.created_at?.split("T")[0] || "N/A"}</span>
+                    </div>
+                    {detailData.tags && detailData.tags.length > 0 && (
+                      <div className="emp-detail-row emp-detail-full">
+                        <span className="emp-detail-label">Tags</span>
+                        <span className="emp-detail-value">{detailData.tags.join(", ")}</span>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
             <div className="vendor-modal-footer">
