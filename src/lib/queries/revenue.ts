@@ -23,10 +23,13 @@ export interface RevenueStats {
 export interface SubscriptionEvent {
   id: string;
   company_name: string;
+  user_name: string | null;
   event_type: string;
   plan_from: string | null;
   plan_to: string | null;
   amount: number | null;
+  is_recurring: boolean;
+  subscription_status: string | null;
   created_at: string;
 }
 
@@ -118,8 +121,8 @@ export async function getRevenueStats(
 }
 
 /**
- * Get recent subscription events with company names.
- * Joins subscription_events with companies table to get company_name.
+ * Get recent subscription events with company names, owner names, and status.
+ * Joins subscription_events → companies → company_members (owner) → user_profiles.
  */
 export async function getRecentSubscriptionEvents(
   supabase: SupabaseClient,
@@ -128,7 +131,7 @@ export async function getRecentSubscriptionEvents(
   const { data, error } = await supabase
     .from("subscription_events")
     .select(
-      "id, company_id, event_type, plan_from, plan_to, amount, created_at, companies(name)",
+      "id, company_id, event_type, plan_from, plan_to, amount, created_at, companies(name, subscription_status, created_by)",
     )
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -138,14 +141,38 @@ export async function getRecentSubscriptionEvents(
     return [];
   }
 
-  return (data ?? []).map((e) => ({
-    id: e.id,
-    company_name:
-      (e.companies as unknown as { name: string } | null)?.name ?? "Unknown",
-    event_type: e.event_type,
-    plan_from: e.plan_from,
-    plan_to: e.plan_to,
-    amount: e.amount,
-    created_at: e.created_at,
-  }));
+  // Collect unique created_by user IDs to fetch names
+  const userIds = new Set<string>();
+  for (const e of data ?? []) {
+    const company = e.companies as unknown as { name: string; subscription_status: string; created_by: string | null } | null;
+    if (company?.created_by) userIds.add(company.created_by);
+  }
+
+  // Fetch user names in one query
+  const userNameMap: Record<string, string> = {};
+  if (userIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", Array.from(userIds));
+    for (const p of profiles ?? []) {
+      userNameMap[p.id] = p.full_name || p.email;
+    }
+  }
+
+  return (data ?? []).map((e) => {
+    const company = e.companies as unknown as { name: string; subscription_status: string; created_by: string | null } | null;
+    return {
+      id: e.id,
+      company_name: company?.name ?? "Unknown",
+      user_name: company?.created_by ? (userNameMap[company.created_by] ?? null) : null,
+      event_type: e.event_type,
+      plan_from: e.plan_from,
+      plan_to: e.plan_to,
+      amount: e.amount,
+      is_recurring: e.event_type === "renewed",
+      subscription_status: company?.subscription_status ?? null,
+      created_at: e.created_at,
+    };
+  });
 }

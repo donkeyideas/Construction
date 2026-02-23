@@ -169,6 +169,8 @@ export default function SettingsClient({
   const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   // Load Stripe publishable key on mount
   useEffect(() => {
@@ -958,33 +960,115 @@ export default function SettingsClient({
 
               {/* Manage Billing (for existing Stripe customers) */}
               {company.stripe_customer_id && (
-                <button
-                  className="btn-secondary"
-                  onClick={async () => {
-                    setBillingMessage(null);
-                    try {
-                      const res = await fetch("/api/stripe/portal", { method: "POST" });
-                      if (res.ok) {
-                        const { url } = await res.json();
-                        window.open(url, "_blank");
-                      } else {
-                        const data = await res.json().catch(() => ({}));
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button
+                    className="btn-secondary"
+                    onClick={async () => {
+                      setBillingMessage(null);
+                      try {
+                        const res = await fetch("/api/stripe/portal", { method: "POST" });
+                        if (res.ok) {
+                          const { url } = await res.json();
+                          window.open(url, "_blank");
+                        } else {
+                          const data = await res.json().catch(() => ({}));
+                          setBillingMessage({
+                            type: "error",
+                            text: data.error || t("stripeBillingPortalNotConfigured"),
+                          });
+                        }
+                      } catch {
                         setBillingMessage({
                           type: "error",
-                          text: data.error || t("stripeBillingPortalNotConfigured"),
+                          text: t("stripeBillingPortalNotConfiguredShort"),
                         });
                       }
-                    } catch {
-                      setBillingMessage({
-                        type: "error",
-                        text: t("stripeBillingPortalNotConfiguredShort"),
-                      });
-                    }
-                  }}
-                >
-                  <ExternalLink size={14} />
-                  {t("manageBilling")}
-                </button>
+                    }}
+                  >
+                    <ExternalLink size={14} />
+                    {t("manageBilling")}
+                  </button>
+                  {company.stripe_subscription_id && company.subscription_status !== "canceling" && (
+                    <button
+                      className="btn-secondary"
+                      style={{ color: "var(--color-red)", borderColor: "rgba(220,38,38,0.3)" }}
+                      onClick={() => setConfirmCancel(true)}
+                    >
+                      Cancel Subscription
+                    </button>
+                  )}
+                  {company.subscription_status === "canceling" && (
+                    <div style={{
+                      display: "inline-flex", alignItems: "center", gap: 6,
+                      padding: "6px 12px", borderRadius: 8, fontSize: "0.82rem",
+                      background: "rgba(220, 38, 38, 0.06)", color: "var(--color-red)",
+                      border: "1px solid rgba(220, 38, 38, 0.15)",
+                    }}>
+                      Subscription will end at the current billing period
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Cancel subscription confirmation */}
+              {confirmCancel && (
+                <div style={{
+                  marginTop: "12px",
+                  background: "rgba(220, 38, 38, 0.04)",
+                  border: "1px solid rgba(220, 38, 38, 0.2)",
+                  borderRadius: 10,
+                  padding: "16px",
+                }}>
+                  <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--color-red)", marginBottom: 6 }}>
+                    Cancel your subscription?
+                  </div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 12, lineHeight: 1.6 }}>
+                    Your subscription will remain active until the end of your current billing period.
+                    After that, your account will be downgraded to the free Starter plan.
+                    You can resubscribe at any time.
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      className="btn-primary"
+                      style={{ backgroundColor: "var(--color-red)", fontSize: "0.82rem" }}
+                      disabled={cancelLoading}
+                      onClick={async () => {
+                        setCancelLoading(true);
+                        setBillingMessage(null);
+                        try {
+                          const res = await fetch("/api/stripe/cancel-subscription", { method: "POST" });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || "Failed to cancel");
+                          setBillingMessage({
+                            type: "success",
+                            text: data.current_period_end
+                              ? `Subscription canceled. You have access until ${new Date(data.current_period_end).toLocaleDateString()}.`
+                              : "Subscription canceled. You have access until the end of your billing period.",
+                          });
+                          setConfirmCancel(false);
+                          setTimeout(() => window.location.reload(), 2000);
+                        } catch (err) {
+                          setBillingMessage({
+                            type: "error",
+                            text: err instanceof Error ? err.message : "Failed to cancel subscription",
+                          });
+                        } finally {
+                          setCancelLoading(false);
+                        }
+                      }}
+                    >
+                      {cancelLoading ? "Canceling..." : "Yes, cancel at end of billing period"}
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      style={{ fontSize: "0.82rem" }}
+                      onClick={() => setConfirmCancel(false)}
+                      disabled={cancelLoading}
+                    >
+                      Keep Subscription
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>

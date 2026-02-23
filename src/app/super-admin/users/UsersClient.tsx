@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -19,10 +19,36 @@ import {
   Truck,
   Globe,
   Trash2,
+  Activity,
+  LogIn,
+  FileText,
+  FolderOpen,
+  Contact,
+  Clock,
+  TrendingUp,
+  CreditCard,
+  Loader2,
 } from "lucide-react";
 import type { PlatformUser, UserMembership } from "@/lib/queries/super-admin";
 
 type UserRow = PlatformUser & { memberships: UserMembership[] };
+
+interface UserAnalytics {
+  totalLogins: number;
+  totalActions: number;
+  lastLogin: { at: string; ip: string | null; userAgent: string | null } | null;
+  companyAnalytics: Record<string, {
+    subscription_plan: string;
+    subscription_status: string;
+    projects: number;
+    invoices: number;
+    contacts: number;
+    documents: number;
+  }>;
+  recentActivity: Array<{ action: string; entityType: string; createdAt: string }>;
+  weeklyLogins: number[];
+  loginsLast28Days: number;
+}
 
 interface Props {
   users: UserRow[];
@@ -106,6 +132,8 @@ export default function UsersClient({ users }: Props) {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [analytics, setAnalytics] = useState<UserAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   const filtered = users.filter((u) => {
     const matchesSearch =
@@ -127,10 +155,27 @@ export default function UsersClient({ users }: Props) {
   const tenantUsers = users.filter((u) => u.portal_type === "tenant").length;
   const vendorUsers = users.filter((u) => u.portal_type === "vendor").length;
 
+  const fetchAnalytics = useCallback(async (userId: string) => {
+    setAnalyticsLoading(true);
+    setAnalytics(null);
+    try {
+      const res = await fetch(`/api/super-admin/users/${userId}/analytics`);
+      if (res.ok) {
+        const data = await res.json();
+        setAnalytics(data);
+      }
+    } catch {
+      // Silent fail — analytics are supplementary
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
+
   function openModal(user: UserRow) {
     setSelectedUser(user);
     setSaveError(null);
     setActionMessage(null);
+    fetchAnalytics(user.id);
   }
 
   function closeModal() {
@@ -138,6 +183,7 @@ export default function UsersClient({ users }: Props) {
     setSaveError(null);
     setActionMessage(null);
     setConfirmDelete(false);
+    setAnalytics(null);
   }
 
   async function handleToggleAdmin() {
@@ -373,21 +419,70 @@ export default function UsersClient({ users }: Props) {
       {/* User Detail Modal */}
       {selectedUser && (() => {
         const dashLabel = getDashboardLabel(selectedUser);
+        const activeMembership = selectedUser.memberships.find((m) => m.is_active);
+        const sectionLabelStyle: React.CSSProperties = {
+          fontSize: "0.72rem",
+          fontWeight: 600,
+          color: "var(--muted)",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          marginTop: 20,
+          marginBottom: 10,
+          display: "flex",
+          alignItems: "center",
+          gap: 5,
+        };
+        const miniStatStyle: React.CSSProperties = {
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: "10px 0",
+          flex: "1 1 0",
+          minWidth: 0,
+        };
+        const miniStatValue: React.CSSProperties = {
+          fontSize: "1.15rem",
+          fontWeight: 700,
+          lineHeight: 1.2,
+        };
+        const miniStatLabel: React.CSSProperties = {
+          fontSize: "0.68rem",
+          color: "var(--muted)",
+          marginTop: 2,
+        };
         return (
           <div className="ticket-modal-overlay" onClick={closeModal}>
-            <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640 }}>
+            <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720, maxHeight: "90vh", overflow: "auto" }}>
               <div className="ticket-modal-header">
-                <h3>
-                  {selectedUser.full_name || selectedUser.email}
-                  {selectedUser.is_platform_admin && (
-                    <span
-                      className="sa-badge sa-badge-amber"
-                      style={{ marginLeft: 10, fontSize: "0.72rem" }}
-                    >
-                      {t("platformAdmin")}
-                    </span>
-                  )}
-                </h3>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: "50%",
+                    background: "var(--color-blue)", color: "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontWeight: 700, fontSize: "0.95rem", flexShrink: 0,
+                  }}>
+                    {getInitials(selectedUser.full_name, selectedUser.email)}
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, lineHeight: 1.3 }}>
+                      {selectedUser.full_name || selectedUser.email}
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                      <span style={{
+                        display: "inline-block", padding: "1px 7px", borderRadius: 6,
+                        fontSize: "0.7rem", fontWeight: 600,
+                        ...getDashboardBadgeStyle(dashLabel),
+                      }}>
+                        {dashboardLabels[dashLabel] || dashLabel}
+                      </span>
+                      {selectedUser.is_platform_admin && (
+                        <span className="sa-badge sa-badge-amber" style={{ fontSize: "0.68rem" }}>
+                          {t("platformAdmin")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <button className="ticket-modal-close" onClick={closeModal}>
                   <X size={18} />
                 </button>
@@ -398,10 +493,8 @@ export default function UsersClient({ users }: Props) {
                 <div style={{
                   background: "rgba(22, 163, 74, 0.06)",
                   border: "1px solid rgba(22, 163, 74, 0.2)",
-                  borderRadius: 8,
-                  padding: "10px 14px",
-                  color: "var(--color-green)",
-                  fontSize: "0.85rem",
+                  borderRadius: 8, padding: "10px 14px",
+                  color: "var(--color-green)", fontSize: "0.85rem",
                   margin: "0 0 12px",
                 }}>
                   {actionMessage}
@@ -409,270 +502,265 @@ export default function UsersClient({ users }: Props) {
               )}
 
               <div style={{ padding: "1.25rem" }}>
-                {/* Profile Info */}
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label className="detail-label">{t("fullName")}</label>
-                    <div className="detail-value">{selectedUser.full_name || "—"}</div>
+                {/* ── Platform Usage Stats ── */}
+                <div style={sectionLabelStyle}>
+                  <Activity size={13} /> PLATFORM USAGE
+                </div>
+
+                {analyticsLoading ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 0", color: "var(--muted)", fontSize: "0.85rem" }}>
+                    <Loader2 size={16} className="animate-spin" style={{ animation: "spin 1s linear infinite" }} /> Loading analytics...
                   </div>
-                  <div className="detail-group">
-                    <label className="detail-label">
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <LayoutDashboard size={12} /> {t("dashboard")}
+                ) : analytics ? (
+                  <>
+                    <div style={{
+                      display: "flex", gap: 1, borderRadius: 8, overflow: "hidden",
+                      border: "1px solid var(--border)", marginBottom: 12,
+                    }}>
+                      <div style={{ ...miniStatStyle, background: "var(--surface)" }}>
+                        <div style={miniStatValue}>{analytics.totalLogins}</div>
+                        <div style={miniStatLabel}>Total Logins</div>
+                      </div>
+                      <div style={{ ...miniStatStyle, background: "var(--surface)" }}>
+                        <div style={miniStatValue}>{analytics.loginsLast28Days}</div>
+                        <div style={miniStatLabel}>Last 28 Days</div>
+                      </div>
+                      <div style={{ ...miniStatStyle, background: "var(--surface)" }}>
+                        <div style={miniStatValue}>{analytics.totalActions}</div>
+                        <div style={miniStatLabel}>Actions</div>
+                      </div>
+                      <div style={{ ...miniStatStyle, background: "var(--surface)" }}>
+                        <div style={miniStatValue}>
+                          {(() => {
+                            const joined = new Date(selectedUser.created_at);
+                            const days = Math.floor((Date.now() - joined.getTime()) / (1000 * 60 * 60 * 24));
+                            if (days < 1) return "<1d";
+                            if (days < 30) return `${days}d`;
+                            if (days < 365) return `${Math.floor(days / 30)}mo`;
+                            return `${(days / 365).toFixed(1)}yr`;
+                          })()}
+                        </div>
+                        <div style={miniStatLabel}>Account Age</div>
+                      </div>
+                    </div>
+
+                    {/* Weekly login sparkline */}
+                    <div style={{
+                      display: "flex", alignItems: "flex-end", gap: 3,
+                      height: 32, marginBottom: 8,
+                    }}>
+                      <span style={{ fontSize: "0.68rem", color: "var(--muted)", marginRight: 4, alignSelf: "center" }}>Logins/wk:</span>
+                      {[...analytics.weeklyLogins].reverse().map((count, i) => {
+                        const max = Math.max(...analytics.weeklyLogins, 1);
+                        const h = Math.max((count / max) * 28, 3);
+                        return (
+                          <div
+                            key={i}
+                            title={`${count} logins, ${3 - i} weeks ago`}
+                            style={{
+                              width: 18, height: h, borderRadius: 3,
+                              background: i === 3 ? "var(--color-blue)" : "var(--border)",
+                              transition: "height 0.3s",
+                            }}
+                          />
+                        );
+                      })}
+                      <span style={{ fontSize: "0.65rem", color: "var(--muted)", marginLeft: 4, alignSelf: "center" }}>
+                        {analytics.weeklyLogins[0]} this wk
                       </span>
-                    </label>
-                    <div className="detail-value">
-                      <span style={{
-                        display: "inline-block",
-                        padding: "2px 8px",
-                        borderRadius: 6,
-                        fontSize: "0.75rem",
-                        fontWeight: 600,
-                        ...getDashboardBadgeStyle(dashLabel),
+                    </div>
+
+                    {/* Last login */}
+                    {analytics.lastLogin && (
+                      <div style={{
+                        fontSize: "0.78rem", color: "var(--muted)",
+                        display: "flex", alignItems: "center", gap: 6, marginBottom: 4,
                       }}>
-                        {dashboardLabels[dashLabel] || dashLabel}
-                      </span>
+                        <LogIn size={12} />
+                        Last login: {formatDate(analytics.lastLogin.at, dateLocale)}
+                        {analytics.lastLogin.ip && (
+                          <span style={{ opacity: 0.7 }}>({analytics.lastLogin.ip})</span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div style={{ fontSize: "0.82rem", color: "var(--muted)", padding: "8px 0" }}>
+                    No analytics available
+                  </div>
+                )}
+
+                {/* ── Profile Details ── */}
+                <div style={sectionLabelStyle}>
+                  <Mail size={13} /> PROFILE
+                </div>
+
+                <div style={{
+                  display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px",
+                  fontSize: "0.82rem", marginBottom: 4,
+                }}>
+                  <div>
+                    <div style={{ color: "var(--muted)", fontSize: "0.72rem", marginBottom: 2 }}>Email</div>
+                    <div>{selectedUser.email}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: "var(--muted)", fontSize: "0.72rem", marginBottom: 2 }}>Phone</div>
+                    <div>{selectedUser.phone || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: "var(--muted)", fontSize: "0.72rem", marginBottom: 2 }}>Job Title</div>
+                    <div>{selectedUser.job_title || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: "var(--muted)", fontSize: "0.72rem", marginBottom: 2 }}>Joined</div>
+                    <div>
+                      {formatDate(selectedUser.created_at, dateLocale)}
+                      {selectedUser.accepted_terms_at && (
+                        <span style={{ fontSize: "0.7rem", color: "var(--color-green)", marginLeft: 6 }}>Terms accepted</span>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="detail-group">
-                  <label className="detail-label">
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <Mail size={12} /> {t("email")}
-                    </span>
-                  </label>
-                  <div className="detail-value">{selectedUser.email}</div>
+                {/* ── Company Memberships ── */}
+                <div style={sectionLabelStyle}>
+                  <Building2 size={13} /> COMPANY MEMBERSHIPS ({selectedUser.memberships.length})
                 </div>
 
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label className="detail-label">
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <Phone size={12} /> {t("phone")}
-                      </span>
-                    </label>
-                    <div className="detail-value">{selectedUser.phone || "—"}</div>
+                {selectedUser.memberships.length === 0 ? (
+                  <div style={{ padding: "12px 0", color: "var(--muted)", fontSize: "0.82rem" }}>
+                    {t("noCompanyMemberships")}
                   </div>
-                  <div className="detail-group">
-                    <label className="detail-label">
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <Briefcase size={12} /> {t("jobTitle")}
-                      </span>
-                    </label>
-                    <div className="detail-value">{selectedUser.job_title || "—"}</div>
-                  </div>
-                </div>
-
-                <div className="detail-group">
-                  <label className="detail-label">
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <Calendar size={12} /> {t("joined")}
-                    </span>
-                  </label>
-                  <div className="detail-value">{formatDate(selectedUser.created_at, dateLocale)}</div>
-                </div>
-
-                <div style={{ fontSize: "0.8rem", marginTop: 4, marginBottom: 8 }}>
-                  {selectedUser.accepted_terms_at ? (
-                    <span style={{ color: "var(--color-green)" }}>
-                      Terms accepted on {formatDate(selectedUser.accepted_terms_at, dateLocale)}
-                    </span>
-                  ) : (
-                    <span style={{ color: "var(--muted)" }}>Terms not accepted</span>
-                  )}
-                </div>
-
-                {/* Company Memberships */}
-                <div style={{
-                  fontSize: "0.78rem",
-                  fontWeight: 600,
-                  color: "var(--muted)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                  marginTop: 16,
-                  marginBottom: 8,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}>
-                  <Building2 size={12} /> {t("companyMemberships", { count: selectedUser.memberships.length })}
-                </div>
-
-                <div style={{
-                  border: "1px solid var(--border)",
-                  borderRadius: 8,
-                  overflow: "hidden",
-                }}>
-                  {selectedUser.memberships.length === 0 ? (
-                    <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)", fontSize: "0.85rem" }}>
-                      {t("noCompanyMemberships")}
-                    </div>
-                  ) : (
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
-                      <thead>
-                        <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("company")}</th>
-                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("role")}</th>
-                          <th style={{ textAlign: "left", padding: "8px 12px", fontSize: "0.72rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("joined")}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedUser.memberships.map((m) => (
-                          <tr key={m.company_id} style={{ borderBottom: "1px solid var(--border)" }}>
-                            <td style={{ padding: "10px 12px", fontWeight: 500 }}>
-                              {m.company_name}
-                              {!m.is_active && (
-                                <span style={{
-                                  marginLeft: 6,
-                                  padding: "2px 6px",
-                                  borderRadius: 6,
-                                  fontSize: "0.7rem",
-                                  background: "var(--surface)",
-                                  color: "var(--muted)",
-                                }}>
-                                  {t("inactive")}
-                                </span>
-                              )}
-                            </td>
-                            <td style={{ padding: "10px 12px" }}>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {selectedUser.memberships.map((m) => {
+                      const ca = analytics?.companyAnalytics[m.company_id];
+                      return (
+                        <div key={m.company_id} style={{
+                          border: "1px solid var(--border)", borderRadius: 8,
+                          padding: "12px", background: "var(--surface)",
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontWeight: 600, fontSize: "0.88rem" }}>{m.company_name}</span>
                               <span style={{
-                                display: "inline-block",
-                                padding: "2px 8px",
-                                borderRadius: 6,
-                                fontSize: "0.72rem",
-                                fontWeight: 600,
+                                display: "inline-block", padding: "1px 7px", borderRadius: 6,
+                                fontSize: "0.7rem", fontWeight: 600,
                                 ...getRoleBadgeStyle(m.role),
                               }}>
                                 {formatRole(m.role)}
                               </span>
-                            </td>
-                            <td style={{ padding: "10px 12px", color: "var(--muted)", fontSize: "0.8rem" }}>
-                              {m.joined_at ? formatDate(m.joined_at, dateLocale) : "—"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-                {/* Company Details */}
-                {(() => {
-                  const activeMembership = selectedUser.memberships.find((m) => m.is_active);
-                  if (!activeMembership) return null;
-                  const hasAnyDetail =
-                    activeMembership.company_industry ||
-                    activeMembership.company_size ||
-                    activeMembership.company_website ||
-                    (activeMembership.selected_modules && activeMembership.selected_modules.length > 0);
-                  if (!hasAnyDetail) return null;
-                  return (
-                    <>
-                      <div style={{
-                        fontSize: "0.78rem",
-                        fontWeight: 600,
-                        color: "var(--muted)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                        marginTop: 16,
-                        marginBottom: 8,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                      }}>
-                        <Building2 size={12} /> COMPANY DETAILS
-                      </div>
-
-                      <div className="detail-row">
-                        {activeMembership.company_industry && (
-                          <div className="detail-group">
-                            <label className="detail-label">
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                                <Building2 size={12} /> Industry
+                              {!m.is_active && (
+                                <span style={{
+                                  padding: "1px 6px", borderRadius: 6,
+                                  fontSize: "0.68rem", background: "var(--surface)", color: "var(--muted)",
+                                }}>
+                                  {t("inactive")}
+                                </span>
+                              )}
+                            </div>
+                            {ca && (
+                              <span style={{
+                                display: "inline-block", padding: "1px 7px", borderRadius: 6,
+                                fontSize: "0.68rem", fontWeight: 600,
+                                background: ca.subscription_status === "active" ? "rgba(22, 163, 74, 0.08)" : "var(--surface)",
+                                color: ca.subscription_status === "active" ? "var(--color-green)" : "var(--muted)",
+                              }}>
+                                <CreditCard size={10} style={{ marginRight: 3 }} />
+                                {ca.subscription_plan.charAt(0).toUpperCase() + ca.subscription_plan.slice(1)}
                               </span>
-                            </label>
-                            <div className="detail-value">{activeMembership.company_industry}</div>
+                            )}
                           </div>
-                        )}
-                        {activeMembership.company_size && (
-                          <div className="detail-group">
-                            <label className="detail-label">
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                                <Users size={12} /> Company Size
-                              </span>
-                            </label>
-                            <div className="detail-value">{activeMembership.company_size}</div>
-                          </div>
-                        )}
-                      </div>
 
-                      {activeMembership.company_website && (
-                        <div className="detail-group">
-                          <label className="detail-label">
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                              <Globe size={12} /> Website
-                            </span>
-                          </label>
-                          <div className="detail-value">
-                            <a
-                              href={activeMembership.company_website.startsWith("http") ? activeMembership.company_website : `https://${activeMembership.company_website}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ color: "var(--color-blue, #3b82f6)", textDecoration: "underline" }}
-                            >
-                              {activeMembership.company_website}
-                            </a>
+                          {/* Company details row */}
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", fontSize: "0.75rem", color: "var(--muted)", marginBottom: ca ? 8 : 0 }}>
+                            {m.company_industry && <span>{m.company_industry}</span>}
+                            {m.company_industry && m.company_size && <span>·</span>}
+                            {m.company_size && <span>{m.company_size}</span>}
+                            {m.joined_at && <span>· Joined {formatDate(m.joined_at, dateLocale)}</span>}
                           </div>
+
+                          {/* Usage stats */}
+                          {ca && (
+                            <div style={{ display: "flex", gap: 16, fontSize: "0.78rem" }}>
+                              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <FolderOpen size={12} style={{ color: "var(--color-blue)" }} /> {ca.projects} projects
+                              </span>
+                              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <FileText size={12} style={{ color: "var(--color-amber)" }} /> {ca.invoices} invoices
+                              </span>
+                              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <Contact size={12} style={{ color: "var(--color-green)" }} /> {ca.contacts} contacts
+                              </span>
+                              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <FileText size={12} style={{ color: "var(--muted)" }} /> {ca.documents} docs
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Selected modules */}
+                          {m.selected_modules && m.selected_modules.length > 0 && (
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 8 }}>
+                              {m.selected_modules.map((mod) => (
+                                <span
+                                  key={mod}
+                                  style={{
+                                    display: "inline-block", padding: "1px 6px", borderRadius: 5,
+                                    fontSize: "0.68rem", fontWeight: 600,
+                                    background: "rgba(59, 130, 246, 0.08)", color: "var(--color-blue)",
+                                  }}
+                                >
+                                  {mod.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      );
+                    })}
+                  </div>
+                )}
 
-                      {activeMembership.selected_modules && activeMembership.selected_modules.length > 0 && (
-                        <div className="detail-group">
-                          <label className="detail-label">Selected Modules</label>
-                          <div className="detail-value" style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                            {activeMembership.selected_modules.map((mod) => (
-                              <span
-                                key={mod}
-                                style={{
-                                  display: "inline-block",
-                                  padding: "2px 8px",
-                                  borderRadius: 6,
-                                  fontSize: "0.72rem",
-                                  fontWeight: 600,
-                                  background: "rgba(59, 130, 246, 0.1)",
-                                  color: "var(--color-blue, #3b82f6)",
-                                }}
-                              >
-                                {mod.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                {/* ── Recent Activity ── */}
+                {analytics && analytics.recentActivity.length > 0 && (
+                  <>
+                    <div style={sectionLabelStyle}>
+                      <Clock size={13} /> RECENT ACTIVITY
+                    </div>
+                    <div style={{
+                      border: "1px solid var(--border)", borderRadius: 8,
+                      overflow: "hidden", maxHeight: 200, overflowY: "auto",
+                    }}>
+                      {analytics.recentActivity.map((act, i) => (
+                        <div key={i} style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          padding: "6px 12px", fontSize: "0.78rem",
+                          borderBottom: i < analytics.recentActivity.length - 1 ? "1px solid var(--border)" : "none",
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <Activity size={11} style={{ color: "var(--muted)" }} />
+                            <span>{act.action.replace(/_/g, " ")}</span>
+                            {act.entityType && (
+                              <span style={{ color: "var(--muted)", fontSize: "0.72rem" }}>
+                                ({act.entityType})
                               </span>
-                            ))}
+                            )}
                           </div>
+                          <span style={{ color: "var(--muted)", fontSize: "0.72rem", whiteSpace: "nowrap" }}>
+                            {formatDate(act.createdAt, dateLocale)}
+                          </span>
                         </div>
-                      )}
-                    </>
-                  );
-                })()}
+                      ))}
+                    </div>
+                  </>
+                )}
 
-                {/* Actions */}
-                <div style={{
-                  fontSize: "0.78rem",
-                  fontWeight: 600,
-                  color: "var(--muted)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                  marginTop: 16,
-                  marginBottom: 8,
-                }}>
+                {/* ── Actions ── */}
+                <div style={{ ...sectionLabelStyle, marginTop: 20 }}>
                   {t("actions")}
                 </div>
 
-                <div style={{
-                  display: "flex",
-                  gap: 8,
-                  flexWrap: "wrap",
-                  marginBottom: 8,
-                }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
                   <button
                     type="button"
                     className="btn-secondary"
@@ -718,9 +806,7 @@ export default function UsersClient({ users }: Props) {
                   <div style={{
                     background: "rgba(220, 38, 38, 0.06)",
                     border: "1px solid rgba(220, 38, 38, 0.25)",
-                    borderRadius: 8,
-                    padding: "12px 14px",
-                    marginBottom: 12,
+                    borderRadius: 8, padding: "12px 14px", marginBottom: 12,
                   }}>
                     <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--color-red)", marginBottom: 6 }}>
                       Are you sure you want to delete this account?

@@ -10,6 +10,9 @@ import {
   ArrowDownRight,
   XCircle,
   CreditCard,
+  RefreshCw,
+  Check,
+  X,
 } from "lucide-react";
 import type { RevenueStats, SubscriptionEvent } from "@/lib/queries/revenue";
 import "@/styles/revenue.css";
@@ -236,9 +239,12 @@ export default function RevenueClient({ stats, events }: Props) {
               <thead>
                 <tr>
                   <th>{t("event")}</th>
+                  <th>{t("user")}</th>
                   <th>{t("company")}</th>
                   <th>{t("planChange")}</th>
                   <th>{t("amount")}</th>
+                  <th>Recurring</th>
+                  <th>Status</th>
                   <th>{t("date")}</th>
                 </tr>
               </thead>
@@ -246,6 +252,7 @@ export default function RevenueClient({ stats, events }: Props) {
                 {events.map((evt) => {
                   const config =
                     EVENT_CONFIG[evt.event_type] || DEFAULT_EVENT_CONFIG;
+                  const isCanceled = evt.event_type === "canceled" || evt.subscription_status === "canceled";
                   return (
                     <tr key={evt.id}>
                       <td>
@@ -256,6 +263,9 @@ export default function RevenueClient({ stats, events }: Props) {
                             .map((w) => capitalize(w))
                             .join(" ")}
                         </span>
+                      </td>
+                      <td style={{ fontSize: "0.82rem" }}>
+                        {evt.user_name || <span style={{ color: "var(--muted)" }}>--</span>}
                       </td>
                       <td>{evt.company_name}</td>
                       <td
@@ -279,6 +289,34 @@ export default function RevenueClient({ stats, events }: Props) {
                           </span>
                         ) : (
                           <span style={{ color: "var(--muted)" }}>--</span>
+                        )}
+                      </td>
+                      <td>
+                        {evt.is_recurring ? (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-green)", fontSize: "0.82rem" }}>
+                            <RefreshCw size={13} /> Yes
+                          </span>
+                        ) : (
+                          <span style={{ color: "var(--muted)", fontSize: "0.82rem" }}>No</span>
+                        )}
+                      </td>
+                      <td>
+                        {isCanceled ? (
+                          <span className="sa-badge sa-badge-red" style={{ fontSize: "0.7rem" }}>
+                            <X size={12} /> Canceled
+                          </span>
+                        ) : evt.subscription_status === "active" ? (
+                          <span className="sa-badge sa-badge-green" style={{ fontSize: "0.7rem" }}>
+                            <Check size={12} /> Active
+                          </span>
+                        ) : evt.subscription_status === "past_due" ? (
+                          <span className="sa-badge sa-badge-amber" style={{ fontSize: "0.7rem" }}>
+                            <AlertTriangle size={12} /> Past Due
+                          </span>
+                        ) : (
+                          <span style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
+                            {evt.subscription_status ? capitalize(evt.subscription_status) : "--"}
+                          </span>
                         )}
                       </td>
                       <td
