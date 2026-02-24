@@ -94,7 +94,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             if (!member) return;
             supabase
               .from("companies")
-              .select("trial_ends_at, subscription_status, stripe_subscription_id, grace_period_ends_at")
+              .select("trial_ends_at, subscription_status, stripe_subscription_id, grace_period_ends_at, created_at")
               .eq("id", member.company_id)
               .single()
               .then(({ data: company }) => {
@@ -118,9 +118,11 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
                   const trialEnd = new Date(company.trial_ends_at).getTime();
                   const daysLeft = Math.max(0, Math.ceil((trialEnd - Date.now()) / (1000 * 60 * 60 * 24)));
                   setTrialDaysLeft(daysLeft);
-                } else {
-                  // No trial_ends_at set (legacy account) — show 14-day default
-                  setTrialDaysLeft(14);
+                } else if (company.created_at) {
+                  // No trial_ends_at set (legacy account) — calculate from created_at + 14 days
+                  const trialEnd = new Date(company.created_at).getTime() + 14 * 24 * 60 * 60 * 1000;
+                  const daysLeft = Math.max(0, Math.ceil((trialEnd - Date.now()) / (1000 * 60 * 60 * 24)));
+                  setTrialDaysLeft(daysLeft);
                 }
               });
           });
