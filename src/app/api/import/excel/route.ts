@@ -165,12 +165,15 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
+      // Skip auto-JE generation for invoices/payments when pre-crafted JEs exist
+      const hasJESheet = presentEntities.has("journal_entries") || presentEntities.has("opening_balances");
       const sheetResult = await processEntity(
         supabase,
         companyId,
         userId,
         entity,
-        sheet.rows
+        sheet.rows,
+        { skipAutoJE: hasJESheet }
       );
 
       totalRows += sheet.rows.length;
@@ -273,7 +276,8 @@ async function processEntity(
   companyId: string,
   userId: string,
   entity: string,
-  rows: Record<string, string>[]
+  rows: Record<string, string>[],
+  options?: { skipAutoJE?: boolean }
 ): Promise<ProcessResult> {
   let successCount = 0;
   const errors: string[] = [];
@@ -620,8 +624,8 @@ async function processEntity(
         }
       }
 
-      // Auto-generate invoice JEs
-      if (insertedInvoices.length > 0) {
+      // Auto-generate invoice JEs (skip when pre-crafted JEs sheet exists to avoid double-counting)
+      if (insertedInvoices.length > 0 && !options?.skipAutoJE) {
         try {
           await generateBulkInvoiceJournalEntries(
             supabase,
@@ -683,7 +687,7 @@ async function processEntity(
           }
         }
 
-        if (paymentRecords.length > 0) {
+        if (paymentRecords.length > 0 && !options?.skipAutoJE) {
           try {
             await generateBulkPaymentJournalEntries(
               supabase,
