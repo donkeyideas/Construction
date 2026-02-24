@@ -97,9 +97,7 @@ export async function getOpportunities(
 ): Promise<Opportunity[]> {
   let query = supabase
     .from("opportunities")
-    .select(
-      "*, user_profiles!opportunities_assignee_profile_fkey(full_name, email)"
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -124,12 +122,30 @@ export async function getOpportunities(
     return [];
   }
 
-  return (data ?? []).map((row) => ({
+  const opportunities = data ?? [];
+
+  // Batch-fetch assignee profiles
+  const oppAssigneeIds = new Set<string>();
+  for (const o of opportunities) {
+    if (o.assigned_to) oppAssigneeIds.add(o.assigned_to);
+  }
+
+  let oppProfileMap = new Map<string, { full_name: string; email: string }>();
+  if (oppAssigneeIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", [...oppAssigneeIds]);
+    oppProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p])
+    );
+  }
+
+  return opportunities.map((row) => ({
     ...row,
-    assigned_user: row.user_profiles as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null,
+    assigned_user: row.assigned_to
+      ? oppProfileMap.get(row.assigned_to) ?? null
+      : null,
   }));
 }
 
@@ -139,9 +155,7 @@ export async function getOpportunityById(
 ): Promise<Opportunity | null> {
   const { data, error } = await supabase
     .from("opportunities")
-    .select(
-      "*, user_profiles!opportunities_assignee_profile_fkey(full_name, email)"
-    )
+    .select("*")
     .eq("id", id)
     .single();
 
@@ -149,12 +163,20 @@ export async function getOpportunityById(
     return null;
   }
 
+  // Fetch assignee profile
+  let assignedUser: { full_name: string | null; email: string | null } | null = null;
+  if (data.assigned_to) {
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("full_name, email")
+      .eq("id", data.assigned_to)
+      .maybeSingle();
+    assignedUser = profile ?? null;
+  }
+
   return {
     ...data,
-    assigned_user: data.user_profiles as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null,
+    assigned_user: assignedUser,
   };
 }
 

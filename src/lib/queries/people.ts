@@ -202,9 +202,7 @@ export async function getTimeEntries(
 ): Promise<TimeEntry[]> {
   let query = supabase
     .from("time_entries")
-    .select(
-      "*, user_profiles!time_entries_user_profile_fkey(full_name, email), projects!time_entries_project_id_fkey(name, code)"
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("entry_date", { ascending: false });
 
@@ -233,17 +231,37 @@ export async function getTimeEntries(
     return [];
   }
 
-  return (data ?? []).map((row) => ({
-    ...row,
-    user_profile: row.user_profiles as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null,
-    project: row.projects as unknown as {
-      name: string | null;
-      code: string | null;
-    } | null,
-  }));
+  const entries = data ?? [];
+
+  // Batch-fetch user profiles and projects
+  const teUserIds = new Set<string>();
+  const teProjectIds = new Set<string>();
+  for (const e of entries) {
+    if (e.user_id) teUserIds.add(e.user_id);
+    if (e.project_id) teProjectIds.add(e.project_id);
+  }
+
+  const [teProfilesRes, teProjectsRes] = await Promise.all([
+    teUserIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...teUserIds])
+      : Promise.resolve({ data: null }),
+    teProjectIds.size > 0
+      ? supabase.from("projects").select("id, name, code").in("id", [...teProjectIds])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const teProfileMap = new Map((teProfilesRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+  const teProjectMap = new Map((teProjectsRes.data ?? []).map((p: { id: string; name: string; code: string }) => [p.id, p]));
+
+  return entries.map((row) => {
+    const profile = row.user_id ? teProfileMap.get(row.user_id) : null;
+    const project = row.project_id ? teProjectMap.get(row.project_id) : null;
+    return {
+      ...row,
+      user_profile: profile ? { full_name: profile.full_name, email: profile.email } : null,
+      project: project ? { name: project.name, code: project.code } : null,
+    };
+  });
 }
 
 /**
@@ -542,12 +560,12 @@ export async function getPeopleOverview(
     getCertificationAlerts(supabase, companyId),
     supabase
       .from("time_entries")
-      .select("id, hours, project_id, project:projects!time_entries_project_id_fkey(name)")
+      .select("id, hours, project_id")
       .eq("company_id", companyId)
       .gte("entry_date", weekStartStr),
     supabase
       .from("time_entries")
-      .select("*, user_profile:user_profiles!time_entries_user_id_fkey(full_name, email), project:projects!time_entries_project_id_fkey(name, code)")
+      .select("*")
       .eq("company_id", companyId)
       .eq("status", "pending")
       .order("entry_date", { ascending: false })
@@ -556,8 +574,41 @@ export async function getPeopleOverview(
 
   const contacts = contactsRes.data ?? [];
   const certs = certsRes;
-  const timeEntries = timeRes.data ?? [];
-  const pendingEntries = (pendingRes.data ?? []) as TimeEntry[];
+  const rawTimeEntries = timeRes.data ?? [];
+  const rawPendingEntries = pendingRes.data ?? [];
+
+  // Batch-fetch projects for time entries and pending entries
+  const ovTeProjectIds = new Set<string>();
+  const ovTeUserIds = new Set<string>();
+  for (const t of rawTimeEntries) { if (t.project_id) ovTeProjectIds.add(t.project_id); }
+  for (const t of rawPendingEntries) {
+    if (t.project_id) ovTeProjectIds.add(t.project_id);
+    if (t.user_id) ovTeUserIds.add(t.user_id);
+  }
+  const [ovTeProjRes, ovTeProfileRes] = await Promise.all([
+    ovTeProjectIds.size > 0
+      ? supabase.from("projects").select("id, name, code").in("id", [...ovTeProjectIds])
+      : Promise.resolve({ data: null }),
+    ovTeUserIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...ovTeUserIds])
+      : Promise.resolve({ data: null }),
+  ]);
+  const ovTeProjMap = new Map((ovTeProjRes.data ?? []).map((p: { id: string; name: string; code: string }) => [p.id, p]));
+  const ovTeProfileMap = new Map((ovTeProfileRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+
+  const timeEntries = rawTimeEntries.map((t) => ({
+    ...t,
+    project: t.project_id ? ovTeProjMap.get(t.project_id) ?? null : null,
+  }));
+  const pendingEntries = rawPendingEntries.map((t) => {
+    const profile = t.user_id ? ovTeProfileMap.get(t.user_id) : null;
+    const project = t.project_id ? ovTeProjMap.get(t.project_id) : null;
+    return {
+      ...t,
+      user_profile: profile ? { full_name: profile.full_name, email: profile.email } : null,
+      project: project ? { name: project.name, code: project.code } : null,
+    };
+  }) as TimeEntry[];
 
   const totalActive = contacts.length;
   const employeeCount = contacts.filter(

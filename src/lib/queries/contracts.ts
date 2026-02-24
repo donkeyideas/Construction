@@ -132,13 +132,7 @@ export async function getContracts(
 ) {
   let query = supabase
     .from("contracts")
-    .select(
-      `
-      *,
-      project:projects(id, name),
-      creator:user_profiles!contracts_creator_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -164,7 +158,34 @@ export async function getContracts(
     return [];
   }
 
-  return (data ?? []) as ContractRow[];
+  const contracts = (data ?? []) as ContractRow[];
+
+  // Batch-fetch related projects and creator profiles
+  const projectIds = new Set<string>();
+  const creatorIds = new Set<string>();
+  for (const c of contracts) {
+    if (c.project_id) projectIds.add(c.project_id);
+    if (c.created_by) creatorIds.add(c.created_by);
+  }
+
+  const [projRes, creatorRes] = await Promise.all([
+    projectIds.size > 0
+      ? supabase.from("projects").select("id, name").in("id", [...projectIds])
+      : Promise.resolve({ data: null }),
+    creatorIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...creatorIds])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const projMap = new Map((projRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
+  const creatorMap = new Map((creatorRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+
+  for (const c of contracts) {
+    c.project = c.project_id ? projMap.get(c.project_id) ?? null : null;
+    c.creator = c.created_by ? creatorMap.get(c.created_by) ?? null : null;
+  }
+
+  return contracts;
 }
 
 // ---------------------------------------------------------------------------
@@ -220,13 +241,7 @@ export async function getContractById(
 ) {
   const { data, error } = await supabase
     .from("contracts")
-    .select(
-      `
-      *,
-      project:projects(id, name),
-      creator:user_profiles!contracts_creator_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("*")
     .eq("id", contractId)
     .single();
 
@@ -235,7 +250,22 @@ export async function getContractById(
     return null;
   }
 
-  return data as ContractRow;
+  const contract = data as ContractRow;
+
+  // Fetch related project and creator
+  const [projRes, creatorRes] = await Promise.all([
+    contract.project_id
+      ? supabase.from("projects").select("id, name").eq("id", contract.project_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    contract.created_by
+      ? supabase.from("user_profiles").select("id, full_name, email").eq("id", contract.created_by).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  contract.project = projRes.data ?? null;
+  contract.creator = creatorRes.data ?? null;
+
+  return contract;
 }
 
 // ---------------------------------------------------------------------------
@@ -440,13 +470,7 @@ export async function getCompanyMembers(
 ): Promise<CompanyMember[]> {
   const { data, error } = await supabase
     .from("company_members")
-    .select(
-      `
-      user_id,
-      role,
-      user:user_profiles!company_members_user_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("user_id, role")
     .eq("company_id", companyId)
     .eq("is_active", true)
     .order("role", { ascending: true });
@@ -456,5 +480,21 @@ export async function getCompanyMembers(
     return [];
   }
 
-  return (data ?? []) as unknown as CompanyMember[];
+  const members = data ?? [];
+  const memberUserIds = members.map((m) => m.user_id).filter(Boolean);
+  let memberProfileMap = new Map<string, { id: string; full_name: string; email: string }>();
+  if (memberUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", memberUserIds);
+    memberProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p])
+    );
+  }
+
+  return members.map((m) => ({
+    ...m,
+    user: m.user_id ? memberProfileMap.get(m.user_id) ?? null : null,
+  })) as unknown as CompanyMember[];
 }

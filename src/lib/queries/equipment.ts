@@ -175,13 +175,7 @@ export async function getEquipmentList(
 ) {
   let query = supabase
     .from("equipment")
-    .select(
-      `
-      *,
-      project:projects!equipment_current_project_id_fkey(id, name),
-      assignee:user_profiles!equipment_assignee_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -207,7 +201,34 @@ export async function getEquipmentList(
     return [];
   }
 
-  return (data ?? []) as EquipmentRow[];
+  const items = (data ?? []) as EquipmentRow[];
+
+  // Batch-fetch related projects and assignee profiles
+  const eqProjectIds = new Set<string>();
+  const eqAssigneeIds = new Set<string>();
+  for (const e of items) {
+    if (e.current_project_id) eqProjectIds.add(e.current_project_id);
+    if (e.assigned_to) eqAssigneeIds.add(e.assigned_to);
+  }
+
+  const [eqProjRes, eqAssigneeRes] = await Promise.all([
+    eqProjectIds.size > 0
+      ? supabase.from("projects").select("id, name").in("id", [...eqProjectIds])
+      : Promise.resolve({ data: null }),
+    eqAssigneeIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...eqAssigneeIds])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const eqProjMap = new Map((eqProjRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
+  const eqAssigneeMap = new Map((eqAssigneeRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+
+  for (const e of items) {
+    e.project = e.current_project_id ? eqProjMap.get(e.current_project_id) ?? null : null;
+    e.assignee = e.assigned_to ? eqAssigneeMap.get(e.assigned_to) ?? null : null;
+  }
+
+  return items;
 }
 
 // ---------------------------------------------------------------------------
@@ -320,13 +341,7 @@ export async function getEquipmentById(
 ) {
   const { data, error } = await supabase
     .from("equipment")
-    .select(
-      `
-      *,
-      project:projects!equipment_current_project_id_fkey(id, name),
-      assignee:user_profiles!equipment_assignee_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("*")
     .eq("id", equipmentId)
     .single();
 
@@ -335,7 +350,22 @@ export async function getEquipmentById(
     return null;
   }
 
-  return data as EquipmentRow;
+  const equip = data as EquipmentRow;
+
+  // Fetch related project and assignee
+  const [projRes, assigneeRes] = await Promise.all([
+    equip.current_project_id
+      ? supabase.from("projects").select("id, name").eq("id", equip.current_project_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    equip.assigned_to
+      ? supabase.from("user_profiles").select("id, full_name, email").eq("id", equip.assigned_to).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  equip.project = projRes.data ?? null;
+  equip.assignee = assigneeRes.data ?? null;
+
+  return equip;
 }
 
 // ---------------------------------------------------------------------------
@@ -456,14 +486,7 @@ export async function getAssignments(
 ) {
   let query = supabase
     .from("equipment_assignments")
-    .select(
-      `
-      *,
-      equipment:equipment(id, name),
-      project:projects(id, name),
-      assignee:user_profiles!equip_assignments_assignee_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -486,7 +509,41 @@ export async function getAssignments(
     return [];
   }
 
-  return (data ?? []) as EquipmentAssignmentRow[];
+  const assignments = (data ?? []) as EquipmentAssignmentRow[];
+
+  // Batch-fetch equipment, projects, and assignee profiles
+  const aEqIds = new Set<string>();
+  const aProjIds = new Set<string>();
+  const aAssigneeIds = new Set<string>();
+  for (const a of assignments) {
+    if (a.equipment_id) aEqIds.add(a.equipment_id);
+    if (a.project_id) aProjIds.add(a.project_id);
+    if (a.assigned_to) aAssigneeIds.add(a.assigned_to);
+  }
+
+  const [aEqRes, aProjRes, aAssigneeRes] = await Promise.all([
+    aEqIds.size > 0
+      ? supabase.from("equipment").select("id, name").in("id", [...aEqIds])
+      : Promise.resolve({ data: null }),
+    aProjIds.size > 0
+      ? supabase.from("projects").select("id, name").in("id", [...aProjIds])
+      : Promise.resolve({ data: null }),
+    aAssigneeIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...aAssigneeIds])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const aEqMap = new Map((aEqRes.data ?? []).map((e: { id: string; name: string }) => [e.id, e]));
+  const aProjMap = new Map((aProjRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
+  const aAssigneeMap = new Map((aAssigneeRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+
+  for (const a of assignments) {
+    a.equipment = a.equipment_id ? aEqMap.get(a.equipment_id) ?? null : null;
+    a.project = a.project_id ? aProjMap.get(a.project_id) ?? null : null;
+    a.assignee = a.assigned_to ? aAssigneeMap.get(a.assigned_to) ?? null : null;
+  }
+
+  return assignments;
 }
 
 // ---------------------------------------------------------------------------
@@ -633,12 +690,7 @@ export async function getEquipmentOverview(
     getEquipmentStats(supabase, companyId),
     supabase
       .from("equipment_assignments")
-      .select(`
-        id, equipment_id, assigned_date,
-        equipment:equipment(name),
-        project:projects(name),
-        assignee:user_profiles!equip_assignments_assignee_profile_fkey(full_name)
-      `)
+      .select("id, equipment_id, project_id, assigned_to, assigned_date")
       .eq("company_id", companyId)
       .eq("status", "active")
       .order("assigned_date", { ascending: false })
@@ -659,7 +711,38 @@ export async function getEquipmentOverview(
 
   const equipment = (equipRes.data ?? []) as EquipmentRow[];
   const stats = statsRes;
-  const assignments = assignRes.data ?? [];
+  const rawAssign = assignRes.data ?? [];
+
+  // Batch-fetch equipment names, project names, and assignee names for assignments
+  const ovEqIds = new Set<string>();
+  const ovProjIds = new Set<string>();
+  const ovAssigneeIds = new Set<string>();
+  for (const a of rawAssign) {
+    if (a.equipment_id) ovEqIds.add(a.equipment_id as string);
+    if (a.project_id) ovProjIds.add(a.project_id as string);
+    if (a.assigned_to) ovAssigneeIds.add(a.assigned_to as string);
+  }
+  const [ovEqNames, ovProjNames, ovAssigneeNames] = await Promise.all([
+    ovEqIds.size > 0
+      ? supabase.from("equipment").select("id, name").in("id", [...ovEqIds])
+      : Promise.resolve({ data: null }),
+    ovProjIds.size > 0
+      ? supabase.from("projects").select("id, name").in("id", [...ovProjIds])
+      : Promise.resolve({ data: null }),
+    ovAssigneeIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name").in("id", [...ovAssigneeIds])
+      : Promise.resolve({ data: null }),
+  ]);
+  const ovEqMap = new Map((ovEqNames.data ?? []).map((e: { id: string; name: string }) => [e.id, e.name]));
+  const ovProjNameMap = new Map((ovProjNames.data ?? []).map((p: { id: string; name: string }) => [p.id, p.name]));
+  const ovAssigneeNameMap = new Map((ovAssigneeNames.data ?? []).map((p: { id: string; full_name: string }) => [p.id, p.full_name]));
+
+  const assignments = rawAssign.map((a) => ({
+    ...a,
+    equipment: a.equipment_id ? { name: ovEqMap.get(a.equipment_id as string) ?? "Unknown" } : null,
+    project: a.project_id ? { name: ovProjNameMap.get(a.project_id as string) ?? "Unassigned" } : null,
+    assignee: a.assigned_to ? { full_name: ovAssigneeNameMap.get(a.assigned_to as string) ?? "Unknown" } : null,
+  }));
 
   // Build a map of equipment_id -> nearest next_due_date from maintenance logs
   const maintNextDueMap = new Map<string, string>();

@@ -194,13 +194,7 @@ export async function getProjects(
 ) {
   let query = supabase
     .from("projects")
-    .select(
-      `
-      *,
-      project_manager:user_profiles!projects_pm_profile_fkey(id, full_name),
-      superintendent:user_profiles!projects_super_profile_fkey(id, full_name)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -221,6 +215,26 @@ export async function getProjects(
   }
 
   const projects = (data ?? []) as ProjectRow[];
+
+  // Batch-fetch user profiles for project_manager and superintendent
+  const profileIds = new Set<string>();
+  for (const p of projects) {
+    if (p.project_manager_id) profileIds.add(p.project_manager_id);
+    if (p.superintendent_id) profileIds.add(p.superintendent_id);
+  }
+  if (profileIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name")
+      .in("id", [...profileIds]);
+    const profileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
+    );
+    for (const p of projects) {
+      p.project_manager = p.project_manager_id ? profileMap.get(p.project_manager_id) ?? null : null;
+      p.superintendent = p.superintendent_id ? profileMap.get(p.superintendent_id) ?? null : null;
+    }
+  }
 
   // -------------------------------------------------------------------------
   // Fill in missing financial data for projects that have null/0 values.
@@ -301,13 +315,7 @@ export async function getProjectById(
   // Fetch project
   const { data: project, error: projectError } = await supabase
     .from("projects")
-    .select(
-      `
-      *,
-      project_manager:user_profiles!projects_pm_profile_fkey(id, full_name),
-      superintendent:user_profiles!projects_super_profile_fkey(id, full_name)
-    `
-    )
+    .select("*")
     .eq("id", projectId)
     .single();
 
@@ -315,6 +323,21 @@ export async function getProjectById(
     console.error("getProjectById error:", projectError);
     return null;
   }
+
+  // Batch-fetch profiles for PM and superintendent
+  const projProfileIds = [project.project_manager_id, project.superintendent_id].filter(Boolean) as string[];
+  let projProfileMap = new Map<string, { id: string; full_name: string }>();
+  if (projProfileIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name")
+      .in("id", projProfileIds);
+    projProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
+    );
+  }
+  (project as ProjectRow).project_manager = project.project_manager_id ? projProfileMap.get(project.project_manager_id) ?? null : null;
+  (project as ProjectRow).superintendent = project.superintendent_id ? projProfileMap.get(project.superintendent_id) ?? null : null;
 
   // Fetch phases
   const { data: phases } = await supabase
@@ -324,40 +347,85 @@ export async function getProjectById(
     .order("sort_order", { ascending: true });
 
   // Fetch tasks
-  const { data: tasks } = await supabase
+  const { data: rawTasks } = await supabase
     .from("project_tasks")
-    .select(
-      `
-      *,
-      assignee:user_profiles!project_tasks_assignee_profile_fkey(id, full_name)
-    `
-    )
+    .select("*")
     .eq("project_id", projectId)
     .order("sort_order", { ascending: true });
 
+  // Batch-fetch assignee profiles for tasks
+  const taskAssigneeIds = new Set<string>();
+  for (const t of rawTasks ?? []) {
+    if (t.assigned_to) taskAssigneeIds.add(t.assigned_to);
+  }
+  let taskProfileMap = new Map<string, { id: string; full_name: string }>();
+  if (taskAssigneeIds.size > 0) {
+    const { data: tp } = await supabase
+      .from("user_profiles")
+      .select("id, full_name")
+      .in("id", [...taskAssigneeIds]);
+    taskProfileMap = new Map(
+      (tp ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
+    );
+  }
+  const tasks = (rawTasks ?? []).map((t) => ({
+    ...t,
+    assignee: t.assigned_to ? taskProfileMap.get(t.assigned_to) ?? null : null,
+  }));
+
   // Fetch daily logs
-  const { data: dailyLogs } = await supabase
+  const { data: rawDailyLogs } = await supabase
     .from("daily_logs")
-    .select(
-      `
-      *,
-      creator:user_profiles!daily_logs_creator_profile_fkey(id, full_name)
-    `
-    )
+    .select("*")
     .eq("project_id", projectId)
     .order("log_date", { ascending: false });
 
+  // Batch-fetch creator profiles for daily logs
+  const logCreatorIds = new Set<string>();
+  for (const l of rawDailyLogs ?? []) {
+    if (l.created_by) logCreatorIds.add(l.created_by);
+  }
+  let logProfileMap = new Map<string, { id: string; full_name: string }>();
+  if (logCreatorIds.size > 0) {
+    const { data: lp } = await supabase
+      .from("user_profiles")
+      .select("id, full_name")
+      .in("id", [...logCreatorIds]);
+    logProfileMap = new Map(
+      (lp ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
+    );
+  }
+  const dailyLogs = (rawDailyLogs ?? []).map((l) => ({
+    ...l,
+    creator: l.created_by ? logProfileMap.get(l.created_by) ?? null : null,
+  }));
+
   // Fetch RFIs
-  const { data: rfis } = await supabase
+  const { data: rawRfis } = await supabase
     .from("rfis")
-    .select(
-      `
-      *,
-      assignee:user_profiles!rfis_assignee_profile_fkey(id, full_name)
-    `
-    )
+    .select("*")
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
+
+  // Batch-fetch assignee profiles for RFIs
+  const rfiAssigneeIds = new Set<string>();
+  for (const r of rawRfis ?? []) {
+    if (r.assigned_to) rfiAssigneeIds.add(r.assigned_to);
+  }
+  let rfiProfileMap = new Map<string, { id: string; full_name: string }>();
+  if (rfiAssigneeIds.size > 0) {
+    const { data: rp } = await supabase
+      .from("user_profiles")
+      .select("id, full_name")
+      .in("id", [...rfiAssigneeIds]);
+    rfiProfileMap = new Map(
+      (rp ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
+    );
+  }
+  const rfis = (rawRfis ?? []).map((r) => ({
+    ...r,
+    assignee: r.assigned_to ? rfiProfileMap.get(r.assigned_to) ?? null : null,
+  }));
 
   // Fetch Change Orders
   const { data: changeOrders } = await supabase
@@ -612,13 +680,7 @@ export async function getCompanyMembers(
 ) {
   const { data, error } = await supabase
     .from("company_members")
-    .select(
-      `
-      user_id,
-      role,
-      user:user_profiles!company_members_user_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("user_id, role")
     .eq("company_id", companyId)
     .order("role", { ascending: true });
 
@@ -627,7 +689,23 @@ export async function getCompanyMembers(
     return [];
   }
 
-  return data ?? [];
+  const members = data ?? [];
+  const memberUserIds = members.map((m) => m.user_id).filter(Boolean);
+  let memberProfileMap = new Map<string, { id: string; full_name: string; email: string }>();
+  if (memberUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", memberUserIds);
+    memberProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p])
+    );
+  }
+
+  return members.map((m) => ({
+    ...m,
+    user: m.user_id ? memberProfileMap.get(m.user_id) ?? null : null,
+  }));
 }
 
 // ---------------------------------------------------------------------------

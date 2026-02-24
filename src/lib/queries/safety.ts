@@ -151,14 +151,7 @@ export async function getIncidents(
 ) {
   let query = supabase
     .from("safety_incidents")
-    .select(
-      `
-      *,
-      reporter:user_profiles!safety_incidents_reporter_profile_fkey(id, full_name, email),
-      assignee:user_profiles!safety_incidents_assignee_profile_fkey(id, full_name, email),
-      project:projects(id, name)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -188,7 +181,36 @@ export async function getIncidents(
     return [];
   }
 
-  return (data ?? []) as SafetyIncidentRow[];
+  const incidents = (data ?? []) as SafetyIncidentRow[];
+
+  // Batch-fetch related profiles and projects
+  const profileIds = new Set<string>();
+  const projectIds = new Set<string>();
+  for (const i of incidents) {
+    if (i.reported_by) profileIds.add(i.reported_by);
+    if (i.assigned_to) profileIds.add(i.assigned_to);
+    if (i.project_id) projectIds.add(i.project_id);
+  }
+
+  const [profilesRes, projectsRes] = await Promise.all([
+    profileIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...profileIds])
+      : Promise.resolve({ data: null }),
+    projectIds.size > 0
+      ? supabase.from("projects").select("id, name").in("id", [...projectIds])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const profileMap = new Map((profilesRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+  const projMap = new Map((projectsRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
+
+  for (const i of incidents) {
+    i.reporter = i.reported_by ? profileMap.get(i.reported_by) ?? null : null;
+    i.assignee = i.assigned_to ? profileMap.get(i.assigned_to) ?? null : null;
+    i.project = i.project_id ? projMap.get(i.project_id) ?? null : null;
+  }
+
+  return incidents;
 }
 
 // ---------------------------------------------------------------------------
@@ -238,14 +260,7 @@ export async function getIncidentById(
 ) {
   const { data, error } = await supabase
     .from("safety_incidents")
-    .select(
-      `
-      *,
-      reporter:user_profiles!safety_incidents_reporter_profile_fkey(id, full_name, email),
-      assignee:user_profiles!safety_incidents_assignee_profile_fkey(id, full_name, email),
-      project:projects(id, name)
-    `
-    )
+    .select("*")
     .eq("id", incidentId)
     .single();
 
@@ -254,7 +269,25 @@ export async function getIncidentById(
     return null;
   }
 
-  return data as SafetyIncidentRow;
+  const incident = data as SafetyIncidentRow;
+
+  // Fetch related profiles and project
+  const idProfileIds = [incident.reported_by, incident.assigned_to].filter(Boolean) as string[];
+  const [profilesRes, projRes] = await Promise.all([
+    idProfileIds.length > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", idProfileIds)
+      : Promise.resolve({ data: null }),
+    incident.project_id
+      ? supabase.from("projects").select("id, name").eq("id", incident.project_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const profileMap = new Map((profilesRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+  incident.reporter = incident.reported_by ? profileMap.get(incident.reported_by) ?? null : null;
+  incident.assignee = incident.assigned_to ? profileMap.get(incident.assigned_to) ?? null : null;
+  incident.project = projRes.data ?? null;
+
+  return incident;
 }
 
 // ---------------------------------------------------------------------------
@@ -351,13 +384,7 @@ export async function getToolboxTalks(
 ) {
   let query = supabase
     .from("toolbox_talks")
-    .select(
-      `
-      *,
-      conductor:user_profiles!toolbox_talks_conductor_profile_fkey(id, full_name, email),
-      project:projects(id, name)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -383,7 +410,34 @@ export async function getToolboxTalks(
     return [];
   }
 
-  return (data ?? []) as ToolboxTalkRow[];
+  const talks = (data ?? []) as ToolboxTalkRow[];
+
+  // Batch-fetch conductor profiles and projects
+  const conductorIds = new Set<string>();
+  const talkProjectIds = new Set<string>();
+  for (const t of talks) {
+    if (t.conducted_by) conductorIds.add(t.conducted_by);
+    if (t.project_id) talkProjectIds.add(t.project_id);
+  }
+
+  const [conductorRes, talkProjRes] = await Promise.all([
+    conductorIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...conductorIds])
+      : Promise.resolve({ data: null }),
+    talkProjectIds.size > 0
+      ? supabase.from("projects").select("id, name").in("id", [...talkProjectIds])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const conductorMap = new Map((conductorRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+  const talkProjMap = new Map((talkProjRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
+
+  for (const t of talks) {
+    t.conductor = t.conducted_by ? conductorMap.get(t.conducted_by) ?? null : null;
+    t.project = t.project_id ? talkProjMap.get(t.project_id) ?? null : null;
+  }
+
+  return talks;
 }
 
 // ---------------------------------------------------------------------------
@@ -396,13 +450,7 @@ export async function getToolboxTalkById(
 ) {
   const { data, error } = await supabase
     .from("toolbox_talks")
-    .select(
-      `
-      *,
-      conductor:user_profiles!toolbox_talks_conductor_profile_fkey(id, full_name, email),
-      project:projects(id, name)
-    `
-    )
+    .select("*")
     .eq("id", talkId)
     .single();
 
@@ -411,7 +459,22 @@ export async function getToolboxTalkById(
     return null;
   }
 
-  return data as ToolboxTalkRow;
+  const talk = data as ToolboxTalkRow;
+
+  // Fetch conductor and project
+  const [conductorRes, projRes] = await Promise.all([
+    talk.conducted_by
+      ? supabase.from("user_profiles").select("id, full_name, email").eq("id", talk.conducted_by).maybeSingle()
+      : Promise.resolve({ data: null }),
+    talk.project_id
+      ? supabase.from("projects").select("id, name").eq("id", talk.project_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  talk.conductor = conductorRes.data ?? null;
+  talk.project = projRes.data ?? null;
+
+  return talk;
 }
 
 // ---------------------------------------------------------------------------
@@ -530,13 +593,13 @@ export async function getSafetyOverview(
   const [incidentsRes, talksRes, allIncidentsRes] = await Promise.all([
     supabase
       .from("safety_incidents")
-      .select("id, incident_type, severity, status, incident_date, osha_recordable, title, incident_number, project_id, reporter:user_profiles!safety_incidents_reporter_profile_fkey(id, full_name, email), assignee:user_profiles!safety_incidents_assignee_profile_fkey(id, full_name, email), project:projects(id, name)")
+      .select("id, incident_type, severity, status, incident_date, osha_recordable, title, incident_number, project_id, reported_by, assigned_to")
       .eq("company_id", companyId)
       .gte("incident_date", trendStartStr)
       .order("incident_date", { ascending: false }),
     supabase
       .from("toolbox_talks")
-      .select("*, conductor:user_profiles!toolbox_talks_conductor_profile_fkey(id, full_name, email), project:projects(id, name)")
+      .select("*")
       .eq("company_id", companyId)
       .order("conducted_date", { ascending: true }),
     supabase
@@ -547,8 +610,46 @@ export async function getSafetyOverview(
       .limit(1),
   ]);
 
-  const incidents = (incidentsRes.data ?? []) as unknown as SafetyIncidentRow[];
-  const talks = (talksRes.data ?? []) as unknown as ToolboxTalkRow[];
+  const rawIncidents = incidentsRes.data ?? [];
+  const rawTalks = talksRes.data ?? [];
+
+  // Batch-fetch profiles and projects for incidents and talks
+  const ovProfileIds = new Set<string>();
+  const ovProjectIds = new Set<string>();
+  for (const i of rawIncidents) {
+    if (i.reported_by) ovProfileIds.add(i.reported_by);
+    if (i.assigned_to) ovProfileIds.add(i.assigned_to);
+    if (i.project_id) ovProjectIds.add(i.project_id);
+  }
+  for (const t of rawTalks) {
+    if (t.conducted_by) ovProfileIds.add(t.conducted_by);
+    if (t.project_id) ovProjectIds.add(t.project_id);
+  }
+
+  const [ovProfilesRes, ovProjectsRes] = await Promise.all([
+    ovProfileIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...ovProfileIds])
+      : Promise.resolve({ data: null }),
+    ovProjectIds.size > 0
+      ? supabase.from("projects").select("id, name").in("id", [...ovProjectIds])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const ovProfileMap = new Map((ovProfilesRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+  const ovProjMap = new Map((ovProjectsRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
+
+  const incidents = rawIncidents.map((i) => ({
+    ...i,
+    reporter: i.reported_by ? ovProfileMap.get(i.reported_by) ?? null : null,
+    assignee: i.assigned_to ? ovProfileMap.get(i.assigned_to) ?? null : null,
+    project: i.project_id ? ovProjMap.get(i.project_id) ?? null : null,
+  })) as unknown as SafetyIncidentRow[];
+
+  const talks = rawTalks.map((t) => ({
+    ...t,
+    conductor: t.conducted_by ? ovProfileMap.get(t.conducted_by) ?? null : null,
+    project: t.project_id ? ovProjMap.get(t.project_id) ?? null : null,
+  })) as unknown as ToolboxTalkRow[];
   const latestIncident = allIncidentsRes.data?.[0];
 
   // YTD = only incidents from Jan 1 of current year
