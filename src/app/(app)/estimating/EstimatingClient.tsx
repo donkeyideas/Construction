@@ -11,8 +11,11 @@ import {
   Package,
   X,
   Loader2,
+  Upload,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
+import ImportModal from "@/components/ImportModal";
+import type { ImportColumn } from "@/lib/utils/csv-parser";
 
 interface Estimate {
   id: string;
@@ -55,6 +58,24 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: "Rejected",
 };
 
+const IMPORT_COLUMNS: ImportColumn[] = [
+  { key: "estimate_number", label: "Estimate #", required: false },
+  { key: "title", label: "Title", required: true },
+  { key: "description", label: "Description", required: false },
+  { key: "status", label: "Status", required: false },
+  { key: "total_cost", label: "Total Cost ($)", required: false, type: "number" },
+  { key: "total_price", label: "Total Price ($)", required: false, type: "number" },
+  { key: "margin_pct", label: "Margin %", required: false, type: "number" },
+  { key: "overhead_pct", label: "Overhead %", required: false, type: "number" },
+  { key: "profit_pct", label: "Profit %", required: false, type: "number" },
+  { key: "project_name", label: "Project Name", required: false },
+];
+
+const IMPORT_SAMPLE: Record<string, string>[] = [
+  { estimate_number: "EST-0001", title: "Foundation Package", description: "Complete foundation scope", status: "draft", total_cost: "450000", total_price: "540000", margin_pct: "20", overhead_pct: "10", profit_pct: "10", project_name: "My Project" },
+  { estimate_number: "EST-0002", title: "Structural Steel Package", description: "Steel erection and connections", status: "in_review", total_cost: "1200000", total_price: "1500000", margin_pct: "25", overhead_pct: "10", profit_pct: "15", project_name: "My Project" },
+];
+
 function getMarginClass(marginPct: number | null): string {
   if (marginPct == null) return "";
   if (marginPct >= 15) return "margin-positive";
@@ -75,6 +96,7 @@ export default function EstimatingClient({
   const router = useRouter();
   const [tab, setTab] = useState<"estimates" | "assemblies">("estimates");
   const [showCreate, setShowCreate] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [formData, setFormData] = useState({
@@ -126,6 +148,18 @@ export default function EstimatingClient({
     }
   }
 
+  async function handleImport(rows: Record<string, string>[]) {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: "estimates", rows }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Import failed");
+    router.refresh();
+    return { success: data.success, errors: data.errors };
+  }
+
   return (
     <div>
       {/* Header - matches CRM Bids layout */}
@@ -137,6 +171,13 @@ export default function EstimatingClient({
           </p>
         </div>
         <div className="crm-header-actions">
+          <button
+            className="ui-btn ui-btn-md ui-btn-secondary"
+            onClick={() => setShowImport(true)}
+          >
+            <Upload size={16} />
+            Import CSV
+          </button>
           <button
             className="ui-btn ui-btn-md ui-btn-primary"
             onClick={() => setShowCreate(true)}
@@ -346,6 +387,16 @@ export default function EstimatingClient({
             </form>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <ImportModal
+          columns={IMPORT_COLUMNS}
+          sampleData={IMPORT_SAMPLE}
+          entityName="Estimates"
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+        />
       )}
     </div>
   );
