@@ -460,13 +460,15 @@ async function checkBankReconciliation(
   );
 
   // Compare bank balances vs their linked GL sub-account balances.
-  // Only compare linked accounts — unlinked cash GL accounts (Petty Cash,
-  // Cash in Transit, etc.) shouldn't inflate the GL side of this comparison.
+  // Only sum the GL sub-accounts that are actually linked to bank accounts.
+  // Cash 1000 (parent) holds unallocated cash that doesn't belong to any
+  // specific bank — including it inflates the GL side of this comparison.
   const linkedBanks = bankAccounts.filter((b) => b.gl_account_id);
+  const unlinkedBanks = bankAccounts.filter((b) => !b.gl_account_id);
   const linkedGlIds = linkedBanks.map((b) => b.gl_account_id!);
 
-  // Also include the parent Cash 1000 account (for banks without sub-accounts
-  // or when cash hasn't been fully reclassified)
+  // Only include Cash 1000 when there are banks WITHOUT GL sub-accounts
+  // (those banks' balances sit in the parent Cash account)
   const { data: cashParent } = await supabase
     .from("chart_of_accounts")
     .select("id")
@@ -476,7 +478,7 @@ async function checkBankReconciliation(
 
   const cashAccountIds = [...new Set([
     ...linkedGlIds,
-    ...(cashParent ? [cashParent.id] : []),
+    ...(unlinkedBanks.length > 0 && cashParent ? [cashParent.id] : []),
   ])];
 
   if (cashAccountIds.length === 0) {

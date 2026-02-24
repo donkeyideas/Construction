@@ -282,15 +282,27 @@ export async function backfillMissingJournalEntries(
 
   // --- Property Maintenance ---
   if (accountMap.repairsMaintenanceId) {
-    // Fetch maintenance with actual_cost OR estimated_cost (use actual_cost first, fall back to estimated)
-    const { data: maintenance } = await supabase
+    // Fetch maintenance — try with journal_entry_id first, fallback without it
+    let maintData: { id: string; title: string | null; actual_cost: number; estimated_cost: number; created_at: string; property_id: string | null; journal_entry_id?: string | null }[] = [];
+    const { data: maintWithJE, error: maintErr } = await supabase
       .from("maintenance_requests")
       .select("id, title, actual_cost, estimated_cost, created_at, property_id, journal_entry_id")
       .eq("company_id", companyId)
       .or("actual_cost.gt.0,estimated_cost.gt.0");
+    if (maintErr) {
+      // journal_entry_id column may not exist yet — query without it
+      const { data: maintNoJE } = await supabase
+        .from("maintenance_requests")
+        .select("id, title, actual_cost, estimated_cost, created_at, property_id")
+        .eq("company_id", companyId)
+        .or("actual_cost.gt.0,estimated_cost.gt.0");
+      maintData = (maintNoJE ?? []) as typeof maintData;
+    } else {
+      maintData = (maintWithJE ?? []) as typeof maintData;
+    }
 
     // Also check by reference in case journal_entry_id column is stale
-    const maintRefs = (maintenance ?? []).map((m) => `maintenance:${m.id}`);
+    const maintRefs = maintData.map((m) => `maintenance:${m.id}`);
     const { data: existingMaintRefJEs } = await supabase
       .from("journal_entries")
       .select("reference")
@@ -298,7 +310,7 @@ export async function backfillMissingJournalEntries(
       .in("reference", maintRefs.length > 0 ? maintRefs : ["__none__"]);
     const existingMaintRefSet = new Set((existingMaintRefJEs ?? []).map((j) => j.reference));
 
-    for (const m of maintenance ?? []) {
+    for (const m of maintData) {
       if (m.journal_entry_id) continue; // already linked
       if (existingMaintRefSet.has(`maintenance:${m.id}`)) continue; // already has JE by reference
       const cost = Number(m.actual_cost) || Number(m.estimated_cost) || 0;

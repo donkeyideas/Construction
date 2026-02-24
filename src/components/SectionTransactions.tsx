@@ -45,6 +45,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
   // Backfill state
   const [backfilling, setBackfilling] = useState(false);
   const [backfillDone, setBackfillDone] = useState(false);
+  const [backfillError, setBackfillError] = useState<string | null>(null);
 
   const missingJeCount = useMemo(
     () => data.transactions.filter((t) => !t.jeNumber && t.jeExpected !== false).length,
@@ -53,23 +54,29 @@ export default function SectionTransactions({ data, sectionName }: Props) {
 
   async function handleBackfill() {
     setBackfilling(true);
+    setBackfillError(null);
     try {
       const res = await fetch("/api/admin/backfill-journal-entries", { method: "POST" });
-      if (res.ok) {
-        const data = await res.json();
-        const total = (data.coGenerated || 0) + (data.invGenerated || 0) +
-          (data.contractsGenerated || 0) + (data.rfisGenerated || 0) +
-          (data.equipPurchaseGenerated || 0) + (data.depreciationGenerated || 0) +
-          (data.payrollGenerated || 0) + (data.maintenanceGenerated || 0) +
-          (data.leaseScheduled || 0) + (data.rentPaymentGenerated || 0) +
-          (data.draftsPosted || 0) + (data.banksSynced || 0);
-        if (total > 0) {
-          setBackfillDone(true);
-        }
-        router.refresh();
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ error: "Server error" }));
+        setBackfillError(errData.error || `Server error (${res.status})`);
+        return;
       }
-    } catch {
-      // ignore
+      const data = await res.json();
+      const total = (data.coGenerated || 0) + (data.invGenerated || 0) +
+        (data.contractsGenerated || 0) + (data.rfisGenerated || 0) +
+        (data.equipPurchaseGenerated || 0) + (data.depreciationGenerated || 0) +
+        (data.payrollGenerated || 0) + (data.maintenanceGenerated || 0) +
+        (data.leaseScheduled || 0) + (data.rentPaymentGenerated || 0) +
+        (data.draftsPosted || 0) + (data.banksSynced || 0);
+      if (total > 0) {
+        setBackfillDone(true);
+      } else {
+        setBackfillError("No JEs could be generated — required GL accounts may be missing");
+      }
+      router.refresh();
+    } catch (err) {
+      setBackfillError(err instanceof Error ? err.message : "Network error");
     } finally {
       setBackfilling(false);
     }
@@ -229,6 +236,11 @@ export default function SectionTransactions({ data, sectionName }: Props) {
             {sectionName} Transactions
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {backfillError && (
+              <span style={{ color: "var(--color-red, #ef4444)", fontSize: "0.78rem", maxWidth: 280 }}>
+                {backfillError}
+              </span>
+            )}
             {missingJeCount > 0 && !backfillDone && (
               <button
                 className="btn btn-primary"
