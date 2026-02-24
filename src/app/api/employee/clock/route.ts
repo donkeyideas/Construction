@@ -228,16 +228,14 @@ export async function POST(request: NextRequest) {
       project_name: project?.name ?? undefined,
     };
 
-    // On clock-out: create/update labor accrual JE
-    // Uses admin client to bypass RLS (employees may not have JE write access)
+    // On clock-out: sync time_entries + create/update labor accrual JE
+    // Uses admin client to bypass RLS (employees may not have write access)
     if (event_type === "clock_out") {
       try {
-        console.log("[labor-je] Clock-out detected, starting JE creation...");
         const adminSb = createAdminClient();
         const todayLocal = getTzToday();
         const jeDayBefore = addDaysToDateStr(todayLocal, -1);
         const jeDayAfter = addDaysToDateStr(todayLocal, 1);
-        console.log("[labor-je] todayLocal:", todayLocal, "userId:", userCtx.userId);
 
         // Fetch today's clock events (widened to ±1 day UTC, filtered by local date)
         const { data: todayData, error: evtErr } = await adminSb
@@ -249,22 +247,65 @@ export async function POST(request: NextRequest) {
           .lt("timestamp", `${jeDayAfter}T23:59:59.999Z`)
           .order("timestamp", { ascending: true });
 
-        if (evtErr) console.error("[labor-je] Error fetching events:", evtErr);
+        if (evtErr) console.error("[clock-out] Error fetching events:", evtErr);
 
-        const todayEvents = ((todayData ?? []) as ClockEvent[]).filter(
+        const todayClock = ((todayData ?? []) as ClockEvent[]).filter(
           (e) => toTzDateStr(e.timestamp) === todayLocal
         );
-        const todayHours = calculateTodayHours(todayEvents);
-        console.log("[labor-je] events:", todayEvents.length, "hours:", todayHours);
+        const todayHours = calculateTodayHours(todayClock);
 
+        // Find first clock_in and last clock_out of the day
+        const firstClockIn = todayClock.find((e) => e.event_type === "clock_in");
+        const lastClockOut = [...todayClock].reverse().find((e) => e.event_type === "clock_out");
+        const lastWithProject = [...todayClock].reverse().find((e) => e.project_id);
+
+        // ---- Sync to time_entries so employee portal + admin show same hours ----
         if (todayHours > 0) {
-          // Look up hourly rate
+          try {
+            // Check if a time_entries row already exists for this user+date
+            const { data: existingTE } = await adminSb
+              .from("time_entries")
+              .select("id")
+              .eq("user_id", userCtx.userId)
+              .eq("company_id", userCtx.companyId)
+              .eq("entry_date", todayLocal)
+              .limit(1)
+              .maybeSingle();
+
+            const tePayload = {
+              hours: todayHours,
+              clock_in: firstClockIn?.timestamp ?? null,
+              clock_out: lastClockOut?.timestamp ?? null,
+              project_id: lastWithProject?.project_id ?? null,
+              status: "approved",
+            };
+
+            if (existingTE) {
+              await adminSb
+                .from("time_entries")
+                .update(tePayload)
+                .eq("id", existingTE.id);
+            } else {
+              await adminSb
+                .from("time_entries")
+                .insert({
+                  ...tePayload,
+                  company_id: userCtx.companyId,
+                  user_id: userCtx.userId,
+                  entry_date: todayLocal,
+                });
+            }
+          } catch (teErr) {
+            console.error("[clock-out] time_entries sync error:", teErr);
+          }
+        }
+
+        // ---- Create/update labor accrual JE ----
+        if (todayHours > 0) {
           const rateMap = await getEmployeeRateMap(adminSb, userCtx.companyId);
           const rate = rateMap.get(userCtx.userId);
-          console.log("[labor-je] rateMap size:", rateMap.size, "rate for user:", rate);
 
           if (rate) {
-            // Get employee name
             const { data: profile } = await adminSb
               .from("user_profiles")
               .select("full_name, email")
@@ -273,12 +314,6 @@ export async function POST(request: NextRequest) {
 
             const employeeName = profile?.full_name || profile?.email || "Employee";
 
-            // Find project from the most recent clock event (if any)
-            const lastWithProject = [...todayEvents]
-              .reverse()
-              .find((e) => e.project_id);
-
-            console.log("[labor-je] Creating JE:", employeeName, todayHours, "h @", rate, "$/h =", Math.round(todayHours * rate * 100) / 100);
             await createLaborAccrualJE(
               adminSb,
               userCtx.companyId,
@@ -289,15 +324,10 @@ export async function POST(request: NextRequest) {
               todayLocal,
               lastWithProject?.project_id ?? undefined
             );
-            console.log("[labor-je] JE created successfully");
-          } else {
-            console.warn("[labor-je] No rate found for user", userCtx.userId);
           }
-        } else {
-          console.warn("[labor-je] todayHours <= 0, skipping JE");
         }
       } catch (jeErr) {
-        console.error("[labor-je] JE creation error:", jeErr);
+        console.error("[clock-out] JE/sync error:", jeErr);
       }
     }
 

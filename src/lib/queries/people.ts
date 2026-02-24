@@ -293,67 +293,99 @@ export async function getTimeEntriesFromClockEvents(
     (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
   );
 
-  // Group events by user + LOCAL date, then pair clock_in/clock_out
-  const dayMap = new Map<string, typeof data>();
+  // Group events by user, pair chronologically (handles cross-midnight),
+  // then assign hours to the clock_in date.
+  const userEventsMap = new Map<string, typeof data>();
   for (const row of data ?? []) {
-    const dateStr = toTzDateStr(row.timestamp as string);
-    const key = `${row.user_id}::${dateStr}`;
-    if (!dayMap.has(key)) dayMap.set(key, []);
-    dayMap.get(key)!.push(row);
+    const uid = row.user_id as string;
+    if (!userEventsMap.has(uid)) userEventsMap.set(uid, []);
+    userEventsMap.get(uid)!.push(row);
   }
 
+  type DayAccum = {
+    totalMs: number;
+    firstClockIn: string | null;
+    lastClockOut: string | null;
+    projectId: string | null;
+    stillClockedIn: boolean;
+    projectName: string | null;
+  };
+
   const entries: TimeEntry[] = [];
-  for (const [key, events] of dayMap) {
-    const [userId, dateStr] = key.split("::");
-    const sorted = events.sort(
+
+  for (const [userId, userEvents] of userEventsMap) {
+    const sorted = userEvents.sort(
       (a, b) => new Date(a.timestamp as string).getTime() - new Date(b.timestamp as string).getTime()
     );
 
-    // Calculate hours from paired events
-    let totalMs = 0;
-    let pendingIn: Date | null = null;
-    let firstClockIn: string | null = null;
-    let lastClockOut: string | null = null;
-    let projectId: string | null = null;
+    const dayTotals = new Map<string, DayAccum>();
+
+    const ensureDay = (ds: string): DayAccum => {
+      if (!dayTotals.has(ds)) {
+        dayTotals.set(ds, {
+          totalMs: 0, firstClockIn: null, lastClockOut: null,
+          projectId: null, stillClockedIn: false, projectName: null,
+        });
+      }
+      return dayTotals.get(ds)!;
+    };
+
+    let pendingIn: { ts: Date; dateStr: string; projectId: string | null } | null = null;
 
     for (const evt of sorted) {
+      const projJoin = (evt as Record<string, unknown>).projects as { name: string } | null;
+
       if (evt.event_type === "clock_in") {
-        pendingIn = new Date(evt.timestamp as string);
-        if (!firstClockIn) firstClockIn = evt.timestamp as string;
-        if (!projectId && evt.project_id) projectId = evt.project_id as string;
+        const ds = toTzDateStr(evt.timestamp as string);
+        pendingIn = {
+          ts: new Date(evt.timestamp as string),
+          dateStr: ds,
+          projectId: (evt.project_id as string) ?? null,
+        };
+        const day = ensureDay(ds);
+        if (!day.firstClockIn) day.firstClockIn = evt.timestamp as string;
+        if (!day.projectId && pendingIn.projectId) day.projectId = pendingIn.projectId;
+        if (!day.projectName && projJoin) day.projectName = projJoin.name;
+        day.stillClockedIn = true;
       } else if (evt.event_type === "clock_out" && pendingIn) {
+        // Assign hours to the clock_in's date (handles cross-midnight)
         const out = new Date(evt.timestamp as string);
-        totalMs += out.getTime() - pendingIn.getTime();
-        lastClockOut = evt.timestamp as string;
+        const ms = out.getTime() - pendingIn.ts.getTime();
+        const day = ensureDay(pendingIn.dateStr);
+        day.totalMs += ms;
+        day.lastClockOut = evt.timestamp as string;
+        day.stillClockedIn = false;
         pendingIn = null;
       }
     }
 
-    const hours = Math.round((totalMs / 3_600_000) * 100) / 100;
-    const profile = profileMap.get(userId) ?? null;
-    const projJoin = (sorted[0] as Record<string, unknown>)?.projects as { name: string } | null;
+    // Convert accumulated day data to TimeEntry objects
+    for (const [dateStr, day] of dayTotals) {
+      const hours = Math.round((day.totalMs / 3_600_000) * 100) / 100;
+      const profile = profileMap.get(userId) ?? null;
 
-    entries.push({
-      id: `ce-${userId}-${dateStr}`,
-      company_id: companyId,
-      user_id: userId,
-      project_id: projectId,
-      entry_date: dateStr,
-      clock_in: firstClockIn,
-      clock_out: lastClockOut,
-      hours: hours > 0 ? hours : null,
-      break_minutes: null,
-      work_type: null,
-      cost_code: null,
-      notes: pendingIn ? "Still clocked in" : null,
-      gps_lat: null,
-      gps_lng: null,
-      status: "approved" as TimeEntryStatus,
-      approved_by: null,
-      created_at: sorted[0]?.timestamp as string ?? dateStr,
-      user_profile: profile ? { full_name: profile.full_name, email: profile.email } : null,
-      project: projJoin ? { name: projJoin.name, code: null } : null,
-    });
+      entries.push({
+        id: `ce-${userId}-${dateStr}`,
+        company_id: companyId,
+        user_id: userId,
+        project_id: day.projectId,
+        entry_date: dateStr,
+        clock_in: day.firstClockIn,
+        clock_out: day.lastClockOut,
+        hours: hours > 0 ? hours : null,
+        break_minutes: null,
+        work_type: null,
+        cost_code: null,
+        notes: day.stillClockedIn ? "Still clocked in" : null,
+        gps_lat: null,
+        gps_lng: null,
+        status: "approved" as TimeEntryStatus,
+        approved_by: null,
+        created_at: day.firstClockIn ?? dateStr,
+        user_profile: profile ? { full_name: profile.full_name, email: profile.email } : null,
+        project: day.projectName ? { name: day.projectName, code: null } : null,
+      });
+    }
   }
 
   return entries.sort(
