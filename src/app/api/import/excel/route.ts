@@ -12,6 +12,7 @@ import {
   buildCompanyAccountMap,
   inferGLAccountFromDescription,
 } from "@/lib/utils/invoice-accounting";
+import { ensureBankAccountGLLink } from "@/lib/utils/bank-gl-linkage";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
@@ -111,6 +112,11 @@ export async function POST(request: NextRequest) {
     let totalSuccess = 0;
     let totalErrors = 0;
 
+    // Detect which entity types are present to skip redundant sheets
+    const presentEntities = new Set(
+      sortedSheets.map((s) => mapSheetToEntity(s.name)).filter(Boolean)
+    );
+
     for (let s = 0; s < sortedSheets.length; s++) {
       const sheet = sortedSheets[s];
       const entity = mapSheetToEntity(sheet.name);
@@ -119,6 +125,37 @@ export async function POST(request: NextRequest) {
         results.push({
           sheetName: sheet.name,
           entity: null,
+          rowCount: sheet.rows.length,
+          successCount: 0,
+          errorCount: 0,
+          errors: [],
+          skipped: true,
+        });
+        continue;
+      }
+
+      // Skip AR/AP sheets when a full invoices sheet is present (avoids duplicates)
+      if (
+        (entity === "accounts_receivable" || entity === "accounts_payable") &&
+        presentEntities.has("invoices")
+      ) {
+        results.push({
+          sheetName: sheet.name,
+          entity,
+          rowCount: sheet.rows.length,
+          successCount: 0,
+          errorCount: 0,
+          errors: [],
+          skipped: true,
+        });
+        continue;
+      }
+
+      // Skip opening_balances when journal_entries sheet is present
+      if (entity === "opening_balances" && presentEntities.has("journal_entries")) {
+        results.push({
+          sheetName: sheet.name,
+          entity,
           rowCount: sheet.rows.length,
           successCount: 0,
           errorCount: 0,
@@ -320,7 +357,7 @@ async function processEntity(
     case "bank_accounts": {
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
-        const { error } = await supabase.from("bank_accounts").insert({
+        const { data: inserted, error } = await supabase.from("bank_accounts").insert({
           company_id: companyId,
           name: r.name || "",
           bank_name: r.bank_name || "",
@@ -328,9 +365,23 @@ async function processEntity(
           account_number_last4: r.account_number_last4 || "",
           routing_number_last4: r.routing_number_last4 || "",
           current_balance: r.current_balance ? parseFloat(r.current_balance) : 0,
-        });
-        if (error) errors.push(`Row ${i + 2}: ${error.message}`);
-        else successCount++;
+        }).select("id").single();
+        if (error) {
+          errors.push(`Row ${i + 2}: ${error.message}`);
+        } else {
+          successCount++;
+          // Create GL sub-account for this bank account
+          if (inserted) {
+            try {
+              await ensureBankAccountGLLink(
+                supabase, companyId, inserted.id,
+                r.name || "", r.account_type || "checking"
+              );
+            } catch (glErr) {
+              console.warn(`Bank GL link failed for ${r.name}:`, glErr);
+            }
+          }
+        }
       }
       break;
     }
@@ -1565,6 +1616,31 @@ async function processEntity(
         else successCount++;
       }
       break;
+    }
+
+    // Fallback handlers: AR/AP → invoices, opening_balances → journal_entries
+    // These only run when the parent entity sheet is absent from the workbook
+    case "accounts_receivable": {
+      // Process as invoices with forced type=receivable
+      for (const r of rows) {
+        r.invoice_type = "receivable";
+        if (!r.invoice_date) r.invoice_date = r.due_date || new Date().toISOString().split("T")[0];
+      }
+      return processEntity(supabase, companyId, userId, "invoices", rows);
+    }
+
+    case "accounts_payable": {
+      // Process as invoices with forced type=payable
+      for (const r of rows) {
+        r.invoice_type = "payable";
+        if (!r.invoice_date) r.invoice_date = r.due_date || new Date().toISOString().split("T")[0];
+      }
+      return processEntity(supabase, companyId, userId, "invoices", rows);
+    }
+
+    case "opening_balances": {
+      // Process as journal entries
+      return processEntity(supabase, companyId, userId, "journal_entries", rows);
     }
 
     default: {

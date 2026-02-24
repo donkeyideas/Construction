@@ -53,6 +53,10 @@ const SHEET_ENTITY_MAP: Record<string, string> = {
   "phases": "phases",
   "property expenses": "property_expenses",
   "estimates": "estimates",
+  // Supplementary sheets (may overlap with invoices / journal_entries)
+  "accounts receivable": "accounts_receivable",
+  "accounts payable": "accounts_payable",
+  "opening balances": "opening_balances",
 };
 
 // ---------------------------------------------------------------------------
@@ -92,6 +96,10 @@ const DEPENDENCY_ORDER: string[] = [
   "tasks",
   "property_expenses",
   "estimates",
+  // Supplementary — processed only if parent entity absent
+  "accounts_receivable",
+  "accounts_payable",
+  "opening_balances",
 ];
 
 // ---------------------------------------------------------------------------
