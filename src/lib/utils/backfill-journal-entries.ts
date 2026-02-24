@@ -1,7 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
   buildCompanyAccountMap,
-  generateChangeOrderJournalEntry,
   generateInvoiceJournalEntry,
   generateLeaseRevenueSchedule,
   generateRentPaymentJournalEntry,
@@ -106,126 +105,11 @@ export async function backfillMissingJournalEntries(
     return result;
   }
 
-  // --- Change Orders ---
-  const { data: changeOrders } = await supabase
-    .from("change_orders")
-    .select("id, co_number, amount, reason, project_id, title, status")
-    .eq("company_id", companyId)
-    .in("status", ["approved", "draft", "submitted"])
-    .not("amount", "is", null);
-
-  if (changeOrders && changeOrders.length > 0) {
-    const coRefs = changeOrders.map((co) => `change_order:${co.id}`);
-    const { data: existingJEs } = await supabase
-      .from("journal_entries")
-      .select("reference")
-      .eq("company_id", companyId)
-      .in("reference", coRefs);
-    const existingRefs = new Set((existingJEs ?? []).map((j) => j.reference));
-
-    for (const co of changeOrders) {
-      if (existingRefs.has(`change_order:${co.id}`)) continue;
-      if (co.amount === 0) continue;
-      try {
-        const r = await generateChangeOrderJournalEntry(supabase, companyId, userId, {
-          id: co.id, co_number: co.co_number, amount: co.amount,
-          reason: co.reason || "design_change", project_id: co.project_id, title: co.title,
-        }, accountMap);
-        if (r) result.coGenerated++;
-      } catch (err) { console.warn("Backfill CO JE failed:", co.id, err); }
-    }
-  }
-
-  // --- Contracts (commitment JE: DR WIP/Expense / CR AP) ---
-  const { data: contracts } = await supabase
-    .from("contracts")
-    .select("id, contract_number, title, contract_amount, start_date, project_id, status")
-    .eq("company_id", companyId)
-    .not("contract_amount", "is", null);
-
-  if (contracts && contracts.length > 0) {
-    const contractRefs = contracts.map((c) => `contract:${c.id}`);
-    const { data: existingContractJEs } = await supabase
-      .from("journal_entries")
-      .select("reference")
-      .eq("company_id", companyId)
-      .in("reference", contractRefs);
-    const existingContractRefSet = new Set((existingContractJEs ?? []).map((j) => j.reference));
-
-    const expenseAccountId = accountMap.byNumber["5000"] || accountMap.byNumber["5010"] || accountMap.byNumber["6000"] || null;
-    const creditAccountId = accountMap.apId || accountMap.cashId;
-
-    if (expenseAccountId && creditAccountId) {
-      for (const c of contracts) {
-        if (existingContractRefSet.has(`contract:${c.id}`)) continue;
-        const amount = Number(c.contract_amount) || 0;
-        if (amount <= 0) continue;
-        try {
-          const shortId = c.id.substring(0, 8);
-          const desc = `Contract ${c.contract_number || c.title || shortId}`;
-          const entryData = {
-            entry_number: `JE-CTR-${c.contract_number || shortId}`,
-            entry_date: c.start_date ?? new Date().toISOString().split("T")[0],
-            description: desc,
-            reference: `contract:${c.id}`,
-            project_id: c.project_id ?? undefined,
-            lines: [
-              { account_id: expenseAccountId, debit: amount, credit: 0, description: desc, project_id: c.project_id ?? undefined },
-              { account_id: creditAccountId, debit: 0, credit: amount, description: desc, project_id: c.project_id ?? undefined },
-            ],
-          };
-          const r = await createPostedJournalEntry(supabase, companyId, userId, entryData);
-          if (r) result.contractsGenerated++;
-        } catch (err) { console.warn("Backfill contract JE failed:", c.id, err); }
-      }
-    }
-  }
-
-  // --- RFIs (cost impact JE: DR Expense / CR AP) ---
-  const { data: rfis } = await supabase
-    .from("rfis")
-    .select("id, rfi_number, subject, cost_impact, created_at, project_id, status")
-    .eq("company_id", companyId)
-    .not("cost_impact", "is", null)
-    .gt("cost_impact", 0);
-
-  if (rfis && rfis.length > 0) {
-    const rfiRefs = rfis.map((r) => `rfi:${r.id}`);
-    const { data: existingRfiJEs } = await supabase
-      .from("journal_entries")
-      .select("reference")
-      .eq("company_id", companyId)
-      .in("reference", rfiRefs);
-    const existingRfiRefSet = new Set((existingRfiJEs ?? []).map((j) => j.reference));
-
-    const rfiExpenseId = accountMap.byNumber["5000"] || accountMap.byNumber["5010"] || accountMap.byNumber["6000"] || null;
-    const rfiCreditId = accountMap.apId || accountMap.cashId;
-
-    if (rfiExpenseId && rfiCreditId) {
-      for (const rfi of rfis) {
-        if (existingRfiRefSet.has(`rfi:${rfi.id}`)) continue;
-        const amount = Number(rfi.cost_impact) || 0;
-        if (amount <= 0) continue;
-        try {
-          const shortId = rfi.id.substring(0, 8);
-          const desc = `RFI ${rfi.rfi_number || shortId} — ${rfi.subject || "Cost Impact"}`;
-          const entryData = {
-            entry_number: `JE-RFI-${rfi.rfi_number || shortId}`,
-            entry_date: rfi.created_at?.split("T")[0] ?? new Date().toISOString().split("T")[0],
-            description: desc,
-            reference: `rfi:${rfi.id}`,
-            project_id: rfi.project_id ?? undefined,
-            lines: [
-              { account_id: rfiExpenseId, debit: amount, credit: 0, description: desc, project_id: rfi.project_id ?? undefined },
-              { account_id: rfiCreditId, debit: 0, credit: amount, description: desc, project_id: rfi.project_id ?? undefined },
-            ],
-          };
-          const r = await createPostedJournalEntry(supabase, companyId, userId, entryData);
-          if (r) result.rfisGenerated++;
-        } catch (err) { console.warn("Backfill RFI JE failed:", rfi.id, err); }
-      }
-    }
-  }
+  // NOTE: Change Orders, Contracts, and RFIs are tracked as commitments / scope
+  // records. They do NOT generate their own JEs — the actual financial impact is
+  // captured by invoices (receivable or payable) issued against those contracts.
+  // Creating DR Expense / CR AP for a full contract value would double-count
+  // with the invoice JEs that already create proper AR/AP entries.
 
   // --- Invoices ---
   const { data: invoices } = await supabase

@@ -723,13 +723,20 @@ export async function getSafetyOverview(
     )
     .slice(0, 8);
 
-  // Upcoming talks
+  // Upcoming / next scheduled talks — show nearest-future first, then most-recent
+  const today = now.toISOString().slice(0, 10);
   const upcomingTalks = talks
-    .filter(
-      (t) =>
-        t.status === "scheduled" &&
-        (t.scheduled_date ?? t.conducted_date) >= now.toISOString().slice(0, 10)
-    )
+    .filter((t) => t.status === "scheduled")
+    .sort((a, b) => {
+      const aDate = a.scheduled_date ?? a.conducted_date ?? "";
+      const bDate = b.scheduled_date ?? b.conducted_date ?? "";
+      const aFuture = aDate >= today;
+      const bFuture = bDate >= today;
+      // Future talks first (ascending by date), then past talks (descending by date)
+      if (aFuture && !bFuture) return -1;
+      if (!aFuture && bFuture) return 1;
+      return aFuture ? aDate.localeCompare(bDate) : bDate.localeCompare(aDate);
+    })
     .slice(0, 5);
 
   return {
