@@ -188,35 +188,35 @@ export default function EstimatingClient({
         </div>
       </div>
 
-      {/* KPIs - same as CRM pipeline summary */}
-      <div className="pipeline-summary-card">
-        <div>
-          <div className="pipeline-summary-icon">
-            <FileText size={20} />
+      {/* KPIs - matches Dashboard kpi-grid */}
+      <div className="kpi-grid">
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">{t("estimatingTotalEstimates")}</span>
+            <span className="kpi-value">{totalEstimates}</span>
           </div>
-          <div className="pipeline-summary-label">{t("estimatingTotalEstimates")}</div>
-          <div className="pipeline-summary-value">{totalEstimates}</div>
+          <div className="kpi-icon"><FileText size={22} /></div>
         </div>
-        <div>
-          <div className="pipeline-summary-icon">
-            <DollarSign size={20} />
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">{t("estimatingTotalValue")}</span>
+            <span className="kpi-value">{formatCurrency(totalValue)}</span>
           </div>
-          <div className="pipeline-summary-label">{t("estimatingTotalValue")}</div>
-          <div className="pipeline-summary-value">{formatCurrency(totalValue)}</div>
+          <div className="kpi-icon"><DollarSign size={22} /></div>
         </div>
-        <div>
-          <div className="pipeline-summary-icon">
-            <Calculator size={20} />
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">{t("estimatingAvgMargin")}</span>
+            <span className="kpi-value">{avgMargin.toFixed(1)}%</span>
           </div>
-          <div className="pipeline-summary-label">{t("estimatingAvgMargin")}</div>
-          <div className="pipeline-summary-value">{avgMargin.toFixed(1)}%</div>
+          <div className="kpi-icon"><Calculator size={22} /></div>
         </div>
-        <div>
-          <div className="pipeline-summary-icon">
-            <Package size={20} />
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">{t("estimatingAssemblies")}</span>
+            <span className="kpi-value">{assemblies.length}</span>
           </div>
-          <div className="pipeline-summary-label">{t("estimatingAssemblies")}</div>
-          <div className="pipeline-summary-value">{assemblies.length}</div>
+          <div className="kpi-icon"><Package size={22} /></div>
         </div>
       </div>
 
@@ -294,7 +294,7 @@ export default function EstimatingClient({
                         <td className={`margin-col ${getMarginClass(est.margin_pct)}`}>
                           {est.margin_pct?.toFixed(1)}%
                         </td>
-                        <td suppressHydrationWarning>{new Date(est.created_at + "T00:00:00").toLocaleDateString(dateLocale)}</td>
+                        <td suppressHydrationWarning>{new Date(est.created_at).toLocaleDateString(dateLocale)}</td>
                       </tr>
                     );
                   })}
