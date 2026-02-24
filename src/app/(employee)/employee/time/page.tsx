@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getClockEvents, getCurrentClockStatus } from "@/lib/queries/employee-portal";
+import { getTzToday, toTzDateStr } from "@/lib/utils/timezone";
 import ClockClient from "./ClockClient";
 
 export const metadata = { title: "Clock In/Out - Buildwrk" };
@@ -13,7 +14,7 @@ export default async function EmployeeTimePage() {
     redirect("/login");
   }
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getTzToday();
 
   // Fetch clock status and today's events in parallel
   const [clockStatus, todayEvents, weekEntriesRes] = await Promise.all([
@@ -35,8 +36,8 @@ export default async function EmployeeTimePage() {
         .select("entry_date, hours")
         .eq("user_id", userCtx.userId)
         .eq("company_id", userCtx.companyId)
-        .gte("entry_date", monday.toISOString().slice(0, 10))
-        .lte("entry_date", sunday.toISOString().slice(0, 10));
+        .gte("entry_date", toTzDateStr(monday))
+        .lte("entry_date", toTzDateStr(sunday));
     })(),
   ]);
 
@@ -52,7 +53,7 @@ export default async function EmployeeTimePage() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    weeklyHours[d.toISOString().slice(0, 10)] = 0;
+    weeklyHours[toTzDateStr(d)] = 0;
   }
 
   for (const entry of weekEntriesRes.data ?? []) {

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getTimeEntries, getTimeEntriesFromClockEvents, type TimeEntry } from "@/lib/queries/people";
 import { getEmployeeRateMap, rateMapToRecord } from "@/lib/utils/labor-cost";
+import { toTzDateStr } from "@/lib/utils/timezone";
 import TimeClient from "./TimeClient";
 
 export const metadata = {
@@ -29,7 +30,7 @@ function addDays(date: Date, days: number): Date {
 }
 
 function formatDateISO(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return toTzDateStr(date);
 }
 
 // ---------------------------------------------------------------------------

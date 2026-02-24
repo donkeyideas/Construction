@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
+import { getLocalToday } from "@/lib/utils/timezone";
 
 interface LineItem {
   id: string;
@@ -28,9 +29,7 @@ export default function NewBidPage() {
   const [bidNumber, setBidNumber] = useState("");
   const [projectName, setProjectName] = useState("");
   const [clientName, setClientName] = useState("");
-  const [bidDate, setBidDate] = useState(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [bidDate, setBidDate] = useState(getLocalToday);
   const [dueDate, setDueDate] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
   const [bidAmount, setBidAmount] = useState("");

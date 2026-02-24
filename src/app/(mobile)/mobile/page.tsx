@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getUserDisplayName } from "@/lib/queries/user";
 import { getTranslations, getLocale } from "next-intl/server";
+import { getTzToday } from "@/lib/utils/timezone";
 
 export const metadata = {
   title: "Mobile Home - Buildwrk",
@@ -33,7 +34,7 @@ export default async function MobileHomePage() {
   const locale = await getLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTzToday();
   const now = new Date();
   const dateDisplay = now.toLocaleDateString(dateLocale, {
     weekday: "long",

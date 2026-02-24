@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getEmployeeRateMap, createLaborAccrualJE } from "@/lib/utils/labor-cost";
+import { toTzDateStr } from "@/lib/utils/timezone";
 import ReconcileClient from "./ReconcileClient";
 
 export const metadata = { title: "Labor Reconcile - Buildwrk" };
@@ -120,13 +121,13 @@ export default async function ReconcilePage() {
       .order("timestamp", { ascending: true });
 
     if (clockEvents && clockEvents.length > 0) {
-      // Group events by user_id + date
+      // Group events by user_id + LOCAL date (not UTC)
       const groups: Record<
         string,
         { userId: string; date: string; events: typeof clockEvents; projectId?: string }
       > = {};
       for (const evt of clockEvents) {
-        const dateStr = evt.timestamp.slice(0, 10);
+        const dateStr = toTzDateStr(evt.timestamp);
         const key = `${evt.user_id}:${dateStr}`;
         if (!groups[key]) {
           groups[key] = { userId: evt.user_id, date: dateStr, events: [] };

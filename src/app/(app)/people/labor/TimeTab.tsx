@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getLocalToday } from "@/lib/utils/timezone";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Plus,
@@ -111,7 +112,7 @@ export default function TimeTab({
   const [approving, setApproving] = useState(false);
   const isAdmin = ["owner", "admin"].includes(userRole);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalToday();
 
   const [formData, setFormData] = useState({
     project_id: "",

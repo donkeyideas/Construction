@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { getLocalToday } from "@/lib/utils/timezone";
 
 interface DailyLogClientProps {
   projects: Array<{ id: string; name: string; code: string }>;
@@ -44,9 +45,7 @@ export default function DailyLogClient({ projects }: DailyLogClientProps) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [logDate, setLogDate] = useState(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [logDate, setLogDate] = useState(getLocalToday);
   const [projectId, setProjectId] = useState(
     projects.length > 0 ? projects[0].id : ""
   );

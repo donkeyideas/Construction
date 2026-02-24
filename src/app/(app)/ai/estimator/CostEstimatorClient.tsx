@@ -186,7 +186,8 @@ export default function CostEstimatorClient({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    const dateStr = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     a.download = `Cost_Estimate_${projectType}_${dateStr}.txt`;
     document.body.appendChild(a);
     a.click();

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { getLocalToday } from "@/lib/utils/timezone";
 import {
   FileSignature,
   DollarSign,
@@ -169,7 +170,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
   const [showRecordPayment, setShowRecordPayment] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
     amount: "",
-    payment_date: new Date().toISOString().slice(0, 10),
+    payment_date: getLocalToday(),
     due_date: "",
     method: "ach",
     reference_number: "",
@@ -431,10 +432,10 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
   function openRecordPayment() {
     if (!selectedLease) return;
     const now = new Date();
-    const dueDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const dueDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
     setPaymentForm({
       amount: String(selectedLease.monthly_rent || ""),
-      payment_date: now.toISOString().slice(0, 10),
+      payment_date: getLocalToday(),
       due_date: dueDate,
       method: "ach",
       reference_number: "",

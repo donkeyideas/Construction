@@ -7,6 +7,7 @@ import {
 } from "@/lib/queries/payroll";
 import { getTimeEntries, getTimeEntriesFromClockEvents, type TimeEntry } from "@/lib/queries/people";
 import { getEmployeeRateMap, rateMapToRecord } from "@/lib/utils/labor-cost";
+import { getTzToday, toTzDateStr } from "@/lib/utils/timezone";
 import LaborClient from "./LaborClient";
 
 export const metadata = {
@@ -33,7 +34,7 @@ function addDays(date: Date, days: number): Date {
 }
 
 function formatDateISO(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return toTzDateStr(date);
 }
 
 /* ------------------------------------------------------------------
@@ -59,7 +60,7 @@ export default async function LaborPage({
      Week calculations for time / activity tabs
      ---------------------------------------------------------------- */
   const today = new Date();
-  const todayISO = today.toISOString().slice(0, 10);
+  const todayISO = getTzToday();
 
   let weekStart: Date;
   if (params.week) {
@@ -78,7 +79,7 @@ export default async function LaborPage({
   // Activity week always uses current week
   const activityWeekStart = new Date(today);
   activityWeekStart.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
-  const activityWeekStartISO = activityWeekStart.toISOString().slice(0, 10);
+  const activityWeekStartISO = toTzDateStr(activityWeekStart);
 
   /* ----------------------------------------------------------------
      Parallel data fetching
@@ -153,7 +154,7 @@ export default async function LaborPage({
             filing_status: "single",
             federal_allowances: 0,
             state_code: "",
-            effective_date: new Date().toISOString().slice(0, 10),
+            effective_date: getTzToday(),
           })
         )
       );
@@ -246,7 +247,7 @@ export default async function LaborPage({
     }
 
     const activity = activityMap.get(userId)!;
-    const eventDate = event.timestamp.slice(0, 10);
+    const eventDate = toTzDateStr(event.timestamp);
 
     if (!activity.lastEvent) {
       activity.lastEvent = event.timestamp;
@@ -281,7 +282,7 @@ export default async function LaborPage({
         const duration = endTime - startTime;
 
         weekMs += duration;
-        if (ev.timestamp.slice(0, 10) === todayISO) {
+        if (toTzDateStr(ev.timestamp) === todayISO) {
           todayMs += duration;
         }
         if (clockOut) i++;

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getTranslations, getLocale } from "next-intl/server";
+import { getTzToday, toTzDateStr } from "@/lib/utils/timezone";
 import ClockClient from "./ClockClient";
 
 export const metadata = {
@@ -17,7 +18,7 @@ export default async function ClockPage() {
   }
 
   const { userId, companyId } = userCompany;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTzToday();
   const t = await getTranslations("mobile.clock");
   const locale = await getLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
@@ -28,7 +29,7 @@ export default async function ClockPage() {
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const monday = new Date(now);
   monday.setDate(now.getDate() + mondayOffset);
-  const weekStart = monday.toISOString().slice(0, 10);
+  const weekStart = toTzDateStr(monday);
 
   // Fetch data in parallel
   const [todayEntriesRes, weekEntriesRes, projectsRes] = await Promise.all([
@@ -81,7 +82,7 @@ export default async function ClockPage() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = toTzDateStr(d);
     const dayHours = weekEntries
       .filter(
         (e: { entry_date: string }) => e.entry_date === dateStr

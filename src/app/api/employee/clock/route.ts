@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import type { ClockEvent } from "@/lib/queries/employee-portal";
 import { getEmployeeRateMap, createLaborAccrualJE } from "@/lib/utils/labor-cost";
+import { getTzToday, toTzDateStr, addDaysToDateStr } from "@/lib/utils/timezone";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -56,15 +57,18 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayLocal = getTzToday();
+    // Widen query to ±1 day UTC to capture all events from the local date
+    const dayBefore = addDaysToDateStr(todayLocal, -1);
+    const dayAfter = addDaysToDateStr(todayLocal, 1);
 
     const { data, error } = await supabase
       .from("clock_events")
       .select("*, projects(name)")
       .eq("user_id", userCtx.userId)
       .eq("company_id", userCtx.companyId)
-      .gte("timestamp", `${todayStr}T00:00:00.000Z`)
-      .lt("timestamp", `${todayStr}T23:59:59.999Z`)
+      .gte("timestamp", `${dayBefore}T00:00:00.000Z`)
+      .lt("timestamp", `${dayAfter}T23:59:59.999Z`)
       .order("timestamp", { ascending: true });
 
     if (error) {
@@ -72,7 +76,10 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    const todayEvents: ClockEvent[] = (data ?? []).map(
+    // Filter to only events on today's LOCAL date
+    const todayEvents: ClockEvent[] = (data ?? []).filter(
+      (row) => toTzDateStr(row.timestamp as string) === todayLocal
+    ).map(
       (row: Record<string, unknown>) => {
         const project = row.projects as { name: string } | null;
         return {
@@ -227,22 +234,26 @@ export async function POST(request: NextRequest) {
       try {
         console.log("[labor-je] Clock-out detected, starting JE creation...");
         const adminSb = createAdminClient();
-        const todayStr = new Date().toISOString().slice(0, 10);
-        console.log("[labor-je] todayStr:", todayStr, "userId:", userCtx.userId);
+        const todayLocal = getTzToday();
+        const jeDayBefore = addDaysToDateStr(todayLocal, -1);
+        const jeDayAfter = addDaysToDateStr(todayLocal, 1);
+        console.log("[labor-je] todayLocal:", todayLocal, "userId:", userCtx.userId);
 
-        // Fetch all of today's clock events for this user
+        // Fetch today's clock events (widened to ±1 day UTC, filtered by local date)
         const { data: todayData, error: evtErr } = await adminSb
           .from("clock_events")
           .select("id, event_type, timestamp, project_id")
           .eq("user_id", userCtx.userId)
           .eq("company_id", userCtx.companyId)
-          .gte("timestamp", `${todayStr}T00:00:00.000Z`)
-          .lt("timestamp", `${todayStr}T23:59:59.999Z`)
+          .gte("timestamp", `${jeDayBefore}T00:00:00.000Z`)
+          .lt("timestamp", `${jeDayAfter}T23:59:59.999Z`)
           .order("timestamp", { ascending: true });
 
         if (evtErr) console.error("[labor-je] Error fetching events:", evtErr);
 
-        const todayEvents = (todayData ?? []) as ClockEvent[];
+        const todayEvents = ((todayData ?? []) as ClockEvent[]).filter(
+          (e) => toTzDateStr(e.timestamp) === todayLocal
+        );
         const todayHours = calculateTodayHours(todayEvents);
         console.log("[labor-je] events:", todayEvents.length, "hours:", todayHours);
 
@@ -275,7 +286,7 @@ export async function POST(request: NextRequest) {
               employeeName,
               todayHours,
               rate,
-              todayStr,
+              todayLocal,
               lastWithProject?.project_id ?? undefined
             );
             console.log("[labor-je] JE created successfully");

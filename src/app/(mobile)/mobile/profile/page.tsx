@@ -4,6 +4,7 @@ import { Monitor, Settings, LogOut, ChevronRight, BarChart3 } from "lucide-react
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getUserDisplayName } from "@/lib/queries/user";
+import { getTzToday, toTzDateStr } from "@/lib/utils/timezone";
 import { getTranslations } from "next-intl/server";
 
 export const metadata = {
@@ -23,14 +24,14 @@ export default async function ProfilePage() {
   const t = await getTranslations("mobile.profile");
   const tc = await getTranslations("common");
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTzToday();
 
   const now = new Date();
   const dayOfWeek = now.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const monday = new Date(now);
   monday.setDate(now.getDate() + mondayOffset);
-  const weekStart = monday.toISOString().slice(0, 10);
+  const weekStart = toTzDateStr(monday);
 
   const [todayEntriesRes, weekEntriesRes, projectsRes] = await Promise.all([
     supabase

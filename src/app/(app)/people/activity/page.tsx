@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getEmployeeRateMap, rateMapToRecord } from "@/lib/utils/labor-cost";
+import { getTzToday, toTzDateStr } from "@/lib/utils/timezone";
 import ActivityClient from "./ActivityClient";
 
 export const metadata = { title: "Employee Activity - Buildwrk" };
@@ -15,10 +16,10 @@ export default async function EmployeeActivityPage() {
 
   // Get today's date range
   const today = new Date();
-  const todayISO = today.toISOString().slice(0, 10);
+  const todayISO = getTzToday();
   const weekStart = new Date(today);
   weekStart.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
-  const weekStartISO = weekStart.toISOString().slice(0, 10);
+  const weekStartISO = toTzDateStr(weekStart);
 
   // Fetch clock events, employee names, and pay rates in parallel
   const [clockRes, employeeRes, rateMap] = await Promise.all([

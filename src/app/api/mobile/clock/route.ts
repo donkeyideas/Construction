@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getTzToday } from "@/lib/utils/timezone";
 
 // ---------------------------------------------------------------------------
 // POST /api/mobile/clock - Clock in (create time entry with clock_in)
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const now = new Date();
-    const entryDate = now.toISOString().slice(0, 10);
+    const entryDate = getTzToday();
     const clockIn = now.toISOString();
 
     // Check if user already has an open entry today (no clock_out)

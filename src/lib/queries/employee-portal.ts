@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getTzToday, toTzDateStr, addDaysToDateStr } from "@/lib/utils/timezone";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -174,14 +175,16 @@ export async function getEmployeeDashboard(
   companyId: string
 ): Promise<EmployeeDashboardData> {
   const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = getTzToday();
 
-  // ISO week: Monday through Sunday
+  // ISO week: Monday through Sunday (in platform timezone)
   const weekMonday = getISOWeekMonday(now);
   const weekSunday = new Date(weekMonday);
   weekSunday.setDate(weekMonday.getDate() + 6);
-  const weekStartStr = weekMonday.toISOString().slice(0, 10);
-  const weekEndStr = weekSunday.toISOString().slice(0, 10);
+  const weekStartStr = toTzDateStr(weekMonday);
+  const weekEndStr = toTzDateStr(weekSunday);
+  // Buffer for UTC queries — add 1 day so evening events are captured
+  const weekQueryEnd = addDaysToDateStr(weekEndStr, 1);
 
   const [
     clockEventsRes,
@@ -198,24 +201,24 @@ export async function getEmployeeDashboard(
     rfisRes,
     photosRes,
   ] = await Promise.all([
-    // Today's clock events
+    // Today's clock events (widened to ±1 day UTC, filtered in-memory by local date)
     supabase
       .from("clock_events")
       .select("*, projects(name)")
       .eq("user_id", userId)
       .eq("company_id", companyId)
-      .gte("timestamp", `${todayStr}T00:00:00.000Z`)
-      .lt("timestamp", `${todayStr}T23:59:59.999Z`)
+      .gte("timestamp", `${addDaysToDateStr(todayStr, -1)}T00:00:00.000Z`)
+      .lt("timestamp", `${addDaysToDateStr(todayStr, 1)}T23:59:59.999Z`)
       .order("timestamp", { ascending: false }),
 
-    // Week clock events (Mon-Sun) for hours calculation + timecard
+    // Week clock events (Mon-Sun) with +1 day buffer for timezone coverage
     supabase
       .from("clock_events")
       .select("*, projects(name)")
       .eq("user_id", userId)
       .eq("company_id", companyId)
       .gte("timestamp", `${weekStartStr}T00:00:00.000Z`)
-      .lte("timestamp", `${weekEndStr}T23:59:59.999Z`)
+      .lt("timestamp", `${weekQueryEnd}T12:00:00.000Z`)
       .order("timestamp", { ascending: true }),
 
     // Pending time entries count (placeholder — time_entries not used by clock system)
@@ -312,9 +315,10 @@ export async function getEmployeeDashboard(
       .limit(10),
   ]);
 
-  // Parse clock events
-  const todayEvents: ClockEvent[] = (clockEventsRes.data ?? []).map(
-    (row: Record<string, unknown>) => {
+  // Parse clock events — filter to local "today" (query was widened for timezone safety)
+  const todayEvents: ClockEvent[] = (clockEventsRes.data ?? [])
+    .filter((row: Record<string, unknown>) => toTzDateStr(row.timestamp as string) === todayStr)
+    .map((row: Record<string, unknown>) => {
       const project = row.projects as { name: string } | null;
       return {
         id: row.id as string,
@@ -326,8 +330,7 @@ export async function getEmployeeDashboard(
         notes: (row.notes as string) ?? null,
         project_name: project?.name ?? undefined,
       };
-    }
-  );
+    });
 
   const lastEvent = todayEvents.length > 0 ? todayEvents[0] : null;
   const isClockedIn = lastEvent?.event_type === "clock_in";
@@ -471,12 +474,15 @@ export async function getClockEvents(
   userId: string,
   date: string
 ): Promise<ClockEvent[]> {
+  // Widen query by ±1 day to handle UTC/local timezone mismatch
+  const dayBefore = addDaysToDateStr(date, -1);
+  const dayAfter = addDaysToDateStr(date, 1);
   const { data, error } = await supabase
     .from("clock_events")
     .select("*, projects(name)")
     .eq("user_id", userId)
-    .gte("timestamp", `${date}T00:00:00.000Z`)
-    .lt("timestamp", `${date}T23:59:59.999Z`)
+    .gte("timestamp", `${dayBefore}T00:00:00.000Z`)
+    .lt("timestamp", `${dayAfter}T23:59:59.999Z`)
     .order("timestamp", { ascending: true });
 
   if (error) {
@@ -484,19 +490,22 @@ export async function getClockEvents(
     return [];
   }
 
-  return (data ?? []).map((row: Record<string, unknown>) => {
-    const project = row.projects as { name: string } | null;
-    return {
-      id: row.id as string,
-      company_id: row.company_id as string,
-      user_id: row.user_id as string,
-      event_type: row.event_type as "clock_in" | "clock_out",
-      timestamp: row.timestamp as string,
-      project_id: (row.project_id as string) ?? null,
-      notes: (row.notes as string) ?? null,
-      project_name: project?.name ?? undefined,
-    };
-  });
+  // Filter by local date (query was widened for timezone safety)
+  return (data ?? [])
+    .filter((row: Record<string, unknown>) => toTzDateStr(row.timestamp as string) === date)
+    .map((row: Record<string, unknown>) => {
+      const project = row.projects as { name: string } | null;
+      return {
+        id: row.id as string,
+        company_id: row.company_id as string,
+        user_id: row.user_id as string,
+        event_type: row.event_type as "clock_in" | "clock_out",
+        timestamp: row.timestamp as string,
+        project_id: (row.project_id as string) ?? null,
+        notes: (row.notes as string) ?? null,
+        project_name: project?.name ?? undefined,
+      };
+    });
 }
 
 // ---------------------------------------------------------------------------

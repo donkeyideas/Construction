@@ -95,7 +95,7 @@ const markdownComponents = {
 // ---------------------------------------------------------------------------
 
 function formatDateForInput(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function getDefaultStartDate(): string {
@@ -224,8 +224,7 @@ export default function ReportGeneratorClient({
     const a = document.createElement("a");
     a.href = url;
     const typeLabel = REPORT_TYPES.find((t) => t.id === reportType)?.label ?? "Report";
-    const dateStr = new Date().toISOString().slice(0, 10);
-    a.download = `${typeLabel.replace(/\s+/g, "_")}_${dateStr}.txt`;
+    a.download = `${typeLabel.replace(/\s+/g, "_")}_${formatDateForInput(new Date())}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

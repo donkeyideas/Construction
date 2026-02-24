@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { toTzDateStr, addDaysToDateStr } from "@/lib/utils/timezone";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -268,9 +269,11 @@ export async function getTimeEntriesFromClockEvents(
     query = query.eq("project_id", filters.projectId);
   }
   if (filters?.dateRange) {
+    // Buffer end by +1 day so evening events (which are next-day UTC) are captured
+    const bufferedEnd = addDaysToDateStr(filters.dateRange.end, 1);
     query = query
       .gte("timestamp", `${filters.dateRange.start}T00:00:00.000Z`)
-      .lte("timestamp", `${filters.dateRange.end}T23:59:59.999Z`);
+      .lt("timestamp", `${bufferedEnd}T12:00:00.000Z`);
   }
 
   const { data, error } = await query;
@@ -290,10 +293,10 @@ export async function getTimeEntriesFromClockEvents(
     (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
   );
 
-  // Group events by user + date, then pair clock_in/clock_out
+  // Group events by user + LOCAL date, then pair clock_in/clock_out
   const dayMap = new Map<string, typeof data>();
   for (const row of data ?? []) {
-    const dateStr = (row.timestamp as string).slice(0, 10);
+    const dateStr = toTzDateStr(row.timestamp as string);
     const key = `${row.user_id}::${dateStr}`;
     if (!dayMap.has(key)) dayMap.set(key, []);
     dayMap.get(key)!.push(row);

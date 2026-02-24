@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { getLocalToday } from "@/lib/utils/timezone";
 import {
   ArrowLeft,
   Pencil,
@@ -194,7 +195,7 @@ export default function PropertyDetailClient({
   const [paymentLease, setPaymentLease] = useState<LeaseRow | null>(null);
   const [paymentForm, setPaymentForm] = useState({
     amount: "",
-    payment_date: new Date().toISOString().slice(0, 10),
+    payment_date: getLocalToday(),
     due_date: "",
     method: "ach",
     reference_number: "",
@@ -289,10 +290,10 @@ export default function PropertyDetailClient({
   function openRecordPayment(lease: LeaseRow) {
     setPaymentLease(lease);
     const now = new Date();
-    const dueDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const dueDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
     setPaymentForm({
       amount: String(lease.monthly_rent || ""),
-      payment_date: now.toISOString().slice(0, 10),
+      payment_date: getLocalToday(),
       due_date: dueDate,
       method: "ach",
       reference_number: "",
@@ -3322,8 +3323,9 @@ function UnitModal({
   const [showLeaseForm, setShowLeaseForm] = useState(false);
   const [leaseCreating, setLeaseCreating] = useState(false);
   const [leaseError, setLeaseError] = useState("");
-  const todayISO = new Date().toISOString().slice(0, 10);
-  const oneYearISO = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const todayISO = getLocalToday();
+  const oneYearDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+  const oneYearISO = `${oneYearDate.getFullYear()}-${String(oneYearDate.getMonth() + 1).padStart(2, "0")}-${String(oneYearDate.getDate()).padStart(2, "0")}`;
   const [leaseForm, setLeaseForm] = useState({
     tenant_name: "",
     monthly_rent: unit.market_rent ? String(unit.market_rent) : "",

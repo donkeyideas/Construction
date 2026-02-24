@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getLocalToday } from "@/lib/utils/timezone";
 import {
   Calendar,
   Clock,
@@ -201,7 +202,7 @@ export default function LaborClient({
       filing_status: "single",
       federal_allowances: 0,
       state_code: "",
-      effective_date: new Date().toISOString().slice(0, 10),
+      effective_date: getLocalToday(),
       end_date: null,
       employee_name: `${contact.first_name} ${contact.last_name}`,
       employee_email: contact.email ?? "",
@@ -238,7 +239,7 @@ export default function LaborClient({
           filing_status: "single",
           state_code: "",
           federal_allowances: 0,
-          effective_date: new Date().toISOString().slice(0, 10),
+          effective_date: getLocalToday(),
         }),
       });
 

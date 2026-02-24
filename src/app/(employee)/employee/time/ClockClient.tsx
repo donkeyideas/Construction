@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { getLocalToday } from "@/lib/utils/timezone";
 import {
   Clock,
   LogIn,
@@ -261,7 +262,7 @@ export default function ClockClient({
             <div className="emp-week-grid">
               {weekDates.map((date, i) => {
                 const hours = weeklyHours[date] ?? 0;
-                const isToday = date === new Date().toISOString().slice(0, 10);
+                const isToday = date === getLocalToday();
                 return (
                   <div
                     key={date}

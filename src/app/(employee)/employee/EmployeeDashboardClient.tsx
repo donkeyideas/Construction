@@ -25,15 +25,11 @@ import type {
   EmployeeDashboardData,
   ClockEvent,
 } from "@/lib/queries/employee-portal";
+import { toLocalDateStr } from "@/lib/utils/timezone";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/** Local YYYY-MM-DD — avoids UTC date mismatch for US timezones */
-function toLocalDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 function formatDuration(ms: number): string {
   const totalMinutes = Math.floor(ms / 60000);

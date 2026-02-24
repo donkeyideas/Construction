@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { getLocalToday } from "@/lib/utils/timezone";
 import {
   Plus,
   BookOpen,
@@ -166,9 +167,7 @@ export default function GeneralLedgerClient({
 
   // Form fields
   const [entryNumber, setEntryNumber] = useState("");
-  const [entryDate, setEntryDate] = useState(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [entryDate, setEntryDate] = useState(getLocalToday);
   const [description, setDescription] = useState("");
   const [reference, setReference] = useState("");
   const [lines, setLines] = useState<LineItemDraft[]>([emptyLine(), emptyLine()]);
@@ -209,7 +208,7 @@ export default function GeneralLedgerClient({
 
   const resetForm = useCallback(() => {
     setEntryNumber("");
-    setEntryDate(new Date().toISOString().slice(0, 10));
+    setEntryDate(getLocalToday());
     setDescription("");
     setReference("");
     setLines([emptyLine(), emptyLine()]);
