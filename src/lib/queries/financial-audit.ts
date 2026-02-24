@@ -46,6 +46,8 @@ export async function runFinancialAudit(
     checkInvoiceJECoverage(supabase, companyId),
     checkPaymentJECoverage(supabase, companyId),
     checkBankReconciliation(supabase, companyId),
+    checkARReconciliation(supabase, companyId),
+    checkAPReconciliation(supabase, companyId),
     checkUnpostedEntries(supabase, companyId),
     checkMissingGLMappings(supabase, companyId),
     checkOrphanedJELines(supabase, companyId),
@@ -543,7 +545,163 @@ async function checkBankReconciliation(
 }
 
 /* ------------------------------------------------------------------
-   6. Unposted (Draft) Journal Entries Check
+   6. AR Reconciliation — GL Accounts Receivable vs Invoice Subledger
+   Compares AR balance in the GL (from journal entries) to the sum of
+   unpaid receivable invoices. A large discrepancy means the GL has
+   entries that don't match actual invoices.
+   ------------------------------------------------------------------ */
+
+async function checkARReconciliation(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<AuditCheckResult> {
+  const id = "ar-reconciliation";
+  const name = "AR Subledger Reconciliation";
+
+  // Find AR GL accounts
+  const { data: arAccounts } = await supabase
+    .from("chart_of_accounts")
+    .select("id, name")
+    .eq("company_id", companyId)
+    .eq("account_type", "asset")
+    .eq("is_active", true)
+    .or("name.ilike.%accounts receivable%,name.ilike.%accts receivable%,name.ilike.%a/r%,name.ilike.%trade receivable%");
+
+  const arAccountIds = (arAccounts ?? []).map((a: { id: string }) => a.id);
+
+  if (arAccountIds.length === 0) {
+    return { id, name, status: "pass", summary: "No AR GL accounts found — nothing to reconcile", details: [] };
+  }
+
+  // GL AR balance from posted journal entries
+  const arLines = await paginatedQuery<{ debit: number; credit: number; journal_entries: { id: string } }>((from, to) =>
+    supabase
+      .from("journal_entry_lines")
+      .select("debit, credit, journal_entries!inner(id)")
+      .eq("company_id", companyId)
+      .in("account_id", arAccountIds)
+      .eq("journal_entries.status", "posted")
+      .range(from, to)
+  );
+
+  let glARBalance = 0;
+  for (const line of arLines) {
+    glARBalance += (Number(line.debit) || 0) - (Number(line.credit) || 0);
+  }
+
+  // Invoice subledger: sum balance_due for unpaid receivables
+  const { data: arInvoices } = await supabase
+    .from("invoices")
+    .select("balance_due")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "receivable")
+    .not("status", "eq", "voided")
+    .not("status", "eq", "paid");
+
+  const invoiceARBalance = (arInvoices ?? []).reduce(
+    (sum, inv) => sum + (Number((inv as { balance_due: number }).balance_due) || 0), 0
+  );
+
+  const difference = Math.abs(glARBalance - invoiceARBalance);
+  const largerBalance = Math.max(Math.abs(glARBalance), Math.abs(invoiceARBalance), 1);
+  const diffPct = (difference / largerBalance) * 100;
+
+  const fmt = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  const diffDetails = [
+    `GL AR balance (journal entries): ${fmt(glARBalance)}`,
+    `Invoice subledger (unpaid receivables): ${fmt(invoiceARBalance)}`,
+    `Difference: ${fmt(difference)} (${diffPct.toFixed(1)}%)`,
+  ];
+
+  if (diffPct <= 1 || difference <= 100) {
+    return { id, name, status: "pass", summary: `GL AR matches invoice subledger — ${fmt(glARBalance)}`, details: difference <= 1 ? [] : diffDetails };
+  }
+  if (diffPct <= 5) {
+    return { id, name, status: "warn", summary: `GL AR and invoices differ by ${diffPct.toFixed(1)}% (${fmt(difference)})`, details: diffDetails };
+  }
+  return { id, name, status: "fail", summary: `GL AR (${fmt(glARBalance)}) does not match invoices (${fmt(invoiceARBalance)}) — ${fmt(difference)} discrepancy`, details: diffDetails };
+}
+
+/* ------------------------------------------------------------------
+   7. AP Reconciliation — GL Accounts Payable vs Invoice Subledger
+   Compares AP balance in the GL (from journal entries) to the sum of
+   unpaid payable invoices. A large discrepancy means the GL has
+   entries that don't match actual invoices.
+   ------------------------------------------------------------------ */
+
+async function checkAPReconciliation(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<AuditCheckResult> {
+  const id = "ap-reconciliation";
+  const name = "AP Subledger Reconciliation";
+
+  // Find AP GL accounts
+  const { data: apAccounts } = await supabase
+    .from("chart_of_accounts")
+    .select("id, name")
+    .eq("company_id", companyId)
+    .eq("account_type", "liability")
+    .eq("is_active", true)
+    .or("name.ilike.%accounts payable%,name.ilike.%accts payable%,name.ilike.%a/p%,name.ilike.%trade payable%");
+
+  const apAccountIds = (apAccounts ?? []).map((a: { id: string }) => a.id);
+
+  if (apAccountIds.length === 0) {
+    return { id, name, status: "pass", summary: "No AP GL accounts found — nothing to reconcile", details: [] };
+  }
+
+  // GL AP balance from posted journal entries (liability = credits - debits)
+  const apLines = await paginatedQuery<{ debit: number; credit: number; journal_entries: { id: string } }>((from, to) =>
+    supabase
+      .from("journal_entry_lines")
+      .select("debit, credit, journal_entries!inner(id)")
+      .eq("company_id", companyId)
+      .in("account_id", apAccountIds)
+      .eq("journal_entries.status", "posted")
+      .range(from, to)
+  );
+
+  let glAPBalance = 0;
+  for (const line of apLines) {
+    glAPBalance += (Number(line.credit) || 0) - (Number(line.debit) || 0);
+  }
+
+  // Invoice subledger: sum balance_due for unpaid payables
+  const { data: apInvoices } = await supabase
+    .from("invoices")
+    .select("balance_due")
+    .eq("company_id", companyId)
+    .eq("invoice_type", "payable")
+    .not("status", "eq", "voided")
+    .not("status", "eq", "paid");
+
+  const invoiceAPBalance = (apInvoices ?? []).reduce(
+    (sum, inv) => sum + (Number((inv as { balance_due: number }).balance_due) || 0), 0
+  );
+
+  const difference = Math.abs(glAPBalance - invoiceAPBalance);
+  const largerBalance = Math.max(Math.abs(glAPBalance), Math.abs(invoiceAPBalance), 1);
+  const diffPct = (difference / largerBalance) * 100;
+
+  const fmt = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  const diffDetails = [
+    `GL AP balance (journal entries): ${fmt(glAPBalance)}`,
+    `Invoice subledger (unpaid payables): ${fmt(invoiceAPBalance)}`,
+    `Difference: ${fmt(difference)} (${diffPct.toFixed(1)}%)`,
+  ];
+
+  if (diffPct <= 1 || difference <= 100) {
+    return { id, name, status: "pass", summary: `GL AP matches invoice subledger — ${fmt(glAPBalance)}`, details: difference <= 1 ? [] : diffDetails };
+  }
+  if (diffPct <= 5) {
+    return { id, name, status: "warn", summary: `GL AP and invoices differ by ${diffPct.toFixed(1)}% (${fmt(difference)})`, details: diffDetails };
+  }
+  return { id, name, status: "fail", summary: `GL AP (${fmt(glAPBalance)}) does not match invoices (${fmt(invoiceAPBalance)}) — ${fmt(difference)} discrepancy`, details: diffDetails };
+}
+
+/* ------------------------------------------------------------------
+   8. Unposted (Draft) Journal Entries Check
    Flags draft journal entries, especially old ones (>7 days).
    ------------------------------------------------------------------ */
 

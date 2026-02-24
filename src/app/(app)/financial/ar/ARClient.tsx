@@ -56,6 +56,7 @@ interface ARClientProps {
   linkedJEs?: Record<string, LinkedJE[]>;
   initialStartDate?: string;
   initialEndDate?: string;
+  glBalance?: number;
 }
 
 /* ------------------------------------------------------------------
@@ -85,6 +86,7 @@ export default function ARClient({
   linkedJEs = {},
   initialStartDate,
   initialEndDate,
+  glBalance,
 }: ARClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
@@ -283,6 +285,11 @@ export default function ARClient({
           <div className="fin-kpi-icon blue"><DollarSign size={18} /></div>
           <span className="fin-kpi-label">{t("totalArBalance")}</span>
           <span className="fin-kpi-value">{formatCompactCurrency(totalArBalance)}</span>
+          {glBalance != null && (
+            <span className="fin-kpi-sub" style={{ fontSize: "0.7rem", color: "var(--muted)" }}>
+              GL: {formatCompactCurrency(glBalance)}
+            </span>
+          )}
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon red"><Clock size={18} /></div>
@@ -302,6 +309,23 @@ export default function ARClient({
           <span className="fin-kpi-value positive">{formatCompactCurrency(collectedThisMonth)}</span>
         </div>
       </div>
+
+      {/* GL Reconciliation Warning */}
+      {glBalance != null && Math.abs(glBalance - totalArBalance) > 100 && (
+        <div className="fin-alert" style={{
+          display: "flex", alignItems: "center", gap: "0.5rem",
+          padding: "0.75rem 1rem", borderRadius: "var(--radius-md, 8px)",
+          background: "var(--warning-bg, #fff3cd)", border: "1px solid var(--warning-border, #ffc107)",
+          color: "var(--warning-text, #856404)", fontSize: "0.82rem", marginBottom: "0.5rem"
+        }}>
+          <AlertCircle size={16} />
+          <span>
+            <strong>GL Mismatch:</strong> The General Ledger shows AR of {formatCurrency(glBalance)} but the invoice subledger shows {formatCurrency(totalArBalance)}.
+            Difference: {formatCurrency(Math.abs(glBalance - totalArBalance))}.
+            <a href="/financial/audit" style={{ marginLeft: "0.5rem", textDecoration: "underline" }}>Run Audit</a>
+          </span>
+        </div>
+      )}
 
       {/* Status Filters */}
       <div className="fin-filters">

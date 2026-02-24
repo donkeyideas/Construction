@@ -2,6 +2,7 @@ import { Receipt } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
+import { getGLBalanceForAccountType } from "@/lib/utils/gl-balance";
 import APClient from "./APClient";
 
 export const metadata = {
@@ -115,6 +116,11 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
   }
 
+  // GL balance for AP accounts (credit - debit for liability accounts)
+  const glApBalance = await getGLBalanceForAccountType(
+    supabase, userCompany.companyId, "liability", "%accounts payable%", "credit-debit"
+  );
+
   return (
     <APClient
       invoices={invoices}
@@ -126,6 +132,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       linkedJEs={linkedJEs}
       initialStartDate={filterStartDate}
       initialEndDate={filterEndDate}
+      glBalance={glApBalance}
     />
   );
 }

@@ -2,6 +2,7 @@ import { HandCoins } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
+import { getGLBalanceForAccountType } from "@/lib/utils/gl-balance";
 import ARClient from "./ARClient";
 
 export const metadata = {
@@ -124,6 +125,11 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
     linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
   }
 
+  // GL balance for AR accounts (debit - credit for asset accounts)
+  const glArBalance = await getGLBalanceForAccountType(
+    supabase, userCompany.companyId, "asset", "%accounts receivable%", "debit-credit"
+  );
+
   return (
     <ARClient
       invoices={invoices}
@@ -135,6 +141,7 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
       linkedJEs={linkedJEs}
       initialStartDate={filterStartDate}
       initialEndDate={filterEndDate}
+      glBalance={glArBalance}
     />
   );
 }
