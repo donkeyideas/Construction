@@ -687,7 +687,9 @@ async function processEntity(
           }
         }
 
-        if (paymentRecords.length > 0 && !options?.skipAutoJE) {
+        // Always generate payment JEs — even when pre-crafted JEs exist.
+        // Pre-crafted JEs have GROSS AR/AP; payment JEs reduce them to NET (unpaid).
+        if (paymentRecords.length > 0) {
           try {
             await generateBulkPaymentJournalEntries(
               supabase,
