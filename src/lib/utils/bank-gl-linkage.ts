@@ -163,6 +163,9 @@ export async function ensureBankAccountGLLink(
  * Create an opening balance journal entry for a bank account.
  * DR Bank GL Account / CR 1000 Cash (reclassification from generic Cash)
  * Idempotent — won't create duplicate JEs.
+ *
+ * NOTE: Prefer using syncBankBalancesFromGL() instead of calling this directly.
+ * That function handles Cash 1000 going negative via OBE adjustment.
  */
 export async function createOpeningBalanceJE(
   supabase: SupabaseClient,
@@ -221,4 +224,255 @@ export async function createOpeningBalanceJE(
   };
 
   await createPostedJournalEntry(supabase, companyId, userId, entryData);
+}
+
+// ---------------------------------------------------------------------------
+// Sync Bank Balances from GL — the universal bank reconciliation fix
+// ---------------------------------------------------------------------------
+
+export interface SyncBankResult {
+  updates: Array<{ id: string; name: string; oldBalance: number; newBalance: number }>;
+  reclassified: number;
+  obeAdjustment: number;
+  glCashTotal: number;
+}
+
+/**
+ * Compute GL balance (debit - credit) for a single account from posted JE lines.
+ * Paginated to avoid Supabase 1000-row limit.
+ */
+async function computeGLBalance(
+  supabase: SupabaseClient,
+  companyId: string,
+  accountId: string
+): Promise<number> {
+  let total = 0;
+  let from = 0;
+  const pageSize = 1000;
+  while (true) {
+    const { data: lines } = await supabase
+      .from("journal_entry_lines")
+      .select("debit, credit, journal_entries!inner(id)")
+      .eq("company_id", companyId)
+      .eq("account_id", accountId)
+      .eq("journal_entries.status", "posted")
+      .range(from, from + pageSize - 1);
+    if (!lines || lines.length === 0) break;
+    for (const line of lines) {
+      total += (Number(line.debit) || 0) - (Number(line.credit) || 0);
+    }
+    if (lines.length < pageSize) break;
+    from += pageSize;
+  }
+  return total;
+}
+
+/**
+ * Find or create the "Opening Balance Equity" account (3900).
+ */
+async function findOrCreateOBE(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<string | null> {
+  const { data: existing } = await supabase
+    .from("chart_of_accounts")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("account_type", "equity")
+    .ilike("name", "%opening balance%")
+    .limit(1);
+
+  if (existing && existing.length > 0) return existing[0].id;
+
+  const { data: created } = await supabase
+    .from("chart_of_accounts")
+    .insert({
+      company_id: companyId,
+      account_number: "3900",
+      name: "Opening Balance Equity",
+      account_type: "equity",
+      sub_type: "equity",
+      normal_balance: "credit",
+      is_active: true,
+      description: "Auto-created for bank balance reconciliation",
+    })
+    .select("id")
+    .single();
+
+  return created?.id || null;
+}
+
+/**
+ * Universal bank balance sync:
+ *
+ *  1. For each linked bank sub-account with $0 GL balance:
+ *     Create reclassification JE (DR sub-acct / CR Cash 1000)
+ *  2. If Cash 1000 goes negative after reclassification:
+ *     Create an OBE adjustment JE (DR Cash 1000 / CR Opening Balance Equity)
+ *     to bring Cash 1000 back to $0
+ *  3. Update bank_accounts.current_balance from GL sub-account balances
+ *  4. Unlinked banks get proportional share of remaining Cash 1000 balance
+ *
+ * This works for ANY mock data regardless of whether the pre-crafted JEs
+ * have the right Cash 1000 balance or not.
+ */
+export async function syncBankBalancesFromGL(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string
+): Promise<SyncBankResult> {
+  const updates: SyncBankResult["updates"] = [];
+  let reclassifiedCount = 0;
+  let obeAdjustmentAmount = 0;
+
+  // Get all bank accounts
+  const { data: bankAccounts } = await supabase
+    .from("bank_accounts")
+    .select("id, name, current_balance, gl_account_id")
+    .eq("company_id", companyId);
+
+  if (!bankAccounts || bankAccounts.length === 0) {
+    return { updates, reclassified: 0, obeAdjustment: 0, glCashTotal: 0 };
+  }
+
+  // Find Cash 1000 account
+  const { data: cashAccount } = await supabase
+    .from("chart_of_accounts")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("account_number", "1000")
+    .single();
+
+  if (!cashAccount) {
+    return { updates, reclassified: 0, obeAdjustment: 0, glCashTotal: 0 };
+  }
+
+  const linked = bankAccounts.filter((b) => b.gl_account_id);
+  const unlinked = bankAccounts.filter((b) => !b.gl_account_id);
+
+  // ── Step 1: Create reclassification JEs for empty sub-accounts ──
+  for (const bank of linked) {
+    const subBalance = await computeGLBalance(supabase, companyId, bank.gl_account_id!);
+    if (subBalance !== 0) continue; // Already has JE lines
+
+    const bankBal = Number(bank.current_balance) || 0;
+    if (bankBal <= 0) continue;
+
+    // Idempotency check
+    const ref = `opening_balance:bank:${bank.id}`;
+    const { data: existingJE } = await supabase
+      .from("journal_entries")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("reference", ref)
+      .limit(1);
+
+    if (existingJE && existingJE.length > 0) continue;
+
+    // Create reclassification JE: DR sub-account / CR Cash 1000
+    const today = new Date().toISOString().split("T")[0];
+    try {
+      await createPostedJournalEntry(supabase, companyId, userId, {
+        entry_number: `JE-OB-BANK-${bank.id.substring(0, 8)}`,
+        entry_date: today,
+        description: `Reclassify Cash to ${bank.name}`,
+        reference: ref,
+        lines: [
+          {
+            account_id: bank.gl_account_id!,
+            debit: bankBal,
+            credit: 0,
+            description: `Opening balance - ${bank.name}`,
+          },
+          {
+            account_id: cashAccount.id,
+            debit: 0,
+            credit: bankBal,
+            description: `Reclassify Cash to ${bank.name}`,
+          },
+        ],
+      });
+      reclassifiedCount++;
+    } catch (err) {
+      console.warn(`Reclassification JE failed for ${bank.name}:`, err);
+    }
+  }
+
+  // ── Step 2: If Cash 1000 is negative, adjust with Opening Balance Equity ──
+  const cash1000Balance = await computeGLBalance(supabase, companyId, cashAccount.id);
+
+  if (cash1000Balance < 0) {
+    const obeId = await findOrCreateOBE(supabase, companyId);
+    if (obeId) {
+      const adjustment = Math.abs(cash1000Balance);
+      const today = new Date().toISOString().split("T")[0];
+      try {
+        await createPostedJournalEntry(supabase, companyId, userId, {
+          entry_number: `JE-OBE-CASH-${Date.now().toString(36)}`,
+          entry_date: today,
+          description: "Opening balance equity adjustment — Cash reconciliation",
+          reference: `obe_cash_adj:${Math.round(adjustment * 100)}`,
+          lines: [
+            {
+              account_id: cashAccount.id,
+              debit: adjustment,
+              credit: 0,
+              description: "Adjust Cash 1000 to zero",
+            },
+            {
+              account_id: obeId,
+              debit: 0,
+              credit: adjustment,
+              description: "Opening balance equity offset",
+            },
+          ],
+        });
+        obeAdjustmentAmount = adjustment;
+      } catch (err) {
+        console.warn("OBE adjustment JE failed:", err);
+      }
+    }
+  }
+
+  // ── Step 3: Update bank.current_balance from GL sub-account balances ──
+  for (const bank of linked) {
+    const newBalance = await computeGLBalance(supabase, companyId, bank.gl_account_id!);
+    await supabase
+      .from("bank_accounts")
+      .update({ current_balance: newBalance })
+      .eq("id", bank.id);
+    updates.push({
+      id: bank.id,
+      name: bank.name,
+      oldBalance: Number(bank.current_balance) || 0,
+      newBalance,
+    });
+  }
+
+  // ── Step 4: Unlinked banks get proportional share of remaining Cash 1000 ──
+  if (unlinked.length > 0) {
+    const remainingCash = await computeGLBalance(supabase, companyId, cashAccount.id);
+    const oldTotal = unlinked.reduce((s, b) => s + (Number(b.current_balance) || 0), 0);
+
+    for (const bank of unlinked) {
+      const ratio = oldTotal > 0
+        ? (Number(bank.current_balance) || 0) / oldTotal
+        : 1 / unlinked.length;
+      const newBalance = Math.round(remainingCash * ratio * 100) / 100;
+
+      await supabase
+        .from("bank_accounts")
+        .update({ current_balance: newBalance })
+        .eq("id", bank.id);
+      updates.push({
+        id: bank.id,
+        name: bank.name,
+        oldBalance: Number(bank.current_balance) || 0,
+        newBalance,
+      });
+    }
+  }
+
+  const glCashTotal = updates.reduce((s, u) => s + u.newBalance, 0);
+  return { updates, reclassified: reclassifiedCount, obeAdjustment: obeAdjustmentAmount, glCashTotal };
 }

@@ -12,7 +12,7 @@ import {
   buildCompanyAccountMap,
   inferGLAccountFromDescription,
 } from "@/lib/utils/invoice-accounting";
-import { ensureBankAccountGLLink } from "@/lib/utils/bank-gl-linkage";
+import { ensureBankAccountGLLink, syncBankBalancesFromGL } from "@/lib/utils/bank-gl-linkage";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
@@ -165,14 +165,12 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const hasJESheet = presentEntities.has("journal_entries") || presentEntities.has("opening_balances");
       const sheetResult = await processEntity(
         supabase,
         companyId,
         userId,
         entity,
-        sheet.rows,
-        { hasJESheet }
+        sheet.rows
       );
 
       totalRows += sheet.rows.length;
@@ -215,6 +213,17 @@ export async function POST(request: NextRequest) {
         .from("companies")
         .update({ import_progress: progressUpdate })
         .eq("id", companyId);
+    }
+
+    // ── Post-import: sync bank sub-account balances ──
+    // Creates reclassification JEs for bank sub-accounts + OBE adjustment if Cash 1000 goes negative.
+    // This must run AFTER all sheets (especially journal_entries) are imported.
+    if (presentEntities.has("bank_accounts")) {
+      try {
+        await syncBankBalancesFromGL(supabase, companyId, userId);
+      } catch (syncErr) {
+        console.warn("Post-import bank sync failed:", syncErr);
+      }
     }
 
     // Finalize import run
@@ -264,8 +273,7 @@ async function processEntity(
   companyId: string,
   userId: string,
   entity: string,
-  rows: Record<string, string>[],
-  options?: { hasJESheet?: boolean }
+  rows: Record<string, string>[]
 ): Promise<ProcessResult> {
   let successCount = 0;
   const errors: string[] = [];
@@ -373,18 +381,14 @@ async function processEntity(
           errors.push(`Row ${i + 2}: ${error.message}`);
         } else {
           successCount++;
-          // Create GL sub-account linkage for this bank account.
-          // Only create opening balance reclassification JE if the workbook does NOT
-          // include a journal_entries sheet — pre-crafted JEs already establish the
-          // Cash 1000 balance, so reclassifying would double-count and make 1000 negative.
+          // Create GL sub-account linkage (no reclassification JEs here —
+          // syncBankBalancesFromGL() runs after ALL sheets are imported and
+          // handles reclassification + OBE adjustment properly).
           if (inserted) {
             try {
-              const skipReclass = options?.hasJESheet ?? false;
-              const balance = skipReclass ? 0 : (r.current_balance ? parseFloat(r.current_balance) : 0);
               await ensureBankAccountGLLink(
                 supabase, companyId, inserted.id,
-                r.name || "", r.account_type || "checking",
-                balance, skipReclass ? undefined : userId
+                r.name || "", r.account_type || "checking"
               );
             } catch (glErr) {
               console.warn(`Bank GL link failed for ${r.name}:`, glErr);
