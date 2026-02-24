@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { createOpeningBalanceJE } from "@/lib/utils/bank-gl-linkage";
 
 /**
  * POST /api/financial/audit/sync-bank-balances
@@ -55,6 +56,40 @@ export async function POST() {
     // Banks with linked GL accounts get exact balance from their specific GL account
     const linked = bankAccounts.filter((b) => b.gl_account_id);
     const unlinked = bankAccounts.filter((b) => !b.gl_account_id);
+
+    // Pre-step: create missing opening balance JEs for linked banks.
+    // If the Excel import ran before the GL-linkage fix, sub-accounts have no JE lines.
+    // We must create the reclassification JE (DR sub-acct / CR 1000) BEFORE computing balances.
+    for (const bank of linked) {
+      const currentBal = Number(bank.current_balance) || 0;
+      if (currentBal <= 0) continue; // nothing to reclassify
+
+      // Check if opening balance JE already exists
+      const ref = `opening_balance:bank:${bank.id}`;
+      const { data: existingOB } = await supabase
+        .from("journal_entries")
+        .select("id")
+        .eq("company_id", companyId)
+        .eq("reference", ref)
+        .limit(1);
+
+      if (existingOB && existingOB.length > 0) continue; // already exists
+
+      // Create the opening balance reclassification JE
+      try {
+        await createOpeningBalanceJE(
+          supabase,
+          companyId,
+          ctx.userId,
+          bank.id,
+          bank.gl_account_id!,
+          currentBal,
+          bank.name
+        );
+      } catch (jeErr) {
+        console.warn(`Failed to create opening balance JE for ${bank.name}:`, jeErr);
+      }
+    }
 
     for (const bank of linked) {
       const newBalance = await computeGLBalance(bank.gl_account_id!);
