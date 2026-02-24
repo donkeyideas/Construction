@@ -30,6 +30,11 @@ import type {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Local YYYY-MM-DD — avoids UTC date mismatch for US timezones */
+function toLocalDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function formatDuration(ms: number): string {
   const totalMinutes = Math.floor(ms / 60000);
   const hours = Math.floor(totalMinutes / 60);
@@ -160,15 +165,29 @@ export default function EmployeeDashboardClient({
 }) {
   const t = useTranslations("employeeDashboard");
 
-  // Clock state
+  // Derive today's events from week data using LOCAL timezone (server uses UTC
+  // which can be a different date in the evening for US timezones)
+  const localToday = toLocalDateStr(new Date());
+  const localTodayEvents = dashboard.weekClockEvents
+    .filter((e) => toLocalDateStr(new Date(e.timestamp)) === localToday)
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+  // Clock state — prefer locally-derived events over server's UTC-based filter
   const [isClockedIn, setIsClockedIn] = useState(
-    dashboard.clockStatus.isClockedIn
+    localTodayEvents.length > 0
+      ? localTodayEvents[0].event_type === "clock_in"
+      : dashboard.clockStatus.isClockedIn
   );
   const [lastEvent, setLastEvent] = useState<ClockEvent | null>(
-    dashboard.clockStatus.lastEvent
+    localTodayEvents.length > 0
+      ? localTodayEvents[0]
+      : dashboard.clockStatus.lastEvent
   );
   const [todayEvents, setTodayEvents] = useState<ClockEvent[]>(
-    dashboard.clockStatus.todayEvents
+    localTodayEvents
   );
   const [elapsed, setElapsed] = useState("");
   const [loading, setLoading] = useState(false);
@@ -330,16 +349,16 @@ export default function EmployeeDashboardClient({
     d.setDate(d.getDate() - diff);
     return d;
   })();
-  const todayDateStr = new Date().toISOString().slice(0, 10);
+  const todayDateStr = localToday;
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekMonday);
     d.setDate(weekMonday.getDate() + i);
     return d;
   });
   const timecardRows = weekDays.map((day) => {
-    const dayStr = day.toISOString().slice(0, 10);
+    const dayStr = toLocalDateStr(day);
     const dayEvents = dashboard.weekClockEvents
-      .filter((e) => e.timestamp.slice(0, 10) === dayStr)
+      .filter((e) => toLocalDateStr(new Date(e.timestamp)) === dayStr)
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     const clockIns = dayEvents.filter((e) => e.event_type === "clock_in");
     const clockOuts = dayEvents.filter((e) => e.event_type === "clock_out");
