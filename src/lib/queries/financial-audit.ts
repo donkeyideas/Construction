@@ -558,14 +558,15 @@ async function checkARReconciliation(
   const id = "ar-reconciliation";
   const name = "AR Subledger Reconciliation";
 
-  // Find AR GL accounts
+  // Find AR GL accounts (include retainage receivable — auto-generated invoice JEs
+  // split retainage into a separate account, so AR + retainage = total owed by clients)
   const { data: arAccounts } = await supabase
     .from("chart_of_accounts")
     .select("id, name")
     .eq("company_id", companyId)
     .eq("account_type", "asset")
     .eq("is_active", true)
-    .or("name.ilike.%accounts receivable%,name.ilike.%accts receivable%,name.ilike.%a/r%,name.ilike.%trade receivable%");
+    .or("name.ilike.%accounts receivable%,name.ilike.%accts receivable%,name.ilike.%a/r%,name.ilike.%trade receivable%,name.ilike.%retainage receivable%");
 
   const arAccountIds = (arAccounts ?? []).map((a: { id: string }) => a.id);
 
@@ -636,14 +637,15 @@ async function checkAPReconciliation(
   const id = "ap-reconciliation";
   const name = "AP Subledger Reconciliation";
 
-  // Find AP GL accounts
+  // Find AP GL accounts (include retainage payable — invoice JEs may split retainage
+  // into a separate liability account, so AP + retainage = total owed to vendors)
   const { data: apAccounts } = await supabase
     .from("chart_of_accounts")
     .select("id, name")
     .eq("company_id", companyId)
     .eq("account_type", "liability")
     .eq("is_active", true)
-    .or("name.ilike.%accounts payable%,name.ilike.%accts payable%,name.ilike.%a/p%,name.ilike.%trade payable%");
+    .or("name.ilike.%accounts payable%,name.ilike.%accts payable%,name.ilike.%a/p%,name.ilike.%trade payable%,name.ilike.%retainage payable%");
 
   const apAccountIds = (apAccounts ?? []).map((a: { id: string }) => a.id);
 

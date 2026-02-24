@@ -126,9 +126,12 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
   }
 
   // GL balance for AR accounts (debit - credit for asset accounts)
-  const glArBalance = await getGLBalanceForAccountType(
-    supabase, userCompany.companyId, "asset", "%accounts receivable%", "debit-credit"
-  );
+  // Include retainage receivable since invoice JEs split retainage into separate account
+  const [arBase, arRetainage] = await Promise.all([
+    getGLBalanceForAccountType(supabase, userCompany.companyId, "asset", "%accounts receivable%", "debit-credit"),
+    getGLBalanceForAccountType(supabase, userCompany.companyId, "asset", "%retainage receivable%", "debit-credit"),
+  ]);
+  const glArBalance = arBase + arRetainage;
 
   return (
     <ARClient

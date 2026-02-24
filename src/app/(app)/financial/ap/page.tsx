@@ -117,9 +117,12 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
   }
 
   // GL balance for AP accounts (credit - debit for liability accounts)
-  const glApBalance = await getGLBalanceForAccountType(
-    supabase, userCompany.companyId, "liability", "%accounts payable%", "credit-debit"
-  );
+  // Include retainage payable since invoice JEs may split retainage into separate account
+  const [apBase, apRetainage] = await Promise.all([
+    getGLBalanceForAccountType(supabase, userCompany.companyId, "liability", "%accounts payable%", "credit-debit"),
+    getGLBalanceForAccountType(supabase, userCompany.companyId, "liability", "%retainage payable%", "credit-debit"),
+  ]);
+  const glApBalance = apBase + apRetainage;
 
   return (
     <APClient
