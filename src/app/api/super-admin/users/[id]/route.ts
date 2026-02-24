@@ -55,30 +55,44 @@ export async function PATCH(
 // ---------------------------------------------------------------------------
 // Comprehensive cleanup of all FK references to auth.users and user_profiles.
 // Uses Promise.allSettled so individual table failures don't block others.
+//
+// Phase 1: DELETE rows from tables with NOT NULL FK to auth.users (can't nullify)
+// Phase 2: DELETE per-user data tables (messages, sessions, notifications, etc.)
+// Phase 3: UPDATE SET NULL for all nullable FK columns
+// Phase 4: Storage cleanup
 // ---------------------------------------------------------------------------
 async function cleanupAllUserReferences(
   admin: SupabaseClient,
   userId: string
 ) {
-  // --- Phase 1: Delete rows from join/per-user tables (NOT NULL FKs) ---
+  // --- Phase 1: DELETE from tables with NOT NULL FK to auth.users ---
+  // These columns cannot be set to null; rows must be removed.
+  await Promise.allSettled([
+    admin.from("daily_logs").delete().eq("created_by", userId),
+    admin.from("rfis").delete().eq("submitted_by", userId),
+    admin.from("safety_inspections").delete().eq("inspector_id", userId),
+    admin.from("time_entries").delete().eq("user_id", userId),
+    admin.from("comments").delete().eq("user_id", userId),
+    admin.from("notifications").delete().eq("user_id", userId),
+    admin.from("ai_conversations").delete().eq("user_id", userId),
+    admin.from("support_ticket_messages").delete().eq("user_id", userId),
+  ]);
+
+  // --- Phase 2: DELETE per-user data tables ---
   await Promise.allSettled([
     admin.from("company_members").delete().eq("user_id", userId),
     admin.from("messages").delete().eq("sender_id", userId),
     admin.from("messages").delete().eq("recipient_id", userId),
-    admin.from("user_notifications").delete().eq("user_id", userId),
-    admin.from("notification_preferences").delete().eq("user_id", userId),
     admin.from("login_history").delete().eq("user_id", userId),
     admin.from("active_sessions").delete().eq("user_id", userId),
+    admin.from("clock_events").delete().eq("user_id", userId),
     admin.from("markup_annotations").delete().eq("created_by", userId),
     admin.from("support_tickets").delete().eq("user_id", userId),
     admin.from("promo_redemptions").delete().eq("user_id", userId),
-    // ON DELETE CASCADE tables — clean up explicitly to be safe
-    admin.from("clock_events").delete().eq("user_id", userId),
-    admin.from("employee_profiles").delete().eq("user_id", userId),
-    admin.from("time_off_requests").delete().eq("user_id", userId),
+    admin.from("employee_pay_rates").delete().eq("user_id", userId),
   ]);
 
-  // --- Phase 2: Nullify nullable FK columns across all tables ---
+  // --- Phase 3: Nullify nullable FK columns across all tables ---
   await Promise.allSettled([
     // companies
     admin.from("companies").update({ created_by: null }).eq("created_by", userId),
@@ -87,21 +101,31 @@ async function cleanupAllUserReferences(
     admin.from("projects").update({ superintendent_id: null }).eq("superintendent_id", userId),
     // project_tasks
     admin.from("project_tasks").update({ assigned_to: null }).eq("assigned_to", userId),
-    // daily_logs
-    admin.from("daily_logs").update({ created_by: null }).eq("created_by", userId),
-    // rfis
+    // daily_logs (nullable columns — rows with NOT NULL created_by already deleted)
+    admin.from("daily_logs").update({ approved_by: null }).eq("approved_by", userId),
+    // rfis (nullable columns — rows with NOT NULL submitted_by already deleted)
     admin.from("rfis").update({ assigned_to: null }).eq("assigned_to", userId),
+    admin.from("rfis").update({ answered_by: null }).eq("answered_by", userId),
+    // change_orders
+    admin.from("change_orders").update({ requested_by: null }).eq("requested_by", userId),
+    admin.from("change_orders").update({ approved_by: null }).eq("approved_by", userId),
+    admin.from("change_orders").update({ signed_by: null }).eq("signed_by", userId),
+    // submittals
+    admin.from("submittals").update({ submitted_by: null }).eq("submitted_by", userId),
+    admin.from("submittals").update({ reviewer_id: null }).eq("reviewer_id", userId),
+    admin.from("submittals").update({ signed_by: null }).eq("signed_by", userId),
+    // punch_list_items
+    admin.from("punch_list_items").update({ assigned_to: null }).eq("assigned_to", userId),
+    admin.from("punch_list_items").update({ verified_by: null }).eq("verified_by", userId),
     // documents
     admin.from("documents").update({ uploaded_by: null }).eq("uploaded_by", userId),
-    // time_entries
-    admin.from("time_entries").update({ user_id: null }).eq("user_id", userId),
+    // time_entries (nullable columns — rows with NOT NULL user_id already deleted)
+    admin.from("time_entries").update({ approved_by: null }).eq("approved_by", userId),
     admin.from("time_entries").update({ updated_by: null }).eq("updated_by", userId),
     // audit_log (original from migration 001)
     admin.from("audit_log").update({ user_id: null }).eq("user_id", userId),
     // audit_logs (super-admin from migration 022)
     admin.from("audit_logs").update({ user_id: null }).eq("user_id", userId),
-    // comments
-    admin.from("comments").update({ user_id: null }).eq("user_id", userId),
     // opportunities
     admin.from("opportunities").update({ assigned_to: null }).eq("assigned_to", userId),
     // safety_incidents
@@ -110,6 +134,29 @@ async function cleanupAllUserReferences(
     admin.from("safety_incidents").update({ closed_by: null }).eq("closed_by", userId),
     // toolbox_talks
     admin.from("toolbox_talks").update({ conducted_by: null }).eq("conducted_by", userId),
+    // properties
+    admin.from("properties").update({ manager_id: null }).eq("manager_id", userId),
+    // leases
+    admin.from("leases").update({ tenant_user_id: null }).eq("tenant_user_id", userId),
+    admin.from("leases").update({ created_by: null }).eq("created_by", userId),
+    admin.from("leases").update({ approved_by: null }).eq("approved_by", userId),
+    admin.from("leases").update({ terminated_by: null }).eq("terminated_by", userId),
+    // maintenance_requests
+    admin.from("maintenance_requests").update({ requested_by: null }).eq("requested_by", userId),
+    admin.from("maintenance_requests").update({ assigned_to: null }).eq("assigned_to", userId),
+    admin.from("maintenance_requests").update({ completed_by: null }).eq("completed_by", userId),
+    // journal_entries
+    admin.from("journal_entries").update({ posted_by: null }).eq("posted_by", userId),
+    admin.from("journal_entries").update({ created_by: null }).eq("created_by", userId),
+    // invoices
+    admin.from("invoices").update({ submitted_by: null }).eq("submitted_by", userId),
+    admin.from("invoices").update({ approved_by: null }).eq("approved_by", userId),
+    // payments
+    admin.from("payments").update({ approved_by: null }).eq("approved_by", userId),
+    // contacts
+    admin.from("contacts").update({ user_id: null }).eq("user_id", userId),
+    // bids
+    admin.from("bids").update({ submitted_by: null }).eq("submitted_by", userId),
     // equipment
     admin.from("equipment").update({ assigned_to: null }).eq("assigned_to", userId),
     // equipment_maintenance_logs
@@ -134,14 +181,6 @@ async function cleanupAllUserReferences(
     admin.from("security_settings").update({ updated_by: null }).eq("updated_by", userId),
     // automation_rules
     admin.from("automation_rules").update({ created_by: null }).eq("created_by", userId),
-    // change_orders
-    admin.from("change_orders").update({ signed_by: null }).eq("signed_by", userId),
-    // submittals
-    admin.from("submittals").update({ signed_by: null }).eq("signed_by", userId),
-    // invoices
-    admin.from("invoices").update({ submitted_by: null }).eq("submitted_by", userId),
-    // payments
-    admin.from("payments").update({ approved_by: null }).eq("approved_by", userId),
     // tickets
     admin.from("tickets").update({ created_by: null }).eq("created_by", userId),
     admin.from("tickets").update({ assigned_to: null }).eq("assigned_to", userId),
@@ -172,17 +211,24 @@ async function cleanupAllUserReferences(
     admin.from("platform_settings").update({ updated_by: null }).eq("updated_by", userId),
     // promo_codes
     admin.from("promo_codes").update({ created_by: null }).eq("created_by", userId),
-    // leases
-    admin.from("leases").update({ created_by: null }).eq("created_by", userId),
-    admin.from("leases").update({ approved_by: null }).eq("approved_by", userId),
-    admin.from("leases").update({ terminated_by: null }).eq("terminated_by", userId),
-    // maintenance_requests
-    admin.from("maintenance_requests").update({ completed_by: null }).eq("completed_by", userId),
+    // cms
+    admin.from("cms_pages").update({ published_by: null }).eq("published_by", userId),
+    admin.from("cms_media").update({ uploaded_by: null }).eq("uploaded_by", userId),
+    // platform_announcements
+    admin.from("platform_announcements").update({ created_by: null }).eq("created_by", userId),
+    // ai_usage_log
+    admin.from("ai_usage_log").update({ user_id: null }).eq("user_id", userId),
+    // authoritative_reports (migration 014)
+    admin.from("authoritative_reports").update({ created_by: null }).eq("created_by", userId),
+    // company_members.invited_by
+    admin.from("company_members").update({ invited_by: null }).eq("invited_by", userId),
     // quickbooks_connections
     admin.from("quickbooks_connections").update({ connected_by: null }).eq("connected_by", userId),
+    // support_tickets (assigned_to, in case rows remain after Phase 2)
+    admin.from("support_tickets").update({ assigned_to: null }).eq("assigned_to", userId),
   ]);
 
-  // --- Phase 3: Clean up storage objects owned by this user ---
+  // --- Phase 4: Clean up storage objects owned by this user ---
   try {
     await admin.schema("storage").from("objects").update({ owner: null }).eq("owner", userId);
   } catch { /* storage schema may not be accessible via client */ }
