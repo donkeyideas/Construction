@@ -624,8 +624,9 @@ async function processEntity(
         }
       }
 
-      // Auto-generate invoice JEs (skip when pre-crafted JEs sheet exists to avoid double-counting)
-      if (insertedInvoices.length > 0 && !options?.skipAutoJE) {
+      // Always auto-generate invoice JEs — system-generated JEs are the authoritative
+      // source for AR/AP. Pre-crafted JE lines touching AR/AP are filtered during JE import.
+      if (insertedInvoices.length > 0) {
         try {
           await generateBulkInvoiceJournalEntries(
             supabase,
@@ -1478,7 +1479,7 @@ async function processEntity(
     case "journal_entries": {
       const { data: coaAccounts } = await supabase
         .from("chart_of_accounts")
-        .select("id, account_number")
+        .select("id, account_number, account_type, name")
         .eq("company_id", companyId);
       const acctLookup = (coaAccounts || []).reduce(
         (acc: Record<string, string>, a: { id: string; account_number: string }) => {
@@ -1487,6 +1488,24 @@ async function processEntity(
         },
         {} as Record<string, string>
       );
+
+      // When invoices are also being imported (skipAutoJE = true means JE sheet coexists
+      // with invoices), build a set of AR/AP account IDs. Pre-crafted JEs touching
+      // these accounts are skipped — the system's auto-generated invoice/payment JEs
+      // are the authoritative source for AR/AP.
+      const arApAccountIds = new Set<string>();
+      if (options?.skipAutoJE) {
+        for (const a of coaAccounts || []) {
+          const name = (a.name || "").toLowerCase();
+          const type = (a.account_type || "").toLowerCase();
+          if (
+            (type === "asset" && (name.includes("accounts receivable") || name.includes("retainage receivable"))) ||
+            (type === "liability" && (name.includes("accounts payable") || name.includes("retainage payable")))
+          ) {
+            arApAccountIds.add(a.id);
+          }
+        }
+      }
 
       const entryMap = new Map<string, Record<string, string>[]>();
       for (const r of rows) {
@@ -1498,6 +1517,18 @@ async function processEntity(
       let entryIdx = 0;
       for (const [entryNumber, entryRows] of entryMap) {
         entryIdx++;
+
+        // Skip pre-crafted JEs that touch AR/AP when invoices handle those accounts
+        if (options?.skipAutoJE && arApAccountIds.size > 0) {
+          const touchesArAp = entryRows.some((line) => {
+            const lineAcctId = line.account_id || (line.account_number ? acctLookup[line.account_number] : null);
+            return lineAcctId && arApAccountIds.has(lineAcctId);
+          });
+          if (touchesArAp) {
+            continue; // Skip this entire JE
+          }
+        }
+
         const first = entryRows[0];
         const { data: entry, error: headerError } = await supabase
           .from("journal_entries")
