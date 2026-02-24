@@ -2,6 +2,8 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import {
   buildCompanyAccountMap,
   generateInvoiceJournalEntry,
+  generateChangeOrderJournalEntry,
+  generateContractJournalEntry,
   generateLeaseRevenueSchedule,
   generateRentPaymentJournalEntry,
   generateEquipmentPurchaseJournalEntry,
@@ -43,6 +45,8 @@ async function ensureRequiredAccounts(
   const required = [
     { number: "1500", name: "Equipment", type: "asset", sub: "fixed_asset", balance: "debit", desc: "Equipment and machinery" },
     { number: "1540", name: "Accumulated Depreciation", type: "asset", sub: "fixed_asset", balance: "credit", desc: "Cumulative depreciation of fixed assets" },
+    { number: "1600", name: "Costs in Excess of Billings", type: "asset", sub: "current_asset", balance: "debit", desc: "WIP — unbilled costs on construction contracts" },
+    { number: "2400", name: "Billings in Excess of Costs", type: "liability", sub: "current_liability", balance: "credit", desc: "WIP — overbilled amounts on construction contracts" },
     { number: "6250", name: "Repairs & Maintenance", type: "expense", sub: "operating_expense", balance: "debit", desc: "Property and equipment repair costs" },
     { number: "6700", name: "Depreciation Expense", type: "expense", sub: "operating_expense", balance: "debit", desc: "Periodic depreciation of fixed assets" },
   ];
@@ -105,11 +109,70 @@ export async function backfillMissingJournalEntries(
     return result;
   }
 
-  // NOTE: Change Orders, Contracts, and RFIs are tracked as commitments / scope
-  // records. They do NOT generate their own JEs — the actual financial impact is
-  // captured by invoices (receivable or payable) issued against those contracts.
-  // Creating DR Expense / CR AP for a full contract value would double-count
-  // with the invoice JEs that already create proper AR/AP entries.
+  // --- Contracts (WIP accounting — Costs in Excess / Billings in Excess) ---
+  if (accountMap.costsInExcessId && accountMap.billingsInExcessId) {
+    const { data: contracts } = await supabase
+      .from("contracts")
+      .select("id, contract_number, title, contract_amount, start_date, project_id")
+      .eq("company_id", companyId)
+      .not("contract_amount", "is", null)
+      .gt("contract_amount", 0);
+
+    if (contracts && contracts.length > 0) {
+      const contractRefs = contracts.map((c) => `contract:${c.id}`);
+      const { data: existingJEs } = await supabase
+        .from("journal_entries")
+        .select("reference")
+        .eq("company_id", companyId)
+        .in("reference", contractRefs);
+      const existingRefs = new Set((existingJEs ?? []).map((j) => j.reference));
+
+      for (const c of contracts) {
+        if (existingRefs.has(`contract:${c.id}`)) continue;
+        try {
+          const r = await generateContractJournalEntry(supabase, companyId, userId, {
+            id: c.id, contract_number: c.contract_number ?? "", title: c.title ?? "Contract",
+            contract_amount: Number(c.contract_amount),
+            start_date: c.start_date ?? new Date().toISOString().split("T")[0],
+            project_id: c.project_id,
+          }, accountMap);
+          if (r) result.contractsGenerated++;
+        } catch (err) { console.warn("Backfill contract JE failed:", c.id, err); }
+      }
+    }
+  }
+
+  // --- Change Orders (WIP accounting — only approved COs) ---
+  if (accountMap.costsInExcessId && accountMap.billingsInExcessId) {
+    const { data: changeOrders } = await supabase
+      .from("change_orders")
+      .select("id, co_number, title, amount, reason, project_id, status")
+      .eq("company_id", companyId)
+      .eq("status", "approved")
+      .not("amount", "is", null);
+
+    if (changeOrders && changeOrders.length > 0) {
+      const coRefs = changeOrders.map((co) => `change_order:${co.id}`);
+      const { data: existingJEs } = await supabase
+        .from("journal_entries")
+        .select("reference")
+        .eq("company_id", companyId)
+        .in("reference", coRefs);
+      const existingRefs = new Set((existingJEs ?? []).map((j) => j.reference));
+
+      for (const co of changeOrders) {
+        if (existingRefs.has(`change_order:${co.id}`)) continue;
+        if (!co.amount || Number(co.amount) === 0) continue;
+        try {
+          const r = await generateChangeOrderJournalEntry(supabase, companyId, userId, {
+            id: co.id, co_number: co.co_number, amount: Number(co.amount),
+            reason: co.reason ?? "", project_id: co.project_id, title: co.title,
+          }, accountMap);
+          if (r) result.coGenerated++;
+        } catch (err) { console.warn("Backfill change order JE failed:", co.id, err); }
+      }
+    }
+  }
 
   // --- Invoices ---
   const { data: invoices } = await supabase

@@ -167,7 +167,7 @@ export async function getProjectTransactions(
       description: `${co.co_number} — ${co.title}${projectName ? ` (${projectName})` : ""}`,
       reference: co.co_number, source: "Change Orders", sourceHref: "/projects/change-orders",
       debit: amount > 0 ? amount : 0, credit: amount < 0 ? Math.abs(amount) : 0,
-      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null, jeExpected: false,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 
@@ -197,7 +197,7 @@ export async function getProjectTransactions(
       id: `contract-${c.id}`, date: c.start_date ?? new Date().toISOString().split("T")[0],
       description: `${c.contract_number ?? c.title ?? "Contract"}${projectName ? ` (${projectName})` : ""}`,
       reference: c.contract_number ?? "", source: "Contracts", sourceHref: "/projects/contracts",
-      debit: amount, credit: 0, jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null, jeExpected: false,
+      debit: amount, credit: 0, jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });
   }
 

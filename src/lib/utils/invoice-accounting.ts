@@ -23,6 +23,9 @@ export interface CompanyAccountMap {
   accumulatedDepreciationId: string | null;
   depreciationExpenseId: string | null;
   repairsMaintenanceId: string | null;
+  // WIP accounts for construction contracts
+  costsInExcessId: string | null;     // "Costs in Excess of Billings" (asset)
+  billingsInExcessId: string | null;  // "Billings in Excess of Costs" (liability)
   // Lookup by account number for GL account resolution
   byNumber: Record<string, string>;
 }
@@ -61,6 +64,8 @@ export async function buildCompanyAccountMap(
     accumulatedDepreciationId: null,
     depreciationExpenseId: null,
     repairsMaintenanceId: null,
+    costsInExcessId: null,
+    billingsInExcessId: null,
     byNumber: {},
   };
 
@@ -184,6 +189,23 @@ export async function buildCompanyAccountMap(
       (nameLower.includes("repair") || nameLower.includes("maintenance"))
     ) {
       map.repairsMaintenanceId = a.id;
+    }
+
+    // Costs in Excess of Billings: asset with "costs in excess" or "cost in excess" or "under-billing"
+    if (!map.costsInExcessId && a.account_type === "asset" &&
+      (nameLower.includes("costs in excess") || nameLower.includes("cost in excess") ||
+       nameLower.includes("under-billing") || nameLower.includes("underbilling"))
+    ) {
+      map.costsInExcessId = a.id;
+    }
+
+    // Billings in Excess of Costs: liability with "billings in excess" or "overbilling" or "unearned"
+    if (!map.billingsInExcessId && a.account_type === "liability" &&
+      (nameLower.includes("billings in excess") || nameLower.includes("billing in excess") ||
+       nameLower.includes("over-billing") || nameLower.includes("overbilling") ||
+       nameLower.includes("unearned"))
+    ) {
+      map.billingsInExcessId = a.id;
     }
   }
 
@@ -481,8 +503,14 @@ export async function generatePaymentJournalEntry(
 /**
  * Generate a journal entry for a change order approval.
  *
- * Owner-initiated: DR AR / CR Change Order Revenue
- * Cost change:     DR Expense / CR AP
+ * Uses WIP (Work-in-Progress) accounts to track contract scope changes without
+ * inflating AR/AP (which are reserved for actual invoices).
+ *
+ * Owner-initiated (adds revenue scope): DR Costs in Excess / CR Billings in Excess
+ * Cost change (adds cost scope):        DR Costs in Excess / CR Billings in Excess
+ *
+ * The sign is always: scope increase → DR asset / CR liability.
+ * Negative COs (scope reductions) reverse the entry.
  */
 export async function generateChangeOrderJournalEntry(
   supabase: SupabaseClient,
@@ -500,34 +528,26 @@ export async function generateChangeOrderJournalEntry(
 ): Promise<{ journalEntryId: string } | null> {
   if (changeOrder.amount === 0) return null;
 
-  const isOwnerCO = changeOrder.reason === "owner_request" || changeOrder.reason === "value_engineering";
+  // Require WIP accounts — skip if company chart doesn't have them
+  if (!accountMap.costsInExcessId || !accountMap.billingsInExcessId) return null;
+
   const description = `Change Order ${changeOrder.co_number}` +
     (changeOrder.title ? ` - ${changeOrder.title}` : "");
 
-  let debitAccountId: string | null;
-  let creditAccountId: string | null;
+  const amount = Math.abs(changeOrder.amount);
+  let debitAccountId: string;
+  let creditAccountId: string;
 
-  if (isOwnerCO && changeOrder.amount > 0) {
-    // Owner adds scope/money → DR AR / CR Change Order Revenue
-    debitAccountId = accountMap.arId;
-    creditAccountId = findAccountByPattern(accountMap, "change order") || findDefaultRevenueAccount(accountMap);
-  } else if (isOwnerCO && changeOrder.amount < 0) {
-    // Owner reduces scope → DR Revenue / CR AR (reversal of revenue recognition)
-    debitAccountId = findAccountByPattern(accountMap, "change order") || findDefaultRevenueAccount(accountMap);
-    creditAccountId = accountMap.arId;
-  } else if (changeOrder.amount > 0) {
-    // Cost increase → DR Expense / CR AP
-    debitAccountId = findDefaultExpenseAccount(accountMap);
-    creditAccountId = accountMap.apId;
+  if (changeOrder.amount > 0) {
+    // Scope increase → DR Costs in Excess (asset) / CR Billings in Excess (liability)
+    debitAccountId = accountMap.costsInExcessId;
+    creditAccountId = accountMap.billingsInExcessId;
   } else {
-    // Cost decrease/credit → DR AP / CR Expense (reversal)
-    debitAccountId = accountMap.apId;
-    creditAccountId = findDefaultExpenseAccount(accountMap);
+    // Scope decrease → reverse: DR Billings in Excess / CR Costs in Excess
+    debitAccountId = accountMap.billingsInExcessId;
+    creditAccountId = accountMap.costsInExcessId;
   }
 
-  if (!debitAccountId || !creditAccountId) return null;
-
-  const amount = Math.abs(changeOrder.amount);
   const entryData: JournalEntryCreateData = {
     entry_number: `JE-CO-${changeOrder.co_number}`,
     entry_date: new Date().toISOString().split("T")[0],
@@ -537,6 +557,51 @@ export async function generateChangeOrderJournalEntry(
     lines: [
       { account_id: debitAccountId, debit: amount, credit: 0, description, project_id: changeOrder.project_id },
       { account_id: creditAccountId, debit: 0, credit: amount, description, project_id: changeOrder.project_id },
+    ],
+  };
+
+  const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+  return result ? { journalEntryId: result.id } : null;
+}
+
+/**
+ * Generate a journal entry for a contract.
+ *
+ * Tracks the total contract value as WIP:
+ *   DR Costs in Excess of Billings (asset)
+ *   CR Billings in Excess of Costs (liability)
+ *
+ * This records the committed scope without touching AR/AP.
+ */
+export async function generateContractJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  contract: {
+    id: string;
+    contract_number: string;
+    title: string;
+    contract_amount: number;
+    start_date: string;
+    project_id?: string;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ journalEntryId: string } | null> {
+  if (!contract.contract_amount || contract.contract_amount === 0) return null;
+  if (!accountMap.costsInExcessId || !accountMap.billingsInExcessId) return null;
+
+  const amount = Math.abs(contract.contract_amount);
+  const description = `Contract ${contract.contract_number || contract.title}`;
+
+  const entryData: JournalEntryCreateData = {
+    entry_number: `JE-CTR-${(contract.contract_number || contract.id.substring(0, 8))}`,
+    entry_date: contract.start_date || new Date().toISOString().split("T")[0],
+    description,
+    reference: `contract:${contract.id}`,
+    project_id: contract.project_id,
+    lines: [
+      { account_id: accountMap.costsInExcessId, debit: amount, credit: 0, description, project_id: contract.project_id },
+      { account_id: accountMap.billingsInExcessId, debit: 0, credit: amount, description, project_id: contract.project_id },
     ],
   };
 
