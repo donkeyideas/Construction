@@ -270,7 +270,7 @@ function mapJELine(line: JELineRow, extra?: { projectNameMap?: Map<string, strin
     sourceHref = "/projects/change-orders";
   } else if (ref.startsWith("payroll_run:") || ref.startsWith("payroll:")) {
     source = "Payroll JE";
-    sourceHref = "/people/payroll";
+    sourceHref = "/people/labor";
   } else if (ref.startsWith("lease_accrual:") || ref.startsWith("lease_recognition:") || ref.startsWith("lease:")) {
     source = "Lease JE";
     sourceHref = "/properties/leases";
@@ -681,7 +681,7 @@ export async function getPeopleTransactions(
       date: run.pay_date ?? run.period_end,
       description: `Payroll ${run.period_start} to ${run.period_end} (${run.employee_count} employees)`,
       reference: `PR-${run.id.substring(0, 8)}`,
-      source: "Payroll", sourceHref: "/people/payroll",
+      source: "Payroll", sourceHref: "/people/labor",
       debit: gross + employerTaxes, credit: net,
       jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
     });

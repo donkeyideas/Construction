@@ -93,7 +93,7 @@ const NAV_PAGES: { title: string; href: string; section: string; keywords: strin
   { title: "Plan Room", href: "/documents/plan-room", section: "Documents", keywords: ["blueprints", "drawings", "plans"] },
   { title: "People Directory", href: "/people", section: "People", keywords: ["contacts", "team", "employees", "staff"] },
   { title: "Time & Attendance", href: "/people/time", section: "People", keywords: ["timesheets", "hours", "clock"] },
-  { title: "Payroll", href: "/people/payroll", section: "People", keywords: ["paycheck", "wages", "salary", "taxes", "w2", "paystub"] },
+  { title: "Labor & Time", href: "/people/labor", section: "People", keywords: ["labor", "time", "hours", "wages", "rates", "clock"] },
   { title: "Certifications", href: "/people/certifications", section: "People", keywords: ["licenses", "credentials"] },
   { title: "Vendors", href: "/people/vendors", section: "People", keywords: ["suppliers", "subcontractors", "subs"] },
   { title: "CRM Pipeline", href: "/crm", section: "CRM & Bids", keywords: ["leads", "sales", "opportunities", "clients"] },

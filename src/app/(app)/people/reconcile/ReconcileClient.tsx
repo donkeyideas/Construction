@@ -6,12 +6,9 @@ import {
   DollarSign,
   TrendingDown,
   TrendingUp,
-  CheckCircle,
-  Clock,
   AlertTriangle,
 } from "lucide-react";
 import type { AccrualRow, WageAccountSummary } from "./page";
-import type { PayrollRun } from "@/lib/queries/payroll";
 
 import "@/styles/financial.css";
 import "@/styles/payroll.css";
@@ -22,7 +19,6 @@ import "@/styles/payroll.css";
 
 interface ReconcileClientProps {
   accruals: AccrualRow[];
-  payrollRuns: PayrollRun[];
   wageAccounts: WageAccountSummary[];
 }
 
@@ -46,18 +42,6 @@ function fmtDate(iso: string): string {
   });
 }
 
-function fmtPeriod(start: string, end: string): string {
-  const s = new Date(start + "T00:00:00").toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-  const e = new Date(end + "T00:00:00").toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-  return `${s} – ${e}`;
-}
-
 // Parse hours/rate from description like "Labor accrual — Name — 8h @ $45/h"
 function parseHoursRate(desc: string): { hours: string; rate: string } {
   const match = desc.match(/([\d.]+)h\s*@\s*\$([\d.]+)/);
@@ -71,29 +55,19 @@ function parseHoursRate(desc: string): { hours: string; rate: string } {
 
 export default function ReconcileClient({
   accruals,
-  payrollRuns,
   wageAccounts,
 }: ReconcileClientProps) {
   const totalAccrued = accruals.reduce((s, a) => s + a.amount, 0);
-  const paidRuns = payrollRuns.filter((r) => r.status === "paid");
-  const pendingRuns = payrollRuns.filter(
-    (r) => r.status === "draft" || r.status === "approved"
-  );
 
   const expenseAccount = wageAccounts.find((a) => a.accountType === "expense");
   const payableAccount = wageAccounts.find((a) => a.accountType === "liability");
 
-  // Alerts
-  const alerts: string[] = [];
   const payableBalance = payableAccount
     ? payableAccount.totalCredits - payableAccount.totalDebits
     : 0;
 
-  if (payableBalance > 0 && pendingRuns.length === 0 && accruals.length > 0) {
-    alerts.push(
-      "Accrued wages exist but no payroll run is draft or approved — consider creating a payroll run."
-    );
-  }
+  // Alerts
+  const alerts: string[] = [];
 
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
@@ -102,7 +76,7 @@ export default function ReconcileClient({
   );
   if (oldAccruals.length > 0) {
     alerts.push(
-      `${oldAccruals.length} labor accrual(s) are older than 2 weeks — consider running payroll to clear them.`
+      `${oldAccruals.length} labor accrual(s) are older than 2 weeks.`
     );
   }
 
@@ -118,16 +92,10 @@ export default function ReconcileClient({
         </div>
         <div className="fin-header-actions">
           <Link
-            href="/people/payroll"
+            href="/people/labor"
             className="ui-btn ui-btn-md ui-btn-secondary"
           >
-            Payroll
-          </Link>
-          <Link
-            href="/people/time"
-            className="ui-btn ui-btn-md ui-btn-secondary"
-          >
-            Time & Attendance
+            Labor & Time
           </Link>
         </div>
       </div>
@@ -192,22 +160,6 @@ export default function ReconcileClient({
           <span className="fin-kpi-label">Wages Payable</span>
           <span className="fin-kpi-value" style={{ color: payableBalance > 0 ? "var(--color-amber)" : undefined }}>
             {fmtMoney(payableBalance)}
-          </span>
-        </div>
-        <div className="fin-kpi">
-          <div className="fin-kpi-icon green">
-            <CheckCircle size={18} />
-          </div>
-          <span className="fin-kpi-label">Paid Runs</span>
-          <span className="fin-kpi-value">{paidRuns.length}</span>
-        </div>
-        <div className="fin-kpi">
-          <div className="fin-kpi-icon blue">
-            <Clock size={18} />
-          </div>
-          <span className="fin-kpi-label">Pending Runs</span>
-          <span className="fin-kpi-value" style={{ color: pendingRuns.length > 0 ? "var(--color-blue)" : undefined }}>
-            {pendingRuns.length}
           </span>
         </div>
       </div>
@@ -275,53 +227,6 @@ export default function ReconcileClient({
           )}
         </div>
 
-        {/* Recent Payroll Runs */}
-        <div className="fin-chart-card">
-          <div className="fin-chart-title">Recent Payroll Runs</div>
-          {payrollRuns.length > 0 ? (
-            <div style={{ overflowX: "auto" }}>
-              <table className="invoice-table">
-                <thead>
-                  <tr>
-                    <th>Period</th>
-                    <th>Status</th>
-                    <th style={{ textAlign: "right" }}>Gross Pay</th>
-                    <th style={{ textAlign: "right" }}>Employees</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payrollRuns.map((r) => (
-                    <tr key={r.id}>
-                      <td style={{ fontSize: "0.82rem" }}>
-                        {fmtPeriod(r.period_start, r.period_end)}
-                      </td>
-                      <td>
-                        <span className={`payroll-status payroll-status-${r.status}`}>
-                          {r.status}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: "right", fontWeight: 500 }}>
-                        {fmtMoney(r.total_gross)}
-                      </td>
-                      <td style={{ textAlign: "right" }}>{r.employee_count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div
-              style={{
-                textAlign: "center",
-                padding: 32,
-                color: "var(--muted)",
-                fontSize: "0.85rem",
-              }}
-            >
-              No payroll runs yet
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Wage Account Summary */}
@@ -385,7 +290,7 @@ export default function ReconcileClient({
             padding: "0 4px",
           }}
         >
-          When Wages Payable is $0.00, all accrued labor has been paid through payroll runs.
+          When Wages Payable is $0.00, all accrued labor costs have been settled.
         </div>
       </div>
     </div>

@@ -351,10 +351,10 @@ export default function TimeTab({
         <>
           {/* Week Navigation */}
           <div className="week-nav">
-            <Link href={`/people/payroll?tab=weekly&week=${prevWeekISO}`} className="week-nav-btn">
+            <Link href={`/people/labor?tab=weekly&week=${prevWeekISO}`} className="week-nav-btn">
               <ChevronLeft size={18} />
             </Link>
-            <Link href={`/people/payroll?tab=weekly&week=${nextWeekISO}`} className="week-nav-btn">
+            <Link href={`/people/labor?tab=weekly&week=${nextWeekISO}`} className="week-nav-btn">
               <ChevronRight size={18} />
             </Link>
             <span className="week-nav-label">

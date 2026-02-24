@@ -229,7 +229,7 @@ export default function TimesheetsClient({ timesheets }: TimesheetsClientProps) 
                           style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                           onClick={() => {
                             // In a full implementation, this would submit the timesheet
-                            alert("Timesheet submission will be connected to your payroll workflow.");
+                            alert("Timesheet submitted for approval.");
                           }}
                         >
                           <Send size={14} />

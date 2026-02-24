@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getPayrollRuns } from "@/lib/queries/payroll";
 import { getEmployeeRateMap, createLaborAccrualJE } from "@/lib/utils/labor-cost";
 import ReconcileClient from "./ReconcileClient";
 
@@ -189,7 +188,7 @@ export default async function ReconcilePage() {
   // -----------------------------------------------------------------------
   // 2. Parallel fetches
   // -----------------------------------------------------------------------
-  const [accrualJEsRes, payrollRuns, expenseLinesRes, payableLinesRes, employeesRes] =
+  const [accrualJEsRes, expenseLinesRes, payableLinesRes, employeesRes] =
     await Promise.all([
       // Active labor accrual JEs
       supabase
@@ -199,9 +198,6 @@ export default async function ReconcilePage() {
         .eq("status", "posted")
         .like("reference", "labor:%")
         .order("entry_date", { ascending: false }),
-
-      // Payroll runs
-      getPayrollRuns(supabase, companyId, 20),
 
       // Wages Expense account lines
       wagesExpenseId
@@ -316,7 +312,6 @@ export default async function ReconcilePage() {
   return (
     <ReconcileClient
       accruals={JSON.parse(JSON.stringify(accruals))}
-      payrollRuns={JSON.parse(JSON.stringify(payrollRuns))}
       wageAccounts={wageAccounts}
     />
   );

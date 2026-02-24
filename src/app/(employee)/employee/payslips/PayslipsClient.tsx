@@ -235,7 +235,7 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
             </div>
             <div className="fin-empty-title">No Payslips Yet</div>
             <div className="fin-empty-desc">
-              Your pay stubs will appear here after your first payroll is processed.
+              Pay stubs are managed by your external payroll provider (e.g., ADP, Gusto).
             </div>
           </div>
         </div>
