@@ -162,8 +162,9 @@ export async function ensureBankAccountGLLink(
 /**
  * Create an opening balance journal entry for a bank account.
  * DR Bank GL Account / CR 1000 Cash (reclassification from generic Cash)
+ * Idempotent — won't create duplicate JEs.
  */
-async function createOpeningBalanceJE(
+export async function createOpeningBalanceJE(
   supabase: SupabaseClient,
   companyId: string,
   userId: string,
