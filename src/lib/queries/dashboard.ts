@@ -416,7 +416,7 @@ export async function getRecentActivity(
   // Pull recent records from multiple tables in parallel and merge by timestamp
   let projectsQuery = supabase
     .from("projects")
-    .select("id, name, status, created_at, updated_at, project_manager:user_profiles!projects_pm_profile_fkey(full_name)")
+    .select("id, name, status, project_manager_id, created_at, updated_at")
     .eq("company_id", companyId)
     .order("updated_at", { ascending: false })
     .limit(5);
@@ -464,7 +464,7 @@ export async function getRecentActivity(
 
   let dailyLogsQuery = supabase
     .from("daily_logs")
-    .select("id, log_date, weather, created_at, projects(name), author:user_profiles!daily_logs_creator_profile_fkey(full_name)")
+    .select("id, log_date, weather, created_at, created_by, project_id")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false })
     .limit(5);
@@ -472,7 +472,7 @@ export async function getRecentActivity(
 
   let documentsQuery = supabase
     .from("documents")
-    .select("id, name, created_at, uploader:user_profiles!documents_uploader_profile_fkey(full_name)")
+    .select("id, name, created_at, uploaded_by")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false })
     .limit(5);
@@ -492,18 +492,37 @@ export async function getRecentActivity(
 
   const items: RecentActivityItem[] = [];
 
-  // Helper to extract user name from joined profile
-  function userName(profile: unknown): string {
-    if (!profile) return "Team";
-    const p = profile as { full_name?: string };
-    return p.full_name || "Team";
+  // Batch-fetch user profiles for all entities that reference user IDs
+  const actProfileIds = new Set<string>();
+  const actProjectIds = new Set<string>();
+  for (const p of projectsRes.data ?? []) { if (p.project_manager_id) actProfileIds.add(p.project_manager_id); }
+  for (const l of dailyLogsRes.data ?? []) {
+    if (l.created_by) actProfileIds.add(l.created_by);
+    if (l.project_id) actProjectIds.add(l.project_id);
+  }
+  for (const d of documentsRes.data ?? []) { if (d.uploaded_by) actProfileIds.add(d.uploaded_by); }
+
+  const [actProfilesRes, actProjectNamesRes] = await Promise.all([
+    actProfileIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name").in("id", [...actProfileIds])
+      : Promise.resolve({ data: null }),
+    actProjectIds.size > 0
+      ? supabase.from("projects").select("id, name").in("id", [...actProjectIds])
+      : Promise.resolve({ data: null }),
+  ]);
+  const actProfileMap = new Map((actProfilesRes.data ?? []).map((p: { id: string; full_name: string }) => [p.id, p.full_name]));
+  const actProjNameMap = new Map((actProjectNamesRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p.name]));
+
+  function userName(userId: string | null): string {
+    if (!userId) return "Team";
+    return actProfileMap.get(userId) || "Team";
   }
 
   // Projects
   for (const p of projectsRes.data ?? []) {
     const isNew = p.created_at === p.updated_at;
     items.push({
-      user: userName(p.project_manager),
+      user: userName(p.project_manager_id),
       action: isNew ? "created project" : `updated project (${p.status?.replace(/_/g, " ")})`,
       ref: p.name ?? "",
       time: p.updated_at ?? p.created_at,
@@ -579,11 +598,10 @@ export async function getRecentActivity(
 
   // Daily Logs
   for (const log of dailyLogsRes.data ?? []) {
-    const project = log.projects as unknown as { name: string } | null;
     items.push({
-      user: userName(log.author),
+      user: userName(log.created_by),
       action: "submitted daily log",
-      ref: project?.name ?? log.log_date ?? "",
+      ref: (log.project_id ? actProjNameMap.get(log.project_id) : null) ?? log.log_date ?? "",
       time: log.created_at,
       entityType: "daily_log",
       entityId: log.id,
@@ -593,7 +611,7 @@ export async function getRecentActivity(
   // Documents
   for (const doc of documentsRes.data ?? []) {
     items.push({
-      user: userName(doc.uploader),
+      user: userName(doc.uploaded_by),
       action: "uploaded document",
       ref: doc.name ?? "",
       time: doc.created_at,

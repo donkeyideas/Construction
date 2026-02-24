@@ -59,7 +59,7 @@ export async function getSupportTickets(
   let query = supabase
     .from("support_tickets")
     .select(
-      "id, ticket_number, company_id, user_id, subject, description, status, priority, category, assigned_to, resolved_at, created_at, updated_at, user_profiles!support_tickets_user_id_fkey(full_name, email), companies(name)"
+      "id, ticket_number, company_id, user_id, subject, description, status, priority, category, assigned_to, resolved_at, created_at, updated_at"
     );
 
   if (filters.status) {
@@ -79,35 +79,39 @@ export async function getSupportTickets(
     return [];
   }
 
-  // Fetch assigned user names for tickets that have assigned_to
-  const assignedIds = [
-    ...new Set(
-      (data ?? [])
-        .map((t) => t.assigned_to)
-        .filter((id): id is string => !!id)
-    ),
-  ];
+  const tickets = data ?? [];
 
-  let assignedMap: Record<string, string> = {};
-  if (assignedIds.length > 0) {
-    const { data: assignedProfiles } = await supabase
+  // Batch-fetch user profiles, company names, and assigned user names
+  const userIds = [...new Set(tickets.map((t) => t.user_id).filter((id): id is string => !!id))];
+  const assignedIds = [...new Set(tickets.map((t) => t.assigned_to).filter((id): id is string => !!id))];
+  const companyIds = [...new Set(tickets.map((t) => t.company_id).filter((id): id is string => !!id))];
+  const allUserIds = [...new Set([...userIds, ...assignedIds])];
+
+  let userProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (allUserIds.length > 0) {
+    const { data: profiles } = await supabase
       .from("user_profiles")
-      .select("id, full_name")
-      .in("id", assignedIds);
-
-    if (assignedProfiles) {
-      for (const p of assignedProfiles) {
-        assignedMap[p.id] = p.full_name ?? "Unknown";
-      }
-    }
+      .select("id, full_name, email")
+      .in("id", allUserIds);
+    userProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+    );
   }
 
-  return (data ?? []).map((t) => {
-    const profile = t.user_profiles as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null;
-    const company = t.companies as unknown as { name: string } | null;
+  let companyNameMap = new Map<string, string>();
+  if (companyIds.length > 0) {
+    const { data: companies } = await supabase
+      .from("companies")
+      .select("id, name")
+      .in("id", companyIds);
+    companyNameMap = new Map(
+      (companies ?? []).map((c: { id: string; name: string }) => [c.id, c.name])
+    );
+  }
+
+  return tickets.map((t) => {
+    const profile = t.user_id ? userProfileMap.get(t.user_id) ?? null : null;
+    const assignedProfile = t.assigned_to ? userProfileMap.get(t.assigned_to) ?? null : null;
 
     return {
       id: t.id,
@@ -125,8 +129,8 @@ export async function getSupportTickets(
       updated_at: t.updated_at,
       user_full_name: profile?.full_name ?? null,
       user_email: profile?.email ?? null,
-      company_name: company?.name ?? null,
-      assigned_name: t.assigned_to ? assignedMap[t.assigned_to] ?? null : null,
+      company_name: t.company_id ? companyNameMap.get(t.company_id) ?? null : null,
+      assigned_name: assignedProfile?.full_name ?? null,
     };
   });
 }
@@ -142,7 +146,7 @@ export async function getSupportTicketById(
   const { data: ticket, error } = await supabase
     .from("support_tickets")
     .select(
-      "id, ticket_number, company_id, user_id, subject, description, status, priority, category, assigned_to, resolved_at, created_at, updated_at, user_profiles!support_tickets_user_id_fkey(full_name, email), companies(name)"
+      "id, ticket_number, company_id, user_id, subject, description, status, priority, category, assigned_to, resolved_at, created_at, updated_at"
     )
     .eq("id", id)
     .single();
@@ -156,7 +160,7 @@ export async function getSupportTicketById(
   const { data: messages, error: msgError } = await supabase
     .from("support_ticket_messages")
     .select(
-      "id, ticket_id, user_id, message, is_internal, created_at, user_profiles(full_name, email)"
+      "id, ticket_id, user_id, message, is_internal, created_at"
     )
     .eq("ticket_id", id)
     .order("created_at", { ascending: true });
@@ -165,22 +169,37 @@ export async function getSupportTicketById(
     console.error("getSupportTicketMessages error:", msgError);
   }
 
-  // Resolve assigned_to name
-  let assignedName: string | null = null;
-  if (ticket.assigned_to) {
-    const { data: assignedProfile } = await supabase
-      .from("user_profiles")
-      .select("full_name")
-      .eq("id", ticket.assigned_to)
-      .single();
-    assignedName = assignedProfile?.full_name ?? null;
+  // Batch-fetch all user profiles and company name
+  const allIds = new Set<string>();
+  if (ticket.user_id) allIds.add(ticket.user_id);
+  if (ticket.assigned_to) allIds.add(ticket.assigned_to);
+  for (const m of messages ?? []) {
+    if (m.user_id) allIds.add(m.user_id);
   }
 
-  const profile = ticket.user_profiles as unknown as {
-    full_name: string | null;
-    email: string | null;
-  } | null;
-  const company = ticket.companies as unknown as { name: string } | null;
+  let detailProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (allIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", [...allIds]);
+    detailProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+    );
+  }
+
+  let companyName: string | null = null;
+  if (ticket.company_id) {
+    const { data: comp } = await supabase
+      .from("companies")
+      .select("name")
+      .eq("id", ticket.company_id)
+      .maybeSingle();
+    companyName = comp?.name ?? null;
+  }
+
+  const profile = ticket.user_id ? detailProfileMap.get(ticket.user_id) ?? null : null;
+  const assignedProfile = ticket.assigned_to ? detailProfileMap.get(ticket.assigned_to) ?? null : null;
 
   return {
     id: ticket.id,
@@ -198,13 +217,10 @@ export async function getSupportTicketById(
     updated_at: ticket.updated_at,
     user_full_name: profile?.full_name ?? null,
     user_email: profile?.email ?? null,
-    company_name: company?.name ?? null,
-    assigned_name: assignedName,
+    company_name: companyName,
+    assigned_name: assignedProfile?.full_name ?? null,
     messages: (messages ?? []).map((m) => {
-      const msgProfile = m.user_profiles as unknown as {
-        full_name: string | null;
-        email: string | null;
-      } | null;
+      const msgProfile = m.user_id ? detailProfileMap.get(m.user_id) ?? null : null;
       return {
         id: m.id,
         ticket_id: m.ticket_id,

@@ -137,14 +137,7 @@ export async function getDocuments(
 ): Promise<DocumentRow[]> {
   let query = supabase
     .from("documents")
-    .select(
-      `
-      *,
-      uploader:user_profiles!documents_uploader_profile_fkey(full_name, email),
-      project:projects!documents_project_id_fkey(id, name, code),
-      property:properties!documents_property_id_fkey(id, name)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -183,6 +176,38 @@ export async function getDocuments(
   }
 
   const docs = (data ?? []) as DocumentRow[];
+
+  // Batch-fetch uploader profiles, projects, and properties
+  const uploaderIds = new Set<string>();
+  const docProjectIds = new Set<string>();
+  const docPropertyIds = new Set<string>();
+  for (const d of docs) {
+    if (d.uploaded_by) uploaderIds.add(d.uploaded_by);
+    if (d.project_id) docProjectIds.add(d.project_id);
+    if (d.property_id) docPropertyIds.add(d.property_id);
+  }
+
+  const [uploaderRes, projRes, propRes] = await Promise.all([
+    uploaderIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...uploaderIds])
+      : Promise.resolve({ data: null }),
+    docProjectIds.size > 0
+      ? supabase.from("projects").select("id, name, code").in("id", [...docProjectIds])
+      : Promise.resolve({ data: null }),
+    docPropertyIds.size > 0
+      ? supabase.from("properties").select("id, name").in("id", [...docPropertyIds])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const uploaderMap = new Map((uploaderRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, { full_name: p.full_name, email: p.email }]));
+  const docProjMap = new Map((projRes.data ?? []).map((p: { id: string; name: string; code: string }) => [p.id, p]));
+  const docPropMap = new Map((propRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
+
+  for (const d of docs) {
+    d.uploader = d.uploaded_by ? uploaderMap.get(d.uploaded_by) ?? null : null;
+    d.project = d.project_id ? docProjMap.get(d.project_id) ?? null : null;
+    d.property = d.property_id ? docPropMap.get(d.property_id) ?? null : null;
+  }
 
   // Resolve missing uploader names (e.g. tenant users blocked by RLS)
   await resolveUploaderNames(docs);
@@ -258,14 +283,7 @@ export async function getDocumentById(
 ): Promise<DocumentRow | null> {
   const { data, error } = await supabase
     .from("documents")
-    .select(
-      `
-      *,
-      uploader:user_profiles!documents_uploader_profile_fkey(full_name, email),
-      project:projects!documents_project_id_fkey(id, name, code),
-      property:properties!documents_property_id_fkey(id, name)
-    `
-    )
+    .select("*")
     .eq("id", documentId)
     .single();
 
@@ -275,6 +293,24 @@ export async function getDocumentById(
   }
 
   const doc = data as DocumentRow;
+
+  // Fetch uploader, project, property in parallel
+  const [uploaderRes2, projRes2, propRes2] = await Promise.all([
+    doc.uploaded_by
+      ? supabase.from("user_profiles").select("id, full_name, email").eq("id", doc.uploaded_by).maybeSingle()
+      : Promise.resolve({ data: null }),
+    doc.project_id
+      ? supabase.from("projects").select("id, name, code").eq("id", doc.project_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    doc.property_id
+      ? supabase.from("properties").select("id, name").eq("id", doc.property_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  doc.uploader = uploaderRes2.data ? { full_name: uploaderRes2.data.full_name, email: uploaderRes2.data.email } : null;
+  doc.project = projRes2.data ?? null;
+  doc.property = propRes2.data ?? null;
+
   await resolveUploaderNames([doc]);
   return doc;
 }
@@ -352,14 +388,7 @@ export async function getPlanRoomDocuments(
 ): Promise<DocumentRow[]> {
   let query = supabase
     .from("documents")
-    .select(
-      `
-      *,
-      uploader:user_profiles!documents_uploader_profile_fkey(full_name, email),
-      project:projects!documents_project_id_fkey(id, name, code),
-      drawing_set:drawing_sets!documents_drawing_set_id_fkey(id, name, discipline, status)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .in("category", ["plan", "spec"])
     .order("name", { ascending: true });
@@ -392,7 +421,41 @@ export async function getPlanRoomDocuments(
     return [];
   }
 
-  return (data ?? []) as DocumentRow[];
+  const planDocs = (data ?? []) as DocumentRow[];
+
+  // Batch-fetch uploader profiles, projects, and drawing sets
+  const planUploaderIds = new Set<string>();
+  const planProjectIds = new Set<string>();
+  const planDrawingSetIds = new Set<string>();
+  for (const d of planDocs) {
+    if (d.uploaded_by) planUploaderIds.add(d.uploaded_by);
+    if (d.project_id) planProjectIds.add(d.project_id);
+    if (d.drawing_set_id) planDrawingSetIds.add(d.drawing_set_id);
+  }
+
+  const [planUploaderRes, planProjRes, planDsRes] = await Promise.all([
+    planUploaderIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...planUploaderIds])
+      : Promise.resolve({ data: null }),
+    planProjectIds.size > 0
+      ? supabase.from("projects").select("id, name, code").in("id", [...planProjectIds])
+      : Promise.resolve({ data: null }),
+    planDrawingSetIds.size > 0
+      ? supabase.from("drawing_sets").select("id, name, discipline, status").in("id", [...planDrawingSetIds])
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const planUploaderMap = new Map((planUploaderRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, { full_name: p.full_name, email: p.email }]));
+  const planProjMap = new Map((planProjRes.data ?? []).map((p: { id: string; name: string; code: string }) => [p.id, p]));
+  const planDsMap = new Map((planDsRes.data ?? []).map((d: { id: string; name: string; discipline: string | null; status: string }) => [d.id, d]));
+
+  for (const d of planDocs) {
+    d.uploader = d.uploaded_by ? planUploaderMap.get(d.uploaded_by) ?? null : null;
+    d.project = d.project_id ? planProjMap.get(d.project_id) ?? null : null;
+    d.drawing_set = d.drawing_set_id ? planDsMap.get(d.drawing_set_id) ?? null : null;
+  }
+
+  return planDocs;
 }
 
 /* ------------------------------------------------------------------
@@ -474,12 +537,7 @@ export async function getDocumentVersionHistory(
 ): Promise<DocumentRow[]> {
   let query = supabase
     .from("documents")
-    .select(
-      `
-      *,
-      uploader:user_profiles!documents_uploader_profile_fkey(full_name, email)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .eq("name", docName)
     .order("version", { ascending: false });
@@ -503,7 +561,24 @@ export async function getDocumentVersionHistory(
     return [];
   }
 
-  return (data ?? []) as DocumentRow[];
+  const versionDocs = (data ?? []) as DocumentRow[];
+
+  // Batch-fetch uploader profiles
+  const versionUploaderIds = [...new Set(versionDocs.map((d) => d.uploaded_by).filter(Boolean))];
+  if (versionUploaderIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", versionUploaderIds);
+    const versionUploaderMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, { full_name: p.full_name, email: p.email }])
+    );
+    for (const d of versionDocs) {
+      d.uploader = d.uploaded_by ? versionUploaderMap.get(d.uploaded_by) ?? null : null;
+    }
+  }
+
+  return versionDocs;
 }
 
 /* ------------------------------------------------------------------
@@ -558,7 +633,7 @@ export async function getDocumentsOverview(
         .eq("company_id", companyId),
       supabase
         .from("documents")
-        .select("*, uploader:user_profiles!documents_uploaded_by_fkey(full_name, email), project:projects!documents_project_id_fkey(id, name, code)")
+        .select("*")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false })
         .limit(10),
@@ -577,6 +652,28 @@ export async function getDocumentsOverview(
   const recentDocuments = (recentDocsRes.data ?? []) as DocumentRow[];
   const drawingSets = drawingSetsRes.data ?? [];
   const docsForTrend = docsForTrendRes.data ?? [];
+
+  // Batch-fetch uploader profiles and projects for recent documents
+  const ovUploaderIds = new Set<string>();
+  const ovProjectIds = new Set<string>();
+  for (const d of recentDocuments) {
+    if (d.uploaded_by) ovUploaderIds.add(d.uploaded_by);
+    if (d.project_id) ovProjectIds.add(d.project_id);
+  }
+  const [ovUploaderRes, ovProjRes] = await Promise.all([
+    ovUploaderIds.size > 0
+      ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...ovUploaderIds])
+      : Promise.resolve({ data: null }),
+    ovProjectIds.size > 0
+      ? supabase.from("projects").select("id, name, code").in("id", [...ovProjectIds])
+      : Promise.resolve({ data: null }),
+  ]);
+  const ovUploaderMap = new Map((ovUploaderRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, { full_name: p.full_name, email: p.email }]));
+  const ovProjMap = new Map((ovProjRes.data ?? []).map((p: { id: string; name: string; code: string }) => [p.id, p]));
+  for (const d of recentDocuments) {
+    d.uploader = d.uploaded_by ? ovUploaderMap.get(d.uploaded_by) ?? null : null;
+    d.project = d.project_id ? ovProjMap.get(d.project_id) ?? null : null;
+  }
 
   const totalCount = allDocs.length;
   const planSpecCount = allDocs.filter(

@@ -34,9 +34,7 @@ export default async function MaintenancePage() {
       .order("name"),
     supabase
       .from("company_members")
-      .select(
-        "user_id, role, user:user_profiles!company_members_user_profile_fkey(full_name, email)"
-      )
+      .select("user_id, role")
       .eq("company_id", companyId)
       .eq("is_active", true),
   ]);
@@ -46,11 +44,25 @@ export default async function MaintenancePage() {
     id: p.id,
     name: p.name,
   }));
-  const members = (membersResult.data ?? []).map((m: any) => ({
+
+  // Batch-fetch user profiles for members
+  const maintMemberData = membersResult.data ?? [];
+  const maintMemberUserIds = [...new Set(maintMemberData.map((m: any) => m.user_id).filter(Boolean))] as string[];
+  let maintMemberProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (maintMemberUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", maintMemberUserIds);
+    maintMemberProfileMap = new Map(
+      (profiles ?? []).map((p: any) => [p.id, p])
+    );
+  }
+  const members = maintMemberData.map((m: any) => ({
     user_id: m.user_id,
     role: m.role,
-    full_name: (m.user as any)?.full_name ?? null,
-    email: (m.user as any)?.email ?? null,
+    full_name: m.user_id ? maintMemberProfileMap.get(m.user_id)?.full_name ?? null : null,
+    email: m.user_id ? maintMemberProfileMap.get(m.user_id)?.email ?? null : null,
   }));
 
   return (

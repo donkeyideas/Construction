@@ -83,18 +83,27 @@ export default function NewProjectPage() {
 
       const { data } = await supabase
         .from("company_members")
-        .select(
-          `
-          user_id,
-          role,
-          user:user_profiles!company_members_user_profile_fkey(id, full_name, email)
-        `
-        )
+        .select("user_id, role")
         .eq("company_id", membership.company_id)
         .order("role", { ascending: true });
 
       if (data) {
-        setMembers(data as unknown as CompanyMember[]);
+        // Batch-fetch user profiles
+        const newProjUserIds = [...new Set(data.map((m) => m.user_id).filter(Boolean))] as string[];
+        let newProjProfileMap = new Map<string, { id: string; full_name: string; email: string }>();
+        if (newProjUserIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("user_profiles")
+            .select("id, full_name, email")
+            .in("id", newProjUserIds);
+          newProjProfileMap = new Map(
+            (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p])
+          );
+        }
+        setMembers(data.map((m) => ({
+          ...m,
+          user: m.user_id ? newProjProfileMap.get(m.user_id) ?? null : null,
+        })) as unknown as CompanyMember[]);
       }
     }
 

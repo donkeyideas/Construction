@@ -57,10 +57,29 @@ export async function getAdminOverview(
 export async function getTeamMembers(supabase: SupabaseClient, companyId: string) {
   const { data } = await supabase
     .from("company_members")
-    .select("id, user_id, role, is_active, joined_at, user_profiles!company_members_user_profile_fkey(full_name, email, avatar_url)")
+    .select("id, user_id, role, is_active, joined_at")
     .eq("company_id", companyId)
     .order("joined_at", { ascending: false });
-  return data ?? [];
+
+  const members = data ?? [];
+
+  // Batch-fetch user profiles
+  const userIds = [...new Set(members.map((m: { user_id: string | null }) => m.user_id).filter(Boolean))] as string[];
+  let profileMap = new Map<string, { full_name: string; email: string; avatar_url: string | null }>();
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email, avatar_url")
+      .in("id", userIds);
+    profileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string; email: string; avatar_url: string | null }) => [p.id, p])
+    );
+  }
+
+  return members.map((m: Record<string, unknown>) => ({
+    ...m,
+    user_profiles: m.user_id ? profileMap.get(m.user_id as string) ?? null : null,
+  }));
 }
 
 export async function getAllTenants(supabase: SupabaseClient, companyId: string) {

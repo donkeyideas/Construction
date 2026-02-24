@@ -1110,14 +1110,14 @@ export async function getPropertiesOverview(
       .order("name"),
     supabase
       .from("maintenance_requests")
-      .select("*, property:properties!maintenance_requests_property_id_fkey(name)")
+      .select("*")
       .eq("company_id", companyId)
       .in("status", ["submitted", "assigned", "in_progress"])
       .order("priority", { ascending: true })
       .limit(10),
     supabase
       .from("leases")
-      .select("*, property:properties!leases_property_id_fkey(name), units!leases_unit_id_fkey(unit_number)")
+      .select("*")
       .eq("company_id", companyId)
       .eq("status", "active")
       .lte("lease_end", sixtyDaysOut)
@@ -1183,15 +1183,40 @@ export async function getPropertiesOverview(
     revenue,
   }));
 
+  // Build property name map from already-loaded properties
+  const propNameMap = new Map(properties.map((p) => [p.id, p.name]));
+
+  // Batch-fetch unit numbers for expiring leases
+  const leaseUnitIds = [...new Set(leases.map((l: Record<string, unknown>) => l.unit_id).filter(Boolean))] as string[];
+  let unitNumMap = new Map<string, string>();
+  if (leaseUnitIds.length > 0) {
+    const { data: unitRows } = await supabase
+      .from("units")
+      .select("id, unit_number")
+      .in("id", leaseUnitIds);
+    unitNumMap = new Map(
+      (unitRows ?? []).map((u: { id: string; unit_number: string }) => [u.id, u.unit_number])
+    );
+  }
+
   const expiringLeases = leases.map((l: Record<string, unknown>) => ({
     ...l,
-    property_name: (l.property as { name?: string } | null)?.name ?? "",
-    unit_number: (l.units as { unit_number?: string } | null)?.unit_number ?? "",
+    property_name: propNameMap.get(l.property_id as string) ?? "",
+    unit_number: l.unit_id ? unitNumMap.get(l.unit_id as string) ?? "" : "",
   })) as (LeaseRow & { property_name?: string; unit_number?: string })[];
+
+  // Batch-fetch property names for maintenance requests (may include properties not in main list)
+  const maintPropIds = [...new Set(maint.map((m: Record<string, unknown>) => m.property_id).filter(Boolean))] as string[];
+  for (const pid of maintPropIds) {
+    if (!propNameMap.has(pid)) {
+      const { data: p } = await supabase.from("properties").select("id, name").eq("id", pid).maybeSingle();
+      if (p) propNameMap.set(p.id, p.name);
+    }
+  }
 
   const openMaintenance = maint.map((m: Record<string, unknown>) => ({
     ...m,
-    property_name: (m.property as { name?: string } | null)?.name ?? "",
+    property_name: propNameMap.get(m.property_id as string) ?? "",
   })) as (MaintenanceRequestRow & { property_name?: string })[];
 
   return {

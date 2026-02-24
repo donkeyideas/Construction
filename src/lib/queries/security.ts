@@ -115,12 +115,7 @@ export async function getLoginHistory(
 ): Promise<LoginHistoryRow[]> {
   let query = supabase
     .from("login_history")
-    .select(
-      `
-      *,
-      user_profile:user_profiles!login_history_user_profile_fkey(full_name, email)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -147,7 +142,25 @@ export async function getLoginHistory(
     return [];
   }
 
-  return (data ?? []) as LoginHistoryRow[];
+  const rows = data ?? [];
+
+  // Batch-fetch user profiles
+  const userIds = [...new Set(rows.map((r: { user_id: string | null }) => r.user_id).filter(Boolean))] as string[];
+  let profileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", userIds);
+    profileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+    );
+  }
+
+  return rows.map((r: Record<string, unknown>) => ({
+    ...r,
+    user_profile: r.user_id ? profileMap.get(r.user_id as string) ?? null : null,
+  })) as LoginHistoryRow[];
 }
 
 // ---------------------------------------------------------------------------
@@ -160,12 +173,7 @@ export async function getActiveSessions(
 ): Promise<ActiveSessionRow[]> {
   const { data, error } = await supabase
     .from("active_sessions")
-    .select(
-      `
-      *,
-      user_profile:user_profiles!active_sessions_user_profile_fkey(full_name, email)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("last_active_at", { ascending: false });
 
@@ -174,5 +182,23 @@ export async function getActiveSessions(
     return [];
   }
 
-  return (data ?? []) as ActiveSessionRow[];
+  const rows = data ?? [];
+
+  // Batch-fetch user profiles
+  const sessionUserIds = [...new Set(rows.map((r: { user_id: string }) => r.user_id).filter(Boolean))] as string[];
+  let sessionProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (sessionUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", sessionUserIds);
+    sessionProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+    );
+  }
+
+  return rows.map((r: Record<string, unknown>) => ({
+    ...r,
+    user_profile: r.user_id ? sessionProfileMap.get(r.user_id as string) ?? null : null,
+  })) as ActiveSessionRow[];
 }

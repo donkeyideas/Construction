@@ -112,13 +112,7 @@ export async function getTickets(
 ) {
   let query = supabase
     .from("tickets")
-    .select(
-      `
-      *,
-      creator:user_profiles!tickets_creator_profile_fkey(id, full_name, email),
-      assignee:user_profiles!tickets_assignee_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
 
@@ -148,7 +142,30 @@ export async function getTickets(
     return [];
   }
 
-  return (data ?? []) as TicketRow[];
+  const tickets = data ?? [];
+
+  // Batch-fetch creator and assignee profiles
+  const ticketUserIds = new Set<string>();
+  for (const t of tickets) {
+    if (t.created_by) ticketUserIds.add(t.created_by);
+    if (t.assigned_to) ticketUserIds.add(t.assigned_to);
+  }
+  let ticketProfileMap = new Map<string, { id: string; full_name: string; email: string }>();
+  if (ticketUserIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", [...ticketUserIds]);
+    ticketProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p])
+    );
+  }
+
+  return tickets.map((t) => ({
+    ...t,
+    creator: t.created_by ? ticketProfileMap.get(t.created_by) ?? null : null,
+    assignee: t.assigned_to ? ticketProfileMap.get(t.assigned_to) ?? null : null,
+  })) as TicketRow[];
 }
 
 // ---------------------------------------------------------------------------
@@ -198,14 +215,7 @@ export async function getTicketById(
 ) {
   const { data, error } = await supabase
     .from("tickets")
-    .select(
-      `
-      *,
-      creator:user_profiles!tickets_creator_profile_fkey(id, full_name, email),
-      assignee:user_profiles!tickets_assignee_profile_fkey(id, full_name, email),
-      resolver:user_profiles!tickets_resolver_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("*")
     .eq("id", ticketId)
     .single();
 
@@ -214,7 +224,31 @@ export async function getTicketById(
     return null;
   }
 
-  return data as TicketRow;
+  const ticket = data;
+
+  // Batch-fetch creator, assignee, resolver profiles
+  const detailUserIds = new Set<string>();
+  if (ticket.created_by) detailUserIds.add(ticket.created_by);
+  if (ticket.assigned_to) detailUserIds.add(ticket.assigned_to);
+  if (ticket.resolved_by) detailUserIds.add(ticket.resolved_by);
+
+  let detailProfileMap = new Map<string, { id: string; full_name: string; email: string }>();
+  if (detailUserIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", [...detailUserIds]);
+    detailProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p])
+    );
+  }
+
+  return {
+    ...ticket,
+    creator: ticket.created_by ? detailProfileMap.get(ticket.created_by) ?? null : null,
+    assignee: ticket.assigned_to ? detailProfileMap.get(ticket.assigned_to) ?? null : null,
+    resolver: ticket.resolved_by ? detailProfileMap.get(ticket.resolved_by) ?? null : null,
+  } as TicketRow;
 }
 
 // ---------------------------------------------------------------------------
@@ -227,12 +261,7 @@ export async function getTicketComments(
 ) {
   const { data, error } = await supabase
     .from("comments")
-    .select(
-      `
-      *,
-      user:user_profiles!comments_user_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("*")
     .eq("entity_type", "ticket")
     .eq("entity_id", ticketId)
     .order("created_at", { ascending: true });
@@ -242,7 +271,25 @@ export async function getTicketComments(
     return [];
   }
 
-  return (data ?? []) as TicketComment[];
+  const comments = data ?? [];
+
+  // Batch-fetch comment user profiles
+  const commentUserIds = [...new Set(comments.map((c: { user_id: string }) => c.user_id).filter(Boolean))] as string[];
+  let commentProfileMap = new Map<string, { id: string; full_name: string; email: string }>();
+  if (commentUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", commentUserIds);
+    commentProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p])
+    );
+  }
+
+  return comments.map((c: Record<string, unknown>) => ({
+    ...c,
+    user: c.user_id ? commentProfileMap.get(c.user_id as string) ?? null : null,
+  })) as TicketComment[];
 }
 
 // ---------------------------------------------------------------------------
@@ -369,13 +416,7 @@ export async function getCompanyMembers(
 ): Promise<CompanyMember[]> {
   const { data, error } = await supabase
     .from("company_members")
-    .select(
-      `
-      user_id,
-      role,
-      user:user_profiles!company_members_user_profile_fkey(id, full_name, email)
-    `
-    )
+    .select("user_id, role")
     .eq("company_id", companyId)
     .eq("is_active", true)
     .order("role", { ascending: true });
@@ -385,5 +426,23 @@ export async function getCompanyMembers(
     return [];
   }
 
-  return (data ?? []) as unknown as CompanyMember[];
+  const members = data ?? [];
+
+  // Batch-fetch user profiles
+  const cmUserIds = [...new Set(members.map((m) => m.user_id).filter(Boolean))] as string[];
+  let cmProfileMap = new Map<string, { id: string; full_name: string; email: string }>();
+  if (cmUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", cmUserIds);
+    cmProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p])
+    );
+  }
+
+  return members.map((m) => ({
+    ...m,
+    user: m.user_id ? cmProfileMap.get(m.user_id) ?? null : null,
+  })) as unknown as CompanyMember[];
 }

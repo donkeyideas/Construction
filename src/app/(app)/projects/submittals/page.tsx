@@ -52,7 +52,7 @@ export default async function SubmittalsPage({ searchParams }: PageProps) {
         .order("name"),
       supabase
         .from("company_members")
-        .select("user_id, role, user:user_profiles!company_members_user_profile_fkey(full_name, email)")
+        .select("user_id, role")
         .eq("company_id", userCompany.companyId)
         .eq("is_active", true),
     ]);
@@ -60,10 +60,24 @@ export default async function SubmittalsPage({ searchParams }: PageProps) {
   const rows = submittalsResult.data ?? [];
   const all = allSubmittalsResult.data ?? [];
   const projects = projectsResult.data ?? [];
-  const members = (membersResult.data ?? []).map((m) => ({
+
+  // Batch-fetch user profiles for members
+  const subMemberData = membersResult.data ?? [];
+  const subMemberUserIds = [...new Set(subMemberData.map((m) => m.user_id).filter(Boolean))] as string[];
+  let subMemberProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (subMemberUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", subMemberUserIds);
+    subMemberProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+    );
+  }
+  const members = subMemberData.map((m) => ({
     user_id: m.user_id,
     role: m.role,
-    user: m.user as unknown as { full_name: string | null; email: string | null } | null,
+    user: m.user_id ? subMemberProfileMap.get(m.user_id) ?? null : null,
   }));
 
   // KPIs

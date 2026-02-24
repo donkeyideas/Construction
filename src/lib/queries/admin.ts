@@ -90,12 +90,7 @@ export async function getCompanyMembers(
 ): Promise<CompanyMember[]> {
   const { data, error } = await supabase
     .from("company_members")
-    .select(
-      `
-      *,
-      user_profile:user_profiles!company_members_user_profile_fkey(id, full_name, email, avatar_url, phone)
-    `
-    )
+    .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: true });
 
@@ -104,7 +99,25 @@ export async function getCompanyMembers(
     return [];
   }
 
-  return (data ?? []) as CompanyMember[];
+  const members = data ?? [];
+
+  // Batch-fetch user profiles
+  const userIds = [...new Set(members.map((m: { user_id: string | null }) => m.user_id).filter(Boolean))] as string[];
+  let profileMap = new Map<string, { id: string; full_name: string | null; email: string | null; avatar_url: string | null; phone: string | null }>();
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email, avatar_url, phone")
+      .in("id", userIds);
+    profileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null; avatar_url: string | null; phone: string | null }) => [p.id, p])
+    );
+  }
+
+  return members.map((m: Record<string, unknown>) => ({
+    ...m,
+    user_profile: m.user_id ? profileMap.get(m.user_id as string) ?? null : null,
+  })) as CompanyMember[];
 }
 
 // ---------------------------------------------------------------------------

@@ -188,9 +188,7 @@ export async function getMessages(
 ): Promise<Message[]> {
   const { data, error } = await supabase
     .from("messages")
-    .select(
-      "*, sender:user_profiles!messages_sender_profile_fkey(full_name, email), recipient:user_profiles!messages_recipient_profile_fkey(full_name, email)"
-    )
+    .select("*")
     .eq("company_id", companyId)
     .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
     .eq("is_archived", false)
@@ -202,16 +200,29 @@ export async function getMessages(
     return [];
   }
 
-  return (data ?? []).map((row) => ({
+  const rows = data ?? [];
+
+  // Batch-fetch sender and recipient profiles
+  const msgUserIds = new Set<string>();
+  for (const r of rows) {
+    if (r.sender_id) msgUserIds.add(r.sender_id);
+    if (r.recipient_id) msgUserIds.add(r.recipient_id);
+  }
+  let msgProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (msgUserIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", [...msgUserIds]);
+    msgProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+    );
+  }
+
+  return rows.map((row) => ({
     ...row,
-    sender: row.sender as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null,
-    recipient: row.recipient as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null,
+    sender: row.sender_id ? msgProfileMap.get(row.sender_id) ?? null : null,
+    recipient: row.recipient_id ? msgProfileMap.get(row.recipient_id) ?? null : null,
   }));
 }
 
@@ -251,9 +262,7 @@ export async function getMessageThread(
   // Get the parent message and all replies
   const { data, error } = await supabase
     .from("messages")
-    .select(
-      "*, sender:user_profiles!messages_sender_profile_fkey(full_name, email), recipient:user_profiles!messages_recipient_profile_fkey(full_name, email)"
-    )
+    .select("*")
     .or(`id.eq.${messageId},parent_message_id.eq.${messageId}`)
     .order("created_at", { ascending: true });
 
@@ -262,16 +271,29 @@ export async function getMessageThread(
     return [];
   }
 
-  return (data ?? []).map((row) => ({
+  const threadRows = data ?? [];
+
+  // Batch-fetch sender and recipient profiles
+  const threadUserIds = new Set<string>();
+  for (const r of threadRows) {
+    if (r.sender_id) threadUserIds.add(r.sender_id);
+    if (r.recipient_id) threadUserIds.add(r.recipient_id);
+  }
+  let threadProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (threadUserIds.size > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", [...threadUserIds]);
+    threadProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+    );
+  }
+
+  return threadRows.map((row) => ({
     ...row,
-    sender: row.sender as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null,
-    recipient: row.recipient as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null,
+    sender: row.sender_id ? threadProfileMap.get(row.sender_id) ?? null : null,
+    recipient: row.recipient_id ? threadProfileMap.get(row.recipient_id) ?? null : null,
   }));
 }
 
@@ -375,7 +397,7 @@ export async function getCompanyMembers(
 ): Promise<CompanyMember[]> {
   const { data, error } = await supabase
     .from("company_members")
-    .select("user_id, role, user_profiles!company_members_user_profile_fkey(full_name, email)")
+    .select("user_id, role")
     .eq("company_id", companyId)
     .eq("is_active", true)
     .order("role", { ascending: true });
@@ -385,11 +407,23 @@ export async function getCompanyMembers(
     return [];
   }
 
-  return (data ?? []).map((row) => {
-    const profile = row.user_profiles as unknown as {
-      full_name: string | null;
-      email: string | null;
-    } | null;
+  const members = data ?? [];
+
+  // Batch-fetch user profiles
+  const memberUserIds = [...new Set(members.map((m) => m.user_id).filter(Boolean))] as string[];
+  let memberProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (memberUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", memberUserIds);
+    memberProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+    );
+  }
+
+  return members.map((row) => {
+    const profile = row.user_id ? memberProfileMap.get(row.user_id) ?? null : null;
 
     return {
       user_id: row.user_id,

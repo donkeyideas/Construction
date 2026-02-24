@@ -223,7 +223,7 @@ export default function CalendarClient({
       setLoadingEventData(true);
       try {
         const supabase = createClient();
-        const [{ data: projects }, { data: members }] = await Promise.all([
+        const [{ data: projects }, { data: memberRows }] = await Promise.all([
           supabase
             .from("projects")
             .select("id, name")
@@ -231,17 +231,27 @@ export default function CalendarClient({
             .order("name"),
           supabase
             .from("company_members")
-            .select("user_id, user_profiles!company_members_user_profile_fkey(full_name, email)")
+            .select("user_id")
             .eq("company_id", companyId)
             .eq("is_active", true),
         ]);
         setEventProjects(projects ?? []);
+
+        // Batch-fetch user profiles for members
+        const calMemberUserIds = [...new Set((memberRows ?? []).map((m: { user_id: string | null }) => m.user_id).filter(Boolean))] as string[];
+        let calProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+        if (calMemberUserIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("user_profiles")
+            .select("id, full_name, email")
+            .in("id", calMemberUserIds);
+          calProfileMap = new Map(
+            (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+          );
+        }
         setEventMembers(
-          (members ?? []).map((m: Record<string, unknown>) => {
-            const profile = m.user_profiles as {
-              full_name: string | null;
-              email: string | null;
-            } | null;
+          (memberRows ?? []).map((m: Record<string, unknown>) => {
+            const profile = m.user_id ? calProfileMap.get(m.user_id as string) ?? null : null;
             return {
               user_id: m.user_id as string,
               full_name: profile?.full_name ?? null,

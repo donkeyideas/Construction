@@ -56,7 +56,7 @@ export default async function RfisPage({ searchParams }: PageProps) {
         .order("name"),
       supabase
         .from("company_members")
-        .select("user_id, role, user:user_profiles!company_members_user_profile_fkey(full_name, email)")
+        .select("user_id, role")
         .eq("company_id", userCompany.companyId)
         .eq("is_active", true),
     ]);
@@ -64,10 +64,24 @@ export default async function RfisPage({ searchParams }: PageProps) {
   const rows = rfisResult.data ?? [];
   const all = allRfisResult.data ?? [];
   const projects = projectsResult.data ?? [];
-  const members = (membersResult.data ?? []).map((m) => ({
+
+  // Batch-fetch user profiles for members
+  const rfiMemberData = membersResult.data ?? [];
+  const rfiMemberUserIds = [...new Set(rfiMemberData.map((m) => m.user_id).filter(Boolean))] as string[];
+  let rfiMemberProfileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (rfiMemberUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", rfiMemberUserIds);
+    rfiMemberProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [p.id, p])
+    );
+  }
+  const members = rfiMemberData.map((m) => ({
     user_id: m.user_id,
     role: m.role,
-    user: m.user as unknown as { full_name: string | null; email: string | null } | null,
+    user: m.user_id ? rfiMemberProfileMap.get(m.user_id) ?? null : null,
   }));
 
   // KPI calculations

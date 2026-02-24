@@ -346,12 +346,10 @@ export async function getBasisOfDesignData(
     tasksRes,
     inspectionsRes,
   ] = await Promise.all([
-    // Projects with manager/superintendent
+    // Projects
     supabase
       .from("projects")
-      .select(
-        "*, project_manager:user_profiles!projects_project_manager_id_fkey(id, full_name), superintendent:user_profiles!projects_superintendent_id_fkey(id, full_name)"
-      )
+      .select("*")
       .eq("company_id", companyId)
       .in("id", projectIds),
 
@@ -403,8 +401,28 @@ export async function getBasisOfDesignData(
       .order("inspection_date", { ascending: false }),
   ]);
 
+  // Batch-fetch project manager and superintendent profiles
+  const projectRows = projectsRes.data ?? [];
+  const pmIds = new Set<string>();
+  const supertIds = new Set<string>();
+  for (const p of projectRows) {
+    if (p.project_manager_id) pmIds.add(p.project_manager_id);
+    if (p.superintendent_id) supertIds.add(p.superintendent_id);
+  }
+  const allProfileIds = [...new Set([...pmIds, ...supertIds])];
+  let reportProfileMap = new Map<string, { id: string; full_name: string }>();
+  if (allProfileIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, full_name")
+      .in("id", allProfileIds);
+    reportProfileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
+    );
+  }
+
   // Projects
-  const projects: ProjectSummary[] = (projectsRes.data ?? []).map(
+  const projects: ProjectSummary[] = projectRows.map(
     (p: Record<string, unknown>) => ({
       id: p.id as string,
       name: p.name as string,
@@ -422,9 +440,9 @@ export async function getBasisOfDesignData(
       start_date: (p.start_date as string) ?? null,
       estimated_end_date: (p.estimated_end_date as string) ?? null,
       project_manager:
-        (p.project_manager as Record<string, unknown>)?.full_name as string ?? null,
+        p.project_manager_id ? reportProfileMap.get(p.project_manager_id as string)?.full_name ?? null : null,
       superintendent:
-        (p.superintendent as Record<string, unknown>)?.full_name as string ?? null,
+        p.superintendent_id ? reportProfileMap.get(p.superintendent_id as string)?.full_name ?? null : null,
     })
   );
 

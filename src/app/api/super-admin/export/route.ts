@@ -139,23 +139,47 @@ async function exportTickets(): Promise<Record<string, unknown>[]> {
   const { data, error } = await supabase
     .from("support_tickets")
     .select(
-      "ticket_number, subject, status, priority, category, created_at, user_profiles!support_tickets_user_id_fkey(email), companies(name)"
+      "ticket_number, subject, status, priority, category, created_at, user_id, company_id"
     )
     .order("created_at", { ascending: false });
 
   if (error || !data) return [];
 
+  // Batch-fetch user emails and company names
+  const exportUserIds = [...new Set(data.map((t) => t.user_id).filter(Boolean))] as string[];
+  const exportCompanyIds = [...new Set(data.map((t) => t.company_id).filter(Boolean))] as string[];
+
+  let exportUserMap = new Map<string, string>();
+  if (exportUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, email")
+      .in("id", exportUserIds);
+    exportUserMap = new Map(
+      (profiles ?? []).map((p: { id: string; email: string }) => [p.id, p.email])
+    );
+  }
+
+  let exportCompanyMap = new Map<string, string>();
+  if (exportCompanyIds.length > 0) {
+    const { data: companies } = await supabase
+      .from("companies")
+      .select("id, name")
+      .in("id", exportCompanyIds);
+    exportCompanyMap = new Map(
+      (companies ?? []).map((c: { id: string; name: string }) => [c.id, c.name])
+    );
+  }
+
   return data.map((t) => {
-    const profile = t.user_profiles as unknown as { email: string } | null;
-    const company = t.companies as unknown as { name: string } | null;
     return {
       ticket_number: t.ticket_number,
       subject: t.subject,
       status: t.status,
       priority: t.priority,
       category: t.category,
-      user_email: profile?.email || "",
-      company_name: company?.name || "",
+      user_email: t.user_id ? exportUserMap.get(t.user_id) ?? "" : "",
+      company_name: t.company_id ? exportCompanyMap.get(t.company_id) ?? "" : "",
       created_at: t.created_at,
     };
   });
