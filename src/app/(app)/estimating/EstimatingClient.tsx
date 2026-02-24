@@ -13,7 +13,7 @@ import {
   Loader2,
   Upload,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -200,7 +200,7 @@ export default function EstimatingClient({
         <div className="card kpi">
           <div className="kpi-info">
             <span className="kpi-label">{t("estimatingTotalValue")}</span>
-            <span className="kpi-value">{formatCurrency(totalValue)}</span>
+            <span className="kpi-value">{formatCompactCurrency(totalValue)}</span>
           </div>
           <div className="kpi-icon"><DollarSign size={22} /></div>
         </div>
