@@ -95,18 +95,24 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Convert percentage inputs (e.g. 6.2 for 6.2%) to decimal rates (0.062)
+    // The payroll calculator expects decimal fractions, but the UI shows percentages.
+    const toDecimal = (v: number | undefined, fallback: number) =>
+      v != null ? v / 100 : fallback;
+
     await upsertPayrollTaxConfig(supabase, userCtx.companyId, {
       tax_year: body.tax_year,
-      social_security_rate: body.social_security_rate,
+      social_security_rate: toDecimal(body.social_security_rate, 0.062),
       social_security_wage_base: body.social_security_wage_base ?? 168600,
-      medicare_rate: body.medicare_rate,
-      additional_medicare_rate: body.additional_medicare_rate ?? 0.009,
+      medicare_rate: toDecimal(body.medicare_rate, 0.0145),
+      additional_medicare_rate: toDecimal(body.additional_medicare_rate, 0.009),
       additional_medicare_threshold: body.additional_medicare_threshold ?? 200000,
-      futa_rate: body.futa_rate ?? 0.006,
+      futa_rate: toDecimal(body.futa_rate, 0.006),
       futa_wage_base: body.futa_wage_base ?? 7000,
-      state_unemployment_rate: body.state_unemployment_rate ?? 0,
+      state_unemployment_rate: toDecimal(body.state_unemployment_rate, 0.027),
       state_unemployment_wage_base: body.state_unemployment_wage_base ?? 0,
       state_code: body.state_code,
+      pay_frequency: body.pay_frequency ?? "biweekly",
     });
 
     return NextResponse.json({ success: true });

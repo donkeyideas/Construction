@@ -95,6 +95,10 @@ interface PayrollClientProps {
   nextWeekISO: string;
   // Tab control
   defaultTab: string;
+  // Pre-filled period dates
+  suggestedPeriodStart: string;
+  suggestedPeriodEnd: string;
+  suggestedPayDate: string;
 }
 
 type TabKey = "dashboard" | "activity" | "weekly" | "allEntries" | "run" | "employees" | "tax" | "reports";
@@ -160,6 +164,9 @@ export default function PayrollClient({
   prevWeekISO,
   nextWeekISO,
   defaultTab,
+  suggestedPeriodStart,
+  suggestedPeriodEnd,
+  suggestedPayDate,
 }: PayrollClientProps) {
   const router = useRouter();
   const isAdmin = ["owner", "admin"].includes(userRole);
@@ -168,10 +175,10 @@ export default function PayrollClient({
   const initialTab = validTabs.includes(defaultTab as TabKey) ? (defaultTab as TabKey) : "dashboard";
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
 
-  // Run Payroll state
-  const [periodStart, setPeriodStart] = useState("");
-  const [periodEnd, setPeriodEnd] = useState("");
-  const [payDate, setPayDate] = useState("");
+  // Run Payroll state — pre-filled from server
+  const [periodStart, setPeriodStart] = useState(suggestedPeriodStart);
+  const [periodEnd, setPeriodEnd] = useState(suggestedPeriodEnd);
+  const [payDate, setPayDate] = useState(suggestedPayDate);
   const [calculating, setCalculating] = useState(false);
   const [calculatedItems, setCalculatedItems] = useState<PayrollItem[]>([]);
   const [calculatedRunId, setCalculatedRunId] = useState<string | null>(null);
@@ -206,18 +213,22 @@ export default function PayrollClient({
   const [savingDeduction, setSavingDeduction] = useState(false);
   const [deductionError, setDeductionError] = useState("");
 
-  // Tax Config state
+  // Tax Config state — DB stores decimal rates (e.g. 0.062); form shows percentages (6.2)
+  const toPercent = (v: number | undefined | null, fallback: number) =>
+    v != null ? String(Math.round(v * 10000) / 100) : String(fallback);
+
   const [taxForm, setTaxForm] = useState({
-    social_security_rate: String(taxConfig?.social_security_rate ?? 6.2),
+    social_security_rate: toPercent(taxConfig?.social_security_rate, 6.2),
     social_security_wage_base: String(taxConfig?.social_security_wage_base ?? 168600),
-    medicare_rate: String(taxConfig?.medicare_rate ?? 1.45),
-    additional_medicare_rate: String(taxConfig?.additional_medicare_rate ?? 0.9),
+    medicare_rate: toPercent(taxConfig?.medicare_rate, 1.45),
+    additional_medicare_rate: toPercent(taxConfig?.additional_medicare_rate, 0.9),
     additional_medicare_threshold: String(taxConfig?.additional_medicare_threshold ?? 200000),
-    futa_rate: String(taxConfig?.futa_rate ?? 0.6),
+    futa_rate: toPercent(taxConfig?.futa_rate, 0.6),
     futa_wage_base: String(taxConfig?.futa_wage_base ?? 7000),
-    state_unemployment_rate: String(taxConfig?.state_unemployment_rate ?? 2.7),
+    state_unemployment_rate: toPercent(taxConfig?.state_unemployment_rate, 2.7),
     state_unemployment_wage_base: String(taxConfig?.state_unemployment_wage_base ?? 7000),
     state_code: taxConfig?.state_code ?? "",
+    pay_frequency: taxConfig?.pay_frequency ?? "biweekly",
   });
   const [savingTax, setSavingTax] = useState(false);
   const [taxError, setTaxError] = useState("");
@@ -453,6 +464,7 @@ export default function PayrollClient({
     setTaxSuccess(false);
 
     try {
+      // Form shows percentages (e.g. 6.2 for 6.2%); API converts to decimal (0.062)
       const res = await fetch("/api/payroll/tax-config", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -468,6 +480,7 @@ export default function PayrollClient({
           state_unemployment_rate: Number(taxForm.state_unemployment_rate),
           state_unemployment_wage_base: Number(taxForm.state_unemployment_wage_base),
           state_code: taxForm.state_code,
+          pay_frequency: taxForm.pay_frequency,
         }),
       });
 
@@ -638,7 +651,7 @@ export default function PayrollClient({
               <div className="payroll-kpi-icon amber">
                 <Clock size={20} />
               </div>
-              <div className="payroll-kpi-label">Pending Approved Hours</div>
+              <div className="payroll-kpi-label">Ready for Payroll</div>
               <div className="payroll-kpi-value">
                 {fmtNum(overview.pendingApprovedHours, 1)}h
               </div>
@@ -789,6 +802,92 @@ export default function PayrollClient({
       {/* ── Run Payroll Tab ── */}
       {activeTab === "run" && (
         <>
+          {/* Readiness Checklist */}
+          {(() => {
+            const hasTaxConfig = !!taxConfig;
+            const configuredCount = payRates.length;
+            const totalEmpWithLogin = employeeContacts.filter((c) => c.user_id).length;
+            const hasPayRates = configuredCount > 0;
+            const hasApprovedHours = overview.pendingApprovedHours > 0;
+            const allReady = hasTaxConfig && hasPayRates && hasApprovedHours;
+
+            return (
+              <div className="fin-chart-card" style={{ marginBottom: 16 }}>
+                <div className="fin-chart-title" style={{ marginBottom: 12 }}>
+                  <CheckCircle2 size={18} />
+                  Payroll Readiness
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.9rem" }}>
+                    {hasTaxConfig ? (
+                      <CheckCircle2 size={16} style={{ color: "var(--color-green)" }} />
+                    ) : (
+                      <AlertTriangle size={16} style={{ color: "var(--color-red)" }} />
+                    )}
+                    <span>Tax Configuration</span>
+                    {!hasTaxConfig && (
+                      <button
+                        className="ui-btn ui-btn-sm ui-btn-ghost"
+                        onClick={() => setActiveTab("tax")}
+                        style={{ marginLeft: "auto" }}
+                      >
+                        Configure
+                      </button>
+                    )}
+                    {hasTaxConfig && (
+                      <span style={{ color: "var(--muted)", marginLeft: "auto", fontSize: "0.8rem" }}>
+                        Configured
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.9rem" }}>
+                    {hasPayRates ? (
+                      <CheckCircle2 size={16} style={{ color: "var(--color-green)" }} />
+                    ) : (
+                      <AlertTriangle size={16} style={{ color: "var(--color-red)" }} />
+                    )}
+                    <span>Employee Pay Rates</span>
+                    <span style={{ color: "var(--muted)", marginLeft: "auto", fontSize: "0.8rem" }}>
+                      {configuredCount} of {totalEmpWithLogin} configured
+                    </span>
+                    {!hasPayRates && (
+                      <button
+                        className="ui-btn ui-btn-sm ui-btn-ghost"
+                        onClick={() => setActiveTab("employees")}
+                      >
+                        Set Up
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.9rem" }}>
+                    {hasApprovedHours ? (
+                      <CheckCircle2 size={16} style={{ color: "var(--color-green)" }} />
+                    ) : (
+                      <AlertTriangle size={16} style={{ color: "var(--color-amber)" }} />
+                    )}
+                    <span>Approved Hours</span>
+                    <span style={{ color: "var(--muted)", marginLeft: "auto", fontSize: "0.8rem" }}>
+                      {fmtNum(overview.pendingApprovedHours, 1)}h ready
+                    </span>
+                    {!hasApprovedHours && (
+                      <button
+                        className="ui-btn ui-btn-sm ui-btn-ghost"
+                        onClick={() => setActiveTab("weekly")}
+                      >
+                        Review Time
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {allReady && (
+                  <div style={{ marginTop: 12, padding: "8px 12px", background: "var(--bg-secondary)", borderRadius: 8, color: "var(--color-green)", fontSize: "0.85rem", fontWeight: 500 }}>
+                    All prerequisites met — ready to run payroll.
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Step 1: Select Pay Period */}
           <div className="payroll-step">
             <div className="payroll-step-header">
@@ -818,7 +917,7 @@ export default function PayrollClient({
                   />
                 </div>
                 <div className="payroll-form-group">
-                  <label className="payroll-form-label">Pay Date (optional)</label>
+                  <label className="payroll-form-label">Pay Date</label>
                   <input
                     type="date"
                     className="payroll-form-input"
@@ -951,7 +1050,7 @@ export default function PayrollClient({
                   </div>
                 </div>
 
-                {/* Approve & Pay */}
+                {/* Actions */}
                 <div className="payroll-actions-bar">
                   <button
                     className="ui-btn ui-btn-md ui-btn-outline"
@@ -963,12 +1062,25 @@ export default function PayrollClient({
                     Cancel
                   </button>
                   <button
+                    className="ui-btn ui-btn-md ui-btn-outline"
+                    onClick={() => {
+                      // Keep draft, switch to dashboard to review later
+                      setCalculatedItems([]);
+                      setCalculatedRunId(null);
+                      setActiveTab("dashboard");
+                      router.refresh();
+                    }}
+                  >
+                    <FileText size={16} />
+                    Save as Draft
+                  </button>
+                  <button
                     className="ui-btn ui-btn-md ui-btn-primary"
                     onClick={handleApprovePay}
                     disabled={approving}
                   >
                     <CheckCircle2 size={16} />
-                    {approving ? "Processing..." : "Approve & Pay"}
+                    {approving ? "Processing..." : "Approve & Process"}
                   </button>
                 </div>
               </div>
@@ -1370,6 +1482,29 @@ export default function PayrollClient({
                     placeholder="e.g. CA, TX, NY"
                     maxLength={2}
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Pay Frequency */}
+            <div className="payroll-tax-section">
+              <div className="payroll-tax-section-title">
+                <Calendar size={18} />
+                Pay Frequency
+              </div>
+              <div className="payroll-tax-grid">
+                <div className="payroll-form-group">
+                  <label className="payroll-form-label">Pay Schedule</label>
+                  <select
+                    className="payroll-form-input"
+                    value={taxForm.pay_frequency}
+                    onChange={(e) => setTaxForm({ ...taxForm, pay_frequency: e.target.value })}
+                  >
+                    <option value="weekly">Weekly (52 periods/year)</option>
+                    <option value="biweekly">Biweekly (26 periods/year)</option>
+                    <option value="semi_monthly">Semi-Monthly (24 periods/year)</option>
+                    <option value="monthly">Monthly (12 periods/year)</option>
+                  </select>
                 </div>
               </div>
             </div>

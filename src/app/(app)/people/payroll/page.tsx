@@ -6,7 +6,10 @@ import {
   getEmployeePayRates,
   getPayrollDeductions,
   getPayrollTaxConfig,
+  upsertPayrollTaxConfig,
+  upsertEmployeePayRate,
 } from "@/lib/queries/payroll";
+import { DEFAULT_2025_TAX_CONFIG } from "@/lib/utils/payroll-calculator";
 import { getTimeEntries, getTimeEntriesFromClockEvents, type TimeEntry } from "@/lib/queries/people";
 import { getEmployeeRateMap, rateMapToRecord } from "@/lib/utils/labor-cost";
 import PayrollClient from "./PayrollClient";
@@ -108,7 +111,7 @@ export default async function PayrollPage({
     getPayrollTaxConfig(supabase, companyId),
     supabase
       .from("contacts")
-      .select("id, first_name, last_name, email, job_title, user_id, contact_type")
+      .select("id, first_name, last_name, email, job_title, user_id, contact_type, hourly_rate")
       .eq("company_id", companyId)
       .eq("contact_type", "employee")
       .eq("is_active", true)
@@ -137,12 +140,62 @@ export default async function PayrollPage({
     job_title: string | null;
     user_id: string | null;
     contact_type: string;
+    hourly_rate: number | null;
   }[];
+
+  /* ----------------------------------------------------------------
+     Auto-seed: Tax Config with 2025 defaults if missing
+     ---------------------------------------------------------------- */
+  let effectiveTaxConfig = taxConfig;
+  if (!effectiveTaxConfig) {
+    try {
+      await upsertPayrollTaxConfig(supabase, companyId, {
+        tax_year: new Date().getFullYear(),
+        ...DEFAULT_2025_TAX_CONFIG,
+      });
+      effectiveTaxConfig = await getPayrollTaxConfig(supabase, companyId);
+    } catch {
+      // Non-blocking — page still renders, user can manually save
+    }
+  }
+
+  /* ----------------------------------------------------------------
+     Auto-seed: Pay Rates from contacts.hourly_rate for unconfigured employees
+     ---------------------------------------------------------------- */
+  let effectivePayRates = payRates;
+  const configuredUserIds = new Set(payRates.map((pr) => pr.user_id));
+  const unconfiguredWithRate = employeeContacts.filter(
+    (c) => c.user_id && !configuredUserIds.has(c.user_id) && c.hourly_rate && c.hourly_rate > 0
+  );
+
+  if (unconfiguredWithRate.length > 0) {
+    const stateCode = effectiveTaxConfig?.state_code || "TX";
+    try {
+      await Promise.all(
+        unconfiguredWithRate.map((c) =>
+          upsertEmployeePayRate(supabase, companyId, {
+            user_id: c.user_id!,
+            pay_type: "hourly",
+            hourly_rate: c.hourly_rate!,
+            overtime_rate: Math.round(c.hourly_rate! * 1.5 * 100) / 100,
+            filing_status: "single",
+            federal_allowances: 0,
+            state_code: stateCode,
+            effective_date: new Date().toISOString().slice(0, 10),
+          })
+        )
+      );
+      // Re-fetch pay rates to include the newly created ones
+      effectivePayRates = await getEmployeePayRates(supabase, companyId);
+    } catch {
+      // Non-blocking — employees can still be set up manually
+    }
+  }
 
   /* ----------------------------------------------------------------
      User profiles for payroll employee cards
      ---------------------------------------------------------------- */
-  const userIds = payRates.map((pr) => pr.user_id);
+  const userIds = effectivePayRates.map((pr) => pr.user_id);
   let userProfiles: { id: string; full_name: string | null; email: string | null }[] = [];
   if (userIds.length > 0) {
     const { data } = await supabase
@@ -151,6 +204,12 @@ export default async function PayrollPage({
       .in("id", userIds);
     userProfiles = (data ?? []) as { id: string; full_name: string | null; email: string | null }[];
   }
+
+  /* ----------------------------------------------------------------
+     Process activity data (from clock_events)
+     ---------------------------------------------------------------- */
+  const clockEvents = clockEventsRes.data ?? [];
+  const employees = employeeContacts.filter((e) => e.user_id);
 
   /* ----------------------------------------------------------------
      Payroll overview stats
@@ -163,29 +222,26 @@ export default async function PayrollPage({
   const ytdTotalPayroll = paidRuns.reduce((sum, r) => sum + (r.total_gross ?? 0), 0);
   const lastRunDate = payrollRuns.length > 0 ? payrollRuns[0].pay_date : null;
 
+  // Approved hours ready for payroll (not yet processed by any payroll run)
   const { data: approvedHoursData } = await supabase
     .from("time_entries")
     .select("hours")
     .eq("company_id", companyId)
     .eq("status", "approved");
 
-  const pendingApprovedHours = (approvedHoursData ?? []).reduce(
+  const readyForPayrollHours = (approvedHoursData ?? []).reduce(
     (sum: number, r: { hours: number }) => sum + (r.hours ?? 0),
     0
   );
 
+  const activeEmployeeCount = employees.length;
+
   const overview = {
     ytdTotalPayroll,
     lastRunDate,
-    pendingApprovedHours,
-    activeEmployees: payRates.length,
+    pendingApprovedHours: readyForPayrollHours,
+    activeEmployees: activeEmployeeCount,
   };
-
-  /* ----------------------------------------------------------------
-     Process activity data (from clock_events)
-     ---------------------------------------------------------------- */
-  const clockEvents = clockEventsRes.data ?? [];
-  const employees = employeeContacts.filter((e) => e.user_id);
 
   const employeeMap: Record<string, { name: string; email: string; jobTitle: string }> = {};
   for (const emp of employees) {
@@ -339,14 +395,47 @@ export default async function PayrollPage({
   const rateMapRecord = rateMapToRecord(rateMap);
 
   /* ----------------------------------------------------------------
+     Suggested pay period dates
+     ---------------------------------------------------------------- */
+  const payFrequency = effectiveTaxConfig?.pay_frequency ?? "biweekly";
+  const FREQ_DAYS: Record<string, number> = {
+    weekly: 7,
+    biweekly: 14,
+    semi_monthly: 15,
+    monthly: 30,
+  };
+  const periodDays = FREQ_DAYS[payFrequency] ?? 14;
+
+  let suggestedPeriodStart: string;
+  let suggestedPeriodEnd: string;
+  let suggestedPayDate: string;
+
+  if (payrollRuns.length > 0 && payrollRuns[0].period_end) {
+    // Next period starts the day after the last run's period_end
+    const lastEnd = new Date(payrollRuns[0].period_end + "T00:00:00");
+    const nextStart = addDays(lastEnd, 1);
+    const nextEnd = addDays(nextStart, periodDays - 1);
+    const payDt = addDays(nextEnd, 5); // pay 5 days after period end
+    suggestedPeriodStart = formatDateISO(nextStart);
+    suggestedPeriodEnd = formatDateISO(nextEnd);
+    suggestedPayDate = formatDateISO(payDt);
+  } else {
+    // No previous run: use current period starting from Monday of current week
+    const currentMonday = getMonday(today);
+    suggestedPeriodStart = formatDateISO(currentMonday);
+    suggestedPeriodEnd = formatDateISO(addDays(currentMonday, periodDays - 1));
+    suggestedPayDate = formatDateISO(addDays(currentMonday, periodDays + 4));
+  }
+
+  /* ----------------------------------------------------------------
      Render
      ---------------------------------------------------------------- */
   return (
     <PayrollClient
       payrollRuns={payrollRuns}
-      payRates={payRates}
+      payRates={effectivePayRates}
       deductions={deductions}
-      taxConfig={taxConfig}
+      taxConfig={effectiveTaxConfig}
       userProfiles={userProfiles}
       overview={overview}
       companyId={companyId}
@@ -368,6 +457,10 @@ export default async function PayrollPage({
       nextWeekISO={formatDateISO(nextWeek)}
       // Default tab from URL
       defaultTab={params.tab || "dashboard"}
+      // Pre-filled period dates
+      suggestedPeriodStart={suggestedPeriodStart}
+      suggestedPeriodEnd={suggestedPeriodEnd}
+      suggestedPayDate={suggestedPayDate}
     />
   );
 }

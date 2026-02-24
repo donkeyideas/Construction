@@ -18,6 +18,7 @@ export interface PayrollTaxConfig {
   state_unemployment_rate: number;
   state_unemployment_wage_base: number;
   state_code: string;
+  pay_frequency?: string; // "weekly" | "biweekly" | "semi_monthly" | "monthly"
 }
 
 export interface EmployeePayRate {
@@ -173,6 +174,7 @@ export async function upsertPayrollTaxConfig(
         state_unemployment_rate: config.state_unemployment_rate,
         state_unemployment_wage_base: config.state_unemployment_wage_base,
         state_code: config.state_code,
+        pay_frequency: config.pay_frequency ?? "biweekly",
       },
       { onConflict: "company_id,tax_year" }
     );

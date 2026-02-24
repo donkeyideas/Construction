@@ -123,6 +123,16 @@ export async function POST(request: NextRequest) {
       deductionMap.get(d.user_id)!.push(d);
     }
 
+    // Determine periods per year from tax config pay_frequency
+    const PAY_FREQ_MAP: Record<string, number> = {
+      weekly: 52,
+      biweekly: 26,
+      semi_monthly: 24,
+      monthly: 12,
+    };
+    const payFreq = (taxConfig as unknown as { pay_frequency?: string }).pay_frequency ?? "biweekly";
+    const periodsPerYear = PAY_FREQ_MAP[payFreq] ?? 26;
+
     // Calculate payroll items for each employee
     const calculatedItems = calculatePayrollItems(
       timeEntries,
@@ -130,7 +140,7 @@ export async function POST(request: NextRequest) {
       deductionMap,
       ytdGross,
       taxConfig,
-      26, // bi-weekly = 26 periods per year
+      periodsPerYear,
     );
 
     if (calculatedItems.length === 0) {
@@ -233,9 +243,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch employee names for display in the review table
+    const employeeUserIds = [...new Set(calculatedItems.map((i) => i.user_id))];
+    const nameMap: Record<string, string> = {};
+    if (employeeUserIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("user_profiles")
+        .select("id, full_name")
+        .in("id", employeeUserIds);
+      for (const p of profiles ?? []) {
+        nameMap[p.id] = p.full_name ?? "Unknown";
+      }
+    }
+
+    const itemsWithNames = calculatedItems.map((item) => ({
+      ...item,
+      employee_name: nameMap[item.user_id] ?? "Unknown",
+    }));
+
     return NextResponse.json(
       {
-        id: run.id,
+        run_id: run.id,
+        items: itemsWithNames,
         employee_count: calculatedItems.length,
         total_gross: Math.round(totalGross * 100) / 100,
         total_net: Math.round(totalNet * 100) / 100,
