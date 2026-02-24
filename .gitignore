@@ -46,3 +46,5 @@ next-env.d.ts
 # os
 Thumbs.db
 nul
+*.pyc
+__pycache__/
