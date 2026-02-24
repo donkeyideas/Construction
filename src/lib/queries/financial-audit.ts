@@ -440,10 +440,10 @@ async function checkBankReconciliation(
   const id = "bank-reconciliation";
   const name = "Bank Reconciliation";
 
-  // Get bank accounts total balance
+  // Get bank accounts with GL linkage
   const { data: bankAccounts, error: bankErr } = await supabase
     .from("bank_accounts")
-    .select("current_balance")
+    .select("id, name, current_balance, gl_account_id")
     .eq("company_id", companyId);
 
   if (bankErr) {
@@ -459,27 +459,32 @@ async function checkBankReconciliation(
     0
   );
 
-  // Find cash-type GL accounts
-  const { data: cashAccounts, error: cashAccErr } = await supabase
+  // Compare bank balances vs their linked GL sub-account balances.
+  // Only compare linked accounts — unlinked cash GL accounts (Petty Cash,
+  // Cash in Transit, etc.) shouldn't inflate the GL side of this comparison.
+  const linkedBanks = bankAccounts.filter((b) => b.gl_account_id);
+  const linkedGlIds = linkedBanks.map((b) => b.gl_account_id!);
+
+  // Also include the parent Cash 1000 account (for banks without sub-accounts
+  // or when cash hasn't been fully reclassified)
+  const { data: cashParent } = await supabase
     .from("chart_of_accounts")
     .select("id")
     .eq("company_id", companyId)
-    .eq("account_type", "asset")
-    .eq("is_active", true)
-    .or("name.ilike.%cash%,name.ilike.%checking%,name.ilike.%savings%");
+    .eq("account_number", "1000")
+    .single();
 
-  if (cashAccErr) {
-    return { id, name, status: "fail", summary: "Error querying cash accounts", details: [cashAccErr.message] };
-  }
-
-  const cashAccountIds = (cashAccounts ?? []).map((a: { id: string }) => a.id);
+  const cashAccountIds = [...new Set([
+    ...linkedGlIds,
+    ...(cashParent ? [cashParent.id] : []),
+  ])];
 
   if (cashAccountIds.length === 0) {
     return {
       id,
       name,
       status: "warn",
-      summary: "No cash/checking/savings GL accounts found — cannot reconcile with bank balance",
+      summary: "No linked GL accounts found — cannot reconcile with bank balance",
       details: [`Bank balance: $${bankBalance.toFixed(2)}`],
     };
   }
