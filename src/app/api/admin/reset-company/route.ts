@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 
 const ALLOWED_EMAIL = "beltran_alain@yahoo.com";
@@ -20,64 +21,124 @@ export async function DELETE() {
 
   const companyId = userCompany.companyId;
 
-  // Delete in dependency order (children first)
+  // Use admin client to bypass RLS
+  const adminSb = createAdminClient();
+
+  // Delete in dependency order (children first, parents last).
+  // Every table with a company_id column must be listed here.
+  // Tables referencing projects/contacts/properties must come BEFORE those parent tables.
   const tables = [
+    // Payroll children
     "payroll_items",
     "payroll_runs",
     "employee_pay_rates",
     "payroll_deductions",
     "payroll_tax_config",
+    // Journal entries (children first)
     "journal_entry_lines",
     "journal_entries",
+    // Financial
     "payments",
     "invoices",
+    "bank_reconciliations",
+    "bank_transactions",
+    // Contracts (must come before contacts & projects — FK to both)
+    "contract_milestones",
+    "contracts",
+    // Project children
+    "project_tasks",
     "change_orders",
     "project_phases",
+    "project_budget_lines",
     "rfis",
     "submittals",
     "daily_logs",
+    // Time & clock
+    "clock_events",
     "time_entries",
+    // Equipment
     "equipment_assignments",
     "equipment_maintenance",
+    "equipment_maintenance_logs",
     "equipment",
+    // Safety
     "safety_incidents",
     "safety_inspections",
     "toolbox_talks",
     "certifications",
-    "documents",
+    // Documents
+    "markup_annotations",
     "drawing_sets",
+    "document_folders",
+    "documents",
+    "vendor_documents",
+    "tenant_documents",
+    // Estimates
+    "estimate_line_items",
+    "estimate_assemblies",
+    "estimates",
+    // CRM
     "opportunities",
     "bids",
+    // People
     "contacts",
+    // Properties (children first)
+    "property_expenses",
+    "property_payment_methods",
     "leases",
     "maintenance_requests",
+    "tenant_announcements",
     "properties",
+    // Projects (after all project-referencing tables)
     "projects",
+    // Finance parent tables
     "bank_accounts",
     "chart_of_accounts",
+    // Messaging & tickets
+    "messages",
+    "tickets",
+    "support_tickets",
+    // Portal & auth related
+    "portal_invitations",
+    "login_history",
+    "active_sessions",
+    // System
     "automation_rules",
     "automation_logs",
     "import_runs",
+    "audit_logs",
+    "payment_webhook_events",
+    "payment_gateway_config",
+    "integrations",
+    "security_settings",
+    "feature_flags",
+    "promo_code_redemptions",
+    "promo_codes",
+    "asset_library",
   ];
 
   const results: { table: string; deleted: number; error?: string }[] = [];
 
   for (const table of tables) {
-    const { count, error } = await supabase
-      .from(table)
-      .delete({ count: "exact" })
-      .eq("company_id", companyId);
+    try {
+      const { count, error } = await adminSb
+        .from(table)
+        .delete({ count: "exact" })
+        .eq("company_id", companyId);
 
-    results.push({
-      table,
-      deleted: count ?? 0,
-      error: error?.message,
-    });
+      if (error) {
+        results.push({ table, deleted: 0, error: error.message });
+      } else if ((count ?? 0) > 0) {
+        results.push({ table, deleted: count ?? 0 });
+      }
+    } catch {
+      // Table may not exist yet — skip silently
+    }
   }
 
   return NextResponse.json({
     success: true,
     companyId,
-    results: results.filter((r) => r.deleted > 0 || r.error),
+    results,
   });
 }
