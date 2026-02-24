@@ -370,12 +370,14 @@ async function processEntity(
           errors.push(`Row ${i + 2}: ${error.message}`);
         } else {
           successCount++;
-          // Create GL sub-account for this bank account
+          // Create GL sub-account + opening balance JE for this bank account
           if (inserted) {
             try {
+              const balance = r.current_balance ? parseFloat(r.current_balance) : 0;
               await ensureBankAccountGLLink(
                 supabase, companyId, inserted.id,
-                r.name || "", r.account_type || "checking"
+                r.name || "", r.account_type || "checking",
+                balance, userId
               );
             } catch (glErr) {
               console.warn(`Bank GL link failed for ${r.name}:`, glErr);
