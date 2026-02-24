@@ -208,8 +208,7 @@ def build_xlsx(all_sheets):
         ("journal_entries", "Journal Entries"),
         ("time_entries", "Time Entries"),
         ("change_orders", "Change Orders"),
-        ("daily_logs_airport", "Daily Logs"),
-        ("daily_logs_condo", "Daily Logs Condo"),
+        ("daily_logs", "Daily Logs"),
         ("rfis", "RFIs"),
         ("safety_incidents", "Safety Incidents"),
         ("safety_inspections", "Safety Inspections"),
@@ -280,8 +279,7 @@ def main():
     all_sheets["opportunities"] = generate_opportunities()
     all_sheets["bids"] = generate_bids()
 
-    all_sheets["daily_logs_airport"] = generate_daily_logs_airport()
-    all_sheets["daily_logs_condo"] = generate_daily_logs_condo()
+    all_sheets["daily_logs"] = generate_daily_logs_airport() + generate_daily_logs_condo()
     all_sheets["rfis"] = generate_rfis()
     all_sheets["submittals"] = generate_submittals()
     all_sheets["change_orders"] = generate_change_orders()
