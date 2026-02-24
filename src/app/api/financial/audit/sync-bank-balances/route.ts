@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { createOpeningBalanceJE } from "@/lib/utils/bank-gl-linkage";
 
 /**
  * POST /api/financial/audit/sync-bank-balances
  * Recalculates each bank account's current_balance from posted GL cash JE lines.
- * Maps bank accounts to GL accounts by matching account names.
+ *
+ * Strategy:
+ *  - Linked banks with JE lines in their sub-account → balance = sub-account GL balance
+ *  - Linked banks with empty sub-accounts + unlinked banks → proportional share of
+ *    parent Cash (1000) GL balance, distributed by their current_balance ratios
  */
 export async function POST() {
   try {
@@ -53,60 +56,44 @@ export async function POST() {
       return total;
     }
 
-    // Banks with linked GL accounts get exact balance from their specific GL account
+    // Split banks: linked (have gl_account_id) vs unlinked
     const linked = bankAccounts.filter((b) => b.gl_account_id);
     const unlinked = bankAccounts.filter((b) => !b.gl_account_id);
 
-    // Pre-step: create missing opening balance JEs for linked banks.
-    // If the Excel import ran before the GL-linkage fix, sub-accounts have no JE lines.
-    // We must create the reclassification JE (DR sub-acct / CR 1000) BEFORE computing balances.
+    // Phase 1: Compute GL balances for all linked bank sub-accounts
+    const linkedWithBalance: { bank: typeof linked[0]; glBalance: number }[] = [];
     for (const bank of linked) {
-      const currentBal = Number(bank.current_balance) || 0;
-      if (currentBal <= 0) continue; // nothing to reclassify
-
-      // Check if opening balance JE already exists
-      const ref = `opening_balance:bank:${bank.id}`;
-      const { data: existingOB } = await supabase
-        .from("journal_entries")
-        .select("id")
-        .eq("company_id", companyId)
-        .eq("reference", ref)
-        .limit(1);
-
-      if (existingOB && existingOB.length > 0) continue; // already exists
-
-      // Create the opening balance reclassification JE
-      try {
-        await createOpeningBalanceJE(
-          supabase,
-          companyId,
-          ctx.userId,
-          bank.id,
-          bank.gl_account_id!,
-          currentBal,
-          bank.name
-        );
-      } catch (jeErr) {
-        console.warn(`Failed to create opening balance JE for ${bank.name}:`, jeErr);
-      }
+      const glBalance = await computeGLBalance(bank.gl_account_id!);
+      linkedWithBalance.push({ bank, glBalance });
     }
 
-    for (const bank of linked) {
-      const newBalance = await computeGLBalance(bank.gl_account_id!);
+    // Linked banks with actual GL balances get synced directly
+    const resolvedLinked = linkedWithBalance.filter((lb) => lb.glBalance !== 0);
+    // Linked banks with empty sub-accounts need proportional distribution (same as unlinked)
+    const emptyLinked = linkedWithBalance.filter((lb) => lb.glBalance === 0);
+
+    // Update directly-resolved linked banks
+    for (const { bank, glBalance } of resolvedLinked) {
       await supabase
         .from("bank_accounts")
-        .update({ current_balance: newBalance })
+        .update({ current_balance: glBalance })
         .eq("id", bank.id);
       updates.push({
         id: bank.id,
         name: bank.name,
         oldBalance: Number(bank.current_balance) || 0,
-        newBalance,
+        newBalance: glBalance,
       });
     }
 
-    // Unlinked banks fall back to proportional distribution of total cash GL balance
-    if (unlinked.length > 0) {
+    // Phase 2: Distribute parent Cash GL balance to banks that need it
+    const needsDistribution = [
+      ...emptyLinked.map((lb) => lb.bank),
+      ...unlinked,
+    ];
+
+    if (needsDistribution.length > 0) {
+      // Find the parent Cash & Equivalents account (1000)
       const { data: cashAccounts } = await supabase
         .from("chart_of_accounts")
         .select("id")
@@ -115,22 +102,31 @@ export async function POST() {
         .eq("is_active", true)
         .or("name.ilike.%cash%,name.ilike.%checking%,name.ilike.%savings%");
 
-      const linkedGlIds = new Set(linked.map((b) => b.gl_account_id));
-      const unlinkedCashIds = (cashAccounts ?? [])
+      // Exclude GL accounts already resolved (linked banks with actual balances)
+      const resolvedGlIds = new Set(resolvedLinked.map((rl) => rl.bank.gl_account_id));
+      // Also exclude the empty sub-account IDs (they have $0, no point summing)
+      const emptyGlIds = new Set(emptyLinked.map((el) => el.bank.gl_account_id));
+      const distributableCashIds = (cashAccounts ?? [])
         .map((a) => a.id)
-        .filter((id) => !linkedGlIds.has(id));
+        .filter((id) => !resolvedGlIds.has(id) && !emptyGlIds.has(id));
 
-      let remainingGlBalance = 0;
-      for (const cid of unlinkedCashIds) {
-        remainingGlBalance += await computeGLBalance(cid);
+      let availableCash = 0;
+      for (const cid of distributableCashIds) {
+        availableCash += await computeGLBalance(cid);
       }
 
-      const oldTotal = unlinked.reduce((s, b) => s + (Number(b.current_balance) || 0), 0);
-      for (const bank of unlinked) {
-        const ratio = oldTotal > 0
-          ? (Number(bank.current_balance) || 0) / oldTotal
-          : 1 / unlinked.length;
-        const newBalance = Math.round(remainingGlBalance * ratio * 100) / 100;
+      // Distribute proportionally by current_balance ratios
+      const oldTotal = needsDistribution.reduce(
+        (s, b) => s + (Number(b.current_balance) || 0),
+        0
+      );
+
+      for (const bank of needsDistribution) {
+        const ratio =
+          oldTotal > 0
+            ? (Number(bank.current_balance) || 0) / oldTotal
+            : 1 / needsDistribution.length;
+        const newBalance = Math.round(availableCash * ratio * 100) / 100;
 
         await supabase
           .from("bank_accounts")

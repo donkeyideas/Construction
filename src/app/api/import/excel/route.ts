@@ -165,12 +165,14 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
+      const hasJESheet = presentEntities.has("journal_entries") || presentEntities.has("opening_balances");
       const sheetResult = await processEntity(
         supabase,
         companyId,
         userId,
         entity,
-        sheet.rows
+        sheet.rows,
+        { hasJESheet }
       );
 
       totalRows += sheet.rows.length;
@@ -262,7 +264,8 @@ async function processEntity(
   companyId: string,
   userId: string,
   entity: string,
-  rows: Record<string, string>[]
+  rows: Record<string, string>[],
+  options?: { hasJESheet?: boolean }
 ): Promise<ProcessResult> {
   let successCount = 0;
   const errors: string[] = [];
@@ -370,14 +373,18 @@ async function processEntity(
           errors.push(`Row ${i + 2}: ${error.message}`);
         } else {
           successCount++;
-          // Create GL sub-account + opening balance JE for this bank account
+          // Create GL sub-account linkage for this bank account.
+          // Only create opening balance reclassification JE if the workbook does NOT
+          // include a journal_entries sheet — pre-crafted JEs already establish the
+          // Cash 1000 balance, so reclassifying would double-count and make 1000 negative.
           if (inserted) {
             try {
-              const balance = r.current_balance ? parseFloat(r.current_balance) : 0;
+              const skipReclass = options?.hasJESheet ?? false;
+              const balance = skipReclass ? 0 : (r.current_balance ? parseFloat(r.current_balance) : 0);
               await ensureBankAccountGLLink(
                 supabase, companyId, inserted.id,
                 r.name || "", r.account_type || "checking",
-                balance, userId
+                balance, skipReclass ? undefined : userId
               );
             } catch (glErr) {
               console.warn(`Bank GL link failed for ${r.name}:`, glErr);
