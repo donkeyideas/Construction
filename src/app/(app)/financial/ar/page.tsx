@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
 import { getGLBalanceForAccountType } from "@/lib/utils/gl-balance";
+import { paginatedQuery } from "@/lib/utils/paginated-query";
 import ARClient from "./ARClient";
 
 export const metadata = {
@@ -41,8 +42,8 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
 
   const todayStr = now.toISOString().split("T")[0];
 
-  const [allArRes, billedThisMonthRes, collectedThisMonthRes, invoicesRes] = await Promise.all([
-    (() => {
+  const [allAr, billedThisMonthRes, collectedThisMonthRes, invoicesRes] = await Promise.all([
+    paginatedQuery<{ id: string; balance_due: number; status: string; due_date: string }>((from, to) => {
       let q = supabase
         .from("invoices")
         .select("id, balance_due, status, due_date")
@@ -51,8 +52,8 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
         .not("status", "eq", "voided");
       if (filterStartDate) q = q.gte("invoice_date", filterStartDate);
       if (filterEndDate) q = q.lte("invoice_date", filterEndDate);
-      return q;
-    })(),
+      return q.range(from, to);
+    }),
     supabase
       .from("invoices")
       .select("total_amount")
@@ -88,12 +89,12 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
     })(),
   ]);
 
-  const allAr = allArRes.data ?? [];
+  // Include paid invoices with retainage (balance_due > 0) to match GL which includes Retainage Receivable
   const totalArBalance = allAr
-    .filter((inv) => inv.status !== "paid")
+    .filter((inv) => (inv.balance_due ?? 0) > 0)
     .reduce((sum, inv) => sum + (inv.balance_due ?? 0), 0);
   const overdueAmount = allAr
-    .filter((inv) => inv.status !== "paid" && inv.due_date && inv.due_date < todayStr)
+    .filter((inv) => (inv.balance_due ?? 0) > 0 && inv.due_date && inv.due_date < todayStr)
     .reduce((sum, inv) => sum + (inv.balance_due ?? 0), 0);
   const billedThisMonth = (billedThisMonthRes.data ?? []).reduce(
     (sum, inv) => sum + (inv.total_amount ?? 0), 0

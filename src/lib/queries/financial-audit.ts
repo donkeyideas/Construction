@@ -1,22 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-
-// Pagination helper — Supabase defaults to returning max 1000 rows.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function paginatedQuery<T = Record<string, unknown>>(
-  queryFn: (from: number, to: number) => PromiseLike<{ data: any[] | null; error: unknown }>
-): Promise<T[]> {
-  const PAGE_SIZE = 1000;
-  const all: T[] = [];
-  let from = 0;
-  for (;;) {
-    const { data } = await queryFn(from, from + PAGE_SIZE - 1);
-    if (!data || data.length === 0) break;
-    all.push(...data);
-    if (data.length < PAGE_SIZE) break;
-    from += PAGE_SIZE;
-  }
-  return all;
-}
+import { paginatedQuery } from "@/lib/utils/paginated-query";
 
 export interface AuditCheckResult {
   id: string;
@@ -600,16 +583,19 @@ async function checkARReconciliation(
   // Invoice subledger: sum balance_due for all receivables with outstanding balances.
   // Include "paid" invoices that still have balance_due > 0 (retainage withheld),
   // since the GL side includes both AR and Retainage Receivable accounts.
-  const { data: arInvoices } = await supabase
-    .from("invoices")
-    .select("balance_due")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "receivable")
-    .not("status", "eq", "voided")
-    .gt("balance_due", 0);
+  const arInvoices = await paginatedQuery<{ balance_due: number }>((from, to) =>
+    supabase
+      .from("invoices")
+      .select("balance_due")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "receivable")
+      .not("status", "eq", "voided")
+      .gt("balance_due", 0)
+      .range(from, to)
+  );
 
-  const invoiceARBalance = (arInvoices ?? []).reduce(
-    (sum, inv) => sum + (Number((inv as { balance_due: number }).balance_due) || 0), 0
+  const invoiceARBalance = arInvoices.reduce(
+    (sum, inv) => sum + (Number(inv.balance_due) || 0), 0
   );
 
   const difference = Math.abs(glARBalance - invoiceARBalance);
@@ -681,16 +667,19 @@ async function checkAPReconciliation(
   // Invoice subledger: sum balance_due for all payables with outstanding balances.
   // Include "paid" invoices that still have balance_due > 0 (retainage withheld),
   // since the GL side includes both AP and Retainage Payable accounts.
-  const { data: apInvoices } = await supabase
-    .from("invoices")
-    .select("balance_due")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "payable")
-    .not("status", "eq", "voided")
-    .gt("balance_due", 0);
+  const apInvoices = await paginatedQuery<{ balance_due: number }>((from, to) =>
+    supabase
+      .from("invoices")
+      .select("balance_due")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "payable")
+      .not("status", "eq", "voided")
+      .gt("balance_due", 0)
+      .range(from, to)
+  );
 
-  const invoiceAPBalance = (apInvoices ?? []).reduce(
-    (sum, inv) => sum + (Number((inv as { balance_due: number }).balance_due) || 0), 0
+  const invoiceAPBalance = apInvoices.reduce(
+    (sum, inv) => sum + (Number(inv.balance_due) || 0), 0
   );
 
   const difference = Math.abs(glAPBalance - invoiceAPBalance);

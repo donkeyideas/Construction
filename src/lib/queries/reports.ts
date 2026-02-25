@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { paginatedQuery } from "@/lib/utils/paginated-query";
 
 /* ------------------------------------------------------------------
    Types
@@ -201,25 +202,29 @@ export async function getFinancialSummaryReport(
     .gte("invoice_date", start)
     .lte("invoice_date", end);
 
-  // AR outstanding
-  const arPromise = supabase
-    .from("invoices")
-    .select("balance_due")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "receivable")
-    .not("status", "eq", "voided")
-    .not("status", "eq", "paid")
-    .gt("balance_due", 0);
+  // AR outstanding — includes paid invoices with retainage (balance_due > 0) to match GL
+  const arPromise = paginatedQuery<{ balance_due: number }>((from, to) =>
+    supabase
+      .from("invoices")
+      .select("balance_due")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "receivable")
+      .not("status", "eq", "voided")
+      .gt("balance_due", 0)
+      .range(from, to)
+  );
 
-  // AP outstanding
-  const apPromise = supabase
-    .from("invoices")
-    .select("balance_due")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "payable")
-    .not("status", "eq", "voided")
-    .not("status", "eq", "paid")
-    .gt("balance_due", 0);
+  // AP outstanding — includes paid invoices with retainage (balance_due > 0) to match GL
+  const apPromise = paginatedQuery<{ balance_due: number }>((from, to) =>
+    supabase
+      .from("invoices")
+      .select("balance_due")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "payable")
+      .not("status", "eq", "voided")
+      .gt("balance_due", 0)
+      .range(from, to)
+  );
 
   // Count paid and outstanding
   const paidCountPromise = supabase
@@ -238,7 +243,7 @@ export async function getFinancialSummaryReport(
     .not("status", "eq", "voided")
     .gt("balance_due", 0);
 
-  const [revenueRes, expenseRes, arRes, apRes, paidRes, outstandingRes] =
+  const [revenueRes, expenseRes, arRows, apRows, paidRes, outstandingRes] =
     await Promise.all([
       revenuePromise,
       expensePromise,
@@ -258,12 +263,12 @@ export async function getFinancialSummaryReport(
     0
   );
 
-  const totalAR = (arRes.data ?? []).reduce(
+  const totalAR = arRows.reduce(
     (sum: number, r: { balance_due: number }) => sum + (r.balance_due ?? 0),
     0
   );
 
-  const totalAP = (apRes.data ?? []).reduce(
+  const totalAP = apRows.reduce(
     (sum: number, r: { balance_due: number }) => sum + (r.balance_due ?? 0),
     0
   );

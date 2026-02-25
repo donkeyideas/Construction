@@ -6,6 +6,7 @@ import {
   generateContractJournalEntry,
   generateLeaseRevenueSchedule,
   generateRentPaymentJournalEntry,
+  generateSecurityDepositJournalEntry,
   generateEquipmentPurchaseJournalEntry,
   generateDepreciationJournalEntries,
   generateMaintenanceCostJournalEntry,
@@ -19,6 +20,7 @@ export interface BackfillResult {
   contractsGenerated: number;
   rfisGenerated: number;
   leaseScheduled: number;
+  securityDepositGenerated: number;
   rentPaymentGenerated: number;
   equipPurchaseGenerated: number;
   depreciationGenerated: number;
@@ -102,6 +104,7 @@ export async function backfillMissingJournalEntries(
     contractsGenerated: 0,
     rfisGenerated: 0,
     leaseScheduled: 0,
+    securityDepositGenerated: 0,
     rentPaymentGenerated: 0,
     equipPurchaseGenerated: 0,
     depreciationGenerated: 0,
@@ -236,6 +239,40 @@ export async function backfillMissingJournalEntries(
         }, accountMap);
         result.leaseScheduled += r.scheduledCount;
       } catch (err) { console.warn("Backfill lease schedule failed:", lease.id, err); }
+    }
+  }
+
+  // --- Security Deposits ---
+  if (accountMap.cashId) {
+    const { data: depositLeases } = await supabase
+      .from("leases")
+      .select("id, property_id, tenant_name, security_deposit, lease_start, status")
+      .eq("company_id", companyId)
+      .in("status", ["active", "renewed"])
+      .not("security_deposit", "is", null)
+      .gt("security_deposit", 0);
+
+    for (const lease of depositLeases ?? []) {
+      // Idempotency: skip if a security deposit JE already exists for this lease
+      const { data: existing } = await supabase
+        .from("journal_entries")
+        .select("id")
+        .eq("company_id", companyId)
+        .eq("reference", `lease:${lease.id}`)
+        .ilike("description", "%security deposit%")
+        .limit(1)
+        .maybeSingle();
+      if (existing) continue;
+
+      try {
+        const r = await generateSecurityDepositJournalEntry(supabase, companyId, userId, {
+          leaseId: lease.id,
+          amount: Number(lease.security_deposit),
+          tenantName: lease.tenant_name ?? "Tenant",
+          date: lease.lease_start ?? new Date().toISOString().split("T")[0],
+        }, accountMap);
+        if (r) result.securityDepositGenerated++;
+      } catch (err) { console.warn("Backfill security deposit JE failed:", lease.id, err); }
     }
   }
 

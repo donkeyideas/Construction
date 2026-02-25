@@ -1,33 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-
-/* ------------------------------------------------------------------
-   Pagination helper — Supabase defaults to returning max 1000 rows.
-   This fetches ALL rows by paginating through the full result set.
-   ------------------------------------------------------------------ */
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function paginatedQuery<T = Record<string, unknown>>(
-  queryFn: (from: number, to: number) => PromiseLike<{ data: any[] | null; error: unknown }>
-): Promise<T[]> {
-  const PAGE_SIZE = 1000;
-  const all: T[] = [];
-  let from = 0;
-  for (;;) {
-    const { data, error } = await queryFn(from, from + PAGE_SIZE - 1);
-    if (error) {
-      const msg = typeof error === "object" && error !== null && "message" in error
-        ? (error as { message: string }).message
-        : String(error);
-      console.error(`paginatedQuery error at offset ${from}:`, msg);
-      throw new Error(`Query failed at offset ${from}: ${msg}`);
-    }
-    if (!data || data.length === 0) break;
-    all.push(...data);
-    if (data.length < PAGE_SIZE) break;
-    from += PAGE_SIZE;
-  }
-  return all;
-}
+import { paginatedQuery } from "@/lib/utils/paginated-query";
 
 /* ------------------------------------------------------------------
    Types
@@ -169,23 +141,30 @@ export async function getFinancialOverview(
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-  // Total AR: sum of balance_due on receivable invoices that are not voided
-  const arPromise = supabase
-    .from("invoices")
-    .select("balance_due")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "receivable")
-    .not("status", "eq", "voided")
-    .not("status", "eq", "paid");
+  // Total AR: sum of balance_due on receivable invoices with outstanding balance
+  // Includes paid invoices with retainage (balance_due > 0) to match GL
+  const arPromise = paginatedQuery<{ balance_due: number }>((from, to) =>
+    supabase
+      .from("invoices")
+      .select("balance_due")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "receivable")
+      .not("status", "eq", "voided")
+      .gt("balance_due", 0)
+      .range(from, to)
+  );
 
-  // Total AP: sum of balance_due on payable invoices that are not voided
-  const apPromise = supabase
-    .from("invoices")
-    .select("balance_due")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "payable")
-    .not("status", "eq", "voided")
-    .not("status", "eq", "paid");
+  // Total AP: sum of balance_due on payable invoices with outstanding balance
+  const apPromise = paginatedQuery<{ balance_due: number }>((from, to) =>
+    supabase
+      .from("invoices")
+      .select("balance_due")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "payable")
+      .not("status", "eq", "voided")
+      .gt("balance_due", 0)
+      .range(from, to)
+  );
 
   // Cash position: sum of current_balance from bank_accounts
   const cashPromise = supabase
@@ -202,18 +181,18 @@ export async function getFinancialOverview(
     .gte("payment_date", startOfMonth)
     .lte("payment_date", endOfMonth);
 
-  const [arRes, apRes, cashRes, paymentsRes] = await Promise.all([
+  const [arRows, apRows, cashRes, paymentsRes] = await Promise.all([
     arPromise,
     apPromise,
     cashPromise,
     paymentsPromise,
   ]);
 
-  const totalAR = (arRes.data ?? []).reduce(
+  const totalAR = arRows.reduce(
     (sum: number, row: { balance_due: number }) => sum + (row.balance_due ?? 0),
     0
   );
-  const totalAP = (apRes.data ?? []).reduce(
+  const totalAP = apRows.reduce(
     (sum: number, row: { balance_due: number }) => sum + (row.balance_due ?? 0),
     0
   );
@@ -642,17 +621,20 @@ export async function getAgingBuckets(
 ): Promise<AgingBucket[]> {
   const now = new Date();
 
-  // Fetch all unpaid / non-voided invoices
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("invoice_type, due_date, balance_due")
-    .eq("company_id", companyId)
-    .not("status", "eq", "voided")
-    .not("status", "eq", "paid")
-    .gt("balance_due", 0);
-
-  if (error) {
-    console.error("Error fetching aging data:", error);
+  // Fetch all invoices with outstanding balance (includes paid with retainage)
+  let data: { invoice_type: string; due_date: string; balance_due: number }[];
+  try {
+    data = await paginatedQuery<{ invoice_type: string; due_date: string; balance_due: number }>((from, to) =>
+      supabase
+        .from("invoices")
+        .select("invoice_type, due_date, balance_due")
+        .eq("company_id", companyId)
+        .not("status", "eq", "voided")
+        .gt("balance_due", 0)
+        .range(from, to)
+    );
+  } catch (err) {
+    console.error("Error fetching aging data:", err);
     return defaultBuckets();
   }
 
@@ -1601,23 +1583,27 @@ export async function getCashFlowStatement(
   const incomeStatement = await getIncomeStatement(supabase, companyId, startDate, endDate);
   const netIncome = incomeStatement.netIncome;
 
-  // Get AR/AP changes during the period
+  // Get AR/AP changes during the period (paginated to avoid 1000-row limit)
   // AR at start vs AR at end
-  const [arStartRes, arEndRes, apStartRes, apEndRes] = await Promise.all([
-    supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-      .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", startDate),
-    supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-      .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", endDate),
-    supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-      .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", startDate),
-    supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-      .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", endDate),
+  const [arStartRows, arEndRows, apStartRows, apEndRows] = await Promise.all([
+    paginatedQuery<{ balance_due: number }>((from, to) =>
+      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
+        .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", startDate).range(from, to)),
+    paginatedQuery<{ balance_due: number }>((from, to) =>
+      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
+        .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", endDate).range(from, to)),
+    paginatedQuery<{ balance_due: number }>((from, to) =>
+      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
+        .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", startDate).range(from, to)),
+    paginatedQuery<{ balance_due: number }>((from, to) =>
+      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
+        .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", endDate).range(from, to)),
   ]);
 
-  const arStart = (arStartRes.data ?? []).reduce((s, r) => s + (r.balance_due ?? 0), 0);
-  const arEnd = (arEndRes.data ?? []).reduce((s, r) => s + (r.balance_due ?? 0), 0);
-  const apStart = (apStartRes.data ?? []).reduce((s, r) => s + (r.balance_due ?? 0), 0);
-  const apEnd = (apEndRes.data ?? []).reduce((s, r) => s + (r.balance_due ?? 0), 0);
+  const arStart = arStartRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
+  const arEnd = arEndRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
+  const apStart = apStartRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
+  const apEnd = apEndRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
 
   const arChange = -(arEnd - arStart); // Decrease in AR = cash inflow
   const apChange = apEnd - apStart; // Increase in AP = cash inflow

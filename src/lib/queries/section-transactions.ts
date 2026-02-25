@@ -511,13 +511,14 @@ export async function getPropertyTransactions(
     });
   }
 
-  // Leases without schedule rows (fallback — informational, no JE expected)
+  // Leases without schedule rows — expect JEs for active/renewed leases (backfill generates them)
   const scheduledLeaseIds = new Set((scheduleRows ?? []).map((r) => r.lease_id));
   for (const lease of leases ?? []) {
     if (scheduledLeaseIds.has(lease.id)) continue;
     const rent = Number(lease.monthly_rent) || 0;
     const deposit = Number(lease.security_deposit) || 0;
     const unitNum = (lease.units as unknown as { unit_number: string } | null)?.unit_number ?? "N/A";
+    const isActive = ["active", "renewed"].includes(lease.status);
     if (rent > 0) {
       txns.push({
         id: `lease-rent-${lease.id}`,
@@ -525,7 +526,7 @@ export async function getPropertyTransactions(
         description: `[Pending] ${lease.tenant_name ?? "Tenant"} (Unit ${unitNum}) — Monthly Rent`,
         reference: "", source: "Leases", sourceHref: "/properties/leases",
         debit: 0, credit: rent,
-        jeNumber: null, jeId: null, jeExpected: false,
+        jeNumber: null, jeId: null, jeExpected: isActive,
       });
     }
     if (deposit > 0) {
@@ -535,7 +536,7 @@ export async function getPropertyTransactions(
         description: `${lease.tenant_name ?? "Tenant"} (Unit ${unitNum}) — Security Deposit`,
         reference: "", source: "Leases", sourceHref: "/properties/leases",
         debit: 0, credit: deposit,
-        jeNumber: null, jeId: null, jeExpected: false,
+        jeNumber: null, jeId: null, jeExpected: isActive,
       });
     }
   }

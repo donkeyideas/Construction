@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { paginatedQuery } from "@/lib/utils/paginated-query";
 
 // ---------------------------------------------------------------------------
 // Type definitions
@@ -257,25 +258,31 @@ export async function getARAPAging(
 ): Promise<AgingBucket[]> {
   const today = new Date().toISOString().slice(0, 10);
 
-  let arQuery = supabase
-    .from("invoices")
-    .select("invoice_date, due_date, balance_due")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "receivable")
-    .not("status", "in", '("voided","paid")')
-    .gt("balance_due", 0);
-  if (projectId) arQuery = arQuery.eq("project_id", projectId);
-
-  let apQuery = supabase
-    .from("invoices")
-    .select("invoice_date, due_date, balance_due")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "payable")
-    .not("status", "in", '("voided","paid")')
-    .gt("balance_due", 0);
-  if (projectId) apQuery = apQuery.eq("project_id", projectId);
-
-  const [arRes, apRes] = await Promise.all([arQuery, apQuery]);
+  // Include paid invoices with retainage (balance_due > 0) to match GL
+  const [arData, apData] = await Promise.all([
+    paginatedQuery<{ invoice_date: string; due_date: string; balance_due: number }>((from, to) => {
+      let q = supabase
+        .from("invoices")
+        .select("invoice_date, due_date, balance_due")
+        .eq("company_id", companyId)
+        .eq("invoice_type", "receivable")
+        .not("status", "eq", "voided")
+        .gt("balance_due", 0);
+      if (projectId) q = q.eq("project_id", projectId);
+      return q.range(from, to);
+    }),
+    paginatedQuery<{ invoice_date: string; due_date: string; balance_due: number }>((from, to) => {
+      let q = supabase
+        .from("invoices")
+        .select("invoice_date, due_date, balance_due")
+        .eq("company_id", companyId)
+        .eq("invoice_type", "payable")
+        .not("status", "eq", "voided")
+        .gt("balance_due", 0);
+      if (projectId) q = q.eq("project_id", projectId);
+      return q.range(from, to);
+    }),
+  ]);
 
   const buckets: AgingBucket[] = [
     { bucket: "Current", ar: 0, ap: 0 },
@@ -296,12 +303,12 @@ export async function getARAPAging(
     return 4; // 90+
   }
 
-  for (const inv of arRes.data ?? []) {
+  for (const inv of arData) {
     const idx = classify(inv.due_date, inv.invoice_date);
     buckets[idx].ar += Number(inv.balance_due) || 0;
   }
 
-  for (const inv of apRes.data ?? []) {
+  for (const inv of apData) {
     const idx = classify(inv.due_date, inv.invoice_date);
     buckets[idx].ap += Number(inv.balance_due) || 0;
   }
