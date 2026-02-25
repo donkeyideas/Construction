@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProjectTransactions } from "@/lib/queries/section-transactions";
+import { backfillMissingJournalEntries } from "@/lib/utils/backfill-journal-entries";
 import SectionTransactions from "@/components/SectionTransactions";
 
 export const metadata = {
@@ -16,7 +17,20 @@ export default async function ProjectsTransactionsPage() {
     redirect("/register");
   }
 
-  const txnData = await getProjectTransactions(supabase, userCompany.companyId);
+  let txnData = await getProjectTransactions(supabase, userCompany.companyId);
+
+  // Auto-heal: if any approved COs (or other entities) are missing JEs, backfill once and re-fetch
+  const hasMissingJEs = txnData.transactions.some(
+    (t) => !t.jeNumber && t.jeExpected !== false
+  );
+  if (hasMissingJEs) {
+    try {
+      await backfillMissingJournalEntries(supabase, userCompany.companyId, userCompany.userId);
+      txnData = await getProjectTransactions(supabase, userCompany.companyId);
+    } catch {
+      // Non-blocking: show whatever data we have
+    }
+  }
 
   return (
     <div>
