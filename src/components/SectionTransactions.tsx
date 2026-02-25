@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   DollarSign,
@@ -14,8 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  RefreshCw,
-  BookOpen,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import JournalEntryModal from "@/components/JournalEntryModal";
@@ -32,7 +29,6 @@ type SortDir = "asc" | "desc";
 const PAGE_SIZE = 25;
 
 export default function SectionTransactions({ data, sectionName }: Props) {
-  const router = useRouter();
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -41,46 +37,6 @@ export default function SectionTransactions({ data, sectionName }: Props) {
   // JE Modal state
   const [modalJeId, setModalJeId] = useState<string | null>(null);
   const [modalJeNumber, setModalJeNumber] = useState<string>("");
-
-  // Backfill state
-  const [backfilling, setBackfilling] = useState(false);
-  const [backfillDone, setBackfillDone] = useState(false);
-  const [backfillError, setBackfillError] = useState<string | null>(null);
-
-  const missingJeCount = useMemo(
-    () => data.transactions.filter((t) => !t.jeNumber && t.jeExpected !== false).length,
-    [data.transactions]
-  );
-
-  async function handleBackfill() {
-    setBackfilling(true);
-    setBackfillError(null);
-    try {
-      const res = await fetch("/api/admin/backfill-journal-entries", { method: "POST" });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({ error: "Server error" }));
-        setBackfillError(errData.error || `Server error (${res.status})`);
-        return;
-      }
-      const data = await res.json();
-      const total = (data.coGenerated || 0) + (data.invGenerated || 0) +
-        (data.contractsGenerated || 0) + (data.rfisGenerated || 0) +
-        (data.equipPurchaseGenerated || 0) + (data.depreciationGenerated || 0) +
-        (data.payrollGenerated || 0) + (data.maintenanceGenerated || 0) +
-        (data.leaseScheduled || 0) + (data.rentPaymentGenerated || 0) +
-        (data.draftsPosted || 0) + (data.banksSynced || 0);
-      if (total > 0) {
-        setBackfillDone(true);
-      } else {
-        setBackfillError("No JEs could be generated — required GL accounts may be missing");
-      }
-      router.refresh();
-    } catch (err) {
-      setBackfillError(err instanceof Error ? err.message : "Network error");
-    } finally {
-      setBackfilling(false);
-    }
-  }
 
   // Unique sources for filter
   const sources = useMemo(() => {
@@ -236,26 +192,6 @@ export default function SectionTransactions({ data, sectionName }: Props) {
             {sectionName} Transactions
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {backfillError && (
-              <span style={{ color: "var(--color-red, #ef4444)", fontSize: "0.78rem", maxWidth: 280 }}>
-                {backfillError}
-              </span>
-            )}
-            {missingJeCount > 0 && !backfillDone && (
-              <button
-                className="btn btn-primary"
-                style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", padding: "6px 14px" }}
-                onClick={handleBackfill}
-                disabled={backfilling}
-              >
-                {backfilling ? (
-                  <RefreshCw size={14} className="spin" />
-                ) : (
-                  <BookOpen size={14} />
-                )}
-                {backfilling ? "Generating..." : `Generate ${missingJeCount} Missing JE${missingJeCount !== 1 ? "s" : ""}`}
-              </button>
-            )}
             {sources.length > 1 && (
               <div className="section-txn-filter">
                 <Filter size={13} />

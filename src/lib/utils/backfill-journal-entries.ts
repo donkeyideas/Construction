@@ -31,8 +31,9 @@ export interface BackfillResult {
 /**
  * Ensure required GL accounts exist for JE generation.
  * Creates any missing accounts that the backfill depends on.
+ * Exported so the change-order PATCH handler can call it directly.
  */
-async function ensureRequiredAccounts(
+export async function ensureRequiredAccounts(
   supabase: SupabaseClient,
   companyId: string
 ): Promise<void> {
@@ -62,16 +63,25 @@ async function ensureRequiredAccounts(
       .limit(1);
 
     if (!existing || existing.length === 0) {
-      await supabase.from("chart_of_accounts").insert({
-        company_id: companyId,
-        account_number: acct.number,
-        name: acct.name,
-        account_type: acct.type,
-        sub_type: acct.sub,
-        normal_balance: acct.balance,
-        description: acct.desc,
-        is_active: true,
-      });
+      // Try the preferred account number first; if it conflicts, increment until free
+      let num = parseInt(acct.number, 10);
+      const maxAttempts = 10;
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const accountNumber = String(num);
+        const { error } = await supabase.from("chart_of_accounts").insert({
+          company_id: companyId,
+          account_number: accountNumber,
+          name: acct.name,
+          account_type: acct.type,
+          sub_type: acct.sub,
+          normal_balance: acct.balance,
+          description: acct.desc,
+          is_active: true,
+        });
+        if (!error) break;
+        console.warn(`ensureRequiredAccounts: account_number ${accountNumber} conflict for "${acct.name}", retrying...`);
+        num++;
+      }
     }
   }
 }

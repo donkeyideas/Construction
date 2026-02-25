@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { buildCompanyAccountMap, generateChangeOrderJournalEntry, generateChangeOrderReversalJournalEntry } from "@/lib/utils/invoice-accounting";
+import { ensureRequiredAccounts } from "@/lib/utils/backfill-journal-entries";
 import { createNotifications } from "@/lib/utils/notifications";
 
 // ---------------------------------------------------------------------------
@@ -169,9 +170,10 @@ export async function PATCH(request: NextRequest) {
       } catch (e) { console.warn("Notification failed:", e); }
     }
 
-    // Auto-generate journal entry when change order is approved (Phase 5)
+    // Auto-generate journal entry when change order is approved
     if (body.status === "approved" && changeOrder && changeOrder.amount !== 0) {
       try {
+        await ensureRequiredAccounts(supabase, userCtx.companyId);
         const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
         await generateChangeOrderJournalEntry(
           supabase,
@@ -195,6 +197,7 @@ export async function PATCH(request: NextRequest) {
     // Generate REVERSING journal entry when a previously-approved CO is rejected
     if (body.status === "rejected" && changeOrder && changeOrder.amount !== 0) {
       try {
+        await ensureRequiredAccounts(supabase, userCtx.companyId);
         const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
         await generateChangeOrderReversalJournalEntry(
           supabase,

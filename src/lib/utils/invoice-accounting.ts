@@ -191,19 +191,23 @@ export async function buildCompanyAccountMap(
       map.repairsMaintenanceId = a.id;
     }
 
-    // Costs in Excess of Billings: asset with "costs in excess" or "cost in excess" or "under-billing"
+    // Costs in Excess of Billings (WIP asset): many naming conventions
     if (!map.costsInExcessId && a.account_type === "asset" &&
       (nameLower.includes("costs in excess") || nameLower.includes("cost in excess") ||
-       nameLower.includes("under-billing") || nameLower.includes("underbilling"))
+       nameLower.includes("under-billing") || nameLower.includes("underbilling") ||
+       nameLower.includes("contract asset") || nameLower.includes("unbilled") ||
+       nameLower.includes("work in progress") || nameLower.includes("wip"))
     ) {
       map.costsInExcessId = a.id;
     }
 
-    // Billings in Excess of Costs: liability with "billings in excess" or "overbilling" or "unearned"
+    // Billings in Excess of Costs (WIP liability): many naming conventions
     if (!map.billingsInExcessId && a.account_type === "liability" &&
       (nameLower.includes("billings in excess") || nameLower.includes("billing in excess") ||
        nameLower.includes("over-billing") || nameLower.includes("overbilling") ||
-       nameLower.includes("unearned"))
+       nameLower.includes("unearned") || nameLower.includes("contract liabilit") ||
+       nameLower.includes("deferred contract") || nameLower.includes("deferred project") ||
+       nameLower.includes("advance billing"))
     ) {
       map.billingsInExcessId = a.id;
     }
