@@ -354,14 +354,14 @@ export async function getPropertyTransactions(
     // 3. Lease revenue schedule
     supabase
       .from("lease_revenue_schedule")
-      .select("id, schedule_date, monthly_rent, status, accrual_je_id, recognition_je_id, collection_je_id, lease_id, property_id, leases(tenant_name, unit_number)")
+      .select("id, schedule_date, monthly_rent, status, accrual_je_id, recognition_je_id, collection_je_id, lease_id, property_id, leases(tenant_name, units(unit_number))")
       .eq("company_id", companyId)
       .order("schedule_date", { ascending: false })
       .limit(500),
     // 4. Leases (fallback for un-scheduled)
     supabase
       .from("leases")
-      .select("id, unit_number, tenant_name, monthly_rent, security_deposit, lease_start, status, property_id")
+      .select("id, tenant_name, monthly_rent, security_deposit, lease_start, status, property_id, units(unit_number)")
       .eq("company_id", companyId)
       .not("monthly_rent", "is", null)
       .order("lease_start", { ascending: false })
@@ -377,7 +377,7 @@ export async function getPropertyTransactions(
     // 6. Rent payments (via leases)
     supabase
       .from("rent_payments")
-      .select("id, amount, payment_date, method, status, gateway_provider, notes, lease_id, leases(tenant_name, unit_number, property_id)")
+      .select("id, amount, payment_date, method, status, gateway_provider, notes, lease_id, leases(tenant_name, property_id, units(unit_number))")
       .eq("company_id", companyId)
       .order("payment_date", { ascending: false })
       .limit(200),
@@ -487,9 +487,9 @@ export async function getPropertyTransactions(
   );
 
   for (const row of scheduleRows ?? []) {
-    const lease = row.leases as unknown as { tenant_name: string; unit_number: string } | null;
+    const lease = row.leases as unknown as { tenant_name: string; units: { unit_number: string } | null } | null;
     const tenantName = lease?.tenant_name ?? "Tenant";
-    const unitNumber = lease?.unit_number ?? "N/A";
+    const unitNumber = lease?.units?.unit_number ?? "N/A";
     const rent = Number(row.monthly_rent) || 0;
     const ym = row.schedule_date?.substring(0, 7) ?? "";
     const statusBadge = row.status === "collected" ? "[Collected]" :
@@ -518,11 +518,12 @@ export async function getPropertyTransactions(
     if (scheduledLeaseIds.has(lease.id)) continue;
     const rent = Number(lease.monthly_rent) || 0;
     const deposit = Number(lease.security_deposit) || 0;
+    const unitNum = (lease.units as unknown as { unit_number: string } | null)?.unit_number ?? "N/A";
     if (rent > 0) {
       txns.push({
         id: `lease-rent-${lease.id}`,
         date: lease.lease_start ?? new Date().toISOString().split("T")[0],
-        description: `[Pending] ${lease.tenant_name ?? "Tenant"} (Unit ${lease.unit_number ?? "N/A"}) — Monthly Rent`,
+        description: `[Pending] ${lease.tenant_name ?? "Tenant"} (Unit ${unitNum}) — Monthly Rent`,
         reference: "", source: "Leases", sourceHref: "/properties/leases",
         debit: 0, credit: rent,
         jeNumber: null, jeId: null, jeExpected: false,
@@ -532,7 +533,7 @@ export async function getPropertyTransactions(
       txns.push({
         id: `lease-dep-${lease.id}`,
         date: lease.lease_start ?? new Date().toISOString().split("T")[0],
-        description: `${lease.tenant_name ?? "Tenant"} (Unit ${lease.unit_number ?? "N/A"}) — Security Deposit`,
+        description: `${lease.tenant_name ?? "Tenant"} (Unit ${unitNum}) — Security Deposit`,
         reference: "", source: "Leases", sourceHref: "/properties/leases",
         debit: 0, credit: deposit,
         jeNumber: null, jeId: null, jeExpected: false,
@@ -561,9 +562,9 @@ export async function getPropertyTransactions(
     if (amount <= 0) continue;
     const je = rentPaymentJeMap.get(`rent_payment:${rp.id}`);
     if (je) coveredJeIds.add(je.id);
-    const leaseInfo = rp.leases as unknown as { tenant_name: string | null; unit_number: string | null; property_id: string | null } | null;
+    const leaseInfo = rp.leases as unknown as { tenant_name: string | null; property_id: string | null; units: { unit_number: string } | null } | null;
     const tenantName = leaseInfo?.tenant_name ?? "Tenant";
-    const unitNumber = leaseInfo?.unit_number ?? "";
+    const unitNumber = leaseInfo?.units?.unit_number ?? "";
     const methodLabel = rp.method === "online" && rp.gateway_provider
       ? `Online (${rp.gateway_provider.charAt(0).toUpperCase() + rp.gateway_provider.slice(1)})`
       : rp.method ?? "";
