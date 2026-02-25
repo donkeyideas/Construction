@@ -46,10 +46,14 @@ export async function ensureRequiredAccounts(
   if (!count || count === 0) return;
 
   const required = [
+    { number: "1130", name: "Rent Receivable", type: "asset", sub: "current_asset", balance: "debit", desc: "Amounts due from tenants for rent" },
     { number: "1500", name: "Equipment", type: "asset", sub: "fixed_asset", balance: "debit", desc: "Equipment and machinery" },
     { number: "1540", name: "Accumulated Depreciation", type: "asset", sub: "fixed_asset", balance: "credit", desc: "Cumulative depreciation of fixed assets" },
     { number: "1600", name: "Costs in Excess of Billings", type: "asset", sub: "current_asset", balance: "debit", desc: "WIP — unbilled costs on construction contracts" },
     { number: "2400", name: "Billings in Excess of Costs", type: "liability", sub: "current_liability", balance: "credit", desc: "WIP — overbilled amounts on construction contracts" },
+    { number: "2500", name: "Deferred Rental Revenue", type: "liability", sub: "current_liability", balance: "credit", desc: "Prepaid rent and deferred lease income" },
+    { number: "2550", name: "Security Deposits Held", type: "liability", sub: "current_liability", balance: "credit", desc: "Tenant security deposits held in trust" },
+    { number: "4200", name: "Rental Income", type: "revenue", sub: "operating_revenue", balance: "credit", desc: "Revenue from property leases and rentals" },
     { number: "6250", name: "Repairs & Maintenance", type: "expense", sub: "operating_expense", balance: "debit", desc: "Property and equipment repair costs" },
     { number: "6700", name: "Depreciation Expense", type: "expense", sub: "operating_expense", balance: "debit", desc: "Periodic depreciation of fixed assets" },
   ];

@@ -23,6 +23,7 @@ export interface CompanyAccountMap {
   accumulatedDepreciationId: string | null;
   depreciationExpenseId: string | null;
   repairsMaintenanceId: string | null;
+  securityDepositHeldId: string | null; // "Security Deposits Held" (liability)
   // WIP accounts for construction contracts
   costsInExcessId: string | null;     // "Costs in Excess of Billings" (asset)
   billingsInExcessId: string | null;  // "Billings in Excess of Costs" (liability)
@@ -64,6 +65,7 @@ export async function buildCompanyAccountMap(
     accumulatedDepreciationId: null,
     depreciationExpenseId: null,
     repairsMaintenanceId: null,
+    securityDepositHeldId: null,
     costsInExcessId: null,
     billingsInExcessId: null,
     byNumber: {},
@@ -154,6 +156,13 @@ export async function buildCompanyAccountMap(
       (nameLower.includes("rental") || (nameLower.includes("rent") && nameLower.includes("income")))
     ) {
       map.rentalIncomeId = a.id;
+    }
+
+    // Security Deposits Held: liability with "security" and "deposit"
+    if (!map.securityDepositHeldId && a.account_type === "liability" &&
+      nameLower.includes("security") && nameLower.includes("deposit")
+    ) {
+      map.securityDepositHeldId = a.id;
     }
 
     // Late Fee Revenue: revenue with "late" and "fee"
@@ -706,8 +715,9 @@ export async function generateSecurityDepositJournalEntry(
   if (deposit.amount <= 0) return null;
   if (!accountMap.cashId) return null;
 
-  // Find security deposit liability account
-  const depositAccountId = findAccountByPattern(accountMap, "security deposit") ||
+  // Use mapped security deposit account, fallback to pattern search for legacy charts
+  const depositAccountId = accountMap.securityDepositHeldId ||
+    findAccountByPattern(accountMap, "security deposit") ||
     findAccountByPattern(accountMap, "deposit");
   if (!depositAccountId) return null;
 
