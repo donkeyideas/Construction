@@ -6,6 +6,11 @@ import {
   updateContract,
 } from "@/lib/queries/contracts";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import {
+  buildCompanyAccountMap,
+  generateContractJournalEntry,
+} from "@/lib/utils/invoice-accounting";
+import { ensureRequiredAccounts } from "@/lib/utils/backfill-journal-entries";
 
 // ---------------------------------------------------------------------------
 // GET /api/contracts/[id] — Get contract detail
@@ -92,6 +97,25 @@ export async function PATCH(
 
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
+    }
+
+    // Auto-generate contract JE if contract_amount > 0 (idempotent — won't duplicate)
+    const contractAmount = Number(contract?.contract_amount ?? body.contract_amount ?? 0);
+    if (contract && contractAmount > 0) {
+      try {
+        await ensureRequiredAccounts(supabase, userCtx.companyId);
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generateContractJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+          id: contract.id,
+          contract_number: contract.contract_number ?? "",
+          title: contract.title ?? "Contract",
+          contract_amount: contractAmount,
+          start_date: contract.start_date ?? new Date().toISOString().split("T")[0],
+          project_id: contract.project_id || undefined,
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Contract JE generation failed (non-blocking):", jeErr);
+      }
     }
 
     return NextResponse.json(contract);

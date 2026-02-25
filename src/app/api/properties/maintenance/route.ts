@@ -86,6 +86,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    // Auto-generate maintenance JE if estimated_cost > 0 — non-blocking
+    if (request_record && body.estimated_cost && Number(body.estimated_cost) > 0) {
+      try {
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generateMaintenanceCostJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+          id: request_record.id,
+          source: "property",
+          description: body.title?.trim() || "Property maintenance",
+          cost: Number(body.estimated_cost),
+          date: body.scheduled_date || new Date().toISOString().split("T")[0],
+          property_id: body.property_id,
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Property maintenance JE failed (non-blocking):", jeErr);
+      }
+    }
+
     return NextResponse.json(request_record, { status: 201 });
   } catch (err) {
     console.error("POST /api/properties/maintenance error:", err);

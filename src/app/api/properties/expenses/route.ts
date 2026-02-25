@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import {
+  buildCompanyAccountMap,
+  generatePropertyExpenseJournalEntry,
+} from "@/lib/utils/invoice-accounting";
 
 const VALID_TYPES = [
   "cam", "property_tax", "insurance", "utilities",
@@ -68,6 +72,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    // Auto-generate property expense JE — non-blocking
+    if (data && Number(body.amount) > 0) {
+      try {
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generatePropertyExpenseJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+          id: data.id,
+          description: `${body.expense_type}: ${body.description?.trim() || "Property expense"}`,
+          amount: Number(body.amount),
+          date: body.effective_date || new Date().toISOString().split("T")[0],
+          property_id: body.property_id,
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Property expense JE failed (non-blocking):", jeErr);
+      }
+    }
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     console.error("Property expense POST error:", err);
@@ -126,6 +146,22 @@ export async function PATCH(request: NextRequest) {
     if (error) {
       console.error("Update property expense error:", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    // Auto-generate property expense JE if none exists yet (idempotent)
+    if (data && Number(data.amount) > 0) {
+      try {
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generatePropertyExpenseJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+          id: data.id,
+          description: `${data.expense_type}: ${data.description || "Property expense"}`,
+          amount: Number(data.amount),
+          date: data.effective_date || new Date().toISOString().split("T")[0],
+          property_id: data.property_id,
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Property expense JE failed (non-blocking):", jeErr);
+      }
     }
 
     return NextResponse.json(data);

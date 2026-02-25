@@ -5,6 +5,10 @@ import {
   getMaintenanceRequests,
   createMaintenanceRequest,
 } from "@/lib/queries/properties";
+import {
+  buildCompanyAccountMap,
+  generateMaintenanceCostJournalEntry,
+} from "@/lib/utils/invoice-accounting";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -219,6 +223,23 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Auto-generate maintenance JE when actual_cost is set — non-blocking, idempotent
+    if (updated && body.actual_cost && Number(body.actual_cost) > 0) {
+      try {
+        const accountMap = await buildCompanyAccountMap(supabase, ctx.companyId);
+        await generateMaintenanceCostJournalEntry(supabase, ctx.companyId, ctx.userId, {
+          id: updated.id,
+          source: "property",
+          description: updated.title ?? "Property maintenance",
+          cost: Number(body.actual_cost),
+          date: updated.completed_at?.split("T")[0] ?? new Date().toISOString().split("T")[0],
+          property_id: id,
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Property maintenance JE failed (non-blocking):", jeErr);
+      }
     }
 
     return NextResponse.json(updated);

@@ -613,6 +613,16 @@ export async function generateContractJournalEntry(
   if (!contract.contract_amount || contract.contract_amount === 0) return null;
   if (!accountMap.costsInExcessId || !accountMap.billingsInExcessId) return null;
 
+  // Idempotency: skip if a JE already exists for this contract
+  const { data: existingJE } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("reference", `contract:${contract.id}`)
+    .limit(1)
+    .maybeSingle();
+  if (existingJE) return { journalEntryId: existingJE.id };
+
   const amount = Math.abs(contract.contract_amount);
   const description = `Contract ${contract.contract_number || contract.title}`;
 
@@ -1481,6 +1491,76 @@ export async function generateMaintenanceCostJournalEntry(
       .eq("id", maintenance.id);
   }
 
+  return result ? { journalEntryId: result.id } : null;
+}
+
+// ==========================================================================
+// Property Expense JE (CAM, property tax, insurance, utilities, etc.)
+// ==========================================================================
+
+/**
+ * Generate a journal entry for a property expense.
+ *   DR Operating Expense (Repairs & Maintenance or generic expense account)
+ *   CR Accounts Payable
+ *
+ * Reference format: prop_expense:{expenseId}
+ */
+export async function generatePropertyExpenseJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  expense: {
+    id: string;
+    description: string;
+    amount: number;
+    date: string;
+    property_id?: string | null;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ journalEntryId: string } | null> {
+  if (expense.amount <= 0) return null;
+  if (!accountMap.repairsMaintenanceId) return null;
+  const creditAccountId = accountMap.apId || accountMap.cashId;
+  if (!creditAccountId) return null;
+
+  // Idempotency: skip if JE already exists for this expense
+  const refStr = `prop_expense:${expense.id}`;
+  const { data: existingJE } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("reference", refStr)
+    .limit(1)
+    .maybeSingle();
+  if (existingJE) return { journalEntryId: existingJE.id };
+
+  const shortId = expense.id.substring(0, 8);
+  const desc = expense.description || "Property expense";
+
+  const entryData: JournalEntryCreateData = {
+    entry_number: `JE-PEXP-${shortId}`,
+    entry_date: expense.date,
+    description: desc,
+    reference: refStr,
+    lines: [
+      {
+        account_id: accountMap.repairsMaintenanceId,
+        debit: expense.amount,
+        credit: 0,
+        description: desc,
+        property_id: expense.property_id ?? undefined,
+      },
+      {
+        account_id: creditAccountId,
+        debit: 0,
+        credit: expense.amount,
+        description: desc,
+        property_id: expense.property_id ?? undefined,
+      },
+    ],
+  };
+
+  const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
   return result ? { journalEntryId: result.id } : null;
 }
 

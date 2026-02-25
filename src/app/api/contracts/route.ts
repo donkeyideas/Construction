@@ -9,6 +9,11 @@ import {
 } from "@/lib/queries/contracts";
 import { createNotifications } from "@/lib/utils/notifications";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import {
+  buildCompanyAccountMap,
+  generateContractJournalEntry,
+} from "@/lib/utils/invoice-accounting";
+import { ensureRequiredAccounts } from "@/lib/utils/backfill-journal-entries";
 
 // ---------------------------------------------------------------------------
 // GET /api/contracts — List contracts for the current user's company
@@ -113,6 +118,24 @@ export async function POST(request: NextRequest) {
         entityId: contract?.id,
       });
     } catch (e) { console.warn("Notification failed:", e); }
+
+    // Auto-generate contract JE (WIP accounting) — non-blocking
+    if (contract && body.contract_amount && Number(body.contract_amount) > 0) {
+      try {
+        await ensureRequiredAccounts(supabase, userCtx.companyId);
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generateContractJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+          id: contract.id,
+          contract_number: contract.contract_number ?? "",
+          title: body.title.trim(),
+          contract_amount: Number(body.contract_amount),
+          start_date: body.start_date || new Date().toISOString().split("T")[0],
+          project_id: body.project_id || undefined,
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Contract JE generation failed (non-blocking):", jeErr);
+      }
+    }
 
     return NextResponse.json(contract, { status: 201 });
   } catch (err) {

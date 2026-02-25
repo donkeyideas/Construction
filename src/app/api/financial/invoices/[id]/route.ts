@@ -4,6 +4,10 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById, updateInvoice } from "@/lib/queries/financial";
 import { createNotifications } from "@/lib/utils/notifications";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import {
+  buildCompanyAccountMap,
+  generateInvoiceJournalEntry,
+} from "@/lib/utils/invoice-accounting";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -95,6 +99,34 @@ export async function PATCH(
           entityId: id,
         });
       } catch (e) { console.warn("Notification failed:", e); }
+    }
+
+    // Auto-generate invoice JE if one doesn't exist yet (idempotent)
+    if (existing.total_amount && Number(existing.total_amount) > 0 && existing.status !== "voided") {
+      try {
+        // existing comes from select("*") — DB columns beyond InvoiceRow are present at runtime
+        const raw = existing as unknown as Record<string, unknown>;
+        const accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
+        await generateInvoiceJournalEntry(supabase, userCompany.companyId, userCompany.userId, {
+          id,
+          invoice_number: existing.invoice_number ?? "",
+          invoice_type: existing.invoice_type ?? "payable",
+          total_amount: Number(existing.total_amount),
+          subtotal: existing.subtotal ? Number(existing.subtotal) : undefined,
+          tax_amount: existing.tax_amount ? Number(existing.tax_amount) : undefined,
+          invoice_date: existing.invoice_date ?? new Date().toISOString().split("T")[0],
+          status: body.status ?? existing.status,
+          project_id: existing.project_id,
+          property_id: raw.property_id as string | null | undefined,
+          vendor_name: existing.vendor_name,
+          client_name: existing.client_name,
+          gl_account_id: raw.gl_account_id as string | null | undefined,
+          retainage_pct: raw.retainage_pct ? Number(raw.retainage_pct) : undefined,
+          retainage_held: raw.retainage_held ? Number(raw.retainage_held) : undefined,
+        }, accountMap);
+      } catch (jeErr) {
+        console.warn("Invoice JE generation failed (non-blocking):", jeErr);
+      }
     }
 
     return NextResponse.json({ success: true });
