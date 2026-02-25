@@ -128,6 +128,7 @@ export async function DELETE() {
     // People
     "contacts",
     // Properties (children first)
+    "rent_payments",
     "property_expenses",
     "property_payment_methods",
     "leases",
@@ -154,6 +155,7 @@ export async function DELETE() {
     "automation_rules",
     "automation_logs",
     "import_runs",
+    "audit_logs",
     "audit_log",
     "payment_webhook_events",
     "payment_gateway_config",

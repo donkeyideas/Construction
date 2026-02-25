@@ -216,7 +216,13 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
       const res = await fetch("/api/admin/reset-company", { method: "DELETE" });
       const data = await res.json();
       if (res.ok) {
-        alert(`Deleted: ${data.summary?.map((s: { table: string; deleted: number }) => `${s.table}: ${s.deleted}`).join(", ")}`);
+        const deleted = data.summary?.filter((s: { deleted: number; error?: string }) => s.deleted > 0 && !s.error) || [];
+        const errors = data.summary?.filter((s: { error?: string }) => s.error) || [];
+        let msg = `Deleted: ${deleted.map((s: { table: string; deleted: number }) => `${s.table}: ${s.deleted}`).join(", ") || "nothing"}`;
+        if (errors.length > 0) {
+          msg += `\n\nErrors: ${errors.map((s: { table: string; error: string }) => `${s.table}: ${s.error}`).join(", ")}`;
+        }
+        alert(msg);
         window.location.reload();
       } else {
         alert(data.error || "Failed to reset");
