@@ -85,6 +85,30 @@ export async function POST(request: NextRequest) {
       });
     } catch (e) { console.warn("Notification failed:", e); }
 
+    // Auto-generate journal entry on creation (idempotent — skips if JE exists)
+    if (changeOrder.amount !== 0) {
+      try {
+        await ensureRequiredAccounts(supabase, userCtx.companyId);
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        await generateChangeOrderJournalEntry(
+          supabase,
+          userCtx.companyId,
+          userCtx.userId,
+          {
+            id: changeOrder.id,
+            co_number: changeOrder.co_number,
+            amount: changeOrder.amount,
+            reason: changeOrder.reason || "design_change",
+            project_id: changeOrder.project_id,
+            title: changeOrder.title,
+          },
+          accountMap
+        );
+      } catch (jeErr) {
+        console.warn("Change order JE generation failed:", changeOrder.id, jeErr);
+      }
+    }
+
     return NextResponse.json(changeOrder, { status: 201 });
   } catch (err) {
     console.error("POST /api/projects/change-orders error:", err);
@@ -170,8 +194,8 @@ export async function PATCH(request: NextRequest) {
       } catch (e) { console.warn("Notification failed:", e); }
     }
 
-    // Auto-generate journal entry when change order is approved
-    if (body.status === "approved" && changeOrder && changeOrder.amount !== 0) {
+    // Auto-generate journal entry for any CO update (idempotent — skips if JE exists)
+    if (changeOrder && changeOrder.amount !== 0) {
       try {
         await ensureRequiredAccounts(supabase, userCtx.companyId);
         const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
@@ -194,7 +218,7 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Generate REVERSING journal entry when a previously-approved CO is rejected
+    // Generate REVERSING journal entry when a CO is rejected
     if (body.status === "rejected" && changeOrder && changeOrder.amount !== 0) {
       try {
         await ensureRequiredAccounts(supabase, userCtx.companyId);

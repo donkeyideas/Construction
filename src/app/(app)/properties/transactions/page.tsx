@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPropertyTransactions } from "@/lib/queries/section-transactions";
+import { backfillMissingJournalEntries } from "@/lib/utils/backfill-journal-entries";
 import SectionTransactions from "@/components/SectionTransactions";
 
 export const metadata = {
@@ -16,7 +17,20 @@ export default async function PropertiesTransactionsPage() {
     redirect("/register");
   }
 
-  const txnData = await getPropertyTransactions(supabase, userCompany.companyId);
+  let txnData = await getPropertyTransactions(supabase, userCompany.companyId);
+
+  // Auto-heal: if any transactions are missing JEs, backfill once and re-fetch
+  const hasMissingJEs = txnData.transactions.some(
+    (t) => !t.jeNumber && t.jeExpected !== false
+  );
+  if (hasMissingJEs) {
+    try {
+      await backfillMissingJournalEntries(supabase, userCompany.companyId, userCompany.userId);
+      txnData = await getPropertyTransactions(supabase, userCompany.companyId);
+    } catch {
+      // Non-blocking: show whatever data we have
+    }
+  }
 
   return (
     <div>

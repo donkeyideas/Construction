@@ -535,6 +535,16 @@ export async function generateChangeOrderJournalEntry(
   // Require WIP accounts — skip if company chart doesn't have them
   if (!accountMap.costsInExcessId || !accountMap.billingsInExcessId) return null;
 
+  // Idempotency: skip if a JE already exists for this change order
+  const { data: existingJE } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("reference", `change_order:${changeOrder.id}`)
+    .limit(1)
+    .maybeSingle();
+  if (existingJE) return { journalEntryId: existingJE.id };
+
   const description = `Change Order ${changeOrder.co_number}` +
     (changeOrder.title ? ` - ${changeOrder.title}` : "");
 

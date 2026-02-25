@@ -500,6 +500,17 @@ async function processEntity(
 
     case "invoices": {
       const accountMap = await buildCompanyAccountMap(supabase, companyId);
+
+      // Pre-fetch properties to resolve property_name to property_id
+      const { data: invProps } = await supabase
+        .from("properties")
+        .select("id, name")
+        .eq("company_id", companyId);
+      const invPropLookup = (invProps || []).reduce((acc: Record<string, string>, p: { id: string; name: string }) => {
+        acc[p.name.trim().toLowerCase()] = p.id;
+        return acc;
+      }, {} as Record<string, string>);
+
       const insertedInvoices: Array<{
         id: string;
         invoice_number: string;
@@ -564,6 +575,12 @@ async function processEntity(
         const isPaid = status === "paid";
         const amountPaid = isPaid ? totalAmount - retainageHeld : 0;
 
+        // Resolve property_name to property_id
+        let propertyId: string | null = null;
+        if (r.property_name) {
+          propertyId = invPropLookup[r.property_name.trim().toLowerCase()] || null;
+        }
+
         const { data: inserted, error } = await supabase
           .from("invoices")
           .insert({
@@ -571,6 +588,7 @@ async function processEntity(
             invoice_number: invoiceNumber,
             invoice_date: invoiceDate,
             project_id: projectId,
+            property_id: propertyId,
             invoice_type: invoiceType,
             vendor_name: r.vendor_name || null,
             client_name: r.client_name || null,

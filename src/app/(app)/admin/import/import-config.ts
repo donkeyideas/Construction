@@ -586,6 +586,7 @@ export const IMPORT_PHASES: PhaseDef[] = [
           { key: "vendor_name", label: "Vendor Name", required: false },
           { key: "client_name", label: "Client Name", required: false },
           { key: "project_name", label: "Project Name", required: false },
+          { key: "property_name", label: "Property Name", required: false },
         ],
       },
       {
