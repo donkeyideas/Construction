@@ -168,7 +168,6 @@ export async function getProjectTransactions(
       reference: co.co_number, source: "Change Orders", sourceHref: "/projects/change-orders",
       debit: amount > 0 ? amount : 0, credit: amount < 0 ? Math.abs(amount) : 0,
       jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
-      jeExpected: co.status === "approved",
     });
   }
 

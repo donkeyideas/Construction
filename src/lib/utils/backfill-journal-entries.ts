@@ -152,13 +152,12 @@ export async function backfillMissingJournalEntries(
     }
   }
 
-  // --- Change Orders (WIP accounting — only approved COs) ---
+  // --- Change Orders (WIP accounting — all statuses) ---
   if (accountMap.costsInExcessId && accountMap.billingsInExcessId) {
     const { data: changeOrders } = await supabase
       .from("change_orders")
       .select("id, co_number, title, amount, reason, project_id, status")
       .eq("company_id", companyId)
-      .eq("status", "approved")
       .not("amount", "is", null);
 
     if (changeOrders && changeOrders.length > 0) {
