@@ -1662,12 +1662,15 @@ export async function getCashFlowStatement(
       if (!account) continue;
 
       // Skip opening balance / bank sync JEs — these represent starting positions,
-      // not period cash activity (equipment/debt/equity OBs distort Investing/Financing)
+      // not period cash activity (equipment/debt/equity OBs distort Investing/Financing).
+      // Generator OB entries use "{PREFIX}-OB-{N}" (e.g., MBG-OB-001).
+      // Bank sync uses "JE-OB-BANK-*" / "JE-OBE-CASH-*" with matching references.
+      // Exclude invoice/payment JEs derived from OB invoices (JE-INV-*, JE-PMT-*).
       const je = line.journal_entries;
       const ref = je.reference ?? "";
       const entryNum = je.entry_number ?? "";
       if (
-        entryNum.startsWith("JE-OB") ||
+        (entryNum.includes("-OB-") && !entryNum.startsWith("JE-INV-") && !entryNum.startsWith("JE-PMT-")) ||
         ref.startsWith("opening_balance:") ||
         ref.startsWith("obe_cash_adj:")
       ) {
