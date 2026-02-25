@@ -6,8 +6,9 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 const ALLOWED_EMAIL = "beltran_alain@yahoo.com";
 
 /**
- * Paginated delete — Supabase PostgREST limits DELETE to 1000 rows per call.
- * Loop until all matching rows are gone so tables with >1000 rows are fully cleared.
+ * Paginated delete — Supabase PostgREST limits DELETE to 1000 rows per call
+ * and has a default statement timeout (~8s on free tier).
+ * We select a small batch of IDs first, then delete by ID to avoid timeouts.
  */
 async function deleteAllRows(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,21 +18,33 @@ async function deleteAllRows(
 ): Promise<{ deleted: number; error?: string }> {
   let totalDeleted = 0;
 
-  for (let attempt = 0; attempt < 100; attempt++) {
-    const { count, error } = await adminSb
+  for (let attempt = 0; attempt < 200; attempt++) {
+    // First, get a batch of IDs to delete (SELECT is faster than DELETE on large tables)
+    const { data: rows, error: selectError } = await adminSb
       .from(table)
-      .delete({ count: "exact" })
-      .eq("company_id", companyId);
+      .select("id")
+      .eq("company_id", companyId)
+      .limit(500);
 
-    if (error) {
-      return { deleted: totalDeleted, error: error.message };
+    if (selectError) {
+      // Column doesn't exist or table not found — stop
+      return { deleted: totalDeleted, error: selectError.message };
     }
 
-    const batch = count ?? 0;
-    totalDeleted += batch;
+    if (!rows || rows.length === 0) break; // All done
 
-    // If fewer than 1000 deleted, we got them all
-    if (batch < 1000) break;
+    const ids = rows.map((r: { id: string }) => r.id);
+
+    const { count, error: deleteError } = await adminSb
+      .from(table)
+      .delete({ count: "exact" })
+      .in("id", ids);
+
+    if (deleteError) {
+      return { deleted: totalDeleted, error: deleteError.message };
+    }
+
+    totalDeleted += count ?? ids.length;
   }
 
   return { deleted: totalDeleted };
@@ -68,7 +81,7 @@ export async function DELETE() {
     "payroll_tax_config",
     // GAAP / lease revenue
     "lease_revenue_schedule",
-    // Journal entries (children first)
+    // Journal entries (children first — can be very large, batch delete handles timeout)
     "journal_entry_lines",
     "journal_entries",
     // Financial
@@ -95,7 +108,6 @@ export async function DELETE() {
     "time_entries",
     // Equipment
     "equipment_assignments",
-    "equipment_maintenance",
     "equipment_maintenance_logs",
     "equipment",
     // Safety
@@ -145,8 +157,6 @@ export async function DELETE() {
     "notifications",
     "messages",
     "tickets",
-    "support_ticket_messages",
-    "support_tickets",
     // Portal & auth related
     "portal_invitations",
     "login_history",
@@ -157,13 +167,8 @@ export async function DELETE() {
     "import_runs",
     "audit_logs",
     "audit_log",
-    "payment_webhook_events",
-    "payment_gateway_config",
     "integrations",
     "security_settings",
-    "feature_flags",
-    "promo_code_redemptions",
-    "promo_codes",
     "asset_library",
   ];
 
