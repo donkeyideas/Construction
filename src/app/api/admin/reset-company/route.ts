@@ -66,6 +66,8 @@ export async function DELETE() {
     "employee_pay_rates",
     "payroll_deductions",
     "payroll_tax_config",
+    // GAAP / lease revenue
+    "lease_revenue_schedule",
     // Journal entries (children first)
     "journal_entry_lines",
     "journal_entries",
@@ -77,7 +79,9 @@ export async function DELETE() {
     // Contracts (must come before contacts & projects — FK to both)
     "contract_milestones",
     "contracts",
+    "vendor_contracts",
     // Project children
+    "punch_list_items",
     "project_tasks",
     "change_orders",
     "project_phases",
@@ -85,6 +89,7 @@ export async function DELETE() {
     "rfis",
     "submittals",
     "daily_logs",
+    "budgets",
     // Time & clock
     "clock_events",
     "time_entries",
@@ -116,6 +121,8 @@ export async function DELETE() {
     "ai_usage_log",
     "ai_conversations",
     "ai_provider_configs",
+    // Reports
+    "authoritative_reports",
     // Comments
     "comments",
     // People
@@ -147,7 +154,6 @@ export async function DELETE() {
     "automation_rules",
     "automation_logs",
     "import_runs",
-    "audit_logs",
     "audit_log",
     "payment_webhook_events",
     "payment_gateway_config",
@@ -178,6 +184,6 @@ export async function DELETE() {
   return NextResponse.json({
     success: true,
     companyId,
-    results,
+    summary: results,
   });
 }
