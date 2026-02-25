@@ -1641,11 +1641,11 @@ export async function getCashFlowStatement(
     const cfLines = await paginatedQuery<{
       debit: number; credit: number;
       chart_of_accounts: { account_number: string; name: string; account_type: string; sub_type: string } | null;
-      journal_entries: { status: string; entry_date: string };
+      journal_entries: { status: string; entry_date: string; entry_number: string; reference: string | null };
     }>((from, to) =>
       supabase
         .from("journal_entry_lines")
-        .select("debit, credit, chart_of_accounts(account_number, name, account_type, sub_type), journal_entries!inner(status, entry_date)")
+        .select("debit, credit, chart_of_accounts(account_number, name, account_type, sub_type), journal_entries!inner(status, entry_date, entry_number, reference)")
         .eq("company_id", companyId)
         .eq("journal_entries.status", "posted")
         .gte("journal_entries.entry_date", startDate)
@@ -1660,6 +1660,19 @@ export async function getCashFlowStatement(
     for (const line of cfLines) {
       const account = line.chart_of_accounts;
       if (!account) continue;
+
+      // Skip opening balance / bank sync JEs — these represent starting positions,
+      // not period cash activity (equipment/debt/equity OBs distort Investing/Financing)
+      const je = line.journal_entries;
+      const ref = je.reference ?? "";
+      const entryNum = je.entry_number ?? "";
+      if (
+        entryNum.startsWith("JE-OB") ||
+        ref.startsWith("opening_balance:") ||
+        ref.startsWith("obe_cash_adj:")
+      ) {
+        continue;
+      }
 
       const num = parseInt(account.account_number);
       const netAmount = (line.debit ?? 0) - (line.credit ?? 0);

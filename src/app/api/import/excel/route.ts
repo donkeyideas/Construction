@@ -521,6 +521,7 @@ async function processEntity(
         invoice_number: string;
         invoice_type: "payable" | "receivable";
         total_amount: number;
+        retainage_held: number;
         due_date: string;
         project_id?: string | null;
         vendor_name?: string | null;
@@ -561,7 +562,7 @@ async function processEntity(
             : 0;
 
         const isPaid = status === "paid";
-        const amountPaid = isPaid ? totalAmount : 0;
+        const amountPaid = isPaid ? totalAmount - retainageHeld : 0;
 
         const { data: inserted, error } = await supabase
           .from("invoices")
@@ -614,6 +615,7 @@ async function processEntity(
                 invoice_number: invoiceNumber,
                 invoice_type: invoiceType,
                 total_amount: totalAmount,
+                retainage_held: retainageHeld,
                 due_date: r.due_date || invoiceDate,
                 project_id: projectId,
                 vendor_name: r.vendor_name || null,
@@ -657,13 +659,18 @@ async function processEntity(
         }> = [];
 
         for (const pi of paidInvoices) {
+          // Payment amount = total minus retainage withheld.
+          // Retainage is held back and released separately — only the net amount is paid.
+          const paymentAmount = pi.total_amount - (pi.retainage_held ?? 0);
+          if (paymentAmount <= 0) continue;
+
           const { data: payment, error: pmtErr } = await supabase
             .from("payments")
             .insert({
               company_id: companyId,
               invoice_id: pi.invoiceId,
               payment_date: pi.due_date,
-              amount: pi.total_amount,
+              amount: paymentAmount,
               method: "imported",
               notes: "Auto-generated from paid invoice import",
             })
@@ -673,7 +680,7 @@ async function processEntity(
           if (!pmtErr && payment) {
             paymentRecords.push({
               paymentId: payment.id,
-              amount: pi.total_amount,
+              amount: paymentAmount,
               payment_date: pi.due_date,
               method: "imported",
               invoice: {
