@@ -18,6 +18,8 @@ import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 // Body: { entity: string, rows: Record<string, string>[], project_id?: string }
 // ---------------------------------------------------------------------------
 
+export const maxDuration = 60; // Vercel Pro timeout — import can take 30s+ for large files
+
 const ALLOWED_ENTITIES = [
   "contacts",
   "equipment",
@@ -242,103 +244,102 @@ export async function POST(request: NextRequest) {
       return userNameLookup[nameOrUuid.trim().toLowerCase()] || null;
     }
 
+    // ── Batch insert helper ──
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async function batchInsert(table: string, batch: Record<string, any>[], needIds = false): Promise<{ ids: string[]; successCount: number }> {
+      if (batch.length === 0) return { ids: [], successCount: 0 };
+      let sc = 0;
+      const ids: string[] = [];
+      for (let c = 0; c < batch.length; c += 500) {
+        const chunk = batch.slice(c, c + 500);
+        const q = supabase.from(table).insert(chunk);
+        const res = needIds ? await q.select("id") : await q;
+        if (res.error) {
+          for (let j = 0; j < chunk.length; j++) {
+            const q2 = supabase.from(table).insert(chunk[j]);
+            const r2 = needIds ? await q2.select("id").single() : await q2;
+            if (r2.error) errors.push(`Row ${c + j + 2}: ${r2.error.message}`);
+            else { sc++; if (needIds && r2.data) ids.push((r2.data as { id: string }).id); }
+          }
+        } else {
+          sc += chunk.length;
+          if (needIds && res.data) ids.push(...(res.data as { id: string }[]).map(d => d.id));
+        }
+      }
+      return { ids, successCount: sc };
+    }
+
+    // Pre-resolve all project IDs for batch inserts (avoids async in .map())
+    const PROJECT_SCOPED_BATCH: AllowedEntity[] = [
+      "daily_logs", "rfis", "change_orders", "contracts", "safety_incidents",
+      "toolbox_talks", "time_entries", "safety_inspections", "submittals",
+      "project_budget_lines", "estimates",
+    ];
+    let resolvedProjectIds: (string | null)[] = [];
+    if (PROJECT_SCOPED_BATCH.includes(entity as AllowedEntity)) {
+      resolvedProjectIds = await Promise.all(rows.map(r => resolveProjectId(r)));
+    }
+
     // Process based on entity type
     switch (entity as AllowedEntity) {
       case "contacts": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("contacts").insert({
-            company_id: companyId,
-            contact_type: r.contact_type || "subcontractor",
-            first_name: r.first_name || "",
-            last_name: r.last_name || "",
-            company_name: r.company_name || "",
-            job_title: r.job_title || "",
-            email: r.email || "",
-            phone: r.phone || "",
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const batch = rows.map(r => ({
+          company_id: companyId, contact_type: r.contact_type || "subcontractor",
+          first_name: r.first_name || "", last_name: r.last_name || "",
+          company_name: r.company_name || "", job_title: r.job_title || "",
+          email: r.email || "", phone: r.phone || "",
+        }));
+        const res = await batchInsert("contacts", batch);
+        successCount += res.successCount;
         break;
       }
 
       case "vendors": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("contacts").insert({
-            company_id: companyId,
-            contact_type: "vendor",
-            first_name: r.first_name || "",
-            last_name: r.last_name || "",
-            company_name: r.company_name || "",
-            job_title: r.job_title || "",
-            email: r.email || "",
-            phone: r.phone || "",
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const batch = rows.map(r => ({
+          company_id: companyId, contact_type: "vendor",
+          first_name: r.first_name || "", last_name: r.last_name || "",
+          company_name: r.company_name || "", job_title: r.job_title || "",
+          email: r.email || "", phone: r.phone || "",
+        }));
+        const res = await batchInsert("contacts", batch);
+        successCount += res.successCount;
         break;
       }
 
       case "equipment": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("equipment").insert({
-            company_id: companyId,
-            name: r.name || "",
-            equipment_type: r.equipment_type || "",
-            make: r.make || "",
-            model: r.model || "",
-            serial_number: r.serial_number || "",
-            status: r.status || "available",
-            purchase_cost: safeParseNumber(r.purchase_cost, 0, 0, 1e9),
-            hourly_rate: safeParseNumber(r.hourly_rate, 0, 0, 1e6),
-            purchase_date: r.purchase_date || null,
-            last_maintenance_date: r.last_maintenance_date || null,
-            next_maintenance_date: r.next_maintenance_date || null,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const batch = rows.map(r => ({
+          company_id: companyId, name: r.name || "",
+          equipment_type: r.equipment_type || "", make: r.make || "",
+          model: r.model || "", serial_number: r.serial_number || "",
+          status: r.status || "available",
+          purchase_cost: safeParseNumber(r.purchase_cost, 0, 0, 1e9),
+          hourly_rate: safeParseNumber(r.hourly_rate, 0, 0, 1e6),
+          purchase_date: r.purchase_date || null,
+          last_maintenance_date: r.last_maintenance_date || null,
+          next_maintenance_date: r.next_maintenance_date || null,
+        }));
+        const res = await batchInsert("equipment", batch);
+        successCount += res.successCount;
         break;
       }
 
       case "project_budget_lines": {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const batch: Record<string, any>[] = [];
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
-          const pid = (await resolveProjectId(r)) || body.project_id;
-          if (!pid) {
-            errors.push(`Row ${i + 2}: could not resolve project`);
-            continue;
-          }
-          const { error } = await supabase
-            .from("project_budget_lines")
-            .insert({
-              company_id: companyId,
-              project_id: pid,
-              csi_code: r.csi_code || "",
-              description: r.description || "",
-              budgeted_amount: safeParseNumber(r.budgeted_amount, 0, -1e9, 1e9),
-              committed_amount: safeParseNumber(r.committed_amount, 0, -1e9, 1e9),
-              actual_amount: safeParseNumber(r.actual_amount, 0, -1e9, 1e9),
-            });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
+          const pid = resolvedProjectIds[i] || body.project_id;
+          if (!pid) { errors.push(`Row ${i + 2}: could not resolve project`); continue; }
+          batch.push({
+            company_id: companyId, project_id: pid,
+            csi_code: r.csi_code || "", description: r.description || "",
+            budgeted_amount: safeParseNumber(r.budgeted_amount, 0, -1e9, 1e9),
+            committed_amount: safeParseNumber(r.committed_amount, 0, -1e9, 1e9),
+            actual_amount: safeParseNumber(r.actual_amount, 0, -1e9, 1e9),
+          });
         }
+        const res = await batchInsert("project_budget_lines", batch);
+        successCount += res.successCount;
         break;
       }
 
@@ -368,110 +369,81 @@ export async function POST(request: NextRequest) {
       }
 
       case "daily_logs": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("daily_logs").insert({
-            company_id: companyId,
-            project_id: await resolveProjectId(r),
-            log_date: r.log_date || new Date().toISOString().split("T")[0],
-            status: r.status || "draft",
-            weather_conditions: r.weather_conditions || null,
-            weather_temp_high: r.temperature ? parseFloat(r.temperature) : null,
-            work_performed: r.work_performed || null,
-            safety_incidents: r.safety_incidents || null,
-            delays: r.delays || null,
-            created_by: userId,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const batch = rows.map((r, i) => ({
+          company_id: companyId,
+          project_id: resolvedProjectIds[i],
+          log_date: r.log_date || new Date().toISOString().split("T")[0],
+          status: r.status || "draft",
+          weather_conditions: r.weather_conditions || null,
+          weather_temp_high: r.temperature ? parseFloat(r.temperature) : null,
+          work_performed: r.work_performed || null,
+          safety_incidents: r.safety_incidents || null,
+          delays: r.delays || null,
+          created_by: userId,
+        }));
+        const res = await batchInsert("daily_logs", batch);
+        successCount += res.successCount;
         break;
       }
 
       case "rfis": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("rfis").insert({
-            company_id: companyId,
-            project_id: await resolveProjectId(r),
-            rfi_number: r.rfi_number || `RFI-${String(i + 1).padStart(3, "0")}`,
-            subject: r.subject || "",
-            question: r.question || "",
-            answer: r.answer || null,
-            priority: r.priority || "medium",
-            status: r.status || "submitted",
-            due_date: r.due_date || null,
-            submitted_by: userId,
-            assigned_to: resolveUserRef(r.assigned_to) || userId,
-            cost_impact: r.cost_impact ? parseFloat(r.cost_impact) : null,
-            schedule_impact_days: r.schedule_impact_days ? parseInt(r.schedule_impact_days) : null,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const batch = rows.map((r, i) => ({
+          company_id: companyId,
+          project_id: resolvedProjectIds[i],
+          rfi_number: r.rfi_number || `RFI-${String(i + 1).padStart(3, "0")}`,
+          subject: r.subject || "", question: r.question || "",
+          answer: r.answer || null, priority: r.priority || "medium",
+          status: r.status || "submitted", due_date: r.due_date || null,
+          submitted_by: userId,
+          assigned_to: resolveUserRef(r.assigned_to) || userId,
+          cost_impact: r.cost_impact ? parseFloat(r.cost_impact) : null,
+          schedule_impact_days: r.schedule_impact_days ? parseInt(r.schedule_impact_days) : null,
+        }));
+        const res = await batchInsert("rfis", batch);
+        successCount += res.successCount;
         break;
       }
 
       case "change_orders": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("change_orders").insert({
-            company_id: companyId,
-            project_id: await resolveProjectId(r),
-            co_number: r.co_number || `CO-${String(i + 1).padStart(3, "0")}`,
-            title: r.title || "",
-            description: r.description || null,
-            reason: r.reason || null,
-            status: r.status || "approved",
-            amount: r.amount ? parseFloat(r.amount) : 0,
-            schedule_impact_days: r.schedule_impact_days ? parseInt(r.schedule_impact_days) : 0,
-            requested_by: userId,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const batch = rows.map((r, i) => ({
+          company_id: companyId,
+          project_id: resolvedProjectIds[i],
+          co_number: r.co_number || `CO-${String(i + 1).padStart(3, "0")}`,
+          title: r.title || "", description: r.description || null,
+          reason: r.reason || null, status: r.status || "approved",
+          amount: r.amount ? parseFloat(r.amount) : 0,
+          schedule_impact_days: r.schedule_impact_days ? parseInt(r.schedule_impact_days) : 0,
+          requested_by: userId,
+        }));
+        const res = await batchInsert("change_orders", batch);
+        successCount += res.successCount;
         break;
       }
 
       case "contracts": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("contracts").insert({
-            company_id: companyId,
-            contract_number: r.contract_number || `CON-${String(i + 1).padStart(3, "0")}`,
-            title: r.title || "",
-            contract_type: r.contract_type || "subcontractor",
-            party_name: r.party_name || null,
-            party_email: r.party_email || null,
-            contract_amount: r.contract_amount ? parseFloat(r.contract_amount) : null,
-            start_date: r.start_date || null,
-            end_date: r.end_date || null,
-            payment_terms: r.payment_terms || null,
-            scope_of_work: r.scope_of_work || null,
-            project_id: await resolveProjectId(r),
-            status: r.status || "draft",
-            created_by: userId,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const batch = rows.map((r, i) => ({
+          company_id: companyId,
+          contract_number: r.contract_number || `CON-${String(i + 1).padStart(3, "0")}`,
+          title: r.title || "",
+          contract_type: r.contract_type || "subcontractor",
+          party_name: r.party_name || null,
+          party_email: r.party_email || null,
+          contract_amount: r.contract_amount ? parseFloat(r.contract_amount) : null,
+          start_date: r.start_date || null,
+          end_date: r.end_date || null,
+          payment_terms: r.payment_terms || null,
+          scope_of_work: r.scope_of_work || null,
+          project_id: resolvedProjectIds[i],
+          status: r.status || "draft",
+          created_by: userId,
+        }));
+        const res = await batchInsert("contracts", batch);
+        successCount += res.successCount;
         break;
       }
 
       case "leases": {
-        // Pre-fetch properties to resolve property_name to property_id
+        // Pre-fetch properties and existing units
         const { data: leaseProps } = await supabase
           .from("properties")
           .select("id, name")
@@ -480,6 +452,18 @@ export async function POST(request: NextRequest) {
           acc[p.name.trim().toLowerCase()] = p.id;
           return acc;
         }, {} as Record<string, string>);
+        const { data: existingUnits } = await supabase
+          .from("units")
+          .select("id, property_id")
+          .eq("company_id", companyId);
+        const unitCountByProp: Record<string, number> = {};
+        for (const u of existingUnits || []) {
+          unitCountByProp[u.property_id] = (unitCountByProp[u.property_id] || 0) + 1;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const unitsToCreate: Record<string, any>[] = [];
+        const leaseRows: Array<{ rowIdx: number; propertyId: string; unitId: string | null; unitInsertIdx: number | null; row: Record<string, string> }> = [];
 
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
@@ -487,7 +471,6 @@ export async function POST(request: NextRequest) {
           if (!propertyId && r.property_name) {
             propertyId = leasePropLookup[r.property_name.trim().toLowerCase()] || null;
           }
-          // Assign to first property as fallback
           if (!propertyId && leaseProps && leaseProps.length > 0) {
             propertyId = leaseProps[0].id;
           }
@@ -495,101 +478,85 @@ export async function POST(request: NextRequest) {
             errors.push(`Row ${i + 2}: No property found. Create a property first.`);
             continue;
           }
-          // Auto-create a unit if unit_id not provided
           let unitId = r.unit_id || null;
+          let unitInsertIdx: number | null = null;
           if (!unitId) {
-            const { count: unitCount } = await supabase
-              .from("units")
-              .select("id", { count: "exact", head: true })
-              .eq("company_id", companyId)
-              .eq("property_id", propertyId);
-            const unitNum = (unitCount ?? 0) + 1;
-            const { data: newUnit, error: unitError } = await supabase
-              .from("units")
-              .insert({
-                company_id: companyId,
-                property_id: propertyId,
-                unit_number: r.unit_number || `Unit ${unitNum}`,
-                unit_type: r.unit_type || "office",
-                status: "occupied",
-                market_rent: r.monthly_rent ? parseFloat(r.monthly_rent) : null,
-              })
-              .select("id")
-              .single();
-            if (unitError || !newUnit) {
-              errors.push(`Row ${i + 2}: Failed to create unit — ${unitError?.message}`);
-              continue;
-            }
-            unitId = newUnit.id;
+            const unitNum = (unitCountByProp[propertyId] || 0) + 1;
+            unitCountByProp[propertyId] = unitNum;
+            unitInsertIdx = unitsToCreate.length;
+            unitsToCreate.push({
+              company_id: companyId,
+              property_id: propertyId,
+              unit_number: r.unit_number || `Unit ${unitNum}`,
+              unit_type: r.unit_type || "office",
+              status: "occupied",
+              market_rent: r.monthly_rent ? parseFloat(r.monthly_rent) : null,
+            });
           }
-          const { error } = await supabase.from("leases").insert({
-            company_id: companyId,
-            property_id: propertyId,
-            unit_id: unitId,
-            tenant_name: r.tenant_name || "",
-            tenant_email: r.tenant_email || null,
-            tenant_phone: r.tenant_phone || null,
-            monthly_rent: r.monthly_rent ? parseFloat(r.monthly_rent) : 0,
-            security_deposit: r.security_deposit ? parseFloat(r.security_deposit) : 0,
-            lease_start: r.lease_start || null,
-            lease_end: r.lease_end || null,
-            status: r.status || "active",
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
+          leaseRows.push({ rowIdx: i, propertyId, unitId, unitInsertIdx, row: r });
         }
 
-        // Recalculate property stats for all affected properties
+        // Batch insert units
+        let unitIds: string[] = [];
+        if (unitsToCreate.length > 0) {
+          const unitRes = await batchInsert("units", unitsToCreate, true);
+          unitIds = unitRes.ids;
+        }
+
+        // Build lease batch with resolved unit IDs
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const leaseBatch: Record<string, any>[] = [];
+        for (const ld of leaseRows) {
+          let uId = ld.unitId;
+          if (!uId && ld.unitInsertIdx !== null) {
+            uId = unitIds[ld.unitInsertIdx] || null;
+          }
+          if (!uId) {
+            errors.push(`Row ${ld.rowIdx + 2}: Failed to create unit`);
+            continue;
+          }
+          leaseBatch.push({
+            company_id: companyId,
+            property_id: ld.propertyId,
+            unit_id: uId,
+            tenant_name: ld.row.tenant_name || "",
+            tenant_email: ld.row.tenant_email || null,
+            tenant_phone: ld.row.tenant_phone || null,
+            monthly_rent: ld.row.monthly_rent ? parseFloat(ld.row.monthly_rent) : 0,
+            security_deposit: ld.row.security_deposit ? parseFloat(ld.row.security_deposit) : 0,
+            lease_start: ld.row.lease_start || null,
+            lease_end: ld.row.lease_end || null,
+            status: ld.row.status || "active",
+          });
+        }
+        const leaseRes = await batchInsert("leases", leaseBatch);
+        successCount += leaseRes.successCount;
+
+        // Recalculate property stats in parallel
         if (leaseProps && leaseProps.length > 0) {
-          for (const prop of leaseProps) {
+          await Promise.all(leaseProps.map(async (prop) => {
             const [propRes, unitsRes, leasesRes] = await Promise.all([
-              supabase
-                .from("properties")
-                .select("total_units")
-                .eq("id", prop.id)
-                .single(),
-              supabase
-                .from("units")
-                .select("id, status")
-                .eq("company_id", companyId)
-                .eq("property_id", prop.id),
-              supabase
-                .from("leases")
-                .select("monthly_rent")
-                .eq("company_id", companyId)
-                .eq("property_id", prop.id)
-                .eq("status", "active"),
+              supabase.from("properties").select("total_units").eq("id", prop.id).single(),
+              supabase.from("units").select("id, status").eq("company_id", companyId).eq("property_id", prop.id),
+              supabase.from("leases").select("monthly_rent").eq("company_id", companyId).eq("property_id", prop.id).eq("status", "active"),
             ]);
             const storedTotal = propRes.data?.total_units ?? 0;
             const units = unitsRes.data ?? [];
             const activeLeases = leasesRes.data ?? [];
             const occupiedCount = units.filter((u) => u.status === "occupied").length;
             const monthlyRevenue = activeLeases.reduce((sum, l) => sum + (l.monthly_rent ?? 0), 0);
-            // Use the greater of unit records or stored total_units so properties
-            // with vacant units (no unit record) still show correct capacity.
             const totalUnits = Math.max(units.length, storedTotal);
             const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
-
-            await supabase
-              .from("properties")
-              .update({
-                total_units: totalUnits,
-                occupied_units: occupiedCount,
-                occupancy_rate: occupancyRate,
-                monthly_revenue: monthlyRevenue,
-                noi: monthlyRevenue,
-              })
-              .eq("id", prop.id);
-          }
+            await supabase.from("properties").update({
+              total_units: totalUnits, occupied_units: occupiedCount,
+              occupancy_rate: occupancyRate, monthly_revenue: monthlyRevenue, noi: monthlyRevenue,
+            }).eq("id", prop.id);
+          }));
         }
         break;
       }
 
       case "maintenance": {
-        // Pre-fetch properties to resolve property_name to property_id
         const { data: maintProps } = await supabase
           .from("properties")
           .select("id, name")
@@ -599,90 +566,66 @@ export async function POST(request: NextRequest) {
           return acc;
         }, {} as Record<string, string>);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const maintBatch: Record<string, any>[] = [];
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
           let propertyId = r.property_id || null;
           if (!propertyId && r.property_name) {
             propertyId = maintPropLookup[r.property_name.trim().toLowerCase()] || null;
           }
-          // Assign to first property as fallback
           if (!propertyId && maintProps && maintProps.length > 0) {
             propertyId = maintProps[0].id;
           }
-          const { error } = await supabase.from("maintenance_requests").insert({
-            company_id: companyId,
-            property_id: propertyId,
-            title: r.title || "",
-            description: r.description || null,
-            priority: r.priority || "medium",
-            category: r.category || null,
-            status: r.status || "submitted",
-            scheduled_date: r.scheduled_date || null,
+          maintBatch.push({
+            company_id: companyId, property_id: propertyId,
+            title: r.title || "", description: r.description || null,
+            priority: r.priority || "medium", category: r.category || null,
+            status: r.status || "submitted", scheduled_date: r.scheduled_date || null,
             estimated_cost: r.estimated_cost ? parseFloat(r.estimated_cost) : null,
             actual_cost: r.actual_cost ? parseFloat(r.actual_cost) : null,
             requested_by: userId,
             assigned_to: resolveUserRef(r.assigned_to) || userId,
             notes: r.notes || null,
           });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
         }
+        const maintRes = await batchInsert("maintenance_requests", maintBatch);
+        successCount += maintRes.successCount;
         break;
       }
 
       case "safety_incidents": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("safety_incidents").insert({
-            company_id: companyId,
-            incident_number: r.incident_number || `INC-${String(i + 1).padStart(3, "0")}`,
-            title: r.title || "",
-            description: r.description || null,
-            incident_type: r.incident_type || "near_miss",
-            severity: r.severity || "medium",
-            project_id: await resolveProjectId(r),
-            incident_date: r.incident_date || new Date().toISOString().split("T")[0],
-            location: r.location || null,
-            osha_recordable: r.osha_recordable === "true" || r.osha_recordable === "yes",
-            status: r.status || "reported",
-            reported_by: userId,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const siBatch = rows.map((r, i) => ({
+          company_id: companyId,
+          incident_number: r.incident_number || `INC-${String(i + 1).padStart(3, "0")}`,
+          title: r.title || "", description: r.description || null,
+          incident_type: r.incident_type || "near_miss", severity: r.severity || "medium",
+          project_id: resolvedProjectIds[i],
+          incident_date: r.incident_date || new Date().toISOString().split("T")[0],
+          location: r.location || null,
+          osha_recordable: r.osha_recordable === "true" || r.osha_recordable === "yes",
+          status: r.status || "reported", reported_by: userId,
+        }));
+        const siRes = await batchInsert("safety_incidents", siBatch);
+        successCount += siRes.successCount;
         break;
       }
 
       case "toolbox_talks": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
+        const tbtBatch = rows.map((r, i) => {
           const dateVal = r.scheduled_date || r.conducted_date || new Date().toISOString().split("T")[0];
-          const { error } = await supabase.from("toolbox_talks").insert({
+          return {
             company_id: companyId,
             talk_number: r.talk_number || `TBT-${String(i + 1).padStart(3, "0")}`,
-            title: r.title || "",
-            description: r.description || null,
-            topic: r.topic || null,
-            conducted_date: dateVal,
-            scheduled_date: dateVal,
-            project_id: await resolveProjectId(r),
+            title: r.title || "", description: r.description || null,
+            topic: r.topic || null, conducted_date: dateVal, scheduled_date: dateVal,
+            project_id: resolvedProjectIds[i],
             attendee_count: r.attendees_count || r.attendee_count ? parseInt(r.attendees_count || r.attendee_count) : null,
-            notes: r.notes || null,
-            status: r.status || "scheduled",
-            conducted_by: userId,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+            notes: r.notes || null, status: r.status || "scheduled", conducted_by: userId,
+          };
+        });
+        const tbtRes = await batchInsert("toolbox_talks", tbtBatch);
+        successCount += tbtRes.successCount;
         break;
       }
 
@@ -794,61 +737,46 @@ export async function POST(request: NextRequest) {
       }
 
       case "bank_accounts": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const balance = r.current_balance ? parseFloat(r.current_balance) : 0;
-          const { data: inserted, error } = await supabase.from("bank_accounts").insert({
-            company_id: companyId,
-            name: r.name || "",
-            bank_name: r.bank_name || "",
-            account_type: r.account_type || "checking",
-            account_number_last4: r.account_number_last4 || "",
-            routing_number_last4: r.routing_number_last4 || "",
-            current_balance: balance,
-          }).select("id").single();
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-            // Auto-link to GL account
-            try {
-              await ensureBankAccountGLLink(
-                supabase, companyId, inserted.id,
-                r.name || "", r.account_type || "checking",
-                balance, userId
-              );
-            } catch (linkErr) {
-              console.error(`GL linkage warning for bank "${r.name}":`, linkErr);
-            }
-          }
+        const bankBatch = rows.map(r => ({
+          company_id: companyId,
+          name: r.name || "", bank_name: r.bank_name || "",
+          account_type: r.account_type || "checking",
+          account_number_last4: r.account_number_last4 || "",
+          routing_number_last4: r.routing_number_last4 || "",
+          current_balance: r.current_balance ? parseFloat(r.current_balance) : 0,
+        }));
+        const { ids: bankIds, successCount: bankSc } = await batchInsert("bank_accounts", bankBatch, true);
+        successCount += bankSc;
+        // Parallel GL link for all inserted accounts
+        if (bankIds.length > 0) {
+          await Promise.all(bankIds.map((id, idx) =>
+            ensureBankAccountGLLink(
+              supabase, companyId, id,
+              rows[idx]?.name || "", rows[idx]?.account_type || "checking",
+              rows[idx]?.current_balance ? parseFloat(rows[idx].current_balance) : 0, userId
+            ).catch(err => console.error(`GL linkage warning:`, err))
+          ));
         }
         break;
       }
 
       case "time_entries": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("time_entries").insert({
-            company_id: companyId,
-            project_id: await resolveProjectId(r),
-            user_id: r.user_id || userId,
-            entry_date: r.entry_date || new Date().toISOString().split("T")[0],
-            hours: r.hours ? parseFloat(r.hours) : 0,
-            notes: r.description || r.notes || null,
-            cost_code: r.cost_code || null,
-            status: r.status || "pending",
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const teBatch = rows.map((r, i) => ({
+          company_id: companyId,
+          project_id: resolvedProjectIds[i],
+          user_id: r.user_id || userId,
+          entry_date: r.entry_date || new Date().toISOString().split("T")[0],
+          hours: r.hours ? parseFloat(r.hours) : 0,
+          notes: r.description || r.notes || null,
+          cost_code: r.cost_code || null,
+          status: r.status || "pending",
+        }));
+        const teRes = await batchInsert("time_entries", teBatch);
+        successCount += teRes.successCount;
         break;
       }
 
       case "certifications": {
-        // Pre-fetch contacts to resolve names to IDs
         const { data: companyContacts } = await supabase
           .from("contacts")
           .select("id, first_name, last_name")
@@ -860,480 +788,309 @@ export async function POST(request: NextRequest) {
           return acc;
         }, {} as Record<string, string>);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const certBatch: Record<string, any>[] = [];
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
-          // Resolve contact_id from contact_name if no UUID provided
           let contactId = r.contact_id || null;
           if (!contactId && r.contact_name) {
             contactId = contactLookup[r.contact_name.trim().toLowerCase()] || null;
-            if (!contactId) {
-              errors.push(`Row ${i + 2}: Could not find contact "${r.contact_name}"`);
-              continue;
-            }
+            if (!contactId) { errors.push(`Row ${i + 2}: Could not find contact "${r.contact_name}"`); continue; }
           }
-          if (!contactId) {
-            // Assign to first contact as fallback
-            contactId = companyContacts?.[0]?.id || null;
-          }
-          const { error } = await supabase.from("certifications").insert({
-            company_id: companyId,
-            contact_id: contactId,
-            cert_name: r.cert_name || "",
-            cert_type: r.cert_type || "certification",
-            issuing_authority: r.issuing_authority || null,
-            cert_number: r.cert_number || null,
-            issued_date: r.issued_date || null,
-            expiry_date: r.expiry_date || null,
+          if (!contactId) contactId = companyContacts?.[0]?.id || null;
+          certBatch.push({
+            company_id: companyId, contact_id: contactId,
+            cert_name: r.cert_name || "", cert_type: r.cert_type || "certification",
+            issuing_authority: r.issuing_authority || null, cert_number: r.cert_number || null,
+            issued_date: r.issued_date || null, expiry_date: r.expiry_date || null,
             status: r.status || "active",
           });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
         }
+        const certRes = await batchInsert("certifications", certBatch);
+        successCount += certRes.successCount;
         break;
       }
 
       case "opportunities": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("opportunities").insert({
-            company_id: companyId,
-            name: r.name || "",
-            client_name: r.client_name || null,
-            stage: r.stage || "lead",
-            estimated_value: r.estimated_value ? parseFloat(r.estimated_value) : null,
-            probability_pct: r.probability_pct ? parseInt(r.probability_pct) : null,
-            expected_close_date: r.expected_close_date || null,
-            source: r.source || null,
-            notes: r.notes || null,
-            assigned_to: userId,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const oppBatch = rows.map(r => ({
+          company_id: companyId, name: r.name || "",
+          client_name: r.client_name || null, stage: r.stage || "lead",
+          estimated_value: r.estimated_value ? parseFloat(r.estimated_value) : null,
+          probability_pct: r.probability_pct ? parseInt(r.probability_pct) : null,
+          expected_close_date: r.expected_close_date || null,
+          source: r.source || null, notes: r.notes || null, assigned_to: userId,
+        }));
+        const oppRes = await batchInsert("opportunities", oppBatch);
+        successCount += oppRes.successCount;
         break;
       }
 
       case "bids": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("bids").insert({
-            company_id: companyId,
-            bid_number: r.bid_number || `BID-${String(i + 1).padStart(3, "0")}`,
-            project_name: r.project_name || r.name || "",
-            client_name: r.client_name || null,
-            bid_amount: r.bid_amount ? parseFloat(r.bid_amount) : null,
-            due_date: r.due_date || null,
-            status: r.status || "draft",
-            scope_description: r.notes || null,
-            submitted_by: userId,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const bidBatch = rows.map((r, i) => ({
+          company_id: companyId,
+          bid_number: r.bid_number || `BID-${String(i + 1).padStart(3, "0")}`,
+          project_name: r.project_name || r.name || "",
+          client_name: r.client_name || null,
+          bid_amount: r.bid_amount ? parseFloat(r.bid_amount) : null,
+          due_date: r.due_date || null, status: r.status || "draft",
+          scope_description: r.notes || null, submitted_by: userId,
+        }));
+        const bidRes = await batchInsert("bids", bidBatch);
+        successCount += bidRes.successCount;
         break;
       }
 
       case "projects": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("projects").insert({
-            company_id: companyId,
-            name: r.name || "",
-            code: r.code || null,
-            status: r.status || "pre_construction",
-            project_type: r.project_type || null,
-            description: r.description || null,
-            address_line1: r.address_line1 || r.address || null,
-            city: r.city || null,
-            state: r.state || null,
-            zip: r.zip || null,
-            client_name: r.client_name || r.client || null,
-            client_contact: r.client_contact || null,
-            client_email: r.client_email || null,
-            client_phone: r.client_phone || null,
-            contract_amount: r.contract_amount || r.budget ? parseFloat(r.contract_amount || r.budget) : null,
-            estimated_cost: r.estimated_cost ? parseFloat(r.estimated_cost) : null,
-            actual_cost: r.actual_cost ? parseFloat(r.actual_cost) : null,
-            start_date: r.start_date || null,
-            estimated_end_date: r.estimated_end_date || r.end_date || null,
-            actual_end_date: r.actual_end_date || null,
-            completion_pct: r.completion_pct ? parseFloat(r.completion_pct) : 0,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const projBatch = rows.map(r => ({
+          company_id: companyId, name: r.name || "", code: r.code || null,
+          status: r.status || "pre_construction", project_type: r.project_type || null,
+          description: r.description || null,
+          address_line1: r.address_line1 || r.address || null,
+          city: r.city || null, state: r.state || null, zip: r.zip || null,
+          client_name: r.client_name || r.client || null,
+          client_contact: r.client_contact || null,
+          client_email: r.client_email || null, client_phone: r.client_phone || null,
+          contract_amount: r.contract_amount || r.budget ? parseFloat(r.contract_amount || r.budget) : null,
+          estimated_cost: r.estimated_cost ? parseFloat(r.estimated_cost) : null,
+          actual_cost: r.actual_cost ? parseFloat(r.actual_cost) : null,
+          start_date: r.start_date || null,
+          estimated_end_date: r.estimated_end_date || r.end_date || null,
+          actual_end_date: r.actual_end_date || null,
+          completion_pct: r.completion_pct ? parseFloat(r.completion_pct) : 0,
+        }));
+        const projRes = await batchInsert("projects", projBatch);
+        successCount += projRes.successCount;
         break;
       }
 
       case "invoices": {
-        // Build account map once for GL account resolution
         const accountMap = await buildCompanyAccountMap(supabase, companyId);
 
-        const insertedInvoices: Array<{
-          id: string;
-          invoice_number: string;
-          invoice_type: "payable" | "receivable";
-          total_amount: number;
-          subtotal: number;
-          tax_amount: number;
-          invoice_date: string;
-          status?: string;
-          project_id?: string | null;
-          vendor_name?: string | null;
-          client_name?: string | null;
-          gl_account_id?: string | null;
-          retainage_pct?: number;
-          retainage_held?: number;
-        }> = [];
+        // Resolve project IDs sequentially (resolveProjectId can auto-create projects)
+        const invProjectIds: (string | null)[] = [];
+        for (const r of rows) {
+          invProjectIds.push(await resolveProjectId(r));
+        }
 
-        // Track paid invoices for payment JE generation (Phase 2: CRITICAL-3 fix)
-        const paidInvoices: Array<{
-          invoiceId: string;
-          invoice_number: string;
-          invoice_type: "payable" | "receivable";
-          total_amount: number;
-          due_date: string;
-          project_id?: string | null;
-          vendor_name?: string | null;
-          client_name?: string | null;
+        // Build all invoice insert objects in memory
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const invBatch: Record<string, any>[] = [];
+        const invMeta: Array<{
+          invoiceNumber: string; invoiceType: "payable" | "receivable";
+          totalAmount: number; subtotal: number; taxAmount: number;
+          invoiceDate: string; status: string; projectId: string | null;
+          vendorName: string | null; clientName: string | null;
+          glAccountId: string | null; retainagePct: number; retainageHeld: number;
+          dueDate: string;
         }> = [];
 
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
           const invoiceNumber = r.invoice_number || `INV-${String(i + 1).padStart(4, "0")}`;
           const invoiceDate = r.invoice_date || new Date().toISOString().split("T")[0];
-          const projectId = await resolveProjectId(r);
+          const projectId = invProjectIds[i];
           const invoiceType = (r.invoice_type || "receivable") as "payable" | "receivable";
           const subtotal = safeParseNumber(r.amount, 0, -1e9, 1e9);
           const taxAmount = safeParseNumber(r.tax_amount, 0, 0, 1e9);
           const totalAmount = subtotal + taxAmount;
           const status = r.status || "draft";
 
-          // Resolve GL account: explicit column > auto-infer from description > null
           let glAccountId: string | null = null;
-          if (r.gl_account) {
-            // Explicit account number in CSV → resolve to account ID
-            glAccountId = accountMap.byNumber[r.gl_account] || null;
-          }
+          if (r.gl_account) glAccountId = accountMap.byNumber[r.gl_account] || null;
           if (!glAccountId) {
-            // Auto-infer from description and vendor name
-            const inferredNumber = inferGLAccountFromDescription(
-              r.description || "",
-              invoiceType,
-              r.vendor_name
-            );
-            if (inferredNumber) {
-              glAccountId = accountMap.byNumber[inferredNumber] || null;
-            }
+            const inferredNumber = inferGLAccountFromDescription(r.description || "", invoiceType, r.vendor_name);
+            if (inferredNumber) glAccountId = accountMap.byNumber[inferredNumber] || null;
           }
 
-          // Retainage fields
           const retainagePct = safeParseNumber(r.retainage_pct, 0, 0, 100);
           const retainageHeld = r.retainage_held
             ? safeParseNumber(r.retainage_held, 0, 0, 1e9)
             : retainagePct > 0 ? totalAmount * (retainagePct / 100) : 0;
-
-          // For paid invoices: set amount_paid = total_amount
           const isPaid = status === "paid";
-          const amountPaid = isPaid ? totalAmount : 0;
 
-          const { data: inserted, error } = await supabase.from("invoices").insert({
-            company_id: companyId,
-            invoice_number: invoiceNumber,
-            invoice_date: invoiceDate,
-            project_id: projectId,
-            invoice_type: invoiceType,
-            vendor_name: r.vendor_name || null,
-            client_name: r.client_name || null,
-            subtotal,
-            total_amount: totalAmount,
-            tax_amount: taxAmount,
-            due_date: r.due_date || null,
-            notes: body.generate_invoice_jes === true
-              ? (r.description || null)
-              : `csv-import:${r.description || ""}`,
-            status,
-            amount_paid: amountPaid,
-            gl_account_id: glAccountId,
-            retainage_pct: retainagePct,
-            retainage_held: retainageHeld,
-          }).select("id").single();
+          invBatch.push({
+            company_id: companyId, invoice_number: invoiceNumber,
+            invoice_date: invoiceDate, project_id: projectId,
+            invoice_type: invoiceType, vendor_name: r.vendor_name || null,
+            client_name: r.client_name || null, subtotal, total_amount: totalAmount,
+            tax_amount: taxAmount, due_date: r.due_date || null,
+            notes: body.generate_invoice_jes === true ? (r.description || null) : `csv-import:${r.description || ""}`,
+            status, amount_paid: isPaid ? totalAmount : 0,
+            gl_account_id: glAccountId, retainage_pct: retainagePct, retainage_held: retainageHeld,
+          });
+          invMeta.push({
+            invoiceNumber, invoiceType, totalAmount, subtotal, taxAmount,
+            invoiceDate, status, projectId, vendorName: r.vendor_name || null,
+            clientName: r.client_name || null, glAccountId, retainagePct, retainageHeld,
+            dueDate: r.due_date || invoiceDate,
+          });
+        }
 
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-            if (inserted) {
-              insertedInvoices.push({
-                id: inserted.id,
-                invoice_number: invoiceNumber,
-                invoice_type: invoiceType,
-                total_amount: totalAmount,
-                subtotal,
-                tax_amount: taxAmount,
-                invoice_date: invoiceDate,
-                status,
-                project_id: projectId,
-                vendor_name: r.vendor_name || null,
-                client_name: r.client_name || null,
-                gl_account_id: glAccountId,
-                retainage_pct: retainagePct,
-                retainage_held: retainageHeld,
-              });
+        // Batch insert all invoices
+        const { ids: invIds, successCount: invSc } = await batchInsert("invoices", invBatch, true);
+        successCount += invSc;
 
-              // Track paid invoices for payment generation
-              if (isPaid) {
-                paidInvoices.push({
-                  invoiceId: inserted.id,
-                  invoice_number: invoiceNumber,
-                  invoice_type: invoiceType,
-                  total_amount: totalAmount,
-                  due_date: r.due_date || invoiceDate,
-                  project_id: projectId,
-                  vendor_name: r.vendor_name || null,
-                  client_name: r.client_name || null,
-                });
-              }
-            }
+        // Map IDs back to metadata for JE generation
+        const insertedInvoices: Array<{
+          id: string; invoice_number: string; invoice_type: "payable" | "receivable";
+          total_amount: number; subtotal: number; tax_amount: number; invoice_date: string;
+          status?: string; project_id?: string | null; vendor_name?: string | null;
+          client_name?: string | null; gl_account_id?: string | null;
+          retainage_pct?: number; retainage_held?: number;
+        }> = [];
+        const paidInvoiceData: Array<{
+          invoiceId: string; invoice_number: string; invoice_type: "payable" | "receivable";
+          total_amount: number; due_date: string; project_id?: string | null;
+          vendor_name?: string | null; client_name?: string | null;
+        }> = [];
+
+        for (let i = 0; i < invIds.length; i++) {
+          const m = invMeta[i];
+          if (!m) continue;
+          insertedInvoices.push({
+            id: invIds[i], invoice_number: m.invoiceNumber, invoice_type: m.invoiceType,
+            total_amount: m.totalAmount, subtotal: m.subtotal, tax_amount: m.taxAmount,
+            invoice_date: m.invoiceDate, status: m.status, project_id: m.projectId,
+            vendor_name: m.vendorName, client_name: m.clientName,
+            gl_account_id: m.glAccountId, retainage_pct: m.retainagePct, retainage_held: m.retainageHeld,
+          });
+          if (m.status === "paid") {
+            paidInvoiceData.push({
+              invoiceId: invIds[i], invoice_number: m.invoiceNumber, invoice_type: m.invoiceType,
+              total_amount: m.totalAmount, due_date: m.dueDate,
+              project_id: m.projectId, vendor_name: m.vendorName, client_name: m.clientName,
+            });
           }
         }
 
-        // Auto-generate invoice JEs only if explicitly requested.
-        // CSV bulk imports should NOT auto-generate JEs — they cause double-counting
-        // when a JE CSV is also imported. JEs should be imported explicitly.
+        // Bulk JE generation (already uses batch insert internally)
         if (insertedInvoices.length > 0 && body.generate_invoice_jes === true) {
           try {
-            const jeResult = await generateBulkInvoiceJournalEntries(
-              supabase, companyId, userId, insertedInvoices
-            );
-            if (jeResult.errors.length > 0) {
-              console.warn("Some invoice JEs skipped:", jeResult.errors);
-            }
-          } catch (jeErr) {
-            console.warn("Bulk JE generation failed:", jeErr);
-          }
+            const jeResult = await generateBulkInvoiceJournalEntries(supabase, companyId, userId, insertedInvoices);
+            if (jeResult.errors.length > 0) console.warn("Some invoice JEs skipped:", jeResult.errors);
+          } catch (jeErr) { console.warn("Bulk JE generation failed:", jeErr); }
         }
 
-        // Phase 2: Generate payment records + payment JEs for paid invoices
-        if (paidInvoices.length > 0) {
-          const paymentRecords: Array<{
-            paymentId: string;
-            amount: number;
-            payment_date: string;
-            method: string;
-            invoice: {
-              id: string;
-              invoice_number: string;
-              invoice_type: "payable" | "receivable";
-              project_id?: string | null;
-              vendor_name?: string | null;
-              client_name?: string | null;
-            };
-          }> = [];
+        // Batch insert payment records for paid invoices
+        if (paidInvoiceData.length > 0) {
+          const pmtBatch = paidInvoiceData.map(pi => ({
+            company_id: companyId, invoice_id: pi.invoiceId,
+            payment_date: pi.due_date, amount: pi.total_amount, method: "imported",
+            notes: body.generate_invoice_jes === true
+              ? "Auto-generated from paid invoice import"
+              : "csv-import:Auto-generated from paid invoice import",
+          }));
+          const { ids: pmtIds, successCount: pmtSc } = await batchInsert("payments", pmtBatch, true);
 
-          for (const pi of paidInvoices) {
-            // Create a payment record
-            const { data: payment, error: pmtErr } = await supabase.from("payments").insert({
-              company_id: companyId,
-              invoice_id: pi.invoiceId,
-              payment_date: pi.due_date,
-              amount: pi.total_amount,
-              method: "imported",
-              notes: body.generate_invoice_jes === true
-                ? "Auto-generated from paid invoice import"
-                : "csv-import:Auto-generated from paid invoice import",
-            }).select("id").single();
-
-            if (pmtErr) {
-              console.warn(`Payment record failed for ${pi.invoice_number}:`, pmtErr.message);
-            } else if (payment) {
-              paymentRecords.push({
-                paymentId: payment.id,
-                amount: pi.total_amount,
-                payment_date: pi.due_date,
-                method: "imported",
-                invoice: {
-                  id: pi.invoiceId,
-                  invoice_number: pi.invoice_number,
-                  invoice_type: pi.invoice_type,
-                  project_id: pi.project_id,
-                  vendor_name: pi.vendor_name,
-                  client_name: pi.client_name,
-                },
-              });
-            }
-          }
-
-          // Generate payment JEs only if explicitly requested (same as invoice JEs)
-          if (paymentRecords.length > 0 && body.generate_invoice_jes === true) {
+          // Build payment records for bulk JE generation
+          if (pmtIds.length > 0 && body.generate_invoice_jes === true) {
+            const paymentRecords = pmtIds.map((pmtId, idx) => ({
+              paymentId: pmtId, amount: paidInvoiceData[idx].total_amount,
+              payment_date: paidInvoiceData[idx].due_date, method: "imported",
+              invoice: {
+                id: paidInvoiceData[idx].invoiceId,
+                invoice_number: paidInvoiceData[idx].invoice_number,
+                invoice_type: paidInvoiceData[idx].invoice_type,
+                project_id: paidInvoiceData[idx].project_id,
+                vendor_name: paidInvoiceData[idx].vendor_name,
+                client_name: paidInvoiceData[idx].client_name,
+              },
+            }));
             try {
-              const pmtJeResult = await generateBulkPaymentJournalEntries(
-                supabase, companyId, userId, paymentRecords
-              );
-              if (pmtJeResult.errors.length > 0) {
-                console.warn("Some payment JEs skipped:", pmtJeResult.errors);
-              }
-            } catch (pmtJeErr) {
-              console.warn("Bulk payment JE generation failed:", pmtJeErr);
-            }
+              const pmtJeResult = await generateBulkPaymentJournalEntries(supabase, companyId, userId, paymentRecords);
+              if (pmtJeResult.errors.length > 0) console.warn("Some payment JEs skipped:", pmtJeResult.errors);
+            } catch (pmtJeErr) { console.warn("Bulk payment JE generation failed:", pmtJeErr); }
           }
 
-          // Sync bank balance only when auto-generating JEs (non-CSV workflow).
-          // During CSV import, the bank_accounts CSV already has correct balances
-          // and the GL balance comes from the JE CSV.
+          // Sync bank balance
           if (body.generate_invoice_jes === true) {
             try {
               const { data: defaultBank } = await supabase
-                .from("bank_accounts")
-                .select("id, current_balance")
-                .eq("company_id", companyId)
-                .eq("is_default", true)
-                .single();
-
+                .from("bank_accounts").select("id, current_balance")
+                .eq("company_id", companyId).eq("is_default", true).single();
               if (defaultBank) {
                 let cashAdjustment = 0;
-                for (const pi of paidInvoices) {
+                for (const pi of paidInvoiceData) {
                   cashAdjustment += pi.invoice_type === "payable" ? -pi.total_amount : pi.total_amount;
                 }
-                await supabase
-                  .from("bank_accounts")
+                await supabase.from("bank_accounts")
                   .update({ current_balance: defaultBank.current_balance + cashAdjustment })
                   .eq("id", defaultBank.id);
               }
-            } catch (bankErr) {
-              console.warn("Bank balance sync failed during import:", bankErr);
-            }
+            } catch (bankErr) { console.warn("Bank balance sync failed during import:", bankErr); }
           }
         }
         break;
       }
 
       case "safety_inspections": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("safety_inspections").insert({
-            company_id: companyId,
-            project_id: await resolveProjectId(r),
-            inspection_type: r.inspection_type || "site_safety",
-            inspection_date: r.inspection_date || new Date().toISOString().split("T")[0],
-            score: r.score ? parseInt(r.score) : null,
-            findings: r.findings || null,
-            corrective_actions: r.corrective_actions || null,
-            status: r.status || "scheduled",
-            inspector_id: userId,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const siBatch2 = rows.map((r, i) => ({
+          company_id: companyId, project_id: resolvedProjectIds[i],
+          inspection_type: r.inspection_type || "site_safety",
+          inspection_date: r.inspection_date || new Date().toISOString().split("T")[0],
+          score: r.score ? parseInt(r.score) : null,
+          findings: r.findings || null, corrective_actions: r.corrective_actions || null,
+          status: r.status || "scheduled", inspector_id: userId,
+        }));
+        const siRes2 = await batchInsert("safety_inspections", siBatch2);
+        successCount += siRes2.successCount;
         break;
       }
 
       case "submittals": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-
-          // Auto-generate submittal number
-          const { count: subCount } = await supabase
-            .from("submittals")
-            .select("id", { count: "exact", head: true })
-            .eq("company_id", companyId);
-          const subNum = (subCount ?? 0) + i + 1;
-
-          const { error } = await supabase.from("submittals").insert({
-            company_id: companyId,
-            project_id: await resolveProjectId(r),
-            submittal_number: r.submittal_number || `SUB-${String(subNum).padStart(3, "0")}`,
-            title: r.title || "",
-            spec_section: r.spec_section || null,
-            due_date: r.due_date || null,
-            submitted_by: userId,
-            reviewer_id: resolveUserRef(r.reviewer || r.reviewer_id) || userId,
-            review_comments: r.review_comments || null,
-            status: r.status || "pending",
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const subBatch = rows.map((r, i) => ({
+          company_id: companyId, project_id: resolvedProjectIds[i],
+          submittal_number: r.submittal_number || `SUB-${String(i + 1).padStart(3, "0")}`,
+          title: r.title || "", spec_section: r.spec_section || null,
+          due_date: r.due_date || null, submitted_by: userId,
+          reviewer_id: resolveUserRef(r.reviewer || r.reviewer_id) || userId,
+          review_comments: r.review_comments || null, status: r.status || "pending",
+        }));
+        const subRes = await batchInsert("submittals", subBatch);
+        successCount += subRes.successCount;
         break;
       }
 
       case "properties": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const { error } = await supabase.from("properties").insert({
-            company_id: companyId,
-            name: r.name || "",
-            property_type: r.property_type || "residential",
-            address_line1: r.address_line1 || r.address || "",
-            city: r.city || "",
-            state: r.state || "",
-            zip: r.zip || "",
-            year_built: r.year_built ? parseInt(r.year_built) : null,
-            total_sqft: r.total_sqft ? parseInt(r.total_sqft) : null,
-            total_units: r.total_units ? parseInt(r.total_units) : 0,
-            occupied_units: 0,
-            purchase_price: r.purchase_price ? parseFloat(r.purchase_price) : null,
-            current_value: r.current_value ? parseFloat(r.current_value) : null,
-            monthly_revenue: 0,
-            monthly_expenses: 0,
-          });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
-        }
+        const propBatch = rows.map(r => ({
+          company_id: companyId, name: r.name || "",
+          property_type: r.property_type || "residential",
+          address_line1: r.address_line1 || r.address || "",
+          city: r.city || "", state: r.state || "", zip: r.zip || "",
+          year_built: r.year_built ? parseInt(r.year_built) : null,
+          total_sqft: r.total_sqft ? parseInt(r.total_sqft) : null,
+          total_units: r.total_units ? parseInt(r.total_units) : 0,
+          occupied_units: 0,
+          purchase_price: r.purchase_price ? parseFloat(r.purchase_price) : null,
+          current_value: r.current_value ? parseFloat(r.current_value) : null,
+          monthly_revenue: 0, monthly_expenses: 0,
+        }));
+        const propRes = await batchInsert("properties", propBatch);
+        successCount += propRes.successCount;
         break;
       }
 
       case "units": {
-        // Pre-fetch properties to resolve property_name to property_id
         const { data: unitProps } = await supabase
-          .from("properties")
-          .select("id, name")
-          .eq("company_id", companyId);
+          .from("properties").select("id, name").eq("company_id", companyId);
         const unitPropLookup = (unitProps || []).reduce((acc, p) => {
           acc[p.name.trim().toLowerCase()] = p.id;
           return acc;
         }, {} as Record<string, string>);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const unitBatch: Record<string, any>[] = [];
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
           let propertyId = r.property_id || null;
           if (!propertyId && r.property_name) {
             propertyId = unitPropLookup[r.property_name.trim().toLowerCase()] || null;
           }
-          if (!propertyId) {
-            errors.push(`Row ${i + 2}: Property "${r.property_name || ""}" not found. Import properties first.`);
-            continue;
-          }
-          if (!r.unit_number) {
-            errors.push(`Row ${i + 2}: Unit number is required.`);
-            continue;
-          }
-          const { error } = await supabase.from("units").insert({
-            company_id: companyId,
-            property_id: propertyId,
-            unit_number: r.unit_number.trim(),
-            unit_type: r.unit_type || "1br",
+          if (!propertyId) { errors.push(`Row ${i + 2}: Property "${r.property_name || ""}" not found. Import properties first.`); continue; }
+          if (!r.unit_number) { errors.push(`Row ${i + 2}: Unit number is required.`); continue; }
+          unitBatch.push({
+            company_id: companyId, property_id: propertyId,
+            unit_number: r.unit_number.trim(), unit_type: r.unit_type || "1br",
             sqft: r.sqft ? parseInt(r.sqft) : null,
             bedrooms: r.bedrooms ? parseInt(r.bedrooms) : null,
             bathrooms: r.bathrooms ? parseInt(r.bathrooms) : null,
@@ -1341,44 +1098,32 @@ export async function POST(request: NextRequest) {
             market_rent: r.market_rent ? parseFloat(r.market_rent) : null,
             status: r.status || "vacant",
           });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
         }
+        const unitRes = await batchInsert("units", unitBatch);
+        successCount += unitRes.successCount;
 
-        // Update total_units on affected properties
+        // Update total_units on affected properties (parallel)
         if (unitProps && unitProps.length > 0) {
-          for (const prop of unitProps) {
+          await Promise.all(unitProps.map(async (prop) => {
             const { count } = await supabase
-              .from("units")
-              .select("id", { count: "exact", head: true })
-              .eq("company_id", companyId)
-              .eq("property_id", prop.id);
+              .from("units").select("id", { count: "exact", head: true })
+              .eq("company_id", companyId).eq("property_id", prop.id);
             if (count !== null) {
-              await supabase
-                .from("properties")
-                .update({ total_units: count })
-                .eq("id", prop.id);
+              await supabase.from("properties").update({ total_units: count }).eq("id", prop.id);
             }
-          }
+          }));
         }
         break;
       }
 
       case "journal_entries": {
-        // Pre-fetch chart of accounts to resolve account_number to account_id
         const { data: coaAccounts } = await supabase
-          .from("chart_of_accounts")
-          .select("id, account_number")
-          .eq("company_id", companyId);
+          .from("chart_of_accounts").select("id, account_number").eq("company_id", companyId);
         const acctLookup = (coaAccounts || []).reduce((acc, a) => {
-          acc[a.account_number] = a.id;
-          return acc;
+          acc[a.account_number] = a.id; return acc;
         }, {} as Record<string, string>);
 
-        // Group rows by entry_number to create entries with lines
+        // Group rows by entry_number
         const entryMap = new Map<string, Record<string, string>[]>();
         for (const r of rows) {
           const key = r.entry_number || `auto-${Date.now()}-${Math.random()}`;
@@ -1386,57 +1131,83 @@ export async function POST(request: NextRequest) {
           entryMap.get(key)!.push(r);
         }
 
+        // Build all headers and validated lines in memory
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const jeHeaders: Record<string, any>[] = [];
+        const jeLinesByHeader: Array<Array<{ account_id: string; debit: number; credit: number; description: string | null }>> = [];
+
         let entryIdx = 0;
         for (const [entryNumber, entryRows] of entryMap) {
           entryIdx++;
           const first = entryRows[0];
-          // Create the journal entry header
-          const { data: entry, error: headerError } = await supabase
-            .from("journal_entries")
-            .insert({
-              company_id: companyId,
-              entry_number: entryNumber,
-              entry_date: first.entry_date || new Date().toISOString().split("T")[0],
-              description: first.description || "",
-              reference: first.reference || null,
-              status: first.status || body.je_status || "posted",
-              created_by: userId,
-            })
-            .select("id")
-            .single();
-
-          if (headerError || !entry) {
-            errors.push(`Entry ${entryIdx}: ${headerError?.message || "Failed to create"}`);
-            continue;
-          }
-
-          // Create journal entry lines — validate account lookups before inserting
-          let linesFailed = false;
+          const lines: Array<{ account_id: string; debit: number; credit: number; description: string | null }> = [];
+          let hasError = false;
           for (let j = 0; j < entryRows.length; j++) {
             const line = entryRows[j];
             const accountId = line.account_id || (line.account_number ? acctLookup[line.account_number] : null) || null;
             if (!accountId) {
               errors.push(`Entry ${entryIdx}, Line ${j + 1}: Account "${line.account_number}" not found in Chart of Accounts`);
-              linesFailed = true;
-              continue;
+              hasError = true; continue;
             }
-            const { error: lineError } = await supabase
-              .from("journal_entry_lines")
-              .insert({
-                company_id: companyId,
-                journal_entry_id: entry.id,
-                account_id: accountId,
-                debit: line.debit ? parseFloat(line.debit) : 0,
-                credit: line.credit ? parseFloat(line.credit) : 0,
-                description: line.line_description || null,
-              });
-            if (lineError) {
-              errors.push(`Entry ${entryIdx}, Line ${j + 1}: ${lineError.message}`);
-              linesFailed = true;
+            lines.push({
+              account_id: accountId, debit: line.debit ? parseFloat(line.debit) : 0,
+              credit: line.credit ? parseFloat(line.credit) : 0, description: line.line_description || null,
+            });
+          }
+          if (hasError || lines.length === 0) continue;
+          jeHeaders.push({
+            company_id: companyId, entry_number: entryNumber,
+            entry_date: first.entry_date || new Date().toISOString().split("T")[0],
+            description: first.description || "", reference: first.reference || null,
+            status: first.status || body.je_status || "posted", created_by: userId,
+          });
+          jeLinesByHeader.push(lines);
+        }
+
+        // Batch insert all JE headers (chunk at 500)
+        const allHeaderIds: string[] = [];
+        for (let c = 0; c < jeHeaders.length; c += 500) {
+          const chunk = jeHeaders.slice(c, c + 500);
+          const { data, error: hErr } = await supabase.from("journal_entries").insert(chunk).select("id");
+          if (hErr) {
+            // Fallback to individual inserts
+            for (let j = 0; j < chunk.length; j++) {
+              const { data: d, error: e } = await supabase.from("journal_entries").insert(chunk[j]).select("id").single();
+              if (e) { errors.push(`JE header: ${e.message}`); allHeaderIds.push(""); }
+              else { allHeaderIds.push(d?.id || ""); }
+            }
+          } else if (data) {
+            allHeaderIds.push(...data.map((d: { id: string }) => d.id));
+          }
+        }
+
+        // Build all lines with mapped JE IDs
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const allJeLines: Record<string, any>[] = [];
+        for (let i = 0; i < allHeaderIds.length; i++) {
+          const jeId = allHeaderIds[i];
+          if (!jeId) continue;
+          for (const line of jeLinesByHeader[i]) {
+            allJeLines.push({
+              company_id: companyId, journal_entry_id: jeId,
+              account_id: line.account_id, debit: line.debit,
+              credit: line.credit, description: line.description,
+            });
+          }
+        }
+
+        // Batch insert all JE lines (chunk at 500)
+        for (let c = 0; c < allJeLines.length; c += 500) {
+          const chunk = allJeLines.slice(c, c + 500);
+          const { error: lErr } = await supabase.from("journal_entry_lines").insert(chunk);
+          if (lErr) {
+            for (const line of chunk) {
+              const { error: le } = await supabase.from("journal_entry_lines").insert(line);
+              if (le) errors.push(`JE line: ${le.message}`);
             }
           }
-          if (!linesFailed) successCount++;
         }
+        successCount += allHeaderIds.filter(id => id).length;
         break;
       }
 
@@ -1596,85 +1367,58 @@ export async function POST(request: NextRequest) {
       }
 
       case "property_expenses": {
-        // Resolve property_name → property_id
         const { data: expProps } = await supabase
-          .from("properties")
-          .select("id, name")
-          .eq("company_id", companyId);
+          .from("properties").select("id, name").eq("company_id", companyId);
         const expPropLookup: Record<string, string> = {};
-        for (const p of expProps ?? []) {
-          expPropLookup[p.name.trim().toLowerCase()] = p.id;
-        }
+        for (const p of expProps ?? []) { expPropLookup[p.name.trim().toLowerCase()] = p.id; }
 
         const validTypes = [
           "cam", "property_tax", "insurance", "utilities",
-          "management_fee", "capital_expense", "hoa_fee",
-          "marketing", "legal", "other",
+          "management_fee", "capital_expense", "hoa_fee", "marketing", "legal", "other",
         ];
         const validFreqs = ["one_time", "monthly", "quarterly", "semi_annual", "annual"];
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const peBatch: Record<string, any>[] = [];
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
           let propertyId = r.property_id || null;
-          if (!propertyId && r.property_name) {
-            propertyId = expPropLookup[r.property_name.trim().toLowerCase()] || null;
-          }
-          if (!propertyId && expProps && expProps.length > 0) {
-            propertyId = expProps[0].id;
-          }
-          if (!propertyId) {
-            errors.push(`Row ${i + 2}: No property found.`);
-            continue;
-          }
+          if (!propertyId && r.property_name) propertyId = expPropLookup[r.property_name.trim().toLowerCase()] || null;
+          if (!propertyId && expProps && expProps.length > 0) propertyId = expProps[0].id;
+          if (!propertyId) { errors.push(`Row ${i + 2}: No property found.`); continue; }
           const expType = (r.expense_type || "other").toLowerCase();
           if (!validTypes.includes(expType)) {
-            errors.push(`Row ${i + 2}: Invalid expense_type "${r.expense_type}". Use: ${validTypes.join(", ")}`);
-            continue;
+            errors.push(`Row ${i + 2}: Invalid expense_type "${r.expense_type}". Use: ${validTypes.join(", ")}`); continue;
           }
           const freq = (r.frequency || "monthly").toLowerCase();
-          const { error } = await supabase.from("property_expenses").insert({
-            company_id: companyId,
-            property_id: propertyId,
-            expense_type: expType,
-            description: r.description || null,
-            amount: r.amount ? parseFloat(r.amount) : 0,
+          peBatch.push({
+            company_id: companyId, property_id: propertyId, expense_type: expType,
+            description: r.description || null, amount: r.amount ? parseFloat(r.amount) : 0,
             frequency: validFreqs.includes(freq) ? freq : "monthly",
-            effective_date: r.effective_date || null,
-            end_date: r.end_date || null,
-            vendor_name: r.vendor_name || null,
-            notes: r.notes || null,
+            effective_date: r.effective_date || null, end_date: r.end_date || null,
+            vendor_name: r.vendor_name || null, notes: r.notes || null,
           });
-          if (error) {
-            errors.push(`Row ${i + 2}: ${error.message}`);
-          } else {
-            successCount++;
-          }
         }
+        const peRes = await batchInsert("property_expenses", peBatch);
+        successCount += peRes.successCount;
         break;
       }
 
       case "estimates": {
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const estNum = r.estimate_number || `EST-${String(i + 1).padStart(4, "0")}`;
-          const { error } = await supabase.from("estimates").insert({
-            company_id: companyId,
-            project_id: await resolveProjectId(r),
-            estimate_number: estNum,
-            title: r.title || "",
-            description: r.description || null,
-            status: r.status || "draft",
-            total_cost: r.total_cost ? parseFloat(r.total_cost) : 0,
-            total_price: r.total_price ? parseFloat(r.total_price) : 0,
-            margin_pct: r.margin_pct ? parseFloat(r.margin_pct) : 0,
-            overhead_pct: r.overhead_pct ? parseFloat(r.overhead_pct) : 10,
-            profit_pct: r.profit_pct ? parseFloat(r.profit_pct) : 10,
-            notes: r.notes || null,
-            created_by: userId,
-          });
-          if (error) errors.push(`Row ${i + 2}: ${error.message}`);
-          else successCount++;
-        }
+        const estBatch = rows.map((r, i) => ({
+          company_id: companyId, project_id: resolvedProjectIds[i],
+          estimate_number: r.estimate_number || `EST-${String(i + 1).padStart(4, "0")}`,
+          title: r.title || "", description: r.description || null,
+          status: r.status || "draft",
+          total_cost: r.total_cost ? parseFloat(r.total_cost) : 0,
+          total_price: r.total_price ? parseFloat(r.total_price) : 0,
+          margin_pct: r.margin_pct ? parseFloat(r.margin_pct) : 0,
+          overhead_pct: r.overhead_pct ? parseFloat(r.overhead_pct) : 10,
+          profit_pct: r.profit_pct ? parseFloat(r.profit_pct) : 10,
+          notes: r.notes || null, created_by: userId,
+        }));
+        const estRes = await batchInsert("estimates", estBatch);
+        successCount += estRes.successCount;
         break;
       }
     }

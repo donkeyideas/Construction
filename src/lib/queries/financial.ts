@@ -1157,6 +1157,111 @@ export async function createPostedJournalEntry(
   return { id: entry.id };
 }
 
+/**
+ * Bulk-create posted journal entries in two batch DB calls instead of 2×N.
+ * 1. Batch insert all JE headers → get IDs
+ * 2. Map IDs to lines → batch insert all lines (chunked at 500)
+ */
+export async function createBulkPostedJournalEntries(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  entries: JournalEntryCreateData[]
+): Promise<{ ids: string[]; errorCount: number }> {
+  if (entries.length === 0) return { ids: [], errorCount: 0 };
+
+  // Validate balance for each entry, filter out unbalanced
+  const valid: JournalEntryCreateData[] = [];
+  let errorCount = 0;
+  for (const e of entries) {
+    const totalDebit = e.lines.reduce((s, l) => s + (l.debit ?? 0), 0);
+    const totalCredit = e.lines.reduce((s, l) => s + (l.credit ?? 0), 0);
+    if (Math.abs(totalDebit - totalCredit) > 0.01) {
+      console.warn("Bulk JE skipped (unbalanced):", e.entry_number, { totalDebit, totalCredit });
+      errorCount++;
+    } else {
+      valid.push(e);
+    }
+  }
+
+  if (valid.length === 0) return { ids: [], errorCount };
+
+  const now = new Date().toISOString();
+  const headerInserts = valid.map((e) => ({
+    company_id: companyId,
+    entry_number: e.entry_number,
+    entry_date: e.entry_date,
+    description: e.description,
+    reference: e.reference ?? null,
+    project_id: e.project_id ?? null,
+    status: "posted",
+    created_by: userId,
+    posted_by: userId,
+    posted_at: now,
+  }));
+
+  // Batch insert headers (chunk at 500 for Supabase payload limits)
+  const allInserted: { id: string }[] = [];
+  for (let i = 0; i < headerInserts.length; i += 500) {
+    const chunk = headerInserts.slice(i, i + 500);
+    const { data, error } = await supabase
+      .from("journal_entries")
+      .insert(chunk)
+      .select("id");
+    if (error) {
+      console.error("Bulk JE header insert failed:", error);
+      errorCount += chunk.length;
+      continue;
+    }
+    if (data) allInserted.push(...data);
+  }
+
+  if (allInserted.length === 0) return { ids: [], errorCount };
+
+  // Map IDs back to lines — allInserted order matches insertion order
+  const allLines: Array<{
+    company_id: string;
+    journal_entry_id: string;
+    account_id: string;
+    debit: number;
+    credit: number;
+    description: string | null;
+    project_id: string | null;
+    property_id: string | null;
+  }> = [];
+
+  // Track which valid entries got inserted (skip ones that failed in chunking)
+  let insertIdx = 0;
+  for (const entry of valid) {
+    if (insertIdx >= allInserted.length) break;
+    const jeId = allInserted[insertIdx].id;
+    for (const line of entry.lines) {
+      allLines.push({
+        company_id: companyId,
+        journal_entry_id: jeId,
+        account_id: line.account_id,
+        debit: line.debit ?? 0,
+        credit: line.credit ?? 0,
+        description: line.description ?? null,
+        project_id: line.project_id ?? null,
+        property_id: line.property_id ?? null,
+      });
+    }
+    insertIdx++;
+  }
+
+  // Batch insert lines (chunk at 500)
+  for (let i = 0; i < allLines.length; i += 500) {
+    const chunk = allLines.slice(i, i + 500);
+    const { error } = await supabase.from("journal_entry_lines").insert(chunk);
+    if (error) {
+      console.error("Bulk JE lines insert failed at chunk", i, error);
+    }
+  }
+
+  return { ids: allInserted.map((e) => e.id), errorCount };
+}
+
 export async function postJournalEntry(
   supabase: SupabaseClient,
   entryId: string,

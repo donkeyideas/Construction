@@ -12,7 +12,23 @@ import {
   generateMaintenanceCostJournalEntry,
   generatePayrollRunJournalEntry,
 } from "@/lib/utils/invoice-accounting";
-import { createPostedJournalEntry } from "@/lib/queries/financial";
+import { createPostedJournalEntry, createBulkPostedJournalEntries } from "@/lib/queries/financial";
+
+/** Helper: chunk an array of refs for `.in()` queries to avoid URL-length limits */
+async function chunkedInRefs<T>(
+  queryFn: (refs: string[]) => PromiseLike<{ data: T[] | null }>,
+  allRefs: string[],
+  chunkSize = 300
+): Promise<T[]> {
+  if (allRefs.length === 0) return [];
+  const results: T[] = [];
+  for (let i = 0; i < allRefs.length; i += chunkSize) {
+    const chunk = allRefs.slice(i, i + chunkSize);
+    const { data } = await queryFn(chunk);
+    if (data) results.push(...data);
+  }
+  return results;
+}
 
 export interface BackfillResult {
   coGenerated: number;
@@ -39,11 +55,15 @@ export async function ensureRequiredAccounts(
   supabase: SupabaseClient,
   companyId: string
 ): Promise<void> {
-  const { count } = await supabase
+  // Single query to check if COA exists and get all active account names
+  const { data: existingAccounts } = await supabase
     .from("chart_of_accounts")
-    .select("id", { count: "exact", head: true })
-    .eq("company_id", companyId);
-  if (!count || count === 0) return;
+    .select("name")
+    .eq("company_id", companyId)
+    .eq("is_active", true);
+  if (!existingAccounts || existingAccounts.length === 0) return;
+
+  const existingNames = new Set(existingAccounts.map(a => a.name.toLowerCase()));
 
   const required = [
     { number: "1130", name: "Rent Receivable", type: "asset", sub: "current_asset", balance: "debit", desc: "Amounts due from tenants for rent" },
@@ -58,34 +78,36 @@ export async function ensureRequiredAccounts(
     { number: "6700", name: "Depreciation Expense", type: "expense", sub: "operating_expense", balance: "debit", desc: "Periodic depreciation of fixed assets" },
   ];
 
-  for (const acct of required) {
+  // Filter to only accounts that don't already exist (fuzzy match on name)
+  const missing = required.filter(acct => {
     const nameLower = acct.name.toLowerCase();
-    const { data: existing } = await supabase
-      .from("chart_of_accounts")
-      .select("id")
-      .eq("company_id", companyId)
-      .eq("is_active", true)
-      .ilike("name", `%${nameLower}%`)
-      .limit(1);
+    return !Array.from(existingNames).some(n => n.includes(nameLower) || nameLower.includes(n));
+  });
+  if (missing.length === 0) return;
 
-    if (!existing || existing.length === 0) {
-      // Try the preferred account number first; if it conflicts, increment until free
+  // Batch insert all missing accounts at once
+  const inserts = missing.map(acct => ({
+    company_id: companyId,
+    account_number: acct.number,
+    name: acct.name,
+    account_type: acct.type,
+    sub_type: acct.sub,
+    normal_balance: acct.balance,
+    description: acct.desc,
+    is_active: true,
+  }));
+  const { error } = await supabase.from("chart_of_accounts").insert(inserts);
+  if (error) {
+    // Fallback: insert individually with number-increment retry
+    for (const acct of missing) {
       let num = parseInt(acct.number, 10);
-      const maxAttempts = 10;
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        const accountNumber = String(num);
-        const { error } = await supabase.from("chart_of_accounts").insert({
-          company_id: companyId,
-          account_number: accountNumber,
-          name: acct.name,
-          account_type: acct.type,
-          sub_type: acct.sub,
-          normal_balance: acct.balance,
-          description: acct.desc,
-          is_active: true,
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const { error: e } = await supabase.from("chart_of_accounts").insert({
+          company_id: companyId, account_number: String(num), name: acct.name,
+          account_type: acct.type, sub_type: acct.sub, normal_balance: acct.balance,
+          description: acct.desc, is_active: true,
         });
-        if (!error) break;
-        console.warn(`ensureRequiredAccounts: account_number ${accountNumber} conflict for "${acct.name}", retrying...`);
+        if (!e) break;
         num++;
       }
     }
@@ -137,12 +159,11 @@ export async function backfillMissingJournalEntries(
 
     if (contracts && contracts.length > 0) {
       const contractRefs = contracts.map((c) => `contract:${c.id}`);
-      const { data: existingJEs } = await supabase
-        .from("journal_entries")
-        .select("reference")
-        .eq("company_id", companyId)
-        .in("reference", contractRefs);
-      const existingRefs = new Set((existingJEs ?? []).map((j) => j.reference));
+      const existingJEData = await chunkedInRefs(
+        (refs) => supabase.from("journal_entries").select("reference").eq("company_id", companyId).in("reference", refs),
+        contractRefs
+      );
+      const existingRefs = new Set(existingJEData.map((j: { reference: string }) => j.reference));
 
       for (const c of contracts) {
         if (existingRefs.has(`contract:${c.id}`)) continue;
@@ -169,12 +190,11 @@ export async function backfillMissingJournalEntries(
 
     if (changeOrders && changeOrders.length > 0) {
       const coRefs = changeOrders.map((co) => `change_order:${co.id}`);
-      const { data: existingJEs } = await supabase
-        .from("journal_entries")
-        .select("reference")
-        .eq("company_id", companyId)
-        .in("reference", coRefs);
-      const existingRefs = new Set((existingJEs ?? []).map((j) => j.reference));
+      const existingCOJEs = await chunkedInRefs(
+        (refs) => supabase.from("journal_entries").select("reference").eq("company_id", companyId).in("reference", refs),
+        coRefs
+      );
+      const existingRefs = new Set(existingCOJEs.map((j: { reference: string }) => j.reference));
 
       for (const co of changeOrders) {
         if (existingRefs.has(`change_order:${co.id}`)) continue;
@@ -200,12 +220,11 @@ export async function backfillMissingJournalEntries(
 
   if (invoices && invoices.length > 0) {
     const invRefs = invoices.map((i) => `invoice:${i.id}`);
-    const { data: existingJEs } = await supabase
-      .from("journal_entries")
-      .select("reference")
-      .eq("company_id", companyId)
-      .in("reference", invRefs);
-    const existingRefs = new Set((existingJEs ?? []).map((j) => j.reference));
+    const existingInvJEs = await chunkedInRefs(
+      (refs) => supabase.from("journal_entries").select("reference").eq("company_id", companyId).in("reference", refs),
+      invRefs
+    );
+    const existingRefs = new Set(existingInvJEs.map((j: { reference: string }) => j.reference));
 
     for (const inv of invoices) {
       if (existingRefs.has(`invoice:${inv.id}`)) continue;
@@ -256,27 +275,28 @@ export async function backfillMissingJournalEntries(
       .not("security_deposit", "is", null)
       .gt("security_deposit", 0);
 
-    for (const lease of depositLeases ?? []) {
-      // Idempotency: skip if a security deposit JE already exists for this lease
-      const { data: existing } = await supabase
-        .from("journal_entries")
-        .select("id")
-        .eq("company_id", companyId)
-        .eq("reference", `lease:${lease.id}`)
-        .ilike("description", "%security deposit%")
-        .limit(1)
-        .maybeSingle();
-      if (existing) continue;
+    if (depositLeases && depositLeases.length > 0) {
+      // Batch-fetch all security deposit JEs in one query instead of N individual queries
+      const depLeaseRefs = depositLeases.map((l) => `lease:${l.id}`);
+      const existingDepJEs = await chunkedInRefs(
+        (refs) => supabase.from("journal_entries").select("reference")
+          .eq("company_id", companyId).in("reference", refs).ilike("description", "%security deposit%"),
+        depLeaseRefs
+      );
+      const existingDepSet = new Set(existingDepJEs.map((j: { reference: string }) => j.reference));
 
-      try {
-        const r = await generateSecurityDepositJournalEntry(supabase, companyId, userId, {
-          leaseId: lease.id,
-          amount: Number(lease.security_deposit),
-          tenantName: lease.tenant_name ?? "Tenant",
-          date: lease.lease_start ?? new Date().toISOString().split("T")[0],
-        }, accountMap);
-        if (r) result.securityDepositGenerated++;
-      } catch (err) { console.warn("Backfill security deposit JE failed:", lease.id, err); }
+      for (const lease of depositLeases) {
+        if (existingDepSet.has(`lease:${lease.id}`)) continue;
+        try {
+          const r = await generateSecurityDepositJournalEntry(supabase, companyId, userId, {
+            leaseId: lease.id,
+            amount: Number(lease.security_deposit),
+            tenantName: lease.tenant_name ?? "Tenant",
+            date: lease.lease_start ?? new Date().toISOString().split("T")[0],
+          }, accountMap);
+          if (r) result.securityDepositGenerated++;
+        } catch (err) { console.warn("Backfill security deposit JE failed:", lease.id, err); }
+      }
     }
   }
 
@@ -317,12 +337,11 @@ export async function backfillMissingJournalEntries(
 
     if (equipment && equipment.length > 0) {
       const eqRefs = equipment.map((e) => `equipment_purchase:${e.id}`);
-      const { data: existingJEs } = await supabase
-        .from("journal_entries")
-        .select("reference")
-        .eq("company_id", companyId)
-        .in("reference", eqRefs);
-      const existingRefs = new Set((existingJEs ?? []).map((j) => j.reference));
+      const existingEqJEs = await chunkedInRefs(
+        (refs) => supabase.from("journal_entries").select("reference").eq("company_id", companyId).in("reference", refs),
+        eqRefs
+      );
+      const existingRefs = new Set(existingEqJEs.map((j: { reference: string }) => j.reference));
 
       for (const eq of equipment) {
         if (existingRefs.has(`equipment_purchase:${eq.id}`)) continue;
@@ -416,12 +435,11 @@ export async function backfillMissingJournalEntries(
 
     // Also check by reference in case journal_entry_id column is stale
     const maintRefs = maintData.map((m) => `maintenance:${m.id}`);
-    const { data: existingMaintRefJEs } = await supabase
-      .from("journal_entries")
-      .select("reference")
-      .eq("company_id", companyId)
-      .in("reference", maintRefs.length > 0 ? maintRefs : ["__none__"]);
-    const existingMaintRefSet = new Set((existingMaintRefJEs ?? []).map((j) => j.reference));
+    const existingMaintRefJEs = maintRefs.length > 0 ? await chunkedInRefs(
+      (refs) => supabase.from("journal_entries").select("reference").eq("company_id", companyId).in("reference", refs),
+      maintRefs
+    ) : [];
+    const existingMaintRefSet = new Set(existingMaintRefJEs.map((j: { reference: string }) => j.reference));
 
     for (const m of maintData) {
       if (m.journal_entry_id) continue; // already linked
@@ -463,12 +481,11 @@ export async function backfillMissingJournalEntries(
 
     // Skip maintenance logs that already have JEs (by reference pattern)
     const equipMaintRefs = equipMaintData.map((m) => `equip_maintenance:${m.id}`);
-    const { data: existingMaintJEs } = await supabase
-      .from("journal_entries")
-      .select("reference")
-      .eq("company_id", companyId)
-      .in("reference", equipMaintRefs.length > 0 ? equipMaintRefs : ["__none__"]);
-    const existingMaintSet = new Set((existingMaintJEs ?? []).map((j) => j.reference));
+    const existingEqMaintJEs = equipMaintRefs.length > 0 ? await chunkedInRefs(
+      (refs) => supabase.from("journal_entries").select("reference").eq("company_id", companyId).in("reference", refs),
+      equipMaintRefs
+    ) : [];
+    const existingMaintSet = new Set(existingEqMaintJEs.map((j: { reference: string }) => j.reference));
 
     for (const m of equipMaintData) {
       if (existingMaintSet.has(`equip_maintenance:${m.id}`)) continue;
@@ -482,7 +499,7 @@ export async function backfillMissingJournalEntries(
     }
   }
 
-  // --- Post all draft JEs ---
+  // --- Post all draft JEs (chunk the .in() for large datasets) ---
   const { data: drafts } = await supabase
     .from("journal_entries")
     .select("id")
@@ -491,11 +508,15 @@ export async function backfillMissingJournalEntries(
 
   if (drafts && drafts.length > 0) {
     const draftIds = drafts.map((d) => d.id);
-    await supabase
-      .from("journal_entries")
-      .update({ status: "posted" })
-      .eq("company_id", companyId)
-      .in("id", draftIds);
+    // Chunk the update to avoid URL length limits
+    for (let c = 0; c < draftIds.length; c += 300) {
+      const chunk = draftIds.slice(c, c + 300);
+      await supabase
+        .from("journal_entries")
+        .update({ status: "posted" })
+        .eq("company_id", companyId)
+        .in("id", chunk);
+    }
     result.draftsPosted = draftIds.length;
   }
 
@@ -532,14 +553,20 @@ export async function backfillMissingJournalEntries(
     const linked = bankAccounts.filter((b) => b.gl_account_id);
     const unlinked = bankAccounts.filter((b) => !b.gl_account_id);
 
-    // Linked banks: exact balance from their GL account
-    for (const bank of linked) {
-      const newBal = await computeGLBal(bank.gl_account_id!);
-      await supabase
-        .from("bank_accounts")
-        .update({ current_balance: newBal })
-        .eq("id", bank.id);
-      result.banksSynced++;
+    // Linked banks: compute all balances in parallel, then batch update
+    if (linked.length > 0) {
+      const linkedBalances = await Promise.all(
+        linked.map(async (bank) => ({
+          id: bank.id,
+          newBal: await computeGLBal(bank.gl_account_id!),
+        }))
+      );
+      await Promise.all(
+        linkedBalances.map(({ id, newBal }) =>
+          supabase.from("bank_accounts").update({ current_balance: newBal }).eq("id", id)
+        )
+      );
+      result.banksSynced += linked.length;
     }
 
     // Unlinked banks: proportional distribution of remaining cash GL balance
@@ -557,23 +584,23 @@ export async function backfillMissingJournalEntries(
         .map((a) => a.id)
         .filter((id) => !linkedGlIds.has(id));
 
-      let remainingGl = 0;
-      for (const cid of unlinkedCashIds) {
-        remainingGl += await computeGLBal(cid);
-      }
+      // Parallelize GL balance computation for unlinked cash accounts
+      const cashBalances = await Promise.all(
+        unlinkedCashIds.map((cid) => computeGLBal(cid))
+      );
+      const remainingGl = cashBalances.reduce((s, b) => s + b, 0);
 
       const oldTotal = unlinked.reduce((s, b) => s + (Number(b.current_balance) || 0), 0);
-      for (const bank of unlinked) {
-        const ratio = oldTotal > 0
-          ? (Number(bank.current_balance) || 0) / oldTotal
-          : 1 / unlinked.length;
-        const newBal = Math.round(remainingGl * ratio * 100) / 100;
-        await supabase
-          .from("bank_accounts")
-          .update({ current_balance: newBal })
-          .eq("id", bank.id);
-        result.banksSynced++;
-      }
+      await Promise.all(
+        unlinked.map((bank) => {
+          const ratio = oldTotal > 0
+            ? (Number(bank.current_balance) || 0) / oldTotal
+            : 1 / unlinked.length;
+          const newBal = Math.round(remainingGl * ratio * 100) / 100;
+          return supabase.from("bank_accounts").update({ current_balance: newBal }).eq("id", bank.id);
+        })
+      );
+      result.banksSynced += unlinked.length;
     }
   }
 

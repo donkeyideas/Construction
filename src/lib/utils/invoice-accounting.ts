@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { createPostedJournalEntry } from "@/lib/queries/financial";
+import { createPostedJournalEntry, createBulkPostedJournalEntries } from "@/lib/queries/financial";
 import type { JournalEntryCreateData } from "@/lib/queries/financial";
 
 /**
@@ -835,6 +835,201 @@ export async function generateLoanJournalEntry(
  * Batch-generate journal entries for multiple invoices (used by import route).
  * Builds the account map once, then processes all invoices.
  */
+/**
+ * Pure function: build JE data for an invoice without touching the DB.
+ * Returns null if the invoice should be skipped (voided, zero, missing accounts).
+ */
+export function buildInvoiceJEData(
+  invoice: {
+    id: string;
+    invoice_number: string;
+    invoice_type: "payable" | "receivable";
+    total_amount: number;
+    subtotal?: number;
+    tax_amount?: number;
+    invoice_date: string;
+    status?: string;
+    project_id?: string | null;
+    property_id?: string | null;
+    vendor_name?: string | null;
+    client_name?: string | null;
+    gl_account_id?: string | null;
+    retainage_pct?: number;
+    retainage_held?: number;
+  },
+  accountMap: CompanyAccountMap
+): JournalEntryCreateData | null {
+  if (invoice.total_amount <= 0) return null;
+  if (invoice.status === "voided" || invoice.status === "cancelled") return null;
+
+  const lines: JournalEntryCreateData["lines"] = [];
+  let description: string;
+
+  const taxAmount = invoice.tax_amount ?? 0;
+  const subtotal = invoice.subtotal ?? (invoice.total_amount - taxAmount);
+  const retainageHeld = invoice.retainage_held ?? 0;
+
+  if (invoice.invoice_type === "receivable") {
+    description = `Invoice ${invoice.invoice_number}` +
+      (invoice.client_name ? ` - ${invoice.client_name}` : "");
+
+    if (!accountMap.arId) return null;
+    const revenueAccountId = invoice.gl_account_id || findDefaultRevenueAccount(accountMap);
+    if (!revenueAccountId) return null;
+
+    const arAmount = invoice.total_amount - retainageHeld;
+    if (arAmount > 0) {
+      lines.push({
+        account_id: accountMap.arId, debit: arAmount, credit: 0, description,
+        project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+      });
+    }
+
+    if (retainageHeld > 0 && accountMap.retainageReceivableId) {
+      lines.push({
+        account_id: accountMap.retainageReceivableId, debit: retainageHeld, credit: 0,
+        description: `Retainage on ${invoice.invoice_number}`,
+        project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+      });
+    }
+
+    lines.push({
+      account_id: revenueAccountId, debit: 0, credit: subtotal, description,
+      project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+    });
+
+    if (taxAmount > 0 && accountMap.salesTaxPayableId) {
+      lines.push({
+        account_id: accountMap.salesTaxPayableId, debit: 0, credit: taxAmount,
+        description: `Sales tax on ${invoice.invoice_number}`,
+        project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+      });
+    } else if (taxAmount > 0) {
+      lines[lines.length - 1].credit += taxAmount;
+    }
+
+  } else {
+    description = `Bill ${invoice.invoice_number}` +
+      (invoice.vendor_name ? ` - ${invoice.vendor_name}` : "");
+
+    if (!accountMap.apId) return null;
+    const expenseAccountId = invoice.gl_account_id || findDefaultExpenseAccount(accountMap);
+    if (!expenseAccountId) return null;
+
+    lines.push({
+      account_id: expenseAccountId, debit: subtotal, credit: 0, description,
+      project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+    });
+
+    if (taxAmount > 0 && accountMap.salesTaxReceivableId) {
+      lines.push({
+        account_id: accountMap.salesTaxReceivableId, debit: taxAmount, credit: 0,
+        description: `Input tax on ${invoice.invoice_number}`,
+        project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+      });
+    } else if (taxAmount > 0) {
+      lines[0].debit += taxAmount;
+    }
+
+    const apAmount = invoice.total_amount - retainageHeld;
+    if (apAmount > 0) {
+      lines.push({
+        account_id: accountMap.apId, debit: 0, credit: apAmount, description,
+        project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+      });
+    }
+
+    if (retainageHeld > 0 && accountMap.retainagePayableId) {
+      lines.push({
+        account_id: accountMap.retainagePayableId, debit: 0, credit: retainageHeld,
+        description: `Retainage on ${invoice.invoice_number}`,
+        project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+      });
+    }
+  }
+
+  if (lines.length < 2) return null;
+
+  return {
+    entry_number: `JE-INV-${invoice.invoice_number}`,
+    entry_date: invoice.invoice_date,
+    description,
+    reference: `invoice:${invoice.id}`,
+    project_id: invoice.project_id ?? undefined,
+    lines,
+  };
+}
+
+/**
+ * Pure function: build JE data for a payment without touching the DB.
+ * Uses the default cash account (no bank_account_id resolution — that requires DB).
+ */
+export function buildPaymentJEData(
+  payment: {
+    id: string;
+    amount: number;
+    payment_date: string;
+    method: string;
+  },
+  invoice: {
+    id: string;
+    invoice_number: string;
+    invoice_type: "payable" | "receivable";
+    project_id?: string | null;
+    property_id?: string | null;
+    vendor_name?: string | null;
+    client_name?: string | null;
+  },
+  accountMap: CompanyAccountMap
+): JournalEntryCreateData | null {
+  if (payment.amount <= 0) return null;
+  if (!accountMap.cashId) return null;
+
+  const cashGlAccountId = accountMap.cashId;
+  let debitAccountId: string;
+  let creditAccountId: string;
+  let description: string;
+
+  if (invoice.invoice_type === "receivable") {
+    if (!accountMap.arId) return null;
+    debitAccountId = cashGlAccountId;
+    creditAccountId = accountMap.arId;
+    description = `Payment on ${invoice.invoice_number}` +
+      (invoice.client_name ? ` from ${invoice.client_name}` : "") +
+      ` (${payment.method})`;
+  } else {
+    if (!accountMap.apId) return null;
+    debitAccountId = accountMap.apId;
+    creditAccountId = cashGlAccountId;
+    description = `Payment on ${invoice.invoice_number}` +
+      (invoice.vendor_name ? ` to ${invoice.vendor_name}` : "") +
+      ` (${payment.method})`;
+  }
+
+  const shortPaymentId = payment.id.substring(0, 8);
+  return {
+    entry_number: `JE-PMT-${shortPaymentId}`,
+    entry_date: payment.payment_date,
+    description,
+    reference: `payment:${payment.id}`,
+    project_id: invoice.project_id ?? undefined,
+    lines: [
+      {
+        account_id: debitAccountId, debit: payment.amount, credit: 0, description,
+        project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+      },
+      {
+        account_id: creditAccountId, debit: 0, credit: payment.amount, description,
+        project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
+      },
+    ],
+  };
+}
+
+/**
+ * Batch-generate invoice journal entries. Builds all JE data in memory,
+ * then creates them all in 2 DB calls via createBulkPostedJournalEntries().
+ */
 export async function generateBulkInvoiceJournalEntries(
   supabase: SupabaseClient,
   companyId: string,
@@ -858,29 +1053,36 @@ export async function generateBulkInvoiceJournalEntries(
   }>
 ): Promise<{ successCount: number; errors: string[] }> {
   const accountMap = await buildCompanyAccountMap(supabase, companyId);
-  let successCount = 0;
   const errors: string[] = [];
 
   if (!accountMap.arId && !accountMap.apId) {
     return { successCount: 0, errors: ["Chart of accounts not configured — no AR or AP account found"] };
   }
 
+  // Build all JE data in memory (pure computation, zero DB calls)
+  const jeDataList: JournalEntryCreateData[] = [];
   for (const invoice of invoices) {
-    const result = await generateInvoiceJournalEntry(
-      supabase, companyId, userId, invoice, accountMap
-    );
-    if (result) {
-      successCount++;
+    const jeData = buildInvoiceJEData(invoice, accountMap);
+    if (jeData) {
+      jeDataList.push(jeData);
     } else if (invoice.total_amount > 0) {
       errors.push(`JE skipped for ${invoice.invoice_number}`);
     }
   }
 
-  return { successCount, errors };
+  if (jeDataList.length === 0) return { successCount: 0, errors };
+
+  // Single bulk insert (2 DB calls total instead of 2×N)
+  const { ids, errorCount } = await createBulkPostedJournalEntries(
+    supabase, companyId, userId, jeDataList
+  );
+
+  return { successCount: ids.length, errors: errors.concat(errorCount > 0 ? [`${errorCount} JEs failed to insert`] : []) };
 }
 
 /**
- * Batch-generate payment journal entries (used by import route for paid invoices).
+ * Batch-generate payment journal entries. Builds all JE data in memory,
+ * then creates them all in 2 DB calls via createBulkPostedJournalEntries().
  */
 export async function generateBulkPaymentJournalEntries(
   supabase: SupabaseClient,
@@ -896,30 +1098,38 @@ export async function generateBulkPaymentJournalEntries(
       invoice_number: string;
       invoice_type: "payable" | "receivable";
       project_id?: string | null;
+      property_id?: string | null;
       vendor_name?: string | null;
       client_name?: string | null;
     };
   }>
 ): Promise<{ successCount: number; errors: string[] }> {
   const accountMap = await buildCompanyAccountMap(supabase, companyId);
-  let successCount = 0;
   const errors: string[] = [];
 
+  // Build all payment JE data in memory
+  const jeDataList: JournalEntryCreateData[] = [];
   for (const p of payments) {
-    const result = await generatePaymentJournalEntry(
-      supabase, companyId, userId,
+    const jeData = buildPaymentJEData(
       { id: p.paymentId, amount: p.amount, payment_date: p.payment_date, method: p.method },
       p.invoice,
       accountMap
     );
-    if (result) {
-      successCount++;
+    if (jeData) {
+      jeDataList.push(jeData);
     } else {
       errors.push(`Payment JE skipped for ${p.invoice.invoice_number}`);
     }
   }
 
-  return { successCount, errors };
+  if (jeDataList.length === 0) return { successCount: 0, errors };
+
+  // Single bulk insert
+  const { ids, errorCount } = await createBulkPostedJournalEntries(
+    supabase, companyId, userId, jeDataList
+  );
+
+  return { successCount: ids.length, errors: errors.concat(errorCount > 0 ? [`${errorCount} payment JEs failed`] : []) };
 }
 
 // ==========================================================================
