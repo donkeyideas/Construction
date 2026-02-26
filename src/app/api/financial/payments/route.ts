@@ -171,6 +171,7 @@ export async function POST(request: NextRequest) {
             invoice_number: invoice.invoice_number,
             invoice_type: invoice.invoice_type,
             project_id: invoice.project_id,
+            property_id: invoice.property_id,
             vendor_name: invoice.vendor_name,
             client_name: invoice.client_name,
           },

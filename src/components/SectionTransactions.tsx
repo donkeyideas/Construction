@@ -16,7 +16,10 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import JournalEntryModal from "@/components/JournalEntryModal";
+import { AlertTriangle } from "lucide-react";
 import type { SectionTransactionSummary, SectionTransaction } from "@/lib/queries/section-transactions";
+
+const MAX_CLIENT_ROWS = 2000;
 
 interface Props {
   data: SectionTransactionSummary;
@@ -29,6 +32,9 @@ type SortDir = "asc" | "desc";
 const PAGE_SIZE = 25;
 
 export default function SectionTransactions({ data, sectionName }: Props) {
+  const isTruncated = data.transactions.length > MAX_CLIENT_ROWS;
+  const safeTransactions = isTruncated ? data.transactions.slice(0, MAX_CLIENT_ROWS) : data.transactions;
+
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -40,13 +46,13 @@ export default function SectionTransactions({ data, sectionName }: Props) {
 
   // Unique sources for filter
   const sources = useMemo(() => {
-    const set = new Set(data.transactions.map((t) => t.source));
+    const set = new Set(safeTransactions.map((t) => t.source));
     return Array.from(set).sort();
-  }, [data.transactions]);
+  }, [safeTransactions]);
 
   // Filtered + sorted transactions
   const filtered = useMemo(() => {
-    let txns = data.transactions;
+    let txns = safeTransactions;
     if (sourceFilter !== "all") {
       txns = txns.filter((t) => t.source === sourceFilter);
     }
@@ -74,7 +80,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
     });
 
     return txns;
-  }, [data.transactions, sourceFilter, sortField, sortDir]);
+  }, [safeTransactions, sourceFilter, sortField, sortDir]);
 
   // Pagination
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -183,6 +189,14 @@ export default function SectionTransactions({ data, sectionName }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Truncation notice */}
+      {isTruncated && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, marginBottom: 16, fontSize: "0.85rem", color: "#92400e" }}>
+          <AlertTriangle size={16} />
+          Showing first {MAX_CLIENT_ROWS.toLocaleString()} of {data.transactions.length.toLocaleString()} transactions. Use filters to narrow results.
+        </div>
+      )}
 
       {/* Transactions Table Card */}
       <div className="card" style={{ padding: 0 }}>

@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { paginatedQuery } from "@/lib/utils/paginated-query";
 
 // ---------------------------------------------------------------------------
 // Unified Section Transactions
@@ -88,43 +89,42 @@ export async function getProjectTransactions(
 
   if (projectIds.length === 0) return buildSummary(txns);
 
-  // 2. Fetch ALL data sources in parallel (single round-trip batch)
-  const [invoicesRes, changeOrdersRes, jeLinesRes, contractsRes, rfisRes] = await Promise.all([
-    supabase.from("invoices")
-      .select("id, invoice_number, invoice_type, invoice_date, total_amount, vendor_name, client_name, status, project_id")
-      .eq("company_id", companyId).in("project_id", projectIds).neq("status", "voided")
-      .order("invoice_date", { ascending: false }).limit(500),
-    supabase.from("change_orders")
-      .select("id, co_number, title, amount, status, approved_at, created_at, project_id")
-      .eq("company_id", companyId).in("project_id", projectIds).not("amount", "is", null)
-      .order("created_at", { ascending: false }).limit(200),
-    supabase.from("journal_entry_lines")
-      .select("id, debit, credit, description, project_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
-      .eq("company_id", companyId).in("project_id", projectIds).limit(500),
-    supabase.from("contracts")
-      .select("id, contract_number, title, contract_amount, status, start_date, project_id")
-      .eq("company_id", companyId).in("project_id", projectIds).not("contract_amount", "is", null)
-      .order("start_date", { ascending: false }).limit(100),
-    supabase.from("rfis")
-      .select("id, rfi_number, subject, cost_impact, status, created_at, project_id")
-      .eq("company_id", companyId).in("project_id", projectIds).not("cost_impact", "is", null).gt("cost_impact", 0)
-      .order("created_at", { ascending: false }).limit(100),
+  // 2. Fetch ALL data sources in parallel using paginatedQuery (no hard limits)
+  const [invoices, changeOrders, jeLines, contracts, rfis] = await Promise.all([
+    paginatedQuery<{ id: string; invoice_number: string; invoice_type: string; invoice_date: string; total_amount: number; vendor_name: string | null; client_name: string | null; status: string; project_id: string | null }>((from, to) =>
+      supabase.from("invoices")
+        .select("id, invoice_number, invoice_type, invoice_date, total_amount, vendor_name, client_name, status, project_id")
+        .eq("company_id", companyId).in("project_id", projectIds).neq("status", "voided")
+        .order("invoice_date", { ascending: false }).range(from, to)),
+    paginatedQuery<{ id: string; co_number: string; title: string; amount: number; status: string; approved_at: string | null; created_at: string; project_id: string }>((from, to) =>
+      supabase.from("change_orders")
+        .select("id, co_number, title, amount, status, approved_at, created_at, project_id")
+        .eq("company_id", companyId).in("project_id", projectIds).not("amount", "is", null)
+        .order("created_at", { ascending: false }).range(from, to)),
+    paginatedQuery<{ id: string; debit: number | null; credit: number | null; description: string | null; project_id: string | null; journal_entries: unknown }>((from, to) =>
+      supabase.from("journal_entry_lines")
+        .select("id, debit, credit, description, project_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
+        .eq("company_id", companyId).in("project_id", projectIds).range(from, to)),
+    paginatedQuery<{ id: string; contract_number: string | null; title: string | null; contract_amount: number; status: string; start_date: string | null; project_id: string }>((from, to) =>
+      supabase.from("contracts")
+        .select("id, contract_number, title, contract_amount, status, start_date, project_id")
+        .eq("company_id", companyId).in("project_id", projectIds).not("contract_amount", "is", null)
+        .order("start_date", { ascending: false }).range(from, to)),
+    paginatedQuery<{ id: string; rfi_number: string | null; subject: string | null; cost_impact: number; status: string; created_at: string; project_id: string }>((from, to) =>
+      supabase.from("rfis")
+        .select("id, rfi_number, subject, cost_impact, status, created_at, project_id")
+        .eq("company_id", companyId).in("project_id", projectIds).not("cost_impact", "is", null).gt("cost_impact", 0)
+        .order("created_at", { ascending: false }).range(from, to)),
   ]);
 
-  const invoices = invoicesRes.data ?? [];
-  const changeOrders = changeOrdersRes.data ?? [];
-  const jeLines = jeLinesRes.data ?? [];
-  const contracts = contractsRes.data ?? [];
-  const rfis = rfisRes.data ?? [];
-
-  // 3. Fetch payments for project invoices
+  // 3. Fetch payments for project invoices (uses invoice IDs from step 2)
   const projectInvoiceIds = invoices.map((i) => i.id);
-  const pmtsRes = projectInvoiceIds.length > 0
-    ? await supabase.from("payments")
-        .select("id, invoice_id, amount, payment_date, reference_number")
-        .in("invoice_id", projectInvoiceIds).order("payment_date", { ascending: false })
-    : { data: [] };
-  const pmts = pmtsRes.data ?? [];
+  const pmts = projectInvoiceIds.length > 0
+    ? await paginatedQuery<{ id: string; invoice_id: string; amount: number; payment_date: string; reference_number: string | null }>((from, to) =>
+        supabase.from("payments")
+          .select("id, invoice_id, amount, payment_date, reference_number")
+          .in("invoice_id", projectInvoiceIds).order("payment_date", { ascending: false }).range(from, to))
+    : [];
 
   // 4. Single batched JE lookup for all references
   const allRefs = [
@@ -325,84 +325,67 @@ export async function getPropertyTransactions(
 ): Promise<SectionTransactionSummary> {
   const txns: SectionTransaction[] = [];
 
-  // Run all independent queries in parallel
-  const [
-    { data: jeLines },
-    { data: invoices },
-    { data: scheduleRows },
-    { data: leases },
-    { data: maintenance },
-    { data: rentPayments },
-  ] = await Promise.all([
+  // Run all independent queries in parallel using paginatedQuery (no hard limits)
+  const [jeLines, invoices, scheduleRows, leases, maintenance, rentPayments] = await Promise.all([
     // 1. JE lines with property_id
-    supabase
-      .from("journal_entry_lines")
-      .select("id, debit, credit, description, property_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
-      .eq("company_id", companyId)
-      .not("property_id", "is", null)
-      .limit(500),
+    paginatedQuery<{ id: string; debit: number | null; credit: number | null; description: string | null; property_id: string | null; journal_entries: unknown }>((from, to) =>
+      supabase.from("journal_entry_lines")
+        .select("id, debit, credit, description, property_id, journal_entries(id, entry_number, entry_date, description, reference, status)")
+        .eq("company_id", companyId).not("property_id", "is", null).range(from, to)),
     // 2. Invoices with property_id
-    supabase
-      .from("invoices")
-      .select("id, invoice_number, invoice_type, invoice_date, total_amount, vendor_name, client_name, status")
-      .eq("company_id", companyId)
-      .not("property_id", "is", null)
-      .neq("status", "voided")
-      .order("invoice_date", { ascending: false })
-      .limit(300),
+    paginatedQuery<{ id: string; invoice_number: string; invoice_type: string; invoice_date: string; total_amount: number; vendor_name: string | null; client_name: string | null; status: string }>((from, to) =>
+      supabase.from("invoices")
+        .select("id, invoice_number, invoice_type, invoice_date, total_amount, vendor_name, client_name, status")
+        .eq("company_id", companyId).not("property_id", "is", null).neq("status", "voided")
+        .order("invoice_date", { ascending: false }).range(from, to)),
     // 3. Lease revenue schedule
-    supabase
-      .from("lease_revenue_schedule")
-      .select("id, schedule_date, monthly_rent, status, accrual_je_id, recognition_je_id, collection_je_id, lease_id, property_id, leases(tenant_name, units(unit_number))")
-      .eq("company_id", companyId)
-      .order("schedule_date", { ascending: false })
-      .limit(500),
+    paginatedQuery<{ id: string; schedule_date: string; monthly_rent: number; status: string; accrual_je_id: string | null; recognition_je_id: string | null; collection_je_id: string | null; lease_id: string; property_id: string | null; leases: unknown }>((from, to) =>
+      supabase.from("lease_revenue_schedule")
+        .select("id, schedule_date, monthly_rent, status, accrual_je_id, recognition_je_id, collection_je_id, lease_id, property_id, leases(tenant_name, units(unit_number))")
+        .eq("company_id", companyId).order("schedule_date", { ascending: false }).range(from, to)),
     // 4. Leases (fallback for un-scheduled)
-    supabase
-      .from("leases")
-      .select("id, tenant_name, monthly_rent, security_deposit, lease_start, status, property_id, units(unit_number)")
-      .eq("company_id", companyId)
-      .not("monthly_rent", "is", null)
-      .order("lease_start", { ascending: false })
-      .limit(100),
+    paginatedQuery<{ id: string; tenant_name: string | null; monthly_rent: number | null; security_deposit: number | null; lease_start: string | null; status: string; property_id: string | null; units: unknown }>((from, to) =>
+      supabase.from("leases")
+        .select("id, tenant_name, monthly_rent, security_deposit, lease_start, status, property_id, units(unit_number)")
+        .eq("company_id", companyId).not("monthly_rent", "is", null)
+        .order("lease_start", { ascending: false }).range(from, to)),
     // 5. Maintenance requests
-    supabase
-      .from("maintenance_requests")
-      .select("id, title, actual_cost, estimated_cost, status, created_at, property_id")
-      .eq("company_id", companyId)
-      .or("actual_cost.gt.0,estimated_cost.gt.0")
-      .order("created_at", { ascending: false })
-      .limit(100),
+    paginatedQuery<{ id: string; title: string | null; actual_cost: number | null; estimated_cost: number | null; status: string; created_at: string; property_id: string | null }>((from, to) =>
+      supabase.from("maintenance_requests")
+        .select("id, title, actual_cost, estimated_cost, status, created_at, property_id")
+        .eq("company_id", companyId).or("actual_cost.gt.0,estimated_cost.gt.0")
+        .order("created_at", { ascending: false }).range(from, to)),
     // 6. Rent payments (via leases)
-    supabase
-      .from("rent_payments")
-      .select("id, amount, payment_date, method, status, gateway_provider, notes, lease_id, leases(tenant_name, property_id, units(unit_number))")
-      .eq("company_id", companyId)
-      .order("payment_date", { ascending: false })
-      .limit(200),
+    paginatedQuery<{ id: string; amount: number; payment_date: string | null; method: string | null; status: string; gateway_provider: string | null; notes: string | null; lease_id: string; leases: unknown }>((from, to) =>
+      supabase.from("rent_payments")
+        .select("id, amount, payment_date, method, status, gateway_provider, notes, lease_id, leases(tenant_name, property_id, units(unit_number))")
+        .eq("company_id", companyId).order("payment_date", { ascending: false }).range(from, to)),
   ]);
 
   // Build secondary queries that depend on primary results
-  const invRefs = (invoices ?? []).map((i) => `invoice:${i.id}`);
-  const invoiceIds = (invoices ?? []).map((i) => i.id);
-  const maintRefs = (maintenance ?? []).filter((m) => (Number(m.actual_cost) || Number(m.estimated_cost) || 0) > 0).map((m) => `maintenance:${m.id}`);
-  const rentPaymentRefs = (rentPayments ?? []).map((rp) => `rent_payment:${rp.id}`);
+  const invRefs = invoices.map((i) => `invoice:${i.id}`);
+  const invoiceIds = invoices.map((i) => i.id);
+  const maintRefs = maintenance.filter((m) => (Number(m.actual_cost) || Number(m.estimated_cost) || 0) > 0).map((m) => `maintenance:${m.id}`);
+  const rentPaymentRefs = rentPayments.map((rp) => `rent_payment:${rp.id}`);
+  const pmtRefs = invoiceIds.length > 0 ? invoiceIds.map((id) => `payment_placeholder:${id}`) : [];
 
   // Collect JE IDs from schedule rows
   const scheduleJeIds = new Set<string>();
-  for (const row of scheduleRows ?? []) {
+  for (const row of scheduleRows) {
     if (row.accrual_je_id) scheduleJeIds.add(row.accrual_je_id);
     if (row.recognition_je_id) scheduleJeIds.add(row.recognition_je_id);
     if (row.collection_je_id) scheduleJeIds.add(row.collection_je_id);
   }
   const jeIdArray = Array.from(scheduleJeIds);
 
-  // Run dependent queries in parallel
-  const [invJeMap, paymentsResult, scheduleJeResult, maintJeMap, rentPaymentJeMap] = await Promise.all([
+  // Run dependent queries in parallel — including payments + their JE map
+  const [invJeMap, pmts, scheduleJeResult, maintJeMap, rentPaymentJeMap] = await Promise.all([
     getJEMap(supabase, companyId, invRefs),
     invoiceIds.length > 0
-      ? supabase.from("payments").select("id, invoice_id, amount, payment_date, reference_number").in("invoice_id", invoiceIds).order("payment_date", { ascending: false })
-      : Promise.resolve({ data: null }),
+      ? paginatedQuery<{ id: string; invoice_id: string; amount: number; payment_date: string; reference_number: string | null }>((from, to) =>
+          supabase.from("payments").select("id, invoice_id, amount, payment_date, reference_number")
+            .in("invoice_id", invoiceIds).order("payment_date", { ascending: false }).range(from, to))
+      : Promise.resolve([] as { id: string; invoice_id: string; amount: number; payment_date: string; reference_number: string | null }[]),
     jeIdArray.length > 0
       ? supabase.from("journal_entries").select("id, entry_number").in("id", jeIdArray)
       : Promise.resolve({ data: null }),
@@ -415,7 +398,7 @@ export async function getPropertyTransactions(
   const coveredJeIds = new Set<string>();
 
   // Process invoices — always show, populate JE when available
-  for (const inv of invoices ?? []) {
+  for (const inv of invoices) {
     const je = invJeMap.get(`invoice:${inv.id}`);
     if (je) coveredJeIds.add(je.id);
     const isPayable = inv.invoice_type === "payable";
@@ -432,44 +415,43 @@ export async function getPropertyTransactions(
     });
   }
 
-  // Process payments — always show, populate JE when available
-  const pmts = paymentsResult.data;
-  if (pmts && pmts.length > 0) {
-    const pmtRefs = pmts.map((p) => `payment:${p.id}`);
-    const pmtJeMap = await getJEMap(supabase, companyId, pmtRefs);
-    const invoiceMap = new Map((invoices ?? []).map((i) => [i.id, i]));
+  // Process payments — fetch JE map, then build rows
+  let pmtJeMap = new Map<string, { id: string; entry_number: string }>();
+  if (pmts.length > 0) {
+    pmtJeMap = await getJEMap(supabase, companyId, pmts.map((p) => `payment:${p.id}`));
+  }
+  const invoiceMap = new Map(invoices.map((i) => [i.id, i]));
 
-    for (const p of pmts) {
-      const je = pmtJeMap.get(`payment:${p.id}`);
-      if (je) coveredJeIds.add(je.id);
-      const inv = invoiceMap.get(p.invoice_id);
-      const isPayable = inv?.invoice_type === "payable";
-      txns.push({
-        id: `pmt-${p.id}`,
-        date: p.payment_date,
-        description: `Payment on ${inv?.invoice_number ?? "Invoice"}`,
-        reference: p.reference_number ?? "",
-        source: "Payments",
-        sourceHref: inv ? `/financial/invoices/${inv.id}` : "/financial/invoices",
-        debit: !isPayable ? Number(p.amount) || 0 : 0,
-        credit: isPayable ? Number(p.amount) || 0 : 0,
-        jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
-      });
-    }
+  for (const p of pmts) {
+    const je = pmtJeMap.get(`payment:${p.id}`);
+    if (je) coveredJeIds.add(je.id);
+    const inv = invoiceMap.get(p.invoice_id);
+    const isPayable = inv?.invoice_type === "payable";
+    txns.push({
+      id: `pmt-${p.id}`,
+      date: p.payment_date,
+      description: `Payment on ${inv?.invoice_number ?? "Invoice"}`,
+      reference: p.reference_number ?? "",
+      source: "Payments",
+      sourceHref: inv ? `/financial/invoices/${inv.id}` : "/financial/invoices",
+      debit: !isPayable ? Number(p.amount) || 0 : 0,
+      credit: isPayable ? Number(p.amount) || 0 : 0,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null,
+    });
   }
 
   // Pre-populate coveredJeIds with maintenance + rent payment JEs before the JE lines loop
-  for (const m of maintenance ?? []) {
+  for (const m of maintenance) {
     const je = maintJeMap.get(`maintenance:${m.id}`);
     if (je) coveredJeIds.add(je.id);
   }
-  for (const rp of rentPayments ?? []) {
+  for (const rp of rentPayments) {
     const je = rentPaymentJeMap.get(`rent_payment:${rp.id}`);
     if (je) coveredJeIds.add(je.id);
   }
 
   // Standalone JE lines (only those NOT already covered by invoices/payments/maintenance/rent)
-  for (const line of (jeLines ?? []) as JELineRow[]) {
+  for (const line of jeLines as JELineRow[]) {
     const je = line.journal_entries as unknown as {
       id: string; entry_number: string; entry_date: string;
       description: string; reference: string | null; status: string;
@@ -485,7 +467,7 @@ export async function getPropertyTransactions(
     (scheduleJeResult.data ?? []).map((j) => [j.id, j.entry_number])
   );
 
-  for (const row of scheduleRows ?? []) {
+  for (const row of scheduleRows) {
     const lease = row.leases as unknown as { tenant_name: string; units: { unit_number: string } | null } | null;
     const tenantName = lease?.tenant_name ?? "Tenant";
     const unitNumber = lease?.units?.unit_number ?? "N/A";
@@ -512,8 +494,8 @@ export async function getPropertyTransactions(
   }
 
   // Leases without schedule rows — expect JEs for active/renewed leases (backfill generates them)
-  const scheduledLeaseIds = new Set((scheduleRows ?? []).map((r) => r.lease_id));
-  for (const lease of leases ?? []) {
+  const scheduledLeaseIds = new Set(scheduleRows.map((r) => r.lease_id));
+  for (const lease of leases) {
     if (scheduledLeaseIds.has(lease.id)) continue;
     const rent = Number(lease.monthly_rent) || 0;
     const deposit = Number(lease.security_deposit) || 0;
@@ -542,7 +524,7 @@ export async function getPropertyTransactions(
   }
 
   // Process maintenance requests — look up existing JEs by reference
-  for (const m of maintenance ?? []) {
+  for (const m of maintenance) {
     const cost = Number(m.actual_cost) || Number(m.estimated_cost) || 0;
     if (cost <= 0) continue;
     const je = maintJeMap.get(`maintenance:${m.id}`);
@@ -557,7 +539,7 @@ export async function getPropertyTransactions(
   }
 
   // Process rent payments — show as explicit "Rent Payment" source
-  for (const rp of rentPayments ?? []) {
+  for (const rp of rentPayments) {
     const amount = Number(rp.amount) || 0;
     if (amount <= 0) continue;
     const je = rentPaymentJeMap.get(`rent_payment:${rp.id}`);
@@ -595,14 +577,13 @@ export async function getFinancialTransactions(
 ): Promise<SectionTransactionSummary> {
   const txns: SectionTransaction[] = [];
 
-  const { data: jeLines } = await supabase
-    .from("journal_entry_lines")
-    .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-    .eq("company_id", companyId)
-    .order("created_at", { ascending: false })
-    .limit(500);
+  const allJeLines = await paginatedQuery<{ id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }>((from, to) =>
+    supabase.from("journal_entry_lines")
+      .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+      .eq("company_id", companyId)
+      .order("created_at", { ascending: false }).range(from, to));
 
-  for (const line of (jeLines ?? []) as JELineRow[]) {
+  for (const line of allJeLines as JELineRow[]) {
     const txn = mapJELine(line);
     if (txn) txns.push(txn);
   }
@@ -621,51 +602,56 @@ export async function getPeopleTransactions(
   const txns: SectionTransaction[] = [];
 
   // Phase 1: All independent queries in parallel
-  const [payrollAccountsRes, payrollJEsRes, payrollRunsRes, contractorInvoicesRes] = await Promise.all([
-    supabase.from("chart_of_accounts").select("id")
-      .eq("company_id", companyId).eq("is_active", true)
-      .or("name.ilike.%payroll%,name.ilike.%salary%,name.ilike.%wage%,name.ilike.%fica%,name.ilike.%futa%,name.ilike.%suta%"),
-    supabase.from("journal_entries").select("id, entry_number, entry_date, description, reference, status")
-      .eq("company_id", companyId).eq("status", "posted")
-      .or("reference.like.payroll_run:%,reference.like.payroll:%,reference.like.labor:%").limit(500),
-    supabase.from("payroll_runs").select("id, period_start, period_end, pay_date, status, total_gross, total_net, total_employer_taxes, employee_count")
-      .eq("company_id", companyId).in("status", ["approved", "paid"])
-      .order("pay_date", { ascending: false }).limit(100),
-    supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
-      .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
-      .order("invoice_date", { ascending: false }).limit(200),
+  const [payrollAccounts, payrollJEs, payrollRuns, contractorInvoices] = await Promise.all([
+    paginatedQuery<{ id: string }>((from, to) =>
+      supabase.from("chart_of_accounts").select("id")
+        .eq("company_id", companyId).eq("is_active", true)
+        .or("name.ilike.%payroll%,name.ilike.%salary%,name.ilike.%wage%,name.ilike.%fica%,name.ilike.%futa%,name.ilike.%suta%")
+        .range(from, to)),
+    paginatedQuery<{ id: string; entry_number: string; entry_date: string; description: string; reference: string | null; status: string }>((from, to) =>
+      supabase.from("journal_entries").select("id, entry_number, entry_date, description, reference, status")
+        .eq("company_id", companyId).eq("status", "posted")
+        .or("reference.like.payroll_run:%,reference.like.payroll:%,reference.like.labor:%").range(from, to)),
+    paginatedQuery<{ id: string; period_start: string; period_end: string; pay_date: string | null; status: string; total_gross: number; total_net: number; total_employer_taxes: number; employee_count: number }>((from, to) =>
+      supabase.from("payroll_runs").select("id, period_start, period_end, pay_date, status, total_gross, total_net, total_employer_taxes, employee_count")
+        .eq("company_id", companyId).in("status", ["approved", "paid"])
+        .order("pay_date", { ascending: false }).range(from, to)),
+    paginatedQuery<{ id: string; invoice_number: string; invoice_date: string; total_amount: number; vendor_name: string | null; status: string }>((from, to) =>
+      supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
+        .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
+        .order("invoice_date", { ascending: false }).range(from, to)),
   ]);
 
-  const payrollAcctIds = (payrollAccountsRes.data ?? []).map((a) => a.id);
-  const payrollJeIds = (payrollJEsRes.data ?? []).map((j) => j.id);
-  const payrollRuns = payrollRunsRes.data ?? [];
-  const contractorInvoices = contractorInvoicesRes.data ?? [];
+  const payrollAcctIds = payrollAccounts.map((a) => a.id);
+  const payrollJeIds = payrollJEs.map((j) => j.id);
 
   // Phase 2: Dependent queries in parallel
-  const [jeLinesRes, prLinesRes, prJeMap, invJeMap] = await Promise.all([
+  const [jeLinesByAcct, jeLinesByRef, prJeMap, invJeMap] = await Promise.all([
     payrollAcctIds.length > 0
-      ? supabase.from("journal_entry_lines")
-          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-          .eq("company_id", companyId).in("account_id", payrollAcctIds).limit(500)
-      : Promise.resolve({ data: null }),
+      ? paginatedQuery<{ id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }>((from, to) =>
+          supabase.from("journal_entry_lines")
+            .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+            .eq("company_id", companyId).in("account_id", payrollAcctIds).range(from, to))
+      : Promise.resolve([] as { id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }[]),
     payrollJeIds.length > 0
-      ? supabase.from("journal_entry_lines")
-          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-          .eq("company_id", companyId).in("journal_entry_id", payrollJeIds).limit(500)
-      : Promise.resolve({ data: null }),
+      ? paginatedQuery<{ id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }>((from, to) =>
+          supabase.from("journal_entry_lines")
+            .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+            .eq("company_id", companyId).in("journal_entry_id", payrollJeIds).range(from, to))
+      : Promise.resolve([] as { id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }[]),
     getJEMap(supabase, companyId, payrollRuns.map((r) => `payroll_run:${r.id}`)),
     getJEMap(supabase, companyId, contractorInvoices.map((i) => `invoice:${i.id}`)),
   ]);
 
   // Process payroll account JE lines
-  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
+  for (const line of jeLinesByAcct as JELineRow[]) {
     const txn = mapJELine(line);
     if (txn) txns.push(txn);
   }
 
   // Process payroll reference JE lines (dedup against account lines)
   const seenJeLineIds = new Set(txns.map((t) => t.id));
-  for (const line of (prLinesRes.data ?? []) as JELineRow[]) {
+  for (const line of jeLinesByRef as JELineRow[]) {
     const lineId = `jel-${line.id}`;
     if (seenJeLineIds.has(lineId)) continue;
     const txn = mapJELine(line);
@@ -717,26 +703,28 @@ export async function getEquipmentTransactions(
   const txns: SectionTransaction[] = [];
 
   // Phase 1: All independent queries in parallel
-  const [fixedAssetAccountsRes, equipmentRes, maintLogsRes, equipInvoicesRes] = await Promise.all([
-    supabase.from("chart_of_accounts").select("id")
-      .eq("company_id", companyId).eq("is_active", true)
-      .or("sub_type.eq.fixed_asset,name.ilike.%equipment%,name.ilike.%depreciation%"),
-    supabase.from("equipment").select("id, name, purchase_cost, hourly_rate, status, purchase_date")
-      .eq("company_id", companyId).not("purchase_cost", "is", null).gt("purchase_cost", 0)
-      .order("purchase_date", { ascending: false }).limit(100),
-    supabase.from("equipment_maintenance_logs").select("id, description, cost, maintenance_date, equipment_id, equipment(name)")
-      .eq("company_id", companyId).not("cost", "is", null).gt("cost", 0)
-      .order("maintenance_date", { ascending: false }).limit(100),
-    supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
-      .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
-      .or("notes.ilike.%equipment%,notes.ilike.%maintenance%,notes.ilike.%repair%,notes.ilike.%rental%")
-      .order("invoice_date", { ascending: false }).limit(100),
+  const [fixedAssetAccounts, equipment, maintLogs, equipInvoices] = await Promise.all([
+    paginatedQuery<{ id: string }>((from, to) =>
+      supabase.from("chart_of_accounts").select("id")
+        .eq("company_id", companyId).eq("is_active", true)
+        .or("sub_type.eq.fixed_asset,name.ilike.%equipment%,name.ilike.%depreciation%")
+        .range(from, to)),
+    paginatedQuery<{ id: string; name: string; purchase_cost: number; hourly_rate: number | null; status: string; purchase_date: string | null }>((from, to) =>
+      supabase.from("equipment").select("id, name, purchase_cost, hourly_rate, status, purchase_date")
+        .eq("company_id", companyId).not("purchase_cost", "is", null).gt("purchase_cost", 0)
+        .order("purchase_date", { ascending: false }).range(from, to)),
+    paginatedQuery<{ id: string; description: string | null; cost: number; maintenance_date: string; equipment_id: string; equipment: unknown }>((from, to) =>
+      supabase.from("equipment_maintenance_logs").select("id, description, cost, maintenance_date, equipment_id, equipment(name)")
+        .eq("company_id", companyId).not("cost", "is", null).gt("cost", 0)
+        .order("maintenance_date", { ascending: false }).range(from, to)),
+    paginatedQuery<{ id: string; invoice_number: string; invoice_date: string; total_amount: number; vendor_name: string | null; status: string }>((from, to) =>
+      supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
+        .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
+        .or("notes.ilike.%equipment%,notes.ilike.%maintenance%,notes.ilike.%repair%,notes.ilike.%rental%")
+        .order("invoice_date", { ascending: false }).range(from, to)),
   ]);
 
-  const accountIds = (fixedAssetAccountsRes.data ?? []).map((a) => a.id);
-  const equipment = equipmentRes.data ?? [];
-  const maintLogs = maintLogsRes.data ?? [];
-  const equipInvoices = equipInvoicesRes.data ?? [];
+  const accountIds = fixedAssetAccounts.map((a) => a.id);
 
   // Build all JE reference keys for batch lookup
   const allJeRefs = [
@@ -746,17 +734,18 @@ export async function getEquipmentTransactions(
   ];
 
   // Phase 2: Dependent queries in parallel
-  const [jeLinesRes, jeMap] = await Promise.all([
+  const [equipJeLines, jeMap] = await Promise.all([
     accountIds.length > 0
-      ? supabase.from("journal_entry_lines")
-          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-          .eq("company_id", companyId).in("account_id", accountIds).limit(500)
-      : Promise.resolve({ data: null }),
+      ? paginatedQuery<{ id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }>((from, to) =>
+          supabase.from("journal_entry_lines")
+            .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+            .eq("company_id", companyId).in("account_id", accountIds).range(from, to))
+      : Promise.resolve([] as { id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }[]),
     getJEMap(supabase, companyId, allJeRefs),
   ]);
 
   // Process JE lines
-  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
+  for (const line of equipJeLines as JELineRow[]) {
     const txn = mapJELine(line);
     if (txn) txns.push(txn);
   }
@@ -817,30 +806,33 @@ export async function getSafetyTransactions(
   const txns: SectionTransaction[] = [];
 
   // Phase 1: Independent queries in parallel
-  const [safetyAccountsRes, invoicesRes] = await Promise.all([
-    supabase.from("chart_of_accounts").select("id")
-      .eq("company_id", companyId).eq("is_active", true)
-      .or("name.ilike.%safety%,name.ilike.%training%,name.ilike.%ppe%,name.ilike.%osha%,name.ilike.%insurance%"),
-    supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
-      .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
-      .or("notes.ilike.%safety%,notes.ilike.%training%,notes.ilike.%ppe%,notes.ilike.%osha%,notes.ilike.%inspection%")
-      .order("invoice_date", { ascending: false }).limit(100),
+  const [safetyAccounts, invoices] = await Promise.all([
+    paginatedQuery<{ id: string }>((from, to) =>
+      supabase.from("chart_of_accounts").select("id")
+        .eq("company_id", companyId).eq("is_active", true)
+        .or("name.ilike.%safety%,name.ilike.%training%,name.ilike.%ppe%,name.ilike.%osha%,name.ilike.%insurance%")
+        .range(from, to)),
+    paginatedQuery<{ id: string; invoice_number: string; invoice_date: string; total_amount: number; vendor_name: string | null; status: string }>((from, to) =>
+      supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
+        .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
+        .or("notes.ilike.%safety%,notes.ilike.%training%,notes.ilike.%ppe%,notes.ilike.%osha%,notes.ilike.%inspection%")
+        .order("invoice_date", { ascending: false }).range(from, to)),
   ]);
 
-  const safetyAcctIds = (safetyAccountsRes.data ?? []).map((a) => a.id);
-  const invoices = invoicesRes.data ?? [];
+  const safetyAcctIds = safetyAccounts.map((a) => a.id);
 
   // Phase 2: Dependent queries in parallel
-  const [jeLinesRes, jeMap] = await Promise.all([
+  const [safetyJeLines, jeMap] = await Promise.all([
     safetyAcctIds.length > 0
-      ? supabase.from("journal_entry_lines")
-          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-          .eq("company_id", companyId).in("account_id", safetyAcctIds).limit(500)
-      : Promise.resolve({ data: null }),
+      ? paginatedQuery<{ id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }>((from, to) =>
+          supabase.from("journal_entry_lines")
+            .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+            .eq("company_id", companyId).in("account_id", safetyAcctIds).range(from, to))
+      : Promise.resolve([] as { id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }[]),
     getJEMap(supabase, companyId, invoices.map((i) => `invoice:${i.id}`)),
   ]);
 
-  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
+  for (const line of safetyJeLines as JELineRow[]) {
     const txn = mapJELine(line);
     if (txn) txns.push(txn);
   }
@@ -872,30 +864,33 @@ export async function getDocumentTransactions(
   const txns: SectionTransaction[] = [];
 
   // Phase 1: Independent queries in parallel
-  const [docAccountsRes, invoicesRes] = await Promise.all([
-    supabase.from("chart_of_accounts").select("id")
-      .eq("company_id", companyId).eq("is_active", true)
-      .or("name.ilike.%printing%,name.ilike.%document%,name.ilike.%blueprint%,name.ilike.%office supplies%"),
-    supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
-      .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
-      .or("notes.ilike.%printing%,notes.ilike.%document%,notes.ilike.%blueprint%,notes.ilike.%scanning%,notes.ilike.%storage%")
-      .order("invoice_date", { ascending: false }).limit(100),
+  const [docAccounts, invoices] = await Promise.all([
+    paginatedQuery<{ id: string }>((from, to) =>
+      supabase.from("chart_of_accounts").select("id")
+        .eq("company_id", companyId).eq("is_active", true)
+        .or("name.ilike.%printing%,name.ilike.%document%,name.ilike.%blueprint%,name.ilike.%office supplies%")
+        .range(from, to)),
+    paginatedQuery<{ id: string; invoice_number: string; invoice_date: string; total_amount: number; vendor_name: string | null; status: string }>((from, to) =>
+      supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
+        .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
+        .or("notes.ilike.%printing%,notes.ilike.%document%,notes.ilike.%blueprint%,notes.ilike.%scanning%,notes.ilike.%storage%")
+        .order("invoice_date", { ascending: false }).range(from, to)),
   ]);
 
-  const docAcctIds = (docAccountsRes.data ?? []).map((a) => a.id);
-  const invoices = invoicesRes.data ?? [];
+  const docAcctIds = docAccounts.map((a) => a.id);
 
   // Phase 2: Dependent queries in parallel
-  const [jeLinesRes, jeMap] = await Promise.all([
+  const [docJeLines, jeMap] = await Promise.all([
     docAcctIds.length > 0
-      ? supabase.from("journal_entry_lines")
-          .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-          .eq("company_id", companyId).in("account_id", docAcctIds).limit(500)
-      : Promise.resolve({ data: null }),
+      ? paginatedQuery<{ id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }>((from, to) =>
+          supabase.from("journal_entry_lines")
+            .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+            .eq("company_id", companyId).in("account_id", docAcctIds).range(from, to))
+      : Promise.resolve([] as { id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }[]),
     getJEMap(supabase, companyId, invoices.map((i) => `invoice:${i.id}`)),
   ]);
 
-  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
+  for (const line of docJeLines as JELineRow[]) {
     const txn = mapJELine(line);
     if (txn) txns.push(txn);
   }
@@ -930,23 +925,23 @@ export async function getCRMTransactions(
   // Won opportunities and bids are informational forecasts, not GL entries.
 
   // Phase 1: Both independent queries in parallel
-  const [jeLinesRes, clientInvoicesRes] = await Promise.all([
-    supabase.from("journal_entry_lines")
-      .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
-      .eq("company_id", companyId).limit(500),
-    supabase.from("invoices")
-      .select("id, invoice_number, invoice_date, total_amount, client_name, status")
-      .eq("company_id", companyId).eq("invoice_type", "receivable").neq("status", "voided")
-      .order("invoice_date", { ascending: false }).limit(100),
+  const [crmJeLines, clientInvoices] = await Promise.all([
+    paginatedQuery<{ id: string; debit: number | null; credit: number | null; description: string | null; journal_entries: unknown }>((from, to) =>
+      supabase.from("journal_entry_lines")
+        .select("id, debit, credit, description, journal_entries(id, entry_number, entry_date, description, reference, status)")
+        .eq("company_id", companyId).range(from, to)),
+    paginatedQuery<{ id: string; invoice_number: string; invoice_date: string; total_amount: number; client_name: string | null; status: string }>((from, to) =>
+      supabase.from("invoices")
+        .select("id, invoice_number, invoice_date, total_amount, client_name, status")
+        .eq("company_id", companyId).eq("invoice_type", "receivable").neq("status", "voided")
+        .order("invoice_date", { ascending: false }).range(from, to)),
   ]);
-
-  const clientInvoices = clientInvoicesRes.data ?? [];
 
   // Phase 2: JE map lookup (depends on invoices result)
   const invJeMap = await getJEMap(supabase, companyId, clientInvoices.map((i) => `invoice:${i.id}`));
 
   // Process JE lines — filter to only invoice JEs
-  for (const line of (jeLinesRes.data ?? []) as JELineRow[]) {
+  for (const line of crmJeLines as JELineRow[]) {
     const je = line.journal_entries as unknown as JEParsed | null;
     if (!je || je.status !== "posted") continue;
     const ref = je.reference ?? "";

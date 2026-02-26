@@ -302,6 +302,7 @@ export async function generateInvoiceJournalEntry(
         credit: 0,
         description,
         project_id: invoice.project_id ?? undefined,
+        property_id: invoice.property_id ?? undefined,
       });
     }
 
@@ -313,6 +314,7 @@ export async function generateInvoiceJournalEntry(
         credit: 0,
         description: `Retainage on ${invoice.invoice_number}`,
         project_id: invoice.project_id ?? undefined,
+        property_id: invoice.property_id ?? undefined,
       });
     }
 
@@ -323,6 +325,7 @@ export async function generateInvoiceJournalEntry(
       credit: subtotal,
       description,
       project_id: invoice.project_id ?? undefined,
+      property_id: invoice.property_id ?? undefined,
     });
 
     // CR: Sales Tax Payable (if tax > 0)
@@ -333,6 +336,7 @@ export async function generateInvoiceJournalEntry(
         credit: taxAmount,
         description: `Sales tax on ${invoice.invoice_number}`,
         project_id: invoice.project_id ?? undefined,
+        property_id: invoice.property_id ?? undefined,
       });
     } else if (taxAmount > 0) {
       // No Sales Tax Payable account found — include tax in revenue to keep books balanced.
@@ -365,6 +369,7 @@ export async function generateInvoiceJournalEntry(
       credit: 0,
       description,
       project_id: invoice.project_id ?? undefined,
+      property_id: invoice.property_id ?? undefined,
     });
 
     // DR: Sales Tax Receivable (if tax > 0 and account exists)
@@ -375,6 +380,7 @@ export async function generateInvoiceJournalEntry(
         credit: 0,
         description: `Input tax on ${invoice.invoice_number}`,
         project_id: invoice.project_id ?? undefined,
+        property_id: invoice.property_id ?? undefined,
       });
     } else if (taxAmount > 0) {
       // No tax receivable account — expense the tax (common for construction)
@@ -390,6 +396,7 @@ export async function generateInvoiceJournalEntry(
         credit: apAmount,
         description,
         project_id: invoice.project_id ?? undefined,
+        property_id: invoice.property_id ?? undefined,
       });
     }
 
@@ -401,6 +408,7 @@ export async function generateInvoiceJournalEntry(
         credit: retainageHeld,
         description: `Retainage on ${invoice.invoice_number}`,
         project_id: invoice.project_id ?? undefined,
+        property_id: invoice.property_id ?? undefined,
       });
     }
   }
@@ -442,6 +450,7 @@ export async function generatePaymentJournalEntry(
     invoice_number: string;
     invoice_type: "payable" | "receivable";
     project_id?: string | null;
+    property_id?: string | null;
     vendor_name?: string | null;
     client_name?: string | null;
   },
@@ -498,6 +507,7 @@ export async function generatePaymentJournalEntry(
         credit: 0,
         description,
         project_id: invoice.project_id ?? undefined,
+        property_id: invoice.property_id ?? undefined,
       },
       {
         account_id: creditAccountId,
@@ -505,6 +515,7 @@ export async function generatePaymentJournalEntry(
         credit: payment.amount,
         description,
         project_id: invoice.project_id ?? undefined,
+        property_id: invoice.property_id ?? undefined,
       },
     ],
   };

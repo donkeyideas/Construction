@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
           invoice_date: data.invoice_date,
           status: data.status,
           project_id: data.project_id,
+          property_id: data.property_id,
           vendor_name: data.vendor_name,
           client_name: data.client_name,
           gl_account_id: data.gl_account_id,

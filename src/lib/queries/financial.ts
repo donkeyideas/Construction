@@ -695,52 +695,54 @@ export async function getMonthlyIncomeExpenses(
   companyId: string
 ): Promise<MonthlyFinancial[]> {
   const now = new Date();
-  const months: MonthlyFinancial[] = [];
+  // Compute date range: 6 months ago to today
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const startISO = sixMonthsAgo.toISOString();
 
+  // Fetch ALL invoices for the 6-month window in just 2 parallel queries (was 12 sequential)
+  const [incomeRes, expenseRes] = await Promise.all([
+    supabase
+      .from("invoices")
+      .select("total_amount, invoice_date")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "receivable")
+      .neq("status", "voided")
+      .gte("invoice_date", startISO),
+    supabase
+      .from("invoices")
+      .select("total_amount, invoice_date")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "payable")
+      .neq("status", "voided")
+      .gte("invoice_date", startISO),
+  ]);
+
+  // Group by month in JS
+  const incomeByMonth = new Map<string, number>();
+  const expenseByMonth = new Map<string, number>();
+
+  for (const row of incomeRes.data ?? []) {
+    const d = new Date(row.invoice_date);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    incomeByMonth.set(key, (incomeByMonth.get(key) ?? 0) + (Number(row.total_amount) || 0));
+  }
+  for (const row of expenseRes.data ?? []) {
+    const d = new Date(row.invoice_date);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    expenseByMonth.set(key, (expenseByMonth.get(key) ?? 0) + (Number(row.total_amount) || 0));
+  }
+
+  // Build the 6-month result array
+  const months: MonthlyFinancial[] = [];
   for (let i = 5; i >= 0; i--) {
     const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
     const label = monthDate.toLocaleDateString("en-US", { month: "short" });
-
+    const key = `${monthDate.getFullYear()}-${monthDate.getMonth()}`;
     months.push({
       month: label,
-      income: 0,
-      expenses: 0,
+      income: incomeByMonth.get(key) ?? 0,
+      expenses: expenseByMonth.get(key) ?? 0,
     });
-
-    const startISO = monthDate.toISOString();
-    const endISO = monthEnd.toISOString();
-
-    const [incomeRes, expenseRes] = await Promise.all([
-      supabase
-        .from("invoices")
-        .select("total_amount")
-        .eq("company_id", companyId)
-        .eq("invoice_type", "receivable")
-        .neq("status", "voided")
-        .gte("invoice_date", startISO)
-        .lte("invoice_date", endISO),
-      supabase
-        .from("invoices")
-        .select("total_amount")
-        .eq("company_id", companyId)
-        .eq("invoice_type", "payable")
-        .neq("status", "voided")
-        .gte("invoice_date", startISO)
-        .lte("invoice_date", endISO),
-    ]);
-
-    const income = (incomeRes.data ?? []).reduce(
-      (sum: number, r: { total_amount: number }) => sum + (r.total_amount ?? 0),
-      0
-    );
-    const expenses = (expenseRes.data ?? []).reduce(
-      (sum: number, r: { total_amount: number }) => sum + (r.total_amount ?? 0),
-      0
-    );
-
-    months[months.length - 1].income = income;
-    months[months.length - 1].expenses = expenses;
   }
 
   return months;
