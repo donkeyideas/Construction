@@ -181,17 +181,16 @@ export default async function LaborPage({
      Process activity data (from clock_events)
      ---------------------------------------------------------------- */
   const clockEvents = clockEventsRes.data ?? [];
-  const employees = employeeContacts.filter((e) => e.user_id);
 
+  // Include ALL employee contacts — those without user accounts show as "no_activity"
   const employeeMap: Record<string, { name: string; email: string; jobTitle: string }> = {};
-  for (const emp of employees) {
-    if (emp.user_id) {
-      employeeMap[emp.user_id] = {
-        name: `${emp.first_name ?? ""} ${emp.last_name ?? ""}`.trim() || emp.email || "Unknown",
-        email: emp.email || "",
-        jobTitle: emp.job_title || "",
-      };
-    }
+  for (const emp of employeeContacts) {
+    const key = emp.user_id || `contact:${emp.id}`;
+    employeeMap[key] = {
+      name: `${emp.first_name ?? ""} ${emp.last_name ?? ""}`.trim() || emp.email || "Unknown",
+      email: emp.email || "",
+      jobTitle: emp.job_title || "",
+    };
   }
 
   type ActivityClockEvent = {
@@ -336,7 +335,7 @@ export default async function LaborPage({
   const overview = {
     pendingHours: Math.round(pendingHours * 10) / 10,
     approvedHours: Math.round(approvedHours * 10) / 10,
-    activeEmployees: employees.length,
+    activeEmployees: employeeContacts.length,
     totalLaborCost: Math.round(totalLaborCost * 100) / 100,
   };
 

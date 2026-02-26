@@ -584,7 +584,6 @@ export async function getSafetyOverview(
   companyId: string
 ): Promise<SafetyOverviewData> {
   const now = new Date();
-  const yearStart = `${now.getFullYear()}-01-01`;
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
   // 12-month lookback for the trend chart (not just YTD)
   const trendStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);

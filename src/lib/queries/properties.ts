@@ -239,7 +239,7 @@ export async function getProperties(
       prop.occupied_units = occupiedCount;
       prop.occupancy_rate = occupancyRate;
       prop.monthly_revenue = monthlyRevenue;
-      prop.noi = monthlyRevenue;
+      prop.noi = monthlyRevenue - (prop.monthly_expenses ?? 0);
     }
   }
 
