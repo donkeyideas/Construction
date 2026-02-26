@@ -178,7 +178,7 @@ export default async function HomePage() {
             <li><a href="#pricing">Pricing</a></li>
             <li><a href="#faq">FAQ</a></li>
             <li><Link href="/login">Sign In</Link></li>
-            <li><Link href="/register" className="hp-nav-cta">Start Free Trial</Link></li>
+            <li><Link href="/beta" className="hp-nav-cta">Join Beta</Link></li>
           </ul>
         </div>
       </nav>
@@ -218,7 +218,7 @@ export default async function HomePage() {
               <li><a href="#modules">Features</a></li>
               <li><a href="#pricing">Pricing</a></li>
               <li><a href="#faq">FAQ</a></li>
-              <li><Link href="/register">Start Free Trial</Link></li>
+              <li><Link href="/beta">Founding Member Program</Link></li>
             </ul>
           </div>
           <div>

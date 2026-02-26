@@ -133,6 +133,7 @@ export async function middleware(request: NextRequest) {
     "/register",
     "/forgot-password",
     "/maintenance",
+    "/beta",
   ];
   const isPublicRoute =
     publicRoutes.some((route) => pathname === route) ||
@@ -142,7 +143,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/locale") ||
     pathname.startsWith("/api/stripe/webhook") ||
     pathname.startsWith("/api/payments/webhook") ||
-    pathname.startsWith("/api/contact");
+    pathname.startsWith("/api/contact") ||
+    pathname.startsWith("/api/beta");
 
   // ─── Platform flags: maintenance mode + registration gate ───
   const flags = await getPlatformFlags();

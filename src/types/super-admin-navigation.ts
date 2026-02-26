@@ -17,6 +17,11 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
     icon: "layout-dashboard",
   },
   {
+    label: "betaApplications",
+    href: "/super-admin/beta-applications",
+    icon: "rocket",
+  },
+  {
     label: "companies",
     href: "/super-admin/companies",
     icon: "building-2",
