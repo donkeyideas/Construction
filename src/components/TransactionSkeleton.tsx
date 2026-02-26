@@ -21,7 +21,7 @@ export default function TransactionSkeleton() {
 
       {/* Table Skeleton */}
       <div className="card" style={{ padding: 0 }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--color-border, #e7e5e4)" }}>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--color-border)" }}>
           <span className="skel-line" style={{ width: 180, height: 16 }} />
         </div>
         <div style={{ overflowX: "auto" }}>
@@ -57,7 +57,7 @@ export default function TransactionSkeleton() {
       <style>{`
         .skel-line {
           display: inline-block;
-          background: linear-gradient(90deg, var(--color-border, #e7e5e4) 25%, #f5f5f4 50%, var(--color-border, #e7e5e4) 75%);
+          background: linear-gradient(90deg, var(--color-border, #e7e5e4) 25%, var(--color-surface, #f5f5f4) 50%, var(--color-border, #e7e5e4) 75%);
           background-size: 200% 100%;
           animation: skel-shimmer 1.5s ease-in-out infinite;
           border-radius: 4px;

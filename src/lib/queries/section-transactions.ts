@@ -54,16 +54,21 @@ async function getJEMap(
   const map = new Map<string, { id: string; entry_number: string }>();
   if (references.length === 0) return map;
 
-  const { data } = await supabase
-    .from("journal_entries")
-    .select("id, entry_number, reference")
-    .eq("company_id", companyId)
-    .eq("status", "posted")
-    .in("reference", references);
+  // Chunk .in() queries at 300 to avoid URL length limits
+  const CHUNK = 300;
+  for (let i = 0; i < references.length; i += CHUNK) {
+    const chunk = references.slice(i, i + CHUNK);
+    const { data } = await supabase
+      .from("journal_entries")
+      .select("id, entry_number, reference")
+      .eq("company_id", companyId)
+      .eq("status", "posted")
+      .in("reference", chunk);
 
-  for (const je of data ?? []) {
-    if (je.reference) {
-      map.set(je.reference, { id: je.id, entry_number: je.entry_number });
+    for (const je of data ?? []) {
+      if (je.reference) {
+        map.set(je.reference, { id: je.id, entry_number: je.entry_number });
+      }
     }
   }
   return map;
@@ -367,7 +372,7 @@ export async function getPropertyTransactions(
   const invoiceIds = invoices.map((i) => i.id);
   const maintRefs = maintenance.filter((m) => (Number(m.actual_cost) || Number(m.estimated_cost) || 0) > 0).map((m) => `maintenance:${m.id}`);
   const rentPaymentRefs = rentPayments.map((rp) => `rent_payment:${rp.id}`);
-  const pmtRefs = invoiceIds.length > 0 ? invoiceIds.map((id) => `payment_placeholder:${id}`) : [];
+  const leaseRefs = leases.map((l) => `lease:${l.id}`);
 
   // Collect JE IDs from schedule rows
   const scheduleJeIds = new Set<string>();
@@ -379,7 +384,7 @@ export async function getPropertyTransactions(
   const jeIdArray = Array.from(scheduleJeIds);
 
   // Run dependent queries in parallel — including payments + their JE map
-  const [invJeMap, pmts, scheduleJeResult, maintJeMap, rentPaymentJeMap] = await Promise.all([
+  const [invJeMap, pmts, scheduleJeResult, maintJeMap, rentPaymentJeMap, leaseJeMap] = await Promise.all([
     getJEMap(supabase, companyId, invRefs),
     invoiceIds.length > 0
       ? paginatedQuery<{ id: string; invoice_id: string; amount: number; payment_date: string; reference_number: string | null }>((from, to) =>
@@ -387,10 +392,20 @@ export async function getPropertyTransactions(
             .in("invoice_id", invoiceIds).order("payment_date", { ascending: false }).range(from, to))
       : Promise.resolve([] as { id: string; invoice_id: string; amount: number; payment_date: string; reference_number: string | null }[]),
     jeIdArray.length > 0
-      ? supabase.from("journal_entries").select("id, entry_number").in("id", jeIdArray)
+      ? (async () => {
+          const CHUNK = 300;
+          const all: { id: string; entry_number: string }[] = [];
+          for (let i = 0; i < jeIdArray.length; i += CHUNK) {
+            const chunk = jeIdArray.slice(i, i + CHUNK);
+            const { data } = await supabase.from("journal_entries").select("id, entry_number").in("id", chunk);
+            if (data) all.push(...data);
+          }
+          return { data: all };
+        })()
       : Promise.resolve({ data: null }),
     getJEMap(supabase, companyId, maintRefs),
     getJEMap(supabase, companyId, rentPaymentRefs),
+    getJEMap(supabase, companyId, leaseRefs),
   ]);
 
   // Track JE IDs already represented by source entities (invoices/payments/maintenance/rent)
@@ -493,7 +508,7 @@ export async function getPropertyTransactions(
     });
   }
 
-  // Leases without schedule rows — expect JEs for active/renewed leases (backfill generates them)
+  // Leases without schedule rows — look up JEs created by backfill (reference = "lease:{id}")
   const scheduledLeaseIds = new Set(scheduleRows.map((r) => r.lease_id));
   for (const lease of leases) {
     if (scheduledLeaseIds.has(lease.id)) continue;
@@ -501,14 +516,16 @@ export async function getPropertyTransactions(
     const deposit = Number(lease.security_deposit) || 0;
     const unitNum = (lease.units as unknown as { unit_number: string } | null)?.unit_number ?? "N/A";
     const isActive = ["active", "renewed"].includes(lease.status);
+    const je = leaseJeMap.get(`lease:${lease.id}`);
+    if (je) coveredJeIds.add(je.id);
     if (rent > 0) {
       txns.push({
         id: `lease-rent-${lease.id}`,
         date: lease.lease_start ?? new Date().toISOString().split("T")[0],
         description: `[Pending] ${lease.tenant_name ?? "Tenant"} (Unit ${unitNum}) — Monthly Rent`,
-        reference: "", source: "Leases", sourceHref: "/properties/leases",
+        reference: je?.entry_number ?? "", source: "Leases", sourceHref: "/properties/leases",
         debit: 0, credit: rent,
-        jeNumber: null, jeId: null, jeExpected: isActive,
+        jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null, jeExpected: isActive,
       });
     }
     if (deposit > 0) {
@@ -516,9 +533,9 @@ export async function getPropertyTransactions(
         id: `lease-dep-${lease.id}`,
         date: lease.lease_start ?? new Date().toISOString().split("T")[0],
         description: `${lease.tenant_name ?? "Tenant"} (Unit ${unitNum}) — Security Deposit`,
-        reference: "", source: "Leases", sourceHref: "/properties/leases",
-        debit: 0, credit: deposit,
-        jeNumber: null, jeId: null, jeExpected: isActive,
+        reference: je?.entry_number ?? "", source: "Leases", sourceHref: "/properties/leases",
+        debit: deposit, credit: 0,
+        jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null, jeExpected: isActive,
       });
     }
   }
