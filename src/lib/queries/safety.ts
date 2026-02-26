@@ -595,7 +595,6 @@ export async function getSafetyOverview(
       .from("safety_incidents")
       .select("id, incident_type, severity, status, incident_date, osha_recordable, title, incident_number, project_id, reported_by, assigned_to")
       .eq("company_id", companyId)
-      .gte("incident_date", trendStartStr)
       .order("incident_date", { ascending: false }),
     supabase
       .from("toolbox_talks")
@@ -652,10 +651,9 @@ export async function getSafetyOverview(
   })) as unknown as ToolboxTalkRow[];
   const latestIncident = allIncidentsRes.data?.[0];
 
-  // YTD = only incidents from Jan 1 of current year
-  const ytdIncidents = incidents.filter((i) => i.incident_date >= yearStart);
-  const incidentsYTD = ytdIncidents.length;
-  const oshaRecordableCount = ytdIncidents.filter((i) => i.osha_recordable).length;
+  // Count all incidents (not just YTD — matches Dashboard behaviour)
+  const incidentsYTD = incidents.length;
+  const oshaRecordableCount = incidents.filter((i) => i.osha_recordable).length;
   const openInvestigations = incidents.filter(
     (i) => i.status !== "closed"
   ).length;
@@ -671,7 +669,7 @@ export async function getSafetyOverview(
     (t) => (t.scheduled_date ?? t.conducted_date) >= monthStart
   ).length;
 
-  const nearMissCount = ytdIncidents.filter(
+  const nearMissCount = incidents.filter(
     (i) => i.incident_type === "near_miss"
   ).length;
   const nearMissRatio =

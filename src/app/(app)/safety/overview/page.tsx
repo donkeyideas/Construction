@@ -59,7 +59,7 @@ export default async function SafetyOverviewPage() {
       <div className="financial-kpi-row" style={{ marginBottom: 24 }}>
         <div className="fin-kpi">
           <div className="fin-kpi-icon amber"><AlertTriangle size={18} /></div>
-          <span className="fin-kpi-label">Incidents (YTD)</span>
+          <span className="fin-kpi-label">Total Incidents</span>
           <span className="fin-kpi-value">{overview.incidentsYTD}</span>
         </div>
         <div className="fin-kpi">
