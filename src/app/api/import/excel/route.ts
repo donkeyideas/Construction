@@ -1350,6 +1350,28 @@ async function processEntity(
       }
       const leaseRes = await batchInsert("leases", leaseBatch);
       successCount += leaseRes.successCount;
+
+      // Recalculate property stats (occupancy, revenue, NOI)
+      if (leaseProps && leaseProps.length > 0) {
+        await Promise.all(leaseProps.map(async (prop: { id: string; name: string }) => {
+          const [propRes, unitsRes, leasesRes] = await Promise.all([
+            supabase.from("properties").select("total_units").eq("id", prop.id).single(),
+            supabase.from("units").select("id, status").eq("company_id", companyId).eq("property_id", prop.id),
+            supabase.from("leases").select("monthly_rent").eq("company_id", companyId).eq("property_id", prop.id).eq("status", "active"),
+          ]);
+          const storedTotal = propRes.data?.total_units ?? 0;
+          const units = unitsRes.data ?? [];
+          const activeLeases = leasesRes.data ?? [];
+          const occupiedCount = units.filter((u: { status: string }) => u.status === "occupied").length;
+          const monthlyRevenue = activeLeases.reduce((sum: number, l: { monthly_rent: number | null }) => sum + (l.monthly_rent ?? 0), 0);
+          const totalUnits = Math.max(units.length, storedTotal);
+          const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0;
+          await supabase.from("properties").update({
+            total_units: totalUnits, occupied_units: occupiedCount,
+            occupancy_rate: occupancyRate, monthly_revenue: monthlyRevenue, noi: monthlyRevenue,
+          }).eq("id", prop.id);
+        }));
+      }
       break;
     }
 
