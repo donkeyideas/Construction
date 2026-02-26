@@ -54,14 +54,14 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       if (filterEndDate) q = q.lte("invoice_date", filterEndDate);
       return q.range(from, to);
     }),
+    // Use payments table with payment_date for accurate "Paid" timing
     supabase
-      .from("invoices")
-      .select("total_amount")
+      .from("payments")
+      .select("amount, invoices!inner(invoice_type)")
       .eq("company_id", userCompany.companyId)
-      .eq("invoice_type", "payable")
-      .eq("status", "paid")
-      .gte("invoice_date", startOfMonth)
-      .lte("invoice_date", endOfMonth),
+      .eq("invoices.invoice_type", "payable")
+      .gte("payment_date", startOfMonth)
+      .lte("payment_date", endOfMonth),
     (() => {
       let query = supabase
         .from("invoices")
@@ -90,7 +90,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     .reduce((sum, inv) => sum + (inv.balance_due ?? 0), 0);
   const pendingApprovalCount = allAp.filter((inv) => inv.status === "pending" || inv.status === "submitted").length;
   const paidThisMonth = (paidThisMonthRes.data ?? []).reduce(
-    (sum, inv) => sum + (inv.total_amount ?? 0), 0
+    (sum: number, row: { amount: number }) => sum + (row.amount ?? 0), 0
   );
 
   const invoices = (invoicesRes.data ?? []).map((inv: Record<string, unknown>) => ({

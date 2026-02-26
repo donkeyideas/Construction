@@ -60,17 +60,32 @@ export default async function CashFlowPage({
     const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
     const label = monthDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
+    // Use payments table with payment_date for accurate cash timing
     const [inflowRes, outflowRes] = await Promise.all([
-      supabase.from("invoices").select("total_amount").eq("company_id", userCompany.companyId)
-        .eq("invoice_type", "receivable").neq("status", "voided")
-        .gte("invoice_date", monthDate.toISOString()).lte("invoice_date", monthEnd.toISOString()),
-      supabase.from("invoices").select("total_amount").eq("company_id", userCompany.companyId)
-        .eq("invoice_type", "payable").neq("status", "voided")
-        .gte("invoice_date", monthDate.toISOString()).lte("invoice_date", monthEnd.toISOString()),
+      supabase.from("payments").select("amount, invoices!inner(invoice_type)").eq("company_id", userCompany.companyId)
+        .eq("invoices.invoice_type", "receivable")
+        .gte("payment_date", monthDate.toISOString()).lte("payment_date", monthEnd.toISOString()),
+      supabase.from("payments").select("amount, invoices!inner(invoice_type)").eq("company_id", userCompany.companyId)
+        .eq("invoices.invoice_type", "payable")
+        .gte("payment_date", monthDate.toISOString()).lte("payment_date", monthEnd.toISOString()),
     ]);
 
-    const inflows = (inflowRes.data ?? []).reduce((sum, r) => sum + (r.total_amount ?? 0), 0);
-    const outflows = (outflowRes.data ?? []).reduce((sum, r) => sum + (r.total_amount ?? 0), 0);
+    let inflows = (inflowRes.data ?? []).reduce((sum: number, r: { amount: number }) => sum + (r.amount ?? 0), 0);
+    let outflows = (outflowRes.data ?? []).reduce((sum: number, r: { amount: number }) => sum + (r.amount ?? 0), 0);
+
+    // Fallback to invoices if no payments exist for this month
+    if (inflows === 0 && outflows === 0) {
+      const [invInflow, invOutflow] = await Promise.all([
+        supabase.from("invoices").select("total_amount").eq("company_id", userCompany.companyId)
+          .eq("invoice_type", "receivable").neq("status", "voided")
+          .gte("invoice_date", monthDate.toISOString()).lte("invoice_date", monthEnd.toISOString()),
+        supabase.from("invoices").select("total_amount").eq("company_id", userCompany.companyId)
+          .eq("invoice_type", "payable").neq("status", "voided")
+          .gte("invoice_date", monthDate.toISOString()).lte("invoice_date", monthEnd.toISOString()),
+      ]);
+      inflows = (invInflow.data ?? []).reduce((sum: number, r: { total_amount: number }) => sum + (r.total_amount ?? 0), 0);
+      outflows = (invOutflow.data ?? []).reduce((sum: number, r: { total_amount: number }) => sum + (r.total_amount ?? 0), 0);
+    }
     monthlyFlows.push({ label, inflows, outflows, net: inflows - outflows, runningBalance: 0 });
   }
 

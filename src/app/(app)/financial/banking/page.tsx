@@ -48,9 +48,18 @@ export default async function BankingPage() {
   // Backfill GL links for any bank accounts missing them
   await backfillBankGLLinks(supabase, userCtx.companyId);
 
-  // Sync bank balances: create reclassification JEs + OBE adjustment if needed
+  // Sync bank balances only if not recently synced (within last 60 seconds)
   try {
-    await syncBankBalancesFromGL(supabase, userCtx.companyId, userCtx.userId);
+    const { data: recentSync } = await supabase
+      .from("journal_entries")
+      .select("id")
+      .eq("company_id", userCtx.companyId)
+      .like("reference", "bank-reclass:%")
+      .gte("created_at", new Date(Date.now() - 60_000).toISOString())
+      .limit(1);
+    if (!recentSync || recentSync.length === 0) {
+      await syncBankBalancesFromGL(supabase, userCtx.companyId, userCtx.userId);
+    }
   } catch (err) {
     console.error("Bank balance sync on Banking page:", err);
   }

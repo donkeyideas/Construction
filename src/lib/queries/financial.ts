@@ -583,19 +583,21 @@ export async function getJobCostingSummary(
   companyId: string,
   projectId: string
 ): Promise<JobCostingSummary> {
-  const { data, error } = await supabase
-    .from("project_budget_lines")
-    .select("*")
-    .eq("company_id", companyId)
-    .eq("project_id", projectId)
-    .order("csi_code", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching job costing:", error);
+  let lines: BudgetLineRow[];
+  try {
+    lines = await paginatedQuery<BudgetLineRow>((from, to) =>
+      supabase
+        .from("project_budget_lines")
+        .select("*")
+        .eq("company_id", companyId)
+        .eq("project_id", projectId)
+        .order("csi_code", { ascending: true })
+        .range(from, to)
+    );
+  } catch (err) {
+    console.error("Error fetching job costing:", err);
     return { lines: [], totalBudgeted: 0, totalCommitted: 0, totalActual: 0, totalVariance: 0 };
   }
-
-  const lines = (data ?? []) as BudgetLineRow[];
 
   const totalBudgeted = lines.reduce((sum, l) => sum + (l.budgeted_amount ?? 0), 0);
   const totalCommitted = lines.reduce((sum, l) => sum + (l.committed_amount ?? 0), 0);

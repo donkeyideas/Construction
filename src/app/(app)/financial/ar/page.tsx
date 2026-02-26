@@ -62,14 +62,14 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
       .not("status", "eq", "voided")
       .gte("invoice_date", startOfMonth)
       .lte("invoice_date", endOfMonth),
+    // Use payments table with payment_date for accurate "Collected" timing
     supabase
-      .from("invoices")
-      .select("total_amount")
+      .from("payments")
+      .select("amount, invoices!inner(invoice_type)")
       .eq("company_id", userCompany.companyId)
-      .eq("invoice_type", "receivable")
-      .eq("status", "paid")
-      .gte("invoice_date", startOfMonth)
-      .lte("invoice_date", endOfMonth),
+      .eq("invoices.invoice_type", "receivable")
+      .gte("payment_date", startOfMonth)
+      .lte("payment_date", endOfMonth),
     (() => {
       let query = supabase
         .from("invoices")
@@ -100,7 +100,7 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
     (sum, inv) => sum + (inv.total_amount ?? 0), 0
   );
   const collectedThisMonth = (collectedThisMonthRes.data ?? []).reduce(
-    (sum, inv) => sum + (inv.total_amount ?? 0), 0
+    (sum: number, row: { amount: number }) => sum + (row.amount ?? 0), 0
   );
 
   const invoices = (invoicesRes.data ?? []).map((inv: Record<string, unknown>) => ({
