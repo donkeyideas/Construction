@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FileText, Clock, CheckCircle, Users } from "lucide-react";
 
 interface BetaApplication {
   id: string;
@@ -21,11 +22,11 @@ interface BetaApplication {
 const FILTERS = ["all", "pending", "approved", "waitlisted", "rejected"] as const;
 type Filter = (typeof FILTERS)[number];
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: "#f59e0b",
-  approved: "#22c55e",
-  rejected: "#ef4444",
-  waitlisted: "#a855f7",
+const STATUS_BADGE: Record<string, string> = {
+  pending: "sa-badge-amber",
+  approved: "sa-badge-green",
+  rejected: "sa-badge-red",
+  waitlisted: "sa-badge-purple",
 };
 
 export default function BetaApplicationsClient({
@@ -77,25 +78,61 @@ export default function BetaApplicationsClient({
 
   return (
     <div>
-      <div className="page-header">
-        <h1>Beta Applications</h1>
+      {/* Header */}
+      <div className="admin-header">
+        <div>
+          <h2>Beta Applications</h2>
+          <p className="admin-header-sub">Founding Member Program</p>
+        </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="kpi-row" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
-        <KpiCard label="Total Applications" value={counts.all} color="#6b7280" />
-        <KpiCard label="Pending Review" value={counts.pending} color="#f59e0b" />
-        <KpiCard label="Approved" value={counts.approved} color="#22c55e" />
-        <KpiCard label="Spots Remaining" value={spotsRemaining} color="#3b82f6" />
+      <div className="sa-kpi-grid">
+        <div className="sa-kpi-card">
+          <div className="sa-kpi-info">
+            <span className="sa-kpi-label">Total Applications</span>
+            <span className="sa-kpi-value">{counts.all}</span>
+          </div>
+          <div className="sa-kpi-icon">
+            <FileText size={22} />
+          </div>
+        </div>
+        <div className="sa-kpi-card">
+          <div className="sa-kpi-info">
+            <span className="sa-kpi-label">Pending Review</span>
+            <span className="sa-kpi-value" style={{ color: "var(--color-amber)" }}>{counts.pending}</span>
+          </div>
+          <div className="sa-kpi-icon">
+            <Clock size={22} />
+          </div>
+        </div>
+        <div className="sa-kpi-card">
+          <div className="sa-kpi-info">
+            <span className="sa-kpi-label">Approved</span>
+            <span className="sa-kpi-value" style={{ color: "var(--color-green)" }}>{counts.approved}</span>
+          </div>
+          <div className="sa-kpi-icon">
+            <CheckCircle size={22} />
+          </div>
+        </div>
+        <div className="sa-kpi-card">
+          <div className="sa-kpi-info">
+            <span className="sa-kpi-label">Spots Remaining</span>
+            <span className="sa-kpi-value" style={{ color: "var(--color-blue)" }}>{spotsRemaining}</span>
+          </div>
+          <div className="sa-kpi-icon">
+            <Users size={22} />
+          </div>
+        </div>
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+      <div className="settings-tabs" style={{ marginBottom: "20px" }}>
         {FILTERS.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`ui-btn ui-btn-sm ${filter === f ? "ui-btn-primary" : ""}`}
+            className={`settings-tab ${filter === f ? "active" : ""}`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)} ({counts[f]})
           </button>
@@ -104,13 +141,13 @@ export default function BetaApplicationsClient({
 
       {/* Table */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "48px 0", color: "#78716c" }}>
-          <p style={{ fontSize: "1.1rem", fontWeight: 600 }}>No applications yet</p>
-          <p style={{ fontSize: "0.9rem" }}>Share buildwrk.com/beta to start receiving applications.</p>
+        <div className="sa-empty">
+          <p className="sa-empty-title">No applications yet</p>
+          <p className="sa-empty-desc">Share buildwrk.com/beta to start receiving applications.</p>
         </div>
       ) : (
-        <div className="table-container">
-          <table className="data-table">
+        <div className="sa-table-wrap">
+          <table className="sa-table">
             <thead>
               <tr>
                 <th>Applicant</th>
@@ -133,50 +170,35 @@ export default function BetaApplicationsClient({
                     style={{ cursor: "pointer" }}
                   >
                     <td>
-                      <div style={{ fontWeight: 600 }}>{app.name}</div>
-                      <div style={{ fontSize: "0.8rem", color: "#78716c" }}>{app.email}</div>
+                      <div style={{ fontWeight: 500 }}>{app.name}</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{app.email}</div>
                     </td>
                     <td>{app.company_name}</td>
                     <td>
-                      <span
-                        style={{
-                          display: "inline-block",
-                          padding: "2px 8px",
-                          borderRadius: "4px",
-                          fontSize: "0.75rem",
-                          fontWeight: 600,
-                          background: "#f5f5f4",
-                          color: "#44403c",
-                        }}
-                      >
+                      <span className="sa-plan-badge sa-plan-starter">
                         {app.company_type}
                       </span>
                     </td>
                     <td>{app.company_size || "—"}</td>
                     <td>
-                      <span
-                        style={{
-                          display: "inline-block",
-                          padding: "2px 10px",
-                          borderRadius: "999px",
-                          fontSize: "0.75rem",
-                          fontWeight: 600,
-                          color: "#fff",
-                          background: STATUS_COLORS[app.status] || "#6b7280",
-                        }}
-                      >
+                      <span className={`sa-status-badge sa-status-${app.status === "approved" ? "active" : app.status === "rejected" ? "canceled" : app.status === "waitlisted" ? "trial" : "trial"}`}>
+                        <span className="sa-status-dot" />
                         {app.status}
                       </span>
                     </td>
-                    <td style={{ fontSize: "0.85rem" }}>
-                      {new Date(app.created_at).toLocaleDateString()}
+                    <td>
+                      {new Date(app.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: "6px" }} onClick={(e) => e.stopPropagation()}>
                         {app.status !== "approved" && (
                           <button
-                            className="ui-btn ui-btn-sm"
-                            style={{ color: "#22c55e" }}
+                            className="sa-action-btn"
+                            style={{ color: "var(--color-green)" }}
                             disabled={updating === app.id}
                             onClick={() => updateStatus(app.id, "approved")}
                           >
@@ -185,8 +207,8 @@ export default function BetaApplicationsClient({
                         )}
                         {app.status !== "rejected" && (
                           <button
-                            className="ui-btn ui-btn-sm"
-                            style={{ color: "#ef4444" }}
+                            className="sa-action-btn"
+                            style={{ color: "var(--color-red)" }}
                             disabled={updating === app.id}
                             onClick={() => updateStatus(app.id, "rejected")}
                           >
@@ -195,8 +217,8 @@ export default function BetaApplicationsClient({
                         )}
                         {app.status !== "waitlisted" && app.status !== "approved" && (
                           <button
-                            className="ui-btn ui-btn-sm"
-                            style={{ color: "#a855f7" }}
+                            className="sa-action-btn"
+                            style={{ color: "#7c3aed" }}
                             disabled={updating === app.id}
                             onClick={() => updateStatus(app.id, "waitlisted")}
                           >
@@ -208,7 +230,7 @@ export default function BetaApplicationsClient({
                   </tr>
                   {expandedId === app.id && (
                     <tr key={`${app.id}-detail`}>
-                      <td colSpan={7} style={{ background: "#fafaf9", padding: "16px 24px" }}>
+                      <td colSpan={7} style={{ background: "var(--surface)", padding: "16px 24px" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", fontSize: "0.85rem" }}>
                           <div>
                             <strong>Role:</strong> {app.role || "—"}
@@ -219,20 +241,24 @@ export default function BetaApplicationsClient({
                           <div>
                             <strong>Reviewed:</strong>{" "}
                             {app.reviewed_at
-                              ? new Date(app.reviewed_at).toLocaleDateString()
+                              ? new Date(app.reviewed_at).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })
                               : "—"}
                           </div>
                         </div>
                         {app.biggest_pain && (
                           <div style={{ marginTop: "12px", fontSize: "0.85rem" }}>
                             <strong>Biggest Pain Point:</strong>
-                            <p style={{ margin: "4px 0 0", color: "#57534e" }}>{app.biggest_pain}</p>
+                            <p style={{ margin: "4px 0 0", color: "var(--muted)" }}>{app.biggest_pain}</p>
                           </div>
                         )}
                         {app.notes && (
                           <div style={{ marginTop: "12px", fontSize: "0.85rem" }}>
                             <strong>Notes:</strong>
-                            <p style={{ margin: "4px 0 0", color: "#57534e" }}>{app.notes}</p>
+                            <p style={{ margin: "4px 0 0", color: "var(--muted)" }}>{app.notes}</p>
                           </div>
                         )}
                       </td>
@@ -244,26 +270,6 @@ export default function BetaApplicationsClient({
           </table>
         </div>
       )}
-    </div>
-  );
-}
-
-function KpiCard({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div
-      style={{
-        background: "var(--color-surface, #fff)",
-        border: "1px solid var(--color-border, #e7e5e4)",
-        borderRadius: "12px",
-        padding: "20px",
-      }}
-    >
-      <div style={{ fontSize: "0.8rem", color: "#78716c", fontWeight: 500, marginBottom: "4px" }}>
-        {label}
-      </div>
-      <div style={{ fontSize: "2rem", fontWeight: 700, color }}>
-        {value}
-      </div>
     </div>
   );
 }
