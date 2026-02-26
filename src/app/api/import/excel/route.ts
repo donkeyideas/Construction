@@ -13,6 +13,7 @@ import {
   inferGLAccountFromDescription,
 } from "@/lib/utils/invoice-accounting";
 import { ensureBankAccountGLLink, syncBankBalancesFromGL } from "@/lib/utils/bank-gl-linkage";
+import { backfillMissingJournalEntries } from "@/lib/utils/backfill-journal-entries";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 // ---------------------------------------------------------------------------
@@ -228,6 +229,17 @@ export async function POST(request: NextRequest) {
         await syncBankBalancesFromGL(supabase, companyId, userId);
       } catch (syncErr) {
         console.warn("Post-import bank sync failed:", syncErr);
+      }
+    }
+
+    // ── Post-import: backfill missing JEs for leases, equipment, change orders, etc. ──
+    const JE_ENTITIES = ["invoices", "change_orders", "leases", "maintenance", "equipment", "equipment_maintenance"];
+    const hasJEEntity = JE_ENTITIES.some((e) => presentEntities.has(e));
+    if (hasJEEntity && totalSuccess > 0) {
+      try {
+        await backfillMissingJournalEntries(supabase, companyId, userId);
+      } catch (bfErr) {
+        console.warn("Post-import JE backfill failed:", bfErr);
       }
     }
 
