@@ -22,7 +22,7 @@ import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 // imports entities in dependency order, and tracks results.
 // ---------------------------------------------------------------------------
 
-export const maxDuration = 60; // Vercel Pro timeout — import can take 30s+ for large files
+export const maxDuration = 300; // Vercel Pro max — large XLSX imports need 60-120s+
 
 interface SheetResult {
   sheetName: string;
@@ -193,32 +193,35 @@ export async function POST(request: NextRequest) {
         skipped: false,
       });
 
-      // Update import run progress
-      await supabase
-        .from("import_runs")
-        .update({
-          processed_sheets: s + 1,
-          total_rows: totalRows,
-          success_rows: totalSuccess,
-          error_rows: totalErrors,
-          sheet_results: results,
-        })
-        .eq("id", runId);
+      // Update import run progress (every 5 sheets + last sheet to reduce DB calls)
+      const isLastSheet = s === sortedSheets.length - 1;
+      if ((s + 1) % 5 === 0 || isLastSheet) {
+        await supabase
+          .from("import_runs")
+          .update({
+            processed_sheets: s + 1,
+            total_rows: totalRows,
+            success_rows: totalSuccess,
+            error_rows: totalErrors,
+            sheet_results: results,
+          })
+          .eq("id", runId);
 
-      // Update company import_progress with per-entity counts
-      const progressUpdate: Record<string, unknown> = {};
-      for (const r of results) {
-        if (r.entity && !r.skipped) {
-          progressUpdate[r.entity] = {
-            count: r.successCount,
-            lastImported: new Date().toISOString(),
-          };
+        // Update company import_progress with per-entity counts
+        const progressUpdate: Record<string, unknown> = {};
+        for (const r of results) {
+          if (r.entity && !r.skipped) {
+            progressUpdate[r.entity] = {
+              count: r.successCount,
+              lastImported: new Date().toISOString(),
+            };
+          }
         }
+        await supabase
+          .from("companies")
+          .update({ import_progress: progressUpdate })
+          .eq("id", companyId);
       }
-      await supabase
-        .from("companies")
-        .update({ import_progress: progressUpdate })
-        .eq("id", companyId);
     }
 
     // ── Post-import: sync bank sub-account balances ──
@@ -235,7 +238,8 @@ export async function POST(request: NextRequest) {
     // ── Post-import: backfill missing JEs for leases, equipment, change orders, etc. ──
     const JE_ENTITIES = ["invoices", "change_orders", "leases", "maintenance", "equipment", "equipment_maintenance"];
     const hasJEEntity = JE_ENTITIES.some((e) => presentEntities.has(e));
-    if (hasJEEntity && totalSuccess > 0) {
+    const hasJESheet = presentEntities.has("journal_entries") || presentEntities.has("opening_balances");
+    if (hasJEEntity && totalSuccess > 0 && !hasJESheet) {
       try {
         await backfillMissingJournalEntries(supabase, companyId, userId);
       } catch (bfErr) {
@@ -1177,6 +1181,9 @@ async function processEntity(
         {} as Record<string, string>
       );
 
+      // Build batch of assignment inserts + collect equipment updates
+      const assignBatch: Record<string, unknown>[] = [];
+      const equipUpdates: Map<string, Record<string, unknown>> = new Map();
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
         let equipId = r.equipment_id || null;
@@ -1189,11 +1196,10 @@ async function processEntity(
         }
         const assignStatus = r.status || "active";
         const projId = resolveProjectId(r);
-        // Try to resolve assigned_to: UUID > user profile name lookup > store name in notes
         const resolvedAssignee = resolveUserRef(r.assigned_to);
         const assignedToName = (!resolvedAssignee && r.assigned_to) ? r.assigned_to : null;
         const notesVal = [r.notes, assignedToName ? `Assigned to: ${assignedToName}` : null].filter(Boolean).join("; ");
-        const { error } = await supabase.from("equipment_assignments").insert({
+        assignBatch.push({
           company_id: companyId,
           equipment_id: equipId,
           project_id: projId,
@@ -1203,17 +1209,24 @@ async function processEntity(
           notes: notesVal || null,
           status: assignStatus,
         });
-        if (error) errors.push(`Row ${i + 2}: ${error.message}`);
-        else {
-          successCount++;
-          if (equipId) {
-            await supabase.from("equipment").update({
-              status: assignStatus === "active" ? "in_use" : "available",
-              current_project_id: assignStatus === "active" ? projId : null,
-              assigned_to: resolvedAssignee || userId,
-            }).eq("id", equipId);
-          }
+        if (equipId) {
+          equipUpdates.set(equipId, {
+            status: assignStatus === "active" ? "in_use" : "available",
+            current_project_id: assignStatus === "active" ? projId : null,
+            assigned_to: resolvedAssignee || userId,
+          });
         }
+      }
+      // Batch insert assignments
+      const assignRes = await batchInsert("equipment_assignments", assignBatch);
+      successCount += assignRes.successCount;
+      // Batch equipment status updates (one per unique equipment)
+      const equipUpdateEntries = Array.from(equipUpdates.entries());
+      for (let c = 0; c < equipUpdateEntries.length; c += 50) {
+        const chunk = equipUpdateEntries.slice(c, c + 50);
+        await Promise.all(chunk.map(([eqId, upd]) =>
+          supabase.from("equipment").update(upd).eq("id", eqId)
+        ));
       }
       break;
     }
@@ -1231,6 +1244,9 @@ async function processEntity(
         {} as Record<string, string>
       );
 
+      // Build batch of maintenance inserts + collect equipment date updates
+      const maintBatch: Record<string, unknown>[] = [];
+      const maintEquipUpdates: Map<string, Record<string, string>> = new Map();
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
         let equipId = r.equipment_id || null;
@@ -1241,34 +1257,42 @@ async function processEntity(
             continue;
           }
         }
-        const { error } = await supabase
-          .from("equipment_maintenance_logs")
-          .insert({
-            company_id: companyId,
-            equipment_id: equipId,
-            maintenance_type: r.maintenance_type || "preventive",
-            title: r.title || "",
-            description: r.description || null,
-            maintenance_date: r.maintenance_date || new Date().toISOString().split("T")[0],
-            cost: r.cost ? parseFloat(r.cost) : null,
-            performed_by: r.performed_by || null,
-            vendor_name: r.vendor_name || null,
-            status: r.status || "completed",
-            next_due_date: r.next_due_date || null,
-          });
-        if (error) errors.push(`Row ${i + 2}: ${error.message}`);
-        else {
-          successCount++;
-          // Backfill equipment.last_maintenance_date and next_maintenance_date
-          if (equipId) {
-            const updates: Record<string, string> = {};
-            if (r.maintenance_date) updates.last_maintenance_date = r.maintenance_date;
-            if (r.next_due_date) updates.next_maintenance_date = r.next_due_date;
-            if (Object.keys(updates).length > 0) {
-              await supabase.from("equipment").update(updates).eq("id", equipId);
+        maintBatch.push({
+          company_id: companyId,
+          equipment_id: equipId,
+          maintenance_type: r.maintenance_type || "preventive",
+          title: r.title || "",
+          description: r.description || null,
+          maintenance_date: r.maintenance_date || new Date().toISOString().split("T")[0],
+          cost: r.cost ? parseFloat(r.cost) : null,
+          performed_by: r.performed_by || null,
+          vendor_name: r.vendor_name || null,
+          status: r.status || "completed",
+          next_due_date: r.next_due_date || null,
+        });
+        if (equipId) {
+          const upd: Record<string, string> = {};
+          if (r.maintenance_date) upd.last_maintenance_date = r.maintenance_date;
+          if (r.next_due_date) upd.next_maintenance_date = r.next_due_date;
+          if (Object.keys(upd).length > 0) {
+            // Last row for each equipment wins (latest maintenance)
+            const existing = maintEquipUpdates.get(equipId);
+            if (!existing || (r.maintenance_date && r.maintenance_date > (existing.last_maintenance_date || ""))) {
+              maintEquipUpdates.set(equipId, { ...existing, ...upd });
             }
           }
         }
+      }
+      // Batch insert maintenance logs
+      const maintRes = await batchInsert("equipment_maintenance_logs", maintBatch);
+      successCount += maintRes.successCount;
+      // Batch equipment date updates (one per unique equipment)
+      const maintUpdateEntries = Array.from(maintEquipUpdates.entries());
+      for (let c = 0; c < maintUpdateEntries.length; c += 50) {
+        const chunk = maintUpdateEntries.slice(c, c + 50);
+        await Promise.all(chunk.map(([eqId, upd]) =>
+          supabase.from("equipment").update(upd).eq("id", eqId)
+        ));
       }
       break;
     }
