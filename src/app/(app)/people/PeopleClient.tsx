@@ -115,6 +115,9 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
     company_name: "",
     job_title: "",
     notes: "",
+    hire_date: "",
+    employment_status: "active",
+    department: "",
   });
 
   const [editFormData, setEditFormData] = useState({
@@ -155,6 +158,9 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
           company_name: createFormData.company_name || undefined,
           job_title: createFormData.job_title || undefined,
           notes: createFormData.notes || undefined,
+          hire_date: createFormData.hire_date || undefined,
+          employment_status: createFormData.employment_status || undefined,
+          department: createFormData.department || undefined,
         }),
       });
 
@@ -172,6 +178,9 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
         company_name: "",
         job_title: "",
         notes: "",
+        hire_date: "",
+        employment_status: "active",
+        department: "",
       });
       setShowCreate(false);
       router.refresh();
@@ -473,6 +482,29 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                   <input type="text" className="ticket-form-input" value={createFormData.job_title} onChange={(e) => setCreateFormData({ ...createFormData, job_title: e.target.value })} placeholder={t("titlePositionPlaceholder")} />
                 </div>
               </div>
+
+              {/* Employee-specific fields */}
+              {createFormData.contact_type === "employee" && (
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Hire Date</label>
+                    <input type="date" className="ticket-form-input" value={createFormData.hire_date} onChange={(e) => setCreateFormData({ ...createFormData, hire_date: e.target.value })} />
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Status</label>
+                    <select className="ticket-form-select" value={createFormData.employment_status} onChange={(e) => setCreateFormData({ ...createFormData, employment_status: e.target.value })}>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="terminated">Terminated</option>
+                      <option value="on_leave">On Leave</option>
+                    </select>
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Department</label>
+                    <input type="text" className="ticket-form-input" value={createFormData.department} onChange={(e) => setCreateFormData({ ...createFormData, department: e.target.value })} placeholder="e.g. Operations" />
+                  </div>
+                </div>
+              )}
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">{t("notes")}</label>

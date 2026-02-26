@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
@@ -69,6 +70,7 @@ interface ContractsClientProps {
   projects: { id: string; name: string }[];
   userId: string;
   companyId: string;
+  linkedJEs?: Record<string, { id: string; entry_number: string }[]>;
 }
 
 export default function ContractsClient({
@@ -77,6 +79,7 @@ export default function ContractsClient({
   projects,
   userId,
   companyId,
+  linkedJEs = {},
 }: ContractsClientProps) {
   const router = useRouter();
   const t = useTranslations("app");
@@ -518,6 +521,7 @@ export default function ContractsClient({
                 <th>{t("status")}</th>
                 <th>{t("startDate")}</th>
                 <th>{t("endDate")}</th>
+                <th>JE</th>
               </tr>
             </thead>
             <tbody>
@@ -550,6 +554,22 @@ export default function ContractsClient({
                   </td>
                   <td className="contracts-date-cell">
                     {formatDateShortWithLocale(contract.end_date, dateLocale)}
+                  </td>
+                  <td>
+                    {linkedJEs[contract.id]?.length ? (
+                      linkedJEs[contract.id].map((je) => (
+                        <Link
+                          key={je.id}
+                          href={`/financial/general-ledger?entry=${je.entry_number}`}
+                          className="je-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {je.entry_number}
+                        </Link>
+                      ))
+                    ) : (
+                      <span style={{ color: "var(--muted)" }}>--</span>
+                    )}
                   </td>
                 </tr>
               ))}

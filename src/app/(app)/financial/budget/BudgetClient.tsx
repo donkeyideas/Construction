@@ -385,7 +385,7 @@ export default function BudgetClient({
         <div className="ticket-modal-overlay" onClick={() => setDetailLine(null)}>
           <div className="ticket-modal" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>{detailLine.csi_code} - {detailLine.description}</h3>
+              <h3 style={{ wordWrap: "break-word", overflowWrap: "break-word", maxWidth: "calc(100% - 40px)" }}>{detailLine.csi_code} - {detailLine.description}</h3>
               <button className="ticket-modal-close" onClick={() => setDetailLine(null)}><X size={18} /></button>
             </div>
             <div className="ticket-detail-body">

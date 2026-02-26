@@ -686,6 +686,23 @@ export default function ContractDetailClient({
                   {formatCurrency(contract.contract_amount)}
                 </span>
               </div>
+              {milestones.length > 0 && (() => {
+                const milestoneTotal = milestones.reduce((sum, m) => sum + (m.amount ?? 0), 0);
+                if (milestoneTotal > 0) {
+                  return (
+                    <div className="contracts-sidebar-detail" style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                      <span className="contracts-sidebar-detail-label">
+                        <DollarSign size={13} />
+                        Milestone Total
+                      </span>
+                      <span className="contracts-sidebar-detail-value">
+                        {formatCurrency(milestoneTotal)}
+                      </span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               {contract.retention_pct !== null && contract.retention_pct !== undefined && (
                 <div className="contracts-sidebar-detail">
                   <span className="contracts-sidebar-detail-label">

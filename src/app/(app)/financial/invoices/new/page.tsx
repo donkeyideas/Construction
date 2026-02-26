@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -45,12 +45,22 @@ function defaultDueDateString(): string {
 }
 
 export default function NewInvoicePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "40px", textAlign: "center" }}>Loading...</div>}>
+      <NewInvoiceForm />
+    </Suspense>
+  );
+}
+
+function NewInvoiceForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialType = (searchParams.get("type") === "payable" ? "payable" : "receivable") as "payable" | "receivable";
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form state
-  const [invoiceType, setInvoiceType] = useState<"payable" | "receivable">("receivable");
+  const [invoiceType, setInvoiceType] = useState<"payable" | "receivable">(initialType);
   const [invoiceNumber, setInvoiceNumber] = useState(generateInvoiceNumber);
   const [vendorOrClient, setVendorOrClient] = useState("");
   const [projectId, setProjectId] = useState("");

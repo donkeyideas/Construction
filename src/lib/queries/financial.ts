@@ -2056,7 +2056,8 @@ export async function getAccountTransactions(
   companyId: string,
   accountId: string,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  includeUnposted?: boolean
 ): Promise<AccountTransactionsResult> {
   // Get account info
   const { data: accountInfo } = await supabase
@@ -2078,8 +2079,8 @@ export async function getAccountTransactions(
         journal_entries!inner(id, entry_number, entry_date, description, reference, status)
       `)
       .eq("account_id", accountId)
-      .eq("company_id", companyId)
-      .eq("journal_entries.status", "posted");
+      .eq("company_id", companyId);
+    if (!includeUnposted) q = q.eq("journal_entries.status", "posted");
     if (startDate) q = q.gte("journal_entries.entry_date", startDate);
     if (endDate) q = q.lte("journal_entries.entry_date", endDate);
     return q.range(from, to);

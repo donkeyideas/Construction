@@ -623,7 +623,7 @@ export async function getPeopleTransactions(
     paginatedQuery<{ id: string }>((from, to) =>
       supabase.from("chart_of_accounts").select("id")
         .eq("company_id", companyId).eq("is_active", true)
-        .or("name.ilike.%payroll%,name.ilike.%salary%,name.ilike.%wage%,name.ilike.%fica%,name.ilike.%futa%,name.ilike.%suta%")
+        .or("name.ilike.%payroll%,name.ilike.%salary%,name.ilike.%wage%,name.ilike.%fica%,name.ilike.%futa%,name.ilike.%suta%,name.ilike.%labor%,name.ilike.%personnel%,name.ilike.%benefit%,name.ilike.%workers comp%,name.ilike.%employee%")
         .range(from, to)),
     paginatedQuery<{ id: string; entry_number: string; entry_date: string; description: string; reference: string | null; status: string }>((from, to) =>
       supabase.from("journal_entries").select("id, entry_number, entry_date, description, reference, status")
@@ -827,12 +827,12 @@ export async function getSafetyTransactions(
     paginatedQuery<{ id: string }>((from, to) =>
       supabase.from("chart_of_accounts").select("id")
         .eq("company_id", companyId).eq("is_active", true)
-        .or("name.ilike.%safety%,name.ilike.%training%,name.ilike.%ppe%,name.ilike.%osha%,name.ilike.%insurance%")
+        .or("name.ilike.%safety%,name.ilike.%training%,name.ilike.%ppe%,name.ilike.%osha%,name.ilike.%insurance%,name.ilike.%workers comp%,name.ilike.%liability%,name.ilike.%incident%,name.ilike.%compliance%,name.ilike.%hazard%,name.ilike.%fire%,name.ilike.%environmental%,name.ilike.%protection%")
         .range(from, to)),
     paginatedQuery<{ id: string; invoice_number: string; invoice_date: string; total_amount: number; vendor_name: string | null; status: string }>((from, to) =>
       supabase.from("invoices").select("id, invoice_number, invoice_date, total_amount, vendor_name, status")
         .eq("company_id", companyId).eq("invoice_type", "payable").neq("status", "voided")
-        .or("notes.ilike.%safety%,notes.ilike.%training%,notes.ilike.%ppe%,notes.ilike.%osha%,notes.ilike.%inspection%")
+        .or("notes.ilike.%safety%,notes.ilike.%training%,notes.ilike.%ppe%,notes.ilike.%osha%,notes.ilike.%inspection%,notes.ilike.%workers comp%,notes.ilike.%hazard%,notes.ilike.%compliance%,notes.ilike.%fire%,notes.ilike.%environmental%")
         .order("invoice_date", { ascending: false }).range(from, to)),
   ]);
 

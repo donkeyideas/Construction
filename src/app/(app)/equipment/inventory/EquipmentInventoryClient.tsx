@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Search,
@@ -58,6 +59,7 @@ interface EquipmentInventoryClientProps {
   projects: { id: string; name: string }[];
   userId: string;
   companyId: string;
+  linkedJEs?: Record<string, { id: string; entry_number: string }[]>;
 }
 
 const equipmentImportColumns: ImportColumn[] = [
@@ -83,6 +85,7 @@ export default function EquipmentInventoryClient({
   projects,
   userId,
   companyId,
+  linkedJEs = {},
 }: EquipmentInventoryClientProps) {
   const router = useRouter();
   const t = useTranslations("equipment");
@@ -483,6 +486,8 @@ export default function EquipmentInventoryClient({
                 <th>{t("labelCurrentProject")}</th>
                 <th>{t("labelAssignedTo")}</th>
                 <th>{t("labelNextMaintenance")}</th>
+                <th>Cost</th>
+                <th>JE</th>
               </tr>
             </thead>
             <tbody>
@@ -516,6 +521,25 @@ export default function EquipmentInventoryClient({
                   </td>
                   <td className="equipment-date-cell">
                     {formatDateShort(item.next_maintenance_date)}
+                  </td>
+                  <td className="amount-col">
+                    {item.purchase_cost ? formatCurrency(item.purchase_cost) : "--"}
+                  </td>
+                  <td>
+                    {linkedJEs[item.id]?.length ? (
+                      linkedJEs[item.id].map((je) => (
+                        <Link
+                          key={je.id}
+                          href={`/financial/general-ledger?entry=${je.entry_number}`}
+                          className="je-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {je.entry_number}
+                        </Link>
+                      ))
+                    ) : (
+                      <span style={{ color: "var(--muted)" }}>--</span>
+                    )}
                   </td>
                 </tr>
               ))}

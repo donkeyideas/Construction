@@ -71,12 +71,14 @@ function accountTypeBadgeClass(type: string): string {
 interface BankTransactionsClientProps {
   account: BankAccountRow;
   transactions: BankTransactionRow[];
+  glTransactions?: BankTransactionRow[];
   companyId: string;
 }
 
 export default function BankTransactionsClient({
   account,
   transactions,
+  glTransactions = [],
   companyId,
 }: BankTransactionsClientProps) {
   const router = useRouter();
@@ -92,6 +94,11 @@ export default function BankTransactionsClient({
       year: "numeric",
     });
   }
+
+  // View mode: bank-imported, GL-derived, or all
+  const [viewMode, setViewMode] = useState<"all" | "bank" | "gl">(
+    transactions.length > 0 ? "all" : (glTransactions.length > 0 ? "gl" : "all")
+  );
 
   // Filters
   const [search, setSearch] = useState("");
@@ -131,7 +138,12 @@ export default function BankTransactionsClient({
 
   // Filtered transactions
   const filtered = useMemo(() => {
-    let result = transactions;
+    // Start with selected source
+    let result = viewMode === "bank" ? transactions
+      : viewMode === "gl" ? glTransactions
+      : [...transactions, ...glTransactions].sort((a, b) =>
+          b.transaction_date.localeCompare(a.transaction_date)
+        );
 
     if (typeFilter !== "all") {
       result = result.filter((t) => t.transaction_type === typeFilter);
@@ -168,6 +180,8 @@ export default function BankTransactionsClient({
     return result;
   }, [
     transactions,
+    glTransactions,
+    viewMode,
     typeFilter,
     categoryFilter,
     reconciledFilter,
@@ -389,7 +403,12 @@ export default function BankTransactionsClient({
             {t("transactions")}
           </h3>
           <p className="banking-header-sub">
-            {t("transactionCount", { count: transactions.length })}
+            {t("transactionCount", { count: filtered.length })}
+            {glTransactions.length > 0 && transactions.length === 0 && (
+              <span style={{ color: "var(--color-amber)", marginLeft: 8, fontSize: "0.78rem" }}>
+                Showing GL-derived transactions
+              </span>
+            )}
           </p>
         </div>
         <button
@@ -400,6 +419,23 @@ export default function BankTransactionsClient({
           {t("addTransaction")}
         </button>
       </div>
+
+      {/* View Mode Toggle */}
+      {glTransactions.length > 0 && (
+        <div style={{ display: "flex", gap: 4, marginBottom: 12 }}>
+          {(["all", "bank", "gl"] as const).map((mode) => (
+            <button
+              key={mode}
+              className={`ui-btn ui-btn-sm ${viewMode === mode ? "ui-btn-primary" : "ui-btn-outline"}`}
+              onClick={() => setViewMode(mode)}
+            >
+              {mode === "all" ? `All (${transactions.length + glTransactions.length})` :
+               mode === "bank" ? `Imported (${transactions.length})` :
+               `From GL (${glTransactions.length})`}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="banking-filters">

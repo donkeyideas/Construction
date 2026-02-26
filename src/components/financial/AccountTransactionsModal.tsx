@@ -27,6 +27,7 @@ export default function AccountTransactionsModal({
   const [data, setData] = useState<AccountTransactionsResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [includeUnposted, setIncludeUnposted] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !accountId) return;
@@ -37,6 +38,7 @@ export default function AccountTransactionsModal({
     const params = new URLSearchParams({ accountId });
     if (startDate) params.set("startDate", startDate);
     if (endDate) params.set("endDate", endDate);
+    if (includeUnposted) params.set("includeUnposted", "true");
 
     fetch(`/api/financial/account-transactions?${params}`)
       .then((res) => {
@@ -52,7 +54,7 @@ export default function AccountTransactionsModal({
       .finally(() => {
         setLoading(false);
       });
-  }, [isOpen, accountId, startDate, endDate]);
+  }, [isOpen, accountId, startDate, endDate, includeUnposted]);
 
   if (!isOpen) return null;
 
@@ -91,6 +93,23 @@ export default function AccountTransactionsModal({
           <button type="button" className="acct-txn-close" onClick={onClose}>
             <X size={16} />
           </button>
+        </div>
+
+        {/* Include draft toggle */}
+        <div style={{ padding: "0 24px", display: "flex", alignItems: "center", gap: 8, fontSize: "0.82rem" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: "var(--muted)" }}>
+            <input
+              type="checkbox"
+              checked={includeUnposted}
+              onChange={(e) => setIncludeUnposted(e.target.checked)}
+            />
+            Include draft entries
+          </label>
+          {data && data.transactions.length === 0 && !loading && (
+            <span style={{ color: "var(--color-amber)", fontSize: "0.78rem" }}>
+              No posted transactions found — try including drafts
+            </span>
+          )}
         </div>
 
         {/* Body */}

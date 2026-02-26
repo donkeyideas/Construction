@@ -110,9 +110,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Auto-generate journal entry (non-blocking — invoice succeeds regardless)
+    const warnings: string[] = [];
     try {
       const accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
-      await generateInvoiceJournalEntry(
+      const jeResult = await generateInvoiceJournalEntry(
         supabase,
         userCompany.companyId,
         userCompany.userId,
@@ -135,11 +136,18 @@ export async function POST(request: NextRequest) {
         },
         accountMap
       );
+      if (!jeResult) {
+        const missing = data.invoice_type === "payable"
+          ? (!accountMap.apId ? "AP account" : "expense account")
+          : (!accountMap.arId ? "AR account" : "revenue account");
+        warnings.push(`Journal entry not created: no ${missing} found in Chart of Accounts. Financial statements may be incomplete.`);
+      }
     } catch (jeErr) {
       console.warn("Journal entry generation failed for invoice:", result.id, jeErr);
+      warnings.push("Journal entry generation failed. Check Chart of Accounts setup.");
     }
 
-    return NextResponse.json({ id: result.id }, { status: 201 });
+    return NextResponse.json({ id: result.id, warnings }, { status: 201 });
   } catch (error) {
     console.error("POST /api/financial/invoices error:", error);
     return NextResponse.json(

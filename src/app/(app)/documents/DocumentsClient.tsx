@@ -30,6 +30,7 @@ interface DocumentsClientProps {
   hasFilters: boolean;
   currentFolder?: string;
   projects?: Project[];
+  properties?: { id: string; name: string }[];
   showUpload?: boolean;
 }
 
@@ -117,6 +118,7 @@ export default function DocumentsClient({
   hasFilters,
   currentFolder,
   projects = [],
+  properties = [],
   showUpload = false,
 }: DocumentsClientProps) {
   const router = useRouter();
@@ -140,6 +142,7 @@ export default function DocumentsClient({
   const [uploadName, setUploadName] = useState("");
   const [uploadCategory, setUploadCategory] = useState("plan");
   const [uploadProjectId, setUploadProjectId] = useState("");
+  const [uploadPropertyId, setUploadPropertyId] = useState("");
   const [uploadFolderPath, setUploadFolderPath] = useState(currentFolder || "");
   const [uploadTags, setUploadTags] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -276,6 +279,7 @@ export default function DocumentsClient({
       formData.append("name", uploadName || uploadFile.name);
       formData.append("category", uploadCategory);
       if (uploadProjectId) formData.append("project_id", uploadProjectId);
+      if (uploadPropertyId) formData.append("property_id", uploadPropertyId);
       if (uploadFolderPath) formData.append("folder_path", uploadFolderPath);
       if (uploadTags) {
         formData.append(
@@ -446,6 +450,22 @@ export default function DocumentsClient({
               >
                 <option value="">{t("none")}</option>
                 {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* Property */}
+            <div className="ticket-form-group">
+              <label className="ticket-form-label">Property</label>
+              <select
+                className="ticket-form-select"
+                value={uploadPropertyId}
+                onChange={(e) => setUploadPropertyId(e.target.value)}
+              >
+                <option value="">{t("none")}</option>
+                {properties.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
                   </option>

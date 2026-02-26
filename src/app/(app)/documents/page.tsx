@@ -177,6 +177,7 @@ export default async function DocumentsPage({
             hasFilters={hasFilters}
             currentFolder={params.folder}
             projects={projects}
+            properties={properties}
             showUpload={params.upload === "true"}
           />
         </div>

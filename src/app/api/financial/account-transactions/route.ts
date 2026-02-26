@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const accountId = searchParams.get("accountId");
     const startDate = searchParams.get("startDate") ?? undefined;
     const endDate = searchParams.get("endDate") ?? undefined;
+    const includeUnposted = searchParams.get("includeUnposted") === "true";
 
     if (!accountId) {
       return NextResponse.json({ error: "accountId is required" }, { status: 400 });
@@ -26,7 +27,8 @@ export async function GET(request: NextRequest) {
       userCompany.companyId,
       accountId,
       startDate,
-      endDate
+      endDate,
+      includeUnposted
     );
 
     return NextResponse.json(result);

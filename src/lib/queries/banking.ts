@@ -273,6 +273,71 @@ export async function getBankTransactions(
   return (data ?? []) as BankTransactionRow[];
 }
 
+/**
+ * Get GL-derived transactions for a bank account by querying journal_entry_lines
+ * for the bank account's linked GL account. Returns them in BankTransactionRow-like shape.
+ */
+export async function getBankAccountGLTransactions(
+  supabase: SupabaseClient,
+  companyId: string,
+  bankAccountId: string
+): Promise<BankTransactionRow[]> {
+  // First get the GL account linked to this bank account
+  const { data: bankAccount } = await supabase
+    .from("bank_accounts")
+    .select("gl_account_id")
+    .eq("id", bankAccountId)
+    .eq("company_id", companyId)
+    .single();
+
+  if (!bankAccount?.gl_account_id) return [];
+
+  // Query JE lines for this GL account
+  const { data: lines } = await supabase
+    .from("journal_entry_lines")
+    .select(`
+      id, debit, credit, description,
+      journal_entries!inner(id, entry_number, entry_date, description, reference, status)
+    `)
+    .eq("account_id", bankAccount.gl_account_id)
+    .eq("company_id", companyId)
+    .eq("journal_entries.status", "posted")
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  if (!lines || lines.length === 0) return [];
+
+  // Convert to BankTransactionRow-like shape
+  let runningBalance = 0;
+  return lines.map((line) => {
+    const je = line.journal_entries as unknown as {
+      id: string; entry_number: string; entry_date: string;
+      description: string; reference: string | null; status: string;
+    };
+    const debit = line.debit ?? 0;
+    const credit = line.credit ?? 0;
+    const isDebit = debit > credit;
+    const amount = isDebit ? debit : credit;
+    runningBalance += credit - debit; // cash is an asset (debit normal), so credits reduce balance
+    return {
+      id: `gl-${line.id}`,
+      company_id: companyId,
+      bank_account_id: bankAccountId,
+      transaction_date: je.entry_date,
+      description: je.description || line.description || "",
+      reference: je.reference,
+      transaction_type: isDebit ? "debit" as const : "credit" as const,
+      amount,
+      running_balance: runningBalance,
+      category: "gl",
+      is_reconciled: false,
+      reconciliation_id: null,
+      notes: `From GL: ${je.entry_number}`,
+      created_at: je.entry_date,
+    };
+  });
+}
+
 export async function createBankTransaction(
   supabase: SupabaseClient,
   companyId: string,

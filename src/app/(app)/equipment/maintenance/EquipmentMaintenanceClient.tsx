@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Plus,
@@ -70,6 +71,7 @@ interface EquipmentMaintenanceClientProps {
   equipmentList: EquipmentRow[];
   userId: string;
   companyId: string;
+  linkedJEs?: Record<string, { id: string; entry_number: string }[]>;
 }
 
 export default function EquipmentMaintenanceClient({
@@ -77,6 +79,7 @@ export default function EquipmentMaintenanceClient({
   equipmentList,
   userId,
   companyId,
+  linkedJEs = {},
 }: EquipmentMaintenanceClientProps) {
   const router = useRouter();
   const t = useTranslations("equipment");
@@ -550,6 +553,7 @@ export default function EquipmentMaintenanceClient({
                 <th>{t("columnPerformedBy")}</th>
                 <th>{t("columnStatus")}</th>
                 <th>{t("columnNextDue")}</th>
+                <th>JE</th>
               </tr>
             </thead>
             <tbody>
@@ -600,6 +604,22 @@ export default function EquipmentMaintenanceClient({
                   </td>
                   <td className="equipment-date-cell">
                     {formatDateShort(log.next_due_date)}
+                  </td>
+                  <td>
+                    {linkedJEs[log.id]?.length ? (
+                      linkedJEs[log.id].map((je) => (
+                        <Link
+                          key={je.id}
+                          href={`/financial/general-ledger?entry=${je.entry_number}`}
+                          className="je-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {je.entry_number}
+                        </Link>
+                      ))
+                    ) : (
+                      <span style={{ color: "var(--muted)" }}>--</span>
+                    )}
                   </td>
                 </tr>
               ))}

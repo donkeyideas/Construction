@@ -29,6 +29,8 @@ export interface CompanyAccountMap {
   billingsInExcessId: string | null;  // "Billings in Excess of Costs" (liability)
   // Lookup by account number for GL account resolution
   byNumber: Record<string, string>;
+  // Lookup by account_type → first account id (last-resort fallback)
+  byType: Record<string, string>;
 }
 
 /**
@@ -69,13 +71,18 @@ export async function buildCompanyAccountMap(
     costsInExcessId: null,
     billingsInExcessId: null,
     byNumber: {},
+    byType: {},
   };
 
   if (!accounts || accounts.length === 0) return map;
 
-  // Build number → id lookup
+  // Build number → id lookup AND type → first-id lookup
   for (const a of accounts) {
     map.byNumber[a.account_number] = a.id;
+    // First account of each type wins (accounts are ordered by account_number ASC)
+    if (!map.byType[a.account_type]) {
+      map.byType[a.account_type] = a.id;
+    }
   }
 
   // Find standard accounts by matching patterns (order matters — first match wins)
@@ -1980,17 +1987,22 @@ export function inferGLAccountFromDescription(
   if (text.includes("developer fee")) return "6050";
 
   // Operating expenses (5000 series in 8400 Edgewater chart)
-  if (text.includes("utilit")) return "5000";
+  if (text.includes("utilit") || text.includes("electric") || text.includes("water") || text.includes("sewer") || text.includes("gas bill")) return "5000";
   if (text.includes("turnover") || text.includes("make-ready")) return "5010";
   if (text.includes("repair") || text.includes("maintenance") || text.includes("r&m")) return "5020";
   if (text.includes("janitorial") || text.includes("landscap") || text.includes("pest") || text.includes("contract service")) return "5030";
+  if (text.includes("hoa") || text.includes("homeowner") || text.includes("common area") || text.includes("cam ") || text.includes("association due")) return "5030";
   if (text.includes("marketing") || text.includes("advertising") || text.includes("rendering") || text.includes("brochure") || text.includes("website") || text.includes("collateral")) return "5040";
   if (text.includes("general & admin") || text.includes("g&a") || text.includes("office")) return "5050";
   if (text.includes("personnel") || text.includes("payroll") || text.includes("salary")) return "5060";
-  if (text.includes("management fee")) return "5070";
+  if (text.includes("management fee") || text.includes("property manage")) return "5070";
   if (text.includes("insurance") || text.includes("builder's risk")) return "5080";
   if (text.includes("property tax") || text.includes("real estate tax")) return "5090";
   if (text.includes("replacement reserve")) return "5100";
+  if (text.includes("internet") || text.includes("telecom") || text.includes("phone")) return "5000";
+  if (text.includes("trash") || text.includes("waste") || text.includes("disposal")) return "5000";
+  if (text.includes("accounting") || text.includes("bookkeep") || text.includes("cpa")) return "6010";
+  if (text.includes("legal") || text.includes("attorney")) return "6010";
 
   // Studio-specific operating expenses
   if (text.includes("studio") && text.includes("personnel")) return "5200";
@@ -2010,20 +2022,29 @@ export function inferGLAccountFromDescription(
 
 /** Find the first revenue account in the map (fallback for receivable invoices) */
 function findDefaultRevenueAccount(map: CompanyAccountMap): string | null {
-  // Look for common revenue account numbers
-  for (const num of ["4000", "4010", "4100", "4200"]) {
+  // Look for common revenue account numbers (expanded list)
+  for (const num of [
+    "4000", "4010", "4020", "4030", "4040", "4050",
+    "4100", "4200", "4300", "4400", "4500",
+  ]) {
     if (map.byNumber[num]) return map.byNumber[num];
   }
-  return null;
+  // Last resort: first active revenue account regardless of number
+  return map.byType["revenue"] ?? null;
 }
 
 /** Find the first expense account in the map (fallback for payable invoices) */
 function findDefaultExpenseAccount(map: CompanyAccountMap): string | null {
-  // Look for common expense account numbers
-  for (const num of ["5000", "5010", "6000", "6100", "6200", "6900"]) {
+  // Look for common expense account numbers (expanded list)
+  for (const num of [
+    "5000", "5010", "5020", "5030", "5040", "5050", "5060", "5070", "5080", "5090", "5100",
+    "6000", "6010", "6020", "6030", "6040", "6050", "6100", "6200", "6500", "6700", "6800", "6900",
+    "7000", "7100",
+  ]) {
     if (map.byNumber[num]) return map.byNumber[num];
   }
-  return null;
+  // Last resort: first active expense account regardless of number
+  return map.byType["expense"] ?? null;
 }
 
 /** Find an account by name pattern match, searching the byNumber map */

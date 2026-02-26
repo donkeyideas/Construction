@@ -3,6 +3,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import {
   getBankAccountById,
   getBankTransactions,
+  getBankAccountGLTransactions,
 } from "@/lib/queries/banking";
 import BankTransactionsClient from "./BankTransactionsClient";
 import { redirect } from "next/navigation";
@@ -24,9 +25,10 @@ export default async function BankTransactionsPage({
     redirect("/login");
   }
 
-  const [account, transactions] = await Promise.all([
+  const [account, transactions, glTransactions] = await Promise.all([
     getBankAccountById(supabase, accountId),
     getBankTransactions(supabase, userCtx.companyId, accountId),
+    getBankAccountGLTransactions(supabase, userCtx.companyId, accountId),
   ]);
 
   if (!account || account.company_id !== userCtx.companyId) {
@@ -37,6 +39,7 @@ export default async function BankTransactionsPage({
     <BankTransactionsClient
       account={account}
       transactions={transactions}
+      glTransactions={glTransactions}
       companyId={userCtx.companyId}
     />
   );

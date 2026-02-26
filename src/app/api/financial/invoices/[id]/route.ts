@@ -102,12 +102,13 @@ export async function PATCH(
     }
 
     // Auto-generate invoice JE if one doesn't exist yet (idempotent)
+    const warnings: string[] = [];
     if (existing.total_amount && Number(existing.total_amount) > 0 && existing.status !== "voided") {
       try {
         // existing comes from select("*") — DB columns beyond InvoiceRow are present at runtime
         const raw = existing as unknown as Record<string, unknown>;
         const accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
-        await generateInvoiceJournalEntry(supabase, userCompany.companyId, userCompany.userId, {
+        const jeResult = await generateInvoiceJournalEntry(supabase, userCompany.companyId, userCompany.userId, {
           id,
           invoice_number: existing.invoice_number ?? "",
           invoice_type: existing.invoice_type ?? "payable",
@@ -124,12 +125,20 @@ export async function PATCH(
           retainage_pct: raw.retainage_pct ? Number(raw.retainage_pct) : undefined,
           retainage_held: raw.retainage_held ? Number(raw.retainage_held) : undefined,
         }, accountMap);
+        if (!jeResult) {
+          const invType = existing.invoice_type ?? "payable";
+          const missing = invType === "payable"
+            ? (!accountMap.apId ? "AP account" : "expense account")
+            : (!accountMap.arId ? "AR account" : "revenue account");
+          warnings.push(`Journal entry not created: no ${missing} found in Chart of Accounts.`);
+        }
       } catch (jeErr) {
         console.warn("Invoice JE generation failed (non-blocking):", jeErr);
+        warnings.push("Journal entry generation failed. Check Chart of Accounts setup.");
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, warnings });
   } catch (error) {
     console.error("PATCH /api/financial/invoices/[id] error:", error);
     return NextResponse.json(
@@ -140,7 +149,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   context: RouteContext
 ) {
   try {
@@ -158,14 +167,56 @@ export async function DELETE(
     const subBlock2 = await checkSubscriptionAccess(userCompany.companyId, "DELETE");
     if (subBlock2) return subBlock2;
 
-    // Soft delete: set status to voided
-    const success = await updateInvoice(supabase, id, { status: "voided" });
+    const { searchParams } = new URL(request.url);
+    const hard = searchParams.get("hard") === "true";
 
-    if (!success) {
-      return NextResponse.json(
-        { error: "Failed to void invoice" },
-        { status: 500 }
-      );
+    if (hard) {
+      // Hard delete: remove JEs, payments, and the invoice row
+      // Delete JE lines + JEs with reference matching this invoice
+      await supabase
+        .from("journal_entry_lines")
+        .delete()
+        .in("journal_entry_id",
+          (await supabase
+            .from("journal_entries")
+            .select("id")
+            .eq("company_id", userCompany.companyId)
+            .or(`reference.eq.invoice:${id},reference.like.payment:%`)
+          ).data?.filter(je => je.id).map(je => je.id) ?? []
+        );
+      // Delete JEs referencing this invoice
+      await supabase
+        .from("journal_entries")
+        .delete()
+        .eq("company_id", userCompany.companyId)
+        .eq("reference", `invoice:${id}`);
+      // Delete payments linked to this invoice
+      await supabase
+        .from("payments")
+        .delete()
+        .eq("invoice_id", id);
+      // Delete the invoice itself
+      const { error } = await supabase
+        .from("invoices")
+        .delete()
+        .eq("id", id)
+        .eq("company_id", userCompany.companyId);
+      if (error) {
+        return NextResponse.json(
+          { error: "Failed to delete invoice" },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Soft delete: set status to voided
+      const success = await updateInvoice(supabase, id, { status: "voided" });
+
+      if (!success) {
+        return NextResponse.json(
+          { error: "Failed to void invoice" },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({ success: true });

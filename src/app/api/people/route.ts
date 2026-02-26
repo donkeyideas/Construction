@@ -57,6 +57,9 @@ export async function POST(request: NextRequest) {
         company_name: body.company_name?.trim() || null,
         job_title: body.job_title?.trim() || null,
         notes: body.notes?.trim() || null,
+        hire_date: body.hire_date || null,
+        employment_status: body.employment_status || "active",
+        department: body.department?.trim() || null,
         is_active: true,
       })
       .select()

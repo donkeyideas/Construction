@@ -70,11 +70,14 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
         .eq("invoice_type", "payable")
         .order("invoice_date", { ascending: false });
 
-      if (activeStatus && activeStatus !== "all") {
-        query = query.eq("status", activeStatus);
-      } else {
+      if (activeStatus === "active" || !activeStatus) {
+        // "Active" = exclude voided and paid (default view)
         query = query.not("status", "eq", "voided").not("status", "eq", "paid");
+      } else if (activeStatus !== "all") {
+        // Specific status filter
+        query = query.eq("status", activeStatus);
       }
+      // "all" = no status filter, shows everything
       if (filterStartDate) query = query.gte("invoice_date", filterStartDate);
       if (filterEndDate) query = query.lte("invoice_date", filterEndDate);
       return query;

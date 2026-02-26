@@ -132,13 +132,15 @@ export default function APClient({
   }
 
   const statuses = [
-    { label: t("statusActive"), value: "all" },
+    { label: "All", value: "all" },
+    { label: t("statusActive"), value: "active" },
     { label: t("statusDraft"), value: "draft" },
     { label: t("statusPending"), value: "pending" },
     { label: "Submitted", value: "submitted" },
     { label: t("statusApproved"), value: "approved" },
     { label: t("statusOverdue"), value: "overdue" },
     { label: t("statusPaid"), value: "paid" },
+    { label: t("statusVoided") || "Voided", value: "voided" },
   ];
 
   const AP_IMPORT_COLUMNS: ImportColumn[] = [
@@ -176,6 +178,7 @@ export default function APClient({
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteMode, setDeleteMode] = useState<"void" | "hard">("void");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [editData, setEditData] = useState({
@@ -245,7 +248,7 @@ export default function APClient({
     }
   }
 
-  async function handleDelete() {
+  async function handleVoid() {
     if (!selectedInvoice) return;
     setSaving(true);
     setSaveError("");
@@ -269,6 +272,30 @@ export default function APClient({
     }
   }
 
+  async function handleHardDelete() {
+    if (!selectedInvoice) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch(`/api/financial/invoices/${selectedInvoice.id}?hard=true`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete bill");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : "Failed to delete");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div>
       {/* Header */}
@@ -282,7 +309,7 @@ export default function APClient({
             <Upload size={16} />
             {t("importCsv")}
           </button>
-          <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
+          <Link href="/financial/invoices/new?type=payable" className="ui-btn ui-btn-primary ui-btn-md">
             <Receipt size={16} />
             {t("newBill")}
           </Link>
@@ -488,7 +515,7 @@ export default function APClient({
                     ? t("noApFilteredDesc")
                     : t("noApEmptyDesc")}
                 </div>
-                <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
+                <Link href="/financial/invoices/new?type=payable" className="ui-btn ui-btn-primary ui-btn-md">
                   <Receipt size={16} />
                   {t("createBill")}
                 </Link>
@@ -518,14 +545,16 @@ export default function APClient({
             )}
 
             <div className="ticket-detail-body">
-              {/* Delete Confirmation */}
+              {/* Delete/Void Confirmation */}
               {showDeleteConfirm && (
                 <div style={{
                   background: "var(--surface)", borderRadius: 8, padding: 16,
                   marginBottom: 16, border: "1px solid var(--color-red)",
                 }}>
                   <p style={{ fontSize: "0.85rem", marginBottom: 12 }}>
-                    {t("voidBillConfirm")}
+                    {deleteMode === "hard"
+                      ? "This will permanently delete this bill and all associated journal entries. This cannot be undone."
+                      : t("voidBillConfirm")}
                   </p>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button
@@ -538,11 +567,11 @@ export default function APClient({
                     <button
                       className="ui-btn ui-btn-primary ui-btn-sm"
                       style={{ background: "var(--color-red)", borderColor: "var(--color-red)" }}
-                      onClick={handleDelete}
+                      onClick={deleteMode === "hard" ? handleHardDelete : handleVoid}
                       disabled={saving}
                     >
                       {saving ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
-                      {saving ? t("voiding") : t("voidBill")}
+                      {saving ? (deleteMode === "hard" ? "Deleting..." : t("voiding")) : (deleteMode === "hard" ? "Delete Permanently" : t("voidBill"))}
                     </button>
                   </div>
                 </div>
@@ -618,11 +647,21 @@ export default function APClient({
                       {selectedInvoice.status !== "voided" && selectedInvoice.status !== "paid" && (
                         <button
                           className="ui-btn ui-btn-outline ui-btn-sm"
-                          onClick={() => setShowDeleteConfirm(true)}
+                          onClick={() => { setDeleteMode("void"); setShowDeleteConfirm(true); }}
                           style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Trash2 size={14} />
                           {t("void")}
+                        </button>
+                      )}
+                      {selectedInvoice.status === "draft" && (
+                        <button
+                          className="ui-btn ui-btn-outline ui-btn-sm"
+                          onClick={() => { setDeleteMode("hard"); setShowDeleteConfirm(true); }}
+                          style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                        >
+                          <Trash2 size={14} />
+                          Delete
                         </button>
                       )}
                     </div>

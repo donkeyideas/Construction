@@ -105,12 +105,14 @@ export default function ARClient({
   }
 
   const statuses = [
-    { label: t("all"), value: "all" },
+    { label: "All", value: "all" },
+    { label: t("statusActive"), value: "active" },
     { label: t("statusDraft"), value: "draft" },
     { label: t("statusPending"), value: "pending" },
     { label: t("statusApproved"), value: "approved" },
     { label: t("statusOverdue"), value: "overdue" },
     { label: t("statusPaid"), value: "paid" },
+    { label: t("statusVoided") || "Voided", value: "voided" },
   ];
 
   const AR_IMPORT_COLUMNS: ImportColumn[] = [
@@ -149,6 +151,7 @@ export default function ARClient({
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteMode, setDeleteMode] = useState<"void" | "hard">("void");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [editData, setEditData] = useState({
@@ -215,7 +218,7 @@ export default function ARClient({
     }
   }
 
-  async function handleDelete() {
+  async function handleVoid() {
     if (!selectedInvoice) return;
     setSaving(true);
     setSaveError("");
@@ -239,6 +242,30 @@ export default function ARClient({
     }
   }
 
+  async function handleHardDelete() {
+    if (!selectedInvoice) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch(`/api/financial/invoices/${selectedInvoice.id}?hard=true`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete invoice");
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : "Failed to delete");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div>
       {/* Header */}
@@ -252,7 +279,7 @@ export default function ARClient({
             <Upload size={16} />
             {t("importCsv")}
           </button>
-          <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
+          <Link href="/financial/invoices/new?type=receivable" className="ui-btn ui-btn-primary ui-btn-md">
             <FileText size={16} />
             {t("newInvoice")}
           </Link>
@@ -441,7 +468,7 @@ export default function ARClient({
                 ? t("noArFilteredDesc")
                 : t("noArEmptyDesc")}
             </div>
-            <Link href="/financial/invoices/new" className="ui-btn ui-btn-primary ui-btn-md">
+            <Link href="/financial/invoices/new?type=receivable" className="ui-btn ui-btn-primary ui-btn-md">
               <FileText size={16} />
               {t("createInvoice")}
             </Link>
@@ -471,14 +498,16 @@ export default function ARClient({
             )}
 
             <div className="ticket-detail-body">
-              {/* Delete Confirmation */}
+              {/* Delete/Void Confirmation */}
               {showDeleteConfirm && (
                 <div style={{
                   background: "var(--surface)", borderRadius: 8, padding: 16,
                   marginBottom: 16, border: "1px solid var(--color-red)",
                 }}>
                   <p style={{ fontSize: "0.85rem", marginBottom: 12 }}>
-                    {t("voidInvoiceConfirmGeneric")}
+                    {deleteMode === "hard"
+                      ? "This will permanently delete this invoice and all associated journal entries. This cannot be undone."
+                      : t("voidInvoiceConfirmGeneric")}
                   </p>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button
@@ -491,11 +520,11 @@ export default function ARClient({
                     <button
                       className="ui-btn ui-btn-primary ui-btn-sm"
                       style={{ background: "var(--color-red)", borderColor: "var(--color-red)" }}
-                      onClick={handleDelete}
+                      onClick={deleteMode === "hard" ? handleHardDelete : handleVoid}
                       disabled={saving}
                     >
                       {saving ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
-                      {saving ? t("voiding") : t("voidInvoice")}
+                      {saving ? (deleteMode === "hard" ? "Deleting..." : t("voiding")) : (deleteMode === "hard" ? "Delete Permanently" : t("voidInvoice"))}
                     </button>
                   </div>
                 </div>
@@ -567,11 +596,21 @@ export default function ARClient({
                       {selectedInvoice.status !== "voided" && selectedInvoice.status !== "paid" && (
                         <button
                           className="ui-btn ui-btn-outline ui-btn-sm"
-                          onClick={() => setShowDeleteConfirm(true)}
+                          onClick={() => { setDeleteMode("void"); setShowDeleteConfirm(true); }}
                           style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Trash2 size={14} />
                           {t("void")}
+                        </button>
+                      )}
+                      {selectedInvoice.status === "draft" && (
+                        <button
+                          className="ui-btn ui-btn-outline ui-btn-sm"
+                          onClick={() => { setDeleteMode("hard"); setShowDeleteConfirm(true); }}
+                          style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                        >
+                          <Trash2 size={14} />
+                          Delete
                         </button>
                       )}
                     </div>
