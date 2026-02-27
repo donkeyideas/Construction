@@ -3215,7 +3215,8 @@
     "thDaysOpen": "Days Open",
     "allIncidents": "All Incidents",
     "safetyTransactionsTitle": "Safety Transactions",
-    "safetyTransactionsSubtitle": "Safety-related expenses — training, PPE, OSHA compliance, and inspections."
+    "safetyTransactionsSubtitle": "Safety-related expenses — training, PPE, OSHA compliance, and inspections.",
+    "totalIncidents": "Total Incidents"
   },
   "people": {
     "typeEmployee": "Employee",

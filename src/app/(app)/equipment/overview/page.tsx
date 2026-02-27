@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getEquipmentOverview } from "@/lib/queries/equipment";
 import { formatCompactCurrency, formatPercent } from "@/lib/utils/format";
+import { formatLocalDate } from "@/lib/utils/date";
 import EquipmentStatusChart from "@/components/charts/EquipmentStatusChart";
 import EquipmentTypeChart from "@/components/charts/EquipmentTypeChart";
 import { getTranslations } from "next-intl/server";
@@ -112,7 +113,7 @@ export default async function EquipmentOverviewPage() {
                         </span>
                       </td>
                       <td style={{ fontSize: "0.78rem" }}>
-                        {e.next_maintenance_date ? new Date(e.next_maintenance_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
+                        {e.next_maintenance_date ? formatLocalDate(e.next_maintenance_date) : "—"}
                       </td>
                       <td style={{ color: e.daysOverdue > 0 ? "var(--color-red)" : "var(--color-amber)", fontWeight: 600 }}>
                         {e.daysOverdue > 0 ? `${e.daysOverdue}${t("dOverdue")}` : `${Math.abs(e.daysOverdue)}${t("dLeft")}`}
@@ -138,7 +139,7 @@ export default async function EquipmentOverviewPage() {
                     <div className="activity-time">
                       {a.project_name} · {a.assigned_to_name}
                       {" · Since "}
-                      {new Date(a.assigned_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {formatLocalDate(a.assigned_date)}
                     </div>
                   </div>
                 </div>

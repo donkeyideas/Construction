@@ -3215,7 +3215,8 @@
     "thDaysOpen": "待处理天数",
     "allIncidents": "所有事故",
     "safetyTransactionsTitle": "安全交易",
-    "safetyTransactionsSubtitle": "安全相关支出——培训、PPE、OSHA合规和检查。"
+    "safetyTransactionsSubtitle": "安全相关支出——培训、PPE、OSHA合规和检查。",
+    "totalIncidents": "事故总数"
   },
   "people": {
     "typeEmployee": "员工",

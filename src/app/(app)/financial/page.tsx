@@ -24,6 +24,7 @@ import {
   getFinancialKPIs,
 } from "@/lib/queries/financial";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
+import { formatLocalDate } from "@/lib/utils/date";
 import { getTranslations } from "next-intl/server";
 
 
@@ -370,10 +371,7 @@ export default async function FinancialDashboardPage() {
                           : inv.client_name ?? "--"}
                       </td>
                       <td>
-                        {new Date(inv.invoice_date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {formatLocalDate(inv.invoice_date, { month: "short", day: "numeric" })}
                       </td>
                       <td className="amount-col">
                         {formatCurrency(inv.total_amount)}

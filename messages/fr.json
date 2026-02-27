@@ -3215,7 +3215,8 @@
     "thDaysOpen": "Jours Ouverts",
     "allIncidents": "Tous les Incidents",
     "safetyTransactionsTitle": "Transactions de Sécurité",
-    "safetyTransactionsSubtitle": "Dépenses liées à la sécurité — formation, EPI, conformité OSHA et inspections."
+    "safetyTransactionsSubtitle": "Dépenses liées à la sécurité — formation, EPI, conformité OSHA et inspections.",
+    "totalIncidents": "Total des Incidents"
   },
   "people": {
     "typeEmployee": "Employé",

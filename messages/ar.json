@@ -3215,7 +3215,8 @@
     "thDaysOpen": "الأيام المفتوحة",
     "allIncidents": "جميع الحوادث",
     "safetyTransactionsTitle": "معاملات السلامة",
-    "safetyTransactionsSubtitle": "مصروفات السلامة — التدريب ومعدات الحماية والامتثال لـ OSHA والتفتيش."
+    "safetyTransactionsSubtitle": "مصروفات السلامة — التدريب ومعدات الحماية والامتثال لـ OSHA والتفتيش.",
+    "totalIncidents": "إجمالي الحوادث"
   },
   "people": {
     "typeEmployee": "موظف",

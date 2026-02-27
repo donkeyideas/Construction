@@ -3,6 +3,7 @@ import { GanttChart } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { formatPercent } from "@/lib/utils/format";
+import { formatLocalDate } from "@/lib/utils/date";
 import GanttActions from "./GanttActions";
 import { getTranslations } from "next-intl/server";
 
@@ -84,7 +85,7 @@ function getTimelineBounds(phases: Phase[], tasks: Task[]) {
     const monthStart = new Date(cursor);
     const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
     months.push({
-      label: monthStart.toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
+      label: formatLocalDate(monthStart, { month: "short", year: "2-digit" }),
       start: monthStart,
       end: monthEnd,
     });

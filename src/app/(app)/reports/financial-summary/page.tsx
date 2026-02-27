@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getFinancialSummaryReport } from "@/lib/queries/reports";
 import { formatCurrency } from "@/lib/utils/format";
+import { formatLocalDate } from "@/lib/utils/date";
 import ExportButton from "@/components/reports/ExportButton";
 import { getTranslations } from "next-intl/server";
 
@@ -39,8 +40,8 @@ export default async function FinancialSummaryPage({
   );
 
   const periodLabel = dateRange
-    ? `${new Date(dateRange.start).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} – ${new Date(dateRange.end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-    : `Jan 1 – ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} (YTD)`;
+    ? `${formatLocalDate(dateRange.start, { month: "short", day: "numeric", year: "numeric" })} – ${formatLocalDate(dateRange.end, { month: "short", day: "numeric", year: "numeric" })}`
+    : `Jan 1 – ${formatLocalDate(new Date(), { month: "short", day: "numeric", year: "numeric" })} (YTD)`;
 
   const exportData = [
     {

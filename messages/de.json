@@ -3215,7 +3215,8 @@
     "thDaysOpen": "Offene Tage",
     "allIncidents": "Alle Vorfälle",
     "safetyTransactionsTitle": "Sicherheitstransaktionen",
-    "safetyTransactionsSubtitle": "Sicherheitsbezogene Ausgaben — Schulung, PSA, OSHA-Compliance und Inspektionen."
+    "safetyTransactionsSubtitle": "Sicherheitsbezogene Ausgaben — Schulung, PSA, OSHA-Compliance und Inspektionen.",
+    "totalIncidents": "Vorfälle gesamt"
   },
   "people": {
     "typeEmployee": "Mitarbeiter",

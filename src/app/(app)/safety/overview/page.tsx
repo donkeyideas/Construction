@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getSafetyOverview } from "@/lib/queries/safety";
 import { formatPercent } from "@/lib/utils/format";
+import { formatLocalDate } from "@/lib/utils/date";
 import IncidentTrendChart from "@/components/charts/IncidentTrendChart";
 import IncidentTypeChart from "@/components/charts/IncidentTypeChart";
 import { getTranslations } from "next-intl/server";
@@ -161,7 +162,7 @@ export default async function SafetyOverviewPage() {
                       {talk.conductor?.full_name ?? "TBD"}
                       {talk.project?.name && ` · ${talk.project.name}`}
                       {" · "}
-                      {new Date(talk.scheduled_date || talk.conducted_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {formatLocalDate(talk.scheduled_date || talk.conducted_date)}
                     </div>
                   </div>
                 </div>

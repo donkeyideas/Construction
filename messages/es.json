@@ -2708,7 +2708,8 @@
     "thDaysOpen": "Días Abiertos",
     "allIncidents": "Todos los Incidentes",
     "safetyTransactionsTitle": "Transacciones de Seguridad",
-    "safetyTransactionsSubtitle": "Gastos relacionados con seguridad — capacitación, EPP, cumplimiento OSHA e inspecciones."
+    "safetyTransactionsSubtitle": "Gastos relacionados con seguridad — capacitación, EPP, cumplimiento OSHA e inspecciones.",
+    "totalIncidents": "Total de Incidentes"
   },
   "people": {
     "typeEmployee": "Empleado",

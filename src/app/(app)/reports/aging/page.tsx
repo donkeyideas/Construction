@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAgingReport } from "@/lib/queries/reports";
 import { formatCurrency } from "@/lib/utils/format";
+import { formatLocalDate } from "@/lib/utils/date";
 import ExportButton from "@/components/reports/ExportButton";
 import { getTranslations } from "next-intl/server";
 
@@ -209,18 +210,10 @@ export default async function AgingReportPage({
                         : inv.vendor_name ?? "--"}
                     </td>
                     <td>
-                      {new Date(inv.invoice_date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatLocalDate(inv.invoice_date, { month: "short", day: "numeric", year: "numeric" })}
                     </td>
                     <td>
-                      {new Date(inv.due_date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatLocalDate(inv.due_date, { month: "short", day: "numeric", year: "numeric" })}
                     </td>
                     <td className="report-num">
                       {formatCurrency(inv.total_amount)}

@@ -4,6 +4,7 @@ import { Users, UserCheck, HardHat, AlertTriangle, Clock, FileWarning } from "lu
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPeopleOverview } from "@/lib/queries/people";
+import { formatLocalDate } from "@/lib/utils/date";
 import PeopleTypeChart from "@/components/charts/PeopleTypeChart";
 import HoursByProjectChart from "@/components/charts/HoursByProjectChart";
 import { getTranslations } from "next-intl/server";
@@ -109,7 +110,7 @@ export default async function PeopleOverviewPage() {
                         <td>{c.cert_name}</td>
                         <td style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{c.issuing_authority ?? "—"}</td>
                         <td style={{ fontSize: "0.78rem" }}>
-                          {c.expiry_date ? new Date(c.expiry_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
+                          {c.expiry_date ? formatLocalDate(c.expiry_date) : "—"}
                         </td>
                         <td style={{ color: daysLeft <= 7 ? "var(--color-red)" : "var(--color-amber)", fontWeight: 600 }}>
                           {daysLeft}d
@@ -139,7 +140,7 @@ export default async function PeopleOverviewPage() {
                     </div>
                     <div className="activity-time">
                       {entry.project?.name ?? "No project"} ·{" "}
-                      {new Date(entry.entry_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {formatLocalDate(entry.entry_date)}
                     </div>
                   </div>
                 </div>

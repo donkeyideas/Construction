@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPropertiesOverview } from "@/lib/queries/properties";
 import { formatCurrency, formatCompactCurrency, formatPercent } from "@/lib/utils/format";
+import { formatLocalDate } from "@/lib/utils/date";
 import OccupancyChart from "@/components/charts/OccupancyChart";
 import PropertyRevenueChart from "@/components/charts/PropertyRevenueChart";
 import { getTranslations } from "next-intl/server";
@@ -81,7 +82,7 @@ export default async function PropertiesOverviewPage() {
                         <td>{l.unit_number}</td>
                         <td>{l.tenant_name}</td>
                         <td style={{ color: daysLeft <= 30 ? "var(--color-red)" : "var(--color-amber)", fontWeight: 500 }}>
-                          {new Date(l.lease_end).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          {formatLocalDate(l.lease_end)}
                           <span style={{ fontSize: "0.72rem", color: "var(--muted)", marginLeft: 4 }}>({daysLeft}d)</span>
                         </td>
                         <td className="amount-col">{formatCurrency(l.monthly_rent)}</td>

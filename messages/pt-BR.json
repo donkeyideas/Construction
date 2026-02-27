@@ -3216,7 +3216,8 @@
     "thDaysOpen": "Dias Abertos",
     "allIncidents": "Todos os Incidentes",
     "safetyTransactionsTitle": "Transações de Segurança",
-    "safetyTransactionsSubtitle": "Despesas de segurança — treinamento, EPI, conformidade OSHA e inspeções."
+    "safetyTransactionsSubtitle": "Despesas de segurança — treinamento, EPI, conformidade OSHA e inspeções.",
+    "totalIncidents": "Total de Incidentes"
   },
   "people": {
     "typeEmployee": "Funcionário",

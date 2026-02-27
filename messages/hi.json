@@ -3295,7 +3295,8 @@
     "thDaysOpen": "खुले दिन",
     "allIncidents": "सभी घटनाएं",
     "safetyTransactionsTitle": "सुरक्षा लेनदेन",
-    "safetyTransactionsSubtitle": "सुरक्षा-संबंधित खर्च — प्रशिक्षण, PPE, OSHA अनुपालन और निरीक्षण।"
+    "safetyTransactionsSubtitle": "सुरक्षा-संबंधित खर्च — प्रशिक्षण, PPE, OSHA अनुपालन और निरीक्षण।",
+    "totalIncidents": "कुल घटनाएं"
   },
   "people": {
     "typeEmployee": "कर्मचारी",
