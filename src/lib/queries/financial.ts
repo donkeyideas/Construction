@@ -47,6 +47,9 @@ export interface PaymentRow {
   amount: number;
   method: string;
   reference_number: string | null;
+  bank_account_id: string | null;
+  bank_account_name: string | null;
+  notes: string | null;
 }
 
 export interface LineItem {
@@ -381,7 +384,7 @@ export async function getInvoiceById(
 
   const { data: payments, error: payError } = await supabase
     .from("payments")
-    .select("id, payment_date, amount, method, reference_number")
+    .select("id, payment_date, amount, method, reference_number, bank_account_id, notes, bank_accounts(name)")
     .eq("invoice_id", invoiceId)
     .order("payment_date", { ascending: false });
 
@@ -389,9 +392,21 @@ export async function getInvoiceById(
     console.error("Error fetching payments:", payError);
   }
 
+  // Flatten bank account name from join
+  const mappedPayments: PaymentRow[] = (payments ?? []).map((p: Record<string, unknown>) => ({
+    id: p.id as string,
+    payment_date: p.payment_date as string,
+    amount: p.amount as number,
+    method: p.method as string,
+    reference_number: (p.reference_number as string) || null,
+    bank_account_id: (p.bank_account_id as string) || null,
+    bank_account_name: (p.bank_accounts as { name: string } | null)?.name || null,
+    notes: (p.notes as string) || null,
+  }));
+
   return {
     ...(invoice as InvoiceRow),
-    payments: (payments ?? []) as PaymentRow[],
+    payments: mappedPayments,
   };
 }
 

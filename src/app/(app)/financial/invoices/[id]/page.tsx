@@ -9,6 +9,7 @@ import { formatCurrency } from "@/lib/utils/format";
 import { findLinkedJournalEntries } from "@/lib/utils/je-linkage";
 import type { LineItem, PaymentRow } from "@/lib/queries/financial";
 import RecordPaymentButton from "./RecordPaymentButton";
+import EditPaymentSection from "./EditPaymentSection";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -326,6 +327,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                 <tr>
                   <th>Date</th>
                   <th>Method</th>
+                  <th>Bank Account</th>
                   <th>Reference</th>
                   <th style={{ textAlign: "right" }}>Amount</th>
                   <th>JE</th>
@@ -336,6 +338,19 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                   <tr key={p.id}>
                     <td>{safeDate(p.payment_date)}</td>
                     <td style={{ textTransform: "capitalize" }}>{p.method ?? "--"}</td>
+                    <td style={{ fontSize: "0.82rem" }}>
+                      {p.bank_account_name ? (
+                        <Link
+                          href={`/financial/banking/${p.bank_account_id}`}
+                          className="je-link"
+                          style={{ fontSize: "0.82rem" }}
+                        >
+                          {p.bank_account_name}
+                        </Link>
+                      ) : (
+                        <span style={{ color: "var(--muted)" }}>--</span>
+                      )}
+                    </td>
                     <td style={{ color: "var(--muted)" }}>{p.reference_number ?? "--"}</td>
                     <td style={{ textAlign: "right", fontWeight: 600, color: "var(--color-green)" }}>
                       {safeCurrency(p.amount)}
@@ -362,6 +377,18 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           </div>
         )}
       </div>
+
+      {/* Edit Payment Section */}
+      <EditPaymentSection
+        payments={payments}
+        invoiceId={id}
+        bankAccounts={bankAccounts.map((ba) => ({
+          id: ba.id,
+          name: ba.name,
+          bank_name: ba.bank_name,
+          account_number_last4: ba.account_number_last4,
+        }))}
+      />
     </div>
   );
 }

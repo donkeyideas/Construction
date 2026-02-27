@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
         // Without this, the expense never hits the P&L
         const { data: existingInvJE } = await supabase
           .from("journal_entries")
-          .select("id")
+          .select("id, status")
           .eq("company_id", userCompany.companyId)
           .eq("reference", `invoice:${invoice.id}`)
           .limit(1)
@@ -152,6 +152,12 @@ export async function POST(request: NextRequest) {
             invoice,
             accountMap
           );
+        } else if (existingInvJE && existingInvJE.status === "voided") {
+          // Reactivate voided invoice JE when a payment is recorded against it
+          await supabase
+            .from("journal_entries")
+            .update({ status: "posted" })
+            .eq("id", existingInvJE.id);
         }
 
         // Generate payment JE (DR AP/CR Cash for payable, DR Cash/CR AR for receivable)

@@ -217,6 +217,13 @@ export async function DELETE(
           { status: 500 }
         );
       }
+
+      // Also void linked journal entries so GL stays in sync
+      await supabase
+        .from("journal_entries")
+        .update({ status: "voided" })
+        .eq("company_id", userCompany.companyId)
+        .eq("reference", `invoice:${id}`);
     }
 
     return NextResponse.json({ success: true });

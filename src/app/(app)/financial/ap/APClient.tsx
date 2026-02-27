@@ -66,7 +66,7 @@ interface APClientProps {
 
 function buildUrl(status?: string, start?: string, end?: string): string {
   const p = new URLSearchParams();
-  if (status && status !== "all") p.set("status", status);
+  if (status) p.set("status", status);
   if (start) p.set("start", start);
   if (end) p.set("end", end);
   const qs = p.toString();
@@ -391,7 +391,7 @@ export default function APClient({
                 key={s.value}
                 href={buildUrl(s.value, filterStart || undefined, filterEnd || undefined)}
                 className={`ui-btn ui-btn-sm ${
-                  activeStatus === s.value || (!activeStatus && s.value === "all")
+                  activeStatus === s.value || (!activeStatus && s.value === "active")
                     ? "ui-btn-primary"
                     : "ui-btn-outline"
                 }`}
