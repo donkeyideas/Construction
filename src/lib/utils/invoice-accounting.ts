@@ -27,6 +27,9 @@ export interface CompanyAccountMap {
   // WIP accounts for construction contracts
   costsInExcessId: string | null;     // "Costs in Excess of Billings" (asset)
   billingsInExcessId: string | null;  // "Billings in Excess of Costs" (liability)
+  // General deferral accounts
+  deferredRevenueId: string | null;   // "Deferred Revenue" (liability, not rental-specific)
+  prepaidExpenseId: string | null;    // "Prepaid Expenses" (asset)
   // Lookup by account number for GL account resolution
   byNumber: Record<string, string>;
   // Lookup by account_type → first account id (last-resort fallback)
@@ -70,6 +73,8 @@ export async function buildCompanyAccountMap(
     securityDepositHeldId: null,
     costsInExcessId: null,
     billingsInExcessId: null,
+    deferredRevenueId: null,
+    prepaidExpenseId: null,
     byNumber: {},
     byType: {},
   };
@@ -226,6 +231,25 @@ export async function buildCompanyAccountMap(
        nameLower.includes("advance billing"))
     ) {
       map.billingsInExcessId = a.id;
+    }
+
+    // Deferred Revenue (general, not rental-specific): liability with "deferred" and "revenue"
+    if (!map.deferredRevenueId && a.account_type === "liability" &&
+      nameLower.includes("deferred") && nameLower.includes("revenue") &&
+      !nameLower.includes("rental") && !nameLower.includes("rent")
+    ) {
+      map.deferredRevenueId = a.id;
+    }
+    // Fall back: use rental deferred revenue if no general one exists
+    if (!map.deferredRevenueId && map.deferredRentalRevenueId) {
+      map.deferredRevenueId = map.deferredRentalRevenueId;
+    }
+
+    // Prepaid Expenses: asset with "prepaid"
+    if (!map.prepaidExpenseId && a.account_type === "asset" &&
+      nameLower.includes("prepaid")
+    ) {
+      map.prepaidExpenseId = a.id;
     }
   }
 
@@ -2073,4 +2097,102 @@ function findAccountByPattern(map: CompanyAccountMap, pattern: string): string |
     if (map.byNumber[num]) return map.byNumber[num];
   }
   return null;
+}
+
+/* ------------------------------------------------------------------
+   Invoice Deferral Schedule Generation
+   Creates monthly recognition schedule entries for deferred invoices.
+   Pattern: for receivables, DR Deferred Revenue / CR Revenue per month.
+   For payables, DR Expense / CR Prepaid Expenses per month.
+   ------------------------------------------------------------------ */
+
+export async function generateInvoiceDeferralSchedule(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  invoice: {
+    id: string;
+    invoice_type: "payable" | "receivable";
+    total_amount: number;
+    deferral_start_date: string;
+    deferral_end_date: string;
+    project_id?: string | null;
+    gl_account_id?: string | null;
+  },
+  accountMap: CompanyAccountMap
+): Promise<{ scheduledCount: number; jeCount: number }> {
+  const months = getMonthsBetween(invoice.deferral_start_date, invoice.deferral_end_date);
+  if (months.length === 0) return { scheduledCount: 0, jeCount: 0 };
+
+  const baseAmount = invoice.total_amount / months.length;
+  const remainder = invoice.total_amount - baseAmount * months.length;
+
+  // Check existing schedule to be idempotent
+  const { data: existing } = await supabase
+    .from("invoice_deferral_schedule")
+    .select("schedule_date")
+    .eq("invoice_id", invoice.id);
+
+  const existingDates = new Set((existing ?? []).map((r) => r.schedule_date));
+
+  let scheduledCount = 0;
+  let jeCount = 0;
+  const jeEntries: JournalEntryCreateData[] = [];
+
+  for (let i = 0; i < months.length; i++) {
+    const scheduleDate = months[i];
+    if (existingDates.has(scheduleDate)) continue;
+
+    const isLast = i === months.length - 1;
+    const amount = Math.round((baseAmount + (isLast ? remainder : 0)) * 100) / 100;
+
+    const ym = scheduleDate.slice(0, 7); // YYYY-MM
+    const reference = `deferral:${invoice.id}:${ym}`;
+    const description = `Deferred ${invoice.invoice_type === "receivable" ? "revenue" : "expense"} recognition - ${ym}`;
+
+    let debitAccountId: string | null = null;
+    let creditAccountId: string | null = null;
+
+    if (invoice.invoice_type === "receivable") {
+      // DR Deferred Revenue (liability decreases) / CR Revenue (income increases)
+      debitAccountId = accountMap.deferredRevenueId || accountMap.deferredRentalRevenueId;
+      creditAccountId = invoice.gl_account_id || accountMap.byType["revenue"] || null;
+    } else {
+      // DR Expense (expense increases) / CR Prepaid Expenses (asset decreases)
+      debitAccountId = invoice.gl_account_id || accountMap.byType["expense"] || null;
+      creditAccountId = accountMap.prepaidExpenseId || accountMap.byType["asset"] || null;
+    }
+
+    if (!debitAccountId || !creditAccountId) continue;
+
+    jeEntries.push({
+      entry_number: reference,
+      entry_date: scheduleDate,
+      description,
+      reference,
+      lines: [
+        { account_id: debitAccountId, debit: amount, credit: 0 },
+        { account_id: creditAccountId, debit: 0, credit: amount },
+      ],
+    });
+
+    // Insert schedule row
+    await supabase.from("invoice_deferral_schedule").insert({
+      company_id: companyId,
+      invoice_id: invoice.id,
+      project_id: invoice.project_id || null,
+      schedule_date: scheduleDate,
+      monthly_amount: amount,
+      status: "scheduled",
+    });
+    scheduledCount++;
+  }
+
+  // Batch-create JEs
+  if (jeEntries.length > 0) {
+    const result = await createBulkPostedJournalEntries(supabase, companyId, userId, jeEntries);
+    jeCount = result.ids.length;
+  }
+
+  return { scheduledCount, jeCount };
 }

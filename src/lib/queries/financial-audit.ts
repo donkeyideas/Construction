@@ -35,6 +35,10 @@ export async function runFinancialAudit(
     checkMissingGLMappings(supabase, companyId),
     checkOrphanedJELines(supabase, companyId),
     checkRevenueRecognition(supabase, companyId),
+    checkDuplicateJEs(supabase, companyId),
+    checkDateRangeValidation(supabase, companyId),
+    checkNegativeBalanceAccounts(supabase, companyId),
+    checkMissingVendorClientInfo(supabase, companyId),
   ]);
 
   const failCount = checks.filter((c) => c.status === "fail").length;
@@ -1008,6 +1012,255 @@ async function checkRevenueRecognition(
     name,
     status: "warn",
     summary: `${mismatchedInvoices.length} revenue invoices have JE dates more than 30 days from invoice date`,
+    details,
+  };
+}
+
+/* ------------------------------------------------------------------
+   12. Duplicate Journal Entries
+   Finds JEs with duplicate reference strings.
+   ------------------------------------------------------------------ */
+
+async function checkDuplicateJEs(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<AuditCheckResult> {
+  const id = "duplicate-jes";
+  const name = "Duplicate Journal Entries";
+
+  const { data: jes, error: jeErr } = await supabase
+    .from("journal_entries")
+    .select("id, reference, entry_number")
+    .eq("company_id", companyId)
+    .not("reference", "is", null);
+
+  if (jeErr) {
+    return { id, name, status: "fail", summary: "Error querying journal entries", details: [jeErr.message] };
+  }
+
+  const refCountMap = new Map<string, { count: number; entries: string[] }>();
+  for (const je of jes ?? []) {
+    if (!je.reference) continue;
+    const existing = refCountMap.get(je.reference);
+    if (existing) {
+      existing.count++;
+      if (existing.entries.length < 3) existing.entries.push(je.entry_number || je.id);
+    } else {
+      refCountMap.set(je.reference, { count: 1, entries: [je.entry_number || je.id] });
+    }
+  }
+
+  const duplicates = Array.from(refCountMap.entries()).filter(([, v]) => v.count > 1);
+
+  if (duplicates.length === 0) {
+    return { id, name, status: "pass", summary: "No duplicate journal entry references found", details: [] };
+  }
+
+  const details = duplicates.slice(0, 10).map(
+    ([ref, v]) => `Reference "${ref}" has ${v.count} entries: ${v.entries.join(", ")}`
+  );
+  if (duplicates.length > 10) details.push(`...and ${duplicates.length - 10} more`);
+
+  return {
+    id,
+    name,
+    status: "warn",
+    summary: `${duplicates.length} duplicate journal entry references found`,
+    details,
+  };
+}
+
+/* ------------------------------------------------------------------
+   13. Date Range Validation
+   Flags future-dated or very old journal entries.
+   ------------------------------------------------------------------ */
+
+async function checkDateRangeValidation(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<AuditCheckResult> {
+  const id = "date-range-validation";
+  const name = "Journal Entry Date Validation";
+
+  const today = new Date().toISOString().split("T")[0];
+  const fiveYearsAgo = new Date();
+  fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+  const cutoff = fiveYearsAgo.toISOString().split("T")[0];
+
+  const [futureRes, oldRes] = await Promise.all([
+    supabase
+      .from("journal_entries")
+      .select("id, entry_number, entry_date")
+      .eq("company_id", companyId)
+      .gt("entry_date", today)
+      .limit(20),
+    supabase
+      .from("journal_entries")
+      .select("id, entry_number, entry_date")
+      .eq("company_id", companyId)
+      .lt("entry_date", cutoff)
+      .limit(20),
+  ]);
+
+  const futureEntries = futureRes.data ?? [];
+  const oldEntries = oldRes.data ?? [];
+  const total = futureEntries.length + oldEntries.length;
+
+  if (total === 0) {
+    return { id, name, status: "pass", summary: "All journal entries have valid dates", details: [] };
+  }
+
+  const details: string[] = [];
+  for (const je of futureEntries.slice(0, 5)) {
+    details.push(`${je.entry_number || je.id}: future date ${je.entry_date}`);
+  }
+  for (const je of oldEntries.slice(0, 5)) {
+    details.push(`${je.entry_number || je.id}: very old date ${je.entry_date}`);
+  }
+
+  return {
+    id,
+    name,
+    status: futureEntries.length > 0 ? "warn" : "warn",
+    summary: `${futureEntries.length} future-dated and ${oldEntries.length} entries older than 5 years`,
+    details,
+  };
+}
+
+/* ------------------------------------------------------------------
+   14. Negative Balance Accounts
+   Checks for accounts with unexpected negative balances.
+   ------------------------------------------------------------------ */
+
+async function checkNegativeBalanceAccounts(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<AuditCheckResult> {
+  const id = "negative-balance-accounts";
+  const name = "Negative Balance Accounts";
+
+  // Get all accounts
+  const { data: accounts, error: accErr } = await supabase
+    .from("chart_of_accounts")
+    .select("id, account_number, name, account_type, normal_balance")
+    .eq("company_id", companyId)
+    .eq("is_active", true);
+
+  if (accErr) {
+    return { id, name, status: "fail", summary: "Error querying accounts", details: [accErr.message] };
+  }
+
+  if (!accounts || accounts.length === 0) {
+    return { id, name, status: "pass", summary: "No active accounts to check", details: [] };
+  }
+
+  // Get all posted JE lines grouped by account
+  let allLines: { account_id: string; debit_amount: number; credit_amount: number }[];
+  try {
+    allLines = await paginatedQuery<{ account_id: string; debit_amount: number; credit_amount: number }>((from, to) =>
+      supabase
+        .from("journal_entry_lines")
+        .select("account_id, debit_amount, credit_amount, journal_entries!inner(status, company_id)")
+        .eq("journal_entries.company_id", companyId)
+        .eq("journal_entries.status", "posted")
+        .range(from, to)
+    );
+  } catch {
+    return { id, name, status: "fail", summary: "Error querying JE lines", details: [] };
+  }
+
+  // Sum debits and credits per account
+  const balanceMap = new Map<string, { debits: number; credits: number }>();
+  for (const line of allLines) {
+    const existing = balanceMap.get(line.account_id) || { debits: 0, credits: 0 };
+    existing.debits += Number(line.debit_amount) || 0;
+    existing.credits += Number(line.credit_amount) || 0;
+    balanceMap.set(line.account_id, existing);
+  }
+
+  const negativeAccounts: string[] = [];
+  for (const acc of accounts) {
+    const bal = balanceMap.get(acc.id);
+    if (!bal) continue;
+
+    const normalBalance = acc.normal_balance || (
+      acc.account_type === "asset" || acc.account_type === "expense" ? "debit" : "credit"
+    );
+
+    const balance = normalBalance === "debit"
+      ? bal.debits - bal.credits
+      : bal.credits - bal.debits;
+
+    if (balance < -0.01) {
+      negativeAccounts.push(`${acc.account_number} ${acc.name}: ${balance.toFixed(2)} (expected ${normalBalance} balance)`);
+    }
+  }
+
+  if (negativeAccounts.length === 0) {
+    return { id, name, status: "pass", summary: "No accounts have unexpected negative balances", details: [] };
+  }
+
+  return {
+    id,
+    name,
+    status: "warn",
+    summary: `${negativeAccounts.length} accounts have unexpected negative balances`,
+    details: negativeAccounts.slice(0, 10),
+  };
+}
+
+/* ------------------------------------------------------------------
+   15. Missing Vendor/Client Info
+   Checks for invoices missing required vendor or client names.
+   ------------------------------------------------------------------ */
+
+async function checkMissingVendorClientInfo(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<AuditCheckResult> {
+  const id = "missing-vendor-client";
+  const name = "Missing Vendor/Client Information";
+
+  const [payableRes, receivableRes] = await Promise.all([
+    supabase
+      .from("invoices")
+      .select("id, invoice_number")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "payable")
+      .not("status", "in", "(draft,voided)")
+      .or("vendor_name.is.null,vendor_name.eq.")
+      .limit(20),
+    supabase
+      .from("invoices")
+      .select("id, invoice_number")
+      .eq("company_id", companyId)
+      .eq("invoice_type", "receivable")
+      .not("status", "in", "(draft,voided)")
+      .or("client_name.is.null,client_name.eq.")
+      .limit(20),
+  ]);
+
+  const missingVendors = payableRes.data ?? [];
+  const missingClients = receivableRes.data ?? [];
+  const total = missingVendors.length + missingClients.length;
+
+  if (total === 0) {
+    return { id, name, status: "pass", summary: "All invoices have vendor/client information", details: [] };
+  }
+
+  const details: string[] = [];
+  for (const inv of missingVendors.slice(0, 5)) {
+    details.push(`AP Invoice ${inv.invoice_number}: missing vendor name`);
+  }
+  for (const inv of missingClients.slice(0, 5)) {
+    details.push(`AR Invoice ${inv.invoice_number}: missing client name`);
+  }
+
+  return {
+    id,
+    name,
+    status: "warn",
+    summary: `${missingVendors.length} AP invoices missing vendor name, ${missingClients.length} AR invoices missing client name`,
     details,
   };
 }

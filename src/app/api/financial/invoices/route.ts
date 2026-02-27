@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoices, createInvoice } from "@/lib/queries/financial";
 import type { InvoiceFilters, InvoiceCreateData } from "@/lib/queries/financial";
-import { buildCompanyAccountMap, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
+import { buildCompanyAccountMap, generateInvoiceJournalEntry, generateInvoiceDeferralSchedule } from "@/lib/utils/invoice-accounting";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
 export async function GET(request: NextRequest) {
@@ -111,8 +111,9 @@ export async function POST(request: NextRequest) {
 
     // Auto-generate journal entry (non-blocking — invoice succeeds regardless)
     const warnings: string[] = [];
+    let accountMap: Awaited<ReturnType<typeof buildCompanyAccountMap>> | null = null;
     try {
-      const accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
+      accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
       const jeResult = await generateInvoiceJournalEntry(
         supabase,
         userCompany.companyId,
@@ -145,6 +146,25 @@ export async function POST(request: NextRequest) {
     } catch (jeErr) {
       console.warn("Journal entry generation failed for invoice:", result.id, jeErr);
       warnings.push("Journal entry generation failed. Check Chart of Accounts setup.");
+    }
+
+    // Generate deferral schedule if deferral dates provided
+    if (body.deferral_start_date && body.deferral_end_date) {
+      try {
+        const defAccountMap = accountMap ?? await buildCompanyAccountMap(supabase, userCompany.companyId);
+        await generateInvoiceDeferralSchedule(supabase, userCompany.companyId, userCompany.userId, {
+          id: result.id,
+          invoice_type: body.invoice_type,
+          total_amount: body.total_amount,
+          deferral_start_date: body.deferral_start_date,
+          deferral_end_date: body.deferral_end_date,
+          project_id: body.project_id,
+          gl_account_id: body.gl_account_id,
+        }, defAccountMap);
+      } catch (defErr) {
+        console.warn("Deferral schedule generation failed:", defErr);
+        warnings.push("Deferral schedule generation failed.");
+      }
     }
 
     return NextResponse.json({ id: result.id, warnings }, { status: 201 });

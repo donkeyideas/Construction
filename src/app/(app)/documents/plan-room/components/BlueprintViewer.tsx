@@ -117,7 +117,9 @@ export default function BlueprintViewer({
               {normalizeFileType(doc.file_type).toUpperCase()} file
             </p>
             <p className="plan-room-unsupported-hint">
-              {error
+              {error && (error.includes("not found") || error.includes("not uploaded"))
+                ? "This document was added before file storage was configured. Please re-upload the file to view it here."
+                : error
                 ? `Error loading preview: ${error}`
                 : !previewType
                 ? "Preview not available for this file type. Use download to view."

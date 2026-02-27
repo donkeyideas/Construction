@@ -43,6 +43,10 @@ export interface EquipmentRow {
   total_hours: number | null;
   last_maintenance_date: string | null;
   next_maintenance_date: string | null;
+  useful_life_months: number | null;
+  salvage_value: number | null;
+  depreciation_method: string | null;
+  depreciation_start_date: string | null;
   created_at: string;
   updated_at: string;
   // Joined fields
@@ -106,6 +110,9 @@ export interface CreateEquipmentData {
   purchase_date?: string;
   purchase_cost?: number;
   hourly_rate?: number;
+  useful_life_months?: number;
+  salvage_value?: number;
+  depreciation_start_date?: string;
 }
 
 export interface UpdateEquipmentData {
@@ -123,6 +130,10 @@ export interface UpdateEquipmentData {
   total_hours?: number | null;
   last_maintenance_date?: string | null;
   next_maintenance_date?: string | null;
+  useful_life_months?: number | null;
+  salvage_value?: number | null;
+  depreciation_method?: string | null;
+  depreciation_start_date?: string | null;
 }
 
 export interface CreateMaintenanceData {
@@ -289,6 +300,10 @@ export async function createEquipment(
       purchase_date: data.purchase_date ?? null,
       purchase_cost: data.purchase_cost ?? null,
       hourly_rate: data.hourly_rate ?? null,
+      useful_life_months: data.useful_life_months ?? null,
+      salvage_value: data.salvage_value ?? null,
+      depreciation_start_date: data.depreciation_start_date ?? null,
+      depreciation_method: data.useful_life_months ? "straight_line" : null,
       status: "available",
     })
     .select()

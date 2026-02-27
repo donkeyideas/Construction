@@ -71,6 +71,9 @@ const equipmentImportColumns: ImportColumn[] = [
   { key: "purchase_cost", label: "Purchase Cost", required: false, type: "number" },
   { key: "hourly_rate", label: "Hourly Rate", required: false, type: "number" },
   { key: "purchase_date", label: "Purchase Date", required: false, type: "date" },
+  { key: "useful_life_months", label: "Useful Life (Months)", required: false, type: "number" },
+  { key: "salvage_value", label: "Salvage Value", required: false, type: "number" },
+  { key: "depreciation_start_date", label: "Depreciation Start Date", required: false, type: "date" },
 ];
 
 const equipmentSampleData = [
@@ -149,6 +152,9 @@ export default function EquipmentInventoryClient({
     purchase_date: "",
     purchase_cost: "",
     hourly_rate: "",
+    useful_life_months: "",
+    salvage_value: "",
+    depreciation_start_date: "",
   });
 
   // Detail / Edit / Delete modal state
@@ -204,6 +210,9 @@ export default function EquipmentInventoryClient({
           purchase_date: formData.purchase_date || undefined,
           purchase_cost: formData.purchase_cost ? Number(formData.purchase_cost) : undefined,
           hourly_rate: formData.hourly_rate ? Number(formData.hourly_rate) : undefined,
+          useful_life_months: formData.useful_life_months ? Number(formData.useful_life_months) : undefined,
+          salvage_value: formData.salvage_value ? Number(formData.salvage_value) : undefined,
+          depreciation_start_date: formData.depreciation_start_date || undefined,
         }),
       });
 
@@ -221,6 +230,9 @@ export default function EquipmentInventoryClient({
         purchase_date: "",
         purchase_cost: "",
         hourly_rate: "",
+        useful_life_months: "",
+        salvage_value: "",
+        depreciation_start_date: "",
       });
       setShowCreate(false);
       router.refresh();
@@ -262,6 +274,9 @@ export default function EquipmentInventoryClient({
       purchase_date: selectedItem.purchase_date || "",
       purchase_cost: selectedItem.purchase_cost ?? "",
       hourly_rate: selectedItem.hourly_rate ?? "",
+      useful_life_months: selectedItem.useful_life_months ?? "",
+      salvage_value: selectedItem.salvage_value ?? "",
+      depreciation_start_date: selectedItem.depreciation_start_date || "",
     });
     setIsEditing(true);
     setSaveError("");
@@ -299,6 +314,12 @@ export default function EquipmentInventoryClient({
         payload.purchase_cost = editData.purchase_cost ? Number(editData.purchase_cost) : null;
       if (String(editData.hourly_rate) !== String(selectedItem.hourly_rate ?? ""))
         payload.hourly_rate = editData.hourly_rate ? Number(editData.hourly_rate) : null;
+      if (String(editData.useful_life_months) !== String(selectedItem.useful_life_months ?? ""))
+        payload.useful_life_months = editData.useful_life_months ? Number(editData.useful_life_months) : null;
+      if (String(editData.salvage_value) !== String(selectedItem.salvage_value ?? ""))
+        payload.salvage_value = editData.salvage_value ? Number(editData.salvage_value) : null;
+      if (editData.depreciation_start_date !== (selectedItem.depreciation_start_date || ""))
+        payload.depreciation_start_date = editData.depreciation_start_date || null;
 
       if (Object.keys(payload).length === 0) {
         setIsEditing(false);
@@ -705,6 +726,50 @@ export default function EquipmentInventoryClient({
                 />
               </div>
 
+              {/* Depreciation Fields */}
+              <div className="equipment-form-row">
+                <div className="equipment-form-group">
+                  <label className="equipment-form-label">Useful Life (Months)</label>
+                  <input
+                    type="number"
+                    className="equipment-form-input"
+                    value={formData.useful_life_months}
+                    onChange={(e) =>
+                      setFormData({ ...formData, useful_life_months: e.target.value })
+                    }
+                    placeholder="e.g. 60"
+                    min="1"
+                    step="1"
+                  />
+                </div>
+                <div className="equipment-form-group">
+                  <label className="equipment-form-label">Salvage Value ($)</label>
+                  <input
+                    type="number"
+                    className="equipment-form-input"
+                    value={formData.salvage_value}
+                    onChange={(e) =>
+                      setFormData({ ...formData, salvage_value: e.target.value })
+                    }
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+              <div className="equipment-form-group">
+                <label className="equipment-form-label">Depreciation Start Date</label>
+                <input
+                  type="date"
+                  className="equipment-form-input"
+                  value={formData.depreciation_start_date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, depreciation_start_date: e.target.value })
+                  }
+                />
+              </div>
+
               <div className="equipment-form-actions">
                 <button
                   type="button"
@@ -885,6 +950,57 @@ export default function EquipmentInventoryClient({
                   </div>
                 </div>
 
+                {/* Depreciation Section */}
+                {selectedItem.useful_life_months && selectedItem.useful_life_months > 0 && (
+                  (() => {
+                    const cost = selectedItem.purchase_cost ?? 0;
+                    const salvage = selectedItem.salvage_value ?? 0;
+                    const depreciableAmount = cost - salvage;
+                    const monthlyDep = depreciableAmount / selectedItem.useful_life_months;
+                    const startDate = selectedItem.depreciation_start_date
+                      ? new Date(selectedItem.depreciation_start_date)
+                      : null;
+                    const monthsElapsed = startDate
+                      ? Math.max(0, Math.floor((Date.now() - startDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000)))
+                      : 0;
+                    const cappedMonths = Math.min(monthsElapsed, selectedItem.useful_life_months);
+                    const accumulated = Math.min(monthlyDep * cappedMonths, depreciableAmount);
+                    const bookValue = cost - accumulated;
+                    const pct = depreciableAmount > 0 ? (accumulated / depreciableAmount) * 100 : 0;
+
+                    return (
+                      <div style={{ marginTop: "16px", padding: "12px", background: "var(--surface)", borderRadius: "8px" }}>
+                        <label className="detail-label" style={{ fontWeight: 600, marginBottom: "8px", display: "block" }}>
+                          Depreciation (Straight-Line)
+                        </label>
+                        <div className="detail-row">
+                          <div className="detail-group">
+                            <label className="detail-label">Monthly</label>
+                            <div className="detail-value">{formatCurrency(monthlyDep)}</div>
+                          </div>
+                          <div className="detail-group">
+                            <label className="detail-label">Accumulated</label>
+                            <div className="detail-value">{formatCurrency(accumulated)}</div>
+                          </div>
+                        </div>
+                        <div className="detail-row">
+                          <div className="detail-group">
+                            <label className="detail-label">Book Value</label>
+                            <div className="detail-value" style={{ fontWeight: 600 }}>{formatCurrency(bookValue)}</div>
+                          </div>
+                          <div className="detail-group">
+                            <label className="detail-label">Depreciated</label>
+                            <div className="detail-value">{pct.toFixed(1)}% ({cappedMonths} of {selectedItem.useful_life_months} mo)</div>
+                          </div>
+                        </div>
+                        <div style={{ height: 6, background: "var(--border)", borderRadius: 3, marginTop: 8 }}>
+                          <div style={{ height: "100%", borderRadius: 3, width: `${Math.min(100, pct)}%`, background: pct >= 90 ? "var(--color-red)" : pct >= 70 ? "var(--color-amber)" : "var(--color-green)", transition: "width 0.3s" }} />
+                        </div>
+                      </div>
+                    );
+                  })()
+                )}
+
                 <div className="ticket-form-actions">
                   <button
                     type="button"
@@ -1041,6 +1157,48 @@ export default function EquipmentInventoryClient({
                     }
                     min="0"
                     step="0.01"
+                  />
+                </div>
+
+                {/* Depreciation Fields */}
+                <div className="equipment-form-row">
+                  <div className="equipment-form-group">
+                    <label className="equipment-form-label">Useful Life (Months)</label>
+                    <input
+                      type="number"
+                      className="equipment-form-input"
+                      value={String(editData.useful_life_months ?? "")}
+                      onChange={(e) =>
+                        setEditData({ ...editData, useful_life_months: e.target.value })
+                      }
+                      min="1"
+                      step="1"
+                    />
+                  </div>
+                  <div className="equipment-form-group">
+                    <label className="equipment-form-label">Salvage Value ($)</label>
+                    <input
+                      type="number"
+                      className="equipment-form-input"
+                      value={String(editData.salvage_value ?? "")}
+                      onChange={(e) =>
+                        setEditData({ ...editData, salvage_value: e.target.value })
+                      }
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
+                <div className="equipment-form-group">
+                  <label className="equipment-form-label">Depreciation Start Date</label>
+                  <input
+                    type="date"
+                    className="equipment-form-input"
+                    value={(editData.depreciation_start_date as string) || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, depreciation_start_date: e.target.value })
+                    }
                   />
                 </div>
 

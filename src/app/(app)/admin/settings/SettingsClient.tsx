@@ -17,6 +17,8 @@ import {
   Zap,
   Ticket,
   LayoutGrid,
+  Palette,
+  Eye,
 } from "lucide-react";
 import { MODULES } from "@/lib/constants/modules";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
@@ -29,7 +31,7 @@ import {
 import type { CompanyDetails } from "@/lib/queries/admin";
 import type { PricingTier } from "@/lib/queries/pricing";
 
-type TabKey = "general" | "subscription" | "modules" | "integrations";
+type TabKey = "general" | "subscription" | "modules" | "integrations" | "design";
 
 const INDUSTRIES = [
   "General Contracting",
@@ -56,6 +58,13 @@ const TIMEZONES = [
 const FISCAL_MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
+];
+
+const THEME_PRESETS: { name: string; label: string; colors: { primary: string; accent: string; sidebar: string } }[] = [
+  { name: "modern", label: "Modern", colors: { primary: "#2563eb", accent: "#8b5cf6", sidebar: "#0f172a" } },
+  { name: "classic", label: "Classic", colors: { primary: "#1e40af", accent: "#059669", sidebar: "#1e293b" } },
+  { name: "warm", label: "Warm", colors: { primary: "#d97706", accent: "#dc2626", sidebar: "#292524" } },
+  { name: "dark-pro", label: "Dark Pro", colors: { primary: "#6366f1", accent: "#22d3ee", sidebar: "#020617" } },
 ];
 
 const INTEGRATIONS = [
@@ -90,6 +99,7 @@ export default function SettingsClient({
     { key: "subscription", label: t("subscription"), icon: <CreditCard size={15} /> },
     { key: "modules", label: "Modules", icon: <LayoutGrid size={15} /> },
     { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
+    { key: "design", label: "Design", icon: <Palette size={15} /> },
   ];
 
   // Build tier lookup by lowercase name
@@ -178,6 +188,76 @@ export default function SettingsClient({
   );
   const [savingModules, setSavingModules] = useState(false);
   const [moduleMessage, setModuleMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Design tab state
+  const savedTheme = (companySettings.theme as { primary?: string; accent?: string; sidebar?: string }) || {};
+  const [themePrimary, setThemePrimary] = useState(savedTheme.primary || "#2563eb");
+  const [themeAccent, setThemeAccent] = useState(savedTheme.accent || "#8b5cf6");
+  const [themeSidebar, setThemeSidebar] = useState(savedTheme.sidebar || "#0f172a");
+  const [previewActive, setPreviewActive] = useState(false);
+  const [savingTheme, setSavingTheme] = useState(false);
+  const [themeMessage, setThemeMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  function applyPreviewColors(primary: string, accent: string, sidebar: string) {
+    document.documentElement.style.setProperty("--color-blue", primary);
+    document.documentElement.style.setProperty("--color-accent", accent);
+    document.documentElement.style.setProperty("--sidebar-bg", sidebar);
+  }
+
+  function clearPreviewColors() {
+    document.documentElement.style.removeProperty("--color-blue");
+    document.documentElement.style.removeProperty("--color-accent");
+    document.documentElement.style.removeProperty("--sidebar-bg");
+  }
+
+  function selectPreset(preset: typeof THEME_PRESETS[number]) {
+    setThemePrimary(preset.colors.primary);
+    setThemeAccent(preset.colors.accent);
+    setThemeSidebar(preset.colors.sidebar);
+    if (previewActive) {
+      applyPreviewColors(preset.colors.primary, preset.colors.accent, preset.colors.sidebar);
+    }
+  }
+
+  function togglePreview() {
+    if (previewActive) {
+      clearPreviewColors();
+      setPreviewActive(false);
+    } else {
+      applyPreviewColors(themePrimary, themeAccent, themeSidebar);
+      setPreviewActive(true);
+    }
+  }
+
+  async function handleSaveTheme() {
+    setSavingTheme(true);
+    setThemeMessage(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          settings: {
+            ...companySettings,
+            theme: { primary: themePrimary, accent: themeAccent, sidebar: themeSidebar },
+          },
+        }),
+      });
+      if (res.ok) {
+        setThemeMessage({ type: "success", text: "Theme saved successfully." });
+        clearPreviewColors();
+        setPreviewActive(false);
+        router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setThemeMessage({ type: "error", text: data.error || "Failed to save theme." });
+      }
+    } catch {
+      setThemeMessage({ type: "error", text: "Network error." });
+    } finally {
+      setSavingTheme(false);
+    }
+  }
 
   // Embedded checkout state
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -1501,6 +1581,137 @@ export default function SettingsClient({
                 />
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ===== Design Tab ===== */}
+        {activeTab === "design" && (
+          <div className="settings-form">
+            {themeMessage && (
+              <div className={`settings-form-message ${themeMessage.type}`}>
+                {themeMessage.text}
+              </div>
+            )}
+
+            <div className="settings-form-section">
+              <div className="settings-form-section-title">Theme Presets</div>
+              <div className="theme-presets-grid">
+                {THEME_PRESETS.map((preset) => (
+                  <button
+                    key={preset.name}
+                    className={`theme-preset-card ${themePrimary === preset.colors.primary && themeAccent === preset.colors.accent ? "active" : ""}`}
+                    onClick={() => selectPreset(preset)}
+                  >
+                    <div className="theme-preset-swatches">
+                      <span className="theme-swatch" style={{ background: preset.colors.primary }} />
+                      <span className="theme-swatch" style={{ background: preset.colors.accent }} />
+                      <span className="theme-swatch" style={{ background: preset.colors.sidebar }} />
+                    </div>
+                    <span className="theme-preset-label">{preset.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="settings-form-section">
+              <div className="settings-form-section-title">Custom Colors</div>
+              <div className="settings-row">
+                <div className="settings-field">
+                  <label className="settings-field-label">Primary Color</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <input
+                      type="color"
+                      value={themePrimary}
+                      onChange={(e) => {
+                        setThemePrimary(e.target.value);
+                        if (previewActive) applyPreviewColors(e.target.value, themeAccent, themeSidebar);
+                      }}
+                      style={{ width: 40, height: 32, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer", padding: 2 }}
+                    />
+                    <input
+                      type="text"
+                      className="settings-field-input"
+                      value={themePrimary}
+                      onChange={(e) => {
+                        setThemePrimary(e.target.value);
+                        if (previewActive) applyPreviewColors(e.target.value, themeAccent, themeSidebar);
+                      }}
+                      style={{ width: 100 }}
+                    />
+                  </div>
+                </div>
+                <div className="settings-field">
+                  <label className="settings-field-label">Accent Color</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <input
+                      type="color"
+                      value={themeAccent}
+                      onChange={(e) => {
+                        setThemeAccent(e.target.value);
+                        if (previewActive) applyPreviewColors(themePrimary, e.target.value, themeSidebar);
+                      }}
+                      style={{ width: 40, height: 32, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer", padding: 2 }}
+                    />
+                    <input
+                      type="text"
+                      className="settings-field-input"
+                      value={themeAccent}
+                      onChange={(e) => {
+                        setThemeAccent(e.target.value);
+                        if (previewActive) applyPreviewColors(themePrimary, e.target.value, themeSidebar);
+                      }}
+                      style={{ width: 100 }}
+                    />
+                  </div>
+                </div>
+                <div className="settings-field">
+                  <label className="settings-field-label">Sidebar Color</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <input
+                      type="color"
+                      value={themeSidebar}
+                      onChange={(e) => {
+                        setThemeSidebar(e.target.value);
+                        if (previewActive) applyPreviewColors(themePrimary, themeAccent, e.target.value);
+                      }}
+                      style={{ width: 40, height: 32, border: "1px solid var(--border)", borderRadius: 6, cursor: "pointer", padding: 2 }}
+                    />
+                    <input
+                      type="text"
+                      className="settings-field-input"
+                      value={themeSidebar}
+                      onChange={(e) => {
+                        setThemeSidebar(e.target.value);
+                        if (previewActive) applyPreviewColors(themePrimary, themeAccent, e.target.value);
+                      }}
+                      style={{ width: 100 }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="settings-form-actions" style={{ display: "flex", gap: 10 }}>
+              <button
+                type="button"
+                className={previewActive ? "btn-primary" : "btn-secondary"}
+                onClick={togglePreview}
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <Eye size={15} />
+                {previewActive ? "Preview On" : "Preview"}
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleSaveTheme}
+                disabled={savingTheme}
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+              >
+                {savingTheme ? <Loader2 size={15} className="spin-icon" /> : <Save size={15} />}
+                {savingTheme ? "Saving..." : "Save Theme"}
+              </button>
+            </div>
           </div>
         )}
 

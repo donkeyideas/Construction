@@ -101,6 +101,7 @@ export const appNavigation: NavItem[] = [
       { label: "Budget vs Actual", href: "/financial/budget" },
       { label: "Job Costing", href: "/financial/job-costing" },
       { label: "KPI Dashboard", href: "/financial/kpi" },
+      { label: "Deferrals", href: "/financial/deferrals" },
       { label: "Financial Audit", href: "/financial/audit" },
     ],
   },

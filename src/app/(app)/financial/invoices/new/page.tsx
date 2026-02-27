@@ -68,6 +68,8 @@ function NewInvoiceForm() {
   const [dueDate, setDueDate] = useState(defaultDueDateString);
   const [notes, setNotes] = useState("");
   const [taxRate, setTaxRate] = useState(0);
+  const [deferralStartDate, setDeferralStartDate] = useState("");
+  const [deferralEndDate, setDeferralEndDate] = useState("");
 
   // Line items
   const [lineItems, setLineItems] = useState<LineItemRow[]>([
@@ -129,6 +131,8 @@ function NewInvoiceForm() {
         })),
         notes: notes || undefined,
         status,
+        deferral_start_date: deferralStartDate || undefined,
+        deferral_end_date: deferralEndDate || undefined,
       };
 
       const res = await fetch("/api/financial/invoices", {
@@ -291,6 +295,27 @@ function NewInvoiceForm() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
+            />
+          </div>
+
+          {/* Deferral Fields */}
+          <div className="ui-field">
+            <label className="ui-label">Deferral Start Date (optional)</label>
+            <input
+              type="date"
+              className="ui-input"
+              value={deferralStartDate}
+              onChange={(e) => setDeferralStartDate(e.target.value)}
+            />
+          </div>
+
+          <div className="ui-field">
+            <label className="ui-label">Deferral End Date (optional)</label>
+            <input
+              type="date"
+              className="ui-input"
+              value={deferralEndDate}
+              onChange={(e) => setDeferralEndDate(e.target.value)}
             />
           </div>
         </div>

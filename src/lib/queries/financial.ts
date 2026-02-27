@@ -608,6 +608,77 @@ export async function getJobCostingSummary(
 }
 
 /* ------------------------------------------------------------------
+   Budget Actuals Sync from Invoices
+   Queries all non-voided invoices for a project, sums line_items by
+   CSI code, and updates matching project_budget_lines.actual_amount.
+   ------------------------------------------------------------------ */
+
+export async function syncBudgetActualsFromInvoices(
+  supabase: SupabaseClient,
+  companyId: string,
+  projectId: string
+): Promise<{ updatedCount: number }> {
+  // Get all non-voided invoices for this project
+  const { data: invoices, error: invErr } = await supabase
+    .from("invoices")
+    .select("id, line_items, total_amount")
+    .eq("company_id", companyId)
+    .eq("project_id", projectId)
+    .not("status", "eq", "voided");
+
+  if (invErr) {
+    console.error("syncBudgetActuals - invoice query error:", invErr);
+    return { updatedCount: 0 };
+  }
+
+  // Sum amounts by CSI code from invoice line_items
+  const csiTotals = new Map<string, number>();
+  for (const inv of invoices ?? []) {
+    const items = inv.line_items as { csi_code?: string; amount?: number; quantity?: number; unit_price?: number }[] | null;
+    if (!items || !Array.isArray(items)) continue;
+    for (const item of items) {
+      if (!item.csi_code) continue;
+      const code = item.csi_code.trim();
+      if (!code) continue;
+      const amount = item.amount ?? ((item.quantity ?? 0) * (item.unit_price ?? 0));
+      csiTotals.set(code, (csiTotals.get(code) ?? 0) + (Number(amount) || 0));
+    }
+  }
+
+  if (csiTotals.size === 0) {
+    return { updatedCount: 0 };
+  }
+
+  // Get existing budget lines for this project
+  const { data: budgetLines, error: blErr } = await supabase
+    .from("project_budget_lines")
+    .select("id, csi_code")
+    .eq("company_id", companyId)
+    .eq("project_id", projectId);
+
+  if (blErr) {
+    console.error("syncBudgetActuals - budget line query error:", blErr);
+    return { updatedCount: 0 };
+  }
+
+  // Update each budget line's actual_amount
+  let updatedCount = 0;
+  for (const bl of budgetLines ?? []) {
+    const actualAmount = csiTotals.get(bl.csi_code);
+    if (actualAmount === undefined) continue;
+
+    const { error: updateErr } = await supabase
+      .from("project_budget_lines")
+      .update({ actual_amount: actualAmount, updated_at: new Date().toISOString() })
+      .eq("id", bl.id);
+
+    if (!updateErr) updatedCount++;
+  }
+
+  return { updatedCount };
+}
+
+/* ------------------------------------------------------------------
    Aging Buckets
    ------------------------------------------------------------------ */
 

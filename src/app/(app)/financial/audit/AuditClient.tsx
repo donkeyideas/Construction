@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Wrench,
   Loader2,
+  Download,
 } from "lucide-react";
 import type { AuditResult, AuditCheckResult } from "@/lib/queries/financial-audit";
 
@@ -49,6 +50,30 @@ const FIX_ACTIONS: Record<string, { label: string; endpoint: string }> = {
   },
   "missing-gl-mappings": {
     label: "Auto-Map GL Accounts",
+    endpoint: "/api/financial/audit/fix-invoices",
+  },
+  "orphaned-je-lines": {
+    label: "Remove Orphaned Lines",
+    endpoint: "/api/financial/audit/fix-orphaned-lines",
+  },
+  "duplicate-jes": {
+    label: "Remove Duplicates",
+    endpoint: "/api/financial/audit/fix-duplicates",
+  },
+  "missing-vendor-client": {
+    label: "Set Unknown Names",
+    endpoint: "/api/financial/audit/fix-vendor-info",
+  },
+  "payment-je-coverage": {
+    label: "Create Missing Payment JEs",
+    endpoint: "/api/financial/audit/fix-invoices",
+  },
+  "ar-reconciliation": {
+    label: "Recompute from Invoices",
+    endpoint: "/api/financial/audit/fix-invoices",
+  },
+  "ap-reconciliation": {
+    label: "Recompute from Invoices",
     endpoint: "/api/financial/audit/fix-invoices",
   },
 };
@@ -143,9 +168,25 @@ function AuditCheck({
   );
 }
 
+function exportAuditCSV(audit: AuditResult) {
+  const rows = [["Check", "Status", "Summary", "Details"]];
+  for (const check of audit.checks) {
+    rows.push([check.name, check.status, check.summary, check.details.join("; ")]);
+  }
+  const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `audit-report-${new Date().toISOString().split("T")[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function AuditClient({ audit, companyName }: Props) {
   const router = useRouter();
   const [fixingId, setFixingId] = useState<string | null>(null);
+  const [isRunningAll, setIsRunningAll] = useState(false);
 
   const passCount = audit.checks.filter((c) => c.status === "pass").length;
   const warnCount = audit.checks.filter((c) => c.status === "warn").length;
@@ -195,15 +236,47 @@ export default function AuditClient({ audit, companyName }: Props) {
             Automated checks to verify data integrity and accounting accuracy
           </p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{runDate}</span>
+          <button
+            className="ui-btn ui-btn-outline ui-btn-sm"
+            style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+            onClick={() => exportAuditCSV(audit)}
+          >
+            <Download size={14} />
+            Export CSV
+          </button>
+          {failCount + warnCount > 0 && (
+            <button
+              className="ui-btn ui-btn-primary ui-btn-sm"
+              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+              disabled={isRunningAll}
+              onClick={async () => {
+                setIsRunningAll(true);
+                const failedChecks = audit.checks.filter((c) => c.status !== "pass");
+                for (const check of failedChecks) {
+                  const action = FIX_ACTIONS[check.id];
+                  if (action) {
+                    try {
+                      await fetch(action.endpoint, { method: "POST" });
+                    } catch { /* continue */ }
+                  }
+                }
+                setIsRunningAll(false);
+                router.refresh();
+              }}
+            >
+              {isRunningAll ? <Loader2 size={14} className="doc-spinner" /> : <Wrench size={14} />}
+              {isRunningAll ? "Repairing..." : "Run Full Repair"}
+            </button>
+          )}
           <a
             href="/financial/audit"
-            className="ui-btn ui-btn-outline ui-btn-md"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            className="ui-btn ui-btn-outline ui-btn-sm"
+            style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
           >
             <RefreshCw size={14} />
-            Re-run Audit
+            Re-run
           </a>
         </div>
       </div>

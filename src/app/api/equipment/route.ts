@@ -9,6 +9,7 @@ import {
 import {
   buildCompanyAccountMap,
   generateEquipmentPurchaseJournalEntry,
+  generateDepreciationJournalEntries,
 } from "@/lib/utils/invoice-accounting";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 
@@ -97,6 +98,9 @@ export async function POST(request: NextRequest) {
         purchase_date: body.purchase_date || undefined,
         purchase_cost: body.purchase_cost ? Number(body.purchase_cost) : undefined,
         hourly_rate: body.hourly_rate ? Number(body.hourly_rate) : undefined,
+        useful_life_months: body.useful_life_months ? Number(body.useful_life_months) : undefined,
+        salvage_value: body.salvage_value ? Number(body.salvage_value) : undefined,
+        depreciation_start_date: body.depreciation_start_date || undefined,
       }
     );
 
@@ -104,18 +108,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error }, { status: 400 });
     }
 
-    // Generate equipment purchase JE if purchase_cost > 0
-    if (equipment && body.purchase_cost && Number(body.purchase_cost) > 0) {
+    // Generate equipment purchase JE and/or depreciation JEs
+    const needsPurchaseJE = equipment && body.purchase_cost && Number(body.purchase_cost) > 0;
+    const needsDepreciation = equipment && body.useful_life_months && Number(body.useful_life_months) > 0;
+
+    if (needsPurchaseJE || needsDepreciation) {
       try {
         const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
-        await generateEquipmentPurchaseJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
-          id: equipment.id,
-          name: body.name.trim(),
-          purchase_cost: Number(body.purchase_cost),
-          purchase_date: body.purchase_date || new Date().toISOString().split("T")[0],
-        }, accountMap);
+
+        if (needsPurchaseJE) {
+          await generateEquipmentPurchaseJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+            id: equipment.id,
+            name: body.name.trim(),
+            purchase_cost: Number(body.purchase_cost),
+            purchase_date: body.purchase_date || new Date().toISOString().split("T")[0],
+          }, accountMap);
+        }
+
+        if (needsDepreciation) {
+          await generateDepreciationJournalEntries(supabase, userCtx.companyId, userCtx.userId, {
+            id: equipment.id,
+            name: body.name.trim(),
+            purchase_cost: Number(body.purchase_cost) || 0,
+            salvage_value: Number(body.salvage_value) || 0,
+            useful_life_months: Number(body.useful_life_months),
+            depreciation_start_date: body.depreciation_start_date || body.purchase_date || new Date().toISOString().split("T")[0],
+          }, accountMap);
+        }
       } catch (jeErr) {
-        console.warn("Equipment purchase JE failed (non-blocking):", jeErr);
+        console.warn("Equipment JE generation failed (non-blocking):", jeErr);
       }
     }
 
