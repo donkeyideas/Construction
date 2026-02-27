@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   BookOpen,
@@ -52,6 +53,8 @@ export default function KnowledgeBaseClient({
   companyId,
   hasProvider,
 }: KnowledgeBaseClientProps) {
+  const t = useTranslations("ai");
+
   // Document management state
   const [documents, setDocuments] = useState<KBDocument[]>([]);
   const [docTitle, setDocTitle] = useState("");
@@ -165,10 +168,10 @@ export default function KnowledgeBaseClient({
           <div>
             <h1>
               <BookOpen size={28} className="sparkle-icon" />
-              Knowledge Base
+              {t("knowledge.title")}
             </h1>
             <p className="subtitle">
-              Upload company documents and query them with AI
+              {t("knowledge.subtitle")}
             </p>
           </div>
         </div>
@@ -194,7 +197,7 @@ export default function KnowledgeBaseClient({
               fontFamily: "var(--font-serif)",
             }}
           >
-            AI Provider Required
+            {t("knowledge.aiProviderRequired")}
           </div>
           <p
             style={{
@@ -204,15 +207,14 @@ export default function KnowledgeBaseClient({
               marginBottom: 16,
             }}
           >
-            Configure an AI provider in Administration &gt; AI Providers to
-            enable the knowledge base.
+            {t("knowledge.configureProviderKb")}
           </p>
           <Link
             href="/admin/ai-providers"
             className="ui-btn ui-btn-primary"
             style={{ display: "inline-flex" }}
           >
-            Configure AI Provider
+            {t("knowledge.configureAiProvider")}
           </Link>
         </div>
       </div>
@@ -227,17 +229,17 @@ export default function KnowledgeBaseClient({
         <div>
           <h1>
             <BookOpen size={28} className="sparkle-icon" />
-            Knowledge Base
+            {t("knowledge.title")}
           </h1>
           <p className="subtitle">
-            Upload company documents and query them with AI
+            {t("knowledge.subtitle")}
           </p>
         </div>
       </div>
 
       {/* Upload Section */}
       <div className="kb-upload-section">
-        <div className="section-title">Add Document</div>
+        <div className="section-title">{t("knowledge.addDocument")}</div>
 
         <div style={{ marginBottom: 12 }}>
           <label
@@ -252,14 +254,14 @@ export default function KnowledgeBaseClient({
               marginBottom: 6,
             }}
           >
-            Document Title
+            {t("knowledge.documentTitle")}
           </label>
           <input
             id="doc-title"
             type="text"
             value={docTitle}
             onChange={(e) => setDocTitle(e.target.value)}
-            placeholder="e.g. Safety Manual, Project Specifications..."
+            placeholder={t("knowledge.documentTitlePlaceholder")}
             style={{
               width: "100%",
               padding: "8px 12px",
@@ -286,13 +288,13 @@ export default function KnowledgeBaseClient({
               marginBottom: 6,
             }}
           >
-            Document Content
+            {t("knowledge.documentContent")}
           </label>
           <textarea
             id="doc-content"
             value={docContent}
             onChange={(e) => setDocContent(e.target.value)}
-            placeholder="Paste the document content here..."
+            placeholder={t("knowledge.documentContentPlaceholder")}
             rows={8}
             style={{
               width: "100%",
@@ -321,7 +323,7 @@ export default function KnowledgeBaseClient({
           }}
         >
           <Plus size={16} />
-          Add to Knowledge Base
+          {t("knowledge.addToKnowledgeBase")}
         </button>
       </div>
 
@@ -335,13 +337,13 @@ export default function KnowledgeBaseClient({
               </div>
               <span className="file-name">{doc.title}</span>
               <span className="file-size">
-                {doc.wordCount.toLocaleString()} words
+                {t("knowledge.words", { count: doc.wordCount.toLocaleString() })}
               </span>
               <button
                 type="button"
                 className="file-delete"
                 onClick={() => handleDeleteDocument(doc.id)}
-                title="Remove document"
+                title={t("knowledge.removeDocument")}
               >
                 <Trash2 size={14} />
               </button>
@@ -352,7 +354,7 @@ export default function KnowledgeBaseClient({
 
       {/* Query Section */}
       <div className="kb-query-section">
-        <div className="section-title">Ask a Question</div>
+        <div className="section-title">{t("knowledge.askQuestion")}</div>
 
         <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
           <div style={{ flex: 1 }}>
@@ -362,8 +364,8 @@ export default function KnowledgeBaseClient({
               onChange={(e) => setQuestion(e.target.value)}
               placeholder={
                 documents.length === 0
-                  ? "Add documents above first..."
-                  : "Ask a question about your documents..."
+                  ? t("knowledge.addDocsFirst")
+                  : t("knowledge.askAboutDocs")
               }
               disabled={documents.length === 0}
               onKeyDown={(e) => {
@@ -404,12 +406,12 @@ export default function KnowledgeBaseClient({
                   size={16}
                   style={{ animation: "spin 1s linear infinite" }}
                 />
-                Asking...
+                {t("knowledge.asking")}
               </>
             ) : (
               <>
                 <Search size={16} />
-                Ask
+                {t("knowledge.ask")}
               </>
             )}
           </button>
@@ -460,8 +462,7 @@ export default function KnowledgeBaseClient({
             </div>
             <div className="result-source">
               <FileText size={12} />
-              Based on {documents.length} document
-              {documents.length !== 1 ? "s" : ""} in your knowledge base
+              {t("knowledge.basedOnDocs", { count: documents.length })}
             </div>
           </div>
         )}

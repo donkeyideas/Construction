@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Save, ShieldCheck, AlertTriangle, XCircle } from "lucide-react";
 import "@/styles/vendor-detail.css";
 
@@ -32,6 +32,7 @@ export default function ProfileClient({
 }) {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("vendor");
   const dateLocale = locale === "es" ? "es" : "en-US";
   const now = new Date();
 
@@ -63,30 +64,30 @@ export default function ProfileClient({
         throw new Error(data.error || "Failed to update profile");
       }
 
-      setMessage({ type: "success", text: "Profile updated successfully." });
+      setMessage({ type: "success", text: t("profile.updateSuccess") });
       router.refresh();
     } catch (err: unknown) {
-      setMessage({ type: "error", text: err instanceof Error ? err.message : "Failed to update profile" });
+      setMessage({ type: "error", text: err instanceof Error ? err.message : t("profile.updateFailed") });
     } finally {
       setSaving(false);
     }
   }
 
   function getCertStatus(cert: Cert) {
-    if (!cert.expiry_date) return { label: "No Expiry", color: "var(--muted)", Icon: ShieldCheck };
+    if (!cert.expiry_date) return { label: t("profile.noExpiry"), color: "var(--muted)", Icon: ShieldCheck };
     const exp = new Date(cert.expiry_date);
-    if (exp < now) return { label: "Expired", color: "var(--color-red)", Icon: XCircle };
+    if (exp < now) return { label: t("statusExpired"), color: "var(--color-red)", Icon: XCircle };
     const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    if (exp <= thirtyDays) return { label: "Expiring Soon", color: "var(--color-amber)", Icon: AlertTriangle };
-    return { label: "Current", color: "var(--color-green)", Icon: ShieldCheck };
+    if (exp <= thirtyDays) return { label: t("statusExpiringSoon"), color: "var(--color-amber)", Icon: AlertTriangle };
+    return { label: t("profile.statusCurrent"), color: "var(--color-green)", Icon: ShieldCheck };
   }
 
   return (
     <div>
       <div className="vd-header">
         <div className="vd-header-left">
-          <h2>My Profile</h2>
-          <span className="vd-header-sub">Manage your contact information</span>
+          <h2>{t("profileTitle")}</h2>
+          <span className="vd-header-sub">{t("profile.manageContactInfo")}</span>
         </div>
       </div>
 
@@ -97,11 +98,11 @@ export default function ProfileClient({
       )}
 
       <div className="vd-section">
-        <div className="vd-section-title">Contact Information</div>
+        <div className="vd-section-title">{t("profile.contactInfo")}</div>
         <form onSubmit={handleSave}>
           <div className="vd-profile-form">
             <div className="vd-form-group">
-              <label className="vd-form-label">Company Name</label>
+              <label className="vd-form-label">{t("profile.companyName")}</label>
               <input
                 type="text"
                 className="vd-form-input"
@@ -110,7 +111,7 @@ export default function ProfileClient({
               />
             </div>
             <div className="vd-form-group">
-              <label className="vd-form-label">Job Title</label>
+              <label className="vd-form-label">{t("profile.jobTitle")}</label>
               <input
                 type="text"
                 className="vd-form-input"
@@ -119,7 +120,7 @@ export default function ProfileClient({
               />
             </div>
             <div className="vd-form-group">
-              <label className="vd-form-label">First Name</label>
+              <label className="vd-form-label">{t("profile.firstName")}</label>
               <input
                 type="text"
                 className="vd-form-input"
@@ -129,7 +130,7 @@ export default function ProfileClient({
               />
             </div>
             <div className="vd-form-group">
-              <label className="vd-form-label">Last Name</label>
+              <label className="vd-form-label">{t("profile.lastName")}</label>
               <input
                 type="text"
                 className="vd-form-input"
@@ -139,7 +140,7 @@ export default function ProfileClient({
               />
             </div>
             <div className="vd-form-group">
-              <label className="vd-form-label">Email</label>
+              <label className="vd-form-label">{t("profile.email")}</label>
               <input
                 type="email"
                 className="vd-form-input"
@@ -148,7 +149,7 @@ export default function ProfileClient({
               />
             </div>
             <div className="vd-form-group">
-              <label className="vd-form-label">Phone</label>
+              <label className="vd-form-label">{t("profile.phone")}</label>
               <input
                 type="text"
                 className="vd-form-input"
@@ -160,7 +161,7 @@ export default function ProfileClient({
           <div className="vd-form-actions">
             <button type="submit" className="btn-primary" disabled={saving}>
               <Save size={16} />
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t("profile.saving") : t("profile.saveChanges")}
             </button>
           </div>
         </form>
@@ -168,17 +169,17 @@ export default function ProfileClient({
 
       {/* Certifications */}
       <div className="vd-section">
-        <div className="vd-section-title">Certifications</div>
+        <div className="vd-section-title">{t("profile.certifications")}</div>
         {certifications.length === 0 ? (
-          <div className="vd-table-empty">No certifications on file</div>
+          <div className="vd-table-empty">{t("profile.noCertsOnFile")}</div>
         ) : (
           <table className="vd-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Expiry</th>
-                <th>Status</th>
+                <th>{t("thName")}</th>
+                <th>{t("thType")}</th>
+                <th>{t("profile.expiry")}</th>
+                <th>{t("thStatus")}</th>
               </tr>
             </thead>
             <tbody>

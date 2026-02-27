@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Search,
   X,
@@ -33,82 +34,82 @@ interface SearchResult {
   href: string;
 }
 
-const TYPE_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  page: { label: "Page", icon: <LayoutDashboard size={14} />, color: "var(--color-blue)" },
-  project: { label: "Project", icon: <HardHat size={14} />, color: "var(--color-blue)" },
-  contact: { label: "Contact", icon: <Users size={14} />, color: "var(--color-amber)" },
-  invoice: { label: "Invoice", icon: <DollarSign size={14} />, color: "var(--color-green)" },
-  rfi: { label: "RFI", icon: <FileText size={14} />, color: "var(--color-blue)" },
-  change_order: { label: "Change Order", icon: <FileText size={14} />, color: "var(--color-amber)" },
-  submittal: { label: "Submittal", icon: <FileText size={14} />, color: "var(--color-blue)" },
-  document: { label: "Document", icon: <FolderOpen size={14} />, color: "var(--muted)" },
-  property: { label: "Property", icon: <Building2 size={14} />, color: "var(--color-amber)" },
-  equipment: { label: "Equipment", icon: <Wrench size={14} />, color: "var(--muted)" },
-  contract: { label: "Contract", icon: <FileText size={14} />, color: "var(--color-green)" },
-  opportunity: { label: "Opportunity", icon: <Handshake size={14} />, color: "var(--color-amber)" },
-  bid: { label: "Bid", icon: <Handshake size={14} />, color: "var(--color-blue)" },
-  incident: { label: "Incident", icon: <ShieldCheck size={14} />, color: "var(--color-red)" },
-  ticket: { label: "Ticket", icon: <Ticket size={14} />, color: "var(--color-amber)" },
+const TYPE_ICONS: Record<string, { icon: React.ReactNode; color: string }> = {
+  page: { icon: <LayoutDashboard size={14} />, color: "var(--color-blue)" },
+  project: { icon: <HardHat size={14} />, color: "var(--color-blue)" },
+  contact: { icon: <Users size={14} />, color: "var(--color-amber)" },
+  invoice: { icon: <DollarSign size={14} />, color: "var(--color-green)" },
+  rfi: { icon: <FileText size={14} />, color: "var(--color-blue)" },
+  change_order: { icon: <FileText size={14} />, color: "var(--color-amber)" },
+  submittal: { icon: <FileText size={14} />, color: "var(--color-blue)" },
+  document: { icon: <FolderOpen size={14} />, color: "var(--muted)" },
+  property: { icon: <Building2 size={14} />, color: "var(--color-amber)" },
+  equipment: { icon: <Wrench size={14} />, color: "var(--muted)" },
+  contract: { icon: <FileText size={14} />, color: "var(--color-green)" },
+  opportunity: { icon: <Handshake size={14} />, color: "var(--color-amber)" },
+  bid: { icon: <Handshake size={14} />, color: "var(--color-blue)" },
+  incident: { icon: <ShieldCheck size={14} />, color: "var(--color-red)" },
+  ticket: { icon: <Ticket size={14} />, color: "var(--color-amber)" },
 };
 
-// All navigable pages for instant client-side search
-const NAV_PAGES: { title: string; href: string; section: string; keywords: string[] }[] = [
-  { title: "Dashboard", href: "/dashboard", section: "Home", keywords: ["home", "overview"] },
-  { title: "Calendar", href: "/calendar", section: "Home", keywords: ["schedule", "events", "dates"] },
-  { title: "Inbox", href: "/inbox", section: "Home", keywords: ["messages", "notifications", "mail"] },
-  { title: "Tickets", href: "/tickets", section: "Home", keywords: ["support", "issues", "help"] },
-  { title: "Active Projects", href: "/projects", section: "Projects", keywords: ["jobs", "work"] },
-  { title: "Gantt Schedule", href: "/projects/gantt", section: "Projects", keywords: ["timeline", "chart", "gantt"] },
-  { title: "Daily Logs", href: "/projects/daily-logs", section: "Projects", keywords: ["journal", "log", "diary"] },
-  { title: "RFIs", href: "/projects/rfis", section: "Projects", keywords: ["request for information"] },
-  { title: "Submittals", href: "/projects/submittals", section: "Projects", keywords: ["submittal"] },
-  { title: "Change Orders", href: "/projects/change-orders", section: "Projects", keywords: ["co", "changes"] },
-  { title: "Contracts", href: "/contracts", section: "Projects", keywords: ["agreements"] },
-  { title: "Properties", href: "/properties", section: "Properties", keywords: ["portfolio", "buildings", "real estate"] },
-  { title: "Leases", href: "/properties/leases", section: "Properties", keywords: ["tenants", "rent"] },
-  { title: "Property Maintenance", href: "/properties/maintenance", section: "Properties", keywords: ["repairs", "work orders"] },
-  { title: "Safety Dashboard", href: "/safety", section: "Safety", keywords: ["osha", "compliance"] },
-  { title: "Incidents", href: "/safety/incidents", section: "Safety", keywords: ["accidents", "injury"] },
-  { title: "Inspections", href: "/safety/inspections", section: "Safety", keywords: ["audit", "check"] },
-  { title: "Toolbox Talks", href: "/safety/toolbox-talks", section: "Safety", keywords: ["training", "safety meeting"] },
-  { title: "Equipment Dashboard", href: "/equipment", section: "Equipment", keywords: ["machinery", "tools"] },
-  { title: "Equipment Inventory", href: "/equipment/inventory", section: "Equipment", keywords: ["assets", "tools", "list"] },
-  { title: "Equipment Assignments", href: "/equipment/assignments", section: "Equipment", keywords: ["allocate"] },
-  { title: "Equipment Maintenance", href: "/equipment/maintenance", section: "Equipment", keywords: ["service", "repair"] },
-  { title: "Financial Overview", href: "/financial", section: "Financial", keywords: ["money", "finance", "accounting"] },
-  { title: "Invoices", href: "/financial/invoices", section: "Financial", keywords: ["bills", "billing", "payment"] },
-  { title: "Accounts Receivable", href: "/financial/ar", section: "Financial", keywords: ["ar", "collections", "receivables"] },
-  { title: "Accounts Payable", href: "/financial/ap", section: "Financial", keywords: ["ap", "bills", "payables"] },
-  { title: "General Ledger", href: "/financial/general-ledger", section: "Financial", keywords: ["gl", "ledger", "journal"] },
-  { title: "Chart of Accounts", href: "/financial/accounts", section: "Financial", keywords: ["coa", "accounts", "chart"] },
-  { title: "Income Statement", href: "/financial/income-statement", section: "Financial", keywords: ["profit", "loss", "p&l", "revenue"] },
-  { title: "Balance Sheet", href: "/financial/balance-sheet", section: "Financial", keywords: ["assets", "liabilities", "equity"] },
-  { title: "Cash Flow", href: "/financial/cash-flow", section: "Financial", keywords: ["cash", "flow", "liquidity"] },
-  { title: "Banking", href: "/financial/banking", section: "Financial", keywords: ["bank", "transactions", "reconcile"] },
-  { title: "Budget vs Actual", href: "/financial/budget", section: "Financial", keywords: ["budget", "variance", "spending"] },
-  { title: "Job Costing", href: "/financial/job-costing", section: "Financial", keywords: ["costs", "labor", "materials"] },
-  { title: "KPI Dashboard", href: "/financial/kpi", section: "Financial", keywords: ["metrics", "performance", "indicators"] },
-  { title: "Financial Audit", href: "/financial/audit", section: "Financial", keywords: ["audit", "compliance", "validation", "checks"] },
-  { title: "Document Library", href: "/documents", section: "Documents", keywords: ["files", "uploads"] },
-  { title: "Plan Room", href: "/documents/plan-room", section: "Documents", keywords: ["blueprints", "drawings", "plans"] },
-  { title: "People Directory", href: "/people", section: "People", keywords: ["contacts", "team", "employees", "staff"] },
-  { title: "Time & Attendance", href: "/people/time", section: "People", keywords: ["timesheets", "hours", "clock"] },
-  { title: "Labor & Time", href: "/people/labor", section: "People", keywords: ["labor", "time", "hours", "wages", "rates", "clock"] },
-  { title: "Certifications", href: "/people/certifications", section: "People", keywords: ["licenses", "credentials"] },
-  { title: "Vendors", href: "/people/vendors", section: "People", keywords: ["suppliers", "subcontractors", "subs"] },
-  { title: "CRM Pipeline", href: "/crm", section: "CRM & Bids", keywords: ["leads", "sales", "opportunities", "clients"] },
-  { title: "Bid Management", href: "/crm/bids", section: "CRM & Bids", keywords: ["proposals", "tenders"] },
-  { title: "Estimating", href: "/estimating", section: "CRM & Bids", keywords: ["estimate", "quote", "pricing"] },
-  { title: "AI Assistant", href: "/ai-assistant", section: "AI Assistant", keywords: ["chat", "ai", "help"] },
-  { title: "Automation", href: "/automation", section: "AI Assistant", keywords: ["workflows", "rules", "auto"] },
-  { title: "Reports Center", href: "/reports", section: "Reports", keywords: ["analytics", "data", "export"] },
-  { title: "Authoritative Reports", href: "/reports/authoritative", section: "Reports", keywords: ["official", "compliance"] },
-  { title: "System Map", href: "/system-map", section: "Home", keywords: ["sitemap", "navigation", "overview"] },
-  { title: "Users & Roles", href: "/admin/users", section: "Administration", keywords: ["team", "permissions", "admin"] },
-  { title: "Company Settings", href: "/admin/settings", section: "Administration", keywords: ["configuration", "preferences", "admin"] },
-  { title: "AI Providers", href: "/admin/ai-providers", section: "Administration", keywords: ["openai", "anthropic", "llm", "admin"] },
-  { title: "Integrations", href: "/admin/integrations", section: "Administration", keywords: ["connect", "api", "sync", "admin"] },
-  { title: "Security", href: "/admin/security", section: "Administration", keywords: ["password", "2fa", "auth", "admin"] },
+// Nav key + section key for each page (translated at render time)
+const NAV_PAGE_DEFS: { navKey: string; href: string; sectionKey: string; keywords: string[] }[] = [
+  { navKey: "Dashboard", href: "/dashboard", sectionKey: "Home", keywords: ["home", "overview"] },
+  { navKey: "Calendar", href: "/calendar", sectionKey: "Home", keywords: ["schedule", "events", "dates"] },
+  { navKey: "Inbox", href: "/inbox", sectionKey: "Home", keywords: ["messages", "notifications", "mail"] },
+  { navKey: "Tickets", href: "/tickets", sectionKey: "Home", keywords: ["support", "issues", "help"] },
+  { navKey: "Active Projects", href: "/projects", sectionKey: "Projects", keywords: ["jobs", "work"] },
+  { navKey: "Gantt Schedule", href: "/projects/gantt", sectionKey: "Projects", keywords: ["timeline", "chart", "gantt"] },
+  { navKey: "Daily Logs", href: "/projects/daily-logs", sectionKey: "Projects", keywords: ["journal", "log", "diary"] },
+  { navKey: "RFIs", href: "/projects/rfis", sectionKey: "Projects", keywords: ["request for information"] },
+  { navKey: "Submittals", href: "/projects/submittals", sectionKey: "Projects", keywords: ["submittal"] },
+  { navKey: "Change Orders", href: "/projects/change-orders", sectionKey: "Projects", keywords: ["co", "changes"] },
+  { navKey: "Contracts", href: "/contracts", sectionKey: "Projects", keywords: ["agreements"] },
+  { navKey: "Portfolio", href: "/properties", sectionKey: "Properties", keywords: ["portfolio", "buildings", "real estate"] },
+  { navKey: "Leases", href: "/properties/leases", sectionKey: "Properties", keywords: ["tenants", "rent"] },
+  { navKey: "Maintenance", href: "/properties/maintenance", sectionKey: "Properties", keywords: ["repairs", "work orders"] },
+  { navKey: "Safety", href: "/safety", sectionKey: "Safety", keywords: ["osha", "compliance"] },
+  { navKey: "Incidents", href: "/safety/incidents", sectionKey: "Safety", keywords: ["accidents", "injury"] },
+  { navKey: "Inspections", href: "/safety/inspections", sectionKey: "Safety", keywords: ["audit", "check"] },
+  { navKey: "Toolbox Talks", href: "/safety/toolbox-talks", sectionKey: "Safety", keywords: ["training", "safety meeting"] },
+  { navKey: "Equipment", href: "/equipment", sectionKey: "Equipment", keywords: ["machinery", "tools"] },
+  { navKey: "Inventory", href: "/equipment/inventory", sectionKey: "Equipment", keywords: ["assets", "tools", "list"] },
+  { navKey: "Assignments", href: "/equipment/assignments", sectionKey: "Equipment", keywords: ["allocate"] },
+  { navKey: "Maintenance", href: "/equipment/maintenance", sectionKey: "Equipment", keywords: ["service", "repair"] },
+  { navKey: "Overview", href: "/financial", sectionKey: "Financial", keywords: ["money", "finance", "accounting"] },
+  { navKey: "Invoices", href: "/financial/invoices", sectionKey: "Financial", keywords: ["bills", "billing", "payment"] },
+  { navKey: "Accounts Receivable", href: "/financial/ar", sectionKey: "Financial", keywords: ["ar", "collections", "receivables"] },
+  { navKey: "Accounts Payable", href: "/financial/ap", sectionKey: "Financial", keywords: ["ap", "bills", "payables"] },
+  { navKey: "General Ledger", href: "/financial/general-ledger", sectionKey: "Financial", keywords: ["gl", "ledger", "journal"] },
+  { navKey: "Chart of Accounts", href: "/financial/accounts", sectionKey: "Financial", keywords: ["coa", "accounts", "chart"] },
+  { navKey: "Income Statement", href: "/financial/income-statement", sectionKey: "Financial", keywords: ["profit", "loss", "p&l", "revenue"] },
+  { navKey: "Balance Sheet", href: "/financial/balance-sheet", sectionKey: "Financial", keywords: ["assets", "liabilities", "equity"] },
+  { navKey: "Cash Flow", href: "/financial/cash-flow", sectionKey: "Financial", keywords: ["cash", "flow", "liquidity"] },
+  { navKey: "Banking", href: "/financial/banking", sectionKey: "Financial", keywords: ["bank", "transactions", "reconcile"] },
+  { navKey: "Budget vs Actual", href: "/financial/budget", sectionKey: "Financial", keywords: ["budget", "variance", "spending"] },
+  { navKey: "Job Costing", href: "/financial/job-costing", sectionKey: "Financial", keywords: ["costs", "labor", "materials"] },
+  { navKey: "KPI Dashboard", href: "/financial/kpi", sectionKey: "Financial", keywords: ["metrics", "performance", "indicators"] },
+  { navKey: "Financial Audit", href: "/financial/audit", sectionKey: "Financial", keywords: ["audit", "compliance", "validation", "checks"] },
+  { navKey: "Library", href: "/documents", sectionKey: "Documents", keywords: ["files", "uploads"] },
+  { navKey: "Plan Room", href: "/documents/plan-room", sectionKey: "Documents", keywords: ["blueprints", "drawings", "plans"] },
+  { navKey: "Directory", href: "/people", sectionKey: "People", keywords: ["contacts", "team", "employees", "staff"] },
+  { navKey: "Time & Attendance", href: "/people/time", sectionKey: "People", keywords: ["timesheets", "hours", "clock"] },
+  { navKey: "Payroll", href: "/people/labor", sectionKey: "People", keywords: ["labor", "time", "hours", "wages", "rates", "clock"] },
+  { navKey: "Certifications", href: "/people/certifications", sectionKey: "People", keywords: ["licenses", "credentials"] },
+  { navKey: "Vendors", href: "/people/vendors", sectionKey: "People", keywords: ["suppliers", "subcontractors", "subs"] },
+  { navKey: "Pipeline", href: "/crm", sectionKey: "CRM & Bids", keywords: ["leads", "sales", "opportunities", "clients"] },
+  { navKey: "Bid Management", href: "/crm/bids", sectionKey: "CRM & Bids", keywords: ["proposals", "tenders"] },
+  { navKey: "Estimating", href: "/estimating", sectionKey: "CRM & Bids", keywords: ["estimate", "quote", "pricing"] },
+  { navKey: "AI Assistant", href: "/ai-assistant", sectionKey: "AI Assistant", keywords: ["chat", "ai", "help"] },
+  { navKey: "Automation", href: "/automation", sectionKey: "AI Assistant", keywords: ["workflows", "rules", "auto"] },
+  { navKey: "Reports Center", href: "/reports", sectionKey: "Reports", keywords: ["analytics", "data", "export"] },
+  { navKey: "Authoritative Reports", href: "/reports/authoritative", sectionKey: "Reports", keywords: ["official", "compliance"] },
+  { navKey: "System Map", href: "/system-map", sectionKey: "Home", keywords: ["sitemap", "navigation", "overview"] },
+  { navKey: "Users & Roles", href: "/admin/users", sectionKey: "Administration", keywords: ["team", "permissions", "admin"] },
+  { navKey: "Company Settings", href: "/admin/settings", sectionKey: "Administration", keywords: ["configuration", "preferences", "admin"] },
+  { navKey: "AI Providers", href: "/admin/ai-providers", sectionKey: "Administration", keywords: ["openai", "anthropic", "llm", "admin"] },
+  { navKey: "Integrations", href: "/admin/integrations", sectionKey: "Administration", keywords: ["connect", "api", "sync", "admin"] },
+  { navKey: "Security", href: "/admin/security", sectionKey: "Administration", keywords: ["password", "2fa", "auth", "admin"] },
 ];
 
 interface SearchModalProps {
@@ -118,12 +119,33 @@ interface SearchModalProps {
 
 export function SearchModal({ open, onClose }: SearchModalProps) {
   const router = useRouter();
+  const t = useTranslations("topbar");
+  const nav = useTranslations("nav");
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [dbResults, setDbResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Build translated NAV_PAGES
+  const NAV_PAGES = useMemo(() => NAV_PAGE_DEFS.map((p) => ({
+    title: nav(p.navKey),
+    href: p.href,
+    section: nav(p.sectionKey),
+    keywords: p.keywords,
+  })), [nav]);
+
+  // Build translated TYPE_META
+  const TYPE_META = useMemo((): Record<string, { label: string; icon: React.ReactNode; color: string }> => {
+    const types = ["page", "project", "contact", "invoice", "rfi", "change_order", "submittal", "document", "property", "equipment", "contract", "opportunity", "bid", "incident", "ticket"] as const;
+    const result: Record<string, { label: string; icon: React.ReactNode; color: string }> = {};
+    for (const type of types) {
+      const meta = TYPE_ICONS[type] || { icon: <FileText size={14} />, color: "var(--muted)" };
+      result[type] = { label: t(`type_${type}`), ...meta };
+    }
+    return result;
+  }, [t]);
 
   // Instant client-side page search
   const pageResults = useMemo((): SearchResult[] => {
@@ -141,7 +163,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
         subtitle: p.section,
         href: p.href,
       }));
-  }, [query]);
+  }, [query, NAV_PAGES]);
 
   // Combined results: pages first, then DB results
   const results = useMemo(
@@ -233,7 +255,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
             ref={inputRef}
             type="text"
             className="search-modal-input"
-            placeholder="Search pages, projects, invoices, contacts..."
+            placeholder={t("searchPlaceholder")}
             value={query}
             onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -246,18 +268,18 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
         {/* Results */}
         <div className="search-modal-results">
           {loading && query.length >= 2 && pageResults.length === 0 && (
-            <div className="search-modal-status">Searching...</div>
+            <div className="search-modal-status">{t("searching")}</div>
           )}
 
           {!loading && query.length >= 2 && results.length === 0 && (
             <div className="search-modal-status">
-              No results found for &ldquo;{query}&rdquo;
+              {t("noResults", { query })}
             </div>
           )}
 
           {query.length < 2 && (
             <div className="search-modal-status">
-              Type at least 2 characters to search
+              {t("typeToSearch")}
             </div>
           )}
 
@@ -295,9 +317,9 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
 
         {/* Footer */}
         <div className="search-modal-footer">
-          <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate</span>
-          <span><kbd>Enter</kbd> Open</span>
-          <span><kbd>Esc</kbd> Close</span>
+          <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> {t("navigate")}</span>
+          <span><kbd>Enter</kbd> {t("open")}</span>
+          <span><kbd>Esc</kbd> {t("close")}</span>
         </div>
       </div>
     </div>

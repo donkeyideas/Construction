@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Activity, DollarSign, Hash, Zap, Wallet } from "lucide-react";
 import {
   AreaChart,
@@ -113,8 +114,6 @@ function dateKey(dateStr: string): string {
   return dateStr.slice(0, 10);
 }
 
-// Provider name lookup no longer needed — ai_usage_log stores provider_name directly
-
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -124,6 +123,7 @@ export default function UsageClient({
   usageLogs,
   companyId: _companyId,
 }: UsageClientProps) {
+  const t = useTranslations("ai");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortAsc, setSortAsc] = useState(false);
 
@@ -210,6 +210,9 @@ export default function UsageClient({
   // Chart 3: Tokens by Model (BarChart, stacked input + output)
   // -------------------------------------------------------------------------
 
+  const inputTokensLabel = t("usage.colInputTokens");
+  const outputTokensLabel = t("usage.colOutputTokens");
+
   const tokensByModel = useMemo(() => {
     const map = new Map<string, { input: number; output: number }>();
     for (const l of usageLogs) {
@@ -222,11 +225,11 @@ export default function UsageClient({
     return Array.from(map.entries())
       .map(([model, { input, output }]) => ({
         model,
-        "Input Tokens": input,
-        "Output Tokens": output,
+        [inputTokensLabel]: input,
+        [outputTokensLabel]: output,
       }))
-      .sort((a, b) => b["Input Tokens"] + b["Output Tokens"] - (a["Input Tokens"] + a["Output Tokens"]));
-  }, [usageLogs]);
+      .sort((a, b) => (b[inputTokensLabel] as number) + (b[outputTokensLabel] as number) - (a[inputTokensLabel] as number) - (a[outputTokensLabel] as number));
+  }, [usageLogs, inputTokensLabel, outputTokensLabel]);
 
   // -------------------------------------------------------------------------
   // Chart 4: Requests Over Time (LineChart)
@@ -320,10 +323,10 @@ export default function UsageClient({
           <div>
             <h1>
               <Activity size={28} className="sparkle-icon" />
-              API Usage Analytics
+              {t("usage.title")}
             </h1>
             <p className="subtitle">
-              Monitor AI spending, token usage, and provider budgets
+              {t("usage.subtitle")}
             </p>
           </div>
         </div>
@@ -343,7 +346,7 @@ export default function UsageClient({
               color: "var(--text)",
             }}
           >
-            No AI usage data yet
+            {t("usage.noUsageData")}
           </div>
           <div
             style={{
@@ -353,8 +356,7 @@ export default function UsageClient({
               margin: "0 auto",
             }}
           >
-            Start using AI features to see analytics here. Configure AI
-            providers in Settings to begin tracking usage and costs.
+            {t("usage.noUsageDataDesc")}
           </div>
         </div>
       </div>
@@ -374,10 +376,10 @@ export default function UsageClient({
         <div>
           <h1>
             <Activity size={28} className="sparkle-icon" />
-            API Usage Analytics
+            {t("usage.title")}
           </h1>
           <p className="subtitle">
-            Monitor AI spending, token usage, and provider budgets
+            {t("usage.subtitle")}
           </p>
         </div>
       </div>
@@ -388,7 +390,7 @@ export default function UsageClient({
       <div className="ai-kpi-grid">
         {/* Total Spend */}
         <div className="ai-kpi-card kpi-info">
-          <span className="kpi-label">Total Spend</span>
+          <span className="kpi-label">{t("usage.totalSpend")}</span>
           <span
             className="kpi-value"
             style={{ color: "var(--color-blue)" }}
@@ -397,13 +399,13 @@ export default function UsageClient({
           </span>
           <span className="kpi-change" style={{ color: "var(--muted)" }}>
             <DollarSign size={12} />
-            This month
+            {t("usage.thisMonth")}
           </span>
         </div>
 
         {/* Total Tokens */}
         <div className="ai-kpi-card kpi-info">
-          <span className="kpi-label">Total Tokens</span>
+          <span className="kpi-label">{t("usage.totalTokens")}</span>
           <span
             className="kpi-value"
             style={{ color: "var(--color-blue)" }}
@@ -412,13 +414,13 @@ export default function UsageClient({
           </span>
           <span className="kpi-change" style={{ color: "var(--muted)" }}>
             <Zap size={12} />
-            Input + Output
+            {t("usage.inputPlusOutput")}
           </span>
         </div>
 
         {/* Total Requests */}
         <div className="ai-kpi-card kpi-info">
-          <span className="kpi-label">Total Requests</span>
+          <span className="kpi-label">{t("usage.totalRequests")}</span>
           <span
             className="kpi-value"
             style={{ color: "var(--color-blue)" }}
@@ -427,13 +429,13 @@ export default function UsageClient({
           </span>
           <span className="kpi-change" style={{ color: "var(--muted)" }}>
             <Hash size={12} />
-            API calls this month
+            {t("usage.apiCallsThisMonth")}
           </span>
         </div>
 
         {/* Budget Remaining */}
         <div className={`ai-kpi-card ${budgetKpiClass}`}>
-          <span className="kpi-label">Budget Remaining</span>
+          <span className="kpi-label">{t("usage.budgetRemaining")}</span>
           <span className="kpi-value" style={{ color: budgetKpiColor }}>
             {budgetRemaining.totalBudget > 0
               ? formatCost(budgetRemaining.remaining)
@@ -442,8 +444,8 @@ export default function UsageClient({
           <span className="kpi-change" style={{ color: "var(--muted)" }}>
             <Wallet size={12} />
             {budgetRemaining.totalBudget > 0
-              ? `${budgetPct.toFixed(0)}% of budget left`
-              : "No budgets set"}
+              ? t("usage.ofBudgetLeft", { pct: budgetPct.toFixed(0) })
+              : t("usage.noBudgetsSet")}
           </span>
         </div>
       </div>
@@ -454,7 +456,7 @@ export default function UsageClient({
       <div className="usage-chart-grid">
         {/* Chart 1: Daily Spend Trend */}
         <div className="usage-chart-card">
-          <div className="chart-title">Daily Spend Trend</div>
+          <div className="chart-title">{t("usage.dailySpendTrend")}</div>
           {dailySpendData.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart
@@ -480,7 +482,7 @@ export default function UsageClient({
                 <Tooltip
                   formatter={(value: number | string | undefined) => [
                     formatCost(Number(value ?? 0)),
-                    "Cost",
+                    t("usage.cost"),
                   ]}
                   contentStyle={{
                     background: "var(--card-bg)",
@@ -501,13 +503,13 @@ export default function UsageClient({
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChartMsg />
+            <EmptyChartMsg message={t("usage.noDataAvailable")} />
           )}
         </div>
 
         {/* Chart 2: Cost by Provider */}
         <div className="usage-chart-card">
-          <div className="chart-title">Cost by Provider</div>
+          <div className="chart-title">{t("usage.costByProvider")}</div>
           {costByProvider.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -535,7 +537,7 @@ export default function UsageClient({
                 <Tooltip
                   formatter={(value: number | string | undefined) => [
                     formatCost(Number(value ?? 0)),
-                    "Cost",
+                    t("usage.cost"),
                   ]}
                   contentStyle={{
                     background: "var(--card-bg)",
@@ -547,13 +549,13 @@ export default function UsageClient({
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChartMsg />
+            <EmptyChartMsg message={t("usage.noDataAvailable")} />
           )}
         </div>
 
         {/* Chart 3: Tokens by Model */}
         <div className="usage-chart-card">
-          <div className="chart-title">Tokens by Model</div>
+          <div className="chart-title">{t("usage.tokensByModel")}</div>
           {tokensByModel.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart
@@ -593,13 +595,13 @@ export default function UsageClient({
                   wrapperStyle={{ fontSize: "0.8rem", paddingTop: 8 }}
                 />
                 <Bar
-                  dataKey="Input Tokens"
+                  dataKey={inputTokensLabel}
                   stackId="tokens"
                   fill="var(--color-blue)"
                   radius={[0, 0, 0, 0]}
                 />
                 <Bar
-                  dataKey="Output Tokens"
+                  dataKey={outputTokensLabel}
                   stackId="tokens"
                   fill="var(--color-green)"
                   radius={[4, 4, 0, 0]}
@@ -607,13 +609,13 @@ export default function UsageClient({
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChartMsg />
+            <EmptyChartMsg message={t("usage.noDataAvailable")} />
           )}
         </div>
 
         {/* Chart 4: Requests Over Time */}
         <div className="usage-chart-card">
-          <div className="chart-title">Requests Over Time</div>
+          <div className="chart-title">{t("usage.requestsOverTime")}</div>
           {requestsOverTime.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <LineChart
@@ -639,7 +641,7 @@ export default function UsageClient({
                 <Tooltip
                   formatter={(value: number | string | undefined) => [
                     Number(value ?? 0),
-                    "Requests",
+                    t("usage.requests"),
                   ]}
                   contentStyle={{
                     background: "var(--card-bg)",
@@ -665,7 +667,7 @@ export default function UsageClient({
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChartMsg />
+            <EmptyChartMsg message={t("usage.noDataAvailable")} />
           )}
         </div>
       </div>
@@ -675,7 +677,7 @@ export default function UsageClient({
       {/* ---------------------------------------------------------------- */}
       {providersWithBudget.length > 0 && (
         <>
-          <SectionTitle title="Provider Budget Utilization" />
+          <SectionTitle title={t("usage.providerBudgetUtilization")} />
           <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
             {providersWithBudget.map((p) => {
               const limit = p.monthly_budget_limit ?? 0;
@@ -747,7 +749,7 @@ export default function UsageClient({
       {/* ---------------------------------------------------------------- */}
       {/* Recent API Calls Table                                            */}
       {/* ---------------------------------------------------------------- */}
-      <SectionTitle title="Recent API Calls" />
+      <SectionTitle title={t("usage.recentApiCalls")} />
       {tableData.length > 0 ? (
         <div
           className="usage-chart-card"
@@ -760,43 +762,43 @@ export default function UsageClient({
                   onClick={() => handleSort("created_at")}
                   style={{ cursor: "pointer" }}
                 >
-                  Time{sortIndicator("created_at")}
+                  {t("usage.colTime")}{sortIndicator("created_at")}
                 </th>
                 <th
                   onClick={() => handleSort("provider_name")}
                   style={{ cursor: "pointer" }}
                 >
-                  Provider{sortIndicator("provider_name")}
+                  {t("usage.colProvider")}{sortIndicator("provider_name")}
                 </th>
                 <th
                   onClick={() => handleSort("model_id")}
                   style={{ cursor: "pointer" }}
                 >
-                  Model{sortIndicator("model_id")}
+                  {t("usage.colModel")}{sortIndicator("model_id")}
                 </th>
                 <th
                   onClick={() => handleSort("task_type")}
                   style={{ cursor: "pointer" }}
                 >
-                  Task{sortIndicator("task_type")}
+                  {t("usage.colTask")}{sortIndicator("task_type")}
                 </th>
                 <th
                   onClick={() => handleSort("input_tokens")}
                   style={{ cursor: "pointer", textAlign: "right" }}
                 >
-                  Input Tokens{sortIndicator("input_tokens")}
+                  {t("usage.colInputTokens")}{sortIndicator("input_tokens")}
                 </th>
                 <th
                   onClick={() => handleSort("output_tokens")}
                   style={{ cursor: "pointer", textAlign: "right" }}
                 >
-                  Output Tokens{sortIndicator("output_tokens")}
+                  {t("usage.colOutputTokens")}{sortIndicator("output_tokens")}
                 </th>
                 <th
                   onClick={() => handleSort("estimated_cost")}
                   style={{ cursor: "pointer", textAlign: "right" }}
                 >
-                  Cost{sortIndicator("estimated_cost")}
+                  {t("usage.colCost")}{sortIndicator("estimated_cost")}
                 </th>
               </tr>
             </thead>
@@ -844,7 +846,7 @@ export default function UsageClient({
           }}
         >
           <p style={{ fontSize: "0.88rem", margin: 0 }}>
-            No API calls recorded this month.
+            {t("usage.noApiCallsThisMonth")}
           </p>
         </div>
       )}
@@ -882,7 +884,7 @@ function SectionTitle({ title }: { title: string }) {
   );
 }
 
-function EmptyChartMsg() {
+function EmptyChartMsg({ message }: { message: string }) {
   return (
     <div
       style={{
@@ -894,7 +896,7 @@ function EmptyChartMsg() {
         fontSize: "0.85rem",
       }}
     >
-      No data available
+      {message}
     </div>
   );
 }

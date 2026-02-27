@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   Shield,
@@ -66,6 +67,7 @@ export default function SecurityClient({
   sessions,
 }: SecurityClientProps) {
   const router = useRouter();
+  const t = useTranslations("adminPanel");
 
   // Tab state
   const [activeTab, setActiveTab] = useState<SecurityTab>("passwords");
@@ -287,9 +289,9 @@ export default function SecurityClient({
       {/* Header */}
       <div className="security-header">
         <div>
-          <h2>Security</h2>
+          <h2>{t("security.title")}</h2>
           <p className="security-header-sub">
-            Manage password policies, two-factor authentication, and session controls.
+            {t("security.subtitle")}
           </p>
         </div>
       </div>
@@ -298,10 +300,10 @@ export default function SecurityClient({
       <div className="security-tabs">
         {(
           [
-            { key: "passwords", label: "Password Policies", icon: Key },
-            { key: "2fa", label: "Two-Factor Auth", icon: Lock },
-            { key: "sessions", label: "Sessions", icon: Monitor },
-            { key: "history", label: "Login History", icon: History },
+            { key: "passwords", label: t("security.passwordPolicies"), icon: Key },
+            { key: "2fa", label: t("security.twoFactorAuth"), icon: Lock },
+            { key: "sessions", label: t("security.sessions"), icon: Monitor },
+            { key: "history", label: t("security.loginHistory"), icon: History },
           ] as { key: SecurityTab; label: string; icon: React.ElementType }[]
         ).map((tab) => (
           <button
@@ -329,10 +331,10 @@ export default function SecurityClient({
       {activeTab === "passwords" && (
         <div className="security-panel">
           <div className="security-form-section">
-            <div className="security-form-section-title">Password Requirements</div>
+            <div className="security-form-section-title">{t("security.passwordRequirements")}</div>
 
             <div className="security-form-group">
-              <label className="security-form-label">Minimum Password Length</label>
+              <label className="security-form-label">{t("security.minPasswordLength")}</label>
               <input
                 type="number"
                 className="security-form-input"
@@ -345,7 +347,7 @@ export default function SecurityClient({
 
             <div className="security-toggle-group">
               <label className="security-toggle-row">
-                <span className="security-toggle-label">Require uppercase letters</span>
+                <span className="security-toggle-label">{t("security.requireUppercase")}</span>
                 <button
                   type="button"
                   className={`security-toggle ${requireUpper ? "on" : ""}`}
@@ -353,7 +355,7 @@ export default function SecurityClient({
                 />
               </label>
               <label className="security-toggle-row">
-                <span className="security-toggle-label">Require lowercase letters</span>
+                <span className="security-toggle-label">{t("security.requireLowercase")}</span>
                 <button
                   type="button"
                   className={`security-toggle ${requireLower ? "on" : ""}`}
@@ -361,7 +363,7 @@ export default function SecurityClient({
                 />
               </label>
               <label className="security-toggle-row">
-                <span className="security-toggle-label">Require numbers</span>
+                <span className="security-toggle-label">{t("security.requireNumbers")}</span>
                 <button
                   type="button"
                   className={`security-toggle ${requireNumbers ? "on" : ""}`}
@@ -369,7 +371,7 @@ export default function SecurityClient({
                 />
               </label>
               <label className="security-toggle-row">
-                <span className="security-toggle-label">Require special characters</span>
+                <span className="security-toggle-label">{t("security.requireSpecialChars")}</span>
                 <button
                   type="button"
                   className={`security-toggle ${requireSpecial ? "on" : ""}`}
@@ -379,7 +381,7 @@ export default function SecurityClient({
             </div>
 
             <div className="security-form-group">
-              <label className="security-form-label">Password Expiry (days)</label>
+              <label className="security-form-label">{t("security.passwordExpiry")}</label>
               <input
                 type="number"
                 className="security-form-input"
@@ -388,7 +390,7 @@ export default function SecurityClient({
                 min={0}
                 max={365}
               />
-              <span className="security-form-hint">Set to 0 to disable password expiration.</span>
+              <span className="security-form-hint">{t("security.expiryHint")}</span>
             </div>
 
             <div className="security-form-actions">
@@ -397,7 +399,7 @@ export default function SecurityClient({
                 onClick={savePasswordPolicy}
                 disabled={saving}
               >
-                {saving ? "Saving..." : "Save Password Policy"}
+                {saving ? t("security.saving") : t("security.savePasswordPolicy")}
               </button>
             </div>
           </div>
@@ -408,14 +410,14 @@ export default function SecurityClient({
       {activeTab === "2fa" && (
         <div className="security-panel">
           <div className="security-form-section">
-            <div className="security-form-section-title">Two-Factor Authentication</div>
+            <div className="security-form-section-title">{t("security.twoFactorAuthentication")}</div>
 
             <label className="security-toggle-row" style={{ marginBottom: 20 }}>
               <span className="security-toggle-label">
-                <strong>Require 2FA for all users</strong>
+                <strong>{t("security.require2faAll")}</strong>
                 <br />
                 <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-                  When enabled, all users must set up two-factor authentication.
+                  {t("security.require2faAllDesc")}
                 </span>
               </span>
               <button
@@ -426,7 +428,7 @@ export default function SecurityClient({
             </label>
 
             <div className="security-form-section-title" style={{ fontSize: "0.95rem" }}>
-              Require 2FA for Specific Roles
+              {t("security.require2faRoles")}
             </div>
             <div className="security-checkbox-group">
               {ROLE_OPTIONS.map((role) => (
@@ -447,7 +449,7 @@ export default function SecurityClient({
                 onClick={save2faSettings}
                 disabled={saving}
               >
-                {saving ? "Saving..." : "Save 2FA Settings"}
+                {saving ? t("security.saving") : t("security.save2faSettings")}
               </button>
             </div>
           </div>
@@ -458,11 +460,11 @@ export default function SecurityClient({
       {activeTab === "sessions" && (
         <div className="security-panel">
           <div className="security-form-section">
-            <div className="security-form-section-title">Session Settings</div>
+            <div className="security-form-section-title">{t("security.sessionSettings")}</div>
 
             <div className="security-form-row">
               <div className="security-form-group">
-                <label className="security-form-label">Session Timeout (minutes)</label>
+                <label className="security-form-label">{t("security.sessionTimeout")}</label>
                 <input
                   type="number"
                   className="security-form-input"
@@ -473,7 +475,7 @@ export default function SecurityClient({
                 />
               </div>
               <div className="security-form-group">
-                <label className="security-form-label">Max Concurrent Sessions</label>
+                <label className="security-form-label">{t("security.maxConcurrentSessions")}</label>
                 <input
                   type="number"
                   className="security-form-input"
@@ -491,7 +493,7 @@ export default function SecurityClient({
                 onClick={saveSessionSettings}
                 disabled={saving}
               >
-                {saving ? "Saving..." : "Save Session Settings"}
+                {saving ? t("security.saving") : t("security.saveSessionSettings")}
               </button>
             </div>
           </div>
@@ -499,7 +501,7 @@ export default function SecurityClient({
           {/* Active Sessions Table */}
           <div className="security-form-section">
             <div className="security-sessions-header">
-              <div className="security-form-section-title">Active Sessions ({sessions.length})</div>
+              <div className="security-form-section-title">{t("security.activeSessions", { count: sessions.length })}</div>
               {sessions.length > 0 && (
                 <button
                   className="btn-secondary security-revoke-all"
@@ -507,7 +509,7 @@ export default function SecurityClient({
                   disabled={revoking === "all"}
                 >
                   <LogOut size={14} />
-                  {revoking === "all" ? "Revoking..." : "Revoke All"}
+                  {revoking === "all" ? t("security.revoking") : t("security.revokeAll")}
                 </button>
               )}
             </div>
@@ -517,11 +519,11 @@ export default function SecurityClient({
                 <table className="security-table">
                   <thead>
                     <tr>
-                      <th>User</th>
-                      <th>Device</th>
-                      <th>IP Address</th>
-                      <th>Last Active</th>
-                      <th>Actions</th>
+                      <th>{t("security.thUser")}</th>
+                      <th>{t("security.thDevice")}</th>
+                      <th>{t("security.thIpAddress")}</th>
+                      <th>{t("security.thLastActive")}</th>
+                      <th>{t("security.thActions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -540,7 +542,7 @@ export default function SecurityClient({
                             disabled={revoking === session.id}
                           >
                             <X size={13} />
-                            {revoking === session.id ? "Revoking..." : "Revoke"}
+                            {revoking === session.id ? t("security.revoking") : t("security.revoke")}
                           </button>
                         </td>
                       </tr>
@@ -551,7 +553,7 @@ export default function SecurityClient({
             ) : (
               <div className="security-empty">
                 <Monitor size={32} />
-                <div>No active sessions found.</div>
+                <div>{t("security.noActiveSessions")}</div>
               </div>
             )}
           </div>
@@ -563,9 +565,9 @@ export default function SecurityClient({
         <div className="security-panel">
           <div className="security-form-section">
             <div className="security-sessions-header">
-              <div className="security-form-section-title">Login History</div>
+              <div className="security-form-section-title">{t("security.loginHistory")}</div>
               <div className="security-filter">
-                <label className="security-form-label" style={{ marginBottom: 0 }}>Date Filter</label>
+                <label className="security-form-label" style={{ marginBottom: 0 }}>{t("security.dateFilter")}</label>
                 <input
                   type="date"
                   className="security-form-input security-date-input"
@@ -578,7 +580,7 @@ export default function SecurityClient({
                     onClick={() => setHistoryDateFilter("")}
                     style={{ padding: "6px 10px", fontSize: "0.78rem" }}
                   >
-                    Clear
+                    {t("security.clear")}
                   </button>
                 )}
               </div>
@@ -589,11 +591,11 @@ export default function SecurityClient({
                 <table className="security-table">
                   <thead>
                     <tr>
-                      <th>User</th>
-                      <th>Time</th>
-                      <th>IP Address</th>
-                      <th>Status</th>
-                      <th>Device</th>
+                      <th>{t("security.thUser")}</th>
+                      <th>{t("security.thTime")}</th>
+                      <th>{t("security.thIpAddress")}</th>
+                      <th>{t("security.thStatus")}</th>
+                      <th>{t("security.thDevice")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -607,9 +609,9 @@ export default function SecurityClient({
                         <td>
                           <span className={`security-status-badge ${entry.status}`}>
                             {entry.status === "success" ? (
-                              <><CheckCircle2 size={12} /> Success</>
+                              <><CheckCircle2 size={12} /> {t("security.success")}</>
                             ) : (
-                              <><XCircle size={12} /> Failed</>
+                              <><XCircle size={12} /> {t("security.failed")}</>
                             )}
                           </span>
                         </td>
@@ -622,7 +624,7 @@ export default function SecurityClient({
             ) : (
               <div className="security-empty">
                 <History size={32} />
-                <div>No login history found{historyDateFilter ? " for this date" : ""}.</div>
+                <div>{historyDateFilter ? t("security.noHistoryForDate") : t("security.noHistoryFound")}</div>
               </div>
             )}
           </div>

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Mail,
   FileText,
@@ -96,6 +97,7 @@ function replaceVariables(html: string, variables: string[]): string {
 
 export default function EmailTemplatesClient({ templates }: Props) {
   const router = useRouter();
+  const t = useTranslations("superAdmin");
 
   /* ---- UI state ---- */
   const [error, setError] = useState("");
@@ -332,14 +334,14 @@ export default function EmailTemplatesClient({ templates }: Props) {
       {/* ---- Header ---- */}
       <div className="admin-header">
         <div>
-          <h2>Email Templates</h2>
+          <h2>{t("emailTemplates.title")}</h2>
           <p className="admin-header-sub">
-            Manage email templates used across the platform
+            {t("emailTemplates.subtitle")}
           </p>
         </div>
         <div className="admin-header-actions">
           <button className="sa-action-btn primary" onClick={openCreate}>
-            <Plus size={14} /> New Template
+            <Plus size={14} /> {t("emailTemplates.newTemplate")}
           </button>
         </div>
       </div>
@@ -350,21 +352,21 @@ export default function EmailTemplatesClient({ templates }: Props) {
           <div className="admin-stat-icon blue">
             <Mail size={18} />
           </div>
-          <div className="admin-stat-label">Total Templates</div>
+          <div className="admin-stat-label">{t("emailTemplates.totalTemplates")}</div>
           <div className="admin-stat-value">{totalCount}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon green">
             <Check size={18} />
           </div>
-          <div className="admin-stat-label">Active Templates</div>
+          <div className="admin-stat-label">{t("emailTemplates.activeTemplates")}</div>
           <div className="admin-stat-value">{activeCount}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon" style={{ background: "rgba(168,85,247,0.1)", color: "#a855f7" }}>
             <FileText size={18} />
           </div>
-          <div className="admin-stat-label">Categories</div>
+          <div className="admin-stat-label">{t("emailTemplates.categories")}</div>
           <div className="admin-stat-value">{categoryCount}</div>
         </div>
       </div>
@@ -378,19 +380,19 @@ export default function EmailTemplatesClient({ templates }: Props) {
         <table className="sa-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Subject</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th>Updated</th>
-              <th>Actions</th>
+              <th>{t("emailTemplates.thName")}</th>
+              <th>{t("emailTemplates.thSubject")}</th>
+              <th>{t("emailTemplates.thCategory")}</th>
+              <th>{t("emailTemplates.thStatus")}</th>
+              <th>{t("emailTemplates.thUpdated")}</th>
+              <th>{t("emailTemplates.thActions")}</th>
             </tr>
           </thead>
           <tbody>
             {templates.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: "center", padding: "40px", color: "var(--muted)" }}>
-                  No email templates yet. Click &quot;New Template&quot; to create one.
+                  {t("emailTemplates.noTemplatesYet")}
                 </td>
               </tr>
             ) : (

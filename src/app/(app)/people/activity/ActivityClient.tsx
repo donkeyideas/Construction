@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Clock,
   LogIn,
@@ -45,6 +46,7 @@ function fmtCost(hours: number, rate: number | undefined): string {
 }
 
 export default function ActivityClient({ activities, todayISO, rateMap }: ActivityClientProps) {
+  const t = useTranslations("people");
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeActivity | null>(null);
   const [filter, setFilter] = useState<"all" | "clocked_in" | "clocked_out" | "no_activity">("all");
 
@@ -78,21 +80,21 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
         return (
           <span className="inv-status inv-status-paid">
             <CheckCircle size={12} />
-            Clocked In
+            {t("activity.clockedIn")}
           </span>
         );
       case "clocked_out":
         return (
           <span className="inv-status inv-status-pending">
             <MinusCircle size={12} />
-            Clocked Out
+            {t("activity.clockedOut")}
           </span>
         );
       default:
         return (
           <span className="inv-status inv-status-draft">
             <AlertCircle size={12} />
-            No Activity
+            {t("activity.noActivity")}
           </span>
         );
     }
@@ -103,9 +105,9 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Employee Activity</h2>
+          <h2>{t("activity.title")}</h2>
           <p className="fin-header-sub">
-            Monitor employee clock-in/out status and hours worked
+            {t("activity.subtitle")}
           </p>
         </div>
       </div>
@@ -119,7 +121,7 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
         >
           <div className="fin-kpi-label">
             <Users size={14} />
-            Total Employees
+            {t("activity.totalEmployees")}
           </div>
           <div className="fin-kpi-value">{activities.length}</div>
         </button>
@@ -130,7 +132,7 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
         >
           <div className="fin-kpi-label">
             <LogIn size={14} style={{ color: "var(--color-green)" }} />
-            Clocked In
+            {t("activity.clockedIn")}
           </div>
           <div className="fin-kpi-value" style={{ color: "var(--color-green)" }}>{clockedInCount}</div>
         </button>
@@ -141,7 +143,7 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
         >
           <div className="fin-kpi-label">
             <LogOut size={14} style={{ color: "var(--color-amber)" }} />
-            Clocked Out
+            {t("activity.clockedOut")}
           </div>
           <div className="fin-kpi-value" style={{ color: "var(--color-amber)" }}>{clockedOutCount}</div>
         </button>
@@ -152,7 +154,7 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
         >
           <div className="fin-kpi-label">
             <AlertCircle size={14} style={{ color: "var(--muted)" }} />
-            No Activity
+            {t("activity.noActivity")}
           </div>
           <div className="fin-kpi-value" style={{ color: "var(--muted)" }}>{noActivityCount}</div>
         </button>
@@ -164,15 +166,15 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
           <table className="invoice-table">
             <thead>
               <tr>
-                <th>Employee</th>
-                <th>Job Title</th>
-                <th>Status</th>
-                <th>Last Event</th>
-                <th>Today</th>
-                <th>Today $</th>
-                <th>This Week</th>
-                <th>Week $</th>
-                <th>Details</th>
+                <th>{t("activity.employee")}</th>
+                <th>{t("activity.jobTitle")}</th>
+                <th>{t("activity.status")}</th>
+                <th>{t("activity.lastEvent")}</th>
+                <th>{t("activity.today")}</th>
+                <th>{t("activity.todayCost")}</th>
+                <th>{t("activity.thisWeek")}</th>
+                <th>{t("activity.weekCost")}</th>
+                <th>{t("activity.details")}</th>
               </tr>
             </thead>
             <tbody>
@@ -206,10 +208,10 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
                         onClick={() => setSelectedEmployee(activity)}
                       >
                         <Clock size={13} />
-                        View ({activity.todayEvents.length})
+                        {t("activity.view", { count: activity.todayEvents.length })}
                       </button>
                     ) : (
-                      <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>No events</span>
+                      <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>{t("activity.noEvents")}</span>
                     )}
                   </td>
                 </tr>
@@ -219,11 +221,11 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
         ) : (
           <div className="fin-empty" style={{ padding: 48 }}>
             <div className="fin-empty-icon"><Users size={48} /></div>
-            <div className="fin-empty-title">No Employees Found</div>
+            <div className="fin-empty-title">{t("activity.noEmployeesTitle")}</div>
             <div className="fin-empty-desc">
               {filter !== "all"
-                ? "No employees match this filter. Try selecting a different status."
-                : "No employees with portal access found. Create employee logins from the People Directory."}
+                ? t("activity.noEmployeesFilterDesc")
+                : t("activity.noEmployeesEmptyDesc")}
             </div>
           </div>
         )}
@@ -236,7 +238,7 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
             <div className="modal-header">
               <h3>
                 <Clock size={18} style={{ marginRight: 8 }} />
-                {selectedEmployee.name} — Today&apos;s Activity
+                {t("activity.todayActivityTitle", { name: selectedEmployee.name })}
               </h3>
               <button className="modal-close" onClick={() => setSelectedEmployee(null)}>
                 <X size={18} />
@@ -245,11 +247,11 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
             <div className="modal-body">
               <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
                 <div className="fin-chart-card" style={{ flex: 1, padding: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>Status</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>{t("activity.status")}</div>
                   {getStatusBadge(selectedEmployee.currentStatus)}
                 </div>
                 <div className="fin-chart-card" style={{ flex: 1, padding: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>Today</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>{t("activity.today")}</div>
                   <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{selectedEmployee.todayHours}h</div>
                   {rateMap[selectedEmployee.userId] && selectedEmployee.todayHours > 0 && (
                     <div style={{ fontSize: "0.82rem", color: "var(--success, #16a34a)", fontWeight: 600, marginTop: 2 }}>
@@ -258,7 +260,7 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
                   )}
                 </div>
                 <div className="fin-chart-card" style={{ flex: 1, padding: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>Week</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>{t("activity.week")}</div>
                   <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{selectedEmployee.weekHours}h</div>
                   {rateMap[selectedEmployee.userId] && selectedEmployee.weekHours > 0 && (
                     <div style={{ fontSize: "0.82rem", color: "var(--success, #16a34a)", fontWeight: 600, marginTop: 2 }}>
@@ -291,7 +293,7 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
                           <LogOut size={15} style={{ color: "var(--color-red)" }} />
                         )}
                         <span style={{ fontWeight: 600 }}>
-                          {event.event_type === "clock_in" ? "Clock In" : "Clock Out"}
+                          {event.event_type === "clock_in" ? t("activity.clockIn") : t("activity.clockOut")}
                         </span>
                         <span style={{ color: "var(--muted)", marginLeft: "auto" }}>
                           {formatTime(event.timestamp)}
@@ -301,7 +303,7 @@ export default function ActivityClient({ activities, todayISO, rateMap }: Activi
                 </div>
               ) : (
                 <div style={{ textAlign: "center", color: "var(--muted)", padding: 24 }}>
-                  No clock events today.
+                  {t("activity.noClockEventsToday")}
                 </div>
               )}
             </div>

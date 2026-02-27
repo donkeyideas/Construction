@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -72,14 +73,6 @@ interface AlertsClientProps {
 
 type FilterCategory = "all" | "financial" | "safety" | "project" | "equipment";
 
-const FILTER_OPTIONS: { key: FilterCategory; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "financial", label: "Financial" },
-  { key: "safety", label: "Safety" },
-  { key: "project", label: "Project" },
-  { key: "equipment", label: "Equipment" },
-];
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -104,7 +97,19 @@ function getCategoryIcon(category: AlertItem["category"]) {
 // ---------------------------------------------------------------------------
 
 export default function AlertsClient(props: AlertsClientProps) {
+  const t = useTranslations("ai");
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
+
+  const filterOptions = useMemo(
+    () => [
+      { key: "all" as const, label: t("alerts.filterAll") },
+      { key: "financial" as const, label: t("alerts.filterFinancial") },
+      { key: "safety" as const, label: t("alerts.filterSafety") },
+      { key: "project" as const, label: t("alerts.filterProject") },
+      { key: "equipment" as const, label: t("alerts.filterEquipment") },
+    ],
+    [t]
+  );
 
   // Convert raw data into unified alerts using the analysis engine
   const alerts: AlertItem[] = useMemo(
@@ -155,10 +160,10 @@ export default function AlertsClient(props: AlertsClientProps) {
         <div>
           <h1>
             <AlertTriangle size={28} className="sparkle-icon" />
-            Smart Alerts
+            {t("alerts.title")}
           </h1>
           <p className="subtitle">
-            Automated anomaly detection across your operations
+            {t("alerts.subtitle")}
           </p>
         </div>
       </div>
@@ -166,32 +171,32 @@ export default function AlertsClient(props: AlertsClientProps) {
       {/* ── KPI Row ── */}
       <div className="ai-kpi-grid">
         <div className="ai-kpi-card kpi-critical">
-          <span className="kpi-label">Critical Alerts</span>
+          <span className="kpi-label">{t("alerts.criticalAlerts")}</span>
           <span className="kpi-value" style={{ color: "var(--color-red)" }}>
             {criticalCount}
           </span>
         </div>
         <div className="ai-kpi-card kpi-warning">
-          <span className="kpi-label">Warning Alerts</span>
+          <span className="kpi-label">{t("alerts.warningAlerts")}</span>
           <span className="kpi-value" style={{ color: "var(--color-amber)" }}>
             {warningCount}
           </span>
         </div>
         <div className="ai-kpi-card kpi-info">
-          <span className="kpi-label">Info Alerts</span>
+          <span className="kpi-label">{t("alerts.infoAlerts")}</span>
           <span className="kpi-value" style={{ color: "var(--color-blue)" }}>
             {infoCount}
           </span>
         </div>
         <div className="ai-kpi-card kpi-good">
-          <span className="kpi-label">Total Alerts</span>
+          <span className="kpi-label">{t("alerts.totalAlerts")}</span>
           <span className="kpi-value">{alerts.length}</span>
         </div>
       </div>
 
       {/* ── Filter Bar ── */}
       <div className="alert-filters">
-        {FILTER_OPTIONS.map((opt) => (
+        {filterOptions.map((opt) => (
           <button
             key={opt.key}
             className={`alert-filter-btn${activeFilter === opt.key ? " active" : ""}`}
@@ -219,7 +224,7 @@ export default function AlertsClient(props: AlertsClientProps) {
         >
           <CheckCircle2 size={48} style={{ color: "var(--color-green)" }} />
           <p style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text)" }}>
-            No alerts detected. Everything looks good!
+            {t("alerts.noAlerts")}
           </p>
         </div>
       ) : (
@@ -249,7 +254,7 @@ export default function AlertsClient(props: AlertsClientProps) {
                 )}
                 {alert.actionUrl && (
                   <Link href={alert.actionUrl} className="alert-action">
-                    View
+                    {t("alerts.view")}
                   </Link>
                 )}
               </div>

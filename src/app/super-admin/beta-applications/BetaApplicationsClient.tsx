@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { FileText, Clock, CheckCircle, Users } from "lucide-react";
 
 interface BetaApplication {
@@ -34,6 +35,7 @@ export default function BetaApplicationsClient({
 }: {
   applications: BetaApplication[];
 }) {
+  const t = useTranslations("superAdmin");
   const [applications, setApplications] = useState(initialApps);
   const [filter, setFilter] = useState<Filter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -81,8 +83,8 @@ export default function BetaApplicationsClient({
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>Beta Applications</h2>
-          <p className="admin-header-sub">Founding Member Program</p>
+          <h2>{t("betaApps.title")}</h2>
+          <p className="admin-header-sub">{t("betaApps.subtitle")}</p>
         </div>
       </div>
 
@@ -90,7 +92,7 @@ export default function BetaApplicationsClient({
       <div className="sa-kpi-grid">
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
-            <span className="sa-kpi-label">Total Applications</span>
+            <span className="sa-kpi-label">{t("betaApps.totalApplications")}</span>
             <span className="sa-kpi-value">{counts.all}</span>
           </div>
           <div className="sa-kpi-icon">
@@ -99,7 +101,7 @@ export default function BetaApplicationsClient({
         </div>
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
-            <span className="sa-kpi-label">Pending Review</span>
+            <span className="sa-kpi-label">{t("betaApps.pendingReview")}</span>
             <span className="sa-kpi-value" style={{ color: "var(--color-amber)" }}>{counts.pending}</span>
           </div>
           <div className="sa-kpi-icon">
@@ -108,7 +110,7 @@ export default function BetaApplicationsClient({
         </div>
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
-            <span className="sa-kpi-label">Approved</span>
+            <span className="sa-kpi-label">{t("betaApps.approved")}</span>
             <span className="sa-kpi-value" style={{ color: "var(--color-green)" }}>{counts.approved}</span>
           </div>
           <div className="sa-kpi-icon">
@@ -117,7 +119,7 @@ export default function BetaApplicationsClient({
         </div>
         <div className="sa-kpi-card">
           <div className="sa-kpi-info">
-            <span className="sa-kpi-label">Spots Remaining</span>
+            <span className="sa-kpi-label">{t("betaApps.spotsRemaining")}</span>
             <span className="sa-kpi-value" style={{ color: "var(--color-blue)" }}>{spotsRemaining}</span>
           </div>
           <div className="sa-kpi-icon">
@@ -134,7 +136,7 @@ export default function BetaApplicationsClient({
             onClick={() => setFilter(f)}
             className={`settings-tab ${filter === f ? "active" : ""}`}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)} ({counts[f]})
+            {t(`betaApps.filter_${f}`)} ({counts[f]})
           </button>
         ))}
       </div>
@@ -142,21 +144,21 @@ export default function BetaApplicationsClient({
       {/* Table */}
       {filtered.length === 0 ? (
         <div className="sa-empty">
-          <p className="sa-empty-title">No applications yet</p>
-          <p className="sa-empty-desc">Share buildwrk.com/beta to start receiving applications.</p>
+          <p className="sa-empty-title">{t("betaApps.noApplicationsYet")}</p>
+          <p className="sa-empty-desc">{t("betaApps.shareHint")}</p>
         </div>
       ) : (
         <div className="sa-table-wrap">
           <table className="sa-table">
             <thead>
               <tr>
-                <th>Applicant</th>
-                <th>Company</th>
-                <th>Type</th>
-                <th>Size</th>
-                <th>Status</th>
-                <th>Applied</th>
-                <th>Actions</th>
+                <th>{t("betaApps.thApplicant")}</th>
+                <th>{t("betaApps.thCompany")}</th>
+                <th>{t("betaApps.thType")}</th>
+                <th>{t("betaApps.thSize")}</th>
+                <th>{t("betaApps.thStatus")}</th>
+                <th>{t("betaApps.thApplied")}</th>
+                <th>{t("betaApps.thActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -202,7 +204,7 @@ export default function BetaApplicationsClient({
                             disabled={updating === app.id}
                             onClick={() => updateStatus(app.id, "approved")}
                           >
-                            Approve
+                            {t("betaApps.approve")}
                           </button>
                         )}
                         {app.status !== "rejected" && (
@@ -212,7 +214,7 @@ export default function BetaApplicationsClient({
                             disabled={updating === app.id}
                             onClick={() => updateStatus(app.id, "rejected")}
                           >
-                            Reject
+                            {t("betaApps.reject")}
                           </button>
                         )}
                         {app.status !== "waitlisted" && app.status !== "approved" && (
@@ -222,7 +224,7 @@ export default function BetaApplicationsClient({
                             disabled={updating === app.id}
                             onClick={() => updateStatus(app.id, "waitlisted")}
                           >
-                            Waitlist
+                            {t("betaApps.waitlist")}
                           </button>
                         )}
                       </div>
@@ -233,13 +235,13 @@ export default function BetaApplicationsClient({
                       <td colSpan={7} style={{ background: "var(--surface)", padding: "16px 24px" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", fontSize: "0.85rem" }}>
                           <div>
-                            <strong>Role:</strong> {app.role || "—"}
+                            <strong>{t("betaApps.role")}:</strong> {app.role || "—"}
                           </div>
                           <div>
-                            <strong>Phone:</strong> {app.phone || "—"}
+                            <strong>{t("betaApps.phone")}:</strong> {app.phone || "—"}
                           </div>
                           <div>
-                            <strong>Reviewed:</strong>{" "}
+                            <strong>{t("betaApps.reviewed")}:</strong>{" "}
                             {app.reviewed_at
                               ? new Date(app.reviewed_at).toLocaleDateString("en-US", {
                                   month: "short",
@@ -251,13 +253,13 @@ export default function BetaApplicationsClient({
                         </div>
                         {app.biggest_pain && (
                           <div style={{ marginTop: "12px", fontSize: "0.85rem" }}>
-                            <strong>Biggest Pain Point:</strong>
+                            <strong>{t("betaApps.biggestPainPoint")}:</strong>
                             <p style={{ margin: "4px 0 0", color: "var(--muted)" }}>{app.biggest_pain}</p>
                           </div>
                         )}
                         {app.notes && (
                           <div style={{ marginTop: "12px", fontSize: "0.85rem" }}>
-                            <strong>Notes:</strong>
+                            <strong>{t("betaApps.notes")}:</strong>
                             <p style={{ margin: "4px 0 0", color: "var(--muted)" }}>{app.notes}</p>
                           </div>
                         )}

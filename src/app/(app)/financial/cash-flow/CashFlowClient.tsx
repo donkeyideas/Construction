@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { TrendingUp, Landmark, DollarSign, Building2 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 import type { CashFlowStatementData, CashFlowSection } from "@/lib/queries/financial";
@@ -49,6 +50,7 @@ export default function CashFlowClient({
   cfEndDate,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations("financial");
   const [selectedAccount, setSelectedAccount] = useState<CashFlowSection | null>(null);
   const [startDate, setStartDate] = useState(cfStartDate);
   const [endDate, setEndDate] = useState(cfEndDate);
@@ -68,23 +70,23 @@ export default function CashFlowClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Cash Flow</h2>
-          <p className="fin-header-sub">Monitor inflows, outflows, and project-level cash projections</p>
+          <h2>{t("cashFlow.title")}</h2>
+          <p className="fin-header-sub">{t("cashFlow.subtitle")}</p>
         </div>
       </div>
 
       {/* Date Range Controls */}
       <div className="fs-date-controls">
         <div className="fs-date-field">
-          <label>From</label>
+          <label>{t("from")}</label>
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </div>
         <div className="fs-date-field">
-          <label>To</label>
+          <label>{t("to")}</label>
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
         </div>
         <button className="ui-btn ui-btn-primary ui-btn-md" onClick={handleApply}>
-          Apply
+          {t("apply")}
         </button>
       </div>
 
@@ -92,7 +94,7 @@ export default function CashFlowClient({
       <div className="fin-chart-card fs-statement-card" style={{ marginBottom: "24px" }}>
         <div className="fs-title-block">
           <div className="fs-company-name">{companyName}</div>
-          <div className="fs-statement-name">Cash Flow Statement</div>
+          <div className="fs-statement-name">{t("cashFlow.statementName")}</div>
           <div className="fs-date-range">{cfMonthLabel}</div>
         </div>
 
@@ -100,14 +102,14 @@ export default function CashFlowClient({
           <table className="fs-table">
             <thead>
               <tr>
-                <th>Description</th>
-                <th className="fs-amount">Amount</th>
+                <th>{t("description")}</th>
+                <th className="fs-amount">{t("amount")}</th>
               </tr>
             </thead>
             <tbody>
               {/* Operating Activities */}
               <tr className="fs-section-header">
-                <td colSpan={2}>Operating Activities</td>
+                <td colSpan={2}>{t("cashFlow.operatingActivities")}</td>
               </tr>
               {cashFlowStatement.operating.map((item, idx) => (
                 <tr
@@ -123,11 +125,11 @@ export default function CashFlowClient({
               ))}
               {cashFlowStatement.operating.length === 0 && (
                 <tr className="fs-account-row">
-                  <td className="fs-indent fs-no-data" colSpan={2}>No operating activities</td>
+                  <td className="fs-indent fs-no-data" colSpan={2}>{t("cashFlow.noOperatingActivities")}</td>
                 </tr>
               )}
               <tr className="fs-section-total">
-                <td>Net Cash from Operations</td>
+                <td>{t("cashFlow.netCashFromOperations")}</td>
                 <td className={`fs-amount ${cashFlowStatement.netOperating < 0 ? "fs-negative" : ""}`}>
                   {cashFlowStatement.netOperating < 0
                     ? `(${formatCurrency(Math.abs(cashFlowStatement.netOperating))})`
@@ -139,7 +141,7 @@ export default function CashFlowClient({
 
               {/* Investing Activities */}
               <tr className="fs-section-header">
-                <td colSpan={2}>Investing Activities</td>
+                <td colSpan={2}>{t("cashFlow.investingActivities")}</td>
               </tr>
               {cashFlowStatement.investing.length > 0 ? (
                 cashFlowStatement.investing.map((item, idx) => (
@@ -156,11 +158,11 @@ export default function CashFlowClient({
                 ))
               ) : (
                 <tr className="fs-account-row">
-                  <td className="fs-indent fs-no-data" colSpan={2}>No investing activities</td>
+                  <td className="fs-indent fs-no-data" colSpan={2}>{t("cashFlow.noInvestingActivities")}</td>
                 </tr>
               )}
               <tr className="fs-section-total">
-                <td>Net Cash from Investing</td>
+                <td>{t("cashFlow.netCashFromInvesting")}</td>
                 <td className="fs-amount">{formatCurrency(cashFlowStatement.netInvesting)}</td>
               </tr>
 
@@ -168,7 +170,7 @@ export default function CashFlowClient({
 
               {/* Financing Activities */}
               <tr className="fs-section-header">
-                <td colSpan={2}>Financing Activities</td>
+                <td colSpan={2}>{t("cashFlow.financingActivities")}</td>
               </tr>
               {cashFlowStatement.financing.length > 0 ? (
                 cashFlowStatement.financing.map((item, idx) => (
@@ -185,18 +187,18 @@ export default function CashFlowClient({
                 ))
               ) : (
                 <tr className="fs-account-row">
-                  <td className="fs-indent fs-no-data" colSpan={2}>No financing activities</td>
+                  <td className="fs-indent fs-no-data" colSpan={2}>{t("cashFlow.noFinancingActivities")}</td>
                 </tr>
               )}
               <tr className="fs-section-total">
-                <td>Net Cash from Financing</td>
+                <td>{t("cashFlow.netCashFromFinancing")}</td>
                 <td className="fs-amount">{formatCurrency(cashFlowStatement.netFinancing)}</td>
               </tr>
 
               {/* Summary totals */}
               <tr className="fs-spacer"><td colSpan={2} /></tr>
               <tr className="fs-grand-total">
-                <td>Net Change in Cash</td>
+                <td>{t("cashFlow.netChangeInCash")}</td>
                 <td className={`fs-amount ${cashFlowStatement.netChange >= 0 ? "fs-positive" : "fs-negative"}`}>
                   {cashFlowStatement.netChange < 0
                     ? `(${formatCurrency(Math.abs(cashFlowStatement.netChange))})`
@@ -204,11 +206,11 @@ export default function CashFlowClient({
                 </td>
               </tr>
               <tr className="fs-summary-line">
-                <td>Beginning Cash Balance</td>
+                <td>{t("cashFlow.beginningCashBalance")}</td>
                 <td className="fs-amount">{formatCurrency(cashFlowStatement.beginningCash)}</td>
               </tr>
               <tr className="fs-net-income">
-                <td>Ending Cash Balance</td>
+                <td>{t("cashFlow.endingCashBalance")}</td>
                 <td className="fs-amount">{formatCurrency(cashFlowStatement.endingCash)}</td>
               </tr>
             </tbody>
@@ -222,7 +224,7 @@ export default function CashFlowClient({
           <div className="fin-kpi-icon green">
             <DollarSign size={18} />
           </div>
-          <span className="fin-kpi-label">Total Cash Position</span>
+          <span className="fin-kpi-label">{t("totalCashPosition")}</span>
           <span className={`fin-kpi-value ${totalCashPosition >= 0 ? "positive" : "negative"}`}>
             {formatCompactCurrency(totalCashPosition)}
           </span>
@@ -244,7 +246,7 @@ export default function CashFlowClient({
                       {account.name}
                       {account.is_default && (
                         <span style={{ marginLeft: "8px", fontSize: "0.68rem", padding: "1px 6px", borderRadius: "4px", background: "var(--color-green-light)", color: "var(--color-green)", fontWeight: 600 }}>
-                          Default
+                          {t("cashFlow.default")}
                         </span>
                       )}
                     </div>
@@ -272,8 +274,8 @@ export default function CashFlowClient({
         <div className="fin-chart-card" style={{ marginBottom: "24px" }}>
           <div className="fin-empty" style={{ padding: "32px 20px" }}>
             <div className="fin-empty-icon"><Landmark size={36} /></div>
-            <div className="fin-empty-title">No Bank Accounts</div>
-            <div className="fin-empty-desc">Add bank accounts to track your cash position across multiple accounts.</div>
+            <div className="fin-empty-title">{t("cashFlow.noBankAccounts")}</div>
+            <div className="fin-empty-desc">{t("cashFlow.noBankAccountsDesc")}</div>
           </div>
         </div>
       )}
@@ -282,7 +284,7 @@ export default function CashFlowClient({
       <div className="fin-chart-card">
         <div className="fin-chart-title">
           <TrendingUp size={18} />
-          Monthly Cash Flow (Last 6 Months)
+          {t("cashFlow.monthlyCashFlow")}
         </div>
 
         {monthlyFlows.some((m) => m.inflows > 0 || m.outflows > 0) ? (
@@ -291,27 +293,27 @@ export default function CashFlowClient({
               {monthlyFlows.map((m) => (
                 <div key={m.label} className="fin-bar-group">
                   <div className="fin-bar-pair">
-                    <div className="fin-bar-income" style={{ height: `${Math.max((m.inflows / maxBarValue) * 100, 2)}%` }} title={`Inflows: ${formatCurrency(m.inflows)}`} />
-                    <div className="fin-bar-expense" style={{ height: `${Math.max((m.outflows / maxBarValue) * 100, 2)}%` }} title={`Outflows: ${formatCurrency(m.outflows)}`} />
+                    <div className="fin-bar-income" style={{ height: `${Math.max((m.inflows / maxBarValue) * 100, 2)}%` }} title={`${t("cashFlow.inflows")}: ${formatCurrency(m.inflows)}`} />
+                    <div className="fin-bar-expense" style={{ height: `${Math.max((m.outflows / maxBarValue) * 100, 2)}%` }} title={`${t("cashFlow.outflows")}: ${formatCurrency(m.outflows)}`} />
                   </div>
                   <span className="fin-bar-month">{m.label}</span>
                 </div>
               ))}
             </div>
             <div className="fin-chart-legend">
-              <span className="fin-legend-item"><span className="fin-legend-dot" style={{ background: "var(--color-green)" }} />Inflows</span>
-              <span className="fin-legend-item"><span className="fin-legend-dot" style={{ background: "var(--color-red)", opacity: 0.75 }} />Outflows</span>
+              <span className="fin-legend-item"><span className="fin-legend-dot" style={{ background: "var(--color-green)" }} />{t("cashFlow.inflows")}</span>
+              <span className="fin-legend-item"><span className="fin-legend-dot" style={{ background: "var(--color-red)", opacity: 0.75 }} />{t("cashFlow.outflows")}</span>
             </div>
 
             <div style={{ overflowX: "auto", marginTop: "24px" }}>
               <table className="invoice-table">
                 <thead>
                   <tr>
-                    <th>Month</th>
-                    <th style={{ textAlign: "right" }}>Inflows</th>
-                    <th style={{ textAlign: "right" }}>Outflows</th>
-                    <th style={{ textAlign: "right" }}>Net</th>
-                    <th style={{ textAlign: "right" }}>Running Balance</th>
+                    <th>{t("cashFlow.month")}</th>
+                    <th style={{ textAlign: "right" }}>{t("cashFlow.inflows")}</th>
+                    <th style={{ textAlign: "right" }}>{t("cashFlow.outflows")}</th>
+                    <th style={{ textAlign: "right" }}>{t("cashFlow.net")}</th>
+                    <th style={{ textAlign: "right" }}>{t("cashFlow.runningBalance")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -332,7 +334,7 @@ export default function CashFlowClient({
           </>
         ) : (
           <div className="fin-empty" style={{ padding: "40px 20px" }}>
-            <p className="fin-empty-desc">No cash flow data for the last 6 months.</p>
+            <p className="fin-empty-desc">{t("cashFlow.noDataLast6Months")}</p>
           </div>
         )}
       </div>

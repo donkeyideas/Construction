@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { VendorInvoiceDetail } from "@/lib/queries/vendor-portal";
 import "@/styles/vendor-detail.css";
 
@@ -15,6 +15,7 @@ interface LineItem {
 
 export default function InvoiceDetailClient({ invoice }: { invoice: VendorInvoiceDetail }) {
   const locale = useLocale();
+  const t = useTranslations("vendor");
   const dateLocale = locale === "es" ? "es" : "en-US";
 
   const fmt = (n: number) =>
@@ -29,14 +30,14 @@ export default function InvoiceDetailClient({ invoice }: { invoice: VendorInvoic
   return (
     <div>
       <Link href="/vendor/invoices" className="vd-back">
-        <ArrowLeft size={16} /> Back to Invoices
+        <ArrowLeft size={16} /> {t("invoiceDetail.backToInvoices")}
       </Link>
 
       <div className="vd-header">
         <div className="vd-header-left">
-          <h2>Invoice {invoice.invoice_number}</h2>
+          <h2>{t("invoiceDetail.invoiceTitle", { number: invoice.invoice_number })}</h2>
           <span className="vd-header-sub">
-            {invoice.project_name ? `Project: ${invoice.project_name}` : "No project assigned"}
+            {invoice.project_name ? t("invoiceDetail.projectLabel", { name: invoice.project_name }) : t("invoiceDetail.noProjectAssigned")}
           </span>
         </div>
         <span className={`vd-badge vd-badge-${invoice.status}`}>{invoice.status}</span>
@@ -45,19 +46,19 @@ export default function InvoiceDetailClient({ invoice }: { invoice: VendorInvoic
       {/* Summary Cards */}
       <div className="vd-cards">
         <div className="vd-card">
-          <div className="vd-card-label">Total Amount</div>
+          <div className="vd-card-label">{t("totalAmount")}</div>
           <div className="vd-card-value">{fmt(invoice.total_amount)}</div>
         </div>
         <div className="vd-card">
-          <div className="vd-card-label">Tax</div>
+          <div className="vd-card-label">{t("taxAmount")}</div>
           <div className="vd-card-value">{fmt(invoice.tax_amount)}</div>
         </div>
         <div className="vd-card">
-          <div className="vd-card-label">Paid</div>
+          <div className="vd-card-label">{t("invoiceDetail.paid")}</div>
           <div className="vd-card-value" style={{ color: "var(--color-green)" }}>{fmt(paidAmount)}</div>
         </div>
         <div className="vd-card">
-          <div className="vd-card-label">Balance Due</div>
+          <div className="vd-card-label">{t("thBalanceDue")}</div>
           <div className="vd-card-value" style={{ color: invoice.balance_due > 0 ? "var(--color-red)" : "var(--color-green)" }}>
             {fmt(invoice.balance_due)}
           </div>
@@ -66,27 +67,27 @@ export default function InvoiceDetailClient({ invoice }: { invoice: VendorInvoic
 
       {/* Details */}
       <div className="vd-section">
-        <div className="vd-section-title">Invoice Details</div>
+        <div className="vd-section-title">{t("invoiceDetail.detailsTitle")}</div>
         <div className="vd-grid">
           <div>
-            <div className="vd-field-label">Invoice Date</div>
+            <div className="vd-field-label">{t("invoiceDetail.invoiceDate")}</div>
             <div className="vd-field-value">{fmtDate(invoice.invoice_date)}</div>
           </div>
           <div>
-            <div className="vd-field-label">Due Date</div>
+            <div className="vd-field-label">{t("dueDate")}</div>
             <div className="vd-field-value">{fmtDate(invoice.due_date)}</div>
           </div>
           <div>
-            <div className="vd-field-label">Payment Terms</div>
+            <div className="vd-field-label">{t("paymentTerms")}</div>
             <div className="vd-field-value">{invoice.payment_terms?.replace(/_/g, " ").toUpperCase() || "\u2014"}</div>
           </div>
           <div>
-            <div className="vd-field-label">Project</div>
+            <div className="vd-field-label">{t("thProject")}</div>
             <div className="vd-field-value">{invoice.project_name || "\u2014"}</div>
           </div>
           {invoice.description && (
             <div style={{ gridColumn: "1 / -1" }}>
-              <div className="vd-field-label">Description</div>
+              <div className="vd-field-label">{t("description")}</div>
               <div className="vd-field-value">{invoice.description}</div>
             </div>
           )}
@@ -96,14 +97,14 @@ export default function InvoiceDetailClient({ invoice }: { invoice: VendorInvoic
       {/* Line Items */}
       {lineItems.length > 0 && (
         <div className="vd-section">
-          <div className="vd-section-title">Line Items</div>
+          <div className="vd-section-title">{t("lineItems")}</div>
           <table className="vd-table">
             <thead>
               <tr>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Unit Price</th>
-                <th style={{ textAlign: "right" }}>Amount</th>
+                <th>{t("description")}</th>
+                <th>{t("qty")}</th>
+                <th>{t("unitPrice")}</th>
+                <th style={{ textAlign: "right" }}>{t("thAmount")}</th>
               </tr>
             </thead>
             <tbody>
@@ -122,18 +123,18 @@ export default function InvoiceDetailClient({ invoice }: { invoice: VendorInvoic
 
       {/* Payment History */}
       <div className="vd-section">
-        <div className="vd-section-title">Payment History</div>
+        <div className="vd-section-title">{t("invoiceDetail.paymentHistory")}</div>
         {invoice.payments.length === 0 ? (
-          <div className="vd-table-empty">No payments recorded yet</div>
+          <div className="vd-table-empty">{t("invoiceDetail.noPaymentsYet")}</div>
         ) : (
           <table className="vd-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Method</th>
-                <th>Reference</th>
-                <th>Journal Entry</th>
+                <th>{t("thDate")}</th>
+                <th>{t("thAmount")}</th>
+                <th>{t("method")}</th>
+                <th>{t("reference")}</th>
+                <th>{t("journalEntry")}</th>
               </tr>
             </thead>
             <tbody>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   Calculator,
@@ -32,23 +33,6 @@ interface CostEstimatorClientProps {
 }
 
 // ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const PROJECT_TYPES = [
-  "Commercial",
-  "Residential",
-  "Infrastructure",
-  "Industrial",
-];
-
-const QUALITY_LEVELS = [
-  { id: "economy", label: "Economy" },
-  { id: "standard", label: "Standard" },
-  { id: "premium", label: "Premium" },
-];
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -57,6 +41,27 @@ export default function CostEstimatorClient({
   hasProvider,
   projects,
 }: CostEstimatorClientProps) {
+  const t = useTranslations("ai");
+
+  const projectTypes = useMemo(
+    () => [
+      { id: "Commercial", label: t("estimator.commercial") },
+      { id: "Residential", label: t("estimator.residential") },
+      { id: "Infrastructure", label: t("estimator.infrastructure") },
+      { id: "Industrial", label: t("estimator.industrial") },
+    ],
+    [t]
+  );
+
+  const qualityLevels = useMemo(
+    () => [
+      { id: "economy", label: t("estimator.economy") },
+      { id: "standard", label: t("estimator.standard") },
+      { id: "premium", label: t("estimator.premium") },
+    ],
+    [t]
+  );
+
   // Form state
   const [projectType, setProjectType] = useState("Commercial");
   const [squareFootage, setSquareFootage] = useState("");
@@ -203,10 +208,10 @@ export default function CostEstimatorClient({
           <div>
             <h1>
               <Calculator size={28} className="sparkle-icon" />
-              AI Cost Estimator
+              {t("estimator.title")}
             </h1>
             <p className="subtitle">
-              Generate detailed construction cost estimates by CSI division
+              {t("estimator.subtitle")}
             </p>
           </div>
         </div>
@@ -232,7 +237,7 @@ export default function CostEstimatorClient({
               fontFamily: "var(--font-serif)",
             }}
           >
-            AI Provider Required
+            {t("estimator.aiProviderRequired")}
           </div>
           <p
             style={{
@@ -242,15 +247,14 @@ export default function CostEstimatorClient({
               marginBottom: 16,
             }}
           >
-            Configure an AI provider in Administration &gt; AI Providers to
-            enable cost estimation.
+            {t("estimator.configureProviderEst")}
           </p>
           <Link
             href="/admin/ai-providers"
             className="ui-btn ui-btn-primary"
             style={{ display: "inline-flex" }}
           >
-            Configure AI Provider
+            {t("estimator.configureAiProvider")}
           </Link>
         </div>
       </div>
@@ -270,17 +274,17 @@ export default function CostEstimatorClient({
         <div>
           <h1>
             <Calculator size={28} className="sparkle-icon" />
-            AI Cost Estimator
+            {t("estimator.title")}
           </h1>
           <p className="subtitle">
-            Generate detailed construction cost estimates by CSI division
+            {t("estimator.subtitle")}
           </p>
         </div>
       </div>
 
       {/* Estimator Form */}
       <div className="estimator-form">
-        <div className="form-title">Project Parameters</div>
+        <div className="form-title">{t("estimator.projectParameters")}</div>
 
         <div className="form-grid">
           {/* Project Type */}
@@ -297,7 +301,7 @@ export default function CostEstimatorClient({
                 marginBottom: 6,
               }}
             >
-              Project Type
+              {t("estimator.projectType")}
             </label>
             <select
               id="project-type"
@@ -315,9 +319,9 @@ export default function CostEstimatorClient({
                 appearance: "auto",
               }}
             >
-              {PROJECT_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {projectTypes.map((pt) => (
+                <option key={pt.id} value={pt.id}>
+                  {pt.label}
                 </option>
               ))}
             </select>
@@ -337,7 +341,7 @@ export default function CostEstimatorClient({
                 marginBottom: 6,
               }}
             >
-              Square Footage
+              {t("estimator.squareFootage")}
             </label>
             <input
               id="sq-footage"
@@ -373,7 +377,7 @@ export default function CostEstimatorClient({
                 marginBottom: 6,
               }}
             >
-              Number of Stories
+              {t("estimator.numberOfStories")}
             </label>
             <input
               id="stories"
@@ -409,7 +413,7 @@ export default function CostEstimatorClient({
                 marginBottom: 6,
               }}
             >
-              Quality Level
+              {t("estimator.qualityLevel")}
             </label>
             <select
               id="quality-level"
@@ -427,7 +431,7 @@ export default function CostEstimatorClient({
                 appearance: "auto",
               }}
             >
-              {QUALITY_LEVELS.map((q) => (
+              {qualityLevels.map((q) => (
                 <option key={q.id} value={q.id}>
                   {q.label}
                 </option>
@@ -449,7 +453,7 @@ export default function CostEstimatorClient({
                 marginBottom: 6,
               }}
             >
-              Location / City
+              {t("estimator.locationCity")}
             </label>
             <input
               id="location"
@@ -484,7 +488,7 @@ export default function CostEstimatorClient({
                 marginBottom: 6,
               }}
             >
-              Special Requirements (optional)
+              {t("estimator.specialRequirements")}
             </label>
             <textarea
               id="requirements"
@@ -527,12 +531,12 @@ export default function CostEstimatorClient({
                   size={16}
                   style={{ animation: "spin 1s linear infinite" }}
                 />
-                Generating Estimate...
+                {t("estimator.generatingEstimate")}
               </>
             ) : (
               <>
                 <Calculator size={16} />
-                Generate Estimate
+                {t("estimator.generateEstimate")}
               </>
             )}
           </button>
@@ -567,7 +571,7 @@ export default function CostEstimatorClient({
       {/* Loading skeleton */}
       {isGenerating && !resultText && (
         <div className="estimator-results">
-          <div className="results-title">Generating Cost Estimate...</div>
+          <div className="results-title">{t("estimator.generatingCostEstimate")}</div>
           <div className="report-loading" style={{ padding: "20px" }}>
             <div className="skeleton-line" />
             <div className="skeleton-line" />
@@ -591,7 +595,7 @@ export default function CostEstimatorClient({
             }}
           >
             <div className="results-title" style={{ padding: 0, border: "none" }}>
-              Cost Estimate Results
+              {t("estimator.costEstimateResults")}
             </div>
             {!isGenerating && (
               <div style={{ display: "flex", gap: 8 }}>
@@ -608,7 +612,7 @@ export default function CostEstimatorClient({
                   }}
                 >
                   {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
-                  {copied ? "Copied" : "Copy"}
+                  {copied ? t("documents.copied") : t("estimator.copy")}
                 </button>
                 <button
                   type="button"
@@ -623,7 +627,7 @@ export default function CostEstimatorClient({
                   }}
                 >
                   <Download size={14} />
-                  Download
+                  {t("estimator.download")}
                 </button>
               </div>
             )}

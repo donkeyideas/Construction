@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/theme-provider";
 import { Sun, Moon, LogOut, Search, Settings, SwatchBook, User, Phone, X } from "lucide-react";
@@ -39,6 +40,7 @@ const portalLabels: Record<string, string> = {
 export function PortalTopbar({ portalType }: PortalTopbarProps) {
   const { theme, variant, toggleTheme, setVariant } = useTheme();
   const router = useRouter();
+  const t = useTranslations("common");
   const [searchOpen, setSearchOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<{ name: string | null; email: string | null }>({
     name: null,
@@ -149,7 +151,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
 
         <button className="portal-search-btn" onClick={() => setSearchOpen(true)}>
           <Search size={14} />
-          Search
+          {t("search")}
           <kbd>Ctrl+K</kbd>
         </button>
 
@@ -182,7 +184,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleSettingsClick}>
                 <Settings size={14} style={{ marginRight: 8 }} />
-                Settings
+                {t("settings")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <div style={{ padding: "4px 8px" }}>
@@ -191,7 +193,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem danger onSelect={handleLogout}>
                 <LogOut size={14} style={{ marginRight: 8 }} />
-                Log Out
+                {t("logOut")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -205,7 +207,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
         <div className="tenant-modal-overlay" onClick={() => setSettingsOpen(false)}>
           <div className="tenant-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tenant-modal-header">
-              <h3 style={{ margin: 0, fontSize: "1.05rem" }}>Settings</h3>
+              <h3 style={{ margin: 0, fontSize: "1.05rem" }}>{t("settings")}</h3>
               <button
                 className="tenant-modal-close"
                 onClick={() => setSettingsOpen(false)}
@@ -216,7 +218,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
             </div>
 
             <p style={{ fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 16px 0" }}>
-              Update your personal information.
+              {t("portalSettings.updatePersonalInfo")}
             </p>
 
             {settingsError && (
@@ -230,7 +232,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
               <div className="tenant-field">
                 <label className="tenant-label">
                   <User size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
-                  Full Name
+                  {t("portalSettings.fullName")}
                 </label>
                 <input
                   type="text"
@@ -245,7 +247,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
               <div className="tenant-field">
                 <label className="tenant-label">
                   <Phone size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />
-                  Phone
+                  {t("portalSettings.phone")}
                 </label>
                 <input
                   type="tel"
@@ -264,14 +266,14 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
                   onClick={() => setSettingsOpen(false)}
                   disabled={settingsSaving}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="ui-btn ui-btn-md ui-btn-primary"
                   disabled={settingsSaving}
                 >
-                  {settingsSaving ? "Saving..." : "Save Changes"}
+                  {settingsSaving ? t("loading") : t("portalSettings.saveChanges")}
                 </button>
               </div>
             </form>

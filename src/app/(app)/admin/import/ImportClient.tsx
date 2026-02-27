@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   Download,
   Upload,
@@ -68,6 +69,7 @@ interface ProjectOption {
 // ---------------------------------------------------------------------------
 
 export default function ImportClient() {
+  const t = useTranslations("adminPanel");
   // State
   const [importProgress, setImportProgress] = useState<ImportProgress>({});
   const [importHistory, setImportHistory] = useState<ImportRunRecord[]>([]);
@@ -187,7 +189,7 @@ export default function ImportClient() {
 
   async function handleExcelUpload(file: File) {
     if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
-      setErrorMessage("Please select an Excel file (.xlsx or .xls)");
+      setErrorMessage(t("import.selectExcelFile"));
       return;
     }
 
@@ -220,7 +222,7 @@ export default function ImportClient() {
 
       if (!res.ok) {
         const data = await res.json();
-        setErrorMessage(data.error || "Import failed. Please try again.");
+        setErrorMessage(data.error || t("import.importFailed"));
         return;
       }
 
@@ -238,7 +240,7 @@ export default function ImportClient() {
       fetchImportProgress();
       fetchProjects();
     } catch {
-      setErrorMessage("Network error. Please check your connection and try again.");
+      setErrorMessage(t("import.networkError"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -287,11 +289,9 @@ export default function ImportClient() {
     <div className="bulk-import-page">
       {/* Page Header */}
       <div className="bulk-import-header">
-        <h1>Data Import</h1>
+        <h1>{t("import.title")}</h1>
         <p className="bulk-import-subtitle">
-          Import your company data in the correct dependency order. Start with
-          Phase 1 (Chart of Accounts) and work your way down. Each phase builds
-          on the previous one to ensure all references resolve correctly.
+          {t("import.subtitle")}
         </p>
       </div>
 
@@ -302,11 +302,9 @@ export default function ImportClient() {
           <div className="import-hero-card-icon download">
             <FileSpreadsheet size={22} />
           </div>
-          <h3>Download Master Template</h3>
+          <h3>{t("import.downloadMasterTemplate")}</h3>
           <p>
-            Download the master Excel template with pre-configured sheets for
-            all entity types. Fill in your data and upload it to import
-            everything at once.
+            {t("import.downloadMasterTemplateDesc")}
           </p>
           <div>
             <a
@@ -316,7 +314,7 @@ export default function ImportClient() {
               style={{ display: "inline-flex", textDecoration: "none", flex: "none" }}
             >
               <Download size={15} />
-              Download .xlsx Template
+              {t("import.downloadXlsxTemplate")}
             </a>
           </div>
         </div>
@@ -326,10 +324,9 @@ export default function ImportClient() {
           <div className="import-hero-card-icon upload">
             <Upload size={22} />
           </div>
-          <h3>Upload Master Template</h3>
+          <h3>{t("import.uploadMasterTemplate")}</h3>
           <p>
-            Upload your filled-in Excel template. All sheets will be imported
-            automatically in the correct dependency order.
+            {t("import.uploadMasterTemplateDesc")}
           </p>
           <div
             className={`import-dropzone ${dragging ? "dragging" : ""}`}
@@ -354,12 +351,11 @@ export default function ImportClient() {
               {uploading ? (
                 <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                   <Loader2 size={16} className="spin-icon" />
-                  Importing...
+                  {t("import.importing")}
                 </span>
               ) : (
                 <>
-                  <strong>Click to browse</strong> or drag and drop your .xlsx
-                  file
+                  {t("import.clickToBrowse")}
                 </>
               )}
             </div>
@@ -381,7 +377,7 @@ export default function ImportClient() {
           <div className="import-upload-status-header">
             <div className="import-upload-status-title">
               <Loader2 size={16} className="spin-icon" />
-              Importing data...
+              {t("import.importingData")}
             </div>
             <div className="import-upload-status-meta">
               {Math.round(uploadProgress)}%
@@ -401,29 +397,29 @@ export default function ImportClient() {
         <div className="import-result-summary">
           <div className="import-result-summary-title">
             <Check size={18} style={{ color: "var(--color-green)" }} />
-            Import Complete
+            {t("import.importComplete")}
           </div>
           <div className="import-result-stats">
             <div className="import-result-stat">
-              <div className="import-result-stat-label">Sheets</div>
+              <div className="import-result-stat-label">{t("import.sheets")}</div>
               <div className="import-result-stat-value">
                 {importResult.processedSheets}
               </div>
             </div>
             <div className="import-result-stat">
-              <div className="import-result-stat-label">Total Rows</div>
+              <div className="import-result-stat-label">{t("import.totalRows")}</div>
               <div className="import-result-stat-value">
                 {importResult.totalRows}
               </div>
             </div>
             <div className="import-result-stat">
-              <div className="import-result-stat-label">Successful</div>
+              <div className="import-result-stat-label">{t("import.successful")}</div>
               <div className="import-result-stat-value success">
                 {importResult.totalSuccess}
               </div>
             </div>
             <div className="import-result-stat">
-              <div className="import-result-stat-label">Errors</div>
+              <div className="import-result-stat-label">{t("import.errors")}</div>
               <div className="import-result-stat-value error">
                 {importResult.totalErrors}
               </div>
@@ -470,7 +466,7 @@ export default function ImportClient() {
         fontSize: "0.82rem",
       }}>
         <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
-        <span>or import individual CSVs below</span>
+        <span>{t("import.orImportCsvs")}</span>
         <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
       </div>
 
@@ -487,7 +483,7 @@ export default function ImportClient() {
               onClick={() => togglePhase(phase.number)}
             >
               <span className="bulk-import-phase-badge">
-                Phase {phase.number}
+                {t("import.phase", { number: phase.number })}
               </span>
               <h2>{phase.title}</h2>
               <span className="bulk-import-phase-desc">
@@ -498,7 +494,7 @@ export default function ImportClient() {
                   imported === total ? "complete" : ""
                 }`}
               >
-                {imported}/{total} imported
+                {t("import.importedCount", { imported, total })}
               </span>
               <ChevronRight
                 size={16}
@@ -560,25 +556,25 @@ export default function ImportClient() {
                             <>
                               <Check size={14} style={{ color: "var(--color-green)" }} />
                               <span className="imported-count">
-                                {progress.count} records
+                                {t("import.records", { count: progress.count })}
                               </span>
                               <span className="imported-date">
                                 {formatDate(progress.lastImported)}
                               </span>
                             </>
                           ) : (
-                            <span>No data imported yet</span>
+                            <span>{t("import.noDataImported")}</span>
                           )}
                         </div>
 
                         {/* Required columns summary */}
                         <div className="bulk-import-card-cols">
-                          <strong>Required:</strong>{" "}
+                          <strong>{t("import.required")}:</strong>{" "}
                           {requiredCols.length > 0
                             ? requiredCols.map((c) => c.label).join(", ")
-                            : "None"}
+                            : t("import.none")}
                           {optionalCount > 0 && (
-                            <span> + {optionalCount} optional</span>
+                            <span> + {t("import.optionalCount", { count: optionalCount })}</span>
                           )}
                         </div>
 
@@ -589,7 +585,7 @@ export default function ImportClient() {
                             onClick={() => handleDownloadTemplate(entity)}
                           >
                             <Download size={14} />
-                            Template
+                            {t("import.template")}
                           </button>
                           <button
                             className="bulk-import-btn primary"
@@ -599,7 +595,7 @@ export default function ImportClient() {
                             }}
                           >
                             <Upload size={14} />
-                            Import CSV
+                            {t("import.importCsv")}
                           </button>
                         </div>
                       </div>
@@ -630,25 +626,12 @@ export default function ImportClient() {
       >
         <Info size={18} style={{ color: "var(--color-blue)", flexShrink: 0, marginTop: "2px" }} />
         <div>
-          <strong>Import Tips:</strong>
+          <strong>{t("import.importTips")}:</strong>
           <ul style={{ margin: "6px 0 0", paddingLeft: "18px" }}>
-            <li>
-              Each CSV must include the required columns marked with <strong>*</strong>.
-              Optional columns can be left empty.
-            </li>
-            <li>
-              For project-scoped entities, include a <strong>project_name</strong> column
-              in your CSV to import across multiple projects at once.
-            </li>
-            <li>
-              Journal entries are auto-generated for invoices, equipment purchases,
-              change orders, and leases. Only import the Journal Entries CSV if you
-              have pre-crafted entries.
-            </li>
-            <li>
-              You can re-import at any time — existing records are not duplicated
-              if the data matches.
-            </li>
+            <li>{t("import.tip1")}</li>
+            <li>{t("import.tip2")}</li>
+            <li>{t("import.tip3")}</li>
+            <li>{t("import.tip4")}</li>
           </ul>
         </div>
       </div>
@@ -657,7 +640,7 @@ export default function ImportClient() {
       <div className="import-history">
         <div className="import-history-title">
           <History size={18} />
-          Import History
+          {t("import.importHistory")}
         </div>
         {loadingHistory ? (
           <div className="import-empty">
@@ -668,10 +651,9 @@ export default function ImportClient() {
             <div className="import-empty-icon">
               <History size={28} />
             </div>
-            <div className="import-empty-title">No imports yet</div>
+            <div className="import-empty-title">{t("import.noImportsYet")}</div>
             <div className="import-empty-desc">
-              Download a template, fill in your data, and upload it to get
-              started.
+              {t("import.noImportsDesc")}
             </div>
           </div>
         ) : (
@@ -679,14 +661,14 @@ export default function ImportClient() {
             <table className="import-history-table">
               <thead>
                 <tr>
-                  <th>File</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Sheets</th>
-                  <th>Rows</th>
-                  <th>Success</th>
-                  <th>Errors</th>
-                  <th>Date</th>
+                  <th>{t("import.file")}</th>
+                  <th>{t("import.type")}</th>
+                  <th>{t("import.status")}</th>
+                  <th>{t("import.sheets")}</th>
+                  <th>{t("import.rows")}</th>
+                  <th>{t("import.success")}</th>
+                  <th>{t("import.errors")}</th>
+                  <th>{t("import.date")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -704,8 +686,8 @@ export default function ImportClient() {
                     </td>
                     <td>
                       {run.run_type === "excel_master"
-                        ? "Excel Master"
-                        : "CSV Single"}
+                        ? t("import.excelMaster")
+                        : t("import.csvSingle")}
                     </td>
                     <td>
                       <span className={`import-history-status ${run.status}`}>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -18,25 +19,25 @@ interface CertificationsClientProps {
   certifications: EmployeeCertification[];
 }
 
-function getStatusInfo(status: "valid" | "expiring_soon" | "expired") {
+function getStatusInfo(status: "valid" | "expiring_soon" | "expired", t: (key: string) => string) {
   switch (status) {
     case "expired":
       return {
-        label: "Expired",
+        label: t("certifications.expired"),
         className: "inv-status inv-status-overdue",
         icon: XCircle,
         color: "var(--color-red)",
       };
     case "expiring_soon":
       return {
-        label: "Expiring Soon",
+        label: t("certifications.expiringSoon"),
         className: "inv-status inv-status-pending",
         icon: AlertTriangle,
         color: "var(--color-amber)",
       };
     default:
       return {
-        label: "Valid",
+        label: t("certifications.valid"),
         className: "inv-status inv-status-paid",
         icon: CheckCircle,
         color: "var(--color-green)",
@@ -47,6 +48,7 @@ function getStatusInfo(status: "valid" | "expiring_soon" | "expired") {
 export default function CertificationsClient({
   certifications,
 }: CertificationsClientProps) {
+  const t = useTranslations("employeeDashboard");
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -107,9 +109,9 @@ export default function CertificationsClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>My Certifications</h2>
+          <h2>{t("certifications.title")}</h2>
           <p className="fin-header-sub">
-            Track your licenses, certifications, and training
+            {t("certifications.subtitle")}
           </p>
         </div>
         <button
@@ -118,7 +120,7 @@ export default function CertificationsClient({
           style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
         >
           <Plus size={15} />
-          Add Certification
+          {t("certifications.addCertification")}
         </button>
       </div>
 
@@ -127,7 +129,7 @@ export default function CertificationsClient({
         <div className="modal-overlay" onClick={() => setShowAdd(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
             <div className="modal-header">
-              <h3>Add Certification</h3>
+              <h3>{t("certifications.addCertification")}</h3>
               <button className="modal-close" onClick={() => setShowAdd(false)}>
                 <X size={18} />
               </button>
@@ -138,7 +140,7 @@ export default function CertificationsClient({
                   <div className="emp-alert emp-alert-error">{addError}</div>
                 )}
                 <div className="emp-form-field">
-                  <label className="emp-form-label">Certification Name *</label>
+                  <label className="emp-form-label">{t("certifications.certName")} *</label>
                   <input
                     type="text"
                     className="invite-form-input"
@@ -150,7 +152,7 @@ export default function CertificationsClient({
                   />
                 </div>
                 <div className="emp-form-field">
-                  <label className="emp-form-label">Certification Type</label>
+                  <label className="emp-form-label">{t("certifications.certType")}</label>
                   <input
                     type="text"
                     className="invite-form-input"
@@ -161,7 +163,7 @@ export default function CertificationsClient({
                   />
                 </div>
                 <div className="emp-form-field">
-                  <label className="emp-form-label">Issuing Authority</label>
+                  <label className="emp-form-label">{t("certifications.issuingAuthority")}</label>
                   <input
                     type="text"
                     className="invite-form-input"
@@ -172,7 +174,7 @@ export default function CertificationsClient({
                   />
                 </div>
                 <div className="emp-form-field">
-                  <label className="emp-form-label">Certificate Number</label>
+                  <label className="emp-form-label">{t("certifications.certNumber")}</label>
                   <input
                     type="text"
                     className="invite-form-input"
@@ -184,7 +186,7 @@ export default function CertificationsClient({
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                   <div className="emp-form-field">
-                    <label className="emp-form-label">Issue Date</label>
+                    <label className="emp-form-label">{t("certifications.issueDate")}</label>
                     <input
                       type="date"
                       className="invite-form-input"
@@ -194,7 +196,7 @@ export default function CertificationsClient({
                     />
                   </div>
                   <div className="emp-form-field">
-                    <label className="emp-form-label">Expiry Date</label>
+                    <label className="emp-form-label">{t("certifications.expiryDate")}</label>
                     <input
                       type="date"
                       className="invite-form-input"
@@ -212,14 +214,14 @@ export default function CertificationsClient({
                   onClick={() => setShowAdd(false)}
                   disabled={saving}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="ui-btn ui-btn-sm ui-btn-primary"
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : "Add Certification"}
+                  {saving ? t("certifications.saving") : t("certifications.addCertification")}
                 </button>
               </div>
             </form>
@@ -233,7 +235,7 @@ export default function CertificationsClient({
           <div className="fin-chart-card emp-summary-card">
             <div className="emp-summary-label">
               <CheckCircle size={14} style={{ color: "var(--color-green)" }} />
-              Valid
+              {t("certifications.valid")}
             </div>
             <div className="emp-summary-value" style={{ color: "var(--color-green)" }}>
               {validCount}
@@ -242,7 +244,7 @@ export default function CertificationsClient({
           <div className="fin-chart-card emp-summary-card">
             <div className="emp-summary-label">
               <AlertTriangle size={14} style={{ color: "var(--color-amber)" }} />
-              Expiring Soon
+              {t("certifications.expiringSoon")}
             </div>
             <div className="emp-summary-value" style={{ color: "var(--color-amber)" }}>
               {expiringCount}
@@ -251,7 +253,7 @@ export default function CertificationsClient({
           <div className="fin-chart-card emp-summary-card">
             <div className="emp-summary-label">
               <XCircle size={14} style={{ color: "var(--color-red)" }} />
-              Expired
+              {t("certifications.expired")}
             </div>
             <div className="emp-summary-value" style={{ color: "var(--color-red)" }}>
               {expiredCount}
@@ -263,7 +265,7 @@ export default function CertificationsClient({
       {certifications.length > 0 ? (
         <div className="emp-cert-grid">
           {certifications.map((cert) => {
-            const statusInfo = getStatusInfo(cert.status);
+            const statusInfo = getStatusInfo(cert.status, t);
             const StatusIcon = statusInfo.icon;
 
             return (
@@ -287,7 +289,7 @@ export default function CertificationsClient({
                 <div className="emp-cert-card-details">
                   {cert.issuing_authority && (
                     <div className="emp-cert-detail">
-                      <span className="emp-cert-detail-label">Issuer</span>
+                      <span className="emp-cert-detail-label">{t("certifications.issuer")}</span>
                       <span className="emp-cert-detail-value">
                         {cert.issuing_authority}
                       </span>
@@ -295,20 +297,20 @@ export default function CertificationsClient({
                   )}
                   {cert.cert_number && (
                     <div className="emp-cert-detail">
-                      <span className="emp-cert-detail-label">Number</span>
+                      <span className="emp-cert-detail-label">{t("certifications.number")}</span>
                       <span className="emp-cert-detail-value">
                         {cert.cert_number}
                       </span>
                     </div>
                   )}
                   <div className="emp-cert-detail">
-                    <span className="emp-cert-detail-label">Issued</span>
+                    <span className="emp-cert-detail-label">{t("certifications.issued")}</span>
                     <span className="emp-cert-detail-value">
                       {formatDate(cert.issued_date)}
                     </span>
                   </div>
                   <div className="emp-cert-detail">
-                    <span className="emp-cert-detail-label">Expires</span>
+                    <span className="emp-cert-detail-label">{t("certifications.expires")}</span>
                     <span
                       className="emp-cert-detail-value"
                       style={{
@@ -341,7 +343,7 @@ export default function CertificationsClient({
                       }}
                     >
                       <ExternalLink size={13} />
-                      View Document
+                      {t("certifications.viewDocument")}
                     </a>
                   </div>
                 )}
@@ -355,10 +357,9 @@ export default function CertificationsClient({
             <div className="fin-empty-icon">
               <ShieldCheck size={48} />
             </div>
-            <div className="fin-empty-title">No Certifications Found</div>
+            <div className="fin-empty-title">{t("certifications.noCertifications")}</div>
             <div className="fin-empty-desc">
-              Your certifications and licenses will appear here once they are
-              added to your profile.
+              {t("certifications.noCertificationsDesc")}
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getLocalToday } from "@/lib/utils/timezone";
 import {
   Clock,
@@ -27,6 +28,7 @@ export default function ClockClient({
   todayEvents: initialEvents,
   weeklyHours,
 }: ClockClientProps) {
+  const t = useTranslations("employeeDashboard");
   const router = useRouter();
   const [clockedIn, setClockedIn] = useState(initialClockedIn);
   const [lastEvent, setLastEvent] = useState(initialLastEvent);
@@ -95,7 +97,7 @@ export default function ClockClient({
       await refreshData();
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setLoading(false);
     }
@@ -140,8 +142,8 @@ export default function ClockClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Clock In / Out</h2>
-          <p className="fin-header-sub">Track your work hours</p>
+          <h2>{t("clock.title")}</h2>
+          <p className="fin-header-sub">{t("clock.subtitle")}</p>
         </div>
       </div>
 
@@ -154,11 +156,11 @@ export default function ClockClient({
               <Clock size={32} style={{ color: clockedIn ? "var(--color-green)" : "var(--muted)" }} />
               <div className="emp-timer-time">{elapsed}</div>
               <div className="emp-timer-label">
-                {clockedIn ? "Currently on the clock" : "Ready to start"}
+                {clockedIn ? t("clock.onTheClock") : t("clock.readyToStart")}
               </div>
               {clockedIn && lastEvent && (
                 <div className="emp-timer-since">
-                  Clocked in at {formatTime(lastEvent.timestamp)}
+                  {t("clock.clockedInAt", { time: formatTime(lastEvent.timestamp) })}
                   {lastEvent.project_name && (
                     <span> on {lastEvent.project_name}</span>
                   )}
@@ -175,7 +177,7 @@ export default function ClockClient({
                   disabled={loading}
                 >
                   <LogOut size={22} />
-                  {loading ? "Clocking Out..." : "Clock Out"}
+                  {loading ? t("clock.clockingOut") : t("clockOut")}
                 </button>
               ) : (
                 <button
@@ -184,7 +186,7 @@ export default function ClockClient({
                   disabled={loading}
                 >
                   <LogIn size={22} />
-                  {loading ? "Clocking In..." : "Clock In"}
+                  {loading ? t("clock.clockingIn") : t("clockIn")}
                 </button>
               )}
             </div>
@@ -196,7 +198,7 @@ export default function ClockClient({
             {todayHours > 0 && (
               <div className="emp-today-hours">
                 <Timer size={15} />
-                Total today: {todayHours.toFixed(1)} hours
+                {t("clock.totalToday", { hours: todayHours.toFixed(1) })}
               </div>
             )}
           </div>
@@ -208,7 +210,7 @@ export default function ClockClient({
           <div className="fin-chart-card">
             <h3 className="emp-section-title">
               <Clock size={16} />
-              Today&apos;s Timeline
+              {t("todaysTimeline")}
             </h3>
 
             {todayEvents.length > 0 ? (
@@ -232,7 +234,7 @@ export default function ClockClient({
                           {formatTime(event.timestamp)}
                         </div>
                         <div className="emp-timeline-label">
-                          {event.event_type === "clock_in" ? "Clocked In" : "Clocked Out"}
+                          {event.event_type === "clock_in" ? t("clock.clockedInEvent") : t("clock.clockedOutEvent")}
                           {event.project_name && (
                             <span className="emp-timeline-project">
                               {" "}
@@ -246,7 +248,7 @@ export default function ClockClient({
               </div>
             ) : (
               <div className="emp-empty-small">
-                No clock events today
+                {t("noClockEvents")}
               </div>
             )}
           </div>
@@ -255,7 +257,7 @@ export default function ClockClient({
           <div className="fin-chart-card">
             <h3 className="emp-section-title">
               <CalendarDays size={16} />
-              This Week
+              {t("thisWeek")}
               <span className="emp-week-total">{totalWeekHours.toFixed(1)}h</span>
             </h3>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   DollarSign,
   ChevronDown,
@@ -17,6 +18,7 @@ interface PayslipsClientProps {
 }
 
 export default function PayslipsClient({ payslips }: PayslipsClientProps) {
+  const t = useTranslations("employeeDashboard");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   function toggleExpand(id: string) {
@@ -53,8 +55,8 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Payslips</h2>
-          <p className="fin-header-sub">View your pay history and breakdowns</p>
+          <h2>{t("payslips.title")}</h2>
+          <p className="fin-header-sub">{t("payslips.subtitle")}</p>
         </div>
       </div>
 
@@ -64,21 +66,21 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
           <div className="fin-chart-card emp-summary-card">
             <div className="emp-summary-label">
               <DollarSign size={14} />
-              Year-to-Date Net
+              {t("payslips.ytdNet")}
             </div>
             <div className="emp-summary-value">{formatCurrency(totalNetPay)}</div>
           </div>
           <div className="fin-chart-card emp-summary-card">
             <div className="emp-summary-label">
               <Landmark size={14} />
-              Year-to-Date Gross
+              {t("payslips.ytdGross")}
             </div>
             <div className="emp-summary-value">{formatCurrency(totalGross)}</div>
           </div>
           <div className="fin-chart-card emp-summary-card">
             <div className="emp-summary-label">
               <Receipt size={14} />
-              Pay Stubs
+              {t("payslips.payStubs")}
             </div>
             <div className="emp-summary-value">{payslips.length}</div>
           </div>
@@ -92,12 +94,12 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
               <thead>
                 <tr>
                   <th style={{ width: 30 }}></th>
-                  <th>Pay Period</th>
-                  <th>Pay Date</th>
-                  <th className="amount-col">Gross Pay</th>
-                  <th className="amount-col">Taxes</th>
-                  <th className="amount-col">Deductions</th>
-                  <th className="amount-col">Net Pay</th>
+                  <th>{t("payslips.payPeriod")}</th>
+                  <th>{t("payslips.payDate")}</th>
+                  <th className="amount-col">{t("payslips.grossPay")}</th>
+                  <th className="amount-col">{t("payslips.taxes")}</th>
+                  <th className="amount-col">{t("payslips.deductions")}</th>
+                  <th className="amount-col">{t("payslips.netPay")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -143,35 +145,35 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
                               <div className="emp-breakdown-section">
                                 <h4 className="emp-breakdown-title">
                                   <Landmark size={14} />
-                                  Tax Withholdings
+                                  {t("payslips.taxWithholdings")}
                                 </h4>
                                 <div className="emp-breakdown-lines">
                                   <div className="emp-breakdown-line">
-                                    <span>Federal Income Tax</span>
+                                    <span>{t("payslips.federalIncomeTax")}</span>
                                     <span>
                                       <Minus size={10} /> {formatCurrency(slip.federal_income_tax)}
                                     </span>
                                   </div>
                                   <div className="emp-breakdown-line">
-                                    <span>State Income Tax</span>
+                                    <span>{t("payslips.stateIncomeTax")}</span>
                                     <span>
                                       <Minus size={10} /> {formatCurrency(slip.state_income_tax)}
                                     </span>
                                   </div>
                                   <div className="emp-breakdown-line">
-                                    <span>Social Security</span>
+                                    <span>{t("payslips.socialSecurity")}</span>
                                     <span>
                                       <Minus size={10} /> {formatCurrency(slip.social_security_employee)}
                                     </span>
                                   </div>
                                   <div className="emp-breakdown-line">
-                                    <span>Medicare</span>
+                                    <span>{t("payslips.medicare")}</span>
                                     <span>
                                       <Minus size={10} /> {formatCurrency(slip.medicare_employee)}
                                     </span>
                                   </div>
                                   <div className="emp-breakdown-line emp-breakdown-total">
-                                    <span>Total Taxes</span>
+                                    <span>{t("payslips.totalTaxes")}</span>
                                     <span>{formatCurrency(slip.total_taxes)}</span>
                                   </div>
                                 </div>
@@ -181,12 +183,12 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
                                 <div className="emp-breakdown-section">
                                   <h4 className="emp-breakdown-title">
                                     <Receipt size={14} />
-                                    Deductions
+                                    {t("payslips.deductions")}
                                   </h4>
                                   <div className="emp-breakdown-lines">
                                     {slip.pretax_deductions > 0 && (
                                       <div className="emp-breakdown-line">
-                                        <span>Pre-tax Deductions</span>
+                                        <span>{t("payslips.pretaxDeductions")}</span>
                                         <span>
                                           <Minus size={10} /> {formatCurrency(slip.pretax_deductions)}
                                         </span>
@@ -194,14 +196,14 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
                                     )}
                                     {slip.posttax_deductions > 0 && (
                                       <div className="emp-breakdown-line">
-                                        <span>Post-tax Deductions</span>
+                                        <span>{t("payslips.posttaxDeductions")}</span>
                                         <span>
                                           <Minus size={10} /> {formatCurrency(slip.posttax_deductions)}
                                         </span>
                                       </div>
                                     )}
                                     <div className="emp-breakdown-line emp-breakdown-total">
-                                      <span>Total Deductions</span>
+                                      <span>{t("payslips.totalDeductions")}</span>
                                       <span>{formatCurrency(slip.total_deductions)}</span>
                                     </div>
                                   </div>
@@ -210,7 +212,7 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
 
                               <div className="emp-breakdown-section emp-breakdown-net">
                                 <div className="emp-breakdown-line emp-breakdown-total">
-                                  <span>Net Pay</span>
+                                  <span>{t("payslips.netPay")}</span>
                                   <span style={{ fontSize: "1.1rem" }}>
                                     {formatCurrency(slip.net_pay)}
                                   </span>
@@ -233,9 +235,9 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
             <div className="fin-empty-icon">
               <DollarSign size={48} />
             </div>
-            <div className="fin-empty-title">No Payslips Yet</div>
+            <div className="fin-empty-title">{t("payslips.noPayslips")}</div>
             <div className="fin-empty-desc">
-              Pay stubs are managed by your external payroll provider (e.g., ADP, Gusto).
+              {t("payslips.noPayslipsDesc")}
             </div>
           </div>
         </div>

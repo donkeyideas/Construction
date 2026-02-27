@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -48,6 +49,7 @@ export default function AutomationClient({
   stats,
 }: AutomationClientProps) {
   const router = useRouter();
+  const t = useTranslations("adminPanel");
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -304,19 +306,19 @@ export default function AutomationClient({
       {/* Header */}
       <div className="automation-header">
         <div>
-          <h2>Automation</h2>
+          <h2>{t("automation.title")}</h2>
           <p className="automation-header-sub">
-            Create rules to automate repetitive tasks and workflows.
+            {t("automation.subtitle")}.
           </p>
         </div>
         <div className="automation-header-actions">
           <Link href="/admin-panel/automation/logs" className="btn-secondary">
             <FileText size={14} />
-            View Logs
+            {t("automation.viewLogs")}
           </Link>
           <button className="btn-primary" onClick={openAddModal}>
             <Plus size={16} />
-            Create Rule
+            {t("automation.createRule")}
           </button>
         </div>
       </div>
@@ -327,28 +329,28 @@ export default function AutomationClient({
           <div className="automation-stat-icon blue">
             <Zap size={18} />
           </div>
-          <div className="automation-stat-label">Total Rules</div>
+          <div className="automation-stat-label">{t("automation.totalRules")}</div>
           <div className="automation-stat-value">{stats.total}</div>
         </div>
         <div className="automation-stat-card">
           <div className="automation-stat-icon green">
             <CheckCircle2 size={18} />
           </div>
-          <div className="automation-stat-label">Active</div>
+          <div className="automation-stat-label">{t("automation.active")}</div>
           <div className="automation-stat-value">{stats.enabled}</div>
         </div>
         <div className="automation-stat-card">
           <div className="automation-stat-icon amber">
             <Activity size={18} />
           </div>
-          <div className="automation-stat-label">Executions Today</div>
+          <div className="automation-stat-label">{t("automation.executionsToday")}</div>
           <div className="automation-stat-value">{stats.executionsToday}</div>
         </div>
         <div className="automation-stat-card">
           <div className="automation-stat-icon red">
             <XCircle size={18} />
           </div>
-          <div className="automation-stat-label">Failed Today</div>
+          <div className="automation-stat-label">{t("automation.failedToday")}</div>
           <div className="automation-stat-value">{failedToday}</div>
         </div>
       </div>
@@ -357,7 +359,7 @@ export default function AutomationClient({
       <div className="automation-templates-section">
         <div className="automation-section-title">
           <LayoutTemplate size={16} />
-          Quick Start Templates
+          {t("automation.quickStartTemplates")}
         </div>
         <div className="automation-templates-grid">
           {AUTOMATION_TEMPLATES.map((template) => (
@@ -368,7 +370,7 @@ export default function AutomationClient({
                 className="btn-secondary automation-template-btn"
                 onClick={() => useTemplate(template)}
               >
-                Use Template
+                {t("automation.useTemplate")}
               </button>
             </div>
           ))}
@@ -381,13 +383,13 @@ export default function AutomationClient({
           <table className="automation-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Trigger</th>
-                <th>Entity</th>
-                <th>Status</th>
-                <th>Last Run</th>
-                <th>Run Count</th>
-                <th>Actions</th>
+                <th>{t("automation.thName")}</th>
+                <th>{t("automation.thTrigger")}</th>
+                <th>{t("automation.thEntity")}</th>
+                <th>{t("automation.thStatus")}</th>
+                <th>{t("automation.thLastRun")}</th>
+                <th>{t("automation.thRunCount")}</th>
+                <th>{t("automation.thActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -448,13 +450,13 @@ export default function AutomationClient({
       ) : (
         <div className="automation-empty">
           <Zap size={32} />
-          <div className="automation-empty-title">No automation rules yet</div>
+          <div className="automation-empty-title">{t("automation.noRulesYet")}</div>
           <div className="automation-empty-desc">
-            Create your first rule or use a template to get started.
+            {t("automation.noRulesDesc")}
           </div>
           <button className="btn-primary" onClick={openAddModal}>
             <Plus size={16} />
-            Create Rule
+            {t("automation.createRule")}
           </button>
         </div>
       )}
@@ -469,12 +471,12 @@ export default function AutomationClient({
             </button>
 
             <div className="automation-modal-title">
-              {editingId ? "Edit Automation Rule" : "Create Automation Rule"}
+              {editingId ? t("automation.editRule") : t("automation.createRuleTitle")}
             </div>
             <div className="automation-modal-desc">
               {editingId
-                ? "Update the configuration for this automation rule."
-                : "Define a trigger, conditions, and actions for this rule."}
+                ? t("automation.editRuleDesc")
+                : t("automation.createRuleDesc")}
             </div>
 
             {message && (
@@ -650,10 +652,10 @@ export default function AutomationClient({
                   disabled={saving}
                 >
                   {saving
-                    ? "Saving..."
+                    ? t("automation.saving")
                     : editingId
-                    ? "Update Rule"
-                    : "Create Rule"}
+                    ? t("automation.updateRule")
+                    : t("automation.createRule")}
                 </button>
               </div>
             </form>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   ClipboardCheck,
   Building2,
@@ -10,6 +11,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { CompanyOnboardingStatus } from "@/lib/queries/onboarding";
 
 interface Props {
@@ -42,6 +44,7 @@ function getBarColor(pct: number): string {
 }
 
 export default function OnboardingClient({ statuses }: Props) {
+  const t = useTranslations("superAdmin");
   // Sort by completion % ascending (least complete first)
   const sorted = [...statuses].sort(
     (a, b) => a.completion_pct - b.completion_pct
@@ -57,34 +60,34 @@ export default function OnboardingClient({ statuses }: Props) {
         )
       : 0;
 
-  const checkLabels: {
+  const checkLabels = useMemo((): {
     key: keyof CompanyOnboardingStatus["checks"];
     label: string;
     icon: React.ReactNode;
-  }[] = [
-    { key: "has_users", label: "Users", icon: <Users size={14} /> },
-    { key: "has_projects", label: "Projects", icon: <Briefcase size={14} /> },
+  }[] => [
+    { key: "has_users", label: t("onboarding.checkUsers"), icon: <Users size={14} /> },
+    { key: "has_projects", label: t("onboarding.checkProjects"), icon: <Briefcase size={14} /> },
     {
       key: "has_properties",
-      label: "Properties",
+      label: t("onboarding.checkProperties"),
       icon: <Building2 size={14} />,
     },
     {
       key: "has_financial_data",
-      label: "Financial",
+      label: t("onboarding.checkFinancial"),
       icon: <DollarSign size={14} />,
     },
-    { key: "has_documents", label: "Documents", icon: <FileText size={14} /> },
-  ];
+    { key: "has_documents", label: t("onboarding.checkDocuments"), icon: <FileText size={14} /> },
+  ], [t]);
 
   return (
     <div>
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>Onboarding Checklist</h2>
+          <h2>{t("onboarding.title")}</h2>
           <p className="admin-header-sub">
-            Track company onboarding progress across the platform
+            {t("onboarding.subtitle")}
           </p>
         </div>
       </div>
@@ -95,21 +98,21 @@ export default function OnboardingClient({ statuses }: Props) {
           <div className="admin-stat-icon blue">
             <Building2 size={18} />
           </div>
-          <div className="admin-stat-label">Total Companies</div>
+          <div className="admin-stat-label">{t("onboarding.totalCompanies")}</div>
           <div className="admin-stat-value">{totalCompanies}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon green">
             <CheckCircle size={18} />
           </div>
-          <div className="admin-stat-label">Fully Onboarded</div>
+          <div className="admin-stat-label">{t("onboarding.fullyOnboarded")}</div>
           <div className="admin-stat-value">{fullyOnboarded}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon amber">
             <ClipboardCheck size={18} />
           </div>
-          <div className="admin-stat-label">Average Completion</div>
+          <div className="admin-stat-label">{t("onboarding.avgCompletion")}</div>
           <div className="admin-stat-value">{avgCompletion}%</div>
         </div>
       </div>
@@ -118,15 +121,15 @@ export default function OnboardingClient({ statuses }: Props) {
       <div className="sa-card">
         <div className="sa-card-title">
           <ClipboardCheck size={18} />
-          Company Onboarding Status
+          {t("onboarding.companyStatus")}
         </div>
 
         <div className="sa-table-wrap">
           <table className="sa-table">
             <thead>
               <tr>
-                <th>Company</th>
-                <th>Plan</th>
+                <th>{t("onboarding.thCompany")}</th>
+                <th>{t("onboarding.thPlan")}</th>
                 {checkLabels.map((c) => (
                   <th
                     key={c.key}
@@ -144,8 +147,8 @@ export default function OnboardingClient({ statuses }: Props) {
                     </span>
                   </th>
                 ))}
-                <th style={{ minWidth: 140 }}>Completion</th>
-                <th>Created</th>
+                <th style={{ minWidth: 140 }}>{t("onboarding.thCompletion")}</th>
+                <th>{t("onboarding.thCreated")}</th>
               </tr>
             </thead>
             <tbody>
@@ -159,7 +162,7 @@ export default function OnboardingClient({ statuses }: Props) {
                       color: "var(--muted)",
                     }}
                   >
-                    No companies found.
+                    {t("onboarding.noCompaniesFound")}
                   </td>
                 </tr>
               ) : (

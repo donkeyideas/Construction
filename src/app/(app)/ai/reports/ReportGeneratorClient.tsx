@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -48,37 +49,6 @@ interface ReportGeneratorClientProps {
 }
 
 // ---------------------------------------------------------------------------
-// Report type definitions
-// ---------------------------------------------------------------------------
-
-const REPORT_TYPES: ReportTypeOption[] = [
-  {
-    id: "project_status",
-    label: "Project Status Report",
-    icon: <ClipboardList size={20} />,
-    description: "Progress, milestones, RFIs, and change orders",
-  },
-  {
-    id: "financial_summary",
-    label: "Financial Summary",
-    icon: <DollarSign size={20} />,
-    description: "Budget, invoices, AR/AP, and cost analysis",
-  },
-  {
-    id: "safety_compliance",
-    label: "Safety Compliance Report",
-    icon: <ShieldAlert size={20} />,
-    description: "Incidents, inspections, and certifications",
-  },
-  {
-    id: "executive_brief",
-    label: "Executive Dashboard Brief",
-    icon: <BarChart3 size={20} />,
-    description: "High-level overview across all areas",
-  },
-];
-
-// ---------------------------------------------------------------------------
 // Markdown table wrapper
 // ---------------------------------------------------------------------------
 
@@ -117,6 +87,38 @@ export default function ReportGeneratorClient({
   projects,
   hasProvider,
 }: ReportGeneratorClientProps) {
+  const t = useTranslations("ai");
+
+  const reportTypes: ReportTypeOption[] = useMemo(
+    () => [
+      {
+        id: "project_status",
+        label: t("reports.projectStatusReport"),
+        icon: <ClipboardList size={20} />,
+        description: t("reports.projectStatusDesc"),
+      },
+      {
+        id: "financial_summary",
+        label: t("reports.financialSummary"),
+        icon: <DollarSign size={20} />,
+        description: t("reports.financialSummaryDesc"),
+      },
+      {
+        id: "safety_compliance",
+        label: t("reports.safetyComplianceReport"),
+        icon: <ShieldAlert size={20} />,
+        description: t("reports.safetyComplianceDesc"),
+      },
+      {
+        id: "executive_brief",
+        label: t("reports.executiveBrief"),
+        icon: <BarChart3 size={20} />,
+        description: t("reports.executiveBriefDesc"),
+      },
+    ],
+    [t]
+  );
+
   const [reportType, setReportType] = useState<ReportType>("project_status");
   const [projectId, setProjectId] = useState<string>("all");
   const [startDate, setStartDate] = useState(getDefaultStartDate);
@@ -223,13 +225,13 @@ export default function ReportGeneratorClient({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    const typeLabel = REPORT_TYPES.find((t) => t.id === reportType)?.label ?? "Report";
+    const typeLabel = reportTypes.find((rt) => rt.id === reportType)?.label ?? "Report";
     a.download = `${typeLabel.replace(/\s+/g, "_")}_${formatDateForInput(new Date())}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [reportText, reportType]);
+  }, [reportText, reportType, reportTypes]);
 
   // ---- Render: No provider configured ----
   if (!hasProvider) {
@@ -239,10 +241,10 @@ export default function ReportGeneratorClient({
           <div>
             <h1>
               <FileText size={28} className="sparkle-icon" />
-              AI Report Generator
+              {t("reports.title")}
             </h1>
             <p className="subtitle">
-              Generate comprehensive project reports with AI
+              {t("reports.subtitle")}
             </p>
           </div>
         </div>
@@ -250,13 +252,13 @@ export default function ReportGeneratorClient({
         <div className="ui-card" style={{ textAlign: "center", padding: "48px 24px", maxWidth: 560 }}>
           <AlertTriangle size={36} style={{ color: "var(--color-amber)", marginBottom: 16 }} />
           <div style={{ fontSize: "1.05rem", fontWeight: 600, marginBottom: 8, color: "var(--text)", fontFamily: "var(--font-serif)" }}>
-            AI Provider Required
+            {t("reports.aiProviderRequired")}
           </div>
           <p style={{ color: "var(--muted)", fontSize: "0.88rem", lineHeight: 1.6, marginBottom: 16 }}>
-            Configure an AI provider in Administration &gt; AI Providers to enable report generation.
+            {t("reports.configureProviderReport")}
           </p>
           <Link href="/admin/ai-providers" className="ui-btn ui-btn-primary ui-btn-md" style={{ display: "inline-flex" }}>
-            Configure AI Provider
+            {t("reports.configureAiProvider")}
           </Link>
         </div>
       </div>
@@ -271,10 +273,10 @@ export default function ReportGeneratorClient({
         <div>
           <h1>
             <FileText size={28} className="sparkle-icon" />
-            AI Report Generator
+            {t("reports.title")}
           </h1>
           <p className="subtitle">
-            Generate comprehensive project reports with AI
+            {t("reports.subtitle")}
           </p>
         </div>
       </div>
@@ -283,12 +285,12 @@ export default function ReportGeneratorClient({
       <div className="report-gen-layout">
         {/* ---- Left: Report Configuration ---- */}
         <div className="report-config">
-          <div className="config-title">Report Configuration</div>
+          <div className="config-title">{t("reports.reportConfig")}</div>
 
           {/* Report type selector */}
-          <label className="report-field-label">Report Type</label>
+          <label className="report-field-label">{t("reports.reportType")}</label>
           <div className="report-type-selector">
-            {REPORT_TYPES.map((type) => (
+            {reportTypes.map((type) => (
               <button
                 key={type.id}
                 type="button"
@@ -304,7 +306,7 @@ export default function ReportGeneratorClient({
           {/* Project selector */}
           <div style={{ marginBottom: 16 }}>
             <label htmlFor="project-select" className="report-field-label">
-              Project
+              {t("reports.project")}
             </label>
             <select
               id="project-select"
@@ -312,7 +314,7 @@ export default function ReportGeneratorClient({
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
             >
-              <option value="all">All Projects</option>
+              <option value="all">{t("reports.allProjects")}</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}{p.code ? ` (${p.code})` : ""}
@@ -325,7 +327,7 @@ export default function ReportGeneratorClient({
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
             <div>
               <label htmlFor="start-date" className="report-field-label">
-                Start Date
+                {t("reports.startDate")}
               </label>
               <input
                 id="start-date"
@@ -337,7 +339,7 @@ export default function ReportGeneratorClient({
             </div>
             <div>
               <label htmlFor="end-date" className="report-field-label">
-                End Date
+                {t("reports.endDate")}
               </label>
               <input
                 id="end-date"
@@ -360,12 +362,12 @@ export default function ReportGeneratorClient({
             {isGenerating ? (
               <>
                 <Loader2 size={16} className="spin-icon" />
-                Generating...
+                {t("reports.generating")}
               </>
             ) : (
               <>
                 <FileText size={16} />
-                Generate Report
+                {t("reports.generateReport")}
               </>
             )}
           </button>
@@ -376,7 +378,7 @@ export default function ReportGeneratorClient({
           {/* Preview header with actions */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <div className="preview-title" style={{ margin: 0 }}>
-              Report Preview
+              {t("reports.reportPreview")}
             </div>
             {reportText && !isGenerating && (
               <div style={{ display: "flex", gap: 8 }}>
@@ -386,7 +388,7 @@ export default function ReportGeneratorClient({
                   onClick={handleCopy}
                 >
                   {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
-                  {copied ? "Copied" : "Copy"}
+                  {copied ? t("documents.copied") : t("reports.copy")}
                 </button>
                 <button
                   type="button"
@@ -394,7 +396,7 @@ export default function ReportGeneratorClient({
                   onClick={handleDownload}
                 >
                   <Download size={14} />
-                  Download
+                  {t("reports.download")}
                 </button>
               </div>
             )}
@@ -419,7 +421,7 @@ export default function ReportGeneratorClient({
             </div>
           )}
 
-          {/* Generated report — rendered markdown */}
+          {/* Generated report -- rendered markdown */}
           {reportText && (
             <div className="report-markdown-body">
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
@@ -433,11 +435,10 @@ export default function ReportGeneratorClient({
             <div className="report-empty-state">
               <FileText size={48} style={{ opacity: 0.3 }} />
               <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text)", fontFamily: "var(--font-serif)" }}>
-                No Report Generated
+                {t("reports.noReportGenerated")}
               </div>
               <p>
-                Select a report type, choose a project, set your date range,
-                and click Generate Report to create an AI-powered analysis.
+                {t("reports.noReportDesc")}
               </p>
             </div>
           )}

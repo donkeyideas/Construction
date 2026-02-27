@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   FileText,
   DollarSign,
@@ -46,7 +47,7 @@ function fmtDate(iso: string): string {
 function parseHoursRate(desc: string): { hours: string; rate: string } {
   const match = desc.match(/([\d.]+)h\s*@\s*\$([\d.]+)/);
   if (match) return { hours: match[1], rate: match[2] };
-  return { hours: "—", rate: "—" };
+  return { hours: "\u2014", rate: "\u2014" };
 }
 
 // ---------------------------------------------------------------------------
@@ -57,6 +58,7 @@ export default function ReconcileClient({
   accruals,
   wageAccounts,
 }: ReconcileClientProps) {
+  const t = useTranslations("people");
   const totalAccrued = accruals.reduce((s, a) => s + a.amount, 0);
 
   const expenseAccount = wageAccounts.find((a) => a.accountType === "expense");
@@ -76,7 +78,7 @@ export default function ReconcileClient({
   );
   if (oldAccruals.length > 0) {
     alerts.push(
-      `${oldAccruals.length} labor accrual(s) are older than 2 weeks.`
+      t("reconcile.oldAccrualsWarning", { count: oldAccruals.length })
     );
   }
 
@@ -85,9 +87,9 @@ export default function ReconcileClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Labor Reconcile</h2>
+          <h2>{t("reconcile.title")}</h2>
           <p className="fin-header-sub">
-            Overview of labor accruals, payroll runs, and wage account balances.
+            {t("reconcile.subtitle")}
           </p>
         </div>
         <div className="fin-header-actions">
@@ -95,7 +97,7 @@ export default function ReconcileClient({
             href="/people/labor"
             className="ui-btn ui-btn-md ui-btn-secondary"
           >
-            Labor & Time
+            {t("reconcile.laborAndTime")}
           </Link>
         </div>
       </div>
@@ -132,14 +134,14 @@ export default function ReconcileClient({
           <div className="fin-kpi-icon blue">
             <FileText size={18} />
           </div>
-          <span className="fin-kpi-label">Open Accruals</span>
+          <span className="fin-kpi-label">{t("reconcile.openAccruals")}</span>
           <span className="fin-kpi-value">{accruals.length}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon amber">
             <DollarSign size={18} />
           </div>
-          <span className="fin-kpi-label">Accrued Amount</span>
+          <span className="fin-kpi-label">{t("reconcile.accruedAmount")}</span>
           <span className="fin-kpi-value" style={{ color: totalAccrued > 0 ? "var(--color-amber)" : undefined }}>
             {fmtMoney(totalAccrued)}
           </span>
@@ -148,7 +150,7 @@ export default function ReconcileClient({
           <div className="fin-kpi-icon red">
             <TrendingUp size={18} />
           </div>
-          <span className="fin-kpi-label">Wages Expense</span>
+          <span className="fin-kpi-label">{t("reconcile.wagesExpense")}</span>
           <span className="fin-kpi-value">
             {fmtMoney(expenseAccount?.netBalance ?? 0)}
           </span>
@@ -157,7 +159,7 @@ export default function ReconcileClient({
           <div className="fin-kpi-icon amber">
             <TrendingDown size={18} />
           </div>
-          <span className="fin-kpi-label">Wages Payable</span>
+          <span className="fin-kpi-label">{t("reconcile.wagesPayable")}</span>
           <span className="fin-kpi-value" style={{ color: payableBalance > 0 ? "var(--color-amber)" : undefined }}>
             {fmtMoney(payableBalance)}
           </span>
@@ -168,17 +170,17 @@ export default function ReconcileClient({
       <div className="financial-charts-row" style={{ marginBottom: 24 }}>
         {/* Open Labor Accruals */}
         <div className="fin-chart-card">
-          <div className="fin-chart-title">Open Labor Accruals</div>
+          <div className="fin-chart-title">{t("reconcile.openLaborAccruals")}</div>
           {accruals.length > 0 ? (
             <div style={{ overflowX: "auto" }}>
               <table className="invoice-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Employee</th>
-                    <th>Hours</th>
-                    <th>Rate</th>
-                    <th style={{ textAlign: "right" }}>Amount</th>
+                    <th>{t("reconcile.date")}</th>
+                    <th>{t("reconcile.employee")}</th>
+                    <th>{t("reconcile.hours")}</th>
+                    <th>{t("reconcile.rate")}</th>
+                    <th style={{ textAlign: "right" }}>{t("reconcile.amount")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -205,7 +207,7 @@ export default function ReconcileClient({
                 </tbody>
                 <tfoot>
                   <tr style={{ fontWeight: 700 }}>
-                    <td colSpan={4}>Total Accrued</td>
+                    <td colSpan={4}>{t("reconcile.totalAccrued")}</td>
                     <td style={{ textAlign: "right", color: "var(--color-amber)" }}>
                       {fmtMoney(totalAccrued)}
                     </td>
@@ -222,7 +224,7 @@ export default function ReconcileClient({
                 fontSize: "0.85rem",
               }}
             >
-              No open labor accruals — all caught up
+              {t("reconcile.noOpenAccruals")}
             </div>
           )}
         </div>
@@ -231,16 +233,16 @@ export default function ReconcileClient({
 
       {/* Wage Account Summary */}
       <div className="fin-chart-card" style={{ marginBottom: 32 }}>
-        <div className="fin-chart-title">Wage Account Summary</div>
+        <div className="fin-chart-title">{t("reconcile.wageAccountSummary")}</div>
         <div style={{ overflowX: "auto" }}>
           <table className="invoice-table">
             <thead>
               <tr>
-                <th>Account</th>
-                <th>Type</th>
-                <th style={{ textAlign: "right" }}>Total Debits</th>
-                <th style={{ textAlign: "right" }}>Total Credits</th>
-                <th style={{ textAlign: "right" }}>Net Balance</th>
+                <th>{t("reconcile.account")}</th>
+                <th>{t("reconcile.type")}</th>
+                <th style={{ textAlign: "right" }}>{t("reconcile.totalDebits")}</th>
+                <th style={{ textAlign: "right" }}>{t("reconcile.totalCredits")}</th>
+                <th style={{ textAlign: "right" }}>{t("reconcile.netBalance")}</th>
               </tr>
             </thead>
             <tbody>
@@ -290,7 +292,7 @@ export default function ReconcileClient({
             padding: "0 4px",
           }}
         >
-          When Wages Payable is $0.00, all accrued labor costs have been settled.
+          {t("reconcile.wagesPayableNote")}
         </div>
       </div>
     </div>

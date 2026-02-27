@@ -11,6 +11,7 @@ import {
   ChevronUp,
   Search,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { AuditLog, AuditLogStats } from "@/lib/queries/audit-logs";
 
 interface Props {
@@ -71,6 +72,7 @@ function formatActionLabel(action: string): string {
 }
 
 export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
+  const t = useTranslations("superAdmin");
   const [logs, setLogs] = useState<AuditLog[]>(initialLogs);
   const [loading, setLoading] = useState(false);
 
@@ -162,9 +164,9 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>Audit Logs</h2>
+          <h2>{t("auditLogs.title")}</h2>
           <p className="admin-header-sub">
-            Track all platform activity and user actions across companies.
+            {t("auditLogs.subtitle")}
           </p>
         </div>
       </div>
@@ -175,7 +177,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           <div className="admin-stat-icon blue">
             <Shield size={18} />
           </div>
-          <div className="admin-stat-label">Total Events</div>
+          <div className="admin-stat-label">{t("auditLogs.totalEvents")}</div>
           <div className="admin-stat-value">
             {stats.totalLogs.toLocaleString()}
           </div>
@@ -184,7 +186,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           <div className="admin-stat-icon green">
             <Activity size={18} />
           </div>
-          <div className="admin-stat-label">Events Today</div>
+          <div className="admin-stat-label">{t("auditLogs.eventsToday")}</div>
           <div className="admin-stat-value">
             {stats.logsToday.toLocaleString()}
           </div>
@@ -199,7 +201,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           >
             <Users size={18} />
           </div>
-          <div className="admin-stat-label">Active Users Today</div>
+          <div className="admin-stat-label">{t("auditLogs.activeUsersToday")}</div>
           <div className="admin-stat-value">{stats.uniqueUsersToday}</div>
         </div>
         <div className="admin-stat-card">
@@ -212,7 +214,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           >
             <Clock size={18} />
           </div>
-          <div className="admin-stat-label">Top Action</div>
+          <div className="admin-stat-label">{t("auditLogs.topAction")}</div>
           <div
             className="admin-stat-value"
             style={{ fontSize: "1rem" }}
@@ -243,7 +245,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           }}
         >
           <Filter size={14} />
-          Filters
+          {t("auditLogs.filters")}
         </div>
 
         <select
@@ -251,7 +253,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           onChange={(e) => setActionFilter(e.target.value)}
           className="invite-form-select"
         >
-          <option value="">All Actions</option>
+          <option value="">{t("auditLogs.allActions")}</option>
           {uniqueActions.map((a) => (
             <option key={a} value={a}>
               {formatActionLabel(a)}
@@ -264,7 +266,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           onChange={(e) => setEntityTypeFilter(e.target.value)}
           className="invite-form-select"
         >
-          <option value="">All Entity Types</option>
+          <option value="">{t("auditLogs.allEntityTypes")}</option>
           {uniqueEntityTypes.map((et) => (
             <option key={et} value={et}>
               {formatActionLabel(et)}
@@ -278,7 +280,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           onChange={(e) => setDateFrom(e.target.value)}
           className="invite-form-input"
           style={{ width: "150px" }}
-          title="From date"
+          title={t("auditLogs.fromDate")}
         />
 
         <input
@@ -287,7 +289,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           onChange={(e) => setDateTo(e.target.value)}
           className="invite-form-input"
           style={{ width: "150px" }}
-          title="To date"
+          title={t("auditLogs.toDate")}
         />
 
         <div style={{ position: "relative", flex: "1 1 180px", maxWidth: "240px" }}>
@@ -303,7 +305,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           />
           <input
             type="text"
-            placeholder="Search by user..."
+            placeholder={t("auditLogs.searchByUser")}
             value={userSearch}
             onChange={(e) => {
               setUserSearch(e.target.value);
@@ -326,7 +328,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
             }}
             style={{ fontSize: "0.78rem", padding: "4px 10px" }}
           >
-            Clear Filters
+            {t("auditLogs.clearFilters")}
           </button>
         )}
       </div>
@@ -341,7 +343,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
             fontSize: "0.85rem",
           }}
         >
-          Loading...
+          {t("auditLogs.loading")}
         </div>
       )}
 
@@ -350,13 +352,13 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
         <table className="sa-table">
           <thead>
             <tr>
-              <th>Timestamp</th>
-              <th>User</th>
-              <th>Company</th>
-              <th>Action</th>
-              <th>Entity Type</th>
-              <th>Entity ID</th>
-              <th style={{ width: "40px" }}>Details</th>
+              <th>{t("auditLogs.thTimestamp")}</th>
+              <th>{t("auditLogs.thUser")}</th>
+              <th>{t("auditLogs.thCompany")}</th>
+              <th>{t("auditLogs.thAction")}</th>
+              <th>{t("auditLogs.thEntityType")}</th>
+              <th>{t("auditLogs.thEntityId")}</th>
+              <th style={{ width: "40px" }}>{t("auditLogs.thDetails")}</th>
             </tr>
           </thead>
           <tbody>
@@ -370,7 +372,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
                     color: "var(--muted)",
                   }}
                 >
-                  No audit logs found.
+                  {t("auditLogs.noLogsFound")}
                 </td>
               </tr>
             ) : (
@@ -398,7 +400,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
                       {log.user_name || log.user_email ? (
                         <div>
                           <div style={{ fontWeight: 500, fontSize: "0.85rem" }}>
-                            {log.user_name || "Unknown"}
+                            {log.user_name || t("auditLogs.unknown")}
                           </div>
                           {log.user_email && (
                             <div
@@ -412,7 +414,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
                           )}
                         </div>
                       ) : (
-                        <span style={{ color: "var(--muted)" }}>System</span>
+                        <span style={{ color: "var(--muted)" }}>{t("auditLogs.system")}</span>
                       )}
                     </td>
                     <td
@@ -530,7 +532,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
                   justifyContent: "space-between",
                 }}
               >
-                <span>Event Details</span>
+                <span>{t("auditLogs.eventDetails")}</span>
                 <button
                   onClick={() => setExpandedRow(null)}
                   style={{
@@ -547,7 +549,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
 
               {log.ip_address && (
                 <div style={{ marginBottom: 4, color: "var(--muted)" }}>
-                  <strong>IP:</strong> {log.ip_address}
+                  <strong>{t("auditLogs.ip")}:</strong> {log.ip_address}
                 </div>
               )}
               {log.user_agent && (
@@ -559,7 +561,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
                     wordBreak: "break-all",
                   }}
                 >
-                  <strong>User Agent:</strong> {log.user_agent}
+                  <strong>{t("auditLogs.userAgent")}:</strong> {log.user_agent}
                 </div>
               )}
 
@@ -600,10 +602,11 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
           }}
         >
           <div>
-            Showing {(currentPage - 1) * PAGE_SIZE + 1}
-            {" - "}
-            {Math.min(currentPage * PAGE_SIZE, filteredLogs.length)} of{" "}
-            {filteredLogs.length} events
+            {t("auditLogs.showingRange", {
+              from: (currentPage - 1) * PAGE_SIZE + 1,
+              to: Math.min(currentPage * PAGE_SIZE, filteredLogs.length),
+              total: filteredLogs.length,
+            })}
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
             <button
@@ -616,10 +619,10 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
                 opacity: currentPage <= 1 ? 0.5 : 1,
               }}
             >
-              Previous
+              {t("auditLogs.previous")}
             </button>
             <span>
-              Page {currentPage} of {totalPages}
+              {t("auditLogs.pageOf", { current: currentPage, total: totalPages })}
             </span>
             <button
               className="sa-action-btn"
@@ -633,7 +636,7 @@ export default function AuditLogsClient({ logs: initialLogs, stats }: Props) {
                 opacity: currentPage >= totalPages ? 0.5 : 1,
               }}
             >
-              Next
+              {t("auditLogs.next")}
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   TrendingUp,
   DollarSign,
@@ -47,6 +48,7 @@ export default function CashFlowForecastClient({
   apAging,
   monthlyBurnRate,
 }: Props) {
+  const t = useTranslations("ai");
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
 
   // Totals for KPI cards
@@ -66,21 +68,26 @@ export default function CashFlowForecastClient({
   // Check for empty state
   const hasData = totalCash > 0 || totalAR > 0 || totalAP > 0;
 
+  // Translated chart keys
+  const collectionsLabel = t("cashFlowForecast.expectedCollections");
+  const paymentsLabel = t("cashFlowForecast.expectedPayments");
+  const projectedCashLabel = t("cashFlowForecast.projectedCash");
+
   // Build chart data: "Today" baseline + 3 forecast periods
-  const chartData = [
+  const chartData = useMemo(() => [
     {
-      name: "Today",
-      "Expected Collections": 0,
-      "Expected Payments": 0,
-      "Projected Cash": totalCash,
+      name: t("cashFlowForecast.today"),
+      [collectionsLabel]: 0,
+      [paymentsLabel]: 0,
+      [projectedCashLabel]: totalCash,
     },
     ...periods.map((p) => ({
       name: p.period,
-      "Expected Collections": Math.round(p.expectedCollections),
-      "Expected Payments": Math.round(p.expectedPayments),
-      "Projected Cash": Math.round(p.projectedCash),
+      [collectionsLabel]: Math.round(p.expectedCollections),
+      [paymentsLabel]: Math.round(p.expectedPayments),
+      [projectedCashLabel]: Math.round(p.projectedCash),
     })),
-  ];
+  ], [t, collectionsLabel, paymentsLabel, projectedCashLabel, totalCash, periods]);
 
   // ---------------------------------------------------------------------------
   // Empty state
@@ -92,10 +99,10 @@ export default function CashFlowForecastClient({
           <div>
             <h1>
               <TrendingUp size={28} className="sparkle-icon" />
-              Cash Flow Forecast
+              {t("cashFlowForecast.title")}
             </h1>
             <p className="subtitle">
-              30/60/90-day cash position projections
+              {t("cashFlowForecast.subtitle")}
             </p>
           </div>
         </div>
@@ -103,12 +110,10 @@ export default function CashFlowForecastClient({
         <div className="forecast-chart-container" style={{ textAlign: "center", padding: "60px 24px" }}>
           <DollarSign size={48} style={{ color: "var(--border)", marginBottom: 16 }} />
           <div style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 8, color: "var(--text)" }}>
-            No Financial Data Available
+            {t("cashFlowForecast.noFinancialData")}
           </div>
           <div style={{ color: "var(--muted)", fontSize: "0.88rem", maxWidth: 420, margin: "0 auto" }}>
-            Add bank accounts and invoices to generate cash flow forecasts.
-            The forecast uses your current cash position, accounts receivable,
-            and accounts payable to project future balances.
+            {t("cashFlowForecast.noFinancialDataDesc")}
           </div>
         </div>
       </div>
@@ -127,10 +132,10 @@ export default function CashFlowForecastClient({
         <div>
           <h1>
             <TrendingUp size={28} className="sparkle-icon" />
-            Cash Flow Forecast
+            {t("cashFlowForecast.title")}
           </h1>
           <p className="subtitle">
-            30/60/90-day cash position projections
+            {t("cashFlowForecast.subtitle")}
           </p>
         </div>
       </div>
@@ -141,49 +146,49 @@ export default function CashFlowForecastClient({
       <div className="ai-kpi-grid">
         {/* Current Cash */}
         <div className="ai-kpi-card kpi-good">
-          <span className="kpi-label">Current Cash</span>
+          <span className="kpi-label">{t("cashFlowForecast.currentCash")}</span>
           <span className="kpi-value" style={{ color: "var(--color-green)" }}>
             {formatCurrency(totalCash)}
           </span>
           <span className="kpi-change positive">
             <DollarSign size={12} />
-            Sum of all bank accounts
+            {t("cashFlowForecast.sumBankAccounts")}
           </span>
         </div>
 
         {/* Accounts Receivable */}
         <div className="ai-kpi-card kpi-info">
-          <span className="kpi-label">Accounts Receivable</span>
+          <span className="kpi-label">{t("cashFlowForecast.accountsReceivable")}</span>
           <span className="kpi-value" style={{ color: "var(--color-blue)" }}>
             {formatCurrency(totalAR)}
           </span>
           <span className="kpi-change positive">
             <ArrowUpRight size={12} />
-            Outstanding receivables
+            {t("cashFlowForecast.outstandingReceivables")}
           </span>
         </div>
 
         {/* Accounts Payable */}
         <div className="ai-kpi-card kpi-warning">
-          <span className="kpi-label">Accounts Payable</span>
+          <span className="kpi-label">{t("cashFlowForecast.accountsPayable")}</span>
           <span className="kpi-value" style={{ color: "var(--color-amber)" }}>
             {formatCurrency(totalAP)}
           </span>
           <span className="kpi-change negative">
             <ArrowDownRight size={12} />
-            Outstanding payables
+            {t("cashFlowForecast.outstandingPayables")}
           </span>
         </div>
 
         {/* Monthly Burn Rate */}
         <div className="ai-kpi-card kpi-critical">
-          <span className="kpi-label">Monthly Burn Rate</span>
+          <span className="kpi-label">{t("cashFlowForecast.monthlyBurnRate")}</span>
           <span className="kpi-value" style={{ color: "var(--color-red)" }}>
             {formatCurrency(monthlyBurnRate)}
           </span>
           <span className="kpi-change negative">
             <ArrowDownRight size={12} />
-            Avg. monthly expenses (3 mo.)
+            {t("cashFlowForecast.avgMonthlyExpenses")}
           </span>
         </div>
       </div>
@@ -192,7 +197,7 @@ export default function CashFlowForecastClient({
       {/* Forecast Chart                                                     */}
       {/* ------------------------------------------------------------------ */}
       <div className="forecast-chart-container">
-        <div className="chart-title">Cash Flow Projection</div>
+        <div className="chart-title">{t("cashFlowForecast.cashFlowProjection")}</div>
         <ResponsiveContainer width="100%" height={360}>
           <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -225,14 +230,14 @@ export default function CashFlowForecastClient({
               wrapperStyle={{ fontSize: "0.8rem", paddingTop: 8 }}
             />
             <Bar
-              dataKey="Expected Collections"
+              dataKey={collectionsLabel}
               fill="var(--color-green)"
               radius={[4, 4, 0, 0]}
               barSize={36}
               opacity={0.85}
             />
             <Bar
-              dataKey="Expected Payments"
+              dataKey={paymentsLabel}
               fill="var(--color-red)"
               radius={[4, 4, 0, 0]}
               barSize={36}
@@ -240,7 +245,7 @@ export default function CashFlowForecastClient({
             />
             <Line
               type="monotone"
-              dataKey="Projected Cash"
+              dataKey={projectedCashLabel}
               stroke="var(--color-blue)"
               strokeWidth={3}
               dot={{ r: 5, fill: "var(--color-blue)", stroke: "#fff", strokeWidth: 2 }}
@@ -275,19 +280,19 @@ export default function CashFlowForecastClient({
                   <ArrowDownRight size={14} />
                 )}
                 {changeIsPositive ? "+" : ""}
-                {formatCurrency(changeFromToday)} from today
+                {formatCurrency(changeFromToday)} {t("cashFlowForecast.fromToday")}
               </div>
 
               {/* Collections & Payments breakdown */}
               <div style={{ marginTop: 12, fontSize: "0.82rem", color: "var(--muted)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span>Expected Collections</span>
+                  <span>{t("cashFlowForecast.expectedCollections")}</span>
                   <span style={{ fontWeight: 600, color: "var(--color-green)" }}>
                     {formatCurrency(period.expectedCollections)}
                   </span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Expected Payments</span>
+                  <span>{t("cashFlowForecast.expectedPayments")}</span>
                   <span style={{ fontWeight: 600, color: "var(--color-red)" }}>
                     {formatCurrency(period.expectedPayments)}
                   </span>
@@ -307,7 +312,7 @@ export default function CashFlowForecastClient({
           onClick={() => setAssumptionsOpen(!assumptionsOpen)}
         >
           <Info size={18} className="sparkle-icon" style={{ color: "var(--color-blue)" }} />
-          <span className="panel-title">Forecast Assumptions</span>
+          <span className="panel-title">{t("cashFlowForecast.forecastAssumptions")}</span>
           <span className={`toggle-icon ${assumptionsOpen ? "expanded" : ""}`}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path
@@ -324,31 +329,30 @@ export default function CashFlowForecastClient({
           <div className="panel-content">
             <div style={{ fontSize: "0.85rem", lineHeight: 1.7, color: "var(--text)" }}>
               <p style={{ marginBottom: 12, color: "var(--muted)" }}>
-                The forecast is generated using deterministic collection and payment rate
-                assumptions applied to your current AR/AP aging buckets, plus monthly burn rate.
+                {t("cashFlowForecast.assumptionsIntro")}
               </p>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 {/* AR Collection Rates */}
                 <div>
                   <div style={{ fontWeight: 700, marginBottom: 8, fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "0.03em", color: "var(--muted)" }}>
-                    AR Collection Rates
+                    {t("cashFlowForecast.arCollectionRates")}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>Current (not overdue)</span>
+                      <span>{t("cashFlowForecast.currentNotOverdue")}</span>
                       <span style={{ fontWeight: 600 }}>95%</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>1-30 days overdue</span>
+                      <span>{t("cashFlowForecast.days1to30")}</span>
                       <span style={{ fontWeight: 600 }}>85%</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>31-60 days overdue</span>
+                      <span>{t("cashFlowForecast.days31to60")}</span>
                       <span style={{ fontWeight: 600 }}>70%</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>90+ days overdue</span>
+                      <span>{t("cashFlowForecast.days90plus")}</span>
                       <span style={{ fontWeight: 600 }}>50%</span>
                     </div>
                   </div>
@@ -357,23 +361,23 @@ export default function CashFlowForecastClient({
                 {/* AP Payment Rates */}
                 <div>
                   <div style={{ fontWeight: 700, marginBottom: 8, fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "0.03em", color: "var(--muted)" }}>
-                    AP Payment Rates
+                    {t("cashFlowForecast.apPaymentRates")}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>Current (not overdue)</span>
+                      <span>{t("cashFlowForecast.currentNotOverdue")}</span>
                       <span style={{ fontWeight: 600 }}>100%</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>1-30 days overdue</span>
+                      <span>{t("cashFlowForecast.days1to30")}</span>
                       <span style={{ fontWeight: 600 }}>95%</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>31-60 days overdue</span>
+                      <span>{t("cashFlowForecast.days31to60")}</span>
                       <span style={{ fontWeight: 600 }}>90%</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>90+ days overdue</span>
+                      <span>{t("cashFlowForecast.days90plus")}</span>
                       <span style={{ fontWeight: 600 }}>80%</span>
                     </div>
                   </div>
@@ -381,8 +385,7 @@ export default function CashFlowForecastClient({
               </div>
 
               <p style={{ marginTop: 14, color: "var(--muted)", fontSize: "0.82rem" }}>
-                The monthly burn rate is computed as the average of your payable invoices
-                over the last 3 months and is subtracted from each 30-day forecast period.
+                {t("cashFlowForecast.burnRateNote")}
               </p>
             </div>
           </div>

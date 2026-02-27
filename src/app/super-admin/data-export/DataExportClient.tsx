@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   Download,
   Building2,
@@ -18,39 +19,36 @@ interface ExportCard {
   icon: React.ReactNode;
 }
 
-const EXPORT_CARDS: ExportCard[] = [
-  {
-    type: "companies",
-    title: "Companies",
-    description:
-      "Export all company data including plan, industry, user counts",
-    icon: <Building2 size={24} />,
-  },
-  {
-    type: "users",
-    title: "Users",
-    description:
-      "Export all user profiles with portal type and company",
-    icon: <Users size={24} />,
-  },
-  {
-    type: "revenue",
-    title: "Revenue",
-    description:
-      "Export subscription events and revenue data",
-    icon: <DollarSign size={24} />,
-  },
-  {
-    type: "tickets",
-    title: "Support Tickets",
-    description:
-      "Export all support tickets with status and priority",
-    icon: <Headphones size={24} />,
-  },
-];
-
 export default function DataExportClient() {
+  const t = useTranslations("superAdmin");
   const [exporting, setExporting] = useState("");
+
+  const EXPORT_CARDS: ExportCard[] = useMemo(() => [
+    {
+      type: "companies",
+      title: t("dataExport.companies"),
+      description: t("dataExport.companiesDesc"),
+      icon: <Building2 size={24} />,
+    },
+    {
+      type: "users",
+      title: t("dataExport.users"),
+      description: t("dataExport.usersDesc"),
+      icon: <Users size={24} />,
+    },
+    {
+      type: "revenue",
+      title: t("dataExport.revenue"),
+      description: t("dataExport.revenueDesc"),
+      icon: <DollarSign size={24} />,
+    },
+    {
+      type: "tickets",
+      title: t("dataExport.tickets"),
+      description: t("dataExport.ticketsDesc"),
+      icon: <Headphones size={24} />,
+    },
+  ], [t]);
 
   async function handleExport(type: string) {
     setExporting(type);
@@ -79,9 +77,9 @@ export default function DataExportClient() {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>Data Export</h2>
+          <h2>{t("dataExport.title")}</h2>
           <p className="admin-header-sub">
-            Download platform data as CSV files
+            {t("dataExport.subtitle")}
           </p>
         </div>
       </div>
@@ -167,12 +165,12 @@ export default function DataExportClient() {
                       size={14}
                       style={{ animation: "spin 1s linear infinite" }}
                     />
-                    Exporting...
+                    {t("dataExport.exporting")}
                   </>
                 ) : (
                   <>
                     <FileDown size={14} />
-                    Download CSV
+                    {t("dataExport.downloadCsv")}
                   </>
                 )}
               </button>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -28,70 +29,56 @@ const GRADE_COLORS: Record<string, string> = {
   F: "var(--color-red)",
 };
 
-const STATUS_CONFIG = {
-  pass: { icon: CheckCircle2, label: "Pass", color: "var(--color-green)" },
-  warn: { icon: AlertTriangle, label: "Warning", color: "#fbbf24" },
-  fail: { icon: XCircle, label: "Fail", color: "var(--color-red)" },
-};
-
-/* Fix action config for specific check IDs */
-const FIX_ACTIONS: Record<string, { label: string; endpoint: string }> = {
-  "bank-reconciliation": {
-    label: "Sync Bank Balances from GL",
-    endpoint: "/api/financial/audit/sync-bank-balances",
-  },
-  "unposted-entries": {
-    label: "Post All Draft Entries",
-    endpoint: "/api/financial/audit/post-drafts",
-  },
-  "invoice-je-coverage": {
-    label: "Create Missing JEs",
-    endpoint: "/api/financial/audit/fix-invoices",
-  },
-  "missing-gl-mappings": {
-    label: "Auto-Map GL Accounts",
-    endpoint: "/api/financial/audit/fix-invoices",
-  },
-  "orphaned-je-lines": {
-    label: "Remove Orphaned Lines",
-    endpoint: "/api/financial/audit/fix-orphaned-lines",
-  },
-  "duplicate-jes": {
-    label: "Remove Duplicates",
-    endpoint: "/api/financial/audit/fix-duplicates",
-  },
-  "missing-vendor-client": {
-    label: "Set Unknown Names",
-    endpoint: "/api/financial/audit/fix-vendor-info",
-  },
-  "payment-je-coverage": {
-    label: "Create Missing Payment JEs",
-    endpoint: "/api/financial/audit/fix-invoices",
-  },
-  "ar-reconciliation": {
-    label: "Recompute from Invoices",
-    endpoint: "/api/financial/audit/fix-invoices",
-  },
-  "ap-reconciliation": {
-    label: "Recompute from Invoices",
-    endpoint: "/api/financial/audit/fix-invoices",
-  },
+const FIX_ENDPOINTS: Record<string, string> = {
+  "bank-reconciliation": "/api/financial/audit/sync-bank-balances",
+  "unposted-entries": "/api/financial/audit/post-drafts",
+  "invoice-je-coverage": "/api/financial/audit/fix-invoices",
+  "missing-gl-mappings": "/api/financial/audit/fix-invoices",
+  "orphaned-je-lines": "/api/financial/audit/fix-orphaned-lines",
+  "duplicate-jes": "/api/financial/audit/fix-duplicates",
+  "missing-vendor-client": "/api/financial/audit/fix-vendor-info",
+  "payment-je-coverage": "/api/financial/audit/fix-invoices",
+  "ar-reconciliation": "/api/financial/audit/fix-invoices",
+  "ap-reconciliation": "/api/financial/audit/fix-invoices",
 };
 
 function AuditCheck({
   check,
   onFix,
   fixing,
+  t,
 }: {
   check: AuditCheckResult;
   onFix?: (checkId: string) => void;
   fixing?: boolean;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const [expanded, setExpanded] = useState(check.status !== "pass");
+
+  const STATUS_CONFIG = useMemo(() => ({
+    pass: { icon: CheckCircle2, label: t("audit.pass"), color: "var(--color-green)" },
+    warn: { icon: AlertTriangle, label: t("audit.warning"), color: "#fbbf24" },
+    fail: { icon: XCircle, label: t("audit.fail"), color: "var(--color-red)" },
+  }), [t]);
+
+  const FIX_LABELS: Record<string, string> = useMemo(() => ({
+    "bank-reconciliation": t("audit.fixSyncBankBalances"),
+    "unposted-entries": t("audit.fixPostDrafts"),
+    "invoice-je-coverage": t("audit.fixCreateMissingJEs"),
+    "missing-gl-mappings": t("audit.fixAutoMapGL"),
+    "orphaned-je-lines": t("audit.fixRemoveOrphaned"),
+    "duplicate-jes": t("audit.fixRemoveDuplicates"),
+    "missing-vendor-client": t("audit.fixSetUnknownNames"),
+    "payment-je-coverage": t("audit.fixCreateMissingPaymentJEs"),
+    "ar-reconciliation": t("audit.fixRecomputeFromInvoices"),
+    "ap-reconciliation": t("audit.fixRecomputeFromInvoicesAP"),
+  }), [t]);
+
   const config = STATUS_CONFIG[check.status];
   const Icon = config.icon;
   const hasDetails = check.details.length > 0;
-  const fixAction = check.status !== "pass" ? FIX_ACTIONS[check.id] : undefined;
+  const hasFixAction = check.status !== "pass" && FIX_ENDPOINTS[check.id];
+  const fixLabel = FIX_LABELS[check.id];
 
   return (
     <div
@@ -110,7 +97,7 @@ function AuditCheck({
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {fixAction && onFix && (
+          {hasFixAction && onFix && fixLabel && (
             <button
               className="ui-btn ui-btn-sm ui-btn-outline"
               style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem" }}
@@ -121,7 +108,7 @@ function AuditCheck({
               }}
             >
               {fixing ? <Loader2 size={12} className="doc-spinner" /> : <Wrench size={12} />}
-              {fixing ? "Fixing..." : fixAction.label}
+              {fixing ? t("audit.fixing") : fixLabel}
             </button>
           )}
           <span
@@ -168,8 +155,8 @@ function AuditCheck({
   );
 }
 
-function exportAuditCSV(audit: AuditResult) {
-  const rows = [["Check", "Status", "Summary", "Details"]];
+function exportAuditCSV(audit: AuditResult, headers: string[]) {
+  const rows = [headers];
   for (const check of audit.checks) {
     rows.push([check.name, check.status, check.summary, check.details.join("; ")]);
   }
@@ -185,6 +172,7 @@ function exportAuditCSV(audit: AuditResult) {
 
 export default function AuditClient({ audit, companyName }: Props) {
   const router = useRouter();
+  const t = useTranslations("financial");
   const [fixingId, setFixingId] = useState<string | null>(null);
   const [isRunningAll, setIsRunningAll] = useState(false);
 
@@ -204,21 +192,20 @@ export default function AuditClient({ audit, companyName }: Props) {
   const gradeColor = GRADE_COLORS[audit.grade] || "var(--muted)";
 
   const handleFix = async (checkId: string) => {
-    const action = FIX_ACTIONS[checkId];
-    if (!action) return;
+    const endpoint = FIX_ENDPOINTS[checkId];
+    if (!endpoint) return;
 
     setFixingId(checkId);
     try {
-      const res = await fetch(action.endpoint, { method: "POST" });
+      const res = await fetch(endpoint, { method: "POST" });
       if (!res.ok) {
         const data = await res.json();
-        alert(`Fix failed: ${data.error || "Unknown error"}`);
+        alert(`${t("audit.fixFailed")}: ${data.error || t("audit.unknownError")}`);
       } else {
-        // Re-run audit to show updated results
         router.refresh();
       }
     } catch {
-      alert("Network error while applying fix");
+      alert(t("audit.networkError"));
     } finally {
       setFixingId(null);
     }
@@ -230,10 +217,10 @@ export default function AuditClient({ audit, companyName }: Props) {
       <div className="dash-header">
         <div>
           <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "2rem", fontWeight: 700 }}>
-            Financial Audit
+            {t("audit.title")}
           </h2>
           <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: 2 }}>
-            Automated checks to verify data integrity and accounting accuracy
+            {t("audit.subtitle")}
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -241,10 +228,15 @@ export default function AuditClient({ audit, companyName }: Props) {
           <button
             className="ui-btn ui-btn-outline ui-btn-sm"
             style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-            onClick={() => exportAuditCSV(audit)}
+            onClick={() => exportAuditCSV(audit, [
+              t("audit.csvCheck"),
+              t("audit.csvStatus"),
+              t("audit.csvSummary"),
+              t("audit.csvDetails"),
+            ])}
           >
             <Download size={14} />
-            Export CSV
+            {t("audit.exportCsv")}
           </button>
           {failCount + warnCount > 0 && (
             <button
@@ -255,10 +247,10 @@ export default function AuditClient({ audit, companyName }: Props) {
                 setIsRunningAll(true);
                 const failedChecks = audit.checks.filter((c) => c.status !== "pass");
                 for (const check of failedChecks) {
-                  const action = FIX_ACTIONS[check.id];
-                  if (action) {
+                  const endpoint = FIX_ENDPOINTS[check.id];
+                  if (endpoint) {
                     try {
-                      await fetch(action.endpoint, { method: "POST" });
+                      await fetch(endpoint, { method: "POST" });
                     } catch { /* continue */ }
                   }
                 }
@@ -267,7 +259,7 @@ export default function AuditClient({ audit, companyName }: Props) {
               }}
             >
               {isRunningAll ? <Loader2 size={14} className="doc-spinner" /> : <Wrench size={14} />}
-              {isRunningAll ? "Repairing..." : "Run Full Repair"}
+              {isRunningAll ? t("audit.repairing") : t("audit.runFullRepair")}
             </button>
           )}
           <a
@@ -276,7 +268,7 @@ export default function AuditClient({ audit, companyName }: Props) {
             style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
           >
             <RefreshCw size={14} />
-            Re-run
+            {t("audit.reRun")}
           </a>
         </div>
       </div>
@@ -286,7 +278,7 @@ export default function AuditClient({ audit, companyName }: Props) {
         {/* Grade */}
         <div className="card kpi">
           <div className="kpi-info">
-            <span className="kpi-label">Overall Grade</span>
+            <span className="kpi-label">{t("audit.overallGrade")}</span>
             <span className="kpi-value" style={{ color: gradeColor, fontSize: "2.5rem" }}>
               {audit.grade}
             </span>
@@ -299,7 +291,7 @@ export default function AuditClient({ audit, companyName }: Props) {
         {/* Total Checks */}
         <div className="card kpi">
           <div className="kpi-info">
-            <span className="kpi-label">Total Checks</span>
+            <span className="kpi-label">{t("audit.totalChecks")}</span>
             <span className="kpi-value">{totalChecks}</span>
           </div>
           <div className="kpi-icon">
@@ -310,7 +302,7 @@ export default function AuditClient({ audit, companyName }: Props) {
         {/* Passed */}
         <div className="card kpi">
           <div className="kpi-info">
-            <span className="kpi-label">Passed</span>
+            <span className="kpi-label">{t("audit.passed")}</span>
             <span className="kpi-value" style={{ color: "var(--color-green)" }}>{passCount}</span>
           </div>
           <div className="kpi-icon" style={{ color: "var(--color-green)" }}>
@@ -321,7 +313,7 @@ export default function AuditClient({ audit, companyName }: Props) {
         {/* Warnings */}
         <div className="card kpi">
           <div className="kpi-info">
-            <span className="kpi-label">Warnings</span>
+            <span className="kpi-label">{t("audit.warnings")}</span>
             <span className="kpi-value" style={{ color: "#fbbf24" }}>{warnCount}</span>
           </div>
           <div className="kpi-icon" style={{ color: "#fbbf24" }}>
@@ -332,7 +324,7 @@ export default function AuditClient({ audit, companyName }: Props) {
         {/* Failed */}
         <div className="card kpi">
           <div className="kpi-info">
-            <span className="kpi-label">Failed</span>
+            <span className="kpi-label">{t("audit.failed")}</span>
             <span className="kpi-value" style={{ color: "var(--color-red)" }}>{failCount}</span>
           </div>
           <div className="kpi-icon" style={{ color: "var(--color-red)" }}>
@@ -345,7 +337,7 @@ export default function AuditClient({ audit, companyName }: Props) {
       <div className="card" style={{ padding: 0 }}>
         <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)" }}>
           <div className="card-title" style={{ marginBottom: 0 }}>
-            Audit Results — {companyName}
+            {t("audit.resultsTitle", { companyName })}
           </div>
         </div>
         <div>
@@ -355,6 +347,7 @@ export default function AuditClient({ audit, companyName }: Props) {
               check={check}
               onFix={handleFix}
               fixing={fixingId === check.id}
+              t={t}
             />
           ))}
         </div>

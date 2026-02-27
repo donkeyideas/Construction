@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { HardHat, MapPin, DollarSign, Percent, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import { ReportWizard } from "@/components/reports/ReportWizard";
@@ -40,12 +41,6 @@ interface Props {
   companyName: string;
 }
 
-const STEPS = [
-  { label: "Select Project" },
-  { label: "Configure & Generate" },
-  { label: "Preview & Download" },
-];
-
 const theme = REPORT_THEMES.basis_of_design;
 
 function fmt(n: number | null | undefined): string {
@@ -54,6 +49,12 @@ function fmt(n: number | null | undefined): string {
 }
 
 export function BasisOfDesignClient({ projects, companyId, companyName }: Props) {
+  const t = useTranslations("reports");
+  const STEPS = useMemo(() => [
+    { label: t("basisOfDesign.stepSelectProject") },
+    { label: t("basisOfDesign.stepConfigure") },
+    { label: t("basisOfDesign.stepPreview") },
+  ], [t]);
   const [step, setStep] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [comparative, setComparative] = useState(false);
@@ -115,7 +116,7 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
           ...prev,
           [sectionId]: {
             ...prev[sectionId],
-            narrative: "AI narrative generation not available. Configure an AI provider in Admin > AI Providers to enable auto-generated narratives.",
+            narrative: t("aiNarrativeUnavailable"),
           },
         }));
       }
@@ -125,7 +126,7 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
         ...prev,
         [sectionId]: {
           ...prev[sectionId],
-          narrative: "AI narrative generation not available. Configure an AI provider in Admin > AI Providers to enable auto-generated narratives.",
+          narrative: t("aiNarrativeUnavailable"),
         },
       }));
     }
@@ -144,20 +145,20 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
       const p = data.projects[0];
       newData.project_summary = {
         kpis: [
-          { label: "Contract Amount", value: fmt(p.contract_amount) },
-          { label: "Estimated Cost", value: fmt(p.estimated_cost) },
-          { label: "Actual Cost", value: fmt(p.actual_cost) },
-          { label: "Completion", value: `${p.completion_pct}%` },
-          { label: "Status", value: p.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) },
+          { label: t("basisOfDesign.contractAmount"), value: fmt(p.contract_amount) },
+          { label: t("basisOfDesign.estimatedCost"), value: fmt(p.estimated_cost) },
+          { label: t("basisOfDesign.actualCost"), value: fmt(p.actual_cost) },
+          { label: t("basisOfDesign.completion"), value: `${p.completion_pct}%` },
+          { label: t("basisOfDesign.status"), value: p.status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) },
         ],
         tableData: [
-          { field: "Project Code", value: p.code },
-          { field: "Client", value: p.client_name ?? "N/A" },
-          { field: "Type", value: p.project_type ?? "N/A" },
-          { field: "Project Manager", value: p.project_manager ?? "N/A" },
-          { field: "Superintendent", value: p.superintendent ?? "N/A" },
-          { field: "Start Date", value: p.start_date ? new Date(p.start_date).toLocaleDateString() : "N/A" },
-          { field: "Est. End Date", value: p.estimated_end_date ? new Date(p.estimated_end_date).toLocaleDateString() : "N/A" },
+          { field: t("basisOfDesign.projectCode"), value: p.code },
+          { field: t("basisOfDesign.client"), value: p.client_name ?? t("na") },
+          { field: t("basisOfDesign.type"), value: p.project_type ?? t("na") },
+          { field: t("basisOfDesign.projectManager"), value: p.project_manager ?? t("na") },
+          { field: t("basisOfDesign.superintendent"), value: p.superintendent ?? t("na") },
+          { field: t("basisOfDesign.startDate"), value: p.start_date ? new Date(p.start_date).toLocaleDateString() : t("na") },
+          { field: t("basisOfDesign.estEndDate"), value: p.estimated_end_date ? new Date(p.estimated_end_date).toLocaleDateString() : t("na") },
         ],
       };
     }
@@ -172,11 +173,11 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
         variance: b.variance,
       })),
       tableColumns: [
-        { key: "code", label: "CSI Code" },
-        { key: "description", label: "Description" },
-        { key: "budgeted", label: "Budgeted", format: "currency" },
-        { key: "actual", label: "Actual", format: "currency" },
-        { key: "variance", label: "Variance", format: "currency" },
+        { key: "code", label: t("basisOfDesign.csiCode") },
+        { key: "description", label: t("basisOfDesign.description") },
+        { key: "budgeted", label: t("basisOfDesign.budgeted"), format: "currency" },
+        { key: "actual", label: t("basisOfDesign.actual"), format: "currency" },
+        { key: "variance", label: t("basisOfDesign.variance"), format: "currency" },
       ],
     };
 
@@ -197,30 +198,30 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
         actual: d.actual,
       })),
       kpis: [
-        { label: "Total Budgeted", value: fmt(data.budgetLines.reduce((s, b) => s + b.budgeted_amount, 0)) },
-        { label: "Total Actual", value: fmt(data.budgetLines.reduce((s, b) => s + b.actual_amount, 0)) },
-        { label: "Total Variance", value: fmt(data.budgetLines.reduce((s, b) => s + b.variance, 0)) },
-        { label: "Budget Lines", value: String(data.budgetLines.length) },
+        { label: t("basisOfDesign.totalBudgeted"), value: fmt(data.budgetLines.reduce((s, b) => s + b.budgeted_amount, 0)) },
+        { label: t("basisOfDesign.totalActual"), value: fmt(data.budgetLines.reduce((s, b) => s + b.actual_amount, 0)) },
+        { label: t("basisOfDesign.totalVariance"), value: fmt(data.budgetLines.reduce((s, b) => s + b.variance, 0)) },
+        { label: t("basisOfDesign.budgetLines"), value: String(data.budgetLines.length) },
       ],
     };
 
     // Schedule
     newData.schedule = {
-      tableData: data.tasks.filter((t) => t.is_milestone || t.is_critical_path).slice(0, 15).map((t) => ({
-        name: t.name,
-        phase: t.phase_name ?? "—",
-        start: t.start_date ? new Date(t.start_date).toLocaleDateString() : "—",
-        end: t.end_date ? new Date(t.end_date).toLocaleDateString() : "—",
-        completion: `${t.completion_pct}%`,
-        critical: t.is_critical_path ? "Yes" : "",
+      tableData: data.tasks.filter((tk) => tk.is_milestone || tk.is_critical_path).slice(0, 15).map((tk) => ({
+        name: tk.name,
+        phase: tk.phase_name ?? "—",
+        start: tk.start_date ? new Date(tk.start_date).toLocaleDateString() : "—",
+        end: tk.end_date ? new Date(tk.end_date).toLocaleDateString() : "—",
+        completion: `${tk.completion_pct}%`,
+        critical: tk.is_critical_path ? t("yes") : "",
       })),
       tableColumns: [
-        { key: "name", label: "Task" },
-        { key: "phase", label: "Phase" },
-        { key: "start", label: "Start" },
-        { key: "end", label: "End" },
-        { key: "completion", label: "Complete" },
-        { key: "critical", label: "Critical Path" },
+        { key: "name", label: t("basisOfDesign.task") },
+        { key: "phase", label: t("basisOfDesign.phase") },
+        { key: "start", label: t("basisOfDesign.start") },
+        { key: "end", label: t("basisOfDesign.end") },
+        { key: "completion", label: t("basisOfDesign.complete") },
+        { key: "critical", label: t("basisOfDesign.criticalPath") },
       ],
     };
 
@@ -234,11 +235,11 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
         date: new Date(c.created_at).toLocaleDateString(),
       })),
       tableColumns: [
-        { key: "title", label: "Description" },
-        { key: "amount", label: "Amount", format: "currency" },
-        { key: "status", label: "Status" },
-        { key: "impact", label: "Schedule Impact" },
-        { key: "date", label: "Date" },
+        { key: "title", label: t("basisOfDesign.description") },
+        { key: "amount", label: t("basisOfDesign.amount"), format: "currency" },
+        { key: "status", label: t("basisOfDesign.status") },
+        { key: "impact", label: t("basisOfDesign.scheduleImpact") },
+        { key: "date", label: t("basisOfDesign.date") },
       ],
     };
 
@@ -253,12 +254,12 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
         status: e.status,
       })),
       tableColumns: [
-        { key: "name", label: "Equipment" },
-        { key: "type", label: "Type" },
-        { key: "make", label: "Make" },
-        { key: "model", label: "Model" },
-        { key: "serial", label: "Serial #" },
-        { key: "status", label: "Status" },
+        { key: "name", label: t("basisOfDesign.equipment") },
+        { key: "type", label: t("basisOfDesign.type") },
+        { key: "make", label: t("basisOfDesign.make") },
+        { key: "model", label: t("basisOfDesign.model") },
+        { key: "serial", label: t("basisOfDesign.serialNumber") },
+        { key: "status", label: t("basisOfDesign.status") },
       ],
     };
 
@@ -271,10 +272,10 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
         findings: i.findings_count,
       })),
       tableColumns: [
-        { key: "type", label: "Inspection Type" },
-        { key: "date", label: "Date" },
-        { key: "status", label: "Status" },
-        { key: "findings", label: "Findings", format: "number" },
+        { key: "type", label: t("basisOfDesign.inspectionType") },
+        { key: "date", label: t("basisOfDesign.date") },
+        { key: "status", label: t("basisOfDesign.status") },
+        { key: "findings", label: t("basisOfDesign.findings"), format: "number" },
       ],
     };
 
@@ -399,25 +400,25 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
   return (
     <div>
       <Link href="/reports/authoritative" style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--muted)", textDecoration: "none", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-        <ArrowLeft size={14} /> Back to Authoritative Reports
+        <ArrowLeft size={14} /> {t("backToAuthoritativeReports")}
       </Link>
-      <h2 style={{ fontFamily: "var(--font-serif, Georgia, serif)", marginBottom: "0.5rem" }}>Basis of Design</h2>
+      <h2 style={{ fontFamily: "var(--font-serif, Georgia, serif)", marginBottom: "0.5rem" }}>{t("basisOfDesign.title")}</h2>
       <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
-        Document the technical requirements, engineering decisions, and specifications for your project.
+        {t("basisOfDesign.subtitle")}
       </p>
 
       <ReportWizard steps={STEPS} currentStep={step} onStepClick={setStep}>
         {step === 0 && (
           <div className="subject-selection">
             <div className="subject-selection-header">
-              <h3>Select Project</h3>
+              <h3>{t("basisOfDesign.selectProject")}</h3>
               <label className="comparative-toggle">
                 <input type="checkbox" checked={comparative} onChange={(e) => { setComparative(e.target.checked); if (!e.target.checked && selectedIds.length > 1) setSelectedIds([selectedIds[0]]); }} />
-                Multi-Project Mode
+                {t("basisOfDesign.multiProjectMode")}
               </label>
             </div>
             {projects.length === 0 ? (
-              <div style={{ padding: "3rem", textAlign: "center", color: "var(--muted)" }}>No projects found.</div>
+              <div style={{ padding: "3rem", textAlign: "center", color: "var(--muted)" }}>{t("basisOfDesign.noProjectsFound")}</div>
             ) : (
               <div className="subject-cards">
                 {projects.map((p) => (
@@ -426,7 +427,7 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
                     <div className="subject-card-meta">
                       <span className="subject-card-stat"><HardHat size={12} />{p.status.replace(/_/g, " ")}</span>
                       <span className="subject-card-stat"><DollarSign size={12} />{fmt(p.contract_amount)}</span>
-                      <span className="subject-card-stat"><Percent size={12} />{p.completion_pct}% complete</span>
+                      <span className="subject-card-stat"><Percent size={12} />{t("basisOfDesign.percentComplete", { pct: p.completion_pct })}</span>
                       {p.client_name && <span className="subject-card-stat">{p.client_name}</span>}
                     </div>
                   </div>
@@ -435,14 +436,14 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
             )}
             {selectedIds.length > 0 && (
               <button className="report-toolbar-btn primary" style={{ alignSelf: "flex-end", marginTop: "1rem" }} onClick={() => setStep(1)} type="button">
-                Next: Configure Sections
+                {t("nextConfigureSections")}
               </button>
             )}
           </div>
         )}
         {step === 1 && (
           <div>
-            <h3 style={{ marginBottom: "1rem" }}>Configure Report Sections</h3>
+            <h3 style={{ marginBottom: "1rem" }}>{t("configureReportSections")}</h3>
             <div className="section-config">
               {sections.map((s) => (
                 <label key={s.id} className="section-config-item">
@@ -460,7 +461,7 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
             <ReportToolbar onGenerate={handleGenerate} onUpdateData={() => fetchData()} onDownloadPDF={handleDownloadPDF} onSave={handleSave} onView={reportData ? () => setShowPreviewModal(true) : undefined} isGenerating={isGenerating} isDownloading={isDownloading} isSaving={isSaving} hasData={!!reportData} watermark={watermark} onWatermarkChange={setWatermark} />
             <ReportPreview
               reportType="basis_of_design"
-              title={selectedProjects.length === 1 ? `Basis of Design: ${selectedProjects[0].name}` : `Basis of Design: ${selectedProjects.length} Projects`}
+              title={selectedProjects.length === 1 ? t("basisOfDesign.titleWithName", { name: selectedProjects[0].name }) : t("basisOfDesign.titleWithCount", { count: selectedProjects.length })}
               companyName={companyName}
               generatedAt={reportData?.generatedAt}
               sections={sections}
@@ -476,15 +477,15 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
         <div className="report-preview-modal-overlay" onClick={() => setShowPreviewModal(false)}>
           <div className="report-preview-modal" onClick={(e) => e.stopPropagation()}>
             <div className="report-preview-modal-header">
-              <h3>Report Preview</h3>
+              <h3>{t("reportPreview")}</h3>
               <button className="report-preview-modal-close" onClick={() => setShowPreviewModal(false)} type="button">
-                <X size={14} /> Close
+                <X size={14} /> {t("close")}
               </button>
             </div>
             <div className="report-preview-modal-body">
               <ReportPreview
                 reportType="basis_of_design"
-                title={selectedProjects.length === 1 ? `Basis of Design: ${selectedProjects[0].name}` : `Basis of Design: ${selectedProjects.length} Projects`}
+                title={selectedProjects.length === 1 ? t("basisOfDesign.titleWithName", { name: selectedProjects[0].name }) : t("basisOfDesign.titleWithCount", { count: selectedProjects.length })}
                 companyName={companyName}
                 generatedAt={reportData.generatedAt}
                 sections={sections}

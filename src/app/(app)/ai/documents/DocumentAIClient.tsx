@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   FileSearch,
@@ -44,20 +45,6 @@ interface DocumentAIClientProps {
 }
 
 // ---------------------------------------------------------------------------
-// Document type definitions
-// ---------------------------------------------------------------------------
-
-const DOCUMENT_TYPES: DocumentTypeOption[] = [
-  { id: "contract", label: "Contract" },
-  { id: "insurance_certificate", label: "Insurance Certificate" },
-  { id: "lien_waiver", label: "Lien Waiver" },
-  { id: "invoice", label: "Invoice" },
-  { id: "change_order", label: "Change Order" },
-  { id: "permit", label: "Permit" },
-  { id: "other", label: "Other" },
-];
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -65,6 +52,22 @@ export default function DocumentAIClient({
   companyId,
   hasProvider,
 }: DocumentAIClientProps) {
+  const t = useTranslations("ai");
+
+  // Document type definitions (translated)
+  const documentTypes: DocumentTypeOption[] = useMemo(
+    () => [
+      { id: "contract", label: t("documents.contract") },
+      { id: "insurance_certificate", label: t("documents.insuranceCertificate") },
+      { id: "lien_waiver", label: t("documents.lienWaiver") },
+      { id: "invoice", label: t("documents.invoice") },
+      { id: "change_order", label: t("documents.changeOrder") },
+      { id: "permit", label: t("documents.permit") },
+      { id: "other", label: t("documents.other") },
+    ],
+    [t]
+  );
+
   // State
   const [documentType, setDocumentType] = useState<DocumentType>("contract");
   const [documentText, setDocumentText] = useState("");
@@ -209,10 +212,10 @@ export default function DocumentAIClient({
           <div>
             <h1>
               <FileSearch size={28} className="sparkle-icon" />
-              Document AI
+              {t("documents.title")}
             </h1>
             <p className="subtitle">
-              Extract structured data from construction documents using AI
+              {t("documents.subtitle")}
             </p>
           </div>
         </div>
@@ -238,7 +241,7 @@ export default function DocumentAIClient({
               fontFamily: "var(--font-serif)",
             }}
           >
-            AI Provider Required
+            {t("documents.aiProviderRequired")}
           </div>
           <p
             style={{
@@ -248,15 +251,14 @@ export default function DocumentAIClient({
               marginBottom: 16,
             }}
           >
-            Configure an AI provider in Administration &gt; AI Providers to
-            enable document extraction.
+            {t("documents.configureProviderDoc")}
           </p>
           <Link
             href="/admin/ai-providers"
             className="ui-btn ui-btn-primary"
             style={{ display: "inline-flex" }}
           >
-            Configure AI Provider
+            {t("documents.configureAiProvider")}
           </Link>
         </div>
       </div>
@@ -271,10 +273,10 @@ export default function DocumentAIClient({
         <div>
           <h1>
             <FileSearch size={28} className="sparkle-icon" />
-            Document AI
+            {t("documents.title")}
           </h1>
           <p className="subtitle">
-            Extract structured data from construction documents using AI
+            {t("documents.subtitle")}
           </p>
         </div>
       </div>
@@ -293,7 +295,7 @@ export default function DocumentAIClient({
             marginBottom: 6,
           }}
         >
-          Document Type
+          {t("documents.documentType")}
         </label>
         <select
           id="doc-type-select"
@@ -312,7 +314,7 @@ export default function DocumentAIClient({
             appearance: "auto",
           }}
         >
-          {DOCUMENT_TYPES.map((dt) => (
+          {documentTypes.map((dt) => (
             <option key={dt.id} value={dt.id}>
               {dt.label}
             </option>
@@ -327,16 +329,16 @@ export default function DocumentAIClient({
             <Upload size={22} />
           </div>
           <div style={{ textAlign: "left" }}>
-            <div className="upload-text">Paste Document Text</div>
+            <div className="upload-text">{t("documents.pasteDocumentText")}</div>
             <div className="upload-hint">
-              Paste the text content of your document below for AI extraction
+              {t("documents.pasteHint")}
             </div>
           </div>
         </div>
         <textarea
           value={documentText}
           onChange={(e) => setDocumentText(e.target.value)}
-          placeholder="Paste the full text of your contract, insurance certificate, lien waiver, invoice, change order, permit, or other construction document here..."
+          placeholder={t("documents.textareaPlaceholder")}
           style={{
             width: "100%",
             minHeight: 200,
@@ -372,12 +374,12 @@ export default function DocumentAIClient({
           {isExtracting ? (
             <>
               <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
-              Extracting...
+              {t("documents.extracting")}
             </>
           ) : (
             <>
               <FileSearch size={16} />
-              Extract Data
+              {t("documents.extractData")}
             </>
           )}
         </button>
@@ -420,12 +422,12 @@ export default function DocumentAIClient({
       {extractedFields.length > 0 && (
         <>
           <div className="doc-extracted-data">
-            <div className="extracted-title">Extracted Data</div>
+            <div className="extracted-title">{t("documents.extractedData")}</div>
             {extractedFields.map((field, idx) => (
               <div key={idx} className="doc-field-row">
                 <div className="field-name">{field.name}</div>
                 <div className="field-value">
-                  {field.value !== null ? field.value : "Not found"}
+                  {field.value !== null ? field.value : t("documents.notFound")}
                 </div>
                 <span className={`confidence-badge ${getConfidenceClass(field.confidence)}`}>
                   {field.confidence}
@@ -448,7 +450,7 @@ export default function DocumentAIClient({
               }}
             >
               {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
-              {copied ? "Copied" : "Copy as JSON"}
+              {copied ? t("documents.copied") : t("documents.copyAsJson")}
             </button>
             <button
               type="button"
@@ -464,7 +466,7 @@ export default function DocumentAIClient({
               }}
             >
               <ClipboardList size={14} />
-              Create Record
+              {t("documents.createRecord")}
             </button>
             <button
               type="button"
@@ -479,7 +481,7 @@ export default function DocumentAIClient({
               }}
             >
               <RotateCcw size={14} />
-              Re-extract
+              {t("documents.reExtract")}
             </button>
           </div>
         </>
@@ -508,7 +510,7 @@ export default function DocumentAIClient({
               fontFamily: "var(--font-serif)",
             }}
           >
-            No Document Loaded
+            {t("documents.noDocumentLoaded")}
           </div>
           <p
             style={{
@@ -518,9 +520,7 @@ export default function DocumentAIClient({
               margin: 0,
             }}
           >
-            Select a document type, paste the text content of your construction
-            document above, and click Extract Data to pull structured
-            information using AI.
+            {t("documents.noDocumentDesc")}
           </p>
         </div>
       )}

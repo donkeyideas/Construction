@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   Puzzle,
@@ -40,6 +41,7 @@ export default function IntegrationsClient({
   stats,
 }: IntegrationsClientProps) {
   const router = useRouter();
+  const t = useTranslations("adminPanel");
 
   // Filter state
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
@@ -301,9 +303,9 @@ export default function IntegrationsClient({
       {/* Header */}
       <div className="integrations-header">
         <div>
-          <h2>Integrations</h2>
+          <h2>{t("integrations.title")}</h2>
           <p className="integrations-header-sub">
-            Connect third-party services and tools to your workspace.
+            {t("integrations.subtitle")}
           </p>
         </div>
       </div>
@@ -314,21 +316,21 @@ export default function IntegrationsClient({
           <div className="integrations-stat-icon green">
             <Link2 size={18} />
           </div>
-          <div className="integrations-stat-label">Connected</div>
+          <div className="integrations-stat-label">{t("integrations.connected")}</div>
           <div className="integrations-stat-value">{stats.connected}</div>
         </div>
         <div className="integrations-stat-card">
           <div className="integrations-stat-icon blue">
             <Puzzle size={18} />
           </div>
-          <div className="integrations-stat-label">Available</div>
+          <div className="integrations-stat-label">{t("integrations.available")}</div>
           <div className="integrations-stat-value">{availableCount > 0 ? availableCount : 0}</div>
         </div>
         <div className="integrations-stat-card">
           <div className="integrations-stat-icon red">
             <AlertTriangle size={18} />
           </div>
-          <div className="integrations-stat-label">Errors</div>
+          <div className="integrations-stat-label">{t("integrations.errors")}</div>
           <div className="integrations-stat-value">{stats.error}</div>
         </div>
       </div>
@@ -344,11 +346,11 @@ export default function IntegrationsClient({
       <div className="integrations-tabs">
         {(
           [
-            { key: "all", label: "All" },
-            { key: "accounting", label: "Accounting" },
-            { key: "project_management", label: "Project Management" },
-            { key: "communication", label: "Communication" },
-            { key: "payment", label: "Payment" },
+            { key: "all", label: t("integrations.all") },
+            { key: "accounting", label: t("integrations.accounting") },
+            { key: "project_management", label: t("integrations.projectManagement") },
+            { key: "communication", label: t("integrations.communication") },
+            { key: "payment", label: t("integrations.payment") },
           ] as { key: CategoryFilter; label: string }[]
         ).map((tab) => (
           <button
@@ -408,7 +410,7 @@ export default function IntegrationsClient({
                       disabled={actionLoading === existing?.id}
                     >
                       <Settings size={14} />
-                      Configure
+                      {t("integrations.configure")}
                     </button>
                     <button
                       className="btn-secondary integrations-btn danger"
@@ -416,7 +418,7 @@ export default function IntegrationsClient({
                       disabled={actionLoading === existing?.id}
                     >
                       <Unlink size={14} />
-                      Disconnect
+                      {t("integrations.disconnect")}
                     </button>
                   </>
                 ) : existing && status === "disconnected" ? (
@@ -427,7 +429,7 @@ export default function IntegrationsClient({
                       disabled={actionLoading === provider.key}
                     >
                       <Link2 size={14} />
-                      {actionLoading === provider.key ? "Connecting..." : "Reconnect"}
+                      {actionLoading === provider.key ? t("integrations.connecting") : t("integrations.reconnect")}
                     </button>
                     <button
                       className="btn-secondary integrations-btn danger"
@@ -444,7 +446,7 @@ export default function IntegrationsClient({
                     disabled={actionLoading === provider.key}
                   >
                     <Plus size={14} />
-                    {actionLoading === provider.key ? "Connecting..." : "Connect"}
+                    {actionLoading === provider.key ? t("integrations.connecting") : t("integrations.connect")}
                   </button>
                 )}
               </div>
@@ -472,7 +474,7 @@ export default function IntegrationsClient({
               Configure {configModal.provider_name}
             </div>
             <div className="integrations-modal-desc">
-              Update the connection settings for this integration.
+              {t("integrations.updateConnectionSettings")}
             </div>
 
             {message && (
@@ -514,7 +516,7 @@ export default function IntegrationsClient({
                   className="btn-primary"
                   disabled={actionLoading === configModal.id}
                 >
-                  {actionLoading === configModal.id ? "Saving..." : "Save Configuration"}
+                  {actionLoading === configModal.id ? t("integrations.saving") : t("integrations.saveConfiguration")}
                 </button>
               </div>
             </form>

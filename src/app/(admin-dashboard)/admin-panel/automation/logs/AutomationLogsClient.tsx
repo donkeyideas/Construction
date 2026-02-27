@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   FileText,
@@ -30,6 +31,8 @@ type StatusFilter = "all" | "success" | "failed" | "skipped";
 export default function AutomationLogsClient({
   logs,
 }: AutomationLogsClientProps) {
+  const t = useTranslations("adminPanel");
+
   // Filter state
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [startDate, setStartDate] = useState("");
@@ -96,15 +99,15 @@ export default function AutomationLogsClient({
       {/* Header */}
       <div className="automation-header">
         <div>
-          <h2>Automation Logs</h2>
+          <h2>{t("automationLogs.title")}</h2>
           <p className="automation-header-sub">
-            Review execution history for all automation rules.
+            {t("automationLogs.subtitle")}
           </p>
         </div>
         <div className="automation-header-actions">
           <Link href="/admin-panel/automation" className="btn-secondary">
             <ArrowLeft size={14} />
-            Back to Rules
+            {t("automationLogs.backToRules")}
           </Link>
         </div>
       </div>
@@ -112,20 +115,20 @@ export default function AutomationLogsClient({
       {/* Filters */}
       <div className="automation-logs-filters">
         <div className="automation-logs-filter-group">
-          <label className="automation-form-label">Status</label>
+          <label className="automation-form-label">{t("automationLogs.status")}</label>
           <select
             className="automation-form-select"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
           >
-            <option value="all">All</option>
-            <option value="success">Success</option>
-            <option value="failed">Failed</option>
-            <option value="skipped">Skipped</option>
+            <option value="all">{t("automationLogs.all")}</option>
+            <option value="success">{t("automationLogs.success")}</option>
+            <option value="failed">{t("automationLogs.failed")}</option>
+            <option value="skipped">{t("automationLogs.skipped")}</option>
           </select>
         </div>
         <div className="automation-logs-filter-group">
-          <label className="automation-form-label">Start Date</label>
+          <label className="automation-form-label">{t("automationLogs.startDate")}</label>
           <input
             type="date"
             className="automation-form-input"
@@ -134,7 +137,7 @@ export default function AutomationLogsClient({
           />
         </div>
         <div className="automation-logs-filter-group">
-          <label className="automation-form-label">End Date</label>
+          <label className="automation-form-label">{t("automationLogs.endDate")}</label>
           <input
             type="date"
             className="automation-form-input"
@@ -152,7 +155,7 @@ export default function AutomationLogsClient({
               setEndDate("");
             }}
           >
-            Clear Filters
+            {t("automationLogs.clearFilters")}
           </button>
         )}
       </div>
@@ -164,11 +167,11 @@ export default function AutomationLogsClient({
             <thead>
               <tr>
                 <th style={{ width: 30 }}></th>
-                <th>Rule Name</th>
-                <th>Entity</th>
-                <th>Status</th>
-                <th>Timestamp</th>
-                <th>Actions Executed</th>
+                <th>{t("automationLogs.thRuleName")}</th>
+                <th>{t("automationLogs.thEntity")}</th>
+                <th>{t("automationLogs.thStatus")}</th>
+                <th>{t("automationLogs.thTimestamp")}</th>
+                <th>{t("automationLogs.thActionsExecuted")}</th>
               </tr>
             </thead>
             <tbody>
@@ -206,17 +209,17 @@ export default function AutomationLogsClient({
                         <div className="automation-log-detail-content">
                           {log.entity_id && (
                             <div className="automation-log-detail-row">
-                              <strong>Entity ID:</strong> {log.entity_id}
+                              <strong>{t("automationLogs.entityId")}:</strong> {log.entity_id}
                             </div>
                           )}
                           {log.error_message && (
                             <div className="automation-log-detail-row automation-log-error">
-                              <strong>Error:</strong> {log.error_message}
+                              <strong>{t("automationLogs.error")}:</strong> {log.error_message}
                             </div>
                           )}
                           {log.actions_executed && log.actions_executed.length > 0 && (
                             <div className="automation-log-detail-row">
-                              <strong>Actions:</strong>
+                              <strong>{t("automationLogs.actions")}:</strong>
                               <ul className="automation-log-actions-list">
                                 {log.actions_executed.map((action, idx) => (
                                   <li key={idx}>
@@ -234,7 +237,7 @@ export default function AutomationLogsClient({
                           )}
                           {log.details && (
                             <div className="automation-log-detail-row">
-                              <strong>Details:</strong>
+                              <strong>{t("automationLogs.details")}:</strong>
                               <pre className="automation-log-json">
                                 {JSON.stringify(log.details, null, 2)}
                               </pre>
@@ -252,11 +255,11 @@ export default function AutomationLogsClient({
       ) : (
         <div className="automation-empty">
           <FileText size={32} />
-          <div className="automation-empty-title">No logs found</div>
+          <div className="automation-empty-title">{t("automationLogs.noLogsFound")}</div>
           <div className="automation-empty-desc">
             {statusFilter !== "all" || startDate || endDate
-              ? "Try adjusting your filters."
-              : "Automation execution logs will appear here."}
+              ? t("automationLogs.tryAdjustingFilters")
+              : t("automationLogs.logsWillAppear")}
           </div>
         </div>
       )}

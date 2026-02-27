@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   User,
   Mail,
@@ -43,6 +44,7 @@ export default function ProfileClient({
   companyName,
   role,
 }: ProfileClientProps) {
+  const t = useTranslations("employeeDashboard");
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState(profile.full_name ?? "");
@@ -85,7 +87,7 @@ export default function ProfileClient({
       }
 
       setEditing(false);
-      setSuccess("Profile updated successfully.");
+      setSuccess(t("profile.updateSuccess"));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -95,24 +97,17 @@ export default function ProfileClient({
   }
 
   function getRoleLabel(r: string): string {
-    switch (r) {
-      case "owner":
-        return "Owner";
-      case "admin":
-        return "Administrator";
-      case "project_manager":
-        return "Project Manager";
-      case "foreman":
-        return "Foreman";
-      case "worker":
-        return "Worker";
-      case "accountant":
-        return "Accountant";
-      case "viewer":
-        return "Viewer";
-      default:
-        return r.charAt(0).toUpperCase() + r.slice(1);
-    }
+    const roleKeys: Record<string, string> = {
+      owner: "profile.roleOwner",
+      admin: "profile.roleAdmin",
+      project_manager: "profile.roleProjectManager",
+      foreman: "profile.roleForeman",
+      worker: "profile.roleWorker",
+      accountant: "profile.roleAccountant",
+      viewer: "profile.roleViewer",
+    };
+    if (roleKeys[r]) return t(roleKeys[r]);
+    return r.charAt(0).toUpperCase() + r.slice(1);
   }
 
   // Generate initials for avatar placeholder
@@ -127,8 +122,8 @@ export default function ProfileClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>My Profile</h2>
-          <p className="fin-header-sub">View and update your personal information</p>
+          <h2>{t("profile.title")}</h2>
+          <p className="fin-header-sub">{t("profile.subtitle")}</p>
         </div>
         {!editing && (
           <button
@@ -137,7 +132,7 @@ export default function ProfileClient({
             style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
           >
             <Pencil size={15} />
-            Edit Profile
+            {t("profile.editProfile")}
           </button>
         )}
       </div>
@@ -185,13 +180,13 @@ export default function ProfileClient({
         <div className="fin-chart-card" style={{ padding: 24 }}>
           <h3 className="emp-section-title" style={{ marginBottom: 20 }}>
             <User size={18} style={{ color: "var(--color-amber)" }} />
-            Personal Information
+            {t("profile.personalInfo")}
           </h3>
 
           {editing ? (
             <form onSubmit={handleSave}>
               <div className="emp-form-field">
-                <label className="emp-form-label">Full Name</label>
+                <label className="emp-form-label">{t("profile.fullName")}</label>
                 <input
                   type="text"
                   className="invite-form-input"
@@ -203,7 +198,7 @@ export default function ProfileClient({
               </div>
 
               <div className="emp-form-field">
-                <label className="emp-form-label">Email</label>
+                <label className="emp-form-label">{t("profile.email")}</label>
                 <input
                   type="email"
                   className="invite-form-input"
@@ -212,12 +207,12 @@ export default function ProfileClient({
                   style={{ opacity: 0.6 }}
                 />
                 <div className="emp-form-hint">
-                  Email is managed through your account settings
+                  {t("profile.emailHint")}
                 </div>
               </div>
 
               <div className="emp-form-field">
-                <label className="emp-form-label">Phone</label>
+                <label className="emp-form-label">{t("profile.phone")}</label>
                 <input
                   type="tel"
                   className="invite-form-input"
@@ -229,7 +224,7 @@ export default function ProfileClient({
               </div>
 
               <div className="emp-form-field">
-                <label className="emp-form-label">Job Title</label>
+                <label className="emp-form-label">{t("profile.jobTitle")}</label>
                 <input
                   type="text"
                   className="invite-form-input"
@@ -238,7 +233,7 @@ export default function ProfileClient({
                   style={{ opacity: 0.6 }}
                 />
                 <div className="emp-form-hint">
-                  Job title is managed by your administrator
+                  {t("profile.jobTitleHint")}
                 </div>
               </div>
 
@@ -255,7 +250,7 @@ export default function ProfileClient({
                   }}
                 >
                   <X size={14} />
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
@@ -268,7 +263,7 @@ export default function ProfileClient({
                   }}
                 >
                   <Check size={14} />
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? t("profile.saving") : t("profile.saveChanges")}
                 </button>
               </div>
             </form>
@@ -277,11 +272,11 @@ export default function ProfileClient({
               <div className="emp-profile-row">
                 <User size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="emp-profile-row-label">Full Name</div>
+                  <div className="emp-profile-row-label">{t("profile.fullName")}</div>
                   <div className="emp-profile-row-value">
                     {profile.full_name || (
                       <span style={{ color: "var(--muted)", fontStyle: "italic" }}>
-                        Not set
+                        {t("profile.notSet")}
                       </span>
                     )}
                   </div>
@@ -291,7 +286,7 @@ export default function ProfileClient({
               <div className="emp-profile-row">
                 <Mail size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="emp-profile-row-label">Email</div>
+                  <div className="emp-profile-row-label">{t("profile.email")}</div>
                   <div className="emp-profile-row-value">{profile.email}</div>
                 </div>
               </div>
@@ -299,11 +294,11 @@ export default function ProfileClient({
               <div className="emp-profile-row">
                 <Phone size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="emp-profile-row-label">Phone</div>
+                  <div className="emp-profile-row-label">{t("profile.phone")}</div>
                   <div className="emp-profile-row-value">
                     {profile.phone ?? contact?.phone ?? (
                       <span style={{ color: "var(--muted)", fontStyle: "italic" }}>
-                        Not set
+                        {t("profile.notSet")}
                       </span>
                     )}
                   </div>
@@ -313,11 +308,11 @@ export default function ProfileClient({
               <div className="emp-profile-row" style={{ borderBottom: "none" }}>
                 <Briefcase size={15} style={{ color: "var(--muted)" }} />
                 <div>
-                  <div className="emp-profile-row-label">Job Title</div>
+                  <div className="emp-profile-row-label">{t("profile.jobTitle")}</div>
                   <div className="emp-profile-row-value">
                     {contact?.job_title || (
                       <span style={{ color: "var(--muted)", fontStyle: "italic" }}>
-                        Not set
+                        {t("profile.notSet")}
                       </span>
                     )}
                   </div>

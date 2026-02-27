@@ -4,10 +4,12 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import "@/styles/vendor-detail.css";
 
 export default function UploadCertClient() {
   const router = useRouter();
+  const t = useTranslations("vendor");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
@@ -27,7 +29,7 @@ export default function UploadCertClient() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!file) {
-      setMessage({ type: "error", text: "Please select a file to upload." });
+      setMessage({ type: "error", text: t("upload.selectFileError") });
       return;
     }
 
@@ -52,14 +54,14 @@ export default function UploadCertClient() {
         throw new Error(data.error || "Failed to upload document");
       }
 
-      setMessage({ type: "success", text: "Document uploaded successfully." });
+      setMessage({ type: "success", text: t("upload.successMessage") });
       setForm({ cert_name: "", cert_type: "insurance", expiry_date: "" });
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
 
       setTimeout(() => router.push("/vendor/compliance"), 1500);
     } catch (err: unknown) {
-      setMessage({ type: "error", text: err instanceof Error ? err.message : "Upload failed" });
+      setMessage({ type: "error", text: err instanceof Error ? err.message : t("upload.uploadFailed") });
     } finally {
       setUploading(false);
     }
@@ -68,13 +70,13 @@ export default function UploadCertClient() {
   return (
     <div>
       <Link href="/vendor/compliance" className="vd-back">
-        <ArrowLeft size={16} /> Back to Compliance
+        <ArrowLeft size={16} /> {t("upload.backToCompliance")}
       </Link>
 
       <div className="vd-header">
         <div className="vd-header-left">
-          <h2>Upload Document</h2>
-          <span className="vd-header-sub">Upload a certification or compliance document</span>
+          <h2>{t("uploadTitle")}</h2>
+          <span className="vd-header-sub">{t("upload.subtitle")}</span>
         </div>
       </div>
 
@@ -88,33 +90,33 @@ export default function UploadCertClient() {
         <form onSubmit={handleSubmit}>
           <div className="vd-profile-form">
             <div className="vd-form-group">
-              <label className="vd-form-label">Document Name</label>
+              <label className="vd-form-label">{t("upload.documentName")}</label>
               <input
                 type="text"
                 className="vd-form-input"
                 value={form.cert_name}
                 onChange={(e) => setForm({ ...form, cert_name: e.target.value })}
-                placeholder="e.g. General Liability Insurance"
+                placeholder={t("upload.documentNamePlaceholder")}
                 required
               />
             </div>
             <div className="vd-form-group">
-              <label className="vd-form-label">Document Type</label>
+              <label className="vd-form-label">{t("upload.documentType")}</label>
               <select
                 className="vd-form-select"
                 value={form.cert_type}
                 onChange={(e) => setForm({ ...form, cert_type: e.target.value })}
               >
-                <option value="insurance">Insurance Certificate</option>
-                <option value="license">License</option>
-                <option value="w9">W-9</option>
-                <option value="bond">Bond</option>
-                <option value="safety">Safety Certification</option>
-                <option value="other">Other</option>
+                <option value="insurance">{t("upload.typeInsurance")}</option>
+                <option value="license">{t("upload.typeLicense")}</option>
+                <option value="w9">{t("upload.typeW9")}</option>
+                <option value="bond">{t("upload.typeBond")}</option>
+                <option value="safety">{t("upload.typeSafety")}</option>
+                <option value="other">{t("upload.typeOther")}</option>
               </select>
             </div>
             <div className="vd-form-group">
-              <label className="vd-form-label">Expiry Date</label>
+              <label className="vd-form-label">{t("upload.expiryDate")}</label>
               <input
                 type="date"
                 className="vd-form-input"
@@ -123,7 +125,7 @@ export default function UploadCertClient() {
               />
             </div>
             <div className="vd-form-group vd-form-full">
-              <label className="vd-form-label">File</label>
+              <label className="vd-form-label">{t("upload.file")}</label>
               <div
                 className="vd-upload-area"
                 onClick={() => fileRef.current?.click()}
@@ -139,9 +141,9 @@ export default function UploadCertClient() {
                   <span>{file.name} ({(file.size / 1024).toFixed(0)} KB)</span>
                 ) : (
                   <span>
-                    <span className="vd-upload-link">Click to upload</span> or drag and drop
+                    <span className="vd-upload-link">{t("upload.clickToUpload")}</span> {t("upload.orDragDrop")}
                     <br />
-                    PDF, PNG, or JPG up to 10MB
+                    {t("upload.fileHint")}
                   </span>
                 )}
               </div>
@@ -150,11 +152,11 @@ export default function UploadCertClient() {
 
           <div className="vd-form-actions">
             <Link href="/vendor/compliance" className="btn-secondary">
-              Cancel
+              {t("cancel")}
             </Link>
             <button type="submit" className="btn-primary" disabled={uploading || !file}>
               <Upload size={16} />
-              {uploading ? "Uploading..." : "Upload Document"}
+              {uploading ? t("upload.uploading") : t("uploadTitle")}
             </button>
           </div>
         </form>

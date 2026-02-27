@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Calendar, Clock, Send, ChevronDown, ChevronRight } from "lucide-react";
 import type { EmployeeTimesheet } from "@/lib/queries/employee-portal";
 
@@ -42,21 +43,22 @@ function formatWeekLabel(mondayStr: string): string {
   return `${monLabel} - ${sunLabel}`;
 }
 
-function getStatusBadge(status: string): { label: string; className: string } {
+function getStatusBadge(status: string, t: (key: string) => string): { label: string; className: string } {
   switch (status) {
     case "approved":
-      return { label: "Approved", className: "inv-status inv-status-approved" };
+      return { label: t("timesheets.approved"), className: "inv-status inv-status-approved" };
     case "processed":
     case "paid":
-      return { label: "Processed", className: "inv-status inv-status-paid" };
+      return { label: t("timesheets.processed"), className: "inv-status inv-status-paid" };
     case "rejected":
-      return { label: "Rejected", className: "inv-status inv-status-overdue" };
+      return { label: t("timesheets.rejected"), className: "inv-status inv-status-overdue" };
     default:
-      return { label: "Pending", className: "inv-status inv-status-pending" };
+      return { label: t("timesheets.pending"), className: "inv-status inv-status-pending" };
   }
 }
 
 export default function TimesheetsClient({ timesheets }: TimesheetsClientProps) {
+  const t = useTranslations("employeeDashboard");
   const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
 
   // Group timesheets by ISO week
@@ -135,8 +137,8 @@ export default function TimesheetsClient({ timesheets }: TimesheetsClientProps) 
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>My Timesheets</h2>
-          <p className="fin-header-sub">Review and submit your time entries</p>
+          <h2>{t("timesheets.title")}</h2>
+          <p className="fin-header-sub">{t("timesheets.subtitle")}</p>
         </div>
       </div>
 
@@ -166,10 +168,10 @@ export default function TimesheetsClient({ timesheets }: TimesheetsClientProps) 
                       {week.totalHours.toFixed(1)}h
                     </span>
                     {week.hasPending && (
-                      <span className="inv-status inv-status-pending">Pending</span>
+                      <span className="inv-status inv-status-pending">{t("timesheets.pending")}</span>
                     )}
                     {!week.hasPending && week.entries.length > 0 && (
-                      <span className="inv-status inv-status-approved">Approved</span>
+                      <span className="inv-status inv-status-approved">{t("timesheets.approved")}</span>
                     )}
                   </div>
                 </button>
@@ -181,17 +183,17 @@ export default function TimesheetsClient({ timesheets }: TimesheetsClientProps) 
                       <table className="invoice-table">
                         <thead>
                           <tr>
-                            <th>Date</th>
-                            <th>Project</th>
-                            <th>Time</th>
-                            <th>Hours</th>
-                            <th>Type</th>
-                            <th>Status</th>
+                            <th>{t("date")}</th>
+                            <th>{t("project")}</th>
+                            <th>{t("timesheets.time")}</th>
+                            <th>{t("timesheets.hours")}</th>
+                            <th>{t("timesheets.type")}</th>
+                            <th>{t("timesheets.status")}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {week.entries.map((entry) => {
-                            const status = getStatusBadge(entry.status);
+                            const status = getStatusBadge(entry.status, t);
                             return (
                               <tr key={entry.id}>
                                 <td style={{ fontWeight: 600, whiteSpace: "nowrap" }}>
@@ -229,11 +231,11 @@ export default function TimesheetsClient({ timesheets }: TimesheetsClientProps) 
                           style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                           onClick={() => {
                             // In a full implementation, this would submit the timesheet
-                            alert("Timesheet submitted for approval.");
+                            alert(t("timesheets.submittedAlert"));
                           }}
                         >
                           <Send size={14} />
-                          Submit Timesheet
+                          {t("timesheets.submitTimesheet")}
                         </button>
                       </div>
                     )}
@@ -249,9 +251,9 @@ export default function TimesheetsClient({ timesheets }: TimesheetsClientProps) 
             <div className="fin-empty-icon">
               <Calendar size={48} />
             </div>
-            <div className="fin-empty-title">No Timesheets Found</div>
+            <div className="fin-empty-title">{t("timesheets.noTimesheets")}</div>
             <div className="fin-empty-desc">
-              Your time entries will appear here once you start clocking in.
+              {t("timesheets.noTimesheetsDesc")}
             </div>
           </div>
         </div>

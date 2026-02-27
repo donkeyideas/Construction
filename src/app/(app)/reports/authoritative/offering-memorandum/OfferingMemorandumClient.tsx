@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Building2, MapPin, Users, DollarSign, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import { ReportWizard } from "@/components/reports/ReportWizard";
@@ -42,12 +43,6 @@ interface Props {
   companyName: string;
 }
 
-const STEPS = [
-  { label: "Select Property" },
-  { label: "Configure & Generate" },
-  { label: "Preview & Download" },
-];
-
 const theme = REPORT_THEMES.offering_memorandum;
 
 function fmt(n: number | null | undefined): string {
@@ -61,6 +56,12 @@ function pct(n: number | null | undefined): string {
 }
 
 export function OfferingMemorandumClient({ properties, companyId, companyName }: Props) {
+  const t = useTranslations("reports");
+  const STEPS = useMemo(() => [
+    { label: t("offeringMemorandum.stepSelectProperty") },
+    { label: t("offeringMemorandum.stepConfigure") },
+    { label: t("offeringMemorandum.stepPreview") },
+  ], [t]);
   const [step, setStep] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [comparative, setComparative] = useState(false);
@@ -147,8 +148,7 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
           ...prev,
           [sectionId]: {
             ...prev[sectionId],
-            narrative:
-              "AI narrative generation not available. Configure an AI provider in Admin > AI Providers to enable auto-generated narratives.",
+            narrative: t("aiNarrativeUnavailable"),
           },
         }));
       }
@@ -177,11 +177,11 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
       const capRate = p.current_value && p.noi ? ((p.noi * 12) / p.current_value) * 100 : 0;
       newData.investment_highlights = {
         kpis: [
-          { label: "Total Units", value: String(totalUnits) },
-          { label: "Occupancy", value: pct(occRate) },
-          { label: "Monthly NOI", value: fmt(p.noi) },
-          { label: "Cap Rate", value: pct(capRate) },
-          { label: "Current Value", value: fmt(p.current_value) },
+          { label: t("offeringMemorandum.totalUnits"), value: String(totalUnits) },
+          { label: t("offeringMemorandum.occupancy"), value: pct(occRate) },
+          { label: t("offeringMemorandum.monthlyNOI"), value: fmt(p.noi) },
+          { label: t("offeringMemorandum.capRate"), value: pct(capRate) },
+          { label: t("offeringMemorandum.currentValue"), value: fmt(p.current_value) },
         ],
       };
     }
@@ -197,12 +197,12 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
         vacant: u.vacant,
       })),
       tableColumns: [
-        { key: "type", label: "Unit Type" },
-        { key: "count", label: "Count", format: "number" },
-        { key: "avg_sqft", label: "Avg Sq Ft", format: "number" },
-        { key: "avg_rent", label: "Avg Rent", format: "currency" },
-        { key: "occupied", label: "Occupied", format: "number" },
-        { key: "vacant", label: "Vacant", format: "number" },
+        { key: "type", label: t("offeringMemorandum.unitType") },
+        { key: "count", label: t("offeringMemorandum.count"), format: "number" },
+        { key: "avg_sqft", label: t("offeringMemorandum.avgSqFt"), format: "number" },
+        { key: "avg_rent", label: t("offeringMemorandum.avgRent"), format: "currency" },
+        { key: "occupied", label: t("offeringMemorandum.occupied"), format: "number" },
+        { key: "vacant", label: t("offeringMemorandum.vacant"), format: "number" },
       ],
     };
 
@@ -215,12 +215,12 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
 
       newData.financial_performance = {
         kpis: [
-          { label: "Monthly Revenue", value: fmt(p.monthly_revenue) },
-          { label: "Monthly Expenses", value: fmt(p.monthly_expenses) },
-          { label: "Monthly NOI", value: fmt(p.noi) },
-          { label: "Annual NOI", value: fmt(p.noi * 12) },
-          { label: "Current Value", value: fmt(p.current_value) },
-          { label: "Cap Rate", value: pct(capRate) },
+          { label: t("offeringMemorandum.monthlyRevenue"), value: fmt(p.monthly_revenue) },
+          { label: t("offeringMemorandum.monthlyExpenses"), value: fmt(p.monthly_expenses) },
+          { label: t("offeringMemorandum.monthlyNOI"), value: fmt(p.noi) },
+          { label: t("offeringMemorandum.annualNOI"), value: fmt(p.noi * 12) },
+          { label: t("offeringMemorandum.currentValue"), value: fmt(p.current_value) },
+          { label: t("offeringMemorandum.capRate"), value: pct(capRate) },
         ],
       };
     }
@@ -263,11 +263,11 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
         status: c.status,
       })),
       tableColumns: [
-        { key: "number", label: "Contract #" },
-        { key: "type", label: "Type" },
-        { key: "party", label: "Party" },
-        { key: "amount", label: "Amount", format: "currency" },
-        { key: "status", label: "Status" },
+        { key: "number", label: t("offeringMemorandum.contractNumber") },
+        { key: "type", label: t("offeringMemorandum.type") },
+        { key: "party", label: t("offeringMemorandum.party") },
+        { key: "amount", label: t("offeringMemorandum.amount"), format: "currency" },
+        { key: "status", label: t("offeringMemorandum.status") },
       ],
     };
 
@@ -404,25 +404,25 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
   return (
     <div>
       <Link href="/reports/authoritative" style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--muted)", textDecoration: "none", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-        <ArrowLeft size={14} /> Back to Authoritative Reports
+        <ArrowLeft size={14} /> {t("backToAuthoritativeReports")}
       </Link>
-      <h2 style={{ fontFamily: "var(--font-serif, Georgia, serif)", marginBottom: "0.5rem" }}>Offering Memorandum</h2>
+      <h2 style={{ fontFamily: "var(--font-serif, Georgia, serif)", marginBottom: "0.5rem" }}>{t("offeringMemorandum.title")}</h2>
       <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
-        Create an investor-ready offering memorandum for your property or portfolio.
+        {t("offeringMemorandum.subtitle")}
       </p>
 
       <ReportWizard steps={STEPS} currentStep={step} onStepClick={setStep}>
         {step === 0 && (
           <div className="subject-selection">
             <div className="subject-selection-header">
-              <h3>Select Property</h3>
+              <h3>{t("offeringMemorandum.selectProperty")}</h3>
               <label className="comparative-toggle">
                 <input type="checkbox" checked={comparative} onChange={(e) => { setComparative(e.target.checked); if (!e.target.checked && selectedIds.length > 1) setSelectedIds([selectedIds[0]]); }} />
-                Multi-Property Portfolio
+                {t("offeringMemorandum.multiPropertyPortfolio")}
               </label>
             </div>
             {properties.length === 0 ? (
-              <div style={{ padding: "3rem", textAlign: "center", color: "var(--muted)" }}>No properties found.</div>
+              <div style={{ padding: "3rem", textAlign: "center", color: "var(--muted)" }}>{t("offeringMemorandum.noPropertiesFound")}</div>
             ) : (
               <div className="subject-cards">
                 {properties.map((p) => (
@@ -431,8 +431,8 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
                     <div className="subject-card-meta">
                       <span className="subject-card-stat"><Building2 size={12} />{p.property_type?.replace(/_/g, " ")}</span>
                       <span className="subject-card-stat"><MapPin size={12} />{[p.city, p.state].filter(Boolean).join(", ")}</span>
-                      <span className="subject-card-stat"><Users size={12} />{p.occupied_units}/{p.total_units} units</span>
-                      <span className="subject-card-stat"><DollarSign size={12} />NOI: {fmt(p.noi)}</span>
+                      <span className="subject-card-stat"><Users size={12} />{t("offeringMemorandum.unitsOccupied", { occupied: p.occupied_units, total: p.total_units })}</span>
+                      <span className="subject-card-stat"><DollarSign size={12} />{t("offeringMemorandum.noiLabel", { value: fmt(p.noi) })}</span>
                     </div>
                   </div>
                 ))}
@@ -440,14 +440,14 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
             )}
             {selectedIds.length > 0 && (
               <button className="report-toolbar-btn primary" style={{ alignSelf: "flex-end", marginTop: "1rem" }} onClick={() => setStep(1)} type="button">
-                Next: Configure Sections
+                {t("nextConfigureSections")}
               </button>
             )}
           </div>
         )}
         {step === 1 && (
           <div>
-            <h3 style={{ marginBottom: "1rem" }}>Configure Report Sections</h3>
+            <h3 style={{ marginBottom: "1rem" }}>{t("configureReportSections")}</h3>
             <div className="section-config">
               {sections.map((s) => (
                 <label key={s.id} className="section-config-item">
@@ -465,7 +465,7 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
             <ReportToolbar onGenerate={handleGenerate} onUpdateData={() => fetchData()} onDownloadPDF={handleDownloadPDF} onSave={handleSave} onView={reportData ? () => setShowPreviewModal(true) : undefined} isGenerating={isGenerating} isDownloading={isDownloading} isSaving={isSaving} hasData={!!reportData} watermark={watermark} onWatermarkChange={setWatermark} />
             <ReportPreview
               reportType="offering_memorandum"
-              title={selectedProperties.length === 1 ? `Offering Memorandum: ${selectedProperties[0].name}` : `Offering Memorandum: ${selectedProperties.length} Properties`}
+              title={selectedProperties.length === 1 ? t("offeringMemorandum.titleWithName", { name: selectedProperties[0].name }) : t("offeringMemorandum.titleWithCount", { count: selectedProperties.length })}
               companyName={companyName}
               generatedAt={reportData?.generatedAt}
               sections={sections}
@@ -481,15 +481,15 @@ export function OfferingMemorandumClient({ properties, companyId, companyName }:
         <div className="report-preview-modal-overlay" onClick={() => setShowPreviewModal(false)}>
           <div className="report-preview-modal" onClick={(e) => e.stopPropagation()}>
             <div className="report-preview-modal-header">
-              <h3>Report Preview</h3>
+              <h3>{t("reportPreview")}</h3>
               <button className="report-preview-modal-close" onClick={() => setShowPreviewModal(false)} type="button">
-                <X size={14} /> Close
+                <X size={14} /> {t("close")}
               </button>
             </div>
             <div className="report-preview-modal-body">
               <ReportPreview
                 reportType="offering_memorandum"
-                title={selectedProperties.length === 1 ? `Offering Memorandum: ${selectedProperties[0].name}` : `Offering Memorandum: ${selectedProperties.length} Properties`}
+                title={selectedProperties.length === 1 ? t("offeringMemorandum.titleWithName", { name: selectedProperties[0].name }) : t("offeringMemorandum.titleWithCount", { count: selectedProperties.length })}
                 companyName={companyName}
                 generatedAt={reportData.generatedAt}
                 sections={sections}

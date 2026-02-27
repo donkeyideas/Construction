@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   Languages,
@@ -34,45 +35,6 @@ const LANGUAGES = [
   { id: "Korean", label: "Korean" },
 ];
 
-interface PresetPhrase {
-  label: string;
-  category: string;
-  text: string;
-}
-
-const PRESET_PHRASES: PresetPhrase[] = [
-  {
-    label: "Hard hat required",
-    category: "Safety",
-    text: "All personnel must wear hard hats, safety glasses, and high-visibility vests at all times on the construction site. Failure to comply will result in removal from the jobsite.",
-  },
-  {
-    label: "Daily log entry",
-    category: "Daily Log",
-    text: "Work performed today: Concrete pour on Level 3, slab on grade Section B. Weather conditions: Clear, 78F. Crew size: 24 workers. Equipment on site: Concrete pump, vibrators, finishing machines. No safety incidents reported.",
-  },
-  {
-    label: "Material request",
-    category: "Material Request",
-    text: "Please deliver the following materials to the jobsite by Friday: 500 cubic yards of 4000 PSI concrete, 200 tons of #5 rebar, 50 bundles of wire mesh, and 100 sheets of 3/4 inch plywood. Contact the site superintendent for delivery coordination.",
-  },
-  {
-    label: "Safety briefing",
-    category: "Safety",
-    text: "Good morning. Before we start today, remember: check your fall protection before going above 6 feet. Keep your work area clean and clear of tripping hazards. Report any unsafe conditions to your foreman immediately. Let us have a safe and productive day.",
-  },
-  {
-    label: "Change order notice",
-    category: "Daily Log",
-    text: "This is to notify you that a change order has been issued for additional electrical work in Building A, second floor. The scope includes installation of 20 additional outlets and 4 dedicated circuits. Work must be completed within 10 business days.",
-  },
-  {
-    label: "Inspection request",
-    category: "Material Request",
-    text: "We are requesting a structural inspection for the foundation work completed in Zone C. All rebar placement, form work, and concrete pours have been completed per the approved drawings. Please schedule the inspection at your earliest convenience.",
-  },
-];
-
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -81,6 +43,44 @@ export default function TranslateClient({
   companyId,
   hasProvider,
 }: TranslateClientProps) {
+  const t = useTranslations("ai");
+
+  const presetPhrases = useMemo(
+    () => [
+      {
+        label: t("translate.hardHatRequired"),
+        category: t("translate.presetSafety"),
+        text: "All personnel must wear hard hats, safety glasses, and high-visibility vests at all times on the construction site. Failure to comply will result in removal from the jobsite.",
+      },
+      {
+        label: t("translate.dailyLogEntry"),
+        category: t("translate.presetDailyLog"),
+        text: "Work performed today: Concrete pour on Level 3, slab on grade Section B. Weather conditions: Clear, 78F. Crew size: 24 workers. Equipment on site: Concrete pump, vibrators, finishing machines. No safety incidents reported.",
+      },
+      {
+        label: t("translate.materialRequest"),
+        category: t("translate.presetMaterialRequest"),
+        text: "Please deliver the following materials to the jobsite by Friday: 500 cubic yards of 4000 PSI concrete, 200 tons of #5 rebar, 50 bundles of wire mesh, and 100 sheets of 3/4 inch plywood. Contact the site superintendent for delivery coordination.",
+      },
+      {
+        label: t("translate.safetyBriefing"),
+        category: t("translate.presetSafety"),
+        text: "Good morning. Before we start today, remember: check your fall protection before going above 6 feet. Keep your work area clean and clear of tripping hazards. Report any unsafe conditions to your foreman immediately. Let us have a safe and productive day.",
+      },
+      {
+        label: t("translate.changeOrderNotice"),
+        category: t("translate.presetDailyLog"),
+        text: "This is to notify you that a change order has been issued for additional electrical work in Building A, second floor. The scope includes installation of 20 additional outlets and 4 dedicated circuits. Work must be completed within 10 business days.",
+      },
+      {
+        label: t("translate.inspectionRequest"),
+        category: t("translate.presetMaterialRequest"),
+        text: "We are requesting a structural inspection for the foundation work completed in Zone C. All rebar placement, form work, and concrete pours have been completed per the approved drawings. Please schedule the inspection at your earliest convenience.",
+      },
+    ],
+    [t]
+  );
+
   // Translation state
   const [sourceLang, setSourceLang] = useState("English");
   const [targetLang, setTargetLang] = useState("Spanish");
@@ -205,10 +205,10 @@ export default function TranslateClient({
           <div>
             <h1>
               <Languages size={28} className="sparkle-icon" />
-              AI Translate
+              {t("translate.title")}
             </h1>
             <p className="subtitle">
-              Translate construction documents and communications
+              {t("translate.subtitle")}
             </p>
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function TranslateClient({
               fontFamily: "var(--font-serif)",
             }}
           >
-            AI Provider Required
+            {t("translate.aiProviderRequired")}
           </div>
           <p
             style={{
@@ -244,15 +244,14 @@ export default function TranslateClient({
               marginBottom: 16,
             }}
           >
-            Configure an AI provider in Administration &gt; AI Providers to
-            enable translation.
+            {t("translate.configureProviderTranslate")}
           </p>
           <Link
             href="/admin/ai-providers"
             className="ui-btn ui-btn-primary"
             style={{ display: "inline-flex" }}
           >
-            Configure AI Provider
+            {t("translate.configureAiProvider")}
           </Link>
         </div>
       </div>
@@ -267,10 +266,10 @@ export default function TranslateClient({
         <div>
           <h1>
             <Languages size={28} className="sparkle-icon" />
-            AI Translate
+            {t("translate.title")}
           </h1>
           <p className="subtitle">
-            Translate construction documents and communications
+            {t("translate.subtitle")}
           </p>
         </div>
       </div>
@@ -280,7 +279,7 @@ export default function TranslateClient({
         {/* Left panel - Source */}
         <div className="translate-panel">
           <div className="lang-selector">
-            <label htmlFor="source-lang">From:</label>
+            <label htmlFor="source-lang">{t("translate.from")}</label>
             <select
               id="source-lang"
               value={sourceLang}
@@ -307,7 +306,7 @@ export default function TranslateClient({
           <textarea
             value={sourceText}
             onChange={(e) => setSourceText(e.target.value)}
-            placeholder="Enter text to translate..."
+            placeholder={t("translate.enterTextToTranslate")}
           />
         </div>
 
@@ -326,7 +325,7 @@ export default function TranslateClient({
             type="button"
             className="translate-arrow"
             onClick={handleSwap}
-            title="Swap languages"
+            title={t("translate.swapLanguages")}
             style={{ cursor: "pointer", border: "1px solid var(--border)" }}
           >
             <ArrowRightLeft size={18} />
@@ -336,7 +335,7 @@ export default function TranslateClient({
         {/* Right panel - Target */}
         <div className="translate-panel">
           <div className="lang-selector">
-            <label htmlFor="target-lang">To:</label>
+            <label htmlFor="target-lang">{t("translate.to")}</label>
             <select
               id="target-lang"
               value={targetLang}
@@ -365,8 +364,8 @@ export default function TranslateClient({
             readOnly
             placeholder={
               isTranslating
-                ? "Translating..."
-                : "Translation will appear here..."
+                ? t("translate.translating")
+                : t("translate.translationWillAppear")
             }
             style={{ background: "var(--surface)" }}
           />
@@ -386,7 +385,7 @@ export default function TranslateClient({
                 }}
               >
                 {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
-                {copied ? "Copied" : "Copy Translation"}
+                {copied ? t("translate.copied") : t("translate.copyTranslation")}
               </button>
             </div>
           )}
@@ -412,12 +411,12 @@ export default function TranslateClient({
                 size={16}
                 style={{ animation: "spin 1s linear infinite" }}
               />
-              Translating...
+              {t("translate.translating")}
             </>
           ) : (
             <>
               <Languages size={16} />
-              Translate
+              {t("translate.translate")}
             </>
           )}
         </button>
@@ -466,7 +465,7 @@ export default function TranslateClient({
             color: "var(--text)",
           }}
         >
-          Common Construction Phrases
+          {t("translate.commonPhrases")}
         </div>
         <div
           style={{
@@ -475,7 +474,7 @@ export default function TranslateClient({
             gap: 10,
           }}
         >
-          {PRESET_PHRASES.map((preset) => (
+          {presetPhrases.map((preset) => (
             <button
               key={preset.label}
               type="button"

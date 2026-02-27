@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   FileEdit,
@@ -65,19 +66,8 @@ interface ChangeOrdersClientProps {
 }
 
 // ---------------------------------------------------------------------------
-// Constants
+// Constants (non-translatable)
 // ---------------------------------------------------------------------------
-
-const REASON_LABELS: Record<string, string> = {
-  owner_request: "Owner Request",
-  design_change: "Design Change",
-  unforeseen_condition: "Unforeseen",
-  value_engineering: "Value Eng.",
-  scope_change: "Scope Change",
-  design_error: "Design Error",
-  site_condition: "Site Condition",
-  other: "Other",
-};
 
 const REASON_BADGE: Record<string, string> = {
   owner_request: "badge-blue",
@@ -97,30 +87,6 @@ const STATUS_BADGE: Record<string, string> = {
   rejected: "inv-status inv-status-voided",
 };
 
-const REASON_OPTIONS = [
-  { value: "scope_change", label: "Scope Change" },
-  { value: "design_error", label: "Design Error" },
-  { value: "site_condition", label: "Site Condition" },
-  { value: "owner_request", label: "Owner Request" },
-  { value: "value_engineering", label: "Value Engineering" },
-  { value: "design_change", label: "Design Change" },
-  { value: "unforeseen_condition", label: "Unforeseen Condition" },
-  { value: "other", label: "Other" },
-];
-
-const statuses = [
-  { label: "All", value: "all" },
-  { label: "Draft", value: "draft" },
-  { label: "Submitted", value: "submitted" },
-  { label: "Approved", value: "approved" },
-  { label: "Rejected", value: "rejected" },
-];
-
-function buildUrl(status?: string): string {
-  if (!status || status === "all") return "/projects/change-orders";
-  return `/projects/change-orders?status=${status}`;
-}
-
 const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "title", label: "Title", required: true },
   { key: "description", label: "Description", required: false },
@@ -136,6 +102,11 @@ const IMPORT_SAMPLE: Record<string, string>[] = [
   { title: "Upgraded lobby finishes", description: "Replace VCT with porcelain tile in main lobby", reason: "design_change", amount: "12000", schedule_impact_days: "0" },
 ];
 
+function buildUrl(status?: string): string {
+  if (!status || status === "all") return "/projects/change-orders";
+  return `/projects/change-orders?status=${status}`;
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -149,6 +120,38 @@ export default function ChangeOrdersClient({
   linkedJEs = {},
 }: ChangeOrdersClientProps) {
   const router = useRouter();
+  const t = useTranslations("projects");
+
+  // Translatable constants
+  const REASON_LABELS: Record<string, string> = useMemo(() => ({
+    owner_request: t("changeOrders.reasonOwnerRequest"),
+    design_change: t("changeOrders.reasonDesignChange"),
+    unforeseen_condition: t("changeOrders.reasonUnforeseen"),
+    value_engineering: t("changeOrders.reasonValueEng"),
+    scope_change: t("changeOrders.reasonScopeChange"),
+    design_error: t("changeOrders.reasonDesignError"),
+    site_condition: t("changeOrders.reasonSiteCondition"),
+    other: t("changeOrders.reasonOther"),
+  }), [t]);
+
+  const REASON_OPTIONS = useMemo(() => [
+    { value: "scope_change", label: t("changeOrders.reasonScopeChange") },
+    { value: "design_error", label: t("changeOrders.reasonDesignError") },
+    { value: "site_condition", label: t("changeOrders.reasonSiteCondition") },
+    { value: "owner_request", label: t("changeOrders.reasonOwnerRequest") },
+    { value: "value_engineering", label: t("changeOrders.reasonValueEngineering") },
+    { value: "design_change", label: t("changeOrders.reasonDesignChange") },
+    { value: "unforeseen_condition", label: t("changeOrders.reasonUnforeseenCondition") },
+    { value: "other", label: t("changeOrders.reasonOther") },
+  ], [t]);
+
+  const statuses = useMemo(() => [
+    { label: t("changeOrders.statusAll"), value: "all" },
+    { label: t("changeOrders.statusDraft"), value: "draft" },
+    { label: t("changeOrders.statusSubmitted"), value: "submitted" },
+    { label: t("changeOrders.statusApproved"), value: "approved" },
+    { label: t("changeOrders.statusRejected"), value: "rejected" },
+  ], [t]);
 
   // Create modal state
   const [showCreate, setShowCreate] = useState(false);
@@ -181,7 +184,7 @@ export default function ChangeOrdersClient({
       body: JSON.stringify({ entity: "change_orders", rows, project_id: importProjectId }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("changeOrders.importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -246,14 +249,14 @@ export default function ChangeOrdersClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to update change order");
+        throw new Error(data.error || t("changeOrders.updateFailed"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to update change order"
+        err instanceof Error ? err.message : t("changeOrders.updateFailed")
       );
     } finally {
       setSaving(false);
@@ -274,14 +277,14 @@ export default function ChangeOrdersClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete change order");
+        throw new Error(data.error || t("changeOrders.deleteFailed"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to delete change order"
+        err instanceof Error ? err.message : t("changeOrders.deleteFailed")
       );
     } finally {
       setSaving(false);
@@ -312,7 +315,7 @@ export default function ChangeOrdersClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create change order");
+        throw new Error(data.error || t("changeOrders.createFailed"));
       }
 
       // Reset form and close modal
@@ -328,7 +331,7 @@ export default function ChangeOrdersClient({
       router.refresh();
     } catch (err: unknown) {
       setCreateError(
-        err instanceof Error ? err.message : "Failed to create change order"
+        err instanceof Error ? err.message : t("changeOrders.createFailed")
       );
     } finally {
       setCreating(false);
@@ -340,19 +343,19 @@ export default function ChangeOrdersClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Change Orders</h2>
+          <h2>{t("changeOrders.title")}</h2>
           <p className="fin-header-sub">
-            Track scope changes, cost impact, and schedule adjustments
+            {t("changeOrders.subtitle")}
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} />
-            Import CSV
+            {t("changeOrders.importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New Change Order
+            {t("changeOrders.newChangeOrder")}
           </button>
         </div>
       </div>
@@ -363,14 +366,14 @@ export default function ChangeOrdersClient({
           <div className="fin-kpi-icon blue">
             <Hash size={18} />
           </div>
-          <span className="fin-kpi-label">Total COs</span>
+          <span className="fin-kpi-label">{t("changeOrders.totalCOs")}</span>
           <span className="fin-kpi-value">{kpi.totalCount}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon amber">
             <DollarSign size={18} />
           </div>
-          <span className="fin-kpi-label">Pending Value</span>
+          <span className="fin-kpi-label">{t("changeOrders.pendingValue")}</span>
           <span className="fin-kpi-value">
             {formatCompactCurrency(kpi.pendingValue)}
           </span>
@@ -379,7 +382,7 @@ export default function ChangeOrdersClient({
           <div className="fin-kpi-icon green">
             <CheckCircle2 size={18} />
           </div>
-          <span className="fin-kpi-label">Approved Value</span>
+          <span className="fin-kpi-label">{t("changeOrders.approvedValue")}</span>
           <span className="fin-kpi-value positive">
             {formatCompactCurrency(kpi.approvedValue)}
           </span>
@@ -388,7 +391,7 @@ export default function ChangeOrdersClient({
           <div className="fin-kpi-icon red">
             <Clock size={18} />
           </div>
-          <span className="fin-kpi-label">Awaiting Approval</span>
+          <span className="fin-kpi-label">{t("changeOrders.awaitingApproval")}</span>
           <span className="fin-kpi-value">{kpi.awaitingApproval}</span>
         </div>
       </div>
@@ -402,7 +405,7 @@ export default function ChangeOrdersClient({
             fontWeight: 500,
           }}
         >
-          Status:
+          {t("changeOrders.statusLabel")}
         </label>
         {statuses.map((s) => (
           <Link
@@ -426,15 +429,15 @@ export default function ChangeOrdersClient({
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>CO #</th>
-                  <th>Title</th>
-                  <th>Project</th>
-                  <th>Reason</th>
-                  <th style={{ textAlign: "right" }}>Amount</th>
-                  <th style={{ textAlign: "right" }}>Schedule Impact</th>
-                  <th>Requested By</th>
-                  <th>Status</th>
-                  <th>JE</th>
+                  <th>{t("changeOrders.coNumber")}</th>
+                  <th>{t("changeOrders.titleLabel")}</th>
+                  <th>{t("changeOrders.project")}</th>
+                  <th>{t("changeOrders.reason")}</th>
+                  <th style={{ textAlign: "right" }}>{t("changeOrders.amount")}</th>
+                  <th style={{ textAlign: "right" }}>{t("changeOrders.scheduleImpact")}</th>
+                  <th>{t("changeOrders.requestedBy")}</th>
+                  <th>{t("changeOrders.status")}</th>
+                  <th>{t("changeOrders.jeColumn")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -571,7 +574,7 @@ export default function ChangeOrdersClient({
                             </Link>
                           ))
                         ) : co.status === "approved" ? (
-                          <span className="je-missing" title="No journal entry found">
+                          <span className="je-missing" title={t("changeOrders.noJeFound")}>
                             <AlertCircle size={12} />
                           </span>
                         ) : (
@@ -591,11 +594,11 @@ export default function ChangeOrdersClient({
             <div className="fin-empty-icon">
               <FileEdit size={48} />
             </div>
-            <div className="fin-empty-title">No Change Orders Found</div>
+            <div className="fin-empty-title">{t("changeOrders.emptyTitle")}</div>
             <div className="fin-empty-desc">
               {activeStatus && activeStatus !== "all"
-                ? "No change orders match the current filter. Try selecting a different status."
-                : "No change orders have been created yet. They will appear here once submitted."}
+                ? t("changeOrders.emptyFilterDesc")
+                : t("changeOrders.emptyDesc")}
             </div>
           </div>
         </div>
@@ -612,7 +615,7 @@ export default function ChangeOrdersClient({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="ticket-modal-header">
-              <h3>Create New Change Order</h3>
+              <h3>{t("changeOrders.createTitle")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -627,7 +630,7 @@ export default function ChangeOrdersClient({
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Project *</label>
+                <label className="ticket-form-label">{t("changeOrders.projectRequired")}</label>
                 <select
                   className="ticket-form-select"
                   value={formData.project_id}
@@ -636,7 +639,7 @@ export default function ChangeOrdersClient({
                   }
                   required
                 >
-                  <option value="">Select a project...</option>
+                  <option value="">{t("changeOrders.selectProject")}</option>
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.code ? `${p.code} - ` : ""}
@@ -647,7 +650,7 @@ export default function ChangeOrdersClient({
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Title *</label>
+                <label className="ticket-form-label">{t("changeOrders.titleRequired")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -655,13 +658,13 @@ export default function ChangeOrdersClient({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="Brief description of the change"
+                  placeholder={t("changeOrders.titlePlaceholder")}
                   required
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Description</label>
+                <label className="ticket-form-label">{t("changeOrders.description")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   value={formData.description}
@@ -671,13 +674,13 @@ export default function ChangeOrdersClient({
                       description: e.target.value,
                     })
                   }
-                  placeholder="Detailed description of the change order..."
+                  placeholder={t("changeOrders.descriptionPlaceholder")}
                   rows={3}
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Reason</label>
+                <label className="ticket-form-label">{t("changeOrders.reason")}</label>
                 <select
                   className="ticket-form-select"
                   value={formData.reason}
@@ -685,7 +688,7 @@ export default function ChangeOrdersClient({
                     setFormData({ ...formData, reason: e.target.value })
                   }
                 >
-                  <option value="">Select reason...</option>
+                  <option value="">{t("changeOrders.selectReason")}</option>
                   {REASON_OPTIONS.map((r) => (
                     <option key={r.value} value={r.value}>
                       {r.label}
@@ -697,7 +700,7 @@ export default function ChangeOrdersClient({
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">
-                    Cost Impact ($)
+                    {t("changeOrders.costImpact")}
                   </label>
                   <input
                     type="number"
@@ -707,13 +710,13 @@ export default function ChangeOrdersClient({
                     onChange={(e) =>
                       setFormData({ ...formData, amount: e.target.value })
                     }
-                    placeholder="0.00 (negative for savings)"
+                    placeholder={t("changeOrders.costPlaceholder")}
                   />
                 </div>
 
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">
-                    Schedule Impact (days)
+                    {t("changeOrders.scheduleImpactDays")}
                   </label>
                   <input
                     type="number"
@@ -736,7 +739,7 @@ export default function ChangeOrdersClient({
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("changeOrders.cancel")}
                 </button>
                 <button
                   type="submit"
@@ -747,7 +750,7 @@ export default function ChangeOrdersClient({
                     !formData.project_id
                   }
                 >
-                  {creating ? "Creating..." : "Create Change Order"}
+                  {creating ? t("changeOrders.creating") : t("changeOrders.createChangeOrder")}
                 </button>
               </div>
             </form>
@@ -765,10 +768,10 @@ export default function ChangeOrdersClient({
             <div className="ticket-modal-header">
               <h3>
                 {showDeleteConfirm
-                  ? "Delete Change Order"
+                  ? t("changeOrders.deleteTitle")
                   : isEditing
-                  ? "Edit Change Order"
-                  : `Change Order ${selectedCo.co_number}`}
+                  ? t("changeOrders.editTitle")
+                  : t("changeOrders.coDetailTitle", { number: selectedCo.co_number })}
               </h3>
               <button className="ticket-modal-close" onClick={closeDetail}>
                 <X size={18} />
@@ -783,9 +786,8 @@ export default function ChangeOrdersClient({
             {showDeleteConfirm && (
               <div style={{ padding: "1.25rem" }}>
                 <p style={{ marginBottom: "1.25rem", fontSize: "0.92rem" }}>
-                  Are you sure you want to delete change order{" "}
-                  <strong>{selectedCo.co_number}</strong>? This action cannot
-                  be undone.
+                  {t("changeOrders.deleteConfirm")}{" "}
+                  <strong>{selectedCo.co_number}</strong>? {t("changeOrders.deleteWarning")}
                 </p>
                 <div className="ticket-form-actions">
                   <button
@@ -794,7 +796,7 @@ export default function ChangeOrdersClient({
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("changeOrders.cancel")}
                   </button>
                   <button
                     type="button"
@@ -803,7 +805,7 @@ export default function ChangeOrdersClient({
                     onClick={handleDelete}
                     disabled={saving}
                   >
-                    {saving ? "Deleting..." : "Delete"}
+                    {saving ? t("changeOrders.deleting") : t("changeOrders.delete")}
                   </button>
                 </div>
               </div>
@@ -813,7 +815,7 @@ export default function ChangeOrdersClient({
             {isEditing && !showDeleteConfirm && (
               <div style={{ padding: "1.25rem" }}>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Title</label>
+                  <label className="ticket-form-label">{t("changeOrders.titleLabel")}</label>
                   <input
                     type="text"
                     className="ticket-form-input"
@@ -825,7 +827,7 @@ export default function ChangeOrdersClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Description</label>
+                  <label className="ticket-form-label">{t("changeOrders.description")}</label>
                   <textarea
                     className="ticket-form-textarea"
                     value={(editData.description as string) ?? ""}
@@ -840,7 +842,7 @@ export default function ChangeOrdersClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Reason</label>
+                  <label className="ticket-form-label">{t("changeOrders.reason")}</label>
                   <select
                     className="ticket-form-select"
                     value={(editData.reason as string) ?? ""}
@@ -848,7 +850,7 @@ export default function ChangeOrdersClient({
                       setEditData({ ...editData, reason: e.target.value })
                     }
                   >
-                    <option value="">Select reason...</option>
+                    <option value="">{t("changeOrders.selectReason")}</option>
                     {REASON_OPTIONS.map((r) => (
                       <option key={r.value} value={r.value}>
                         {r.label}
@@ -858,7 +860,7 @@ export default function ChangeOrdersClient({
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Status</label>
+                  <label className="ticket-form-label">{t("changeOrders.status")}</label>
                   <select
                     className="ticket-form-select"
                     value={(editData.status as string) ?? ""}
@@ -866,17 +868,17 @@ export default function ChangeOrdersClient({
                       setEditData({ ...editData, status: e.target.value })
                     }
                   >
-                    <option value="draft">Draft</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="draft">{t("changeOrders.statusDraft")}</option>
+                    <option value="submitted">{t("changeOrders.statusSubmitted")}</option>
+                    <option value="approved">{t("changeOrders.statusApproved")}</option>
+                    <option value="rejected">{t("changeOrders.statusRejected")}</option>
                   </select>
                 </div>
 
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">
-                      Cost Impact ($)
+                      {t("changeOrders.costImpact")}
                     </label>
                     <input
                       type="number"
@@ -892,7 +894,7 @@ export default function ChangeOrdersClient({
 
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">
-                      Schedule Impact (days)
+                      {t("changeOrders.scheduleImpactDays")}
                     </label>
                     <input
                       type="number"
@@ -916,7 +918,7 @@ export default function ChangeOrdersClient({
                     onClick={() => setIsEditing(false)}
                     disabled={saving}
                   >
-                    Cancel
+                    {t("changeOrders.cancel")}
                   </button>
                   <button
                     type="button"
@@ -924,7 +926,7 @@ export default function ChangeOrdersClient({
                     onClick={handleSave}
                     disabled={saving}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("changeOrders.saving") : t("changeOrders.saveChanges")}
                   </button>
                 </div>
               </div>
@@ -935,13 +937,13 @@ export default function ChangeOrdersClient({
               <div style={{ padding: "1.25rem" }}>
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">CO Number</label>
+                    <label className="detail-label">{t("changeOrders.coNumberLabel")}</label>
                     <div className="detail-value">
                       {selectedCo.co_number}
                     </div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Status</label>
+                    <label className="detail-label">{t("changeOrders.status")}</label>
                     <div className="detail-value">
                       <span
                         className={
@@ -955,7 +957,7 @@ export default function ChangeOrdersClient({
                 </div>
 
                 <div className="detail-group">
-                  <label className="detail-label">Title</label>
+                  <label className="detail-label">{t("changeOrders.titleLabel")}</label>
                   <div className="detail-value">
                     {selectedCo.title}
                   </div>
@@ -963,7 +965,7 @@ export default function ChangeOrdersClient({
 
                 {selectedCo.description && (
                   <div className="detail-group">
-                    <label className="detail-label">Description</label>
+                    <label className="detail-label">{t("changeOrders.description")}</label>
                     <div className="detail-value--multiline">
                       {selectedCo.description}
                     </div>
@@ -972,7 +974,7 @@ export default function ChangeOrdersClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Project</label>
+                    <label className="detail-label">{t("changeOrders.project")}</label>
                     <div className="detail-value">
                       {selectedCo.projects
                         ? `${selectedCo.projects.code} - ${selectedCo.projects.name}`
@@ -980,7 +982,7 @@ export default function ChangeOrdersClient({
                     </div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Reason</label>
+                    <label className="detail-label">{t("changeOrders.reason")}</label>
                     <div className="detail-value">
                       {selectedCo.reason ? (
                         <span
@@ -1000,7 +1002,7 @@ export default function ChangeOrdersClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Amount</label>
+                    <label className="detail-label">{t("changeOrders.amount")}</label>
                     <div className="detail-value">
                       {selectedCo.amount != null
                         ? formatCurrency(selectedCo.amount)
@@ -1009,11 +1011,11 @@ export default function ChangeOrdersClient({
                   </div>
                   <div className="detail-group">
                     <label className="detail-label">
-                      Schedule Impact
+                      {t("changeOrders.scheduleImpact")}
                     </label>
                     <div className="detail-value">
                       {selectedCo.schedule_impact_days != null
-                        ? `${selectedCo.schedule_impact_days > 0 ? "+" : ""}${selectedCo.schedule_impact_days} days`
+                        ? `${selectedCo.schedule_impact_days > 0 ? "+" : ""}${selectedCo.schedule_impact_days} ${t("changeOrders.days")}`
                         : "--"}
                     </div>
                   </div>
@@ -1021,7 +1023,7 @@ export default function ChangeOrdersClient({
 
                 <div className="detail-row">
                   <div className="detail-group">
-                    <label className="detail-label">Requested By</label>
+                    <label className="detail-label">{t("changeOrders.requestedBy")}</label>
                     <div className="detail-value">
                       {selectedCo.requested_by
                         ? userMap[selectedCo.requested_by] ?? "--"
@@ -1029,7 +1031,7 @@ export default function ChangeOrdersClient({
                     </div>
                   </div>
                   <div className="detail-group">
-                    <label className="detail-label">Approved By</label>
+                    <label className="detail-label">{t("changeOrders.approvedBy")}</label>
                     <div className="detail-value">
                       {selectedCo.approved_by
                         ? userMap[selectedCo.approved_by] ?? "--"
@@ -1045,21 +1047,21 @@ export default function ChangeOrdersClient({
                     style={{ color: "var(--color-red)" }}
                     onClick={() => setShowDeleteConfirm(true)}
                   >
-                    Delete
+                    {t("changeOrders.delete")}
                   </button>
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={closeDetail}
                   >
-                    Close
+                    {t("changeOrders.close")}
                   </button>
                   <button
                     type="button"
                     className="btn-primary"
                     onClick={startEditing}
                   >
-                    Edit
+                    {t("changeOrders.edit")}
                   </button>
                 </div>
               </div>
@@ -1070,7 +1072,7 @@ export default function ChangeOrdersClient({
 
       {showImport && (
         <ImportModal
-          entityName="Change Orders"
+          entityName={t("changeOrders.title")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}

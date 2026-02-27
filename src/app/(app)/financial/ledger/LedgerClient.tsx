@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, Download, Filter } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import Link from "next/link";
@@ -96,6 +97,7 @@ export default function LedgerClient({
   accountFilter,
 }: LedgerClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
   const [filterStart, setFilterStart] = useState(startDate);
   const [filterEnd, setFilterEnd] = useState(endDate);
   const [filterAccount, setFilterAccount] = useState(accountFilter || "");
@@ -114,7 +116,15 @@ export default function LedgerClient({
 
   function handleExportCSV() {
     const rows: string[] = [];
-    rows.push(["Date", "JE #", "Account", "Description", "Reference", "Debit", "Credit"].join(","));
+    rows.push([
+      t("ledger.csvDate"),
+      t("ledger.csvJeNumber"),
+      t("ledger.csvAccount"),
+      t("ledger.csvDescription"),
+      t("ledger.csvReference"),
+      t("ledger.csvDebit"),
+      t("ledger.csvCredit"),
+    ].join(","));
     for (const line of lines) {
       const je = line.journal_entries;
       const acct = accountMap[line.account_id];
@@ -132,7 +142,7 @@ export default function LedgerClient({
         creditVal > 0 ? creditVal.toFixed(2) : "",
       ].join(","));
     }
-    rows.push([`"Total"`, "", "", "", "", totalDebits.toFixed(2), totalCredits.toFixed(2)].join(","));
+    rows.push([`"${t("ledger.total")}"`, "", "", "", "", totalDebits.toFixed(2), totalCredits.toFixed(2)].join(","));
     const blob = new Blob([rows.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -152,15 +162,15 @@ export default function LedgerClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>General Ledger</h2>
+          <h2>{t("ledger.title")}</h2>
           <p className="fin-header-sub">
-            All posted journal entry lines by account
+            {t("ledger.subtitle")}
           </p>
         </div>
         <div className="fin-header-actions">
           <button className="ui-btn ui-btn-outline ui-btn-sm" onClick={handleExportCSV}>
             <Download size={14} />
-            Export CSV
+            {t("audit.exportCsv")}
           </button>
         </div>
       </div>
@@ -187,7 +197,7 @@ export default function LedgerClient({
               marginBottom: 6,
             }}
           >
-            Start Date
+            {t("ledger.startDate")}
           </label>
           <input
             type="date"
@@ -206,7 +216,7 @@ export default function LedgerClient({
               marginBottom: 6,
             }}
           >
-            End Date
+            {t("ledger.endDate")}
           </label>
           <input
             type="date"
@@ -226,14 +236,14 @@ export default function LedgerClient({
             }}
           >
             <Filter size={14} style={{ verticalAlign: "middle", marginRight: 4 }} />
-            Account
+            {t("ledger.account")}
           </label>
           <select
             className="equipment-form-select"
             value={filterAccount}
             onChange={(e) => setFilterAccount(e.target.value)}
           >
-            <option value="">All Accounts</option>
+            <option value="">{t("ledger.allAccounts")}</option>
             {accounts.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.account_number} - {a.name}
@@ -242,7 +252,7 @@ export default function LedgerClient({
           </select>
         </div>
         <button className="ui-btn ui-btn-primary ui-btn-sm" onClick={handleApply}>
-          Apply
+          {t("apply")}
         </button>
       </div>
 
@@ -252,14 +262,14 @@ export default function LedgerClient({
           <div className="fin-kpi-icon" style={{ color: "var(--color-green)" }}>
             <Filter size={20} />
           </div>
-          <div className="fin-kpi-label">Total Debits</div>
+          <div className="fin-kpi-label">{t("totalDebits")}</div>
           <div className="fin-kpi-value">{formatCurrency(totalDebits)}</div>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon" style={{ color: "var(--color-red)" }}>
             <Filter size={20} />
           </div>
-          <div className="fin-kpi-label">Total Credits</div>
+          <div className="fin-kpi-label">{t("totalCredits")}</div>
           <div className="fin-kpi-value">{formatCurrency(totalCredits)}</div>
         </div>
         <div className="fin-kpi">
@@ -271,7 +281,7 @@ export default function LedgerClient({
           >
             <Filter size={20} />
           </div>
-          <div className="fin-kpi-label">Net (Debits - Credits)</div>
+          <div className="fin-kpi-label">{t("ledger.netDebitsCredits")}</div>
           <div
             className="fin-kpi-value"
             style={{
@@ -285,7 +295,7 @@ export default function LedgerClient({
           <div className="fin-kpi-icon" style={{ color: "var(--color-blue)" }}>
             <Filter size={20} />
           </div>
-          <div className="fin-kpi-label">Posted Entries</div>
+          <div className="fin-kpi-label">{t("ledger.postedEntries")}</div>
           <div className="fin-kpi-value">{totalLines.toLocaleString()}</div>
         </div>
       </div>
@@ -297,13 +307,13 @@ export default function LedgerClient({
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>JE #</th>
-                  <th>Account</th>
-                  <th>Description</th>
-                  <th>Reference</th>
-                  <th style={{ textAlign: "right" }}>Debit</th>
-                  <th style={{ textAlign: "right" }}>Credit</th>
+                  <th>{t("date")}</th>
+                  <th>{t("ledger.jeNumber")}</th>
+                  <th>{t("ledger.account")}</th>
+                  <th>{t("description")}</th>
+                  <th>{t("reference")}</th>
+                  <th style={{ textAlign: "right" }}>{t("debit")}</th>
+                  <th style={{ textAlign: "right" }}>{t("credit")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -376,7 +386,7 @@ export default function LedgerClient({
                   }}
                 >
                   <td colSpan={5} style={{ fontWeight: 700 }}>
-                    Page Totals
+                    {t("ledger.pageTotals")}
                   </td>
                   <td
                     className="amount-col"
@@ -419,7 +429,7 @@ export default function LedgerClient({
                 }}
               >
                 <ChevronLeft size={16} />
-                Previous
+                {t("ledger.previous")}
               </button>
               <span
                 style={{
@@ -428,7 +438,7 @@ export default function LedgerClient({
                   fontWeight: 500,
                 }}
               >
-                Page {currentPage} of {totalPages}
+                {t("ledger.pageOf", { current: currentPage, total: totalPages })}
               </span>
               <button
                 className="ui-btn ui-btn-sm ui-btn-secondary"
@@ -441,7 +451,7 @@ export default function LedgerClient({
                   opacity: currentPage >= totalPages ? 0.5 : 1,
                 }}
               >
-                Next
+                {t("ledger.next")}
                 <ChevronRight size={16} />
               </button>
             </div>
@@ -453,18 +463,18 @@ export default function LedgerClient({
             <div className="fin-empty-icon">
               <Filter size={48} />
             </div>
-            <div className="fin-empty-title">No Ledger Entries Found</div>
+            <div className="fin-empty-title">{t("ledger.noEntriesTitle")}</div>
             <div className="fin-empty-desc">
               {accountFilter
-                ? "No posted journal entry lines match the selected account and date range. Try adjusting your filters."
-                : "No posted journal entries exist for the selected date range. Create and post journal entries from the Journal Entries page."}
+                ? t("ledger.noEntriesFilterDesc")
+                : t("ledger.noEntriesEmptyDesc")}
             </div>
             <Link
               href="/financial/general-ledger"
               className="ui-btn ui-btn-primary ui-btn-sm"
               style={{ marginTop: 12, textDecoration: "none" }}
             >
-              Go to Journal Entries
+              {t("ledger.goToJournalEntries")}
             </Link>
           </div>
         </div>

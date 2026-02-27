@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Headphones,
   MessageSquare,
@@ -162,6 +163,7 @@ function categoryLabel(category: string): string {
 
 export default function SupportTicketsClient({ tickets, stats }: Props) {
   const router = useRouter();
+  const t = useTranslations("superAdmin");
 
   // Filters
   const [filterStatus, setFilterStatus] = useState("");
@@ -354,9 +356,9 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
       {/* ---- Header ---- */}
       <div className="admin-header">
         <div>
-          <h2>Support Tickets</h2>
+          <h2>{t("supportTickets.title")}</h2>
           <p className="admin-header-sub">
-            Manage and respond to customer support requests
+            {t("supportTickets.subtitle")}
           </p>
         </div>
       </div>
@@ -370,28 +372,28 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
           <div className="admin-stat-icon blue">
             <Headphones size={18} />
           </div>
-          <div className="admin-stat-label">Total Tickets</div>
+          <div className="admin-stat-label">{t("supportTickets.totalTickets")}</div>
           <div className="admin-stat-value">{stats.total}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon" style={{ background: "rgba(59,130,246,0.1)", color: "var(--color-blue)" }}>
             <MessageSquare size={18} />
           </div>
-          <div className="admin-stat-label">Open</div>
+          <div className="admin-stat-label">{t("supportTickets.open")}</div>
           <div className="admin-stat-value">{stats.open}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon" style={{ background: "rgba(245,158,11,0.1)", color: "var(--color-amber)" }}>
             <AlertCircle size={18} />
           </div>
-          <div className="admin-stat-label">In Progress</div>
+          <div className="admin-stat-label">{t("supportTickets.inProgress")}</div>
           <div className="admin-stat-value">{stats.inProgress}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon green">
             <Clock size={18} />
           </div>
-          <div className="admin-stat-label">Avg Resolution</div>
+          <div className="admin-stat-label">{t("supportTickets.avgResolution")}</div>
           <div className="admin-stat-value">
             {stats.avgResolutionHours !== null
               ? `${stats.avgResolutionHours}h`
@@ -422,12 +424,12 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
-          <option value="">All Statuses</option>
-          <option value="open">Open</option>
-          <option value="in_progress">In Progress</option>
-          <option value="waiting">Waiting</option>
-          <option value="resolved">Resolved</option>
-          <option value="closed">Closed</option>
+          <option value="">{t("supportTickets.allStatuses")}</option>
+          <option value="open">{t("supportTickets.statusOpen")}</option>
+          <option value="in_progress">{t("supportTickets.statusInProgress")}</option>
+          <option value="waiting">{t("supportTickets.statusWaiting")}</option>
+          <option value="resolved">{t("supportTickets.statusResolved")}</option>
+          <option value="closed">{t("supportTickets.statusClosed")}</option>
         </select>
 
         <select
@@ -436,11 +438,11 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
           value={filterPriority}
           onChange={(e) => setFilterPriority(e.target.value)}
         >
-          <option value="">All Priorities</option>
-          <option value="urgent">Urgent</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
+          <option value="">{t("supportTickets.allPriorities")}</option>
+          <option value="urgent">{t("supportTickets.urgent")}</option>
+          <option value="high">{t("supportTickets.high")}</option>
+          <option value="medium">{t("supportTickets.medium")}</option>
+          <option value="low">{t("supportTickets.low")}</option>
         </select>
 
         <select
@@ -449,13 +451,13 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
         >
-          <option value="">All Categories</option>
-          <option value="general">General</option>
-          <option value="billing">Billing</option>
-          <option value="technical">Technical</option>
-          <option value="feature_request">Feature Request</option>
-          <option value="bug_report">Bug Report</option>
-          <option value="account">Account</option>
+          <option value="">{t("supportTickets.allCategories")}</option>
+          <option value="general">{t("supportTickets.catGeneral")}</option>
+          <option value="billing">{t("supportTickets.catBilling")}</option>
+          <option value="technical">{t("supportTickets.catTechnical")}</option>
+          <option value="feature_request">{t("supportTickets.catFeatureRequest")}</option>
+          <option value="bug_report">{t("supportTickets.catBugReport")}</option>
+          <option value="account">{t("supportTickets.catAccount")}</option>
         </select>
 
         {hasActiveFilters && (
@@ -464,7 +466,7 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
             onClick={clearFilters}
             style={{ fontSize: "0.78rem", padding: "5px 10px" }}
           >
-            Clear
+            {t("supportTickets.clear")}
           </button>
         )}
       </div>
@@ -475,13 +477,13 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
           <thead>
             <tr>
               <th>#</th>
-              <th>Subject</th>
-              <th>User</th>
-              <th>Company</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Category</th>
-              <th>Created</th>
+              <th>{t("supportTickets.thSubject")}</th>
+              <th>{t("supportTickets.thUser")}</th>
+              <th>{t("supportTickets.thCompany")}</th>
+              <th>{t("supportTickets.thStatus")}</th>
+              <th>{t("supportTickets.thPriority")}</th>
+              <th>{t("supportTickets.thCategory")}</th>
+              <th>{t("supportTickets.thCreated")}</th>
             </tr>
           </thead>
           <tbody>
@@ -495,7 +497,7 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
                     color: "var(--muted)",
                   }}
                 >
-                  No support tickets found.
+                  {t("supportTickets.noTicketsFound")}
                 </td>
               </tr>
             ) : (
@@ -840,7 +842,7 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
                         style={{ accentColor: "var(--color-amber)" }}
                       />
                       <Lock size={12} />
-                      Internal Note
+                      {t("supportTickets.internalNote")}
                     </label>
                     <button
                       className="sa-action-btn primary"
@@ -849,7 +851,7 @@ export default function SupportTicketsClient({ tickets, stats }: Props) {
                       style={{ fontSize: "0.82rem" }}
                     >
                       <Send size={14} />
-                      {sending ? "Sending..." : "Send"}
+                      {sending ? t("supportTickets.sending") : t("supportTickets.send")}
                     </button>
                   </div>
                 </div>

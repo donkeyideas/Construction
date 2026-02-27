@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Mail,
   MailOpen,
@@ -114,6 +115,7 @@ function typeLabel(type: string): string {
 
 export default function InboxClient({ submissions, stats }: Props) {
   const router = useRouter();
+  const t = useTranslations("superAdmin");
 
   // Filters
   const [filterStatus, setFilterStatus] = useState("");
@@ -289,9 +291,9 @@ export default function InboxClient({ submissions, stats }: Props) {
       {/* ---- Header ---- */}
       <div className="admin-header">
         <div>
-          <h2>Inbox</h2>
+          <h2>{t("inbox.title")}</h2>
           <p className="admin-header-sub">
-            Contact form submissions and custom plan requests
+            {t("inbox.subtitle")}
           </p>
         </div>
       </div>
@@ -305,7 +307,7 @@ export default function InboxClient({ submissions, stats }: Props) {
           <div className="admin-stat-icon blue">
             <Mail size={18} />
           </div>
-          <div className="admin-stat-label">Total Submissions</div>
+          <div className="admin-stat-label">{t("inbox.totalSubmissions")}</div>
           <div className="admin-stat-value">{stats.total}</div>
         </div>
         <div className="admin-stat-card">
@@ -318,7 +320,7 @@ export default function InboxClient({ submissions, stats }: Props) {
           >
             <FileText size={18} />
           </div>
-          <div className="admin-stat-label">New</div>
+          <div className="admin-stat-label">{t("inbox.new")}</div>
           <div className="admin-stat-value">{stats.newCount}</div>
         </div>
         <div className="admin-stat-card">
@@ -331,14 +333,14 @@ export default function InboxClient({ submissions, stats }: Props) {
           >
             <MailOpen size={18} />
           </div>
-          <div className="admin-stat-label">Read</div>
+          <div className="admin-stat-label">{t("inbox.read")}</div>
           <div className="admin-stat-value">{stats.read}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon green">
             <Archive size={18} />
           </div>
-          <div className="admin-stat-label">Archived</div>
+          <div className="admin-stat-label">{t("inbox.archived")}</div>
           <div className="admin-stat-value">{stats.archived}</div>
         </div>
       </div>
@@ -370,11 +372,11 @@ export default function InboxClient({ submissions, stats }: Props) {
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
-          <option value="">All Statuses</option>
-          <option value="new">New</option>
-          <option value="read">Read</option>
-          <option value="replied">Replied</option>
-          <option value="archived">Archived</option>
+          <option value="">{t("inbox.allStatuses")}</option>
+          <option value="new">{t("inbox.statusNew")}</option>
+          <option value="read">{t("inbox.statusRead")}</option>
+          <option value="replied">{t("inbox.statusReplied")}</option>
+          <option value="archived">{t("inbox.statusArchived")}</option>
         </select>
 
         <select
@@ -388,9 +390,9 @@ export default function InboxClient({ submissions, stats }: Props) {
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
         >
-          <option value="">All Types</option>
-          <option value="contact">Contact</option>
-          <option value="custom_plan">Custom Plan</option>
+          <option value="">{t("inbox.allTypes")}</option>
+          <option value="contact">{t("inbox.typeContact")}</option>
+          <option value="custom_plan">{t("inbox.typeCustomPlan")}</option>
         </select>
 
         {hasActiveFilters && (
@@ -399,7 +401,7 @@ export default function InboxClient({ submissions, stats }: Props) {
             onClick={clearFilters}
             style={{ fontSize: "0.78rem", padding: "5px 10px" }}
           >
-            Clear
+            {t("inbox.clear")}
           </button>
         )}
       </div>
@@ -409,13 +411,13 @@ export default function InboxClient({ submissions, stats }: Props) {
         <table className="sa-table">
           <thead>
             <tr>
-              <th>Type</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Company</th>
-              <th>Subject / Message</th>
-              <th>Status</th>
-              <th>Date</th>
+              <th>{t("inbox.thType")}</th>
+              <th>{t("inbox.thName")}</th>
+              <th>{t("inbox.thEmail")}</th>
+              <th>{t("inbox.thCompany")}</th>
+              <th>{t("inbox.thSubjectMessage")}</th>
+              <th>{t("inbox.thStatus")}</th>
+              <th>{t("inbox.thDate")}</th>
             </tr>
           </thead>
           <tbody>
@@ -429,7 +431,7 @@ export default function InboxClient({ submissions, stats }: Props) {
                     color: "var(--muted)",
                   }}
                 >
-                  No submissions found.
+                  {t("inbox.noSubmissions")}
                 </td>
               </tr>
             ) : (
@@ -804,7 +806,7 @@ export default function InboxClient({ submissions, stats }: Props) {
                     marginBottom: 8,
                   }}
                 >
-                  Admin Notes
+                  {t("inbox.adminNotes")}
                 </div>
                 <textarea
                   className="ticket-form-input"
@@ -825,7 +827,7 @@ export default function InboxClient({ submissions, stats }: Props) {
                   disabled={saving}
                   style={{ fontSize: "0.82rem" }}
                 >
-                  {saving ? "Saving..." : "Save Notes"}
+                  {saving ? t("inbox.saving") : t("inbox.saveNotes")}
                 </button>
               </div>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Activity,
   Server,
@@ -106,6 +107,7 @@ function getPlanPillStyle(plan: string): React.CSSProperties {
    ------------------------------------------------------------------ */
 
 export default function SystemHealthClient({ data }: Props) {
+  const t = useTranslations("superAdmin");
   const router = useRouter();
 
   const totalRecords = data.tableStats.reduce(
@@ -124,9 +126,9 @@ export default function SystemHealthClient({ data }: Props) {
       {/* ── Header ── */}
       <div className="admin-header">
         <div>
-          <h2>System Health</h2>
+          <h2>{t("systemHealth.title")}</h2>
           <p className="admin-header-sub">
-            Platform infrastructure overview and database statistics
+            {t("systemHealth.subtitle")}
           </p>
         </div>
         <button
@@ -135,7 +137,7 @@ export default function SystemHealthClient({ data }: Props) {
           style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
         >
           <RefreshCw size={14} />
-          Refresh
+          {t("systemHealth.refresh")}
         </button>
       </div>
 
@@ -164,7 +166,7 @@ export default function SystemHealthClient({ data }: Props) {
         ) : (
           <AlertCircle size={18} />
         )}
-        {isOperational ? "All Systems Operational" : "Degraded Performance"}
+        {isOperational ? t("systemHealth.allOperational") : t("systemHealth.degraded")}
       </div>
 
       {/* ── Main KPI Cards ── */}
@@ -173,7 +175,7 @@ export default function SystemHealthClient({ data }: Props) {
           <div className="admin-stat-icon blue">
             <Users size={18} />
           </div>
-          <div className="admin-stat-label">Total Users</div>
+          <div className="admin-stat-label">{t("systemHealth.totalUsers")}</div>
           <div className="admin-stat-value">{data.userStats.total}</div>
         </div>
 
@@ -181,7 +183,7 @@ export default function SystemHealthClient({ data }: Props) {
           <div className="admin-stat-icon green">
             <Building2 size={18} />
           </div>
-          <div className="admin-stat-label">Total Companies</div>
+          <div className="admin-stat-label">{t("systemHealth.totalCompanies")}</div>
           <div className="admin-stat-value">{data.companyStats.total}</div>
         </div>
 
@@ -189,7 +191,7 @@ export default function SystemHealthClient({ data }: Props) {
           <div className="admin-stat-icon" style={{ background: "rgba(139, 92, 246, 0.08)", color: "#8b5cf6" }}>
             <Database size={18} />
           </div>
-          <div className="admin-stat-label">Total Records</div>
+          <div className="admin-stat-label">{t("systemHealth.totalRecords")}</div>
           <div className="admin-stat-value">
             {totalRecords.toLocaleString()}
           </div>
@@ -207,7 +209,7 @@ export default function SystemHealthClient({ data }: Props) {
           >
             <Server size={18} />
           </div>
-          <div className="admin-stat-label">System Status</div>
+          <div className="admin-stat-label">{t("systemHealth.systemStatus")}</div>
           <div className="admin-stat-value">
             <span
               style={{
@@ -224,7 +226,7 @@ export default function SystemHealthClient({ data }: Props) {
                   : "var(--color-amber)",
               }}
             >
-              {isOperational ? "Operational" : "Degraded"}
+              {isOperational ? t("systemHealth.operational") : t("systemHealth.degradedShort")}
             </span>
           </div>
         </div>
@@ -236,14 +238,14 @@ export default function SystemHealthClient({ data }: Props) {
         <div className="sa-card">
           <div className="sa-card-title">
             <Database size={18} />
-            Database Statistics
+            {t("systemHealth.databaseStatistics")}
           </div>
           <div className="sa-table-wrap">
             <table className="sa-table">
               <thead>
                 <tr>
-                  <th>Table</th>
-                  <th style={{ textAlign: "right" }}>Row Count</th>
+                  <th>{t("systemHealth.thTable")}</th>
+                  <th style={{ textAlign: "right" }}>{t("systemHealth.thRowCount")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -279,7 +281,7 @@ export default function SystemHealthClient({ data }: Props) {
         <div className="sa-card">
           <div className="sa-card-title">
             <Activity size={18} />
-            Recent Activity
+            {t("systemHealth.recentActivity")}
           </div>
           {data.recentActivity.length === 0 ? (
             <div
@@ -290,7 +292,7 @@ export default function SystemHealthClient({ data }: Props) {
                 fontSize: "0.85rem",
               }}
             >
-              No audit log entries yet
+              {t("systemHealth.noAuditEntries")}
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
@@ -362,7 +364,7 @@ export default function SystemHealthClient({ data }: Props) {
         <div className="sa-card">
           <div className="sa-card-title">
             <Users size={18} />
-            User Statistics
+            {t("systemHealth.userStatistics")}
           </div>
           <div style={{ padding: "8px 16px 16px" }}>
             <div
@@ -374,7 +376,7 @@ export default function SystemHealthClient({ data }: Props) {
                 fontSize: "0.85rem",
               }}
             >
-              <span style={{ color: "var(--muted)" }}>Total Users</span>
+              <span style={{ color: "var(--muted)" }}>{t("systemHealth.totalUsers")}</span>
               <span style={{ fontWeight: 600 }}>{data.userStats.total}</span>
             </div>
             <div
@@ -386,7 +388,7 @@ export default function SystemHealthClient({ data }: Props) {
                 fontSize: "0.85rem",
               }}
             >
-              <span style={{ color: "var(--muted)" }}>Active Today</span>
+              <span style={{ color: "var(--muted)" }}>{t("systemHealth.activeToday")}</span>
               <span style={{ fontWeight: 600, color: "var(--color-green)" }}>
                 {data.userStats.activeToday}
               </span>
@@ -399,7 +401,7 @@ export default function SystemHealthClient({ data }: Props) {
                 fontSize: "0.85rem",
               }}
             >
-              <span style={{ color: "var(--muted)" }}>New This Month</span>
+              <span style={{ color: "var(--muted)" }}>{t("systemHealth.newThisMonth")}</span>
               <span style={{ fontWeight: 600, color: "var(--color-blue)" }}>
                 {data.userStats.newThisMonth}
               </span>
@@ -411,7 +413,7 @@ export default function SystemHealthClient({ data }: Props) {
         <div className="sa-card">
           <div className="sa-card-title">
             <Building2 size={18} />
-            Company Statistics
+            {t("systemHealth.companyStatistics")}
           </div>
           <div style={{ padding: "8px 16px 16px" }}>
             <div
@@ -423,7 +425,7 @@ export default function SystemHealthClient({ data }: Props) {
                 fontSize: "0.85rem",
               }}
             >
-              <span style={{ color: "var(--muted)" }}>Total Companies</span>
+              <span style={{ color: "var(--muted)" }}>{t("systemHealth.totalCompanies")}</span>
               <span style={{ fontWeight: 600 }}>{data.companyStats.total}</span>
             </div>
             <div
@@ -435,7 +437,7 @@ export default function SystemHealthClient({ data }: Props) {
                 fontSize: "0.85rem",
               }}
             >
-              <span style={{ color: "var(--muted)" }}>Active Companies</span>
+              <span style={{ color: "var(--muted)" }}>{t("systemHealth.activeCompanies")}</span>
               <span style={{ fontWeight: 600, color: "var(--color-green)" }}>
                 {data.companyStats.activeCompanies}
               </span>
@@ -453,7 +455,7 @@ export default function SystemHealthClient({ data }: Props) {
                 letterSpacing: "0.04em",
               }}
             >
-              Plans Breakdown
+              {t("systemHealth.plansBreakdown")}
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {(
@@ -491,7 +493,7 @@ export default function SystemHealthClient({ data }: Props) {
         <div className="sa-card">
           <div className="sa-card-title">
             <HardDrive size={18} />
-            Storage
+            {t("systemHealth.storage")}
           </div>
           <div style={{ padding: "8px 16px 16px" }}>
             <div
@@ -503,7 +505,7 @@ export default function SystemHealthClient({ data }: Props) {
                 fontSize: "0.85rem",
               }}
             >
-              <span style={{ color: "var(--muted)" }}>Total Documents</span>
+              <span style={{ color: "var(--muted)" }}>{t("systemHealth.totalDocuments")}</span>
               <span style={{ fontWeight: 600 }}>
                 {data.storageStats.totalDocuments.toLocaleString()}
               </span>
@@ -516,7 +518,7 @@ export default function SystemHealthClient({ data }: Props) {
                 fontSize: "0.85rem",
               }}
             >
-              <span style={{ color: "var(--muted)" }}>Estimated Size</span>
+              <span style={{ color: "var(--muted)" }}>{t("systemHealth.estimatedSize")}</span>
               <span style={{ fontWeight: 600 }}>
                 {data.storageStats.totalSize > 0
                   ? formatBytes(data.storageStats.totalSize)

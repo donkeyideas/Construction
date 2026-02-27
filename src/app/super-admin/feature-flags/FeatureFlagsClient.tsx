@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Flag,
   ToggleLeft,
@@ -30,11 +31,7 @@ interface Props {
   flags: FeatureFlag[];
 }
 
-const PLANS = [
-  { value: "starter", label: "Starter" },
-  { value: "professional", label: "Professional" },
-  { value: "enterprise", label: "Enterprise" },
-];
+const PLAN_VALUES = ["starter", "professional", "enterprise"] as const;
 
 function formatName(name: string): string {
   return name
@@ -50,6 +47,12 @@ const PLAN_COLORS: Record<string, { bg: string; color: string }> = {
 
 export default function FeatureFlagsClient({ flags }: Props) {
   const router = useRouter();
+  const t = useTranslations("superAdmin");
+
+  const PLANS = useMemo(() => PLAN_VALUES.map((v) => ({
+    value: v,
+    label: t(`featureFlags.plan_${v}`),
+  })), [t]);
 
   // UI state
   const [search, setSearch] = useState("");
@@ -103,13 +106,13 @@ export default function FeatureFlagsClient({ flags }: Props) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to toggle feature flag.");
+        setError(data.error || t("featureFlags.failedToggle"));
         return;
       }
 
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setToggling(null);
     }
@@ -137,11 +140,11 @@ export default function FeatureFlagsClient({ flags }: Props) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to create feature flag.");
+        setError(data.error || t("featureFlags.failedCreate"));
         return;
       }
 
-      setSuccess("Feature flag created successfully.");
+      setSuccess(t("featureFlags.createdSuccess"));
       setNewName("");
       setNewDescription("");
       setNewEnabled(false);
@@ -149,7 +152,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
       setShowCreate(false);
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setCreating(false);
     }
@@ -184,15 +187,15 @@ export default function FeatureFlagsClient({ flags }: Props) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to update feature flag.");
+        setError(data.error || t("featureFlags.failedUpdate"));
         return;
       }
 
-      setSuccess("Feature flag updated successfully.");
+      setSuccess(t("featureFlags.updatedSuccess"));
       cancelEdit();
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -209,15 +212,15 @@ export default function FeatureFlagsClient({ flags }: Props) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to delete feature flag.");
+        setError(data.error || t("featureFlags.failedDelete"));
         return;
       }
 
-      setSuccess("Feature flag deleted successfully.");
+      setSuccess(t("featureFlags.deletedSuccess"));
       setDeletingId(null);
       router.refresh();
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("networkError"));
     } finally {
       setDeleting(false);
     }
@@ -285,9 +288,9 @@ export default function FeatureFlagsClient({ flags }: Props) {
       {/* Header */}
       <div className="admin-header">
         <div>
-          <h2>Feature Flags</h2>
+          <h2>{t("featureFlags.title")}</h2>
           <p className="admin-header-sub">
-            Manage feature flags to control feature availability across plans
+            {t("featureFlags.subtitle")}
           </p>
         </div>
         <div className="admin-header-actions">
@@ -299,7 +302,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
               setSuccess("");
             }}
           >
-            <Plus size={14} /> New Feature Flag
+            <Plus size={14} /> {t("featureFlags.newFlag")}
           </button>
         </div>
       </div>
@@ -310,14 +313,14 @@ export default function FeatureFlagsClient({ flags }: Props) {
           <div className="admin-stat-icon blue">
             <Flag size={18} />
           </div>
-          <div className="admin-stat-label">Total Flags</div>
+          <div className="admin-stat-label">{t("featureFlags.totalFlags")}</div>
           <div className="admin-stat-value">{totalFlags}</div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon green">
             <ToggleRight size={18} />
           </div>
-          <div className="admin-stat-label">Enabled</div>
+          <div className="admin-stat-label">{t("featureFlags.enabled")}</div>
           <div className="admin-stat-value">{enabledFlags}</div>
         </div>
         <div className="admin-stat-card">
@@ -330,7 +333,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
           >
             <ToggleLeft size={18} />
           </div>
-          <div className="admin-stat-label">Disabled</div>
+          <div className="admin-stat-label">{t("featureFlags.disabled")}</div>
           <div className="admin-stat-value">{disabledFlags}</div>
         </div>
       </div>
@@ -355,7 +358,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
           <input
             type="text"
             className="ticket-form-input"
-            placeholder="Search flags by name..."
+            placeholder={t("featureFlags.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{ paddingLeft: 36 }}
@@ -389,8 +392,8 @@ export default function FeatureFlagsClient({ flags }: Props) {
           style={{ textAlign: "center", padding: 40, color: "var(--muted)" }}
         >
           {search
-            ? "No feature flags match your search."
-            : "No feature flags yet. Create your first one!"}
+            ? t("featureFlags.noMatchSearch")
+            : t("featureFlags.noFlagsYet")}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -400,7 +403,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
               {deletingId === flag.id ? (
                 <div style={{ padding: 20 }}>
                   <p style={{ marginBottom: 16, fontWeight: 500 }}>
-                    Are you sure you want to delete &quot;{formatName(flag.name)}&quot;? This action cannot be undone.
+                    {t("featureFlags.deleteConfirm", { name: formatName(flag.name) })}
                   </p>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button
@@ -408,7 +411,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                       onClick={() => setDeletingId(null)}
                       disabled={deleting}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       className="sa-action-btn danger"
@@ -420,7 +423,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                       ) : (
                         <Trash2 size={14} />
                       )}
-                      {deleting ? "Deleting..." : "Delete"}
+                      {deleting ? t("featureFlags.deleting") : t("featureFlags.delete")}
                     </button>
                   </div>
                 </div>
@@ -445,19 +448,19 @@ export default function FeatureFlagsClient({ flags }: Props) {
                   </div>
 
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Description</label>
+                    <label className="ticket-form-label">{t("featureFlags.description")}</label>
                     <textarea
                       className="ticket-form-input"
                       rows={3}
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
-                      placeholder="Describe what this feature flag controls..."
+                      placeholder={t("featureFlags.descriptionPlaceholder")}
                       style={{ resize: "vertical" }}
                     />
                   </div>
 
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Plan Requirements</label>
+                    <label className="ticket-form-label">{t("featureFlags.planRequirements")}</label>
                     <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                       {PLANS.map((plan) => (
                         <label
@@ -487,7 +490,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                         display: "block",
                       }}
                     >
-                      Leave all unchecked to make available to all plans.
+                      {t("featureFlags.allPlansHint")}
                     </span>
                   </div>
 
@@ -497,7 +500,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                       onClick={cancelEdit}
                       disabled={saving}
                     >
-                      Cancel
+                      {t("cancel")}
                     </button>
                     <button
                       className="sa-action-btn primary"
@@ -509,7 +512,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                       ) : (
                         <Zap size={14} />
                       )}
-                      {saving ? "Saving..." : "Save Changes"}
+                      {saving ? t("featureFlags.saving") : t("featureFlags.saveChanges")}
                     </button>
                   </div>
                 </div>
@@ -596,14 +599,14 @@ export default function FeatureFlagsClient({ flags }: Props) {
                             minWidth: 55,
                           }}
                         >
-                          {flag.is_enabled ? "Enabled" : "Disabled"}
+                          {flag.is_enabled ? t("featureFlags.enabled") : t("featureFlags.disabled")}
                         </span>
                       </div>
 
                       <button
                         className="sa-action-btn"
                         onClick={() => startEdit(flag)}
-                        title="Edit"
+                        title={t("edit")}
                         style={{ padding: "6px 10px" }}
                       >
                         <Edit3 size={14} />
@@ -612,7 +615,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                       <button
                         className="sa-action-btn danger"
                         onClick={() => setDeletingId(flag.id)}
-                        title="Delete"
+                        title={t("featureFlags.delete")}
                         style={{ padding: "6px 10px" }}
                       >
                         <Trash2 size={14} />
@@ -679,7 +682,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="ticket-modal-header">
-              <h3>New Feature Flag</h3>
+              <h3>{t("featureFlags.newFlag")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => setShowCreate(false)}
@@ -697,16 +700,15 @@ export default function FeatureFlagsClient({ flags }: Props) {
                     marginBottom: "1rem",
                   }}
                 >
-                  Create a new feature flag to control feature availability
-                  across different subscription plans.
+                  {t("featureFlags.createDesc")}
                 </p>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Name *</label>
+                  <label className="ticket-form-label">{t("featureFlags.name")} *</label>
                   <input
                     type="text"
                     className="ticket-form-input"
-                    placeholder="e.g. advanced_reports"
+                    placeholder={t("featureFlags.namePlaceholder")}
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     required
@@ -714,11 +716,11 @@ export default function FeatureFlagsClient({ flags }: Props) {
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Description</label>
+                  <label className="ticket-form-label">{t("featureFlags.description")}</label>
                   <textarea
                     className="ticket-form-input"
                     rows={3}
-                    placeholder="Describe what this feature flag controls..."
+                    placeholder={t("featureFlags.descriptionPlaceholder")}
                     value={newDescription}
                     onChange={(e) => setNewDescription(e.target.value)}
                     style={{ resize: "vertical" }}
@@ -726,7 +728,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Enabled</label>
+                  <label className="ticket-form-label">{t("featureFlags.enabled")}</label>
                   <div
                     style={{
                       display: "flex",
@@ -747,13 +749,13 @@ export default function FeatureFlagsClient({ flags }: Props) {
                           : "var(--muted)",
                       }}
                     >
-                      {newEnabled ? "Enabled" : "Disabled"}
+                      {newEnabled ? t("featureFlags.enabled") : t("featureFlags.disabled")}
                     </span>
                   </div>
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Plan Requirements</label>
+                  <label className="ticket-form-label">{t("featureFlags.planRequirements")}</label>
                   <div
                     style={{ display: "flex", gap: 12, flexWrap: "wrap" }}
                   >
@@ -785,8 +787,7 @@ export default function FeatureFlagsClient({ flags }: Props) {
                       display: "block",
                     }}
                   >
-                    Select which plans have access. Leave all unchecked to make
-                    available to all plans.
+                    {t("featureFlags.selectPlansHint")}
                   </span>
                 </div>
               </div>
@@ -797,14 +798,14 @@ export default function FeatureFlagsClient({ flags }: Props) {
                   className="btn-secondary"
                   onClick={() => setShowCreate(false)}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating}
                 >
-                  {creating ? "Creating..." : "Create Flag"}
+                  {creating ? t("featureFlags.creating") : t("featureFlags.createFlag")}
                 </button>
               </div>
             </form>

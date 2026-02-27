@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Building2, MapPin, Users, DollarSign, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import { ReportWizard } from "@/components/reports/ReportWizard";
@@ -42,12 +43,6 @@ interface MarketFeasibilityClientProps {
   companyName: string;
 }
 
-const WIZARD_STEPS = [
-  { label: "Select Property" },
-  { label: "Configure & Generate" },
-  { label: "Preview & Download" },
-];
-
 const theme = REPORT_THEMES.market_feasibility;
 
 function fmt(n: number | null | undefined): string {
@@ -65,6 +60,12 @@ export function MarketFeasibilityClient({
   companyId,
   companyName,
 }: MarketFeasibilityClientProps) {
+  const t = useTranslations("reports");
+  const WIZARD_STEPS = useMemo(() => [
+    { label: t("marketFeasibility.stepSelectProperty") },
+    { label: t("marketFeasibility.stepConfigure") },
+    { label: t("marketFeasibility.stepPreview") },
+  ], [t]);
   const [step, setStep] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [comparative, setComparative] = useState(false);
@@ -168,8 +169,7 @@ export function MarketFeasibilityClient({
           ...prev,
           [sectionId]: {
             ...prev[sectionId],
-            narrative:
-              "AI narrative generation not available. Configure an AI provider in Admin > AI Providers to enable auto-generated narratives.",
+            narrative: t("aiNarrativeUnavailable"),
           },
         }));
       }
@@ -199,13 +199,13 @@ export function MarketFeasibilityClient({
       const p = data.properties[0];
       newSectionsData.property_overview = {
         kpis: [
-          { label: "Total Units", value: String(p.total_units), icon: "building" },
-          { label: "Occupancy", value: pct(p.occupancy_rate), icon: "users" },
-          { label: "Monthly Revenue", value: fmt(p.monthly_revenue), icon: "dollar" },
-          { label: "NOI", value: fmt(p.noi), icon: "trending" },
-          { label: "Current Value", value: fmt(p.current_value), icon: "building" },
+          { label: t("marketFeasibility.totalUnits"), value: String(p.total_units), icon: "building" },
+          { label: t("marketFeasibility.occupancy"), value: pct(p.occupancy_rate), icon: "users" },
+          { label: t("marketFeasibility.monthlyRevenue"), value: fmt(p.monthly_revenue), icon: "dollar" },
+          { label: t("marketFeasibility.noi"), value: fmt(p.noi), icon: "trending" },
+          { label: t("marketFeasibility.currentValue"), value: fmt(p.current_value), icon: "building" },
           {
-            label: "Cap Rate",
+            label: t("marketFeasibility.capRate"),
             value:
               p.current_value && p.noi
                 ? pct(((p.noi * 12) / p.current_value) * 100)
@@ -215,12 +215,12 @@ export function MarketFeasibilityClient({
         ],
         tableData: [
           {
-            field: "Address",
+            field: t("marketFeasibility.address"),
             value: [p.address, p.city, p.state, p.zip].filter(Boolean).join(", "),
           },
-          { field: "Property Type", value: p.property_type.replace(/_/g, " ") },
-          { field: "Year Built", value: p.year_built ?? "N/A" },
-          { field: "Total Sq Ft", value: p.total_sqft?.toLocaleString() ?? "N/A" },
+          { field: t("marketFeasibility.propertyType"), value: p.property_type.replace(/_/g, " ") },
+          { field: t("marketFeasibility.yearBuilt"), value: p.year_built ?? t("na") },
+          { field: t("marketFeasibility.totalSqFt"), value: p.total_sqft?.toLocaleString() ?? t("na") },
         ],
       };
     }
@@ -236,12 +236,12 @@ export function MarketFeasibilityClient({
         vacant: u.vacant,
       })),
       tableColumns: [
-        { key: "type", label: "Unit Type" },
-        { key: "count", label: "Count", format: "number" },
-        { key: "avg_sqft", label: "Avg Sq Ft", format: "number" },
-        { key: "avg_rent", label: "Avg Rent", format: "currency" },
-        { key: "occupied", label: "Occupied", format: "number" },
-        { key: "vacant", label: "Vacant", format: "number" },
+        { key: "type", label: t("marketFeasibility.unitType") },
+        { key: "count", label: t("marketFeasibility.count"), format: "number" },
+        { key: "avg_sqft", label: t("marketFeasibility.avgSqFt"), format: "number" },
+        { key: "avg_rent", label: t("marketFeasibility.avgRent"), format: "currency" },
+        { key: "occupied", label: t("marketFeasibility.occupied"), format: "number" },
+        { key: "vacant", label: t("marketFeasibility.vacant"), format: "number" },
       ],
       chartType: "rent_comp",
       chartData: data.unitMix.map((u) => ({
@@ -253,11 +253,11 @@ export function MarketFeasibilityClient({
     // Financial Pro Forma
     newSectionsData.financial_proforma = {
       kpis: [
-        { label: "Total Revenue", value: fmt(data.financialSummary.totalRevenue) },
-        { label: "Total Expenses", value: fmt(data.financialSummary.totalExpenses) },
-        { label: "Net Income", value: fmt(data.financialSummary.netIncome) },
-        { label: "Accounts Receivable", value: fmt(data.financialSummary.totalAR) },
-        { label: "Accounts Payable", value: fmt(data.financialSummary.totalAP) },
+        { label: t("marketFeasibility.totalRevenue"), value: fmt(data.financialSummary.totalRevenue) },
+        { label: t("marketFeasibility.totalExpenses"), value: fmt(data.financialSummary.totalExpenses) },
+        { label: t("marketFeasibility.netIncome"), value: fmt(data.financialSummary.netIncome) },
+        { label: t("marketFeasibility.accountsReceivable"), value: fmt(data.financialSummary.totalAR) },
+        { label: t("marketFeasibility.accountsPayable"), value: fmt(data.financialSummary.totalAP) },
       ],
     };
 
@@ -303,12 +303,12 @@ export function MarketFeasibilityClient({
               : "$0",
         })),
         tableColumns: [
-          { key: "name", label: "Property" },
-          { key: "type", label: "Type" },
-          { key: "units", label: "Units", format: "number" },
-          { key: "occupancy", label: "Occupancy" },
-          { key: "noi", label: "Monthly NOI" },
-          { key: "rent_per_unit", label: "Rent/Unit" },
+          { key: "name", label: t("marketFeasibility.property") },
+          { key: "type", label: t("marketFeasibility.type") },
+          { key: "units", label: t("marketFeasibility.units"), format: "number" },
+          { key: "occupancy", label: t("marketFeasibility.occupancy") },
+          { key: "noi", label: t("marketFeasibility.monthlyNOI") },
+          { key: "rent_per_unit", label: t("marketFeasibility.rentPerUnit") },
         ],
       };
     }
@@ -557,7 +557,7 @@ export function MarketFeasibilityClient({
           marginBottom: "1.5rem",
         }}
       >
-        <ArrowLeft size={14} /> Back to Authoritative Reports
+        <ArrowLeft size={14} /> {t("backToAuthoritativeReports")}
       </Link>
 
       <h2
@@ -566,10 +566,10 @@ export function MarketFeasibilityClient({
           marginBottom: "0.5rem",
         }}
       >
-        Market Feasibility Study
+        {t("marketFeasibility.title")}
       </h2>
       <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: "1.5rem" }}>
-        Select a property, configure sections, and generate an investor-ready report.
+        {t("marketFeasibility.subtitle")}
       </p>
 
       <ReportWizard steps={WIZARD_STEPS} currentStep={step} onStepClick={setStep}>
@@ -577,7 +577,7 @@ export function MarketFeasibilityClient({
         {step === 0 && (
           <div className="subject-selection">
             <div className="subject-selection-header">
-              <h3>Select Property</h3>
+              <h3>{t("marketFeasibility.selectProperty")}</h3>
               <label className="comparative-toggle">
                 <input
                   type="checkbox"
@@ -589,7 +589,7 @@ export function MarketFeasibilityClient({
                     }
                   }}
                 />
-                Comparative Mode
+                {t("marketFeasibility.comparativeMode")}
               </label>
             </div>
 
@@ -601,7 +601,7 @@ export function MarketFeasibilityClient({
                   color: "var(--muted)",
                 }}
               >
-                No properties found. Add properties to get started.
+                {t("marketFeasibility.noPropertiesFound")}
               </div>
             ) : (
               <div className="subject-cards">
@@ -623,11 +623,11 @@ export function MarketFeasibilityClient({
                       </span>
                       <span className="subject-card-stat">
                         <Users size={12} />
-                        {p.occupied_units}/{p.total_units} units
+                        {t("marketFeasibility.unitsOccupied", { occupied: p.occupied_units, total: p.total_units })}
                       </span>
                       <span className="subject-card-stat">
                         <DollarSign size={12} />
-                        NOI: {fmt(p.noi)}
+                        {t("marketFeasibility.noiLabel", { value: fmt(p.noi) })}
                       </span>
                     </div>
                   </div>
@@ -642,7 +642,7 @@ export function MarketFeasibilityClient({
                 onClick={() => setStep(1)}
                 type="button"
               >
-                Next: Configure Sections
+                {t("nextConfigureSections")}
               </button>
             )}
           </div>
@@ -651,7 +651,7 @@ export function MarketFeasibilityClient({
         {/* Step 2: Configure & Generate */}
         {step === 1 && (
           <div>
-            <h3 style={{ marginBottom: "1rem" }}>Configure Report Sections</h3>
+            <h3 style={{ marginBottom: "1rem" }}>{t("configureReportSections")}</h3>
             <div className="section-config">
               {sections.map((s) => (
                 <label key={s.id} className="section-config-item">
@@ -706,8 +706,8 @@ export function MarketFeasibilityClient({
               reportType="market_feasibility"
               title={
                 selectedProperties.length === 1
-                  ? `Market Feasibility Study: ${selectedProperties[0].name}`
-                  : `Market Feasibility Study: ${selectedProperties.length} Properties`
+                  ? t("marketFeasibility.titleWithName", { name: selectedProperties[0].name })
+                  : t("marketFeasibility.titleWithCount", { count: selectedProperties.length })
               }
               subtitle={
                 selectedProperties.length === 1
@@ -735,9 +735,9 @@ export function MarketFeasibilityClient({
         <div className="report-preview-modal-overlay" onClick={() => setShowPreviewModal(false)}>
           <div className="report-preview-modal" onClick={(e) => e.stopPropagation()}>
             <div className="report-preview-modal-header">
-              <h3>Report Preview</h3>
+              <h3>{t("reportPreview")}</h3>
               <button className="report-preview-modal-close" onClick={() => setShowPreviewModal(false)} type="button">
-                <X size={14} /> Close
+                <X size={14} /> {t("close")}
               </button>
             </div>
             <div className="report-preview-modal-body">

@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AlertTriangle, CreditCard } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 
 export function GracePeriodBanner() {
   const router = useRouter();
+  const t = useTranslations("common");
   const pathname = usePathname();
   const isPortal =
     pathname.startsWith("/employee") ||
@@ -99,13 +101,12 @@ export function GracePeriodBanner() {
             }}
           >
             {isGrace
-              ? `Your subscription has expired. You have ${state.daysLeft} day${state.daysLeft !== 1 ? "s" : ""} of read-only access remaining.`
-              : "Your account is suspended. Please resubscribe to restore access."}
+              ? t("gracePeriod.expired", { days: state.daysLeft })
+              : t("gracePeriod.suspended")}
           </span>
           {isGrace && (
             <span style={{ color: "var(--muted)", marginLeft: "6px" }}>
-              You can view all data and export reports, but cannot create or
-              edit records.
+              {t("gracePeriod.readOnlyDesc")}
             </span>
           )}
         </div>
@@ -128,7 +129,7 @@ export function GracePeriodBanner() {
         }}
       >
         <CreditCard size={14} />
-        Resubscribe Now
+        {t("gracePeriod.resubscribeNow")}
       </button>
     </div>
   );

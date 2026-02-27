@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   CalendarRange,
   CheckCircle2,
@@ -63,6 +64,7 @@ function fmtCurrency(n: number) {
 /* ───── component ───── */
 export default function DeferralsClient({ schedule, deferredInvoices }: DeferralsClientProps) {
   const router = useRouter();
+  const t = useTranslations("financial");
   const [recognizing, setRecognizing] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "revenue" | "expense">("all");
 
@@ -169,8 +171,8 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Deferrals</h2>
-          <p className="fin-header-sub">Deferred revenue &amp; expense recognition waterfall</p>
+          <h2>{t("deferrals.title")}</h2>
+          <p className="fin-header-sub">{t("deferrals.subtitle")}</p>
         </div>
         <div className="fin-header-actions">
           <select
@@ -178,9 +180,9 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
             value={filter}
             onChange={(e) => setFilter(e.target.value as "all" | "revenue" | "expense")}
           >
-            <option value="all">All Types</option>
-            <option value="revenue">Revenue Only</option>
-            <option value="expense">Expense Only</option>
+            <option value="all">{t("deferrals.allTypes")}</option>
+            <option value="revenue">{t("deferrals.revenueOnly")}</option>
+            <option value="expense">{t("deferrals.expenseOnly")}</option>
           </select>
         </div>
       </div>
@@ -188,22 +190,22 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
       {/* KPIs */}
       <div className="financial-kpi-row" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         <div className="fin-kpi">
-          <span className="fin-kpi-label">Deferred Invoices</span>
+          <span className="fin-kpi-label">{t("deferrals.deferredInvoices")}</span>
           <span className="fin-kpi-value">{kpis.invoiceCount}</span>
           <span className="fin-kpi-icon" style={{ color: "var(--color-blue)" }}><CalendarRange size={18} /></span>
         </div>
         <div className="fin-kpi">
-          <span className="fin-kpi-label">Total Scheduled</span>
+          <span className="fin-kpi-label">{t("deferrals.totalScheduled")}</span>
           <span className="fin-kpi-value">{fmtCurrency(kpis.totalDeferred)}</span>
           <span className="fin-kpi-icon" style={{ color: "var(--color-amber)" }}><DollarSign size={18} /></span>
         </div>
         <div className="fin-kpi">
-          <span className="fin-kpi-label">Recognized</span>
+          <span className="fin-kpi-label">{t("deferrals.recognized")}</span>
           <span className="fin-kpi-value" style={{ color: "var(--color-green)" }}>{fmtCurrency(kpis.totalRecognized)}</span>
           <span className="fin-kpi-icon" style={{ color: "var(--color-green)" }}><CheckCircle2 size={18} /></span>
         </div>
         <div className="fin-kpi">
-          <span className="fin-kpi-label">Pending</span>
+          <span className="fin-kpi-label">{t("deferrals.pending")}</span>
           <span className="fin-kpi-value" style={{ color: "var(--color-amber)" }}>{fmtCurrency(kpis.totalPending)}</span>
           <span className="fin-kpi-icon" style={{ color: "var(--color-amber)" }}><Clock size={18} /></span>
         </div>
@@ -213,15 +215,15 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
       {filteredInvoices.length === 0 ? (
         <div className="fin-empty-state">
           <CalendarRange size={40} style={{ color: "var(--muted)", marginBottom: 12 }} />
-          <p style={{ color: "var(--muted)" }}>No deferred invoices found. Create an invoice with deferral dates to get started.</p>
+          <p style={{ color: "var(--muted)" }}>{t("deferrals.emptyDesc")}</p>
         </div>
       ) : (
         <div className="fin-card" style={{ overflowX: "auto" }}>
           <table className="fin-table" style={{ minWidth: visibleMonths.length * 100 + 320 }}>
             <thead>
               <tr>
-                <th style={{ position: "sticky", left: 0, background: "var(--card-bg)", zIndex: 2, minWidth: 200 }}>Invoice</th>
-                <th style={{ position: "sticky", left: 200, background: "var(--card-bg)", zIndex: 2, minWidth: 120 }}>Total</th>
+                <th style={{ position: "sticky", left: 0, background: "var(--card-bg)", zIndex: 2, minWidth: 200 }}>{t("deferrals.invoice")}</th>
+                <th style={{ position: "sticky", left: 200, background: "var(--card-bg)", zIndex: 2, minWidth: 120 }}>{t("deferrals.total")}</th>
                 {visibleMonths.map((m) => (
                   <th
                     key={m}
@@ -244,14 +246,14 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
                 return (
                   <tr key={invoiceId}>
                     <td style={{ position: "sticky", left: 0, background: "var(--card-bg)", zIndex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: "0.85rem" }}>{inv?.invoice_number ?? "—"}</div>
+                      <div style={{ fontWeight: 600, fontSize: "0.85rem" }}>{inv?.invoice_number ?? "\u2014"}</div>
                       <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
-                        {name ?? "—"}
+                        {name ?? "\u2014"}
                         <span
                           className={`inv-status ${inv?.invoice_type === "receivable" ? "approved" : "pending"}`}
                           style={{ marginLeft: 6, fontSize: "0.65rem" }}
                         >
-                          {inv?.invoice_type === "receivable" ? "Revenue" : "Expense"}
+                          {inv?.invoice_type === "receivable" ? t("deferrals.revenue") : t("deferrals.expense")}
                         </span>
                       </div>
                     </td>
@@ -261,7 +263,7 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
                     {visibleMonths.map((m) => {
                       const cell = data.rows.get(m);
                       if (!cell) {
-                        return <td key={m} style={{ textAlign: "center", color: "var(--muted)", fontSize: "0.8rem" }}>—</td>;
+                        return <td key={m} style={{ textAlign: "center", color: "var(--muted)", fontSize: "0.8rem" }}>{"\u2014"}</td>;
                       }
 
                       const isRecognized = cell.status === "recognized";
@@ -300,7 +302,7 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
                               onClick={() => handleRecognize(cell.id)}
                             >
                               <Play size={10} />
-                              {recognizing === cell.id ? "..." : "Recognize"}
+                              {recognizing === cell.id ? "..." : t("deferrals.recognize")}
                             </button>
                           ) : (
                             <Clock size={11} style={{ color: "var(--muted)", marginTop: 2 }} />

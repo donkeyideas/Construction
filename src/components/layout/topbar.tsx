@@ -12,6 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { useRealtimeNotifications } from "@/lib/supabase/realtime";
 import { SearchModal } from "./SearchModal";
@@ -34,6 +35,7 @@ function getInitials(name: string | null, email: string | null): string {
 
 export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   const { theme, variant, toggleTheme, setVariant } = useTheme();
+  const t = useTranslations("topbar");
   const router = useRouter();
   const pathname = usePathname();
   const isSuperAdmin = pathname.startsWith("/super-admin");
@@ -251,7 +253,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
         {/* Center: Search bar */}
         <button className="search-btn" onClick={() => setSearchOpen(true)}>
           <Search size={14} />
-          Search <kbd>Ctrl+K</kbd>
+          {t("search")} <kbd>Ctrl+K</kbd>
         </button>
 
         <div className="topbar-right">
@@ -260,17 +262,17 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
               className="reset-company-btn"
               onClick={handleResetCompany}
               disabled={resetting}
-              title="Delete all company data (test account only)"
+              title={t("deleteAllDataTitle")}
             >
               <Trash2 size={16} />
-              {resetting ? "Deleting..." : resetConfirm ? "Click to Confirm" : "Delete All Data"}
+              {resetting ? t("deleting") : resetConfirm ? t("clickToConfirm") : t("deleteAllData")}
             </button>
           )}
           {trialDaysLeft !== null && !isPortal && (
             <button
               className="trial-badge-btn"
               onClick={() => router.push("/admin/settings?tab=subscription")}
-              title={`Free trial: ${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} remaining`}
+              title={t("trialBadgeTitle", { days: trialDaysLeft })}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -288,15 +290,15 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             >
               <Clock size={13} />
               {trialDaysLeft === 0
-                ? "Trial expired"
-                : `${trialDaysLeft}d left in trial`}
+                ? t("trialExpired")
+                : t("trialDaysLeft", { days: trialDaysLeft })}
             </button>
           )}
           {graceDaysLeft !== null && !isPortal && (
             <button
               className="trial-badge-btn"
               onClick={() => router.push("/admin/settings?tab=subscription")}
-              title={`Read-only mode: ${graceDaysLeft} day${graceDaysLeft !== 1 ? "s" : ""} remaining`}
+              title={t("graceBadgeTitle", { days: graceDaysLeft })}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -314,15 +316,15 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             >
               <Clock size={13} />
               {graceDaysLeft === 0
-                ? "Account suspended"
-                : `Read-only: ${graceDaysLeft}d left`}
+                ? t("accountSuspended")
+                : t("readOnlyDaysLeft", { days: graceDaysLeft })}
             </button>
           )}
           {auditGrade && !isPortal && (
             <button
               className="audit-grade-btn"
               onClick={() => router.push("/financial/audit")}
-              title={`Financial Audit: ${auditGradeLabel || auditGrade}`}
+              title={t("auditGradeTitle", { grade: auditGradeLabel || auditGrade })}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -344,11 +346,11 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
           <button
             onClick={() => setVariant(variant === "classic" ? "corporate" : "classic")}
             className="theme-btn"
-            title={`Switch to ${variant === "classic" ? "Corporate" : "Classic"} UI`}
+            title={t("switchVariant", { variant: variant === "classic" ? t("corporate") : t("classic") })}
           >
             <SwatchBook size={18} strokeWidth={2} />
           </button>
-          <button onClick={toggleTheme} className="theme-btn" title="Toggle theme">
+          <button onClick={toggleTheme} className="theme-btn" title={t("toggleTheme")}>
             {theme === "dark" ? (
               <Sun size={18} strokeWidth={2} />
             ) : (
@@ -359,7 +361,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             ref={bellRef}
             className={`notif-btn${totalUnread > 0 ? " has-unread" : ""}`}
             onClick={() => router.push(isSuperAdmin ? "/super-admin/inbox" : "/inbox")}
-            title="Inbox"
+            title={t("inbox")}
           >
             <Bell size={20} />
             {totalUnread > 0 && <span className="notif-badge">{totalUnread > 99 ? "99+" : totalUnread}</span>}
@@ -372,7 +374,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={8}>
               <DropdownMenuLabel>
-                <div style={{ fontWeight: 600 }}>{userInfo.name || "User"}</div>
+                <div style={{ fontWeight: 600 }}>{userInfo.name || t("user")}</div>
                 {userInfo.email && (
                   <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontWeight: 400 }}>
                     {userInfo.email}
@@ -382,7 +384,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => router.push(isSuperAdmin ? "/super-admin/settings" : "/admin/settings")}>
                 <Settings size={14} style={{ marginRight: 8 }} />
-                Settings
+                {t("settings")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <div style={{ padding: "4px 8px" }}>
@@ -391,7 +393,7 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem danger onSelect={handleLogout}>
                 <LogOut size={14} style={{ marginRight: 8 }} />
-                Log Out
+                {t("logOut")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

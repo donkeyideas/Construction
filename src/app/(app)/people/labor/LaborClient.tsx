@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getLocalToday } from "@/lib/utils/timezone";
 import {
   Calendar,
@@ -145,6 +146,7 @@ export default function LaborClient({
   defaultTab,
 }: LaborClientProps) {
   const router = useRouter();
+  const t = useTranslations("people");
   const isAdmin = ["owner", "admin"].includes(userRole);
 
   const validTabs: TabKey[] = ["dashboard", "activity", "weekly", "allEntries", "rates"];
@@ -166,13 +168,13 @@ export default function LaborClient({
   /* ----------------------------------------------------------------
      Tab definitions
      ---------------------------------------------------------------- */
-  const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-    { key: "dashboard", label: "Overview", icon: <BarChart3 size={16} /> },
-    { key: "activity", label: "Activity", icon: <Activity size={16} /> },
-    { key: "weekly", label: "Timesheet", icon: <ClipboardList size={16} /> },
-    { key: "allEntries", label: "All Entries", icon: <List size={16} /> },
-    { key: "rates", label: "Pay Rates", icon: <Users size={16} /> },
-  ];
+  const tabs = useMemo(() => [
+    { key: "dashboard" as TabKey, label: t("labor.tabOverview"), icon: <BarChart3 size={16} /> },
+    { key: "activity" as TabKey, label: t("labor.tabActivity"), icon: <Activity size={16} /> },
+    { key: "weekly" as TabKey, label: t("labor.tabTimesheet"), icon: <ClipboardList size={16} /> },
+    { key: "allEntries" as TabKey, label: t("labor.tabAllEntries"), icon: <List size={16} /> },
+    { key: "rates" as TabKey, label: t("labor.tabPayRates"), icon: <Users size={16} /> },
+  ], [t]);
 
   /* ----------------------------------------------------------------
      Handlers
@@ -244,13 +246,13 @@ export default function LaborClient({
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to save.");
+      if (!res.ok) throw new Error(data.error || t("labor.failedToSave"));
 
       setShowEditModal(false);
       setEditingEmployee(null);
       router.refresh();
     } catch (err: unknown) {
-      setEditError(err instanceof Error ? err.message : "Failed to save pay rate.");
+      setEditError(err instanceof Error ? err.message : t("labor.failedToSavePayRate"));
     } finally {
       setSaving(false);
     }
@@ -263,7 +265,7 @@ export default function LaborClient({
     const map = new Map<string, { name: string; hours: number; cost: number }>();
     for (const entry of allTimeEntries) {
       if (entry.status !== "approved") continue;
-      const projectName = entry.project?.name || "Unassigned";
+      const projectName = entry.project?.name || t("labor.unassigned");
       const projectId = entry.project_id || "unassigned";
       if (!map.has(projectId)) {
         map.set(projectId, { name: projectName, hours: 0, cost: 0 });
@@ -293,9 +295,9 @@ export default function LaborClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Labor & Time</h2>
+          <h2>{t("labor.title")}</h2>
           <p className="fin-header-sub">
-            Track employee hours, manage pay rates, and monitor labor costs
+            {t("labor.subtitle")}
           </p>
         </div>
       </div>
@@ -322,28 +324,28 @@ export default function LaborClient({
               <div className="payroll-kpi-icon amber">
                 <Clock size={20} />
               </div>
-              <div className="payroll-kpi-label">Pending Hours</div>
+              <div className="payroll-kpi-label">{t("labor.pendingHours")}</div>
               <div className="payroll-kpi-value">{fmtNum(overview.pendingHours)}h</div>
             </div>
             <div className="payroll-kpi">
               <div className="payroll-kpi-icon green">
                 <CheckCircle2 size={20} />
               </div>
-              <div className="payroll-kpi-label">Approved Hours</div>
+              <div className="payroll-kpi-label">{t("labor.approvedHours")}</div>
               <div className="payroll-kpi-value">{fmtNum(overview.approvedHours)}h</div>
             </div>
             <div className="payroll-kpi">
               <div className="payroll-kpi-icon blue">
                 <Users size={20} />
               </div>
-              <div className="payroll-kpi-label">Active Employees</div>
+              <div className="payroll-kpi-label">{t("labor.activeEmployees")}</div>
               <div className="payroll-kpi-value">{overview.activeEmployees}</div>
             </div>
             <div className="payroll-kpi">
               <div className="payroll-kpi-icon blue">
                 <DollarSign size={20} />
               </div>
-              <div className="payroll-kpi-label">Est. Labor Cost</div>
+              <div className="payroll-kpi-label">{t("labor.estLaborCost")}</div>
               <div className="payroll-kpi-value">{fmt(overview.totalLaborCost)}</div>
             </div>
           </div>
@@ -352,7 +354,7 @@ export default function LaborClient({
           <div className="fin-chart-card">
             <div className="fin-chart-title">
               <Briefcase size={18} />
-              Labor Cost by Project
+              {t("labor.laborCostByProject")}
             </div>
 
             {projectCosts.length === 0 ? (
@@ -360,9 +362,9 @@ export default function LaborClient({
                 <div className="fin-empty-icon">
                   <Briefcase size={48} />
                 </div>
-                <div className="fin-empty-title">No Labor Data Yet</div>
+                <div className="fin-empty-title">{t("labor.noLaborDataTitle")}</div>
                 <p className="fin-empty-desc">
-                  Approved time entries with pay rates will show labor costs here.
+                  {t("labor.noLaborDataDesc")}
                 </p>
               </div>
             ) : (
@@ -370,9 +372,9 @@ export default function LaborClient({
                 <table className="payroll-review-table">
                   <thead>
                     <tr>
-                      <th>Project</th>
-                      <th className="num-col">Hours</th>
-                      <th className="num-col">Est. Cost</th>
+                      <th>{t("labor.project")}</th>
+                      <th className="num-col">{t("labor.hours")}</th>
+                      <th className="num-col">{t("labor.estCost")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -384,7 +386,7 @@ export default function LaborClient({
                       </tr>
                     ))}
                     <tr className="summary-row">
-                      <td style={{ fontWeight: 700 }}>TOTAL</td>
+                      <td style={{ fontWeight: 700 }}>{t("labor.total")}</td>
                       <td className="num-col">
                         {fmtNum(projectCosts.reduce((s, p) => s + p.hours, 0))}
                       </td>
@@ -402,24 +404,24 @@ export default function LaborClient({
           <div className="fin-chart-card">
             <div className="fin-chart-title">
               <Calendar size={18} />
-              Recent Time Entries
+              {t("labor.recentTimeEntries")}
             </div>
 
             {recentEntries.length === 0 ? (
               <div style={{ textAlign: "center", padding: "32px 16px", color: "var(--muted)", fontSize: "0.88rem" }}>
-                No time entries recorded yet.
+                {t("labor.noTimeEntriesYet")}
               </div>
             ) : (
               <div style={{ overflowX: "auto" }}>
                 <table className="payroll-review-table">
                   <thead>
                     <tr>
-                      <th>Employee</th>
-                      <th>Date</th>
-                      <th className="num-col">Hours</th>
-                      <th className="num-col">Rate</th>
-                      <th className="num-col">Cost</th>
-                      <th>Status</th>
+                      <th>{t("labor.employee")}</th>
+                      <th>{t("labor.date")}</th>
+                      <th className="num-col">{t("labor.hours")}</th>
+                      <th className="num-col">{t("labor.rate")}</th>
+                      <th className="num-col">{t("labor.cost")}</th>
+                      <th>{t("labor.status")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -429,7 +431,7 @@ export default function LaborClient({
                       const empName =
                         entry.user_profile?.full_name ||
                         entry.user_profile?.email ||
-                        "Unknown";
+                        t("labor.unknown");
                       return (
                         <tr key={entry.id}>
                           <td style={{ fontWeight: 500 }}>{empName}</td>
@@ -505,7 +507,7 @@ export default function LaborClient({
           <div className="fin-chart-card">
             <div className="fin-chart-title">
               <Users size={18} />
-              All Employees ({employeeContacts.length})
+              {t("labor.allEmployees", { count: employeeContacts.length })}
             </div>
 
             {employeeContacts.length === 0 ? (
@@ -513,9 +515,9 @@ export default function LaborClient({
                 <div className="fin-empty-icon">
                   <Users size={48} />
                 </div>
-                <div className="fin-empty-title">No Employee Contacts Found</div>
+                <div className="fin-empty-title">{t("labor.noEmployeeContactsTitle")}</div>
                 <p className="fin-empty-desc">
-                  Add employees as contacts in the People section first, then configure their rates here.
+                  {t("labor.noEmployeeContactsDesc")}
                 </p>
               </div>
             ) : (
@@ -523,11 +525,11 @@ export default function LaborClient({
                 <table className="payroll-review-table">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Job Title</th>
-                      <th>Pay Status</th>
-                      <th>Actions</th>
+                      <th>{t("labor.name")}</th>
+                      <th>{t("labor.email")}</th>
+                      <th>{t("labor.jobTitle")}</th>
+                      <th>{t("labor.payStatus")}</th>
+                      <th>{t("labor.actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -542,19 +544,19 @@ export default function LaborClient({
                       if (isConfigured) {
                         statusBadge = (
                           <span className="payroll-status payroll-status-paid">
-                            Configured
+                            {t("labor.configured")}
                           </span>
                         );
                       } else if (hasUserId) {
                         statusBadge = (
                           <span className="payroll-status payroll-status-draft">
-                            Not Set Up
+                            {t("labor.notSetUp")}
                           </span>
                         );
                       } else {
                         statusBadge = (
                           <span className="payroll-status payroll-status-approved">
-                            Needs Login
+                            {t("labor.needsLogin")}
                           </span>
                         );
                       }
@@ -573,20 +575,20 @@ export default function LaborClient({
                                 <button
                                   className="ui-btn ui-btn-sm ui-btn-outline"
                                   onClick={() => openEditEmployee(matchedPayRate)}
-                                  title="Edit pay rate"
+                                  title={t("labor.editPayRate")}
                                 >
                                   <Edit3 size={14} />
-                                  Edit
+                                  {t("labor.edit")}
                                 </button>
                               )}
                               {!isConfigured && hasUserId && isAdmin && (
                                 <button
                                   className="ui-btn ui-btn-sm ui-btn-primary"
                                   onClick={() => openSetUpEmployee(contact)}
-                                  title="Set up pay rate"
+                                  title={t("labor.setUpPayRate")}
                                 >
                                   <Plus size={14} />
-                                  Set Up
+                                  {t("labor.setUp")}
                                 </button>
                               )}
                               {!hasUserId && (
@@ -597,7 +599,7 @@ export default function LaborClient({
                                     fontStyle: "italic",
                                   }}
                                 >
-                                  No login account
+                                  {t("labor.noLoginAccount")}
                                 </span>
                               )}
                             </div>
@@ -616,12 +618,12 @@ export default function LaborClient({
             <>
               <div style={{ marginTop: 24, marginBottom: 12 }}>
                 <h3 style={{ fontSize: "1.05rem", fontWeight: 600, color: "var(--foreground)" }}>
-                  Configured Pay Rates ({payRates.length})
+                  {t("labor.configuredPayRates", { count: payRates.length })}
                 </h3>
               </div>
               <div className="payroll-employee-grid">
                 {payRates.map((emp) => {
-                  const displayName = emp.employee_name ?? "Unknown";
+                  const displayName = emp.employee_name ?? t("labor.unknown");
 
                   return (
                     <div key={emp.id} className="payroll-employee-card">
@@ -643,14 +645,14 @@ export default function LaborClient({
                             onClick={() => openEditEmployee(emp)}
                           >
                             <Edit3 size={14} />
-                            Edit
+                            {t("labor.edit")}
                           </button>
                         )}
                       </div>
 
                       <div className="payroll-employee-card-details">
                         <div className="payroll-employee-card-row">
-                          <span className="payroll-employee-card-label">Pay Type</span>
+                          <span className="payroll-employee-card-label">{t("labor.payType")}</span>
                           <span style={{ fontWeight: 600, textTransform: "capitalize" }}>
                             {emp.pay_type}
                           </span>
@@ -658,13 +660,13 @@ export default function LaborClient({
                         {emp.pay_type === "hourly" ? (
                           <>
                             <div className="payroll-employee-card-row">
-                              <span className="payroll-employee-card-label">Hourly Rate</span>
+                              <span className="payroll-employee-card-label">{t("labor.hourlyRate")}</span>
                               <span className="payroll-employee-card-value">
                                 {fmt(emp.hourly_rate ?? 0)}/hr
                               </span>
                             </div>
                             <div className="payroll-employee-card-row">
-                              <span className="payroll-employee-card-label">Overtime Rate</span>
+                              <span className="payroll-employee-card-label">{t("labor.overtimeRate")}</span>
                               <span className="payroll-employee-card-value">
                                 {fmt(emp.overtime_rate ?? 0)}/hr
                               </span>
@@ -672,7 +674,7 @@ export default function LaborClient({
                           </>
                         ) : (
                           <div className="payroll-employee-card-row">
-                            <span className="payroll-employee-card-label">Annual Salary</span>
+                            <span className="payroll-employee-card-label">{t("labor.annualSalary")}</span>
                             <span className="payroll-employee-card-value">
                               {fmt(emp.salary_amount ?? 0)}
                             </span>
@@ -693,7 +695,7 @@ export default function LaborClient({
         <div className="fin-modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="fin-modal" onClick={(e) => e.stopPropagation()}>
             <div className="fin-modal-header">
-              <h3>Edit Pay Rate: {editingEmployee.employee_name}</h3>
+              <h3>{t("labor.editPayRateTitle", { name: editingEmployee.employee_name ?? "" })}</h3>
               <button
                 className="ui-btn ui-btn-sm ui-btn-ghost"
                 onClick={() => setShowEditModal(false)}
@@ -716,7 +718,7 @@ export default function LaborClient({
                   onClick={() => setEditForm({ ...editForm, pay_type: "hourly" })}
                 >
                   <Clock size={16} />
-                  Hourly
+                  {t("labor.hourly")}
                 </button>
                 <button
                   type="button"
@@ -724,7 +726,7 @@ export default function LaborClient({
                   onClick={() => setEditForm({ ...editForm, pay_type: "salary" })}
                 >
                   <DollarSign size={16} />
-                  Salary
+                  {t("labor.salary")}
                 </button>
               </div>
 
@@ -732,7 +734,7 @@ export default function LaborClient({
               {editForm.pay_type === "hourly" ? (
                 <div className="fin-form-row" style={{ marginBottom: 16 }}>
                   <div className="fin-form-group">
-                    <label className="fin-form-label">Hourly Rate ($)</label>
+                    <label className="fin-form-label">{t("labor.hourlyRateLabel")}</label>
                     <input
                       type="number"
                       className="fin-form-input"
@@ -743,7 +745,7 @@ export default function LaborClient({
                     />
                   </div>
                   <div className="fin-form-group">
-                    <label className="fin-form-label">Overtime Rate ($)</label>
+                    <label className="fin-form-label">{t("labor.overtimeRateLabel")}</label>
                     <input
                       type="number"
                       className="fin-form-input"
@@ -756,7 +758,7 @@ export default function LaborClient({
                 </div>
               ) : (
                 <div className="fin-form-group" style={{ marginBottom: 16 }}>
-                  <label className="fin-form-label">Annual Salary ($)</label>
+                  <label className="fin-form-label">{t("labor.annualSalaryLabel")}</label>
                   <input
                     type="number"
                     className="fin-form-input"
@@ -773,14 +775,14 @@ export default function LaborClient({
                 className="ui-btn ui-btn-md ui-btn-outline"
                 onClick={() => setShowEditModal(false)}
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 className="ui-btn ui-btn-md ui-btn-primary"
                 onClick={handleSaveEmployee}
                 disabled={saving}
               >
-                {saving ? "Saving..." : "Save Changes"}
+                {saving ? t("saving") : t("saveChanges")}
               </button>
             </div>
           </div>

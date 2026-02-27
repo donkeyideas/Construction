@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   Sparkles,
   TrendingUp,
@@ -151,6 +152,7 @@ export default function PredictionsClient({
   equipment,
   financialOverview,
 }: PredictionsClientProps) {
+  const t = useTranslations("ai");
   const now = useMemo(() => new Date(), []);
 
   // ---- Project budget predictions ----
@@ -229,10 +231,10 @@ export default function PredictionsClient({
         <div>
           <h1>
             <Sparkles size={28} className="sparkle-icon" />
-            AI Predictions
+            {t("predictions.title")}
           </h1>
           <p className="subtitle">
-            Real-time risk analysis and forecasting across your projects
+            {t("predictions.subtitle")}
           </p>
         </div>
       </div>
@@ -244,13 +246,13 @@ export default function PredictionsClient({
             projectsAtRisk > 0 ? "kpi-critical" : "kpi-good"
           }`}
         >
-          <span className="kpi-label">Projects At Risk</span>
+          <span className="kpi-label">{t("predictions.projectsAtRisk")}</span>
           <span className="kpi-value" style={{ color: projectsAtRisk > 0 ? "var(--color-red)" : "var(--color-green)" }}>
             {projectsAtRisk}
           </span>
           <span className="kpi-change" style={{ color: "var(--muted)" }}>
             <AlertTriangle size={13} />
-            of {projects.length} active projects
+            {t("predictions.ofActiveProjects", { count: projects.length })}
           </span>
         </div>
 
@@ -265,14 +267,14 @@ export default function PredictionsClient({
                   : "kpi-good"
           }`}
         >
-          <span className="kpi-label">Safety Risk Score</span>
+          <span className="kpi-label">{t("predictions.safetyRiskScore")}</span>
           <span className="kpi-value" style={{ color: riskColor(safetyRisk.level) }}>
             {safetyRisk.score}
             <span style={{ fontSize: "0.7em", fontWeight: 400, color: "var(--muted)" }}>/100</span>
           </span>
           <span className="kpi-change" style={{ color: "var(--muted)" }}>
             <ShieldAlert size={13} />
-            {safetyRisk.level.charAt(0).toUpperCase() + safetyRisk.level.slice(1)} risk
+            {t("predictions.risk", { level: safetyRisk.level.charAt(0).toUpperCase() + safetyRisk.level.slice(1) })}
           </span>
         </div>
 
@@ -281,13 +283,13 @@ export default function PredictionsClient({
             equipmentAlerts > 0 ? "kpi-warning" : "kpi-good"
           }`}
         >
-          <span className="kpi-label">Equipment Alerts</span>
+          <span className="kpi-label">{t("predictions.equipmentAlerts")}</span>
           <span className="kpi-value" style={{ color: equipmentAlerts > 0 ? "var(--color-amber)" : "var(--color-green)" }}>
             {equipmentAlerts}
           </span>
           <span className="kpi-change" style={{ color: "var(--muted)" }}>
             <Wrench size={13} />
-            need maintenance attention
+            {t("predictions.needMaintenance")}
           </span>
         </div>
 
@@ -300,7 +302,7 @@ export default function PredictionsClient({
                 : "kpi-good"
           }`}
         >
-          <span className="kpi-label">Cash Runway</span>
+          <span className="kpi-label">{t("predictions.cashRunway")}</span>
           <span
             className="kpi-value"
             style={{
@@ -313,19 +315,19 @@ export default function PredictionsClient({
             }}
           >
             {cashRunwayMonths > 24 ? "24+" : cashRunwayMonths}
-            <span style={{ fontSize: "0.7em", fontWeight: 400, color: "var(--muted)" }}> mo</span>
+            <span style={{ fontSize: "0.7em", fontWeight: 400, color: "var(--muted)" }}> {t("predictions.mo")}</span>
           </span>
           <span className="kpi-change" style={{ color: "var(--muted)" }}>
             <DollarSign size={13} />
-            {formatCompactCurrency(financialOverview.cashPosition)} cash
+            {t("predictions.cash", { amount: formatCompactCurrency(financialOverview.cashPosition) })}
           </span>
         </div>
       </div>
 
       {/* Project Budget Predictions */}
-      <SectionTitle icon={<TrendingUp size={20} />} title="Project Budget Predictions" />
+      <SectionTitle icon={<TrendingUp size={20} />} title={t("predictions.projectBudgetPredictions")} />
       {projects.length === 0 ? (
-        <EmptyCard message="No active projects to analyze. Create a project to see budget predictions." />
+        <EmptyCard message={t("predictions.noProjectsEmpty")} />
       ) : (
         <div className="prediction-grid">
           {projectPredictions.map(({ project, prediction }) => (
@@ -339,24 +341,24 @@ export default function PredictionsClient({
                 )}
               </div>
               <span className={riskBadgeClass(prediction.risk)}>
-                {prediction.risk.toUpperCase()} RISK
+                {prediction.risk.toUpperCase()} {t("predictions.riskLabel")}
               </span>
               <div className="metric-row">
-                <span className="metric-label">Budget</span>
+                <span className="metric-label">{t("predictions.budget")}</span>
                 <span className="metric-value">
                   {formatCurrency(project.contract_amount || project.estimated_cost)}
                 </span>
               </div>
               <div className="metric-row">
-                <span className="metric-label">Actual Cost</span>
+                <span className="metric-label">{t("predictions.actualCost")}</span>
                 <span className="metric-value">{formatCurrency(project.actual_cost)}</span>
               </div>
               <div className="metric-row">
-                <span className="metric-label">Predicted Final</span>
+                <span className="metric-label">{t("predictions.predictedFinal")}</span>
                 <span className="metric-value">{formatCurrency(prediction.predictedFinalCost)}</span>
               </div>
               <div className="metric-row">
-                <span className="metric-label">Variance</span>
+                <span className="metric-label">{t("predictions.variance")}</span>
                 <span
                   className="metric-value"
                   style={{
@@ -397,7 +399,7 @@ export default function PredictionsClient({
                   textAlign: "right",
                 }}
               >
-                {project.completion_pct.toFixed(0)}% complete
+                {project.completion_pct.toFixed(0)}% {t("predictions.complete")}
               </div>
             </div>
           ))}
@@ -405,9 +407,9 @@ export default function PredictionsClient({
       )}
 
       {/* Safety Risk Section */}
-      <SectionTitle icon={<ShieldAlert size={20} />} title="Safety Risk Analysis" />
+      <SectionTitle icon={<ShieldAlert size={20} />} title={t("predictions.safetyRiskAnalysis")} />
       {safetyData.projectCount === 0 && safetyData.incidentCount === 0 ? (
-        <EmptyCard message="No safety data available. Safety risk scores will appear once incidents or inspections are recorded." />
+        <EmptyCard message={t("predictions.noSafetyData")} />
       ) : (
         <div className="prediction-card" style={{ marginBottom: 24 }}>
           <div
@@ -420,7 +422,7 @@ export default function PredictionsClient({
           >
             <div>
               <div className="project-name" style={{ marginBottom: 4 }}>
-                Overall Safety Risk Score
+                {t("predictions.overallSafetyRiskScore")}
               </div>
               <span className={riskBadgeClass(safetyRisk.level)}>
                 {safetyRisk.level.toUpperCase()}
@@ -499,9 +501,9 @@ export default function PredictionsClient({
       )}
 
       {/* Equipment Maintenance Predictions */}
-      <SectionTitle icon={<Wrench size={20} />} title="Equipment Maintenance Predictions" />
+      <SectionTitle icon={<Wrench size={20} />} title={t("predictions.equipmentMaintenancePredictions")} />
       {equipment.length === 0 ? (
-        <EmptyCard message="No equipment registered. Add equipment to see maintenance predictions." />
+        <EmptyCard message={t("predictions.noEquipmentEmpty")} />
       ) : (
         <div className="prediction-grid">
           {equipmentPredictions
@@ -510,16 +512,16 @@ export default function PredictionsClient({
               <div key={eq.id} className="prediction-card">
                 <div className="project-name">{eq.name}</div>
                 <span className={riskBadgeClass(prediction.risk)}>
-                  {prediction.risk.toUpperCase()} RISK
+                  {prediction.risk.toUpperCase()} {t("predictions.riskLabel")}
                 </span>
                 <div className="metric-row">
-                  <span className="metric-label">Age</span>
+                  <span className="metric-label">{t("predictions.age")}</span>
                   <span className="metric-value">
-                    {ageMonths > 0 ? `${ageMonths} months` : "Unknown"}
+                    {ageMonths > 0 ? t("predictions.months", { count: ageMonths }) : t("predictions.unknown")}
                   </span>
                 </div>
                 <div className="metric-row">
-                  <span className="metric-label">Days Since Service</span>
+                  <span className="metric-label">{t("predictions.daysSinceService")}</span>
                   <span
                     className="metric-value"
                     style={{
@@ -531,11 +533,11 @@ export default function PredictionsClient({
                             : "var(--text)",
                     }}
                   >
-                    {eq.next_maintenance_date ? `${daysSinceLastService} days` : "N/A"}
+                    {eq.next_maintenance_date ? t("predictions.days", { count: daysSinceLastService }) : t("predictions.na")}
                   </span>
                 </div>
                 <div className="metric-row">
-                  <span className="metric-label">Failure Probability</span>
+                  <span className="metric-label">{t("predictions.failureProbability")}</span>
                   <span
                     className="metric-value"
                     style={{
@@ -546,7 +548,7 @@ export default function PredictionsClient({
                   </span>
                 </div>
                 <div className="metric-row" style={{ borderBottom: "none" }}>
-                  <span className="metric-label">Status</span>
+                  <span className="metric-label">{t("predictions.status")}</span>
                   <span className="metric-value" style={{ textTransform: "capitalize" }}>
                     {eq.status}
                   </span>
