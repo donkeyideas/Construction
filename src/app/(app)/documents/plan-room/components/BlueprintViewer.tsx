@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useCallback, type MouseEvent, type WheelEvent } from "react";
+import { useTranslations } from "next-intl";
 import type { DocumentRow } from "@/lib/queries/documents";
 import type { AnnotationTool, MarkupShape } from "../types";
 import PdfRenderer from "./PdfRenderer";
@@ -66,6 +67,7 @@ export default function BlueprintViewer({
   onAnnotationSelected,
   onAnnotationUpdated,
 }: BlueprintViewerProps) {
+  const t = useTranslations("documents");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleWheel = useCallback(
@@ -85,7 +87,7 @@ export default function BlueprintViewer({
       <div className="plan-room-viewer">
         <div className="plan-room-viewer-content">
           <div className="plan-room-viewer-empty">
-            <p>Select a sheet from the index to view</p>
+            <p>{t("planRoom.viewer.selectSheet")}</p>
           </div>
         </div>
       </div>
@@ -98,7 +100,7 @@ export default function BlueprintViewer({
         <div className="plan-room-viewer-content">
           <div className="plan-room-viewer-loading">
             <div className="plan-room-spinner" />
-            <p>Loading document...</p>
+            <p>{t("planRoom.viewer.loadingDocument")}</p>
           </div>
         </div>
       </div>
@@ -114,16 +116,16 @@ export default function BlueprintViewer({
           <div className="plan-room-unsupported">
             <h3>{doc.name}</h3>
             <p className="plan-room-unsupported-meta">
-              {normalizeFileType(doc.file_type).toUpperCase()} file
+              {normalizeFileType(doc.file_type).toUpperCase()} {t("planRoom.viewer.file")}
             </p>
             <p className="plan-room-unsupported-hint">
               {error && (error.includes("not found") || error.includes("not uploaded"))
-                ? "This document was added before file storage was configured. Please re-upload the file to view it here."
+                ? t("planRoom.viewer.reUploadHint")
                 : error
-                ? `Error loading preview: ${error}`
+                ? t("planRoom.viewer.errorLoadingPreview", { error })
                 : !previewType
-                ? "Preview not available for this file type. Use download to view."
-                : "Could not load file preview. Try downloading instead."}
+                ? t("planRoom.viewer.previewNotAvailable")
+                : t("planRoom.viewer.couldNotLoad")}
             </p>
           </div>
         </div>

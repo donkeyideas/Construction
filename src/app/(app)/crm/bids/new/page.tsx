@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
@@ -22,6 +23,7 @@ function generateId(): string {
 
 export default function NewBidPage() {
   const router = useRouter();
+  const t = useTranslations("crm");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -93,11 +95,11 @@ export default function NewBidPage() {
 
   async function handleSave() {
     if (!bidNumber.trim()) {
-      setError("Bid number is required.");
+      setError(t("bids.bidNumberRequired"));
       return;
     }
     if (!projectName.trim()) {
-      setError("Project name is required.");
+      setError(t("bids.projectNameRequired"));
       return;
     }
 
@@ -132,25 +134,25 @@ export default function NewBidPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to create bid.");
+        setError(data.error || t("bids.failedCreate"));
         setSaving(false);
         return;
       }
 
       router.push("/crm/bids");
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("bids.networkError"));
       setSaving(false);
     }
   }
 
   async function handleSubmit() {
     if (!bidNumber.trim()) {
-      setError("Bid number is required.");
+      setError(t("bids.bidNumberRequired"));
       return;
     }
     if (!projectName.trim()) {
-      setError("Project name is required.");
+      setError(t("bids.projectNameRequired"));
       return;
     }
 
@@ -185,14 +187,14 @@ export default function NewBidPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to submit bid.");
+        setError(data.error || t("bids.failedSubmit"));
         setSaving(false);
         return;
       }
 
       router.push("/crm/bids");
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("bids.networkError"));
       setSaving(false);
     }
   }
@@ -210,9 +212,9 @@ export default function NewBidPage() {
             <ArrowLeft size={18} />
           </Link>
           <div>
-            <h2>New Bid</h2>
+            <h2>{t("bids.newBid")}</h2>
             <p className="crm-header-sub">
-              Prepare a new bid proposal.
+              {t("bids.newBidDesc")}
             </p>
           </div>
         </div>
@@ -240,40 +242,40 @@ export default function NewBidPage() {
         {/* Basic Info */}
         <div className="bid-form-grid">
           <div className="ui-field">
-            <label className="ui-label">Bid Number *</label>
+            <label className="ui-label">{t("bids.bidNumberLabel")}</label>
             <input
               type="text"
               className="ui-input"
-              placeholder="e.g., BID-2026-001"
+              placeholder={t("bids.bidNumberPlaceholder")}
               value={bidNumber}
               onChange={(e) => setBidNumber(e.target.value)}
             />
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Project Name *</label>
+            <label className="ui-label">{t("bids.projectNameLabel")}</label>
             <input
               type="text"
               className="ui-input"
-              placeholder="Project name"
+              placeholder={t("bids.projectNamePlaceholder")}
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
             />
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Client Name</label>
+            <label className="ui-label">{t("bids.clientName")}</label>
             <input
               type="text"
               className="ui-input"
-              placeholder="Client or owner name"
+              placeholder={t("bids.clientNamePlaceholder")}
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
             />
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Bid Date</label>
+            <label className="ui-label">{t("bids.bidDate")}</label>
             <input
               type="date"
               className="ui-input"
@@ -283,7 +285,7 @@ export default function NewBidPage() {
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Due Date</label>
+            <label className="ui-label">{t("bids.dueDate")}</label>
             <input
               type="date"
               className="ui-input"
@@ -293,7 +295,7 @@ export default function NewBidPage() {
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Estimated Cost</label>
+            <label className="ui-label">{t("bids.estimatedCost")}</label>
             <input
               type="number"
               className="ui-input"
@@ -306,7 +308,7 @@ export default function NewBidPage() {
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Bid Amount</label>
+            <label className="ui-label">{t("bids.bidAmount")}</label>
             <input
               type="number"
               className="ui-input"
@@ -319,10 +321,10 @@ export default function NewBidPage() {
           </div>
 
           <div className="ui-field bid-form-full">
-            <label className="ui-label">Scope Description</label>
+            <label className="ui-label">{t("bids.scopeDescription")}</label>
             <textarea
               className="ui-textarea"
-              placeholder="Describe the scope of work for this bid..."
+              placeholder={t("bids.scopeDescriptionPlaceholder")}
               value={scopeDescription}
               onChange={(e) => setScopeDescription(e.target.value)}
               rows={4}
@@ -333,25 +335,25 @@ export default function NewBidPage() {
         {/* Line Items */}
         <div className="bid-line-items">
           <div className="bid-line-items-header">
-            <span>Line Items</span>
+            <span>{t("bids.lineItems")}</span>
             <button
               type="button"
               className="ui-btn ui-btn-sm ui-btn-secondary"
               onClick={addLineItem}
             >
               <Plus size={14} />
-              Add Item
+              {t("bids.addItem")}
             </button>
           </div>
 
           <table className="bid-line-items-table">
             <thead>
               <tr>
-                <th style={{ minWidth: 200 }}>Description</th>
-                <th style={{ width: 80 }}>Qty</th>
-                <th style={{ width: 80 }}>Unit</th>
-                <th style={{ width: 110 }}>Unit Cost</th>
-                <th style={{ width: 110, textAlign: "right" }}>Total</th>
+                <th style={{ minWidth: 200 }}>{t("bids.description")}</th>
+                <th style={{ width: 80 }}>{t("bids.qty")}</th>
+                <th style={{ width: 80 }}>{t("bids.unit")}</th>
+                <th style={{ width: 110 }}>{t("bids.unitCost")}</th>
+                <th style={{ width: 110, textAlign: "right" }}>{t("bids.total")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -362,7 +364,7 @@ export default function NewBidPage() {
                     <input
                       type="text"
                       className="li-input"
-                      placeholder="Line item description"
+                      placeholder={t("bids.lineItemPlaceholder")}
                       value={li.description}
                       onChange={(e) =>
                         updateLineItem(li.id, "description", e.target.value)
@@ -435,25 +437,25 @@ export default function NewBidPage() {
         <div className="bid-totals">
           <div className="bid-totals-box">
             <div className="bid-totals-row">
-              <span className="totals-label">Line Items Total</span>
+              <span className="totals-label">{t("bids.lineItemsTotal")}</span>
               <span className="totals-value">
                 {formatCurrency(lineItemsTotal)}
               </span>
             </div>
             <div className="bid-totals-row">
-              <span className="totals-label">Estimated Cost</span>
+              <span className="totals-label">{t("bids.estimatedCost")}</span>
               <span className="totals-value">
                 {formatCurrency(parsedEstimatedCost)}
               </span>
             </div>
             <div className="bid-totals-row">
-              <span className="totals-label">Bid Amount</span>
+              <span className="totals-label">{t("bids.bidAmount")}</span>
               <span className="totals-value">
                 {formatCurrency(parsedBidAmount)}
               </span>
             </div>
             <div className="bid-totals-row total-final">
-              <span className="totals-label">Margin</span>
+              <span className="totals-label">{t("bids.margin")}</span>
               <span
                 className="totals-value"
                 style={{
@@ -484,7 +486,7 @@ export default function NewBidPage() {
             {saving ? (
               <span className="ui-btn-spinner" />
             ) : null}
-            Save as Draft
+            {t("bids.saveAsDraft")}
           </button>
           <button
             type="button"
@@ -495,13 +497,13 @@ export default function NewBidPage() {
             {saving ? (
               <span className="ui-btn-spinner" />
             ) : null}
-            Submit Bid
+            {t("bids.submitBid")}
           </button>
           <Link
             href="/crm/bids"
             className="ui-btn ui-btn-md ui-btn-ghost"
           >
-            Cancel
+            {t("bids.cancel")}
           </Link>
         </div>
       </div>

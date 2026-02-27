@@ -31,7 +31,7 @@ import type {
 const STATUS_KEYS: TicketStatus[] = ["open", "in_progress", "resolved", "closed"];
 const PRIORITY_KEYS: TicketPriority[] = ["low", "medium", "high", "urgent"];
 
-const CATEGORIES: TicketCategory[] = [
+const CATEGORY_KEYS: TicketCategory[] = [
   "IT",
   "HR",
   "Operations",
@@ -82,6 +82,11 @@ export default function TicketListClient({
     high: t("priorityHigh"),
     urgent: t("priorityUrgent"),
   };
+
+  const CATEGORIES = useMemo(() => CATEGORY_KEYS.map((key) => ({
+    value: key,
+    label: t(`category_${key.toLowerCase()}`),
+  })), [t]);
 
   // ---------------------------------------------------------------------------
   // Helpers
@@ -592,8 +597,8 @@ export default function TicketListClient({
                   >
                     <option value="">{t("selectCategory")}</option>
                     {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+                      <option key={c.value} value={c.value}>
+                        {c.label}
                       </option>
                     ))}
                   </select>
@@ -914,8 +919,8 @@ export default function TicketListClient({
                     >
                       <option value="">{t("selectCategory")}</option>
                       {CATEGORIES.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
+                        <option key={c.value} value={c.value}>
+                          {c.label}
                         </option>
                       ))}
                     </select>

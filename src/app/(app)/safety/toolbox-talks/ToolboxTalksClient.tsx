@@ -24,7 +24,7 @@ import type { ImportColumn } from "@/lib/utils/csv-parser";
 // Constants (non-translated - topics are domain data)
 // ---------------------------------------------------------------------------
 
-const TOPICS = [
+const TOPIC_KEYS = [
   "Fall Protection",
   "Electrical Safety",
   "Scaffolding",
@@ -41,7 +41,7 @@ const TOPICS = [
   "Housekeeping",
   "Emergency Procedures",
   "Other",
-];
+] as const;
 
 // ---------------------------------------------------------------------------
 // Helpers (non-translated)
@@ -82,8 +82,13 @@ export default function ToolboxTalksClient({
   const dateLocale = locale === "es" ? "es" : "en-US";
 
   // ---------------------------------------------------------------------------
-  // Constants (translated)
+  // Constants (translated via useMemo)
   // ---------------------------------------------------------------------------
+
+  const TOPICS = useMemo(() => TOPIC_KEYS.map((key) => ({
+    value: key,
+    label: t(`topic_${key.replace(/[\s/]+/g, "_").toLowerCase()}`),
+  })), [t]);
 
   const STATUS_LABELS: Record<ToolboxTalkStatus, string> = {
     scheduled: t("talkStatusScheduled"),
@@ -473,8 +478,8 @@ export default function ToolboxTalksClient({
         >
           <option value="all">{t("allTopics")}</option>
           {TOPICS.map((tp) => (
-            <option key={tp} value={tp}>
-              {tp}
+            <option key={tp.value} value={tp.value}>
+              {tp.label}
             </option>
           ))}
         </select>
@@ -605,8 +610,8 @@ export default function ToolboxTalksClient({
                   >
                     <option value="">{t("selectTopic")}</option>
                     {TOPICS.map((tp) => (
-                      <option key={tp} value={tp}>
-                        {tp}
+                      <option key={tp.value} value={tp.value}>
+                        {tp.label}
                       </option>
                     ))}
                   </select>
@@ -935,8 +940,8 @@ export default function ToolboxTalksClient({
                     >
                       <option value="">{t("selectTopic")}</option>
                       {TOPICS.map((tp) => (
-                        <option key={tp} value={tp}>
-                          {tp}
+                        <option key={tp.value} value={tp.value}>
+                          {tp.label}
                         </option>
                       ))}
                     </select>

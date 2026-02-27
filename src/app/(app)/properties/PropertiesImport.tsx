@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Upload } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -27,6 +28,7 @@ const IMPORT_SAMPLE: Record<string, string>[] = [
 
 export default function PropertiesImport() {
   const router = useRouter();
+  const t = useTranslations("properties");
   const [showImport, setShowImport] = useState(false);
 
   async function handleImport(importRows: Record<string, string>[]) {
@@ -36,7 +38,7 @@ export default function PropertiesImport() {
       body: JSON.stringify({ entity: "properties", rows: importRows }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("import.importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -45,11 +47,11 @@ export default function PropertiesImport() {
     <>
       <button className="ui-btn ui-btn-md ui-btn-secondary" onClick={() => setShowImport(true)}>
         <Upload size={16} />
-        Import CSV
+        {t("import.importCsv")}
       </button>
       {showImport && (
         <ImportModal
-          entityName="Properties"
+          entityName={t("import.properties")}
           columns={IMPORT_COLUMNS}
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}

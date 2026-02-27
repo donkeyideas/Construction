@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { WifiOff, Wifi } from "lucide-react";
 
 export default function OfflineIndicator() {
+  const t = useTranslations("common");
   const [isOnline, setIsOnline] = useState(true);
   const [showReconnected, setShowReconnected] = useState(false);
 
@@ -54,11 +56,11 @@ export default function OfflineIndicator() {
     >
       {isOnline ? (
         <>
-          <Wifi size={16} /> Back online
+          <Wifi size={16} /> {t("offline.backOnline")}
         </>
       ) : (
         <>
-          <WifiOff size={16} /> You are offline. Changes will sync when reconnected.
+          <WifiOff size={16} /> {t("offline.youAreOffline")}
         </>
       )}
     </div>

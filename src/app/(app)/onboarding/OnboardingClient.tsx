@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -27,22 +27,23 @@ interface OnboardingClientProps {
   userRole: string;
 }
 
-const MODULES = [
-  { key: "projects", label: "Project Management", icon: HardHat, desc: "Track projects, daily logs, RFIs, submittals" },
-  { key: "financial", label: "Financial Management", icon: DollarSign, desc: "Invoices, AP/AR, general ledger, job costing" },
-  { key: "properties", label: "Property Management", icon: Building2, desc: "Leases, maintenance, tenant portal" },
-  { key: "safety", label: "Safety & Compliance", icon: Shield, desc: "Incidents, inspections, toolbox talks" },
-  { key: "reports", label: "Reports & Analytics", icon: BarChart3, desc: "Financial reports, KPIs, portfolio analysis" },
-  { key: "crm", label: "CRM & Bids", icon: Sparkles, desc: "Pipeline management, bid tracking" },
-];
+// Module and step keys are defined outside the component; labels are translated inside via useMemo
+const MODULE_KEYS = [
+  { key: "projects", icon: HardHat },
+  { key: "financial", icon: DollarSign },
+  { key: "properties", icon: Building2 },
+  { key: "safety", icon: Shield },
+  { key: "reports", icon: BarChart3 },
+  { key: "crm", icon: Sparkles },
+] as const;
 
-const STEPS = [
-  { title: "Company Profile", icon: Building2 },
-  { title: "Invite Team", icon: Users },
-  { title: "Import Data", icon: Upload },
-  { title: "Choose Modules", icon: Sparkles },
-  { title: "All Set!", icon: CheckCircle2 },
-];
+const STEP_KEYS = [
+  { key: "companyProfile", icon: Building2 },
+  { key: "inviteTeam", icon: Users },
+  { key: "importData", icon: Upload },
+  { key: "chooseModules", icon: Sparkles },
+  { key: "allSet", icon: CheckCircle2 },
+] as const;
 
 export default function OnboardingClient({
   companyId,
@@ -54,6 +55,17 @@ export default function OnboardingClient({
   const t = useTranslations("app");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const MODULES = useMemo(() => MODULE_KEYS.map((m) => ({
+    ...m,
+    label: t(`onboardingModule_${m.key}_label`),
+    desc: t(`onboardingModule_${m.key}_desc`),
+  })), [t]);
+
+  const STEPS = useMemo(() => STEP_KEYS.map((s) => ({
+    ...s,
+    title: t(`onboardingStep_${s.key}`),
+  })), [t]);
 
   const router = useRouter();
   const [step, setStep] = useState(0);

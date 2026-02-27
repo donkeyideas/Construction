@@ -92,16 +92,7 @@ function ticketStatusClass(status: string): string {
   }
 }
 
-function ticketStatusLabel(status: string): string {
-  switch (status) {
-    case "open": return "Open";
-    case "in_progress": return "In Progress";
-    case "waiting": return "Waiting";
-    case "resolved": return "Resolved";
-    case "closed": return "Closed";
-    default: return status;
-  }
-}
+// ticketStatusLabel is defined inside the component to access t()
 
 function ticketPriorityClass(priority: string): string {
   switch (priority) {
@@ -113,17 +104,7 @@ function ticketPriorityClass(priority: string): string {
   }
 }
 
-function ticketCategoryLabel(category: string): string {
-  switch (category) {
-    case "general": return "General";
-    case "billing": return "Billing";
-    case "technical": return "Technical";
-    case "feature_request": return "Feature Request";
-    case "bug_report": return "Bug Report";
-    case "account": return "Account";
-    default: return category;
-  }
-}
+// ticketCategoryLabel is defined inside the component to access t()
 
 // ---------------------------------------------------------------------------
 // Main Component
@@ -141,6 +122,29 @@ export default function InboxClient({
   const t = useTranslations("app");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
+
+  function ticketStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      open: t("inboxTicketStatusOpen"),
+      in_progress: t("inboxTicketStatusInProgress"),
+      waiting: t("inboxTicketStatusWaiting"),
+      resolved: t("inboxTicketStatusResolved"),
+      closed: t("inboxTicketStatusClosed"),
+    };
+    return labels[status] || status;
+  }
+
+  function ticketCategoryLabel(category: string): string {
+    const labels: Record<string, string> = {
+      general: t("inboxTicketCategoryGeneral"),
+      billing: t("inboxTicketCategoryBilling"),
+      technical: t("inboxTicketCategoryTechnical"),
+      feature_request: t("inboxTicketCategoryFeatureRequest"),
+      bug_report: t("inboxTicketCategoryBugReport"),
+      account: t("inboxTicketCategoryAccount"),
+    };
+    return labels[category] || category;
+  }
 
   // Convert announcements to InboxItems
   const announcementItems: InboxItem[] = useMemo(

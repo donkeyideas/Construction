@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { DocumentRow } from "@/lib/queries/documents";
 import PresenceIndicator from "@/components/PresenceIndicator";
 
@@ -27,6 +28,7 @@ export default function PlanRoomHeader({
   onUploadClick,
   presenceUsers,
 }: PlanRoomHeaderProps) {
+  const t = useTranslations("documents");
   const projectName = selectedProjectId
     ? projectList.find((p) => p.id === selectedProjectId)?.name
     : null;
@@ -34,18 +36,18 @@ export default function PlanRoomHeader({
   return (
     <div className="plan-room-page-header">
       <div className="plan-room-page-header-left">
-        <h2 className="plan-room-page-title">Plan Room</h2>
+        <h2 className="plan-room-page-title">{t("planRoom.header.title")}</h2>
         {selectedDoc && (
           <div className="plan-room-active-sheet-info">
             <span className="plan-room-active-sheet-name">{selectedDoc.name}</span>
             {selectedDoc.revision_label && (
               <span className="plan-room-rev-badge">
-                Rev {selectedDoc.revision_label}
+                {t("planRoom.header.rev", { label: selectedDoc.revision_label })}
               </span>
             )}
             {!selectedDoc.revision_label && selectedDoc.version > 1 && (
               <span className="plan-room-rev-badge">
-                v{selectedDoc.version}
+                {t("planRoom.header.version", { version: selectedDoc.version })}
               </span>
             )}
           </div>
@@ -60,7 +62,7 @@ export default function PlanRoomHeader({
           value={selectedProjectId}
           onChange={(e) => onProjectChange(e.target.value)}
         >
-          <option value="">All Projects</option>
+          <option value="">{t("planRoom.header.allProjects")}</option>
           {projectList.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -71,7 +73,7 @@ export default function PlanRoomHeader({
           <span className="plan-room-project-label">{projectName}</span>
         )}
         <button className="plan-room-upload-btn" onClick={onUploadClick}>
-          Upload
+          {t("planRoom.header.upload")}
         </button>
       </div>
     </div>

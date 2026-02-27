@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   FolderOpen,
   Folder,
@@ -127,6 +128,7 @@ export default function FolderTree({
   onSelectFolder,
   onCreateFolder,
 }: FolderTreeProps) {
+  const t = useTranslations("documents");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -158,11 +160,11 @@ export default function FolderTree({
   return (
     <div className="folder-tree">
       <div className="folder-tree-header">
-        <span className="folder-tree-title">Folders</span>
+        <span className="folder-tree-title">{t("planRoom.folderTree.folders")}</span>
         <button
           className="folder-tree-add-btn"
           onClick={() => setShowNewFolder(!showNewFolder)}
-          title="New Folder"
+          title={t("planRoom.folderTree.newFolder")}
         >
           <Plus size={14} />
         </button>
@@ -177,7 +179,7 @@ export default function FolderTree({
               type="text"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Folder name..."
+              placeholder={t("planRoom.folderTree.folderNamePlaceholder")}
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleCreateFolder();
@@ -225,7 +227,7 @@ export default function FolderTree({
       >
         <span className="folder-item-toggle-placeholder" />
         <Files size={14} />
-        <span className="folder-item-name">All Documents</span>
+        <span className="folder-item-name">{t("planRoom.folderTree.allDocuments")}</span>
       </div>
 
       {/* Unfiled */}
@@ -236,7 +238,7 @@ export default function FolderTree({
       >
         <span className="folder-item-toggle-placeholder" />
         <FileQuestion size={14} />
-        <span className="folder-item-name">Unfiled</span>
+        <span className="folder-item-name">{t("planRoom.folderTree.unfiled")}</span>
       </div>
 
       {/* Folder tree */}
@@ -254,7 +256,7 @@ export default function FolderTree({
 
       {folders.length === 0 && !showNewFolder && (
         <div className="folder-tree-empty">
-          No folders yet. Click + to create one.
+          {t("planRoom.folderTree.noFolders")}
         </div>
       )}
     </div>

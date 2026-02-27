@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -33,7 +33,7 @@ import type { PricingTier } from "@/lib/queries/pricing";
 
 type TabKey = "general" | "subscription" | "modules" | "integrations" | "design";
 
-const INDUSTRIES = [
+const INDUSTRY_KEYS = [
   "General Contracting",
   "Residential Construction",
   "Commercial Construction",
@@ -43,7 +43,7 @@ const INDUSTRIES = [
   "Engineering",
   "Architecture",
   "Other",
-];
+] as const;
 
 const TIMEZONES = [
   "America/New_York",
@@ -55,10 +55,10 @@ const TIMEZONES = [
   "Pacific/Honolulu",
 ];
 
-const FISCAL_MONTHS = [
+const FISCAL_MONTH_KEYS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
-];
+] as const;
 
 const THEME_PRESETS: { name: string; label: string; colors: { primary: string; accent: string; sidebar: string } }[] = [
   { name: "modern", label: "Modern", colors: { primary: "#2563eb", accent: "#8b5cf6", sidebar: "#0f172a" } },
@@ -94,12 +94,22 @@ export default function SettingsClient({
   const dateLocale = locale === "es" ? "es" : "en-US";
   const [activeTab, setActiveTab] = useState<TabKey>("general");
 
+  const INDUSTRIES = useMemo(() => INDUSTRY_KEYS.map((key) => ({
+    value: key,
+    label: t(`industry_${key.replace(/[\s/]+/g, "_").toLowerCase()}`),
+  })), [t]);
+
+  const FISCAL_MONTHS = useMemo(() => FISCAL_MONTH_KEYS.map((key) => ({
+    value: key,
+    label: t(`month_${key.toLowerCase()}`),
+  })), [t]);
+
   const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: "general", label: t("general"), icon: <Settings size={15} /> },
     { key: "subscription", label: t("subscription"), icon: <CreditCard size={15} /> },
-    { key: "modules", label: "Modules", icon: <LayoutGrid size={15} /> },
+    { key: "modules", label: t("modules"), icon: <LayoutGrid size={15} /> },
     { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
-    { key: "design", label: "Design", icon: <Palette size={15} /> },
+    { key: "design", label: t("design"), icon: <Palette size={15} /> },
   ];
 
   // Build tier lookup by lowercase name
@@ -549,7 +559,7 @@ export default function SettingsClient({
                   >
                     <option value="">{t("selectIndustry")}</option>
                     {INDUSTRIES.map((ind) => (
-                      <option key={ind} value={ind}>{ind}</option>
+                      <option key={ind.value} value={ind.value}>{ind.label}</option>
                     ))}
                   </select>
                 </div>
@@ -740,7 +750,7 @@ export default function SettingsClient({
                     disabled={!canEdit}
                   >
                     {FISCAL_MONTHS.map((month) => (
-                      <option key={month} value={month}>{month}</option>
+                      <option key={month.value} value={month.value}>{month.label}</option>
                     ))}
                   </select>
                 </div>

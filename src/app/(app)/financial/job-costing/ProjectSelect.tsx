@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface Project {
   id: string;
@@ -15,10 +16,12 @@ export function ProjectSelect({
   selectedProjectId: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("financial");
 
   return (
     <select
       className="fin-filter-select"
+      aria-label={t("jobCosting.selectProject")}
       defaultValue={selectedProjectId}
       onChange={(e) => {
         router.push(`/financial/job-costing?projectId=${e.target.value}`);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -23,6 +24,7 @@ export default function PdfRendererInner({
   onLoadSuccess,
   onPageDimensions,
 }: PdfRendererInnerProps) {
+  const t = useTranslations("documents");
   const [numPages, setNumPages] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +47,7 @@ export default function PdfRendererInner({
   if (error) {
     return (
       <div className="plan-room-viewer-empty">
-        <p>Failed to load PDF: {error}</p>
+        <p>{t("planRoom.pdfRenderer.failedToLoadPdf", { error })}</p>
       </div>
     );
   }
@@ -58,7 +60,7 @@ export default function PdfRendererInner({
       loading={
         <div className="plan-room-viewer-loading">
           <div className="plan-room-spinner" />
-          <p>Loading PDF...</p>
+          <p>{t("planRoom.pdfRenderer.loadingPdf")}</p>
         </div>
       }
     >
@@ -72,7 +74,7 @@ export default function PdfRendererInner({
           loading={
             <div className="plan-room-viewer-loading">
               <div className="plan-room-spinner" />
-              <p>Rendering page...</p>
+              <p>{t("planRoom.pdfRenderer.renderingPage")}</p>
             </div>
           }
         />

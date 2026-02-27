@@ -1,16 +1,22 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 
 const PdfRendererInner = dynamic(() => import("./PdfRendererInner"), {
   ssr: false,
-  loading: () => (
+  loading: () => <PdfRendererLoading />,
+});
+
+function PdfRendererLoading() {
+  const t = useTranslations("documents");
+  return (
     <div className="plan-room-viewer-loading">
       <div className="plan-room-spinner" />
-      <p>Loading viewer...</p>
+      <p>{t("planRoom.pdfRenderer.loadingViewer")}</p>
     </div>
-  ),
-});
+  );
+}
 
 interface PdfRendererProps {
   fileUrl: string;

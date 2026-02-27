@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { X, MapPin, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import type { PhotoEntry } from "./PhotoUploader";
 
@@ -9,6 +10,7 @@ interface PhotoGalleryProps {
 }
 
 export default function PhotoGallery({ photos }: PhotoGalleryProps) {
+  const t = useTranslations("common");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (!photos || photos.length === 0) return null;
@@ -49,7 +51,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
           >
             <img
               src={photo.url}
-              alt={photo.caption || `Photo ${idx + 1}`}
+              alt={photo.caption || t("photoGallery.photoAlt", { number: idx + 1 })}
               style={{ width: "100%", height: "100px", objectFit: "cover", display: "block" }}
             />
             <div
@@ -82,7 +84,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                   gap: "2px",
                 }}
               >
-                <MapPin size={8} /> GPS
+                <MapPin size={8} /> {t("photoGallery.gps")}
               </div>
             )}
             {photo.caption && (
@@ -190,7 +192,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                 <div style={{ marginBottom: "4px" }}>{photos[lightboxIndex].caption}</div>
               )}
               <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.6)" }}>
-                {lightboxIndex + 1} of {photos.length}
+                {t("photoGallery.photoCount", { current: lightboxIndex + 1, total: photos.length })}
                 {photos[lightboxIndex].taken_at && (
                   <> &middot; {new Date(photos[lightboxIndex].taken_at).toLocaleString()}</>
                 )}

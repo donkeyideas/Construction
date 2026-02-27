@@ -105,7 +105,7 @@ export default function IntegrationsClient({ connections, userRole }: Props) {
   }
 
   async function handleDisconnect(provider: string) {
-    if (!confirm("Are you sure you want to disconnect this integration?")) return;
+    if (!confirm(t("confirmDisconnectIntegration"))) return;
     setDisconnecting(provider);
     try {
       const res = await fetch(`/api/integrations/${provider}/disconnect`, { method: "POST" });
@@ -167,7 +167,7 @@ export default function IntegrationsClient({ connections, userRole }: Props) {
                     className={`integrations-dot ${connected ? "connected" : "disconnected"}`}
                   />
                   {connected
-                    ? `Connected ${conn?.connected_at ? formatDate(conn.connected_at) : ""}`
+                    ? t("connectedOn", { date: conn?.connected_at ? formatDate(conn.connected_at) : "" })
                     : t("notConnected")}
                 </div>
 
@@ -178,7 +178,7 @@ export default function IntegrationsClient({ connections, userRole }: Props) {
                     disabled={disconnecting === int.provider || !canManage}
                     onClick={() => handleDisconnect(int.provider)}
                   >
-                    {disconnecting === int.provider ? "Disconnecting..." : "Disconnect"}
+                    {disconnecting === int.provider ? t("disconnecting") : t("disconnect")}
                   </button>
                 ) : hasConnectUrl ? (
                   <a
@@ -198,7 +198,7 @@ export default function IntegrationsClient({ connections, userRole }: Props) {
                     disabled
                     style={{ marginLeft: "auto", opacity: 0.6 }}
                   >
-                    Coming Soon
+                    {t("comingSoon")}
                   </button>
                 )}
               </div>

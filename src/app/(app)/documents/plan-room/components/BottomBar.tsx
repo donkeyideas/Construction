@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { DocumentRow } from "@/lib/queries/documents";
 
 interface BottomBarProps {
@@ -22,6 +23,8 @@ export default function BottomBar({
   currentPage,
   totalPages,
 }: BottomBarProps) {
+  const t = useTranslations("documents");
+
   if (!selectedDoc) return null;
 
   return (
@@ -32,14 +35,14 @@ export default function BottomBar({
         </span>
         {totalPages > 0 && (
           <span>
-            Page {currentPage} of {totalPages}
+            {t("planRoom.bottomBar.pageOf", { current: currentPage, total: totalPages })}
           </span>
         )}
       </div>
       <div className="plan-room-bottom-bar-right">
-        <span>Last uploaded: {formatDate(selectedDoc.updated_at || selectedDoc.created_at)}</span>
+        <span>{t("planRoom.bottomBar.lastUploaded", { date: formatDate(selectedDoc.updated_at || selectedDoc.created_at) })}</span>
         {selectedDoc.uploader?.full_name && (
-          <span>Uploaded by: {selectedDoc.uploader.full_name}</span>
+          <span>{t("planRoom.bottomBar.uploadedBy", { name: selectedDoc.uploader.full_name })}</span>
         )}
       </div>
     </div>

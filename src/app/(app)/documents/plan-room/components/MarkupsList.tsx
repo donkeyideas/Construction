@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { AnnotationRow } from "../hooks/useAnnotations";
 
 interface MarkupsListProps {
@@ -9,15 +10,6 @@ interface MarkupsListProps {
   onSelectAnnotation: (id: string | null) => void;
   onDeleteAnnotation: (id: string) => void;
 }
-
-const TYPE_LABELS: Record<string, string> = {
-  line: "Line",
-  rectangle: "Rectangle",
-  circle: "Circle",
-  text: "Text Note",
-  arrow: "Arrow Annotation",
-  cloud: "Revision Cloud",
-};
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "";
@@ -35,12 +27,22 @@ export default function MarkupsList({
   onSelectAnnotation,
   onDeleteAnnotation,
 }: MarkupsListProps) {
+  const t = useTranslations("documents");
   const pageAnnotations = annotations.filter((a) => a.page_number === pageNumber);
+
+  const TYPE_LABELS: Record<string, string> = {
+    line: t("planRoom.markups.typeLine"),
+    rectangle: t("planRoom.markups.typeRectangle"),
+    circle: t("planRoom.markups.typeCircle"),
+    text: t("planRoom.markups.typeTextNote"),
+    arrow: t("planRoom.markups.typeArrowAnnotation"),
+    cloud: t("planRoom.markups.typeRevisionCloud"),
+  };
 
   if (pageAnnotations.length === 0) {
     return (
       <div className="plan-room-mu-empty">
-        No markups on this page yet.
+        {t("planRoom.markups.noMarkups")}
       </div>
     );
   }
@@ -64,10 +66,10 @@ export default function MarkupsList({
             <div className="plan-room-mu-desc">{a.text_content}</div>
           )}
           <div className="plan-room-mu-meta">
-            {a.created_by_name || "Unknown"} &mdash; {formatDate(a.created_at)}
+            {a.created_by_name || t("planRoom.markups.unknown")} &mdash; {formatDate(a.created_at)}
             <button
               className="plan-room-mu-delete"
-              title="Delete markup"
+              title={t("planRoom.markups.deleteMarkup")}
               onClick={(e) => {
                 e.stopPropagation();
                 onDeleteAnnotation(a.id);

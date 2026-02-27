@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { DocumentRow } from "@/lib/queries/documents";
 
 interface RevisionsPanelProps {
@@ -22,10 +23,12 @@ export default function RevisionsPanel({
   currentDocId,
   onSelectVersion,
 }: RevisionsPanelProps) {
+  const t = useTranslations("documents");
+
   if (versions.length === 0) {
     return (
       <div className="plan-room-rev-empty">
-        No revision history available.
+        {t("planRoom.revisions.noHistory")}
       </div>
     );
   }
@@ -46,12 +49,12 @@ export default function RevisionsPanel({
             <div className="plan-room-rev-info">
               <div className="plan-room-rev-title">
                 {v.revision_label
-                  ? `Rev ${v.revision_label}`
-                  : `Version ${v.version}`}
+                  ? t("planRoom.revisions.rev", { label: v.revision_label })
+                  : t("planRoom.revisions.version", { version: v.version })}
               </div>
               <div className="plan-room-rev-date">
                 {formatDate(v.created_at)}
-                {isCurrent && " — Current"}
+                {isCurrent && ` — ${t("planRoom.revisions.current")}`}
               </div>
             </div>
           </div>

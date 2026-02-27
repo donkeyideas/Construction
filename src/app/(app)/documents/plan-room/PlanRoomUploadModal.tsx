@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Upload, X, FileText } from "lucide-react";
 import type { DrawingSetRow, DocumentFolderRow } from "@/lib/queries/documents";
 
@@ -11,17 +12,6 @@ interface PlanRoomUploadModalProps {
   onClose: () => void;
   onSuccess: () => void;
 }
-
-const DISCIPLINES = [
-  { value: "architectural", label: "Architectural" },
-  { value: "structural", label: "Structural" },
-  { value: "mechanical", label: "Mechanical" },
-  { value: "electrical", label: "Electrical" },
-  { value: "plumbing", label: "Plumbing" },
-  { value: "civil", label: "Civil" },
-  { value: "landscape", label: "Landscape" },
-  { value: "other", label: "Other" },
-];
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -38,6 +28,7 @@ export default function PlanRoomUploadModal({
   onClose,
   onSuccess,
 }: PlanRoomUploadModalProps) {
+  const t = useTranslations("documents");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [name, setName] = useState("");
@@ -52,6 +43,17 @@ export default function PlanRoomUploadModal({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+
+  const DISCIPLINES = [
+    { value: "architectural", label: t("planRoom.uploadModal.disciplineArchitectural") },
+    { value: "structural", label: t("planRoom.uploadModal.disciplineStructural") },
+    { value: "mechanical", label: t("planRoom.uploadModal.disciplineMechanical") },
+    { value: "electrical", label: t("planRoom.uploadModal.disciplineElectrical") },
+    { value: "plumbing", label: t("planRoom.uploadModal.disciplinePlumbing") },
+    { value: "civil", label: t("planRoom.uploadModal.disciplineCivil") },
+    { value: "landscape", label: t("planRoom.uploadModal.disciplineLandscape") },
+    { value: "other", label: t("planRoom.uploadModal.disciplineOther") },
+  ];
 
   function handleFileSelect(selectedFiles: FileList | null) {
     if (!selectedFiles) return;
@@ -69,7 +71,7 @@ export default function PlanRoomUploadModal({
 
   async function handleUpload() {
     if (files.length === 0) {
-      setError("Please select at least one file.");
+      setError(t("planRoom.uploadModal.errorNoFiles"));
       return;
     }
 
@@ -106,7 +108,7 @@ export default function PlanRoomUploadModal({
 
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed. Please try again.");
+      setError(err instanceof Error ? err.message : t("planRoom.uploadModal.errorGeneric"));
     } finally {
       setUploading(false);
     }
@@ -116,7 +118,7 @@ export default function PlanRoomUploadModal({
     <div className="plan-room-modal-overlay" onClick={onClose}>
       <div className="plan-room-modal lg" onClick={(e) => e.stopPropagation()}>
         <div className="plan-room-modal-header">
-          <h3>Upload Documents</h3>
+          <h3>{t("planRoom.uploadModal.title")}</h3>
           <button className="plan-room-modal-close" onClick={onClose}>
             <X size={16} />
           </button>
@@ -158,10 +160,10 @@ export default function PlanRoomUploadModal({
             />
             <Upload size={24} />
             <span className="plan-room-dropzone-text">
-              Drop files here or click to browse
+              {t("planRoom.uploadModal.dropzoneText")}
             </span>
             <span className="plan-room-dropzone-hint">
-              PDF, Images, DWG, Excel, Word
+              {t("planRoom.uploadModal.dropzoneHint")}
             </span>
           </div>
 
@@ -189,31 +191,31 @@ export default function PlanRoomUploadModal({
 
           {/* Form Fields */}
           <div className="plan-room-form-group">
-            <label>Document Name {files.length <= 1 && "(optional)"}</label>
+            <label>{files.length <= 1 ? t("planRoom.uploadModal.documentNameOptional") : t("planRoom.uploadModal.documentName")}</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Defaults to filename"
+              placeholder={t("planRoom.uploadModal.defaultsToFilename")}
               disabled={files.length > 1}
             />
             {files.length > 1 && (
-              <span className="plan-room-form-hint">Each file will use its own filename</span>
+              <span className="plan-room-form-hint">{t("planRoom.uploadModal.eachFileOwnName")}</span>
             )}
           </div>
 
           <div className="plan-room-form-row">
             <div className="plan-room-form-group">
-              <label>Category</label>
+              <label>{t("planRoom.uploadModal.category")}</label>
               <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                <option value="plan">Plan</option>
-                <option value="spec">Specification</option>
+                <option value="plan">{t("planRoom.uploadModal.categoryPlan")}</option>
+                <option value="spec">{t("planRoom.uploadModal.categorySpec")}</option>
               </select>
             </div>
             <div className="plan-room-form-group">
-              <label>Discipline</label>
+              <label>{t("planRoom.uploadModal.discipline")}</label>
               <select value={discipline} onChange={(e) => setDiscipline(e.target.value)}>
-                <option value="">None</option>
+                <option value="">{t("planRoom.uploadModal.none")}</option>
                 {DISCIPLINES.map((d) => (
                   <option key={d.value} value={d.value}>{d.label}</option>
                 ))}
@@ -223,18 +225,18 @@ export default function PlanRoomUploadModal({
 
           <div className="plan-room-form-row">
             <div className="plan-room-form-group">
-              <label>Project</label>
+              <label>{t("planRoom.uploadModal.project")}</label>
               <select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-                <option value="">None</option>
+                <option value="">{t("planRoom.uploadModal.none")}</option>
                 {projectList.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>
             <div className="plan-room-form-group">
-              <label>Drawing Set</label>
+              <label>{t("planRoom.uploadModal.drawingSet")}</label>
               <select value={drawingSetId} onChange={(e) => setDrawingSetId(e.target.value)}>
-                <option value="">None</option>
+                <option value="">{t("planRoom.uploadModal.none")}</option>
                 {drawingSets.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -243,9 +245,9 @@ export default function PlanRoomUploadModal({
           </div>
 
           <div className="plan-room-form-group">
-            <label>Folder</label>
+            <label>{t("planRoom.uploadModal.folder")}</label>
             <select value={folderId} onChange={(e) => setFolderId(e.target.value)}>
-              <option value="">No Folder</option>
+              <option value="">{t("planRoom.uploadModal.noFolder")}</option>
               {folders.map((f) => (
                 <option key={f.id} value={f.id}>{f.name}</option>
               ))}
@@ -254,21 +256,21 @@ export default function PlanRoomUploadModal({
 
           <div className="plan-room-form-row">
             <div className="plan-room-form-group">
-              <label>Revision Label</label>
+              <label>{t("planRoom.uploadModal.revisionLabel")}</label>
               <input
                 type="text"
                 value={revisionLabel}
                 onChange={(e) => setRevisionLabel(e.target.value)}
-                placeholder="e.g., Rev A"
+                placeholder={t("planRoom.uploadModal.revisionLabelPlaceholder")}
               />
             </div>
             <div className="plan-room-form-group">
-              <label>Tags</label>
+              <label>{t("planRoom.uploadModal.tags")}</label>
               <input
                 type="text"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
-                placeholder="Comma separated"
+                placeholder={t("planRoom.uploadModal.tagsPlaceholder")}
               />
             </div>
           </div>
@@ -283,7 +285,7 @@ export default function PlanRoomUploadModal({
                 />
               </div>
               <span className="plan-room-progress-text">
-                Uploading... {uploadProgress}%
+                {t("planRoom.uploadModal.uploading", { progress: uploadProgress })}
               </span>
             </div>
           )}
@@ -291,14 +293,16 @@ export default function PlanRoomUploadModal({
 
         <div className="plan-room-modal-footer">
           <button className="plan-room-btn-secondary" onClick={onClose} disabled={uploading}>
-            Cancel
+            {t("planRoom.uploadModal.cancel")}
           </button>
           <button
             className="plan-room-btn-primary"
             onClick={handleUpload}
             disabled={files.length === 0 || uploading}
           >
-            {uploading ? "Uploading..." : `Upload ${files.length || ""} File${files.length !== 1 ? "s" : ""}`}
+            {uploading
+              ? t("planRoom.uploadModal.uploadingBtn")
+              : t("planRoom.uploadModal.uploadFiles", { count: files.length })}
           </button>
         </div>
       </div>

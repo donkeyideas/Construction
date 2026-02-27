@@ -318,13 +318,13 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create login");
+        throw new Error(data.error || t("failedToCreateLogin"));
       }
 
       setLoginSuccess({ email: loginEmail, password: loginPassword });
       router.refresh();
     } catch (err: unknown) {
-      setLoginError(err instanceof Error ? err.message : "Failed to create login");
+      setLoginError(err instanceof Error ? err.message : t("failedToCreateLogin"));
     } finally {
       setCreatingLogin(false);
     }
@@ -487,21 +487,21 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
               {createFormData.contact_type === "employee" && (
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Hire Date</label>
+                    <label className="ticket-form-label">{t("hireDate")}</label>
                     <input type="date" className="ticket-form-input" value={createFormData.hire_date} onChange={(e) => setCreateFormData({ ...createFormData, hire_date: e.target.value })} />
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Status</label>
+                    <label className="ticket-form-label">{t("status")}</label>
                     <select className="ticket-form-select" value={createFormData.employment_status} onChange={(e) => setCreateFormData({ ...createFormData, employment_status: e.target.value })}>
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="terminated">Terminated</option>
-                      <option value="on_leave">On Leave</option>
+                      <option value="active">{t("statusActive")}</option>
+                      <option value="inactive">{t("statusInactive")}</option>
+                      <option value="terminated">{t("statusTerminated")}</option>
+                      <option value="on_leave">{t("statusOnLeave")}</option>
                     </select>
                   </div>
                   <div className="ticket-form-group">
-                    <label className="ticket-form-label">Department</label>
-                    <input type="text" className="ticket-form-input" value={createFormData.department} onChange={(e) => setCreateFormData({ ...createFormData, department: e.target.value })} placeholder="e.g. Operations" />
+                    <label className="ticket-form-label">{t("department")}</label>
+                    <input type="text" className="ticket-form-input" value={createFormData.department} onChange={(e) => setCreateFormData({ ...createFormData, department: e.target.value })} placeholder={t("departmentPlaceholder")} />
                   </div>
                 </div>
               )}
@@ -538,7 +538,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
         <div className="ticket-modal-overlay" onClick={() => { if (!loginSuccess) setShowCreateLogin(false); }}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
             <div className="ticket-modal-header">
-              <h3>{loginSuccess ? "Login Created" : "Create Portal Login"}</h3>
+              <h3>{loginSuccess ? t("loginCreated") : t("createPortalLogin")}</h3>
               <button className="ticket-modal-close" onClick={() => { setShowCreateLogin(false); setLoginSuccess(null); }}>
                 <X size={18} />
               </button>
@@ -548,12 +548,12 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
               <div className="ticket-detail-body">
                 <p style={{ marginBottom: 16, color: "var(--color-success)" }}>
                   <Check size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />
-                  Login created successfully! Share these credentials with the {selectedContact.contact_type}.
+                  {t("loginCreatedSuccessfully", { type: selectedContact.contact_type })}
                 </p>
                 <div style={{ background: "var(--bg-tertiary)", borderRadius: 8, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 2 }}>Email</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 2 }}>{t("email")}</div>
                       <div style={{ fontWeight: 500 }}>{loginSuccess.email}</div>
                     </div>
                     <button className="btn-ghost" onClick={() => copyToClipboard(loginSuccess.email, "email")} style={{ padding: 6 }}>
@@ -562,7 +562,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 2 }}>Password</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 2 }}>{t("password")}</div>
                       <div style={{ fontWeight: 500, fontFamily: "monospace" }}>{loginSuccess.password}</div>
                     </div>
                     <button className="btn-ghost" onClick={() => copyToClipboard(loginSuccess.password, "password")} style={{ padding: 6 }}>
@@ -572,7 +572,7 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                 </div>
                 <div className="ticket-form-actions" style={{ marginTop: 16 }}>
                   <button className="btn-primary" onClick={() => { setShowCreateLogin(false); setLoginSuccess(null); }}>
-                    Done
+                    {t("done")}
                   </button>
                 </div>
               </div>
@@ -581,12 +581,14 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                 {loginError && <div className="ticket-form-error">{loginError}</div>}
 
                 <p style={{ marginBottom: 12, fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                  Create a {selectedContact.contact_type === "employee" ? "Employee Portal" : "Vendor Portal"} login for{" "}
-                  <strong>{`${selectedContact.first_name ?? ""} ${selectedContact.last_name ?? ""}`.trim() || selectedContact.company_name}</strong>.
+                  {t("createPortalLoginFor", {
+                    portal: selectedContact.contact_type === "employee" ? t("employeePortal") : t("vendorPortal"),
+                    name: `${selectedContact.first_name ?? ""} ${selectedContact.last_name ?? ""}`.trim() || selectedContact.company_name || "",
+                  })}
                 </p>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Email *</label>
+                  <label className="ticket-form-label">{t("emailRequired")}</label>
                   <input
                     type="email"
                     className="ticket-form-input"
@@ -598,22 +600,22 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Temporary Password *</label>
+                  <label className="ticket-form-label">{t("temporaryPasswordRequired")}</label>
                   <input
                     type="text"
                     className="ticket-form-input"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="Min 8 characters"
+                    placeholder={t("minEightCharacters")}
                     minLength={8}
                     required
                   />
                 </div>
 
                 <div className="ticket-form-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setShowCreateLogin(false)}>Cancel</button>
+                  <button type="button" className="btn-secondary" onClick={() => setShowCreateLogin(false)}>{t("cancel")}</button>
                   <button type="submit" className="btn-primary" disabled={creatingLogin || !loginEmail || loginPassword.length < 8}>
-                    {creatingLogin ? "Creating..." : "Create Login"}
+                    {creatingLogin ? t("creating") : t("createLogin")}
                   </button>
                 </div>
               </form>
@@ -788,13 +790,13 @@ export default function PeopleClient({ contacts, typeFilter, searchFilter, typeL
                   {(selectedContact.contact_type === "employee" || selectedContact.contact_type === "vendor") && !selectedContact.user_id && (
                     <button className="ui-btn ui-btn-sm ui-btn-outline" onClick={() => openCreateLogin(selectedContact)}>
                       <KeyRound size={15} />
-                      Create Login
+                      {t("createLogin")}
                     </button>
                   )}
                   {selectedContact.user_id && (selectedContact.contact_type === "employee" || selectedContact.contact_type === "vendor") && (
                     <span className="badge badge-green" style={{ padding: "6px 12px", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: 4 }}>
                       <Check size={14} />
-                      Login Active
+                      {t("loginActive")}
                     </span>
                   )}
                   <button className="ui-btn ui-btn-sm ui-btn-primary" onClick={() => { setIsEditing(true); setEditError(""); }}>

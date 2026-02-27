@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, type MouseEvent } from "react";
+import { useTranslations } from "next-intl";
 import type { AnnotationTool, MarkupShape } from "../types";
 import { useViewerTransform } from "../hooks/useViewerTransform";
 import type { AnnotationRow } from "../hooks/useAnnotations";
@@ -100,6 +101,7 @@ export default function AnnotationCanvas({
   pageNumber,
   documentId,
 }: AnnotationCanvasProps) {
+  const t = useTranslations("documents");
   const svgRef = useRef<SVGSVGElement>(null);
   const [drawing, setDrawing] = useState<DrawingState | null>(null);
   const [textInput, setTextInput] = useState<{
@@ -476,13 +478,13 @@ export default function AnnotationCanvas({
             type="text"
             autoFocus
             value={textInput.value}
-            onChange={(e) => setTextInput((t) => (t ? { ...t, value: e.target.value } : null))}
+            onChange={(e) => setTextInput((ti) => (ti ? { ...ti, value: e.target.value } : null))}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleTextSubmit();
               if (e.key === "Escape") setTextInput(null);
             }}
             onBlur={handleTextSubmit}
-            placeholder={textInput.forArrow ? "Arrow label..." : "Type annotation..."}
+            placeholder={textInput.forArrow ? t("planRoom.annotationCanvas.arrowLabelPlaceholder") : t("planRoom.annotationCanvas.typeAnnotationPlaceholder")}
             style={{
               border: `2px solid ${activeColor}`,
               borderRadius: 4,

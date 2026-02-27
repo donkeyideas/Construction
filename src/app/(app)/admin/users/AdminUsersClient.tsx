@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -24,25 +24,8 @@ import {
 } from "lucide-react";
 import type { CompanyMember, MemberRole } from "@/lib/queries/admin";
 
-const ROLE_LABELS: Record<string, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  project_manager: "Project Manager",
-  superintendent: "Superintendent",
-  accountant: "Accountant",
-  field_worker: "Field Worker",
-  viewer: "Viewer",
-};
-
-const ROLE_DESCRIPTIONS: Record<string, string> = {
-  owner: "Full access to all features. Can manage billing and delete the company.",
-  admin: "Full access to all features. Can manage users and company settings.",
-  project_manager: "Manage projects, contracts, documents, safety, and team members.",
-  superintendent: "Manage daily operations, safety, equipment, and field activities.",
-  accountant: "Access to financial modules, invoices, payroll, and reporting.",
-  field_worker: "Access to assigned projects, daily logs, safety, and time tracking.",
-  viewer: "Read-only access to dashboards and reports.",
-};
+// Role keys kept outside component (no translation needed for keys)
+// Labels and descriptions are translated inside the component via useMemo
 
 const ASSIGNABLE_ROLES: MemberRole[] = [
   "admin",
@@ -98,6 +81,26 @@ export default function AdminUsersClient({
   const t = useTranslations("adminPanel");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const ROLE_LABELS: Record<string, string> = useMemo(() => ({
+    owner: t("roleOwner"),
+    admin: t("roleAdmin"),
+    project_manager: t("roleProjectManager"),
+    superintendent: t("roleSuperintendent"),
+    accountant: t("roleAccountant"),
+    field_worker: t("roleFieldWorker"),
+    viewer: t("roleViewer"),
+  }), [t]);
+
+  const ROLE_DESCRIPTIONS: Record<string, string> = useMemo(() => ({
+    owner: t("roleDescOwner"),
+    admin: t("roleDescAdmin"),
+    project_manager: t("roleDescProjectManager"),
+    superintendent: t("roleDescSuperintendent"),
+    accountant: t("roleDescAccountant"),
+    field_worker: t("roleDescFieldWorker"),
+    viewer: t("roleDescViewer"),
+  }), [t]);
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";

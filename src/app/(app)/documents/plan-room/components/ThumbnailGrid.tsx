@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FileText, FileSpreadsheet, Image, File, CheckSquare, Square } from "lucide-react";
 import type { DocumentRow } from "@/lib/queries/documents";
 
@@ -42,11 +43,13 @@ export default function ThumbnailGrid({
   onToggleSelect,
   onOpenDocument,
 }: ThumbnailGridProps) {
+  const t = useTranslations("documents");
+
   if (documents.length === 0) {
     return (
       <div className="thumbnail-grid-empty">
         <FileText size={32} />
-        <p>No documents in this view</p>
+        <p>{t("planRoom.thumbnailGrid.noDocuments")}</p>
       </div>
     );
   }
@@ -70,7 +73,7 @@ export default function ThumbnailGrid({
                 e.stopPropagation();
                 onToggleSelect(doc.id);
               }}
-              aria-label={isSelected ? "Deselect" : "Select"}
+              aria-label={isSelected ? t("planRoom.thumbnailGrid.deselect") : t("planRoom.thumbnailGrid.select")}
             >
               {isSelected ? (
                 <CheckSquare size={16} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -55,87 +55,17 @@ interface LogEntry {
 /*  Preset rule suggestions                                            */
 /* ------------------------------------------------------------------ */
 
-const PRESETS: {
-  name: string;
-  description: string;
-  trigger_type: string;
-  trigger_entity: string;
-  icon: string;
-  color: string;
-}[] = [
-  {
-    name: "Auto-Process Invoices",
-    description: "Extract data via AI when documents are uploaded to AP folder",
-    trigger_type: "field_change",
-    trigger_entity: "invoices",
-    icon: "file-scan",
-    color: "blue",
-  },
-  {
-    name: "Safety Score Alert",
-    description: "Alert when safety inspection score falls below threshold",
-    trigger_type: "record_created",
-    trigger_entity: "inspections",
-    icon: "shield-alert",
-    color: "amber",
-  },
-  {
-    name: "Lease Expiration Reminder",
-    description: "Daily check for leases expiring within 60 days",
-    trigger_type: "schedule",
-    trigger_entity: "certifications",
-    icon: "calendar-clock",
-    color: "purple",
-  },
-  {
-    name: "Budget Threshold Alert",
-    description: "Notify when cost code spending exceeds 90% of budget",
-    trigger_type: "threshold",
-    trigger_entity: "projects",
-    icon: "badge-alert",
-    color: "red",
-  },
-];
+// Preset keys (labels are translated inside the component)
+const PRESET_KEYS = [
+  { key: "autoProcessInvoices", trigger_type: "field_change", trigger_entity: "invoices", icon: "file-scan", color: "blue" },
+  { key: "safetyScoreAlert", trigger_type: "record_created", trigger_entity: "inspections", icon: "shield-alert", color: "amber" },
+  { key: "leaseExpirationReminder", trigger_type: "schedule", trigger_entity: "certifications", icon: "calendar-clock", color: "purple" },
+  { key: "budgetThresholdAlert", trigger_type: "threshold", trigger_entity: "projects", icon: "badge-alert", color: "red" },
+] as const;
 
-const TRIGGER_TYPES = [
-  { value: "record_created", label: "Record Created" },
-  { value: "field_change", label: "Field Changed" },
-  { value: "schedule", label: "Scheduled" },
-  { value: "threshold", label: "Threshold Reached" },
-];
-
-const TRIGGER_ENTITIES = [
-  { value: "projects", label: "Projects" },
-  { value: "invoices", label: "Invoices" },
-  { value: "change_orders", label: "Change Orders" },
-  { value: "rfis", label: "RFIs" },
-  { value: "submittals", label: "Submittals" },
-  { value: "daily_logs", label: "Daily Logs" },
-  { value: "inspections", label: "Inspections" },
-  { value: "certifications", label: "Certifications" },
-  { value: "safety_incidents", label: "Safety Incidents" },
-  { value: "payments", label: "Payments" },
-];
-
-const TRIGGER_TYPE_LABELS: Record<string, string> = {
-  record_created: "Record Created",
-  field_change: "Field Changed",
-  schedule: "Scheduled",
-  threshold: "Threshold Reached",
-};
-
-const ENTITY_LABELS: Record<string, string> = {
-  projects: "Projects",
-  invoices: "Invoices",
-  change_orders: "Change Orders",
-  rfis: "RFIs",
-  submittals: "Submittals",
-  daily_logs: "Daily Logs",
-  inspections: "Inspections",
-  certifications: "Certifications",
-  safety_incidents: "Safety Incidents",
-  payments: "Payments",
-};
+// Trigger type and entity keys
+const TRIGGER_TYPE_KEYS = ["record_created", "field_change", "schedule", "threshold"] as const;
+const TRIGGER_ENTITY_KEYS = ["projects", "invoices", "change_orders", "rfis", "submittals", "daily_logs", "inspections", "certifications", "safety_incidents", "payments"] as const;
 
 /* ------------------------------------------------------------------ */
 /*  Icon map for rule cards                                            */
@@ -170,6 +100,30 @@ export default function AutomationClient({
   const t = useTranslations("app");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
+
+  const PRESETS = useMemo(() => PRESET_KEYS.map((p) => ({
+    ...p,
+    name: t(`automationPreset_${p.key}_name`),
+    description: t(`automationPreset_${p.key}_desc`),
+  })), [t]);
+
+  const TRIGGER_TYPES = useMemo(() => TRIGGER_TYPE_KEYS.map((key) => ({
+    value: key,
+    label: t(`automationTrigger_${key}`),
+  })), [t]);
+
+  const TRIGGER_ENTITIES = useMemo(() => TRIGGER_ENTITY_KEYS.map((key) => ({
+    value: key,
+    label: t(`automationEntity_${key}`),
+  })), [t]);
+
+  const TRIGGER_TYPE_LABELS: Record<string, string> = useMemo(() => Object.fromEntries(
+    TRIGGER_TYPE_KEYS.map((key) => [key, t(`automationTrigger_${key}`)])
+  ), [t]);
+
+  const ENTITY_LABELS: Record<string, string> = useMemo(() => Object.fromEntries(
+    TRIGGER_ENTITY_KEYS.map((key) => [key, t(`automationEntity_${key}`)])
+  ), [t]);
 
   const router = useRouter();
   const [tab, setTab] = useState<"rules" | "logs">("rules");
@@ -299,10 +253,10 @@ export default function AutomationClient({
     const diffMs = now.getTime() - d.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffHours < 1) return "Just now";
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
+    if (diffHours < 1) return t("automationJustNow");
+    if (diffHours < 24) return t("automationHoursAgo", { count: diffHours });
+    if (diffDays === 0) return t("automationToday");
+    if (diffDays === 1) return t("automationYesterday");
     return d.toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
   };
 
@@ -431,7 +385,7 @@ export default function AutomationClient({
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
                             <span className={`automation-active-badge ${r.is_enabled ? "active" : "inactive"}`}>
                               <span className="automation-active-dot" />
-                              {r.is_enabled ? "ACTIVE" : "INACTIVE"}
+                              {r.is_enabled ? t("automationStatusActive") : t("automationStatusInactive")}
                             </span>
                           </div>
                         </div>
@@ -474,26 +428,26 @@ export default function AutomationClient({
                     {/* Card Body - 3-column grid */}
                     <div className="automation-rule-card-grid">
                       <div>
-                        <p className="automation-rule-card-label">TRIGGER</p>
+                        <p className="automation-rule-card-label">{t("automationLabelTrigger")}</p>
                         <p className="automation-rule-card-value">
                           {TRIGGER_TYPE_LABELS[r.trigger_type] || r.trigger_type?.replace(/_/g, " ")}
-                          {r.trigger_entity ? ` on ${ENTITY_LABELS[r.trigger_entity] || r.trigger_entity}` : ""}
+                          {r.trigger_entity ? ` ${t("automationOnEntity")} ${ENTITY_LABELS[r.trigger_entity] || r.trigger_entity}` : ""}
                         </p>
                       </div>
                       <div>
-                        <p className="automation-rule-card-label">CONDITION</p>
+                        <p className="automation-rule-card-label">{t("automationLabelCondition")}</p>
                         <p className="automation-rule-card-value">
                           {r.conditions && r.conditions.length > 0
-                            ? `${r.conditions.length} condition${r.conditions.length > 1 ? "s" : ""} configured`
-                            : "No conditions"}
+                            ? t("automationConditionsConfigured", { count: r.conditions.length })
+                            : t("automationNoConditions")}
                         </p>
                       </div>
                       <div>
-                        <p className="automation-rule-card-label">ACTION</p>
+                        <p className="automation-rule-card-label">{t("automationLabelAction")}</p>
                         <p className="automation-rule-card-value">
                           {r.actions && r.actions.length > 0
-                            ? `${r.actions.length} action${r.actions.length > 1 ? "s" : ""} configured`
-                            : r.description || "No actions"}
+                            ? t("automationActionsConfigured", { count: r.actions.length })
+                            : r.description || t("automationNoActions")}
                         </p>
                       </div>
                     </div>
@@ -501,11 +455,11 @@ export default function AutomationClient({
                     {/* Card Footer */}
                     <div className="automation-rule-card-footer">
                       <span>
-                        Runs: <strong>{r.trigger_count || 0} times</strong> total
+                        {t("automationRuns")}: <strong>{t("automationTimesTotal", { count: r.trigger_count || 0 })}</strong>
                       </span>
                       <span className="automation-rule-card-sep">|</span>
                       <span>
-                        Last: <strong>{formatLastTriggered(r.last_triggered_at)}</strong>
+                        {t("automationLast")}: <strong>{formatLastTriggered(r.last_triggered_at)}</strong>
                       </span>
                     </div>
                   </div>

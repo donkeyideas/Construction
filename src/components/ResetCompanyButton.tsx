@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 
 export default function ResetCompanyButton() {
+  const t = useTranslations("common");
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
@@ -21,13 +23,13 @@ export default function ResetCompanyButton() {
       if (res.ok) {
         const deleted = data.results?.filter((r: { deleted: number }) => r.deleted > 0) ?? [];
         const summary = deleted.map((r: { table: string; deleted: number }) => `${r.table}: ${r.deleted}`).join(", ");
-        alert(`All data deleted.\n\n${summary || "No data found."}`);
+        alert(`${t("resetCompany.allDataDeleted")}\n\n${summary || t("resetCompany.noDataFound")}`);
         window.location.reload();
       } else {
-        alert(`Error: ${data.error}`);
+        alert(`${t("resetCompany.error")}: ${data.error}`);
       }
     } catch {
-      alert("Network error");
+      alert(t("resetCompany.networkError"));
     } finally {
       setLoading(false);
       setConfirmed(false);
@@ -47,14 +49,14 @@ export default function ResetCompanyButton() {
         }}
       >
         <Trash2 size={16} />
-        {loading ? "Deleting..." : confirmed ? "Click again to confirm" : "Delete All Company Data"}
+        {loading ? t("resetCompany.deleting") : confirmed ? t("resetCompany.clickAgainToConfirm") : t("resetCompany.deleteAllCompanyData")}
       </button>
       {confirmed && (
         <button
           onClick={() => setConfirmed(false)}
           className="ui-btn ui-btn-sm ui-btn-secondary"
         >
-          Cancel
+          {t("resetCompany.cancel")}
         </button>
       )}
     </div>

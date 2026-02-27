@@ -566,19 +566,19 @@ export default function VendorsClient({
           className={`people-tab ${tab === "payments" ? "active" : ""}`}
           onClick={() => setTab("payments")}
         >
-          Payments
+          {t("payments")}
         </button>
         <button
           className={`people-tab ${tab === "history" ? "active" : ""}`}
           onClick={() => setTab("history")}
         >
-          Payment History
+          {t("paymentHistory")}
         </button>
         <button
           className={`people-tab ${tab === "summary" ? "active" : ""}`}
           onClick={() => setTab("summary")}
         >
-          Vendor Summary
+          {t("vendorSummaryTab")}
         </button>
       </div>
 
@@ -832,14 +832,14 @@ export default function VendorsClient({
                 <table className="invoice-table">
                   <thead>
                     <tr>
-                      <th>Invoice #</th>
-                      <th>Vendor</th>
-                      <th>Project</th>
-                      <th>Due Date</th>
-                      <th style={{ textAlign: "right" }}>Amount</th>
-                      <th style={{ textAlign: "right" }}>Balance Due</th>
-                      <th>Status</th>
-                      <th>Actions</th>
+                      <th>{t("invoiceNumber")}</th>
+                      <th>{t("vendor")}</th>
+                      <th>{t("project")}</th>
+                      <th>{t("dueDate")}</th>
+                      <th style={{ textAlign: "right" }}>{t("amount")}</th>
+                      <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
+                      <th>{t("status")}</th>
+                      <th>{t("actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -883,7 +883,7 @@ export default function VendorsClient({
                               style={{ fontSize: "0.75rem", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: 3 }}
                             >
                               <DollarSign size={12} />
-                              Record Payment
+                              {t("recordPayment")}
                             </button>
                           </td>
                         </tr>
@@ -897,8 +897,8 @@ export default function VendorsClient({
             <div className="fin-chart-card">
               <div className="fin-empty">
                 <div className="fin-empty-icon"><CreditCard size={48} /></div>
-                <div className="fin-empty-title">No Outstanding Invoices</div>
-                <div className="fin-empty-desc">All vendor invoices are paid or no payable invoices exist yet.</div>
+                <div className="fin-empty-title">{t("noOutstandingInvoices")}</div>
+                <div className="fin-empty-desc">{t("noOutstandingInvoicesDesc")}</div>
               </div>
             </div>
           )}
@@ -914,14 +914,14 @@ export default function VendorsClient({
                 <table className="invoice-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Vendor</th>
-                      <th>Invoice #</th>
-                      <th style={{ textAlign: "right" }}>Amount</th>
-                      <th>Method</th>
-                      <th>Reference</th>
-                      <th>JE</th>
-                      <th>Bank Account</th>
+                      <th>{t("date")}</th>
+                      <th>{t("vendor")}</th>
+                      <th>{t("invoiceNumber")}</th>
+                      <th style={{ textAlign: "right" }}>{t("amount")}</th>
+                      <th>{t("method")}</th>
+                      <th>{t("reference")}</th>
+                      <th>{t("je")}</th>
+                      <th>{t("bankAccount")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -935,7 +935,7 @@ export default function VendorsClient({
                         <td className="amount-col" style={{ color: "var(--color-green)" }}>
                           {formatCurrency(pmt.amount)}
                         </td>
-                        <td>{({ check: "Check", ach: "ACH", wire: "Wire Transfer", credit_card: "Credit Card", cash: "Cash", bank_transfer: "Bank Transfer" } as Record<string, string>)[pmt.method] || pmt.method}</td>
+                        <td>{({ check: t("methodCheck"), ach: t("methodACH"), wire: t("methodWire"), credit_card: t("methodCreditCard"), cash: t("methodCash"), bank_transfer: t("methodBankTransfer") } as Record<string, string>)[pmt.method] || pmt.method}</td>
                         <td style={{ color: "var(--muted)", fontSize: "0.82rem", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={pmt.reference_number || undefined}>
                           {pmt.reference_number || "--"}
                         </td>
@@ -964,8 +964,8 @@ export default function VendorsClient({
             <div className="fin-chart-card">
               <div className="fin-empty">
                 <div className="fin-empty-icon"><CreditCard size={48} /></div>
-                <div className="fin-empty-title">No Payments Found</div>
-                <div className="fin-empty-desc">No vendor payments have been recorded yet.</div>
+                <div className="fin-empty-title">{t("noPaymentsFound")}</div>
+                <div className="fin-empty-desc">{t("noPaymentsFoundDesc")}</div>
               </div>
             </div>
           )}
@@ -981,12 +981,12 @@ export default function VendorsClient({
                 <table className="invoice-table">
                   <thead>
                     <tr>
-                      <th>Vendor</th>
-                      <th style={{ textAlign: "right" }}>Total Owed</th>
-                      <th style={{ textAlign: "right" }}>Total Paid</th>
-                      <th style={{ textAlign: "center" }}>Invoices</th>
-                      <th>Last Payment</th>
-                      <th style={{ textAlign: "center" }}>Avg Days to Pay</th>
+                      <th>{t("vendor")}</th>
+                      <th style={{ textAlign: "right" }}>{t("totalOwed")}</th>
+                      <th style={{ textAlign: "right" }}>{t("totalPaid")}</th>
+                      <th style={{ textAlign: "center" }}>{t("invoices")}</th>
+                      <th>{t("lastPayment")}</th>
+                      <th style={{ textAlign: "center" }}>{t("avgDaysToPay")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1032,8 +1032,8 @@ export default function VendorsClient({
             <div className="fin-chart-card">
               <div className="fin-empty">
                 <div className="fin-empty-icon"><Users size={48} /></div>
-                <div className="fin-empty-title">No Vendor Data</div>
-                <div className="fin-empty-desc">Vendor payment summary will appear once invoices are created.</div>
+                <div className="fin-empty-title">{t("noVendorData")}</div>
+                <div className="fin-empty-desc">{t("noVendorDataDesc")}</div>
               </div>
             </div>
           )}
@@ -1045,7 +1045,7 @@ export default function VendorsClient({
         <div className="ticket-modal-overlay" onClick={() => { setShowVendorPayModal(false); setVendorPayInvoice(null); }}>
           <div className="ticket-modal" style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Record Payment - {vendorPayInvoice.invoice_number}</h3>
+              <h3>{t("recordPaymentFor", { invoice: vendorPayInvoice.invoice_number })}</h3>
               <button className="ticket-modal-close" onClick={() => { setShowVendorPayModal(false); setVendorPayInvoice(null); }}>
                 <X size={18} />
               </button>
@@ -1064,11 +1064,11 @@ export default function VendorsClient({
             <div className="ticket-detail-body">
               <div style={{ marginBottom: 16, padding: "12px 16px", background: "var(--surface)", borderRadius: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Vendor</span>
+                  <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{t("vendor")}</span>
                   <span style={{ fontWeight: 500 }}>{vendorPayInvoice.vendor_name || "—"}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Balance Due</span>
+                  <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{t("balanceDue")}</span>
                   <span style={{ fontWeight: 600, color: "var(--color-red)" }}>
                     {formatCurrency(vendorPayInvoice.balance_due || vendorPayInvoice.total_amount)}
                   </span>
@@ -1077,7 +1077,7 @@ export default function VendorsClient({
 
               <div className="ap-pay-form">
                 <div className="vendor-form-field">
-                  <label>Amount</label>
+                  <label>{t("amount")}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -1087,13 +1087,13 @@ export default function VendorsClient({
                   />
                 </div>
                 <div className="vendor-form-field">
-                  <label>Bank Account</label>
+                  <label>{t("bankAccount")}</label>
                   <select
                     className="ui-input"
                     value={vendorPayData.bank_account_id}
                     onChange={(e) => setVendorPayData({ ...vendorPayData, bank_account_id: e.target.value })}
                   >
-                    {bankAccounts.length === 0 && <option value="">No bank accounts</option>}
+                    {bankAccounts.length === 0 && <option value="">{t("noBankAccounts")}</option>}
                     {bankAccounts.map((ba) => (
                       <option key={ba.id} value={ba.id}>
                         {ba.name} — {ba.bank_name}{ba.account_number_last4 ? ` (••${ba.account_number_last4})` : ""}
@@ -1102,13 +1102,13 @@ export default function VendorsClient({
                   </select>
                 </div>
                 <div className="vendor-form-field">
-                  <label>Expense Account</label>
+                  <label>{t("expenseAccount")}</label>
                   <select
                     className="ui-input"
                     value={vendorPayData.gl_account_id}
                     onChange={(e) => setVendorPayData({ ...vendorPayData, gl_account_id: e.target.value })}
                   >
-                    <option value="">— Select GL Account —</option>
+                    <option value="">{t("selectGLAccount")}</option>
                     {(expenseAccounts ?? []).map((a) => (
                       <option key={a.id} value={a.id}>
                         {a.account_number} — {a.name}
@@ -1117,21 +1117,21 @@ export default function VendorsClient({
                   </select>
                 </div>
                 <div className="vendor-form-field">
-                  <label>Method</label>
+                  <label>{t("method")}</label>
                   <select
                     className="ui-input"
                     value={vendorPayData.method}
                     onChange={(e) => setVendorPayData({ ...vendorPayData, method: e.target.value })}
                   >
-                    <option value="check">Check</option>
-                    <option value="ach">ACH</option>
-                    <option value="wire">Wire Transfer</option>
-                    <option value="credit_card">Credit Card</option>
-                    <option value="cash">Cash</option>
+                    <option value="check">{t("methodCheck")}</option>
+                    <option value="ach">{t("methodACH")}</option>
+                    <option value="wire">{t("methodWire")}</option>
+                    <option value="credit_card">{t("methodCreditCard")}</option>
+                    <option value="cash">{t("methodCash")}</option>
                   </select>
                 </div>
                 <div className="vendor-form-field">
-                  <label>Payment Date</label>
+                  <label>{t("paymentDate")}</label>
                   <input
                     type="date"
                     className="ui-input"
@@ -1140,23 +1140,23 @@ export default function VendorsClient({
                   />
                 </div>
                 <div className="vendor-form-field">
-                  <label>Reference #</label>
+                  <label>{t("referenceNumber")}</label>
                   <input
                     type="text"
                     className="ui-input"
                     value={vendorPayData.reference_number}
                     onChange={(e) => setVendorPayData({ ...vendorPayData, reference_number: e.target.value })}
-                    placeholder="Check # or ref"
+                    placeholder={t("referenceNumberPlaceholder")}
                   />
                 </div>
                 <div className="vendor-form-field full-width">
-                  <label>Notes</label>
+                  <label>{t("notes")}</label>
                   <input
                     type="text"
                     className="ui-input"
                     value={vendorPayData.notes}
                     onChange={(e) => setVendorPayData({ ...vendorPayData, notes: e.target.value })}
-                    placeholder="Optional notes"
+                    placeholder={t("optionalNotes")}
                   />
                 </div>
               </div>
@@ -1172,7 +1172,7 @@ export default function VendorsClient({
                   style={{ display: "flex", alignItems: "center", gap: 6 }}
                 >
                   {vendorPaying ? <Loader2 size={14} className="spin" /> : <DollarSign size={14} />}
-                  {vendorPaying ? "Recording..." : "Record Payment"}
+                  {vendorPaying ? t("recording") : t("recordPayment")}
                 </button>
               </div>
             </div>

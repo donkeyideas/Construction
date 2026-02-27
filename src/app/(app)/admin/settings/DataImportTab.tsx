@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   Download,
   Upload,
@@ -113,6 +114,7 @@ const ENTITY_KEYS = Object.keys(ENTITY_CONFIG);
 // ---------------------------------------------------------------------------
 
 export default function DataImportTab() {
+  const t = useTranslations("adminPanel");
   // State
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -168,7 +170,7 @@ export default function DataImportTab() {
 
   async function handleFileUpload(file: File) {
     if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
-      setErrorMessage("Please select an Excel file (.xlsx or .xls)");
+      setErrorMessage(t("import.invalidFileType"));
       return;
     }
 
@@ -202,7 +204,7 @@ export default function DataImportTab() {
 
       if (!res.ok) {
         const data = await res.json();
-        setErrorMessage(data.error || "Import failed. Please try again.");
+        setErrorMessage(data.error || t("import.importFailed"));
         return;
       }
 
@@ -220,7 +222,7 @@ export default function DataImportTab() {
       fetchImportHistory();
       fetchImportProgress();
     } catch {
-      setErrorMessage("Network error. Please check your connection and try again.");
+      setErrorMessage(t("import.networkError"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -270,11 +272,9 @@ export default function DataImportTab() {
           <div className="import-hero-card-icon download">
             <FileSpreadsheet size={22} />
           </div>
-          <h3>Download Template</h3>
+          <h3>{t("import.downloadTemplate")}</h3>
           <p>
-            Download the master Excel template with pre-configured sheets for all
-            entity types. Fill in your data and upload it back to import everything
-            at once.
+            {t("import.downloadTemplateDesc")}
           </p>
           <div>
             <a
@@ -289,7 +289,7 @@ export default function DataImportTab() {
               }}
             >
               <Download size={15} />
-              Download Template
+              {t("import.downloadTemplate")}
             </a>
           </div>
         </div>
@@ -299,10 +299,9 @@ export default function DataImportTab() {
           <div className="import-hero-card-icon upload">
             <Upload size={22} />
           </div>
-          <h3>Upload Master Template</h3>
+          <h3>{t("import.uploadMasterTemplate")}</h3>
           <p>
-            Upload your filled-in Excel template. All sheets will be imported
-            automatically in the correct dependency order.
+            {t("import.uploadMasterTemplateDesc")}
           </p>
           <div
             className={`import-dropzone ${dragging ? "dragging" : ""}`}
@@ -324,11 +323,11 @@ export default function DataImportTab() {
               {uploading ? (
                 <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                   <Loader2 size={16} className="spin-icon" />
-                  Importing...
+                  {t("import.importing")}
                 </span>
               ) : (
                 <>
-                  <strong>Click to browse</strong> or drag and drop your .xlsx file
+                  <strong>{t("import.clickToBrowse")}</strong> {t("import.orDragDrop")}
                 </>
               )}
             </div>
@@ -350,7 +349,7 @@ export default function DataImportTab() {
           <div className="import-upload-status-header">
             <div className="import-upload-status-title">
               <Loader2 size={16} className="spin-icon" />
-              Importing data...
+              {t("import.importingData")}
             </div>
             <div className="import-upload-status-meta">
               {Math.round(uploadProgress)}%
@@ -370,29 +369,29 @@ export default function DataImportTab() {
         <div className="import-result-summary">
           <div className="import-result-summary-title">
             <Check size={18} style={{ color: "var(--color-green)" }} />
-            Import Complete
+            {t("import.importComplete")}
           </div>
           <div className="import-result-stats">
             <div className="import-result-stat">
-              <div className="import-result-stat-label">Sheets</div>
+              <div className="import-result-stat-label">{t("import.sheets")}</div>
               <div className="import-result-stat-value">
                 {importResult.processedSheets}
               </div>
             </div>
             <div className="import-result-stat">
-              <div className="import-result-stat-label">Total Rows</div>
+              <div className="import-result-stat-label">{t("import.totalRows")}</div>
               <div className="import-result-stat-value">
                 {importResult.totalRows}
               </div>
             </div>
             <div className="import-result-stat">
-              <div className="import-result-stat-label">Successful</div>
+              <div className="import-result-stat-label">{t("import.successful")}</div>
               <div className="import-result-stat-value success">
                 {importResult.totalSuccess}
               </div>
             </div>
             <div className="import-result-stat">
-              <div className="import-result-stat-label">Errors</div>
+              <div className="import-result-stat-label">{t("import.errors")}</div>
               <div className="import-result-stat-value error">
                 {importResult.totalErrors}
               </div>
@@ -432,7 +431,7 @@ export default function DataImportTab() {
       {/* ===== Entity cards grid ===== */}
       <div className="import-entity-section-title">
         <Database size={18} />
-        Data Entities
+        {t("import.dataEntities")}
       </div>
       <div className="import-entity-grid">
         {ENTITY_KEYS.map((entity) => {
@@ -457,7 +456,7 @@ export default function DataImportTab() {
                 {progress ? (
                   <>
                     <div className="import-entity-card-count">
-                      <strong>{progress.count}</strong> imported
+                      <strong>{progress.count}</strong> {t("import.imported")}
                     </div>
                     <div className="import-entity-card-date">
                       {formatDate(progress.lastImported)}
@@ -465,7 +464,7 @@ export default function DataImportTab() {
                   </>
                 ) : (
                   <div className="import-entity-card-count">
-                    No data imported yet
+                    {t("import.noDataImported")}
                   </div>
                 )}
               </div>
@@ -478,7 +477,7 @@ export default function DataImportTab() {
       <div className="import-history">
         <div className="import-history-title">
           <History size={18} />
-          Import History
+          {t("import.importHistory")}
         </div>
         {loadingHistory ? (
           <div className="import-empty">
@@ -489,9 +488,9 @@ export default function DataImportTab() {
             <div className="import-empty-icon">
               <History size={28} />
             </div>
-            <div className="import-empty-title">No imports yet</div>
+            <div className="import-empty-title">{t("import.noImportsYet")}</div>
             <div className="import-empty-desc">
-              Download the template, fill in your data, and upload it to get started.
+              {t("import.noImportsDesc")}
             </div>
           </div>
         ) : (
@@ -499,14 +498,14 @@ export default function DataImportTab() {
             <table className="import-history-table">
               <thead>
                 <tr>
-                  <th>File</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Sheets</th>
-                  <th>Rows</th>
-                  <th>Success</th>
-                  <th>Errors</th>
-                  <th>Date</th>
+                  <th>{t("import.file")}</th>
+                  <th>{t("import.type")}</th>
+                  <th>{t("import.status")}</th>
+                  <th>{t("import.sheets")}</th>
+                  <th>{t("import.rows")}</th>
+                  <th>{t("import.success")}</th>
+                  <th>{t("import.errors")}</th>
+                  <th>{t("import.date")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -517,8 +516,8 @@ export default function DataImportTab() {
                     </td>
                     <td>
                       {run.run_type === "excel_master"
-                        ? "Excel Master"
-                        : "CSV Single"}
+                        ? t("import.excelMaster")
+                        : t("import.csvSingle")}
                     </td>
                     <td>
                       <span className={`import-history-status ${run.status}`}>

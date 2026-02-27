@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Eraser, Check, X } from "lucide-react";
 
 interface SignaturePadProps {
@@ -17,9 +18,10 @@ export default function SignaturePad({
   onCancel,
   width = 500,
   height = 200,
-  label = "Sign here",
+  label,
   existingSignature,
 }: SignaturePadProps) {
+  const t = useTranslations("common");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasContent, setHasContent] = useState(false);
@@ -126,10 +128,10 @@ export default function SignaturePad({
     return (
       <div>
         <div style={{ fontSize: "0.82rem", fontWeight: 500, color: "var(--foreground)", marginBottom: "8px" }}>
-          Signature
+          {t("signaturePad.signature")}
         </div>
         <div style={{ border: "1px solid var(--border)", borderRadius: "8px", padding: "8px", background: "#fff", display: "inline-block" }}>
-          <img src={existingSignature} alt="Signature" style={{ maxWidth: "300px", height: "auto" }} />
+          <img src={existingSignature} alt={t("signaturePad.signature")} style={{ maxWidth: "300px", height: "auto" }} />
         </div>
       </div>
     );
@@ -138,7 +140,7 @@ export default function SignaturePad({
   return (
     <div>
       <div style={{ fontSize: "0.82rem", fontWeight: 500, color: "var(--foreground)", marginBottom: "8px" }}>
-        {label}
+        {label || t("signaturePad.signHere")}
       </div>
       <div
         style={{
@@ -171,7 +173,7 @@ export default function SignaturePad({
           className="btn-secondary"
           style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", padding: "6px 14px" }}
         >
-          <Eraser size={14} /> Clear
+          <Eraser size={14} /> {t("signaturePad.clear")}
         </button>
         <button
           type="button"
@@ -180,7 +182,7 @@ export default function SignaturePad({
           className="btn-primary"
           style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", padding: "6px 14px", opacity: hasContent ? 1 : 0.5 }}
         >
-          <Check size={14} /> Sign &amp; Confirm
+          <Check size={14} /> {t("signaturePad.signAndConfirm")}
         </button>
         {onCancel && (
           <button
@@ -189,7 +191,7 @@ export default function SignaturePad({
             className="btn-secondary"
             style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", padding: "6px 14px" }}
           >
-            <X size={14} /> Cancel
+            <X size={14} /> {t("signaturePad.cancel")}
           </button>
         )}
       </div>

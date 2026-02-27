@@ -2,29 +2,30 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Plus, X } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const STAGES = [
-  { value: "prospecting", label: "Prospecting" },
-  { value: "qualification", label: "Qualification" },
-  { value: "proposal", label: "Proposal" },
-  { value: "negotiation", label: "Negotiation" },
-  { value: "closed_won", label: "Closed Won" },
-  { value: "closed_lost", label: "Closed Lost" },
-];
+const STAGE_VALUES = [
+  "prospecting",
+  "qualification",
+  "proposal",
+  "negotiation",
+  "closed_won",
+  "closed_lost",
+] as const;
 
-const SOURCES = [
-  { value: "referral", label: "Referral" },
-  { value: "website", label: "Website" },
-  { value: "cold_call", label: "Cold Call" },
-  { value: "trade_show", label: "Trade Show" },
-  { value: "existing_client", label: "Existing Client" },
-  { value: "other", label: "Other" },
-];
+const SOURCE_VALUES = [
+  "referral",
+  "website",
+  "cold_call",
+  "trade_show",
+  "existing_client",
+  "other",
+] as const;
 
 // ---------------------------------------------------------------------------
 // Component
@@ -32,6 +33,7 @@ const SOURCES = [
 
 export default function CRMCreateButton() {
   const router = useRouter();
+  const t = useTranslations("crm");
 
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -91,7 +93,7 @@ export default function CRMCreateButton() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create opportunity");
+        throw new Error(data.error || t("opportunity.failedCreate"));
       }
 
       resetForm();
@@ -99,7 +101,7 @@ export default function CRMCreateButton() {
       router.refresh();
     } catch (err: unknown) {
       setCreateError(
-        err instanceof Error ? err.message : "Failed to create opportunity"
+        err instanceof Error ? err.message : t("opportunity.failedCreate")
       );
     } finally {
       setCreating(false);
@@ -110,7 +112,7 @@ export default function CRMCreateButton() {
     <>
       <button className="btn-primary" onClick={() => setShowCreate(true)}>
         <Plus size={16} />
-        New Opportunity
+        {t("opportunity.new")}
       </button>
 
       {showCreate && (
@@ -123,7 +125,7 @@ export default function CRMCreateButton() {
         >
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>New Opportunity</h3>
+              <h3>{t("opportunity.new")}</h3>
               <button
                 className="ticket-modal-close"
                 onClick={() => {
@@ -141,7 +143,7 @@ export default function CRMCreateButton() {
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Name *</label>
+                <label className="ticket-form-label">{t("opportunity.nameRequired")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -149,13 +151,13 @@ export default function CRMCreateButton() {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  placeholder="Opportunity name"
+                  placeholder={t("opportunity.namePlaceholder")}
                   required
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Client Name</label>
+                <label className="ticket-form-label">{t("opportunity.clientName")}</label>
                 <input
                   type="text"
                   className="ticket-form-input"
@@ -163,26 +165,26 @@ export default function CRMCreateButton() {
                   onChange={(e) =>
                     setFormData({ ...formData, client_name: e.target.value })
                   }
-                  placeholder="Client or company name"
+                  placeholder={t("opportunity.clientNamePlaceholder")}
                 />
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Description</label>
+                <label className="ticket-form-label">{t("opportunity.description")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Describe the opportunity..."
+                  placeholder={t("opportunity.descriptionPlaceholder")}
                   rows={3}
                 />
               </div>
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Stage</label>
+                  <label className="ticket-form-label">{t("opportunity.stage")}</label>
                   <select
                     className="ticket-form-select"
                     value={formData.stage}
@@ -190,16 +192,16 @@ export default function CRMCreateButton() {
                       setFormData({ ...formData, stage: e.target.value })
                     }
                   >
-                    {STAGES.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
+                    {STAGE_VALUES.map((val) => (
+                      <option key={val} value={val}>
+                        {t(`opportunity.stages.${val}`)}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Source</label>
+                  <label className="ticket-form-label">{t("opportunity.source")}</label>
                   <select
                     className="ticket-form-select"
                     value={formData.source}
@@ -207,10 +209,10 @@ export default function CRMCreateButton() {
                       setFormData({ ...formData, source: e.target.value })
                     }
                   >
-                    <option value="">Select source...</option>
-                    {SOURCES.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
+                    <option value="">{t("opportunity.selectSource")}</option>
+                    {SOURCE_VALUES.map((val) => (
+                      <option key={val} value={val}>
+                        {t(`opportunity.sources.${val}`)}
                       </option>
                     ))}
                   </select>
@@ -220,7 +222,7 @@ export default function CRMCreateButton() {
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">
-                    Value ($)
+                    {t("opportunity.value")}
                   </label>
                   <input
                     type="number"
@@ -232,7 +234,7 @@ export default function CRMCreateButton() {
                         estimated_value: e.target.value,
                       })
                     }
-                    placeholder="Estimated deal value"
+                    placeholder={t("opportunity.valuePlaceholder")}
                     min="0"
                     step="0.01"
                   />
@@ -240,7 +242,7 @@ export default function CRMCreateButton() {
 
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">
-                    Probability (%)
+                    {t("opportunity.probability")}
                   </label>
                   <input
                     type="number"
@@ -261,7 +263,7 @@ export default function CRMCreateButton() {
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">
-                  Expected Close Date
+                  {t("opportunity.expectedCloseDate")}
                 </label>
                 <input
                   type="date"
@@ -277,14 +279,14 @@ export default function CRMCreateButton() {
               </div>
 
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Notes</label>
+                <label className="ticket-form-label">{t("opportunity.notes")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   value={formData.notes}
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
                   }
-                  placeholder="Additional notes..."
+                  placeholder={t("opportunity.notesPlaceholder")}
                   rows={3}
                 />
               </div>
@@ -298,14 +300,14 @@ export default function CRMCreateButton() {
                     resetForm();
                   }}
                 >
-                  Cancel
+                  {t("opportunity.cancel")}
                 </button>
                 <button
                   type="submit"
                   className="btn-primary"
                   disabled={creating || !formData.name.trim()}
                 >
-                  {creating ? "Creating..." : "Create Opportunity"}
+                  {creating ? t("opportunity.creating") : t("opportunity.create")}
                 </button>
               </div>
             </form>

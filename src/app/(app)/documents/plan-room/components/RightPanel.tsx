@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 interface RightPanelProps {
   children: ReactNode;
@@ -45,5 +46,6 @@ export function PanelSection({ title, badge, defaultOpen = true, children }: Pan
 }
 
 export default function RightPanel({ children }: RightPanelProps) {
+  const t = useTranslations("documents");
   return <div className="plan-room-right-panel">{children}</div>;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Download } from "lucide-react";
 
 interface ExportColumn {
@@ -28,6 +29,7 @@ export default function ReportExportButton({
   columns,
   filename,
 }: ReportExportButtonProps) {
+  const t = useTranslations("common");
   function handleExport() {
     const headers = columns.map((c) => escapeCsvValue(c.label)).join(",");
     const rows = data.map((row) =>
@@ -53,9 +55,9 @@ export default function ReportExportButton({
 
   if (data.length === 0) {
     return (
-      <button className="export-btn" disabled title="No data to export">
+      <button className="export-btn" disabled title={t("reportExport.noData")}>
         <Download size={16} />
-        Export CSV
+        {t("reportExport.exportCsv")}
       </button>
     );
   }
@@ -63,7 +65,7 @@ export default function ReportExportButton({
   return (
     <button className="export-btn" onClick={handleExport}>
       <Download size={16} />
-      Export CSV
+      {t("reportExport.exportCsv")}
     </button>
   );
 }

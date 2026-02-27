@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   Upload,
   Image,
@@ -17,16 +18,6 @@ interface AssetLibraryProps {
   assets: AssetLibraryRow[];
   onUploadAsset: (file: File, name: string, assetType: string) => void;
 }
-
-const ASSET_TABS = [
-  { value: "all", label: "All" },
-  { value: "logo", label: "Logos" },
-  { value: "standard_detail", label: "Std Details" },
-  { value: "template", label: "Templates" },
-  { value: "stamp", label: "Stamps" },
-  { value: "photo", label: "Photos" },
-  { value: "general", label: "General" },
-];
 
 function getAssetIcon(assetType: string) {
   switch (assetType) {
@@ -49,6 +40,7 @@ export default function AssetLibrary({
   assets,
   onUploadAsset,
 }: AssetLibraryProps) {
+  const t = useTranslations("documents");
   const [activeTab, setActiveTab] = useState("all");
   const [previewAsset, setPreviewAsset] = useState<AssetLibraryRow | null>(null);
   const [showUpload, setShowUpload] = useState(false);
@@ -56,6 +48,16 @@ export default function AssetLibrary({
   const [uploadName, setUploadName] = useState("");
   const [uploadType, setUploadType] = useState("general");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const ASSET_TABS = [
+    { value: "all", label: t("planRoom.assetLibrary.tabAll") },
+    { value: "logo", label: t("planRoom.assetLibrary.tabLogos") },
+    { value: "standard_detail", label: t("planRoom.assetLibrary.tabStdDetails") },
+    { value: "template", label: t("planRoom.assetLibrary.tabTemplates") },
+    { value: "stamp", label: t("planRoom.assetLibrary.tabStamps") },
+    { value: "photo", label: t("planRoom.assetLibrary.tabPhotos") },
+    { value: "general", label: t("planRoom.assetLibrary.tabGeneral") },
+  ];
 
   const filtered =
     activeTab === "all"
@@ -78,13 +80,13 @@ export default function AssetLibrary({
   return (
     <div className="asset-library">
       <div className="asset-library-header">
-        <span className="asset-library-title">Asset Library</span>
+        <span className="asset-library-title">{t("planRoom.assetLibrary.title")}</span>
         <button
           className="asset-library-upload-btn"
           onClick={() => setShowUpload(!showUpload)}
         >
           <Upload size={12} />
-          Upload
+          {t("planRoom.assetLibrary.upload")}
         </button>
       </div>
 
@@ -115,7 +117,7 @@ export default function AssetLibrary({
             ) : (
               <>
                 <Upload size={16} />
-                <span>Click to select file</span>
+                <span>{t("planRoom.assetLibrary.clickToSelect")}</span>
               </>
             )}
           </div>
@@ -124,19 +126,19 @@ export default function AssetLibrary({
             type="text"
             value={uploadName}
             onChange={(e) => setUploadName(e.target.value)}
-            placeholder="Asset name..."
+            placeholder={t("planRoom.assetLibrary.assetNamePlaceholder")}
           />
           <select
             className="asset-library-select"
             value={uploadType}
             onChange={(e) => setUploadType(e.target.value)}
           >
-            <option value="general">General</option>
-            <option value="logo">Logo</option>
-            <option value="standard_detail">Standard Detail</option>
-            <option value="template">Template</option>
-            <option value="stamp">Stamp</option>
-            <option value="photo">Photo</option>
+            <option value="general">{t("planRoom.assetLibrary.typeGeneral")}</option>
+            <option value="logo">{t("planRoom.assetLibrary.typeLogo")}</option>
+            <option value="standard_detail">{t("planRoom.assetLibrary.typeStandardDetail")}</option>
+            <option value="template">{t("planRoom.assetLibrary.typeTemplate")}</option>
+            <option value="stamp">{t("planRoom.assetLibrary.typeStamp")}</option>
+            <option value="photo">{t("planRoom.assetLibrary.typePhoto")}</option>
           </select>
           <div className="asset-library-upload-actions">
             <button
@@ -145,7 +147,7 @@ export default function AssetLibrary({
               onClick={handleUpload}
               disabled={!uploadFile}
             >
-              Upload Asset
+              {t("planRoom.assetLibrary.uploadAsset")}
             </button>
             <button
               className="plan-room-btn-secondary"
@@ -156,7 +158,7 @@ export default function AssetLibrary({
                 setUploadName("");
               }}
             >
-              Cancel
+              {t("planRoom.assetLibrary.cancel")}
             </button>
           </div>
         </div>
@@ -179,7 +181,7 @@ export default function AssetLibrary({
       {filtered.length === 0 ? (
         <div className="asset-library-empty">
           <File size={24} />
-          <p>No assets{activeTab !== "all" ? ` of type "${activeTab}"` : ""}</p>
+          <p>{activeTab !== "all" ? t("planRoom.assetLibrary.noAssetsOfType", { type: activeTab }) : t("planRoom.assetLibrary.noAssets")}</p>
         </div>
       ) : (
         <div className="asset-grid">
@@ -242,7 +244,7 @@ export default function AssetLibrary({
                 ) : (
                   <div className="asset-preview-placeholder">
                     <Eye size={32} />
-                    <p>Preview not available</p>
+                    <p>{t("planRoom.assetLibrary.previewNotAvailable")}</p>
                   </div>
                 )}
               </div>
@@ -252,11 +254,11 @@ export default function AssetLibrary({
                 </p>
               )}
               <div className="asset-preview-meta">
-                <span>Type: {previewAsset.asset_type.replace("_", " ")}</span>
+                <span>{t("planRoom.assetLibrary.metaType", { type: previewAsset.asset_type.replace("_", " ") })}</span>
                 {previewAsset.tags && previewAsset.tags.length > 0 && (
-                  <span>Tags: {previewAsset.tags.join(", ")}</span>
+                  <span>{t("planRoom.assetLibrary.metaTags", { tags: previewAsset.tags.join(", ") })}</span>
                 )}
-                <span>Used {previewAsset.usage_count} time{previewAsset.usage_count !== 1 ? "s" : ""}</span>
+                <span>{t("planRoom.assetLibrary.metaUsed", { count: previewAsset.usage_count })}</span>
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -38,6 +39,7 @@ function CustomTooltip({
   payload?: Array<{ value: number; dataKey: string; color: string }>;
   label?: string;
 }) {
+  const t = useTranslations("common");
   if (!active || !payload?.length) return null;
 
   const cashIn = payload.find((p) => p.dataKey === "cashIn")?.value ?? 0;
@@ -60,10 +62,10 @@ function CustomTooltip({
         {label}
       </div>
       <div style={{ color: "#22c55e" }}>
-        Cash In: {formatTooltipValue(cashIn)}
+        {t("cashFlow.cashIn")}: {formatTooltipValue(cashIn)}
       </div>
       <div style={{ color: "#ef4444" }}>
-        Cash Out: {formatTooltipValue(cashOut)}
+        {t("cashFlow.cashOut")}: {formatTooltipValue(cashOut)}
       </div>
       <div
         style={{
@@ -74,7 +76,7 @@ function CustomTooltip({
           marginTop: 4,
         }}
       >
-        Net: {net >= 0 ? "+" : ""}
+        {t("cashFlow.net")}: {net >= 0 ? "+" : ""}
         {formatTooltipValue(net)}
       </div>
     </div>
@@ -82,6 +84,7 @@ function CustomTooltip({
 }
 
 export default function CashFlowChart({ data }: { data: CashFlowItem[] }) {
+  const t = useTranslations("common");
   return (
     <ResponsiveContainer width="100%" height={220}>
       <AreaChart
@@ -129,7 +132,7 @@ export default function CashFlowChart({ data }: { data: CashFlowItem[] }) {
         />
         <Area
           dataKey="cashIn"
-          name="Cash In"
+          name={t("cashFlow.cashIn")}
           type="monotone"
           stroke="#22c55e"
           strokeWidth={2}
@@ -139,7 +142,7 @@ export default function CashFlowChart({ data }: { data: CashFlowItem[] }) {
         />
         <Area
           dataKey="cashOut"
-          name="Cash Out"
+          name={t("cashFlow.cashOut")}
           type="monotone"
           stroke="#ef4444"
           strokeWidth={2}
@@ -149,7 +152,7 @@ export default function CashFlowChart({ data }: { data: CashFlowItem[] }) {
         />
         <Area
           dataKey="net"
-          name="Net Flow"
+          name={t("cashFlow.netFlow")}
           type="monotone"
           stroke="#60a5fa"
           strokeWidth={2}

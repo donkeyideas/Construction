@@ -2,19 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Plus, X, Upload, Trash2 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import { type ImportColumn } from "@/lib/utils/csv-parser";
 
 const PHASE_COLORS = [
-  { label: "Blue", value: "#3b82f6" },
-  { label: "Green", value: "#10b981" },
-  { label: "Amber", value: "#f59e0b" },
-  { label: "Purple", value: "#8b5cf6" },
-  { label: "Red", value: "#ef4444" },
-  { label: "Cyan", value: "#06b6d4" },
-  { label: "Pink", value: "#ec4899" },
-  { label: "Lime", value: "#84cc16" },
+  { key: "blue", value: "#3b82f6" },
+  { key: "green", value: "#10b981" },
+  { key: "amber", value: "#f59e0b" },
+  { key: "purple", value: "#8b5cf6" },
+  { key: "red", value: "#ef4444" },
+  { key: "cyan", value: "#06b6d4" },
+  { key: "pink", value: "#ec4899" },
+  { key: "lime", value: "#84cc16" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -69,6 +70,7 @@ interface Props {
 
 export default function GanttActions({ projectId, phases }: Props) {
   const router = useRouter();
+  const t = useTranslations("projects");
   const [showPhaseForm, setShowPhaseForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -113,7 +115,7 @@ export default function GanttActions({ projectId, phases }: Props) {
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create phase");
+        throw new Error(data.error || t("gantt.failedCreatePhase"));
       }
       setPhaseName("");
       setPhaseColor("#3b82f6");
@@ -122,7 +124,7 @@ export default function GanttActions({ projectId, phases }: Props) {
       setShowPhaseForm(false);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create phase");
+      setError(err instanceof Error ? err.message : t("gantt.failedCreatePhase"));
     } finally {
       setSaving(false);
     }
@@ -147,7 +149,7 @@ export default function GanttActions({ projectId, phases }: Props) {
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create task");
+        throw new Error(data.error || t("gantt.failedCreateTask"));
       }
       setTaskName("");
       setTaskPhaseId("");
@@ -158,7 +160,7 @@ export default function GanttActions({ projectId, phases }: Props) {
       setShowTaskForm(false);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create task");
+      setError(err instanceof Error ? err.message : t("gantt.failedCreateTask"));
     } finally {
       setSaving(false);
     }
@@ -171,7 +173,7 @@ export default function GanttActions({ projectId, phases }: Props) {
       body: JSON.stringify({ entity: "phases", rows, project_id: projectId }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("gantt.importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
@@ -183,13 +185,13 @@ export default function GanttActions({ projectId, phases }: Props) {
       body: JSON.stringify({ entity: "tasks", rows, project_id: projectId }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Import failed");
+    if (!res.ok) throw new Error(data.error || t("gantt.importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
   }
 
   async function handleDeleteAll() {
-    if (!confirm("Delete ALL phases and tasks for this project? This cannot be undone.")) return;
+    if (!confirm(t("gantt.deleteConfirm"))) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/projects/${projectId}/phases`, {
@@ -199,11 +201,11 @@ export default function GanttActions({ projectId, phases }: Props) {
       });
       if (!res.ok) {
         const d = await res.json();
-        alert(d.error || "Delete failed");
+        alert(d.error || t("gantt.deleteFailed"));
       }
       router.refresh();
     } catch {
-      alert("Delete failed");
+      alert(t("gantt.deleteFailed"));
     } finally {
       setDeleting(false);
     }
@@ -216,25 +218,25 @@ export default function GanttActions({ projectId, phases }: Props) {
           className="btn-secondary"
           onClick={() => { setShowPhaseForm(!showPhaseForm); setShowTaskForm(false); setError(""); }}
         >
-          <Plus size={16} /> Add Phase
+          <Plus size={16} /> {t("gantt.addPhase")}
         </button>
         <button
           className="btn-secondary"
           onClick={() => { setShowTaskForm(!showTaskForm); setShowPhaseForm(false); setError(""); }}
         >
-          <Plus size={16} /> Add Task
+          <Plus size={16} /> {t("gantt.addTask")}
         </button>
         <button
           className="btn-secondary"
           onClick={() => { closeAllForms(); setShowImportPhases(true); }}
         >
-          <Upload size={16} /> Import Phases
+          <Upload size={16} /> {t("gantt.importPhases")}
         </button>
         <button
           className="btn-secondary"
           onClick={() => { closeAllForms(); setShowImportTasks(true); }}
         >
-          <Upload size={16} /> Import Tasks
+          <Upload size={16} /> {t("gantt.importTasks")}
         </button>
         {phases.length > 0 && (
           <button
@@ -243,7 +245,7 @@ export default function GanttActions({ projectId, phases }: Props) {
             onClick={handleDeleteAll}
             disabled={deleting}
           >
-            <Trash2 size={16} /> {deleting ? "Deleting..." : "Delete All"}
+            <Trash2 size={16} /> {deleting ? t("gantt.deleting") : t("gantt.deleteAll")}
           </button>
         )}
       </div>
@@ -252,7 +254,7 @@ export default function GanttActions({ projectId, phases }: Props) {
       {showPhaseForm && (
         <div className="fin-chart-card" style={{ marginTop: 12, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h4 style={{ margin: 0, fontSize: "0.9rem" }}>New Phase</h4>
+            <h4 style={{ margin: 0, fontSize: "0.9rem" }}>{t("gantt.newPhase")}</h4>
             <button
               onClick={() => { setShowPhaseForm(false); setError(""); }}
               style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}
@@ -263,17 +265,17 @@ export default function GanttActions({ projectId, phases }: Props) {
           <form onSubmit={handleAddPhase}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div className="form-group">
-                <label className="form-label">Name *</label>
+                <label className="form-label">{t("gantt.nameRequired")}</label>
                 <input
                   className="form-input"
                   required
-                  placeholder="e.g. Foundation"
+                  placeholder={t("gantt.phaseNamePlaceholder")}
                   value={phaseName}
                   onChange={(e) => setPhaseName(e.target.value)}
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Color</label>
+                <label className="form-label">{t("gantt.color")}</label>
                 <div style={{ display: "flex", gap: 6, alignItems: "center", paddingTop: 4 }}>
                   {PHASE_COLORS.map((c) => (
                     <button
@@ -289,13 +291,13 @@ export default function GanttActions({ projectId, phases }: Props) {
                         cursor: "pointer",
                         padding: 0,
                       }}
-                      title={c.label}
+                      title={t(`gantt.colors.${c.key}`)}
                     />
                   ))}
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label">Start Date</label>
+                <label className="form-label">{t("gantt.startDate")}</label>
                 <input
                   type="date"
                   className="form-input"
@@ -304,7 +306,7 @@ export default function GanttActions({ projectId, phases }: Props) {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">End Date</label>
+                <label className="form-label">{t("gantt.endDate")}</label>
                 <input
                   type="date"
                   className="form-input"
@@ -316,10 +318,10 @@ export default function GanttActions({ projectId, phases }: Props) {
             {error && <p style={{ color: "var(--color-red)", fontSize: "0.85rem", marginTop: 8 }}>{error}</p>}
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
               <button type="button" className="btn-secondary" onClick={() => { setShowPhaseForm(false); setError(""); }}>
-                Cancel
+                {t("gantt.cancel")}
               </button>
               <button type="submit" className="btn-primary" disabled={saving}>
-                {saving ? "Creating..." : "Create Phase"}
+                {saving ? t("gantt.creating") : t("gantt.createPhase")}
               </button>
             </div>
           </form>
@@ -330,7 +332,7 @@ export default function GanttActions({ projectId, phases }: Props) {
       {showTaskForm && (
         <div className="fin-chart-card" style={{ marginTop: 12, padding: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h4 style={{ margin: 0, fontSize: "0.9rem" }}>New Task</h4>
+            <h4 style={{ margin: 0, fontSize: "0.9rem" }}>{t("gantt.newTask")}</h4>
             <button
               onClick={() => { setShowTaskForm(false); setError(""); }}
               style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}
@@ -341,39 +343,39 @@ export default function GanttActions({ projectId, phases }: Props) {
           <form onSubmit={handleAddTask}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div className="form-group">
-                <label className="form-label">Name *</label>
+                <label className="form-label">{t("gantt.nameRequired")}</label>
                 <input
                   className="form-input"
                   required
-                  placeholder="e.g. Pour concrete slab"
+                  placeholder={t("gantt.taskNamePlaceholder")}
                   value={taskName}
                   onChange={(e) => setTaskName(e.target.value)}
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Phase</label>
+                <label className="form-label">{t("gantt.phase")}</label>
                 <select
                   className="form-select"
                   value={taskPhaseId}
                   onChange={(e) => setTaskPhaseId(e.target.value)}
                 >
-                  <option value="">No phase</option>
+                  <option value="">{t("gantt.noPhase")}</option>
                   {phases.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Priority</label>
+                <label className="form-label">{t("gantt.priority")}</label>
                 <select
                   className="form-select"
                   value={taskPriority}
                   onChange={(e) => setTaskPriority(e.target.value)}
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
+                  <option value="low">{t("gantt.priorityLow")}</option>
+                  <option value="medium">{t("gantt.priorityMedium")}</option>
+                  <option value="high">{t("gantt.priorityHigh")}</option>
+                  <option value="critical">{t("gantt.priorityCritical")}</option>
                 </select>
               </div>
               <div className="form-group" style={{ display: "flex", alignItems: "center", gap: 8, paddingTop: 20 }}>
@@ -383,10 +385,10 @@ export default function GanttActions({ projectId, phases }: Props) {
                   checked={taskMilestone}
                   onChange={(e) => setTaskMilestone(e.target.checked)}
                 />
-                <label htmlFor="gantt-milestone" style={{ fontSize: "0.85rem", cursor: "pointer" }}>Milestone</label>
+                <label htmlFor="gantt-milestone" style={{ fontSize: "0.85rem", cursor: "pointer" }}>{t("gantt.milestone")}</label>
               </div>
               <div className="form-group">
-                <label className="form-label">Start Date</label>
+                <label className="form-label">{t("gantt.startDate")}</label>
                 <input
                   type="date"
                   className="form-input"
@@ -395,7 +397,7 @@ export default function GanttActions({ projectId, phases }: Props) {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">End Date</label>
+                <label className="form-label">{t("gantt.endDate")}</label>
                 <input
                   type="date"
                   className="form-input"
@@ -407,10 +409,10 @@ export default function GanttActions({ projectId, phases }: Props) {
             {error && <p style={{ color: "var(--color-red)", fontSize: "0.85rem", marginTop: 8 }}>{error}</p>}
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
               <button type="button" className="btn-secondary" onClick={() => { setShowTaskForm(false); setError(""); }}>
-                Cancel
+                {t("gantt.cancel")}
               </button>
               <button type="submit" className="btn-primary" disabled={saving}>
-                {saving ? "Creating..." : "Create Task"}
+                {saving ? t("gantt.creating") : t("gantt.createTask")}
               </button>
             </div>
           </form>
@@ -420,7 +422,7 @@ export default function GanttActions({ projectId, phases }: Props) {
       {/* Import Phases Modal */}
       {showImportPhases && (
         <ImportModal
-          entityName="Phases"
+          entityName={t("gantt.phases")}
           columns={PHASE_IMPORT_COLUMNS}
           sampleData={PHASE_IMPORT_SAMPLE}
           onImport={handleImportPhases}
@@ -431,7 +433,7 @@ export default function GanttActions({ projectId, phases }: Props) {
       {/* Import Tasks Modal */}
       {showImportTasks && (
         <ImportModal
-          entityName="Tasks"
+          entityName={t("gantt.tasks")}
           columns={TASK_IMPORT_COLUMNS}
           sampleData={TASK_IMPORT_SAMPLE}
           onImport={handleImportTasks}

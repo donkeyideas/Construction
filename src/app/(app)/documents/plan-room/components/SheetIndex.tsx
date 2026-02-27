@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { DocumentRow } from "@/lib/queries/documents";
 import { DISCIPLINES } from "../types";
 
@@ -15,6 +16,7 @@ export default function SheetIndex({
   selectedDocId,
   onSelectDoc,
 }: SheetIndexProps) {
+  const t = useTranslations("documents");
   const [collapsedSets, setCollapsedSets] = useState<Set<string>>(new Set());
 
   // Group documents by discipline
@@ -99,7 +101,7 @@ export default function SheetIndex({
                         </div>
                         {doc.revision_label && (
                           <span className="plan-room-sheet-rev">
-                            Rev {doc.revision_label}
+                            {t("planRoom.sheetIndex.rev", { label: doc.revision_label })}
                           </span>
                         )}
                       </div>
@@ -113,7 +115,7 @@ export default function SheetIndex({
       })}
       {documents.length === 0 && (
         <div className="plan-room-sidebar-empty">
-          No sheets uploaded yet.
+          {t("planRoom.sheetIndex.noSheets")}
         </div>
       )}
     </div>

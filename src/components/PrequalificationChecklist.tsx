@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Shield,
   CheckCircle2,
@@ -25,20 +26,20 @@ interface PrequalificationChecklistProps {
 }
 
 const CHECKLIST_ITEMS = [
-  { key: "insurance_gl", label: "General Liability Insurance", category: "Insurance", weight: 8 },
-  { key: "insurance_wc", label: "Workers Compensation Insurance", category: "Insurance", weight: 8 },
-  { key: "insurance_auto", label: "Auto Liability Insurance", category: "Insurance", weight: 6 },
-  { key: "insurance_umbrella", label: "Umbrella/Excess Liability", category: "Insurance", weight: 6 },
-  { key: "bond_bid", label: "Bid Bond Capability", category: "Bonding", weight: 7 },
-  { key: "bond_performance", label: "Performance Bond Capability", category: "Bonding", weight: 8 },
-  { key: "bond_payment", label: "Payment Bond Capability", category: "Bonding", weight: 7 },
-  { key: "safety_program", label: "Written Safety Program", category: "Safety", weight: 8 },
-  { key: "safety_osha", label: "OSHA 10/30 Certified Staff", category: "Safety", weight: 7 },
-  { key: "safety_emr", label: "EMR Below 1.0", category: "Safety", weight: 7 },
-  { key: "financial_statements", label: "Financial Statements Available", category: "Financial", weight: 7 },
-  { key: "references", label: "3+ Project References", category: "Financial", weight: 7 },
-  { key: "license_valid", label: "Valid Contractor License", category: "Compliance", weight: 8 },
-  { key: "diversity_cert", label: "Diversity Certification (MBE/WBE/DBE)", category: "Compliance", weight: 6 },
+  { key: "insurance_gl", labelKey: "prequalification.insuranceGl", categoryKey: "prequalification.categoryInsurance", weight: 8 },
+  { key: "insurance_wc", labelKey: "prequalification.insuranceWc", categoryKey: "prequalification.categoryInsurance", weight: 8 },
+  { key: "insurance_auto", labelKey: "prequalification.insuranceAuto", categoryKey: "prequalification.categoryInsurance", weight: 6 },
+  { key: "insurance_umbrella", labelKey: "prequalification.insuranceUmbrella", categoryKey: "prequalification.categoryInsurance", weight: 6 },
+  { key: "bond_bid", labelKey: "prequalification.bondBid", categoryKey: "prequalification.categoryBonding", weight: 7 },
+  { key: "bond_performance", labelKey: "prequalification.bondPerformance", categoryKey: "prequalification.categoryBonding", weight: 8 },
+  { key: "bond_payment", labelKey: "prequalification.bondPayment", categoryKey: "prequalification.categoryBonding", weight: 7 },
+  { key: "safety_program", labelKey: "prequalification.safetyProgram", categoryKey: "prequalification.categorySafety", weight: 8 },
+  { key: "safety_osha", labelKey: "prequalification.safetyOsha", categoryKey: "prequalification.categorySafety", weight: 7 },
+  { key: "safety_emr", labelKey: "prequalification.safetyEmr", categoryKey: "prequalification.categorySafety", weight: 7 },
+  { key: "financial_statements", labelKey: "prequalification.financialStatements", categoryKey: "prequalification.categoryFinancial", weight: 7 },
+  { key: "references", labelKey: "prequalification.references", categoryKey: "prequalification.categoryFinancial", weight: 7 },
+  { key: "license_valid", labelKey: "prequalification.licenseValid", categoryKey: "prequalification.categoryCompliance", weight: 8 },
+  { key: "diversity_cert", labelKey: "prequalification.diversityCert", categoryKey: "prequalification.categoryCompliance", weight: 6 },
 ];
 
 const TOTAL_WEIGHT = CHECKLIST_ITEMS.reduce((sum, i) => sum + i.weight, 0);
@@ -78,11 +79,11 @@ function getScoreIcon(score: number | null) {
   return <XCircle size={20} />;
 }
 
-function getScoreLabel(score: number | null): string {
-  if (score === null) return "Not Evaluated";
-  if (score >= 80) return "Approved";
-  if (score >= 60) return "Conditional";
-  return "Not Qualified";
+function getScoreLabelKey(score: number | null): string {
+  if (score === null) return "prequalification.notEvaluated";
+  if (score >= 80) return "prequalification.approved";
+  if (score >= 60) return "prequalification.conditional";
+  return "prequalification.notQualified";
 }
 
 export default function PrequalificationChecklist({
@@ -91,6 +92,7 @@ export default function PrequalificationChecklist({
   onSave,
   readOnly = false,
 }: PrequalificationChecklistProps) {
+  const t = useTranslations("common");
   const parsed = parseNotesField(data.prequalification_notes);
 
   const [emrRate, setEmrRate] = useState<string>(data.emr_rate?.toString() ?? "");
@@ -150,7 +152,7 @@ export default function PrequalificationChecklist({
     setSaving(false);
   }
 
-  const categories = [...new Set(CHECKLIST_ITEMS.map((i) => i.category))];
+  const categories = [...new Set(CHECKLIST_ITEMS.map((i) => i.categoryKey))];
   const checkedCount = Object.values(checkedItems).filter(Boolean).length;
 
   return (
@@ -181,13 +183,13 @@ export default function PrequalificationChecklist({
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, fontSize: "1.1rem" }}>
-            Prequalification Score: {score !== null ? `${score}/100` : "--"}
+            {t("prequalification.scoreLabel")}: {score !== null ? `${score}/100` : "--"}
           </div>
           <div style={{ fontSize: "0.82rem", color: getScoreColor(score), fontWeight: 500 }}>
-            {getScoreLabel(score)}
+            {t(getScoreLabelKey(score))}
           </div>
           <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: "2px" }}>
-            {checkedCount} of {CHECKLIST_ITEMS.length} items verified
+            {t("prequalification.itemsVerified", { checked: checkedCount, total: CHECKLIST_ITEMS.length })}
           </div>
         </div>
       </div>
@@ -205,12 +207,12 @@ export default function PrequalificationChecklist({
       }}>
         <div>
           <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", color: "var(--foreground)" }}>
-            EMR Rate
+            {t("prequalification.emrRate")}
           </label>
           <input
             type="number"
             className="ticket-form-input"
-            placeholder="e.g. 0.85"
+            placeholder={t("prequalification.emrPlaceholder")}
             step="0.01"
             min="0"
             value={emrRate}
@@ -219,12 +221,12 @@ export default function PrequalificationChecklist({
             style={{ width: "100%" }}
           />
           <div style={{ fontSize: "0.7rem", color: "var(--muted)", marginTop: "4px" }}>
-            Experience Modification Rate. Industry avg: 1.0
+            {t("prequalification.emrDescription")}
           </div>
         </div>
         <div>
           <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", color: "var(--foreground)" }}>
-            Bonding Capacity
+            {t("prequalification.bondingCapacity")}
           </label>
           <div style={{ position: "relative" }}>
             <span style={{
@@ -239,7 +241,7 @@ export default function PrequalificationChecklist({
             <input
               type="number"
               className="ticket-form-input"
-              placeholder="e.g. 5,000,000"
+              placeholder={t("prequalification.bondingPlaceholder")}
               min="0"
               value={bondingCapacity}
               onChange={(e) => setBondingCapacity(e.target.value)}
@@ -248,17 +250,17 @@ export default function PrequalificationChecklist({
             />
           </div>
           <div style={{ fontSize: "0.7rem", color: "var(--muted)", marginTop: "4px" }}>
-            Max single project bond amount
+            {t("prequalification.bondingDescription")}
           </div>
         </div>
       </div>
 
       {/* Checklist by Category */}
-      {categories.map((cat) => {
-        const catItems = CHECKLIST_ITEMS.filter((i) => i.category === cat);
+      {categories.map((catKey) => {
+        const catItems = CHECKLIST_ITEMS.filter((i) => i.categoryKey === catKey);
         const catChecked = catItems.filter((i) => checkedItems[i.key]).length;
         return (
-          <div key={cat} style={{ marginBottom: "16px" }}>
+          <div key={catKey} style={{ marginBottom: "16px" }}>
             <div style={{
               display: "flex",
               alignItems: "center",
@@ -266,7 +268,7 @@ export default function PrequalificationChecklist({
               marginBottom: "8px",
             }}>
               <span style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--foreground)" }}>
-                {cat}
+                {t(catKey)}
               </span>
               <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
                 {catChecked}/{catItems.length}
@@ -296,7 +298,7 @@ export default function PrequalificationChecklist({
                     disabled={readOnly}
                     style={{ accentColor: "var(--color-green)" }}
                   />
-                  <span style={{ flex: 1 }}>{item.label}</span>
+                  <span style={{ flex: 1 }}>{t(item.labelKey)}</span>
                   {checkedItems[item.key] && (
                     <CheckCircle2 size={14} style={{ color: "var(--color-green)", flexShrink: 0 }} />
                   )}
@@ -310,11 +312,11 @@ export default function PrequalificationChecklist({
       {/* Notes */}
       <div style={{ marginBottom: "16px" }}>
         <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "6px", color: "var(--foreground)" }}>
-          Notes
+          {t("prequalification.notes")}
         </label>
         <textarea
           className="ticket-form-textarea"
-          placeholder="Additional prequalification notes..."
+          placeholder={t("prequalification.notesPlaceholder")}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           disabled={readOnly}
@@ -333,7 +335,7 @@ export default function PrequalificationChecklist({
             style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem" }}
           >
             {saving ? <Loader2 size={14} className="spin-icon" /> : <Save size={14} />}
-            Save Evaluation
+            {t("prequalification.saveEvaluation")}
           </button>
         </div>
       )}

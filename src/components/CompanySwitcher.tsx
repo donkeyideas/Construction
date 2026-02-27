@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Building2, ChevronDown, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +14,7 @@ interface CompanyOption {
 }
 
 export default function CompanySwitcher() {
+  const t = useTranslations("common");
   const router = useRouter();
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export default function CompanySwitcher() {
         const company = m.companies as unknown as { name: string; logo_url: string | null } | null;
         return {
           id: m.company_id,
-          name: company?.name || "Unknown",
+          name: company?.name || t("companySwitcher.unknown"),
           role: m.role,
           logo_url: company?.logo_url || null,
         };
@@ -92,7 +94,7 @@ export default function CompanySwitcher() {
           <Building2 size={16} style={{ color: "var(--muted)" }} />
         )}
         <span style={{ flex: 1, textAlign: "left", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {active?.name || "Select Company"}
+          {active?.name || t("companySwitcher.selectCompany")}
         </span>
         <ChevronDown size={14} style={{ color: "var(--muted)", flexShrink: 0 }} />
       </button>
@@ -113,7 +115,7 @@ export default function CompanySwitcher() {
             overflow: "hidden",
           }}>
             <div style={{ padding: "6px 10px", fontSize: "0.68rem", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              Switch Company
+              {t("companySwitcher.switchCompany")}
             </div>
             {companies.map((c) => (
               <button

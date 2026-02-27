@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Camera, Upload, Loader2, MapPin, X } from "lucide-react";
 
 export interface PhotoEntry {
@@ -28,6 +29,7 @@ export default function PhotoUploader({
   maxPhotos = 20,
   disabled = false,
 }: PhotoUploaderProps) {
+  const t = useTranslations("common");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -49,7 +51,7 @@ export default function PhotoUploader({
 
     const remaining = maxPhotos - photos.length;
     if (remaining <= 0) {
-      setError(`Maximum ${maxPhotos} photos allowed.`);
+      setError(t("photoUploader.maxPhotosAllowed", { max: maxPhotos }));
       return;
     }
 
@@ -82,7 +84,7 @@ export default function PhotoUploader({
           });
         } else {
           const data = await res.json().catch(() => ({}));
-          setError(data.error || "Upload failed");
+          setError(data.error || t("photoUploader.uploadFailed"));
         }
       }
 
@@ -90,7 +92,7 @@ export default function PhotoUploader({
         onChange([...photos, ...newPhotos]);
       }
     } catch {
-      setError("Failed to upload photos.");
+      setError(t("photoUploader.failedToUpload"));
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -125,7 +127,7 @@ export default function PhotoUploader({
           }}
         >
           {uploading ? <Loader2 size={16} className="spin-icon" /> : <Camera size={16} />}
-          {uploading ? "Uploading..." : "Add Photos"}
+          {uploading ? t("photoUploader.uploading") : t("photoUploader.addPhotos")}
           <input
             ref={fileRef}
             type="file"
@@ -152,7 +154,7 @@ export default function PhotoUploader({
           }}
         >
           <Upload size={16} />
-          Upload from Device
+          {t("photoUploader.uploadFromDevice")}
           <input
             type="file"
             accept="image/*"
@@ -163,7 +165,7 @@ export default function PhotoUploader({
           />
         </label>
         <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
-          {photos.length}/{maxPhotos} photos
+          {t("photoUploader.photoCount", { count: photos.length, max: maxPhotos })}
         </span>
       </div>
 
@@ -187,7 +189,7 @@ export default function PhotoUploader({
             >
               <img
                 src={photo.url}
-                alt={photo.caption || `Photo ${idx + 1}`}
+                alt={photo.caption || t("photoUploader.photoAlt", { number: idx + 1 })}
                 style={{ width: "100%", height: "120px", objectFit: "cover", display: "block" }}
               />
               {/* GPS badge */}
@@ -207,7 +209,7 @@ export default function PhotoUploader({
                     gap: "3px",
                   }}
                 >
-                  <MapPin size={10} /> GPS
+                  <MapPin size={10} /> {t("photoUploader.gps")}
                 </div>
               )}
               {/* Remove button */}
@@ -238,7 +240,7 @@ export default function PhotoUploader({
               {/* Caption input */}
               <input
                 type="text"
-                placeholder="Add caption..."
+                placeholder={t("photoUploader.addCaption")}
                 value={photo.caption}
                 onChange={(e) => updateCaption(idx, e.target.value)}
                 disabled={disabled}
