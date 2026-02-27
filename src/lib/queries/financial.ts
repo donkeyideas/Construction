@@ -384,7 +384,7 @@ export async function getInvoiceById(
 
   const { data: payments, error: payError } = await supabase
     .from("payments")
-    .select("id, payment_date, amount, method, reference_number, bank_account_id, notes, bank_accounts(name)")
+    .select("id, payment_date, amount, method, reference_number, bank_account_id, notes")
     .eq("invoice_id", invoiceId)
     .order("payment_date", { ascending: false });
 
@@ -392,15 +392,28 @@ export async function getInvoiceById(
     console.error("Error fetching payments:", payError);
   }
 
-  // Flatten bank account name from join
-  const mappedPayments: PaymentRow[] = (payments ?? []).map((p: Record<string, unknown>) => ({
+  // Look up bank account names separately to avoid join failures
+  const paymentRows = payments ?? [];
+  const bankIds = [...new Set(paymentRows.map((p: Record<string, unknown>) => p.bank_account_id).filter(Boolean))] as string[];
+  const bankNameMap: Record<string, string> = {};
+  if (bankIds.length > 0) {
+    const { data: banks } = await supabase
+      .from("bank_accounts")
+      .select("id, name")
+      .in("id", bankIds);
+    for (const b of banks ?? []) {
+      bankNameMap[b.id] = b.name;
+    }
+  }
+
+  const mappedPayments: PaymentRow[] = paymentRows.map((p: Record<string, unknown>) => ({
     id: p.id as string,
     payment_date: p.payment_date as string,
     amount: p.amount as number,
     method: p.method as string,
     reference_number: (p.reference_number as string) || null,
     bank_account_id: (p.bank_account_id as string) || null,
-    bank_account_name: (p.bank_accounts as { name: string } | null)?.name || null,
+    bank_account_name: p.bank_account_id ? (bankNameMap[p.bank_account_id as string] || null) : null,
     notes: (p.notes as string) || null,
   }));
 
@@ -470,6 +483,10 @@ export async function updateInvoice(
   if (data.line_items !== undefined) updatePayload.line_items = data.line_items;
   if (data.notes !== undefined) updatePayload.notes = data.notes;
   if (data.status !== undefined) updatePayload.status = data.status;
+  // Allow direct balance_due updates (e.g. when total_amount changes)
+  if ((data as Record<string, unknown>).balance_due !== undefined) {
+    updatePayload.balance_due = (data as Record<string, unknown>).balance_due;
+  }
 
   const { error } = await supabase
     .from("invoices")

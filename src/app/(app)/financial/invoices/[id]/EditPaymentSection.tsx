@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Edit3, Save, X, Loader2 } from "lucide-react";
+import { Edit3, Save, X, Loader2, Trash2 } from "lucide-react";
 
 interface PaymentInfo {
   id: string;
@@ -43,8 +43,35 @@ export default function EditPaymentSection({
   const [editBankAccountId, setEditBankAccountId] = useState("");
   const [editReference, setEditReference] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   if (payments.length === 0) return null;
+
+  async function handleDelete(paymentId: string) {
+    setDeleting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const res = await fetch(`/api/financial/payments/${paymentId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete payment");
+      }
+
+      setConfirmDeleteId(null);
+      setSuccess("Payment deleted. Invoice balance has been updated.");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   function startEdit(p: PaymentInfo) {
     setEditingId(p.id);
@@ -134,29 +161,74 @@ export default function EditPaymentSection({
         const isEditing = editingId === p.id;
         if (!isEditing) {
           return (
-            <div
-              key={p.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 0",
-              }}
-            >
-              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-                Payment on {new Date(p.payment_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                {" — "}${p.amount.toFixed(2)} via {p.method}
-                {p.bank_account_name ? ` (${p.bank_account_name})` : ""}
-              </span>
-              <button
-                type="button"
-                className="ui-btn ui-btn-ghost ui-btn-sm"
-                onClick={() => startEdit(p)}
-                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.78rem" }}
+            <div key={p.id}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 0",
+                }}
               >
-                <Edit3 size={13} />
-                Edit
-              </button>
+                <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                  Payment on {new Date(p.payment_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  {" — "}${p.amount.toFixed(2)} via {p.method}
+                  {p.bank_account_name ? ` (${p.bank_account_name})` : ""}
+                </span>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn-ghost ui-btn-sm"
+                    onClick={() => startEdit(p)}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.78rem" }}
+                  >
+                    <Edit3 size={13} />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn-ghost ui-btn-sm"
+                    onClick={() => setConfirmDeleteId(confirmDeleteId === p.id ? null : p.id)}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.78rem", color: "var(--color-red)" }}
+                  >
+                    <Trash2 size={13} />
+                    Delete
+                  </button>
+                </div>
+              </div>
+              {confirmDeleteId === p.id && (
+                <div style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--color-red)",
+                  borderRadius: 8,
+                  padding: 12,
+                  marginBottom: 8,
+                }}>
+                  <p style={{ fontSize: "0.82rem", marginBottom: 10 }}>
+                    Delete this ${p.amount.toFixed(2)} payment? This will reverse the invoice balance and remove the payment journal entry.
+                  </p>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                    <button
+                      type="button"
+                      className="ui-btn ui-btn-outline ui-btn-sm"
+                      onClick={() => setConfirmDeleteId(null)}
+                      disabled={deleting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="ui-btn ui-btn-primary ui-btn-sm"
+                      onClick={() => handleDelete(p.id)}
+                      disabled={deleting}
+                      style={{ background: "var(--color-red)", borderColor: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                    >
+                      {deleting ? <Loader2 size={13} className="spin" /> : <Trash2 size={13} />}
+                      {deleting ? "Deleting..." : "Delete Payment"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           );
         }
@@ -241,28 +313,73 @@ export default function EditPaymentSection({
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
               <button
                 type="button"
                 className="ui-btn ui-btn-outline ui-btn-sm"
-                onClick={cancelEdit}
+                onClick={() => setConfirmDeleteId(confirmDeleteId === p.id ? null : p.id)}
                 disabled={saving}
-                style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-red)" }}
               >
-                <X size={13} />
-                Cancel
+                <Trash2 size={13} />
+                Delete Payment
               </button>
-              <button
-                type="button"
-                className="ui-btn ui-btn-primary ui-btn-sm"
-                onClick={() => handleSave(p.id)}
-                disabled={saving}
-                style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-              >
-                {saving ? <Loader2 size={13} className="spin" /> : <Save size={13} />}
-                {saving ? "Saving..." : "Save Changes"}
-              </button>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn-outline ui-btn-sm"
+                  onClick={cancelEdit}
+                  disabled={saving}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                >
+                  <X size={13} />
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn-primary ui-btn-sm"
+                  onClick={() => handleSave(p.id)}
+                  disabled={saving}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                >
+                  {saving ? <Loader2 size={13} className="spin" /> : <Save size={13} />}
+                  {saving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
             </div>
+            {confirmDeleteId === p.id && (
+              <div style={{
+                background: "var(--surface)",
+                border: "1px solid var(--color-red)",
+                borderRadius: 8,
+                padding: 12,
+                marginTop: 12,
+              }}>
+                <p style={{ fontSize: "0.82rem", marginBottom: 10 }}>
+                  Delete this ${p.amount.toFixed(2)} payment? This will reverse the invoice balance and remove the payment journal entry.
+                </p>
+                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn-outline ui-btn-sm"
+                    onClick={() => setConfirmDeleteId(null)}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn-primary ui-btn-sm"
+                    onClick={() => handleDelete(p.id)}
+                    disabled={deleting}
+                    style={{ background: "var(--color-red)", borderColor: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                  >
+                    {deleting ? <Loader2 size={13} className="spin" /> : <Trash2 size={13} />}
+                    {deleting ? "Deleting..." : "Delete Payment"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         );
       })}

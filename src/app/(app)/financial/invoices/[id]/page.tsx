@@ -76,7 +76,23 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
   const payments: PaymentRow[] = Array.isArray(invoice.payments) ? invoice.payments : [];
 
   // Fetch linked journal entries for this invoice
-  const linkedJEs = await findLinkedJournalEntries(supabase, userCompany.companyId, "invoice:", id);
+  let linkedJEs = await findLinkedJournalEntries(supabase, userCompany.companyId, "invoice:", id);
+
+  // Auto-fix: if invoice is paid (has payments) but its JE is voided, reactivate it
+  if (payments.length > 0 && linkedJEs.length > 0) {
+    const voidedJEs = linkedJEs.filter((je) => je.status === "voided");
+    if (voidedJEs.length > 0) {
+      for (const je of voidedJEs) {
+        await supabase
+          .from("journal_entries")
+          .update({ status: "posted" })
+          .eq("id", je.id);
+      }
+      // Re-fetch so the UI shows the updated status
+      linkedJEs = await findLinkedJournalEntries(supabase, userCompany.companyId, "invoice:", id);
+    }
+  }
+
   // Also fetch payment JEs
   const paymentJEsMap: Record<string, { id: string; entry_number: string }[]> = {};
   for (const p of payments) {

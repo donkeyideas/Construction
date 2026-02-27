@@ -78,6 +78,13 @@ export async function PATCH(
 
     const body = await request.json();
 
+    // If total_amount changed, recalculate balance_due
+    if (body.total_amount !== undefined) {
+      const newTotal = Number(body.total_amount);
+      const amountPaid = Number(existing.amount_paid) || 0;
+      body.balance_due = newTotal - amountPaid;
+    }
+
     const success = await updateInvoice(supabase, id, body);
 
     if (!success) {

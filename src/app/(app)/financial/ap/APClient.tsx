@@ -184,7 +184,14 @@ export default function APClient({
   const [editData, setEditData] = useState({
     status: "",
     notes: "",
+    vendor_name: "",
+    invoice_date: "",
+    due_date: "",
+    total_amount: "",
+    subtotal: "",
+    tax_amount: "",
   });
+  const [deletingPayment, setDeletingPayment] = useState<string | null>(null);
 
 
 
@@ -207,6 +214,12 @@ export default function APClient({
     setEditData({
       status: selectedInvoice.status,
       notes: selectedInvoice.notes || "",
+      vendor_name: selectedInvoice.vendor_name || "",
+      invoice_date: selectedInvoice.invoice_date?.split("T")[0] || "",
+      due_date: selectedInvoice.due_date?.split("T")[0] || "",
+      total_amount: String(selectedInvoice.total_amount || ""),
+      subtotal: String(selectedInvoice.total_amount || ""),
+      tax_amount: "0",
     });
     setIsEditing(true);
     setSaveError("");
@@ -222,6 +235,16 @@ export default function APClient({
       const payload: Record<string, unknown> = {};
       if (editData.status !== selectedInvoice.status) payload.status = editData.status;
       if (editData.notes !== (selectedInvoice.notes || "")) payload.notes = editData.notes || null;
+      if (editData.vendor_name !== (selectedInvoice.vendor_name || "")) payload.vendor_name = editData.vendor_name || null;
+      if (editData.invoice_date !== (selectedInvoice.invoice_date?.split("T")[0] || "")) payload.invoice_date = editData.invoice_date;
+      if (editData.due_date !== (selectedInvoice.due_date?.split("T")[0] || "")) payload.due_date = editData.due_date;
+
+      const newTotal = parseFloat(editData.total_amount);
+      if (!isNaN(newTotal) && newTotal !== selectedInvoice.total_amount) {
+        payload.total_amount = newTotal;
+        payload.subtotal = newTotal; // keep in sync
+        // Recalculate balance_due: total - amount_paid (balance_due is computed server-side for some, but we send it)
+      }
 
       if (Object.keys(payload).length === 0) {
         setIsEditing(false);
@@ -245,6 +268,26 @@ export default function APClient({
       setSaveError(err instanceof Error ? err.message : t("failedToUpdate"));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeletePayment(paymentId: string) {
+    setDeletingPayment(paymentId);
+    setSaveError("");
+    try {
+      const res = await fetch(`/api/financial/payments/${paymentId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete payment");
+      }
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : "Failed to delete payment");
+    } finally {
+      setDeletingPayment(null);
     }
   }
 
@@ -688,11 +731,18 @@ export default function APClient({
                 </>
               ) : (
                 <>
-                  {/* Edit view */}
+                  {/* Edit view — full fields */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("vendor")}</div>
-                      <div style={{ fontWeight: 500 }}>{selectedInvoice.vendor_name || "--"}</div>
+                      <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
+                        {t("vendor")}
+                      </label>
+                      <input
+                        className="ui-input"
+                        value={editData.vendor_name}
+                        onChange={(e) => setEditData({ ...editData, vendor_name: e.target.value })}
+                        style={{ width: "100%", height: 34, fontSize: "0.85rem" }}
+                      />
                     </div>
                     <div>
                       <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
@@ -702,6 +752,7 @@ export default function APClient({
                         className="fin-filter-select"
                         value={editData.status}
                         onChange={(e) => setEditData({ ...editData, status: e.target.value })}
+                        style={{ width: "100%", height: 34 }}
                       >
                         <option value="draft">{t("statusDraft")}</option>
                         <option value="pending">{t("statusPending")}</option>
@@ -712,12 +763,46 @@ export default function APClient({
                       </select>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("totalAmount")}</div>
-                      <div style={{ fontWeight: 600 }}>{formatCurrency(selectedInvoice.total_amount)}</div>
+                      <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
+                        {t("invoiceDate")}
+                      </label>
+                      <input
+                        type="date"
+                        className="ui-input"
+                        value={editData.invoice_date}
+                        onChange={(e) => setEditData({ ...editData, invoice_date: e.target.value })}
+                        style={{ width: "100%", height: 34, fontSize: "0.85rem" }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
+                        {t("dueDate")}
+                      </label>
+                      <input
+                        type="date"
+                        className="ui-input"
+                        value={editData.due_date}
+                        onChange={(e) => setEditData({ ...editData, due_date: e.target.value })}
+                        style={{ width: "100%", height: 34, fontSize: "0.85rem" }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
+                        {t("totalAmount")}
+                      </label>
+                      <input
+                        type="number"
+                        className="ui-input"
+                        value={editData.total_amount}
+                        onChange={(e) => setEditData({ ...editData, total_amount: e.target.value })}
+                        step="0.01"
+                        min="0"
+                        style={{ width: "100%", height: 34, fontSize: "0.85rem" }}
+                      />
                     </div>
                     <div>
                       <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("balanceDue")}</div>
-                      <div style={{ fontWeight: 600 }}>{formatCurrency(selectedInvoice.balance_due)}</div>
+                      <div style={{ fontWeight: 600, lineHeight: "34px" }}>{formatCurrency(selectedInvoice.balance_due)}</div>
                     </div>
                     <div style={{ gridColumn: "span 2" }}>
                       <label style={{ display: "block", fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>
