@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getEquipmentTransactions } from "@/lib/queries/section-transactions";
 import SectionTransactions from "@/components/SectionTransactions";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Equipment Transactions - Buildwrk",
@@ -16,15 +17,16 @@ export default async function EquipmentTransactionsPage() {
     redirect("/login");
   }
 
+  const t = await getTranslations("equipment");
   const txnData = await getEquipmentTransactions(supabase, userCompany.companyId);
 
   return (
     <div>
       <div className="fin-header">
         <div>
-          <h2>Equipment Transactions</h2>
+          <h2>{t("equipTransactionsTitle")}</h2>
           <p className="fin-header-sub">
-            Fixed asset journal entries, equipment purchases, and maintenance costs.
+            {t("equipTransactionsSubtitle")}
           </p>
         </div>
       </div>

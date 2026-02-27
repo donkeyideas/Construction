@@ -6,6 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPropertyPortfolioReport } from "@/lib/queries/reports";
 import { formatCurrency, formatPercent, formatCompactCurrency } from "@/lib/utils/format";
 import ExportButton from "@/components/reports/ExportButton";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Property Portfolio Report - Buildwrk",
@@ -19,6 +20,8 @@ export default async function PortfolioReportPage() {
     redirect("/register");
   }
 
+  const t = await getTranslations("reports");
+
   const portfolio = await getPropertyPortfolioReport(
     supabase,
     userCompany.companyId
@@ -31,20 +34,20 @@ export default async function PortfolioReportPage() {
         <div className="report-page-nav">
           <Link href="/reports" className="report-back-link">
             <ArrowLeft size={16} />
-            Reports Center
+            {t("centerTitle")}
           </Link>
         </div>
         <div className="report-page-title-row">
           <div>
-            <h2>Property Portfolio Report</h2>
+            <h2>{t("portfolioTitle")}</h2>
             <p className="report-page-sub">
-              Occupancy, revenue, expenses, and NOI across all managed properties.
+              {t("portfolioSubtitle")}
             </p>
           </div>
           <div className="report-page-actions">
             <ExportButton
               reportType="portfolio"
-              reportTitle="Property Portfolio Report"
+              reportTitle={t("portfolioTitle")}
               data={portfolio.properties.map((p) => ({
                 name: p.name,
                 property_type: p.property_type,
@@ -57,15 +60,15 @@ export default async function PortfolioReportPage() {
                 cap_rate: p.cap_rate,
               }))}
               columns={[
-                { key: "name", label: "Property" },
-                { key: "property_type", label: "Type" },
-                { key: "total_units", label: "Total Units" },
-                { key: "occupied_units", label: "Occupied Units" },
-                { key: "occupancy_rate", label: "Occupancy %" },
-                { key: "monthly_revenue", label: "Monthly Revenue" },
-                { key: "monthly_expenses", label: "Monthly Expenses" },
-                { key: "noi", label: "NOI" },
-                { key: "cap_rate", label: "Cap Rate %" },
+                { key: "name", label: t("thProperty") },
+                { key: "property_type", label: t("thType") },
+                { key: "total_units", label: t("totalUnits") },
+                { key: "occupied_units", label: t("thOccupancy") },
+                { key: "occupancy_rate", label: t("thOccupancy") + " %" },
+                { key: "monthly_revenue", label: t("thMonthlyRevenue") },
+                { key: "monthly_expenses", label: t("thMonthlyExpenses") },
+                { key: "noi", label: t("thNOI") },
+                { key: "cap_rate", label: t("thCapRate") + " %" },
               ]}
             />
           </div>
@@ -76,25 +79,25 @@ export default async function PortfolioReportPage() {
       {portfolio.totalProperties > 0 && (
         <div className="portfolio-kpi-row">
           <div className="portfolio-kpi">
-            <span className="portfolio-kpi-label">Total Properties</span>
+            <span className="portfolio-kpi-label">{t("totalProperties")}</span>
             <span className="portfolio-kpi-value">
               {portfolio.totalProperties}
             </span>
           </div>
           <div className="portfolio-kpi">
-            <span className="portfolio-kpi-label">Total Units</span>
+            <span className="portfolio-kpi-label">{t("totalUnits")}</span>
             <span className="portfolio-kpi-value">
               {portfolio.totalUnits}
             </span>
           </div>
           <div className="portfolio-kpi">
-            <span className="portfolio-kpi-label">Avg Occupancy</span>
+            <span className="portfolio-kpi-label">{t("avgOccupancyShort")}</span>
             <span className="portfolio-kpi-value">
               {formatPercent(portfolio.avgOccupancy)}
             </span>
           </div>
           <div className="portfolio-kpi">
-            <span className="portfolio-kpi-label">Total Monthly NOI</span>
+            <span className="portfolio-kpi-label">{t("totalMonthlyNOI")}</span>
             <span className="portfolio-kpi-value">
               {formatCompactCurrency(portfolio.totalNOI)}
             </span>
@@ -106,16 +109,16 @@ export default async function PortfolioReportPage() {
       {portfolio.properties.length === 0 ? (
         <div className="report-empty">
           <Building2 size={48} style={{ color: "var(--border)" }} />
-          <div className="report-empty-title">No Properties</div>
+          <div className="report-empty-title">{t("noProperties")}</div>
           <div className="report-empty-desc">
-            Add properties to your portfolio to see the report data.
+            {t("addPropertiesToSeeReport")}
           </div>
           <Link
             href="/properties"
             className="ui-btn ui-btn-primary ui-btn-md"
             style={{ marginTop: "12px" }}
           >
-            Go to Properties
+            {t("goToProperties")}
           </Link>
         </div>
       ) : (
@@ -123,14 +126,14 @@ export default async function PortfolioReportPage() {
           <table className="report-table">
             <thead>
               <tr>
-                <th>Property</th>
-                <th>Type</th>
-                <th style={{ textAlign: "center" }}>Units</th>
-                <th style={{ textAlign: "center" }}>Occupancy</th>
-                <th style={{ textAlign: "right" }}>Monthly Revenue</th>
-                <th style={{ textAlign: "right" }}>Monthly Expenses</th>
-                <th style={{ textAlign: "right" }}>NOI</th>
-                <th style={{ textAlign: "right" }}>Cap Rate</th>
+                <th>{t("thProperty")}</th>
+                <th>{t("thType")}</th>
+                <th style={{ textAlign: "center" }}>{t("thUnits")}</th>
+                <th style={{ textAlign: "center" }}>{t("thOccupancy")}</th>
+                <th style={{ textAlign: "right" }}>{t("thMonthlyRevenue")}</th>
+                <th style={{ textAlign: "right" }}>{t("thMonthlyExpenses")}</th>
+                <th style={{ textAlign: "right" }}>{t("thNOI")}</th>
+                <th style={{ textAlign: "right" }}>{t("thCapRate")}</th>
               </tr>
             </thead>
             <tbody>
@@ -199,7 +202,7 @@ export default async function PortfolioReportPage() {
               <tr className="report-summary-row">
                 <td colSpan={2}>
                   <strong>
-                    Portfolio Total ({portfolio.totalProperties} propert
+                    {t("portfolioTotal")} ({portfolio.totalProperties} propert
                     {portfolio.totalProperties !== 1 ? "ies" : "y"})
                   </strong>
                 </td>

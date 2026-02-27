@@ -6,6 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getFinancialSummaryReport } from "@/lib/queries/reports";
 import { formatCurrency } from "@/lib/utils/format";
 import ExportButton from "@/components/reports/ExportButton";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Financial Summary Report - Buildwrk",
@@ -24,6 +25,8 @@ export default async function FinancialSummaryPage({
     redirect("/register");
   }
 
+  const t = await getTranslations("reports");
+
   const dateRange =
     params.start && params.end
       ? { start: params.start, end: params.end }
@@ -41,38 +44,38 @@ export default async function FinancialSummaryPage({
 
   const exportData = [
     {
-      metric: "Total Revenue",
+      metric: t("totalRevenue"),
       amount: report.totalRevenue,
     },
     {
-      metric: "Total Expenses",
+      metric: t("totalExpenses"),
       amount: report.totalExpenses,
     },
     {
-      metric: "Net Income",
+      metric: t("netIncome"),
       amount: report.netIncome,
     },
     {
-      metric: "Accounts Receivable (Outstanding)",
+      metric: t("arOutstanding"),
       amount: report.totalAR,
     },
     {
-      metric: "Accounts Payable (Outstanding)",
+      metric: t("apOutstanding"),
       amount: report.totalAP,
     },
     {
-      metric: "Invoices Paid",
+      metric: t("invoicesPaidYTD"),
       amount: report.invoicesPaid,
     },
     {
-      metric: "Invoices Outstanding",
+      metric: t("invoicesOutstanding"),
       amount: report.invoicesOutstanding,
     },
   ];
 
   const exportColumns = [
-    { key: "metric", label: "Metric" },
-    { key: "amount", label: "Amount" },
+    { key: "metric", label: t("thMetric") },
+    { key: "amount", label: t("thAmount") },
   ];
 
   const margin =
@@ -87,20 +90,20 @@ export default async function FinancialSummaryPage({
         <div className="report-page-nav">
           <Link href="/reports" className="report-back-link">
             <ArrowLeft size={16} />
-            Reports Center
+            {t("centerTitle")}
           </Link>
         </div>
         <div className="report-page-title-row">
           <div>
-            <h2>Financial Summary</h2>
+            <h2>{t("finSummaryTitle")}</h2>
             <p className="report-page-sub">
-              Revenue, expenses, and net income for {periodLabel}
+              {t("finSummarySubPrefix")} {periodLabel}
             </p>
           </div>
           <div className="report-page-actions">
             <ExportButton
               reportType="financial-summary"
-              reportTitle="Financial Summary"
+              reportTitle={t("finSummaryTitle")}
               data={exportData}
               columns={exportColumns}
             />
@@ -111,19 +114,19 @@ export default async function FinancialSummaryPage({
       {/* KPI Cards */}
       <div className="portfolio-kpi-row">
         <div className="portfolio-kpi">
-          <span className="portfolio-kpi-label">Total Revenue</span>
+          <span className="portfolio-kpi-label">{t("totalRevenue")}</span>
           <span className="portfolio-kpi-value" style={{ color: "var(--color-green)" }}>
             {formatCurrency(report.totalRevenue)}
           </span>
         </div>
         <div className="portfolio-kpi">
-          <span className="portfolio-kpi-label">Total Expenses</span>
+          <span className="portfolio-kpi-label">{t("totalExpenses")}</span>
           <span className="portfolio-kpi-value" style={{ color: "var(--color-red)" }}>
             {formatCurrency(report.totalExpenses)}
           </span>
         </div>
         <div className="portfolio-kpi">
-          <span className="portfolio-kpi-label">Net Income</span>
+          <span className="portfolio-kpi-label">{t("netIncome")}</span>
           <span
             className="portfolio-kpi-value"
             style={{
@@ -135,7 +138,7 @@ export default async function FinancialSummaryPage({
           </span>
         </div>
         <div className="portfolio-kpi">
-          <span className="portfolio-kpi-label">Profit Margin</span>
+          <span className="portfolio-kpi-label">{t("profitMargin")}</span>
           <span className="portfolio-kpi-value">{margin}%</span>
         </div>
       </div>
@@ -145,9 +148,9 @@ export default async function FinancialSummaryPage({
         <table className="report-table">
           <thead>
             <tr>
-              <th>Category</th>
-              <th style={{ textAlign: "right" }}>Amount</th>
-              <th style={{ textAlign: "center" }}>Details</th>
+              <th>{t("thCategory")}</th>
+              <th style={{ textAlign: "right" }}>{t("thAmount")}</th>
+              <th style={{ textAlign: "center" }}>{t("thDetails")}</th>
             </tr>
           </thead>
           <tbody>
@@ -155,9 +158,9 @@ export default async function FinancialSummaryPage({
             <tr>
               <td style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <TrendingUp size={16} style={{ color: "var(--color-green)" }} />
-                <strong>Revenue</strong>
+                <strong>{t("revenue")}</strong>
                 <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
-                  (paid receivable invoices)
+                  ({t("paidReceivable")})
                 </span>
               </td>
               <td className="report-num variance-positive">
@@ -166,7 +169,7 @@ export default async function FinancialSummaryPage({
               <td style={{ textAlign: "center" }}>
                 {report.invoicesPaid > 0 && (
                   <Link href="/financial/invoices" className="report-project-link">
-                    View Invoices
+                    {t("viewInvoices")}
                   </Link>
                 )}
               </td>
@@ -176,9 +179,9 @@ export default async function FinancialSummaryPage({
             <tr>
               <td style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <TrendingDown size={16} style={{ color: "var(--color-red)" }} />
-                <strong>Expenses</strong>
+                <strong>{t("expenses")}</strong>
                 <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
-                  (paid payable invoices)
+                  ({t("paidPayable")})
                 </span>
               </td>
               <td className="report-num variance-negative">
@@ -186,7 +189,7 @@ export default async function FinancialSummaryPage({
               </td>
               <td style={{ textAlign: "center" }}>
                 <Link href="/financial/ap" className="report-project-link">
-                  View AP
+                  {t("viewAP")}
                 </Link>
               </td>
             </tr>
@@ -194,7 +197,7 @@ export default async function FinancialSummaryPage({
             {/* Net Income */}
             <tr>
               <td>
-                <strong>Net Income</strong>
+                <strong>{t("netIncome")}</strong>
               </td>
               <td
                 className={`report-num ${report.netIncome >= 0 ? "variance-positive" : "variance-negative"}`}
@@ -216,24 +219,24 @@ export default async function FinancialSummaryPage({
           margin: "32px 0 16px",
         }}
       >
-        Outstanding Balances
+        {t("outstandingBalances")}
       </h3>
       <div className="report-table-wrap">
         <table className="report-table">
           <thead>
             <tr>
-              <th>Category</th>
-              <th style={{ textAlign: "right" }}>Outstanding Amount</th>
-              <th style={{ textAlign: "center" }}>Count</th>
-              <th style={{ textAlign: "center" }}>Action</th>
+              <th>{t("thCategory")}</th>
+              <th style={{ textAlign: "right" }}>{t("thOutstandingAmount")}</th>
+              <th style={{ textAlign: "center" }}>{t("thCount")}</th>
+              <th style={{ textAlign: "center" }}>{t("thAction")}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>
-                <strong>Accounts Receivable</strong>
+                <strong>{t("accountsReceivable")}</strong>
                 <span style={{ fontSize: "0.75rem", color: "var(--muted)", marginLeft: "8px" }}>
-                  (owed to you)
+                  ({t("owedToYou")})
                 </span>
               </td>
               <td className="report-num">
@@ -242,23 +245,23 @@ export default async function FinancialSummaryPage({
               <td style={{ textAlign: "center" }}>
                 {report.invoicesOutstanding > 0 ? (
                   <span className="badge badge-amber">
-                    {report.invoicesOutstanding} unpaid
+                    {report.invoicesOutstanding} {t("unpaid")}
                   </span>
                 ) : (
-                  <span className="badge badge-green">All paid</span>
+                  <span className="badge badge-green">{t("allPaid")}</span>
                 )}
               </td>
               <td style={{ textAlign: "center" }}>
                 <Link href="/reports/aging?type=receivable" className="report-project-link">
-                  AR Aging
+                  {t("rptArAging")}
                 </Link>
               </td>
             </tr>
             <tr>
               <td>
-                <strong>Accounts Payable</strong>
+                <strong>{t("accountsPayable")}</strong>
                 <span style={{ fontSize: "0.75rem", color: "var(--muted)", marginLeft: "8px" }}>
-                  (you owe)
+                  ({t("youOwe")})
                 </span>
               </td>
               <td className="report-num">
@@ -266,14 +269,14 @@ export default async function FinancialSummaryPage({
               </td>
               <td style={{ textAlign: "center" }}>
                 {report.totalAP > 0 ? (
-                  <span className="badge badge-amber">Outstanding</span>
+                  <span className="badge badge-amber">{t("outstanding")}</span>
                 ) : (
-                  <span className="badge badge-green">All paid</span>
+                  <span className="badge badge-green">{t("allPaid")}</span>
                 )}
               </td>
               <td style={{ textAlign: "center" }}>
                 <Link href="/reports/aging?type=payable" className="report-project-link">
-                  AP Aging
+                  {t("rptApAging")}
                 </Link>
               </td>
             </tr>
@@ -281,7 +284,7 @@ export default async function FinancialSummaryPage({
           <tfoot>
             <tr className="report-summary-row">
               <td>
-                <strong>Net Position (AR − AP)</strong>
+                <strong>{t("netPosition")}</strong>
               </td>
               <td
                 className={`report-num ${report.totalAR - report.totalAP >= 0 ? "variance-positive" : "variance-negative"}`}
@@ -301,11 +304,11 @@ export default async function FinancialSummaryPage({
         style={{ marginTop: "24px", gridTemplateColumns: "repeat(2, 1fr)" }}
       >
         <div className="portfolio-kpi">
-          <span className="portfolio-kpi-label">Invoices Paid (YTD)</span>
+          <span className="portfolio-kpi-label">{t("invoicesPaidYTD")}</span>
           <span className="portfolio-kpi-value">{report.invoicesPaid}</span>
         </div>
         <div className="portfolio-kpi">
-          <span className="portfolio-kpi-label">Invoices Outstanding</span>
+          <span className="portfolio-kpi-label">{t("invoicesOutstanding")}</span>
           <span
             className="portfolio-kpi-value"
             style={{

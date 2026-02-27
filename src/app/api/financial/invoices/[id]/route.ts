@@ -78,12 +78,9 @@ export async function PATCH(
 
     const body = await request.json();
 
-    // If total_amount changed, recalculate balance_due
-    if (body.total_amount !== undefined) {
-      const newTotal = Number(body.total_amount);
-      const amountPaid = Number(existing.amount_paid) || 0;
-      body.balance_due = newTotal - amountPaid;
-    }
+    // Note: balance_due is a Postgres GENERATED COLUMN (total_amount - amount_paid)
+    // It auto-recomputes when total_amount or amount_paid change. Do NOT set it directly.
+    delete body.balance_due;
 
     const success = await updateInvoice(supabase, id, body);
 
@@ -177,31 +174,60 @@ export async function DELETE(
     const { searchParams } = new URL(request.url);
     const hard = searchParams.get("hard") === "true";
 
+    // Fetch payments and invoice type to reverse bank balances
+    const { data: payments } = await supabase
+      .from("payments")
+      .select("id, amount, bank_account_id")
+      .eq("invoice_id", id);
+
+    const { data: invoiceInfo } = await supabase
+      .from("invoices")
+      .select("invoice_type")
+      .eq("id", id)
+      .single();
+
+    // Reverse bank balances for all payments
+    if (payments && payments.length > 0 && invoiceInfo) {
+      for (const pmt of payments) {
+        if (pmt.bank_account_id) {
+          // Payable payment subtracted cash → add back. Receivable added → subtract.
+          const reversal = invoiceInfo.invoice_type === "payable" ? pmt.amount : -pmt.amount;
+          await supabase.rpc("adjust_bank_balance", {
+            p_bank_id: pmt.bank_account_id,
+            p_adjustment: reversal,
+          });
+        }
+
+        // Delete payment JE lines + JEs
+        const { data: pmtJEs } = await supabase
+          .from("journal_entries")
+          .select("id")
+          .eq("company_id", userCompany.companyId)
+          .eq("reference", `payment:${pmt.id}`);
+        if (pmtJEs && pmtJEs.length > 0) {
+          const jeIds = pmtJEs.map((je) => je.id);
+          await supabase.from("journal_entry_lines").delete().in("journal_entry_id", jeIds);
+          await supabase.from("journal_entries").delete().in("id", jeIds);
+        }
+      }
+    }
+
     if (hard) {
-      // Hard delete: remove JEs, payments, and the invoice row
-      // Delete JE lines + JEs with reference matching this invoice
-      await supabase
-        .from("journal_entry_lines")
-        .delete()
-        .in("journal_entry_id",
-          (await supabase
-            .from("journal_entries")
-            .select("id")
-            .eq("company_id", userCompany.companyId)
-            .or(`reference.eq.invoice:${id},reference.like.payment:%`)
-          ).data?.filter(je => je.id).map(je => je.id) ?? []
-        );
-      // Delete JEs referencing this invoice
-      await supabase
+      // Hard delete: remove invoice JE, payments, and the invoice row
+      const { data: invJEs } = await supabase
         .from("journal_entries")
-        .delete()
+        .select("id")
         .eq("company_id", userCompany.companyId)
         .eq("reference", `invoice:${id}`);
-      // Delete payments linked to this invoice
-      await supabase
-        .from("payments")
-        .delete()
-        .eq("invoice_id", id);
+      if (invJEs && invJEs.length > 0) {
+        const jeIds = invJEs.map((je) => je.id);
+        await supabase.from("journal_entry_lines").delete().in("journal_entry_id", jeIds);
+        await supabase.from("journal_entries").delete().in("id", jeIds);
+      }
+
+      // Delete payments
+      await supabase.from("payments").delete().eq("invoice_id", id);
+
       // Delete the invoice itself
       const { error } = await supabase
         .from("invoices")
@@ -215,17 +241,19 @@ export async function DELETE(
         );
       }
     } else {
-      // Soft delete: set status to voided
-      const success = await updateInvoice(supabase, id, { status: "voided" });
-
-      if (!success) {
-        return NextResponse.json(
-          { error: "Failed to void invoice" },
-          { status: 500 }
-        );
+      // Soft void: reset amount_paid, void invoice + JEs
+      // Delete payments (already reversed bank balances above)
+      if (payments && payments.length > 0) {
+        await supabase.from("payments").delete().eq("invoice_id", id);
       }
 
-      // Also void linked journal entries so GL stays in sync
+      // Reset amount_paid to 0 and set status to voided
+      await supabase
+        .from("invoices")
+        .update({ amount_paid: 0, status: "voided" })
+        .eq("id", id);
+
+      // Void linked invoice journal entries
       await supabase
         .from("journal_entries")
         .update({ status: "voided" })

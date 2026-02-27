@@ -6,6 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProjectPerformanceReport } from "@/lib/queries/reports";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
 import ExportButton from "@/components/reports/ExportButton";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Project Performance Report - Buildwrk",
@@ -15,21 +16,6 @@ function getVarianceClass(variancePct: number): string {
   if (variancePct >= 5) return "variance-positive";
   if (variancePct >= -5) return "variance-warning";
   return "variance-negative";
-}
-
-function getScheduleLabel(status: string): { label: string; className: string } {
-  switch (status) {
-    case "ahead":
-      return { label: "Ahead", className: "badge badge-green" };
-    case "on_track":
-      return { label: "On Track", className: "badge badge-blue" };
-    case "at_risk":
-      return { label: "At Risk", className: "badge badge-amber" };
-    case "behind":
-      return { label: "Behind", className: "badge badge-red" };
-    default:
-      return { label: status, className: "badge badge-gray" };
-  }
 }
 
 function getStatusLabel(status: string): { label: string; className: string } {
@@ -53,10 +39,28 @@ export default async function ProjectPerformancePage() {
     redirect("/register");
   }
 
+  const t = await getTranslations("reports");
+
   const projects = await getProjectPerformanceReport(
     supabase,
     userCompany.companyId
   );
+
+  // Schedule label helper using translated strings
+  function getScheduleLabel(status: string): { label: string; className: string } {
+    switch (status) {
+      case "ahead":
+        return { label: t("schedAhead"), className: "badge badge-green" };
+      case "on_track":
+        return { label: t("schedOnTrack"), className: "badge badge-blue" };
+      case "at_risk":
+        return { label: t("schedAtRisk"), className: "badge badge-amber" };
+      case "behind":
+        return { label: t("schedBehind"), className: "badge badge-red" };
+      default:
+        return { label: status, className: "badge badge-gray" };
+    }
+  }
 
   // Compute summary totals
   const totalContractAmount = projects.reduce(
@@ -88,20 +92,20 @@ export default async function ProjectPerformancePage() {
         <div className="report-page-nav">
           <Link href="/reports" className="report-back-link">
             <ArrowLeft size={16} />
-            Reports Center
+            {t("centerTitle")}
           </Link>
         </div>
         <div className="report-page-title-row">
           <div>
-            <h2>Project Performance Summary</h2>
+            <h2>{t("perfTitle")}</h2>
             <p className="report-page-sub">
-              Budget variance, schedule status, and completion tracking for all active projects.
+              {t("perfSubtitle")}
             </p>
           </div>
           <div className="report-page-actions">
             <ExportButton
               reportType="project-performance"
-              reportTitle="Project Performance Summary"
+              reportTitle={t("perfTitle")}
               data={projects.map((p) => ({
                 name: p.name,
                 code: p.code,
@@ -115,16 +119,16 @@ export default async function ProjectPerformancePage() {
                 schedule_status: p.schedule_status,
               }))}
               columns={[
-                { key: "name", label: "Project" },
-                { key: "code", label: "Code" },
+                { key: "name", label: t("thProject") },
+                { key: "code", label: t("thCode") },
                 { key: "status", label: "Status" },
-                { key: "contract_amount", label: "Contract Value" },
-                { key: "estimated_cost", label: "Estimated Cost" },
-                { key: "actual_cost", label: "Actual Cost" },
-                { key: "budget_variance", label: "Budget Variance" },
-                { key: "budget_variance_pct", label: "Variance %" },
-                { key: "completion_pct", label: "Completion %" },
-                { key: "schedule_status", label: "Schedule Status" },
+                { key: "contract_amount", label: t("thContractValue") },
+                { key: "estimated_cost", label: t("thEstimatedCost") },
+                { key: "actual_cost", label: t("thActualCost") },
+                { key: "budget_variance", label: t("thBudgetVariance") },
+                { key: "budget_variance_pct", label: t("thBudgetVariance") + " %" },
+                { key: "completion_pct", label: t("thCompletion") + " %" },
+                { key: "schedule_status", label: t("thSchedule") },
               ]}
             />
           </div>
@@ -135,12 +139,12 @@ export default async function ProjectPerformancePage() {
       {projects.length === 0 ? (
         <div className="report-empty">
           <HardHat size={48} style={{ color: "var(--border)" }} />
-          <div className="report-empty-title">No Active Projects</div>
+          <div className="report-empty-title">{t("noActiveProjects")}</div>
           <div className="report-empty-desc">
-            Create a project to see performance data in this report.
+            {t("createProjectForReport")}
           </div>
           <Link href="/projects" className="ui-btn ui-btn-primary ui-btn-md" style={{ marginTop: "12px" }}>
-            Go to Projects
+            {t("goToProjects")}
           </Link>
         </div>
       ) : (
@@ -148,15 +152,15 @@ export default async function ProjectPerformancePage() {
           <table className="report-table">
             <thead>
               <tr>
-                <th>Project</th>
-                <th>Code</th>
+                <th>{t("thProject")}</th>
+                <th>{t("thCode")}</th>
                 <th>Status</th>
-                <th style={{ textAlign: "right" }}>Contract Value</th>
-                <th style={{ textAlign: "right" }}>Estimated Cost</th>
-                <th style={{ textAlign: "right" }}>Actual Cost</th>
-                <th style={{ textAlign: "right" }}>Budget Variance</th>
-                <th style={{ textAlign: "center" }}>Completion</th>
-                <th style={{ textAlign: "center" }}>Schedule</th>
+                <th style={{ textAlign: "right" }}>{t("thContractValue")}</th>
+                <th style={{ textAlign: "right" }}>{t("thEstimatedCost")}</th>
+                <th style={{ textAlign: "right" }}>{t("thActualCost")}</th>
+                <th style={{ textAlign: "right" }}>{t("thBudgetVariance")}</th>
+                <th style={{ textAlign: "center" }}>{t("thCompletion")}</th>
+                <th style={{ textAlign: "center" }}>{t("thSchedule")}</th>
               </tr>
             </thead>
             <tbody>

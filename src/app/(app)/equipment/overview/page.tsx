@@ -7,6 +7,7 @@ import { getEquipmentOverview } from "@/lib/queries/equipment";
 import { formatCompactCurrency, formatPercent } from "@/lib/utils/format";
 import EquipmentStatusChart from "@/components/charts/EquipmentStatusChart";
 import EquipmentTypeChart from "@/components/charts/EquipmentTypeChart";
+import { getTranslations } from "next-intl/server";
 
 
 export const metadata = {
@@ -22,14 +23,15 @@ export default async function EquipmentOverviewPage() {
   }
 
   const overview = await getEquipmentOverview(supabase, userCtx.companyId);
+  const t = await getTranslations("equipment");
 
   return (
     <div>
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Equipment Overview</h2>
-          <p className="fin-header-sub">Fleet overview, utilization, and maintenance tracking.</p>
+          <h2>{t("overviewTitle")}</h2>
+          <p className="fin-header-sub">{t("overviewSubtitle")}</p>
         </div>
         <div className="fin-header-actions">
           <Link href="/equipment/assignments" className="ui-btn ui-btn-md ui-btn-secondary">Assignments</Link>
@@ -43,36 +45,36 @@ export default async function EquipmentOverviewPage() {
       <div className="financial-kpi-row" style={{ marginBottom: 24 }}>
         <div className="fin-kpi">
           <div className="fin-kpi-icon blue"><Wrench size={18} /></div>
-          <span className="fin-kpi-label">Total Equipment</span>
+          <span className="fin-kpi-label">{t("totalEquipmentKpi")}</span>
           <span className="fin-kpi-value">{overview.stats.total}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon green"><Activity size={18} /></div>
-          <span className="fin-kpi-label">Utilization Rate</span>
+          <span className="fin-kpi-label">{t("utilizationRate")}</span>
           <span className="fin-kpi-value" style={{ color: overview.utilizationRate >= 70 ? "var(--color-green)" : "var(--color-amber)" }}>
             {formatPercent(overview.utilizationRate)}
           </span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon green"><CheckCircle size={18} /></div>
-          <span className="fin-kpi-label">Available</span>
+          <span className="fin-kpi-label">{t("available")}</span>
           <span className="fin-kpi-value">{overview.stats.available}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon red"><AlertTriangle size={18} /></div>
-          <span className="fin-kpi-label">In Maintenance</span>
+          <span className="fin-kpi-label">{t("inMaintenance")}</span>
           <span className="fin-kpi-value" style={{ color: overview.stats.maintenance > 0 ? "var(--color-red)" : undefined }}>
             {overview.stats.maintenance}
           </span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon blue"><DollarSign size={18} /></div>
-          <span className="fin-kpi-label">{overview.totalAssetValue > 0 ? "Total Asset Value" : "Maintenance Investment"}</span>
+          <span className="fin-kpi-label">{overview.totalAssetValue > 0 ? t("totalAssetValue") : t("maintenanceInvestment")}</span>
           <span className="fin-kpi-value">{formatCompactCurrency(overview.totalAssetValue > 0 ? overview.totalAssetValue : overview.totalMaintenanceCost)}</span>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon red"><Clock size={18} /></div>
-          <span className="fin-kpi-label">Overdue Maintenance</span>
+          <span className="fin-kpi-label">{t("overdueMaintenance")}</span>
           <span className="fin-kpi-value" style={{ color: overview.overdueMaintenanceCount > 0 ? "var(--color-red)" : undefined }}>
             {overview.overdueMaintenanceCount}
           </span>
@@ -82,11 +84,11 @@ export default async function EquipmentOverviewPage() {
       {/* Charts */}
       <div className="financial-charts-row" style={{ marginBottom: 24 }}>
         <div className="fin-chart-card">
-          <div className="fin-chart-title">Equipment Status</div>
+          <div className="fin-chart-title">{t("equipmentStatus")}</div>
           <EquipmentStatusChart data={overview.statusBreakdown} total={overview.stats.total} />
         </div>
         <div className="fin-chart-card">
-          <div className="fin-chart-title">Equipment by Type</div>
+          <div className="fin-chart-title">{t("equipmentByType")}</div>
           <EquipmentTypeChart data={overview.typeBreakdown} />
         </div>
       </div>
@@ -94,11 +96,11 @@ export default async function EquipmentOverviewPage() {
       {/* Lists */}
       <div className="financial-charts-row" style={{ marginBottom: 24 }}>
         <div className="fin-chart-card">
-          <div className="fin-chart-title">Maintenance Alerts</div>
+          <div className="fin-chart-title">{t("maintenanceAlerts")}</div>
           {overview.maintenanceAlerts.length > 0 ? (
             <div style={{ overflowX: "auto" }}>
               <table className="invoice-table">
-                <thead><tr><th>Equipment</th><th>Type</th><th>Status</th><th>Next Due</th><th>Days</th></tr></thead>
+                <thead><tr><th>Equipment</th><th>Type</th><th>Status</th><th>{t("thNextDue")}</th><th>{t("thDays")}</th></tr></thead>
                 <tbody>
                   {overview.maintenanceAlerts.map((e) => (
                     <tr key={e.id} style={{ borderLeft: e.daysOverdue > 0 ? "3px solid var(--color-red)" : e.daysOverdue > -7 ? "3px solid var(--color-amber)" : undefined }}>
@@ -113,7 +115,7 @@ export default async function EquipmentOverviewPage() {
                         {e.next_maintenance_date ? new Date(e.next_maintenance_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
                       </td>
                       <td style={{ color: e.daysOverdue > 0 ? "var(--color-red)" : "var(--color-amber)", fontWeight: 600 }}>
-                        {e.daysOverdue > 0 ? `${e.daysOverdue}d overdue` : `${Math.abs(e.daysOverdue)}d left`}
+                        {e.daysOverdue > 0 ? `${e.daysOverdue}${t("dOverdue")}` : `${Math.abs(e.daysOverdue)}${t("dLeft")}`}
                       </td>
                     </tr>
                   ))}
@@ -121,11 +123,11 @@ export default async function EquipmentOverviewPage() {
               </table>
             </div>
           ) : (
-            <div style={{ textAlign: "center", padding: "24px", color: "var(--muted)", fontSize: "0.85rem" }}>No maintenance alerts</div>
+            <div style={{ textAlign: "center", padding: "24px", color: "var(--muted)", fontSize: "0.85rem" }}>{t("noMaintenanceAlerts")}</div>
           )}
         </div>
         <div className="fin-chart-card">
-          <div className="fin-chart-title">Active Assignments</div>
+          <div className="fin-chart-title">{t("activeAssignments")}</div>
           {overview.activeAssignments.length > 0 ? (
             <div>
               {overview.activeAssignments.map((a) => (
@@ -143,16 +145,16 @@ export default async function EquipmentOverviewPage() {
               ))}
             </div>
           ) : (
-            <div style={{ textAlign: "center", padding: "24px", color: "var(--muted)", fontSize: "0.85rem" }}>No active assignments</div>
+            <div style={{ textAlign: "center", padding: "24px", color: "var(--muted)", fontSize: "0.85rem" }}>{t("noActiveAssignments")}</div>
           )}
         </div>
       </div>
 
       {/* Quick Actions */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 32 }}>
-        <Link href="/equipment/inventory" className="ui-btn ui-btn-sm ui-btn-secondary">Full Inventory</Link>
-        <Link href="/equipment/maintenance" className="ui-btn ui-btn-sm ui-btn-secondary">Maintenance Logs</Link>
-        <Link href="/equipment/assignments" className="ui-btn ui-btn-sm ui-btn-secondary">All Assignments</Link>
+        <Link href="/equipment/inventory" className="ui-btn ui-btn-sm ui-btn-secondary">{t("fullInventory")}</Link>
+        <Link href="/equipment/maintenance" className="ui-btn ui-btn-sm ui-btn-secondary">{t("maintenanceLogs")}</Link>
+        <Link href="/equipment/assignments" className="ui-btn ui-btn-sm ui-btn-secondary">{t("allAssignments")}</Link>
       </div>
 
     </div>

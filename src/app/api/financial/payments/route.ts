@@ -6,6 +6,7 @@ import type { PaymentCreateData } from "@/lib/queries/financial";
 import { buildCompanyAccountMap, generatePaymentJournalEntry, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
 import { createNotifications } from "@/lib/utils/notifications";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { formatCurrency } from "@/lib/utils/format";
 
 export async function GET(request: NextRequest) {
   try {
@@ -223,7 +224,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const amount = Number(data.amount).toLocaleString("en-US", { style: "currency", currency: "USD" });
+      const amount = formatCurrency(Number(data.amount));
       await createNotifications(supabase, {
         companyId: userCompany.companyId,
         actorUserId: userCompany.userId,

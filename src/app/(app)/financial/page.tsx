@@ -24,6 +24,7 @@ import {
   getFinancialKPIs,
 } from "@/lib/queries/financial";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
+import { getTranslations } from "next-intl/server";
 
 
 export const metadata = {
@@ -33,6 +34,7 @@ export const metadata = {
 export default async function FinancialDashboardPage() {
   const supabase = await createClient();
   const userCompany = await getCurrentUserCompany(supabase);
+  const t = await getTranslations("financial");
 
   if (!userCompany) {
     return (
@@ -40,13 +42,12 @@ export default async function FinancialDashboardPage() {
         <div className="fin-empty-icon">
           <DollarSign size={48} />
         </div>
-        <div className="fin-empty-title">Set Up Your Company</div>
+        <div className="fin-empty-title">{t("setupCompany")}</div>
         <div className="fin-empty-desc">
-          Complete your company registration to start tracking financials,
-          invoices, and budgets.
+          {t("setupCompanyDesc")}
         </div>
         <Link href="/admin/settings" className="ui-btn ui-btn-primary ui-btn-md">
-          Go to Settings
+          {t("goToSettings")}
         </Link>
       </div>
     );
@@ -86,7 +87,7 @@ export default async function FinancialDashboardPage() {
 
   healthScore = Math.max(0, Math.min(100, healthScore));
   const healthColor = healthScore >= 70 ? "var(--color-green)" : healthScore >= 40 ? "var(--color-amber)" : "var(--color-red)";
-  const healthLabel = healthScore >= 70 ? "Good" : healthScore >= 40 ? "Fair" : "Needs Attention";
+  const healthLabel = healthScore >= 70 ? t("healthGood") : healthScore >= 40 ? t("healthFair") : t("healthNeedsAttention");
 
   const maxAgingTotal = Math.max(
     ...aging.map((b) => b.arAmount + b.apAmount),
@@ -103,15 +104,15 @@ export default async function FinancialDashboardPage() {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Financial Overview</h2>
+          <h2>{t("overviewTitle")}</h2>
           <p className="fin-header-sub">
-            Real-time snapshot of your company finances.
+            {t("overviewSubtitle")}
           </p>
         </div>
         <div className="fin-header-actions">
           <Link href="/financial/general-ledger" className="ui-btn ui-btn-outline ui-btn-sm">
             <BookOpen size={14} />
-            Journal Entries
+            {t("journalEntries")}
           </Link>
         </div>
       </div>
@@ -128,7 +129,7 @@ export default async function FinancialDashboardPage() {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
-            Financial Health Score
+            {t("healthScore")}
             <span style={{
               fontSize: "0.72rem", padding: "2px 8px", borderRadius: "4px",
               background: healthColor, color: "#fff", fontWeight: 600,
@@ -137,12 +138,12 @@ export default async function FinancialDashboardPage() {
             </span>
           </div>
           <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
-            {healthFactors.length > 0 ? healthFactors.join(" · ") : "Add financial data to calculate your health score"}
+            {healthFactors.length > 0 ? healthFactors.join(" · ") : t("addFinancialData")}
           </div>
         </div>
         <Link href="/financial/kpi" className="ui-btn ui-btn-outline ui-btn-sm">
           <PieChart size={14} />
-          View All KPIs
+          {t("viewAllKPIs")}
         </Link>
       </div>
 
@@ -152,7 +153,7 @@ export default async function FinancialDashboardPage() {
           <div className="fin-kpi-icon green">
             <TrendingUp size={18} />
           </div>
-          <span className="fin-kpi-label">Revenue ({overview.periodLabel})</span>
+          <span className="fin-kpi-label">{t("revenue")} ({overview.periodLabel})</span>
           <span className="fin-kpi-value positive">
             {formatCompactCurrency(overview.revenueThisMonth)}
           </span>
@@ -162,7 +163,7 @@ export default async function FinancialDashboardPage() {
           <div className="fin-kpi-icon red">
             <TrendingDown size={18} />
           </div>
-          <span className="fin-kpi-label">Expenses ({overview.periodLabel})</span>
+          <span className="fin-kpi-label">{t("expenses")} ({overview.periodLabel})</span>
           <span className="fin-kpi-value">
             {formatCompactCurrency(overview.expensesThisMonth)}
           </span>
@@ -172,7 +173,7 @@ export default async function FinancialDashboardPage() {
           <div className="fin-kpi-icon blue">
             <DollarSign size={18} />
           </div>
-          <span className="fin-kpi-label">Net Income</span>
+          <span className="fin-kpi-label">{t("netIncome")}</span>
           <span
             className={`fin-kpi-value ${overview.netIncome >= 0 ? "positive" : "negative"}`}
           >
@@ -184,7 +185,7 @@ export default async function FinancialDashboardPage() {
           <div className="fin-kpi-icon amber">
             <Landmark size={18} />
           </div>
-          <span className="fin-kpi-label">Cash Position</span>
+          <span className="fin-kpi-label">{t("cashPosition")}</span>
           <span className="fin-kpi-value">
             {formatCompactCurrency(overview.cashPosition)}
           </span>
@@ -194,7 +195,7 @@ export default async function FinancialDashboardPage() {
           <div className="fin-kpi-icon blue">
             <ArrowUpRight size={18} />
           </div>
-          <span className="fin-kpi-label">AR Outstanding</span>
+          <span className="fin-kpi-label">{t("arOutstanding")}</span>
           <span className="fin-kpi-value">
             {formatCompactCurrency(overview.totalAR)}
           </span>
@@ -204,7 +205,7 @@ export default async function FinancialDashboardPage() {
           <div className="fin-kpi-icon amber">
             <ArrowDownLeft size={18} />
           </div>
-          <span className="fin-kpi-label">AP Outstanding</span>
+          <span className="fin-kpi-label">{t("apOutstanding")}</span>
           <span className="fin-kpi-value">
             {formatCompactCurrency(overview.totalAP)}
           </span>
@@ -217,7 +218,7 @@ export default async function FinancialDashboardPage() {
         <div className="fin-chart-card">
           <div className="fin-chart-title">
             <BarChart3 size={18} />
-            Income vs Expenses
+            {t("incomeVsExpenses")}
           </div>
           {monthlyData.length > 0 ? (
             <>
@@ -250,20 +251,20 @@ export default async function FinancialDashboardPage() {
                     className="fin-legend-dot"
                     style={{ background: "var(--color-green)" }}
                   />
-                  Income
+                  {t("income")}
                 </span>
                 <span className="fin-legend-item">
                   <span
                     className="fin-legend-dot"
                     style={{ background: "var(--color-red)", opacity: 0.75 }}
                   />
-                  Expenses
+                  {t("expenses")}
                 </span>
               </div>
             </>
           ) : (
             <div className="fin-empty" style={{ padding: "40px 20px" }}>
-              <p className="fin-empty-desc">No financial data for the last 6 months.</p>
+              <p className="fin-empty-desc">{t("noFinancialData")}</p>
             </div>
           )}
         </div>
@@ -272,7 +273,7 @@ export default async function FinancialDashboardPage() {
         <div className="fin-chart-card">
           <div className="fin-chart-title">
             <CreditCard size={18} />
-            AR/AP Aging
+            {t("arApAging")}
           </div>
           <div className="aging-chart">
             {aging.map((bucket) => (
@@ -305,14 +306,14 @@ export default async function FinancialDashboardPage() {
                   className="fin-legend-dot"
                   style={{ background: "var(--color-blue)" }}
                 />
-                Receivable
+                {t("receivable")}
               </span>
               <span className="fin-legend-item">
                 <span
                   className="fin-legend-dot"
                   style={{ background: "var(--color-amber)" }}
                 />
-                Payable
+                {t("payable")}
               </span>
             </div>
           </div>
@@ -325,19 +326,19 @@ export default async function FinancialDashboardPage() {
         <div className="fin-chart-card">
           <div className="fin-chart-title">
             <FileText size={18} />
-            Recent Invoices
+            {t("recentInvoices")}
           </div>
           {recentInvoices.length > 0 ? (
             <div style={{ overflowX: "auto" }}>
               <table className="invoice-table">
                 <thead>
                   <tr>
-                    <th>Invoice</th>
-                    <th>Type</th>
-                    <th>Vendor / Client</th>
-                    <th>Date</th>
-                    <th style={{ textAlign: "right" }}>Amount</th>
-                    <th>Status</th>
+                    <th>{t("invoiceNumber")}</th>
+                    <th>{t("type")}</th>
+                    <th>{t("vendorClient")}</th>
+                    <th>{t("date")}</th>
+                    <th style={{ textAlign: "right" }}>{t("amount")}</th>
+                    <th>{t("status")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -393,17 +394,16 @@ export default async function FinancialDashboardPage() {
               <div className="fin-empty-icon">
                 <FileText size={36} />
               </div>
-              <div className="fin-empty-title">No Invoices Yet</div>
+              <div className="fin-empty-title">{t("noInvoicesYet")}</div>
               <div className="fin-empty-desc">
-                Create your first invoice to start tracking your accounts payable
-                and receivable.
+                {t("createFirstInvoice")}
               </div>
             </div>
           )}
           {recentInvoices.length > 0 && (
             <div style={{ marginTop: "12px" }}>
               <Link href="/financial/invoices" className="view-all">
-                View All Invoices
+                {t("viewAllInvoices")}
               </Link>
             </div>
           )}
@@ -413,23 +413,23 @@ export default async function FinancialDashboardPage() {
         <div className="fin-chart-card">
           <div className="fin-chart-title">
             <Landmark size={18} />
-            Cash Flow Summary
+            {t("cashFlowSummary")}
           </div>
           <div className="cashflow-summary">
             <div className="cashflow-item">
-              <div className="cashflow-item-label">Inflows ({overview.periodLabel})</div>
+              <div className="cashflow-item-label">{t("inflows")} ({overview.periodLabel})</div>
               <div className="cashflow-item-value inflow">
                 +{formatCompactCurrency(overview.revenueThisMonth)}
               </div>
             </div>
             <div className="cashflow-item">
-              <div className="cashflow-item-label">Outflows ({overview.periodLabel})</div>
+              <div className="cashflow-item-label">{t("outflows")} ({overview.periodLabel})</div>
               <div className="cashflow-item-value outflow">
                 -{formatCompactCurrency(overview.expensesThisMonth)}
               </div>
             </div>
             <div className="cashflow-item">
-              <div className="cashflow-item-label">Net Cash Flow</div>
+              <div className="cashflow-item-label">{t("netCashFlow")}</div>
               <div
                 className={`cashflow-item-value ${overview.netIncome >= 0 ? "inflow" : "outflow"}`}
               >
@@ -446,28 +446,28 @@ export default async function FinancialDashboardPage() {
             }}
           >
             <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "8px" }}>
-              Quick Actions
+              {t("quickActions")}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <Link href="/financial/invoices" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
                 <FileText size={14} />
-                Invoices
+                {t("invoices")}
               </Link>
               <Link href="/financial/general-ledger" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
                 <BookOpen size={14} />
-                Journal Entries
+                {t("journalEntries")}
               </Link>
               <Link href="/financial/income-statement" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
                 <TrendingUp size={14} />
-                Income Statement
+                {t("incomeStatementLink")}
               </Link>
               <Link href="/financial/balance-sheet" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
                 <Scale size={14} />
-                Balance Sheet
+                {t("balanceSheet")}
               </Link>
               <Link href="/financial/kpi" className="ui-btn ui-btn-outline ui-btn-sm" style={{ justifyContent: "flex-start" }}>
                 <Activity size={14} />
-                KPI Dashboard
+                {t("kpiDashboard")}
               </Link>
             </div>
           </div>

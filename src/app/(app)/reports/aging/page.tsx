@@ -6,6 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAgingReport } from "@/lib/queries/reports";
 import { formatCurrency } from "@/lib/utils/format";
 import ExportButton from "@/components/reports/ExportButton";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Aging Report - Buildwrk",
@@ -24,10 +25,12 @@ export default async function AgingReportPage({
     redirect("/register");
   }
 
+  const t = await getTranslations("reports");
+
   const activeType =
     params.type === "payable" ? "payable" : "receivable";
   const activeLabel =
-    activeType === "receivable" ? "Accounts Receivable" : "Accounts Payable";
+    activeType === "receivable" ? t("accountsReceivable") : t("accountsPayable");
 
   const report = await getAgingReport(
     supabase,
@@ -48,20 +51,20 @@ export default async function AgingReportPage({
         <div className="report-page-nav">
           <Link href="/reports" className="report-back-link">
             <ArrowLeft size={16} />
-            Reports Center
+            {t("centerTitle")}
           </Link>
         </div>
         <div className="report-page-title-row">
           <div>
-            <h2>Aging Report</h2>
+            <h2>{t("agingTitle")}</h2>
             <p className="report-page-sub">
-              Outstanding invoice aging analysis by time bucket.
+              {t("agingSubtitle")}
             </p>
           </div>
           <div className="report-page-actions">
             <ExportButton
               reportType="aging"
-              reportTitle={`Aging Report - ${activeType === "receivable" ? "AR" : "AP"}`}
+              reportTitle={`${t("agingTitle")} - ${activeType === "receivable" ? "AR" : "AP"}`}
               data={report.invoices.map((inv) => ({
                 invoice_number: inv.invoice_number,
                 name: activeType === "receivable" ? (inv.client_name ?? "") : (inv.vendor_name ?? ""),
@@ -73,14 +76,14 @@ export default async function AgingReportPage({
                 aging_bucket: inv.aging_bucket,
               }))}
               columns={[
-                { key: "invoice_number", label: "Invoice #" },
-                { key: "name", label: activeType === "receivable" ? "Client" : "Vendor" },
-                { key: "invoice_date", label: "Invoice Date" },
-                { key: "due_date", label: "Due Date" },
-                { key: "total_amount", label: "Total Amount" },
-                { key: "balance_due", label: "Balance Due" },
-                { key: "aging_days", label: "Days Overdue" },
-                { key: "aging_bucket", label: "Bucket" },
+                { key: "invoice_number", label: t("thInvoice") },
+                { key: "name", label: activeType === "receivable" ? t("client") : t("vendor") },
+                { key: "invoice_date", label: t("thInvoiceDate") },
+                { key: "due_date", label: t("thDueDate") },
+                { key: "total_amount", label: t("thTotalAmount") },
+                { key: "balance_due", label: t("thBalanceDue") },
+                { key: "aging_days", label: t("thDaysOverdue") },
+                { key: "aging_bucket", label: t("thBucket") },
               ]}
             />
           </div>
@@ -93,21 +96,21 @@ export default async function AgingReportPage({
           href="/reports/aging?type=receivable"
           className={`aging-tab ${activeType === "receivable" ? "active" : ""}`}
         >
-          Accounts Receivable
+          {t("accountsReceivable")}
         </Link>
         <Link
           href="/reports/aging?type=payable"
           className={`aging-tab ${activeType === "payable" ? "active" : ""}`}
         >
-          Accounts Payable
+          {t("accountsPayable")}
         </Link>
       </div>
 
       {/* Aging Summary Buckets */}
       <div className="aging-summary">
-        <div className="aging-summary-title">{activeLabel} Aging Summary</div>
+        <div className="aging-summary-title">{activeLabel} {t("agingSummary")}</div>
         <div className="aging-summary-total">
-          Total Outstanding: <strong>{formatCurrency(report.total)}</strong>
+          {t("totalOutstanding")}: <strong>{formatCurrency(report.total)}</strong>
         </div>
 
         <div className="aging-buckets-viz">
@@ -156,11 +159,10 @@ export default async function AgingReportPage({
         <div className="report-empty">
           <CreditCard size={48} style={{ color: "var(--border)" }} />
           <div className="report-empty-title">
-            No Outstanding {activeLabel}
+            {activeType === "receivable" ? t("noOutstandingAR") : t("noOutstandingAP")}
           </div>
           <div className="report-empty-desc">
-            All {activeType === "receivable" ? "receivable" : "payable"} invoices
-            are either paid or voided. No aging data to display.
+            {activeType === "receivable" ? t("allPaidOrVoided") : t("allPayablePaidOrVoided")}
           </div>
         </div>
       ) : (
@@ -168,16 +170,16 @@ export default async function AgingReportPage({
           <table className="report-table">
             <thead>
               <tr>
-                <th>Invoice #</th>
+                <th>{t("thInvoice")}</th>
                 <th>
-                  {activeType === "receivable" ? "Client" : "Vendor"}
+                  {activeType === "receivable" ? t("client") : t("vendor")}
                 </th>
-                <th>Invoice Date</th>
-                <th>Due Date</th>
-                <th style={{ textAlign: "right" }}>Total Amount</th>
-                <th style={{ textAlign: "right" }}>Balance Due</th>
-                <th style={{ textAlign: "center" }}>Days Overdue</th>
-                <th>Bucket</th>
+                <th>{t("thInvoiceDate")}</th>
+                <th>{t("thDueDate")}</th>
+                <th style={{ textAlign: "right" }}>{t("thTotalAmount")}</th>
+                <th style={{ textAlign: "right" }}>{t("thBalanceDue")}</th>
+                <th style={{ textAlign: "center" }}>{t("thDaysOverdue")}</th>
+                <th>{t("thBucket")}</th>
               </tr>
             </thead>
             <tbody>

@@ -1,6 +1,7 @@
 import { Receipt } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getBankAccounts } from "@/lib/queries/banking";
 import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
 import { getGLBalanceForAccountType } from "@/lib/utils/gl-balance";
 import { paginatedQuery } from "@/lib/utils/paginated-query";
@@ -37,16 +38,17 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
   const filterStartDate = params.start || undefined;
   const filterEndDate = params.end || undefined;
   const now = new Date();
-  const startOfMonth = filterStartDate || new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const endOfMonth = filterEndDate || new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
-
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
   const todayStr = now.toISOString().split("T")[0];
 
-  const [allAp, paidThisMonthRes, invoicesRes] = await Promise.all([
-    paginatedQuery<{ id: string; balance_due: number; status: string; due_date: string }>((from, to) => {
+  // --- Parallel data fetching ---
+  const [allAp, invoicesRes, bankAccounts] = await Promise.all([
+    // All AP invoices for KPIs (excludes voided)
+    paginatedQuery<{ id: string; balance_due: number; status: string; due_date: string; vendor_name: string | null }>((from, to) => {
       let q = supabase
         .from("invoices")
-        .select("id, balance_due, status, due_date")
+        .select("id, balance_due, status, due_date, vendor_name")
         .eq("company_id", userCompany.companyId)
         .eq("invoice_type", "payable")
         .not("status", "eq", "voided");
@@ -54,48 +56,87 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       if (filterEndDate) q = q.lte("invoice_date", filterEndDate);
       return q.range(from, to);
     }),
-    // Use payments table with payment_date for accurate "Paid" timing
-    supabase
-      .from("payments")
-      .select("amount, invoices!inner(invoice_type)")
-      .eq("company_id", userCompany.companyId)
-      .eq("invoices.invoice_type", "payable")
-      .gte("payment_date", startOfMonth)
-      .lte("payment_date", endOfMonth),
+    // Invoices for the table (filtered by status)
     (() => {
       let query = supabase
         .from("invoices")
-        .select("id, invoice_number, client_name, vendor_name, project_id, invoice_date, due_date, total_amount, balance_due, status, notes, payment_terms, projects(name)")
+        .select("id, invoice_number, client_name, vendor_name, project_id, invoice_date, due_date, total_amount, amount_paid, balance_due, status, notes, payment_terms, projects(name)")
         .eq("company_id", userCompany.companyId)
         .eq("invoice_type", "payable")
         .order("invoice_date", { ascending: false });
 
       if (activeStatus === "active" || !activeStatus) {
-        // "Active" = exclude voided and paid (default view)
         query = query.not("status", "eq", "voided").not("status", "eq", "paid");
       } else if (activeStatus !== "all") {
-        // Specific status filter
         query = query.eq("status", activeStatus);
       }
-      // "all" = no status filter, shows everything
       if (filterStartDate) query = query.gte("invoice_date", filterStartDate);
       if (filterEndDate) query = query.lte("invoice_date", filterEndDate);
       return query;
     })(),
+    // Bank accounts for inline payment recording
+    getBankAccounts(supabase, userCompany.companyId),
   ]);
 
-  // Include paid invoices with retainage (balance_due > 0) to match GL which includes Retainage Payable
+  // --- KPI calculations ---
+  // Total AP Balance: exclude drafts (they don't have posted JEs, so shouldn't count in subledger)
   const totalApBalance = allAp
-    .filter((inv) => (inv.balance_due ?? 0) > 0)
+    .filter((inv) => (inv.balance_due ?? 0) > 0 && inv.status !== "draft")
     .reduce((sum, inv) => sum + (inv.balance_due ?? 0), 0);
-  const overdueAmount = allAp
-    .filter((inv) => (inv.balance_due ?? 0) > 0 && inv.due_date && inv.due_date < todayStr)
-    .reduce((sum, inv) => sum + (inv.balance_due ?? 0), 0);
-  const pendingApprovalCount = allAp.filter((inv) => inv.status === "pending" || inv.status === "submitted").length;
-  const paidThisMonth = (paidThisMonthRes.data ?? []).reduce(
-    (sum: number, row: { amount: number }) => sum + (row.amount ?? 0), 0
-  );
 
+  const overdueAmount = allAp
+    .filter((inv) => (inv.balance_due ?? 0) > 0 && inv.status !== "draft" && inv.due_date && inv.due_date < todayStr)
+    .reduce((sum, inv) => sum + (inv.balance_due ?? 0), 0);
+
+  const overdueCount = allAp
+    .filter((inv) => (inv.balance_due ?? 0) > 0 && inv.status !== "draft" && inv.due_date && inv.due_date < todayStr)
+    .length;
+
+  const pendingApprovalCount = allAp.filter((inv) => inv.status === "pending" || inv.status === "submitted").length;
+
+  // Paid This Month: get payable invoice IDs, then sum payments in date range
+  const payableInvoiceIds = allAp.map((inv) => inv.id);
+  let paidThisMonth = 0;
+  if (payableInvoiceIds.length > 0) {
+    // Chunk IDs to avoid overly long IN clause (Supabase limit)
+    const CHUNK = 200;
+    for (let i = 0; i < payableInvoiceIds.length; i += CHUNK) {
+      const chunk = payableInvoiceIds.slice(i, i + CHUNK);
+      const { data: pmts } = await supabase
+        .from("payments")
+        .select("amount")
+        .in("invoice_id", chunk)
+        .gte("payment_date", startOfMonth)
+        .lte("payment_date", endOfMonth);
+      paidThisMonth += (pmts ?? []).reduce((s: number, r: { amount: number }) => s + (Number(r.amount) || 0), 0);
+    }
+  }
+
+  // Aging breakdown
+  const agingBuckets = { current: 0, days30: 0, days60: 0, days90: 0, days90plus: 0 };
+  for (const inv of allAp) {
+    if ((inv.balance_due ?? 0) <= 0 || inv.status === "draft") continue;
+    const daysOverdue = Math.floor((now.getTime() - new Date(inv.due_date).getTime()) / (1000 * 60 * 60 * 24));
+    if (daysOverdue <= 0) agingBuckets.current += inv.balance_due;
+    else if (daysOverdue <= 30) agingBuckets.days30 += inv.balance_due;
+    else if (daysOverdue <= 60) agingBuckets.days60 += inv.balance_due;
+    else if (daysOverdue <= 90) agingBuckets.days90 += inv.balance_due;
+    else agingBuckets.days90plus += inv.balance_due;
+  }
+
+  // Top vendors by AP balance
+  const vendorMap: Record<string, number> = {};
+  for (const inv of allAp) {
+    if ((inv.balance_due ?? 0) <= 0 || inv.status === "draft") continue;
+    const name = inv.vendor_name || "Unknown";
+    vendorMap[name] = (vendorMap[name] || 0) + inv.balance_due;
+  }
+  const topVendors = Object.entries(vendorMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, amount]) => ({ name, amount }));
+
+  // --- Map invoice rows ---
   const invoices = (invoicesRes.data ?? []).map((inv: Record<string, unknown>) => ({
     id: inv.id as string,
     invoice_number: inv.invoice_number as string,
@@ -105,6 +146,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     invoice_date: inv.invoice_date as string,
     due_date: inv.due_date as string,
     total_amount: inv.total_amount as number,
+    amount_paid: inv.amount_paid as number,
     balance_due: inv.balance_due as number,
     status: inv.status as string,
     notes: inv.notes as string | null,
@@ -120,8 +162,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
   }
 
-  // GL balance for AP accounts (credit - debit for liability accounts)
-  // Include retainage payable since invoice JEs may split retainage into separate account
+  // GL balance for AP accounts
   const [apBase, apRetainage] = await Promise.all([
     getGLBalanceForAccountType(supabase, userCompany.companyId, "liability", "%accounts payable%", "credit-debit"),
     getGLBalanceForAccountType(supabase, userCompany.companyId, "liability", "%retainage payable%", "credit-debit"),
@@ -133,6 +174,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       invoices={invoices}
       totalApBalance={totalApBalance}
       overdueAmount={overdueAmount}
+      overdueCount={overdueCount}
       pendingApprovalCount={pendingApprovalCount}
       paidThisMonth={paidThisMonth}
       activeStatus={activeStatus}
@@ -140,6 +182,15 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       initialStartDate={filterStartDate}
       initialEndDate={filterEndDate}
       glBalance={glApBalance}
+      agingBuckets={agingBuckets}
+      topVendors={topVendors}
+      bankAccounts={bankAccounts.map((ba) => ({
+        id: ba.id,
+        name: ba.name,
+        bank_name: ba.bank_name,
+        account_number_last4: ba.account_number_last4,
+        is_default: ba.is_default,
+      }))}
     />
   );
 }

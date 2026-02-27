@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPropertyTransactions } from "@/lib/queries/section-transactions";
+import { getTranslations } from "next-intl/server";
 import SectionTransactions from "@/components/SectionTransactions";
 
 export const metadata = {
@@ -16,15 +17,16 @@ export default async function PropertiesTransactionsPage() {
     redirect("/register");
   }
 
+  const t = await getTranslations("properties");
   const txnData = await getPropertyTransactions(supabase, userCompany.companyId);
 
   return (
     <div>
       <div className="fin-header">
         <div>
-          <h2>Properties Transactions</h2>
+          <h2>{t("transactionsTitle")}</h2>
           <p className="fin-header-sub">
-            Financial transactions linked to properties — invoices, lease payments, and journal entries.
+            {t("transactionsSubtitle")}
           </p>
         </div>
       </div>

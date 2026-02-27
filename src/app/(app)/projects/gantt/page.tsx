@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { formatPercent } from "@/lib/utils/format";
 import GanttActions from "./GanttActions";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Gantt Schedule - Buildwrk",
@@ -107,13 +108,14 @@ export default async function GanttPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const supabase = await createClient();
   const userCompany = await getCurrentUserCompany(supabase);
+  const t = await getTranslations("projects");
 
   if (!userCompany) {
     return (
       <div className="fin-empty">
         <div className="fin-empty-icon"><GanttChart size={48} /></div>
-        <div className="fin-empty-title">No Company Found</div>
-        <div className="fin-empty-desc">Please complete registration to access the Gantt schedule.</div>
+        <div className="fin-empty-title">{t("ganttNoCompany")}</div>
+        <div className="fin-empty-desc">{t("ganttNoCompanyDesc")}</div>
       </div>
     );
   }
@@ -178,8 +180,8 @@ export default async function GanttPage({ searchParams }: PageProps) {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Gantt Schedule</h2>
-          <p className="fin-header-sub">Interactive project timeline and critical path analysis</p>
+          <h2>{t("ganttTitle")}</h2>
+          <p className="fin-header-sub">{t("ganttSubtitle")}</p>
         </div>
       </div>
 
@@ -187,7 +189,7 @@ export default async function GanttPage({ searchParams }: PageProps) {
       {projectList.length > 0 && (
         <div className="fin-filters" style={{ marginBottom: 16 }}>
           <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>
-            Project:
+            {t("ganttProject")}
           </label>
           {projectList.map((p) => (
             <Link
@@ -237,7 +239,7 @@ export default async function GanttPage({ searchParams }: PageProps) {
                     borderRight: "1px solid var(--border)",
                   }}
                 >
-                  Task
+                  {t("ganttTask")}
                 </div>
                 <div style={{ flex: 1, display: "flex" }}>
                   {timeline.months.map((m, i) => {
@@ -364,7 +366,7 @@ export default async function GanttPage({ searchParams }: PageProps) {
                         color: "var(--muted)",
                       }}
                     >
-                      Unassigned
+                      {t("ganttUnassigned")}
                     </div>
                     <div style={{ flex: 1 }} />
                   </div>
@@ -407,7 +409,7 @@ export default async function GanttPage({ searchParams }: PageProps) {
                   display: "inline-block",
                 }}
               />
-              Task Duration
+              {t("ganttTaskDuration")}
             </span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span
@@ -419,19 +421,19 @@ export default async function GanttPage({ searchParams }: PageProps) {
                   display: "inline-block",
                 }}
               />
-              Completion
+              {t("ganttCompletion")}
             </span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: "1rem", lineHeight: 1, color: "var(--color-amber)" }}>
                 &#9670;
               </span>
-              Milestone
+              {t("ganttMilestone")}
             </span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontWeight: 700, color: "var(--color-red)" }}>
-                Bold Red
+                &#9646;
               </span>
-              Critical Path
+              {t("ganttCriticalPath")}
             </span>
           </div>
         </div>
@@ -442,12 +444,12 @@ export default async function GanttPage({ searchParams }: PageProps) {
               <GanttChart size={48} />
             </div>
             <div className="fin-empty-title">
-              {projectList.length === 0 ? "No Active Projects" : "No Schedule Data"}
+              {projectList.length === 0 ? t("ganttNoProjects") : t("ganttNoSchedule")}
             </div>
             <div className="fin-empty-desc">
               {projectList.length === 0
-                ? "Create a project and add phases and tasks to see the Gantt schedule."
-                : "Add phases and tasks to the selected project to see the timeline visualization."}
+                ? t("ganttNoProjectsDesc")
+                : t("ganttNoScheduleDesc")}
             </div>
           </div>
         </div>

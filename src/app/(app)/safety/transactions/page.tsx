@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getSafetyTransactions } from "@/lib/queries/section-transactions";
 import SectionTransactions from "@/components/SectionTransactions";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Safety Transactions - Buildwrk",
@@ -16,15 +17,16 @@ export default async function SafetyTransactionsPage() {
     redirect("/login");
   }
 
+  const t = await getTranslations("safety");
   const txnData = await getSafetyTransactions(supabase, userCompany.companyId);
 
   return (
     <div>
       <div className="fin-header">
         <div>
-          <h2>Safety Transactions</h2>
+          <h2>{t("safetyTransactionsTitle")}</h2>
           <p className="fin-header-sub">
-            Safety-related expenses — training, PPE, OSHA compliance, and inspections.
+            {t("safetyTransactionsSubtitle")}
           </p>
         </div>
       </div>

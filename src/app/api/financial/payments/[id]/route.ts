@@ -132,23 +132,26 @@ export async function DELETE(
 
     if (inv) {
       const newAmountPaid = Math.max(0, (inv.amount_paid ?? 0) - payment.amount);
-      const balanceDue = (inv.total_amount ?? 0) - newAmountPaid;
-      let newStatus = "approved";
-      if (newAmountPaid <= 0) {
-        // Check if overdue
+      const newBalanceDue = (inv.total_amount ?? 0) - newAmountPaid;
+
+      // Determine correct status after payment removal
+      let newStatus: string;
+      if (newBalanceDue <= 0.01) {
+        newStatus = "paid";
+      } else if (newAmountPaid > 0) {
+        newStatus = "approved"; // still has partial payment
+      } else {
+        // No payments remain — check if overdue
         const dueDate = new Date(inv.due_date);
         newStatus = dueDate < new Date() ? "overdue" : "approved";
-      } else if (balanceDue <= 0.01) {
-        newStatus = "paid";
-      } else {
-        newStatus = "approved"; // partial payment removed
       }
 
+      // Only update amount_paid and status — balance_due is a Postgres
+      // GENERATED COLUMN (total_amount - amount_paid) and cannot be set directly
       await supabase
         .from("invoices")
         .update({
           amount_paid: newAmountPaid,
-          balance_due: balanceDue,
           status: newStatus,
         })
         .eq("id", payment.invoice_id);

@@ -483,10 +483,7 @@ export async function updateInvoice(
   if (data.line_items !== undefined) updatePayload.line_items = data.line_items;
   if (data.notes !== undefined) updatePayload.notes = data.notes;
   if (data.status !== undefined) updatePayload.status = data.status;
-  // Allow direct balance_due updates (e.g. when total_amount changes)
-  if ((data as Record<string, unknown>).balance_due !== undefined) {
-    updatePayload.balance_due = (data as Record<string, unknown>).balance_due;
-  }
+  // Note: balance_due is a Postgres GENERATED COLUMN — never include it in updates
 
   const { error } = await supabase
     .from("invoices")

@@ -6,6 +6,7 @@ import { getPropertiesOverview } from "@/lib/queries/properties";
 import { formatCurrency, formatCompactCurrency, formatPercent } from "@/lib/utils/format";
 import OccupancyChart from "@/components/charts/OccupancyChart";
 import PropertyRevenueChart from "@/components/charts/PropertyRevenueChart";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Properties Overview - Buildwrk",
@@ -14,15 +15,15 @@ export const metadata = {
 export default async function PropertiesOverviewPage() {
   const supabase = await createClient();
   const ctx = await getCurrentUserCompany(supabase);
+  const t = await getTranslations("properties");
 
   if (!ctx) {
     return (
       <div style={{ textAlign: "center", padding: "60px 24px", color: "var(--muted)" }}>
-        Please log in and join a company to view the properties overview.
+        {t("loginToViewOverview")}
       </div>
     );
   }
-
   const overview = await getPropertiesOverview(supabase, ctx.companyId);
 
   return (
@@ -30,35 +31,35 @@ export default async function PropertiesOverviewPage() {
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Properties Overview</h2>
-          <p className="fin-header-sub">Portfolio performance, occupancy, and maintenance at a glance.</p>
+          <h2>{t("overviewTitle")}</h2>
+          <p className="fin-header-sub">{t("overviewSubtitle")}</p>
         </div>
         <div className="fin-header-actions">
-          <Link href="/properties" className="ui-btn ui-btn-md ui-btn-secondary">All Properties</Link>
+          <Link href="/properties" className="ui-btn ui-btn-md ui-btn-secondary">{t("allProperties")}</Link>
           <Link href="/properties/new" className="ui-btn ui-btn-md ui-btn-primary">
-            <Plus size={16} /> Add Property
+            <Plus size={16} /> {t("addProperty")}
           </Link>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="financial-kpi-row" style={{ marginBottom: 24 }}>
-        <div className="fin-kpi"><div className="fin-kpi-icon blue"><Building2 size={18} /></div><span className="fin-kpi-label">Total Properties</span><span className="fin-kpi-value">{overview.totalProperties}</span></div>
-        <div className="fin-kpi"><div className="fin-kpi-icon blue"><Home size={18} /></div><span className="fin-kpi-label">Total Units</span><span className="fin-kpi-value">{overview.totalUnits}</span></div>
-        <div className="fin-kpi"><div className="fin-kpi-icon green"><Users size={18} /></div><span className="fin-kpi-label">Avg. Occupancy</span><span className="fin-kpi-value">{formatPercent(overview.avgOccupancy)}</span></div>
-        <div className="fin-kpi"><div className="fin-kpi-icon green"><DollarSign size={18} /></div><span className="fin-kpi-label">Monthly Revenue</span><span className="fin-kpi-value">{formatCompactCurrency(overview.totalRevenue)}</span></div>
-        <div className="fin-kpi"><div className="fin-kpi-icon blue"><TrendingUp size={18} /></div><span className="fin-kpi-label">Monthly NOI</span><span className="fin-kpi-value" style={{ color: overview.totalNOI >= 0 ? "var(--color-green)" : "var(--color-red)" }}>{formatCompactCurrency(overview.totalNOI)}</span></div>
-        <div className="fin-kpi"><div className="fin-kpi-icon amber"><Wrench size={18} /></div><span className="fin-kpi-label">Open Maintenance</span><span className="fin-kpi-value" style={{ color: overview.openMaintenanceCount > 0 ? "var(--color-amber)" : undefined }}>{overview.openMaintenanceCount}</span></div>
+        <div className="fin-kpi"><div className="fin-kpi-icon blue"><Building2 size={18} /></div><span className="fin-kpi-label">{t("totalProperties")}</span><span className="fin-kpi-value">{overview.totalProperties}</span></div>
+        <div className="fin-kpi"><div className="fin-kpi-icon blue"><Home size={18} /></div><span className="fin-kpi-label">{t("totalUnits")}</span><span className="fin-kpi-value">{overview.totalUnits}</span></div>
+        <div className="fin-kpi"><div className="fin-kpi-icon green"><Users size={18} /></div><span className="fin-kpi-label">{t("avgOccupancy")}</span><span className="fin-kpi-value">{formatPercent(overview.avgOccupancy)}</span></div>
+        <div className="fin-kpi"><div className="fin-kpi-icon green"><DollarSign size={18} /></div><span className="fin-kpi-label">{t("monthlyRevenue")}</span><span className="fin-kpi-value">{formatCompactCurrency(overview.totalRevenue)}</span></div>
+        <div className="fin-kpi"><div className="fin-kpi-icon blue"><TrendingUp size={18} /></div><span className="fin-kpi-label">{t("monthlyNOI")}</span><span className="fin-kpi-value" style={{ color: overview.totalNOI >= 0 ? "var(--color-green)" : "var(--color-red)" }}>{formatCompactCurrency(overview.totalNOI)}</span></div>
+        <div className="fin-kpi"><div className="fin-kpi-icon amber"><Wrench size={18} /></div><span className="fin-kpi-label">{t("openMaintenance")}</span><span className="fin-kpi-value" style={{ color: overview.openMaintenanceCount > 0 ? "var(--color-amber)" : undefined }}>{overview.openMaintenanceCount}</span></div>
       </div>
 
       {/* Charts */}
       <div className="financial-charts-row" style={{ marginBottom: 24 }}>
         <div className="fin-chart-card">
-          <div className="fin-chart-title">Occupancy by Property</div>
+          <div className="fin-chart-title">{t("occupancyByProperty")}</div>
           <OccupancyChart data={overview.occupancyByProperty} />
         </div>
         <div className="fin-chart-card">
-          <div className="fin-chart-title">Revenue by Property Type</div>
+          <div className="fin-chart-title">{t("revenueByPropertyType")}</div>
           <PropertyRevenueChart data={overview.revenueByType} />
         </div>
       </div>
@@ -66,11 +67,11 @@ export default async function PropertiesOverviewPage() {
       {/* Lists */}
       <div className="financial-charts-row" style={{ marginBottom: 24 }}>
         <div className="fin-chart-card">
-          <div className="fin-chart-title">Expiring Leases (60 Days)</div>
+          <div className="fin-chart-title">{t("expiringLeases")}</div>
           {overview.expiringLeases.length > 0 ? (
             <div style={{ overflowX: "auto" }}>
               <table className="invoice-table">
-                <thead><tr><th>Property</th><th>Unit</th><th>Tenant</th><th>Lease End</th><th>Rent</th></tr></thead>
+                <thead><tr><th>{t("thProperty")}</th><th>{t("thUnit")}</th><th>{t("thTenant")}</th><th>{t("thLeaseEnd")}</th><th>{t("thRent")}</th></tr></thead>
                 <tbody>
                   {overview.expiringLeases.map((l) => {
                     const daysLeft = Math.ceil((new Date(l.lease_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -91,15 +92,15 @@ export default async function PropertiesOverviewPage() {
               </table>
             </div>
           ) : (
-            <div style={{ textAlign: "center", padding: "24px", color: "var(--muted)", fontSize: "0.85rem" }}>No leases expiring soon</div>
+            <div style={{ textAlign: "center", padding: "24px", color: "var(--muted)", fontSize: "0.85rem" }}>{t("noLeasesExpiring")}</div>
           )}
         </div>
         <div className="fin-chart-card">
-          <div className="fin-chart-title">Open Maintenance Requests</div>
+          <div className="fin-chart-title">{t("openMaintenanceRequests")}</div>
           {overview.openMaintenance.length > 0 ? (
             <div style={{ overflowX: "auto" }}>
               <table className="invoice-table">
-                <thead><tr><th>Property</th><th>Title</th><th>Priority</th><th>Status</th></tr></thead>
+                <thead><tr><th>{t("thProperty")}</th><th>{t("thTitle")}</th><th>{t("thPriority")}</th><th>{t("thStatus")}</th></tr></thead>
                 <tbody>
                   {overview.openMaintenance.map((m) => (
                     <tr key={m.id}>
@@ -117,16 +118,16 @@ export default async function PropertiesOverviewPage() {
               </table>
             </div>
           ) : (
-            <div style={{ textAlign: "center", padding: "24px", color: "var(--muted)", fontSize: "0.85rem" }}>No open maintenance requests</div>
+            <div style={{ textAlign: "center", padding: "24px", color: "var(--muted)", fontSize: "0.85rem" }}>{t("noOpenMaintenanceRequests")}</div>
           )}
         </div>
       </div>
 
       {/* Quick Actions */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 32 }}>
-        <Link href="/properties" className="ui-btn ui-btn-sm ui-btn-secondary">All Properties</Link>
-        <Link href="/properties/leases" className="ui-btn ui-btn-sm ui-btn-secondary">All Leases</Link>
-        <Link href="/properties/maintenance" className="ui-btn ui-btn-sm ui-btn-secondary">All Maintenance</Link>
+        <Link href="/properties" className="ui-btn ui-btn-sm ui-btn-secondary">{t("allProperties")}</Link>
+        <Link href="/properties/leases" className="ui-btn ui-btn-sm ui-btn-secondary">{t("allLeases")}</Link>
+        <Link href="/properties/maintenance" className="ui-btn ui-btn-sm ui-btn-secondary">{t("allMaintenance")}</Link>
       </div>
 
     </div>

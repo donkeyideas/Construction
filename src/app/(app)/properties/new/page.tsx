@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function NewPropertyPage() {
   const router = useRouter();
+  const t = useTranslations("properties");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,15 +37,15 @@ export default function NewPropertyPage() {
     setError(null);
 
     if (!form.name.trim()) {
-      setError("Property name is required.");
+      setError(t("nameRequired"));
       return;
     }
     if (!form.address_line1.trim()) {
-      setError("Address is required.");
+      setError(t("addressRequired"));
       return;
     }
     if (!form.city.trim() || !form.state.trim() || !form.zip.trim()) {
-      setError("City, state, and ZIP are required.");
+      setError(t("cityStateZipRequired"));
       return;
     }
 
@@ -106,11 +108,11 @@ export default function NewPropertyPage() {
               }}
             >
               <ArrowLeft size={14} />
-              Back to Properties
+              {t("backToProperties")}
             </Link>
           </div>
-          <h2>Add Property</h2>
-          <p>Create a new property in your portfolio</p>
+          <h2>{t("addProperty")}</h2>
+          <p>{t("createNewProperty")}</p>
         </div>
       </div>
 
@@ -135,7 +137,7 @@ export default function NewPropertyPage() {
           {/* Name */}
           <div className="ui-field full-width">
             <label className="ui-label" htmlFor="name">
-              Property Name
+              {t("propertyName")}
             </label>
             <input
               id="name"
@@ -151,7 +153,7 @@ export default function NewPropertyPage() {
           {/* Property Type */}
           <div className="ui-field">
             <label className="ui-label" htmlFor="property_type">
-              Property Type
+              {t("propertyType")}
             </label>
             <select
               id="property_type"
@@ -160,17 +162,17 @@ export default function NewPropertyPage() {
               value={form.property_type}
               onChange={handleChange}
             >
-              <option value="residential">Residential</option>
-              <option value="commercial">Commercial</option>
-              <option value="industrial">Industrial</option>
-              <option value="mixed_use">Mixed Use</option>
+              <option value="residential">{t("residential")}</option>
+              <option value="commercial">{t("commercial")}</option>
+              <option value="industrial">{t("industrial")}</option>
+              <option value="mixed_use">{t("mixedUse")}</option>
             </select>
           </div>
 
           {/* Year Built */}
           <div className="ui-field">
             <label className="ui-label" htmlFor="year_built">
-              Year Built
+              {t("yearBuilt")}
             </label>
             <input
               id="year_built"
@@ -188,7 +190,7 @@ export default function NewPropertyPage() {
           {/* Address */}
           <div className="ui-field full-width">
             <label className="ui-label" htmlFor="address_line1">
-              Address
+              {t("address")}
             </label>
             <input
               id="address_line1"
@@ -196,7 +198,7 @@ export default function NewPropertyPage() {
               className="ui-input"
               value={form.address_line1}
               onChange={handleChange}
-              placeholder="Street address"
+              placeholder={t("streetAddress")}
               required
             />
           </div>
@@ -204,7 +206,7 @@ export default function NewPropertyPage() {
           {/* City */}
           <div className="ui-field">
             <label className="ui-label" htmlFor="city">
-              City
+              {t("city")}
             </label>
             <input
               id="city"
@@ -220,7 +222,7 @@ export default function NewPropertyPage() {
           {/* State */}
           <div className="ui-field">
             <label className="ui-label" htmlFor="state">
-              State
+              {t("state")}
             </label>
             <input
               id="state"
@@ -237,7 +239,7 @@ export default function NewPropertyPage() {
           {/* ZIP */}
           <div className="ui-field">
             <label className="ui-label" htmlFor="zip">
-              ZIP Code
+              {t("zipCode")}
             </label>
             <input
               id="zip"
@@ -253,7 +255,7 @@ export default function NewPropertyPage() {
           {/* Total Sq Ft */}
           <div className="ui-field">
             <label className="ui-label" htmlFor="total_sqft">
-              Total Sq Ft
+              {t("totalSqFt")}
             </label>
             <input
               id="total_sqft"
@@ -270,7 +272,7 @@ export default function NewPropertyPage() {
           {/* Total Units */}
           <div className="ui-field">
             <label className="ui-label" htmlFor="total_units">
-              Total Units
+              {t("totalUnits")}
             </label>
             <input
               id="total_units"
@@ -287,7 +289,7 @@ export default function NewPropertyPage() {
           {/* Purchase Price */}
           <div className="ui-field">
             <label className="ui-label" htmlFor="purchase_price">
-              Purchase Price ($)
+              {t("purchasePrice")}
             </label>
             <input
               id="purchase_price"
@@ -305,7 +307,7 @@ export default function NewPropertyPage() {
           {/* Current Value */}
           <div className="ui-field">
             <label className="ui-label" htmlFor="current_value">
-              Current Value ($)
+              {t("currentValue")}
             </label>
             <input
               id="current_value"
@@ -329,10 +331,10 @@ export default function NewPropertyPage() {
           >
             {saving && <span className="ui-btn-spinner" />}
             <Save size={16} />
-            {saving ? "Saving..." : "Create Property"}
+            {saving ? t("saving") : t("createProperty")}
           </button>
           <Link href="/properties" className="ui-btn ui-btn-md ui-btn-secondary">
-            Cancel
+            {t("cancel")}
           </Link>
         </div>
       </form>
