@@ -1697,7 +1697,16 @@
     "auditLogs.userAgent": "وكيل المستخدم",
     "auditLogs.unknown": "غير معروف",
     "auditLogs.fromDate": "من تاريخ",
-    "auditLogs.toDate": "إلى تاريخ"
+    "auditLogs.toDate": "إلى تاريخ",
+    "geoNoData": "لا توجد صفحات منشورة للتحليل.",
+    "geoNoDataDesc": "انشر صفحات CMS لرؤية تقييم تحسين محركات الذكاء الاصطناعي التوليدي عبر 6 أبعاد للاستشهاد.",
+    "geoOverallScore": "نقاط GEO",
+    "geoRadarTitle": "رادار الاستشهاد بالذكاء الاصطناعي",
+    "geoPageScores": "نقاط GEO للصفحات",
+    "geoScore": "النقاط",
+    "geoScoreExcellent": "قابلية استشهاد ممتازة. المحتوى قابل للاقتباس بشكل كبير من محركات الذكاء الاصطناعي التوليدي.",
+    "geoScoreGood": "أساس جيد. حسّن نقاط البيانات والوضوح الدلالي لاستشهادات أفضل بالذكاء الاصطناعي.",
+    "geoScorePoor": "يحتاج إلى تحسين. أضف بيانات واقعية وإحصائيات ومحتوى منظم لقابلية الاستشهاد بالذكاء الاصطناعي."
   },
   "financial": {
     "balanceSheet": "الميزانية العمومية",
@@ -3334,7 +3343,6 @@
     "purchaseOrder": "أمر شراء",
     "serviceAgreement": "اتفاقية خدمة",
     "hireDate": "تاريخ التعيين",
-    "statusActive": "نشط",
     "statusInactive": "غير نشط",
     "statusTerminated": "منتهي الخدمة",
     "statusOnLeave": "في إجازة",
@@ -3366,7 +3374,6 @@
     "recordPayment": "تسجيل دفعة",
     "noOutstandingInvoices": "لا توجد فواتير مستحقة",
     "noOutstandingInvoicesDesc": "جميع فواتير الموردين مسددة.",
-    "date": "التاريخ",
     "method": "الطريقة",
     "reference": "المرجع",
     "je": "قيد يومية",

@@ -1697,7 +1697,16 @@
     "auditLogs.userAgent": "Agent utilisateur",
     "auditLogs.unknown": "Inconnu",
     "auditLogs.fromDate": "Date de début",
-    "auditLogs.toDate": "Date de fin"
+    "auditLogs.toDate": "Date de fin",
+    "geoNoData": "Aucune page publiée à analyser.",
+    "geoNoDataDesc": "Publiez des pages CMS pour voir le score d'Optimisation pour Moteurs Génératifs sur 6 dimensions de citabilité IA.",
+    "geoOverallScore": "Score GEO",
+    "geoRadarTitle": "Radar de Citabilité IA",
+    "geoPageScores": "Scores GEO des Pages",
+    "geoScore": "Score",
+    "geoScoreExcellent": "Excellente citabilité. Le contenu est hautement citable par les moteurs d'IA générative.",
+    "geoScoreGood": "Bonne base. Améliorez les données et la clarté sémantique pour de meilleures citations IA.",
+    "geoScorePoor": "À améliorer. Ajoutez des données factuelles, des statistiques et du contenu structuré pour la citabilité IA."
   },
   "financial": {
     "balanceSheet": "Bilan",
@@ -3334,7 +3343,6 @@
     "purchaseOrder": "Bon de commande",
     "serviceAgreement": "Contrat de service",
     "hireDate": "Date d'embauche",
-    "statusActive": "Actif",
     "statusInactive": "Inactif",
     "statusTerminated": "Résilié",
     "statusOnLeave": "En congé",
@@ -3366,7 +3374,6 @@
     "recordPayment": "Enregistrer un paiement",
     "noOutstandingInvoices": "Aucune facture en souffrance",
     "noOutstandingInvoicesDesc": "Toutes les factures fournisseurs sont réglées.",
-    "date": "Date",
     "method": "Méthode",
     "reference": "Référence",
     "je": "Écriture",

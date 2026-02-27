@@ -1697,7 +1697,16 @@
     "auditLogs.userAgent": "User-Agent",
     "auditLogs.unknown": "Unbekannt",
     "auditLogs.fromDate": "Von Datum",
-    "auditLogs.toDate": "Bis Datum"
+    "auditLogs.toDate": "Bis Datum",
+    "geoNoData": "Keine veröffentlichten Seiten zur Analyse.",
+    "geoNoDataDesc": "Veröffentlichen Sie CMS-Seiten, um die Bewertung der generativen Suchmaschinenoptimierung in 6 KI-Zitierbarkeitsdimensionen zu sehen.",
+    "geoOverallScore": "GEO-Bewertung",
+    "geoRadarTitle": "KI-Zitierbarkeitsradar",
+    "geoPageScores": "Seiten-GEO-Bewertungen",
+    "geoScore": "Bewertung",
+    "geoScoreExcellent": "Hervorragende Zitierbarkeit. Der Inhalt ist von generativen KI-Engines hoch zitierbar.",
+    "geoScoreGood": "Gute Grundlage. Verbessern Sie Datenpunkte und semantische Klarheit für bessere KI-Zitate.",
+    "geoScorePoor": "Verbesserungsbedarf. Fügen Sie Fakten, Statistiken und strukturierte Inhalte für KI-Zitierbarkeit hinzu."
   },
   "financial": {
     "balanceSheet": "Bilanz",
@@ -3334,7 +3343,6 @@
     "purchaseOrder": "Bestellung",
     "serviceAgreement": "Dienstleistungsvertrag",
     "hireDate": "Einstellungsdatum",
-    "statusActive": "Aktiv",
     "statusInactive": "Inaktiv",
     "statusTerminated": "Gekündigt",
     "statusOnLeave": "Im Urlaub",
@@ -3366,7 +3374,6 @@
     "recordPayment": "Zahlung erfassen",
     "noOutstandingInvoices": "Keine offenen Rechnungen",
     "noOutstandingInvoicesDesc": "Alle Lieferantenrechnungen sind bezahlt.",
-    "date": "Datum",
     "method": "Methode",
     "reference": "Referenz",
     "je": "Buchung",
