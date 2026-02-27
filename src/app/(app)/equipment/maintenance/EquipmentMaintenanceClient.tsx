@@ -553,7 +553,7 @@ export default function EquipmentMaintenanceClient({
                 <th>{t("columnPerformedBy")}</th>
                 <th>{t("columnStatus")}</th>
                 <th>{t("columnNextDue")}</th>
-                <th>JE</th>
+                <th>{t("jeColumnHeader")}</th>
               </tr>
             </thead>
             <tbody>

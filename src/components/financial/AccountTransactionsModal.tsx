@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { X, Loader2, ExternalLink } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/format";
 import type { AccountTransactionsResult } from "@/lib/queries/financial";
@@ -24,6 +25,7 @@ export default function AccountTransactionsModal({
   isOpen,
   onClose,
 }: Props) {
+  const t = useTranslations("common");
   const [data, setData] = useState<AccountTransactionsResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export default function AccountTransactionsModal({
 
     fetch(`/api/financial/account-transactions?${params}`)
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch transactions");
+        if (!res.ok) throw new Error(t("accountTransactions.fetchError"));
         return res.json();
       })
       .then((result: AccountTransactionsResult) => {
@@ -83,10 +85,10 @@ export default function AccountTransactionsModal({
               {startDate && endDate
                 ? `${formatDate(startDate)} — ${formatDate(endDate)}`
                 : startDate
-                  ? `From ${formatDate(startDate)}`
+                  ? t("accountTransactions.fromDate", { date: formatDate(startDate) })
                   : endDate
-                    ? `Through ${formatDate(endDate)}`
-                    : "All transactions"
+                    ? t("accountTransactions.throughDate", { date: formatDate(endDate) })
+                    : t("accountTransactions.allTransactions")
               }
             </p>
           </div>
@@ -103,11 +105,11 @@ export default function AccountTransactionsModal({
               checked={includeUnposted}
               onChange={(e) => setIncludeUnposted(e.target.checked)}
             />
-            Include draft entries
+            {t("accountTransactions.includeDraftEntries")}
           </label>
           {data && data.transactions.length === 0 && !loading && (
             <span style={{ color: "var(--color-amber)", fontSize: "0.78rem" }}>
-              No posted transactions found — try including drafts
+              {t("accountTransactions.noPostedTransactions")}
             </span>
           )}
         </div>
@@ -117,7 +119,7 @@ export default function AccountTransactionsModal({
           {loading && (
             <div className="acct-txn-loading">
               <Loader2 size={24} className="spin" />
-              <span>Loading transactions...</span>
+              <span>{t("accountTransactions.loading")}</span>
             </div>
           )}
 
@@ -128,18 +130,18 @@ export default function AccountTransactionsModal({
           {!loading && !error && data && (
             <>
               {transactionsWithBalance.length === 0 ? (
-                <div className="acct-txn-empty">No transactions found for this period.</div>
+                <div className="acct-txn-empty">{t("accountTransactions.noTransactions")}</div>
               ) : (
                 <div className="acct-txn-table-wrap">
                   <table className="acct-txn-table">
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>JE #</th>
-                        <th>Description</th>
-                        <th className="acct-txn-amt">Debit</th>
-                        <th className="acct-txn-amt">Credit</th>
-                        <th className="acct-txn-amt">Balance</th>
+                        <th>{t("accountTransactions.date")}</th>
+                        <th>{t("accountTransactions.jeNumber")}</th>
+                        <th>{t("accountTransactions.description")}</th>
+                        <th className="acct-txn-amt">{t("accountTransactions.debit")}</th>
+                        <th className="acct-txn-amt">{t("accountTransactions.credit")}</th>
+                        <th className="acct-txn-amt">{t("accountTransactions.balance")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -173,7 +175,7 @@ export default function AccountTransactionsModal({
                     </tbody>
                     <tfoot>
                       <tr className="acct-txn-totals">
-                        <td colSpan={3}>Totals</td>
+                        <td colSpan={3}>{t("accountTransactions.totals")}</td>
                         <td className="acct-txn-amt">{formatCurrency(data.totalDebit)}</td>
                         <td className="acct-txn-amt">{formatCurrency(data.totalCredit)}</td>
                         <td className="acct-txn-amt acct-txn-balance">

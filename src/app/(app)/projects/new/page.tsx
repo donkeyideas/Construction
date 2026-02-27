@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 
 interface CompanyMember {
@@ -38,6 +39,7 @@ function generateProjectCode() {
 }
 
 export default function NewProjectPage() {
+  const t = useTranslations("projects.newProjectPage");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -115,12 +117,12 @@ export default function NewProjectPage() {
     setError(null);
 
     if (!name.trim()) {
-      setError("Project name is required.");
+      setError(t("projectNameRequiredError"));
       return;
     }
 
     if (!code.trim()) {
-      setError("Project code is required.");
+      setError(t("projectCodeRequiredError"));
       return;
     }
 
@@ -170,7 +172,7 @@ export default function NewProjectPage() {
       router.push(`/projects/${result.id}`);
     } catch (err) {
       console.error("Create project error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      setError(t("unexpectedError"));
       setLoading(false);
     }
   }
@@ -192,12 +194,12 @@ export default function NewProjectPage() {
                 gap: 4,
               }}
             >
-              <ArrowLeft size={14} /> Back to Projects
+              <ArrowLeft size={14} /> {t("backToProjects")}
             </Link>
           </div>
-          <h2>New Project</h2>
+          <h2>{t("title")}</h2>
           <p className="projects-header-sub">
-            Fill out the details below to create a new project.
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -207,17 +209,17 @@ export default function NewProjectPage() {
       <form onSubmit={handleSubmit} className="project-form">
         {/* Basic Info */}
         <div className="project-form-section">
-          <div className="card-title">Basic Information</div>
+          <div className="card-title">{t("basicInformation")}</div>
           <div className="form-grid">
             <div className="form-group">
               <label className="form-label" htmlFor="name">
-                Project Name *
+                {t("projectNameRequired")}
               </label>
               <input
                 id="name"
                 type="text"
                 className="form-input"
-                placeholder="e.g. Harbor Ridge Mixed-Use"
+                placeholder={t("projectNamePlaceholder")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -225,29 +227,29 @@ export default function NewProjectPage() {
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="code">
-                Project Code *
+                {t("projectCodeRequired")}
               </label>
               <input
                 id="code"
                 type="text"
                 className="form-input"
-                placeholder="e.g. PRJ-26-0042"
+                placeholder={t("projectCodePlaceholder")}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 required
               />
               <span className="form-hint">
-                Auto-generated. You can customize it.
+                {t("projectCodeHint")}
               </span>
             </div>
             <div className="form-group full-width">
               <label className="form-label" htmlFor="description">
-                Description
+                {t("descriptionLabel")}
               </label>
               <textarea
                 id="description"
                 className="form-textarea"
-                placeholder="Brief description of the project scope and objectives..."
+                placeholder={t("descriptionPlaceholder")}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
@@ -255,7 +257,7 @@ export default function NewProjectPage() {
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="projectType">
-                Project Type
+                {t("projectTypeLabel")}
               </label>
               <select
                 id="projectType"
@@ -263,7 +265,7 @@ export default function NewProjectPage() {
                 value={projectType}
                 onChange={(e) => setProjectType(e.target.value)}
               >
-                <option value="">Select type...</option>
+                <option value="">{t("selectType")}</option>
                 {PROJECT_TYPES.map((type) => (
                   <option key={type} value={type}>
                     {type}
@@ -276,43 +278,43 @@ export default function NewProjectPage() {
 
         {/* Client Info */}
         <div className="project-form-section">
-          <div className="card-title">Client Information</div>
+          <div className="card-title">{t("clientInformation")}</div>
           <div className="form-grid">
             <div className="form-group">
               <label className="form-label" htmlFor="clientName">
-                Client Name
+                {t("clientNameLabel")}
               </label>
               <input
                 id="clientName"
                 type="text"
                 className="form-input"
-                placeholder="e.g. Meridian Development Group"
+                placeholder={t("clientNamePlaceholder")}
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
               />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="clientEmail">
-                Client Email
+                {t("clientEmailLabel")}
               </label>
               <input
                 id="clientEmail"
                 type="email"
                 className="form-input"
-                placeholder="contact@client.com"
+                placeholder={t("clientEmailPlaceholder")}
                 value={clientEmail}
                 onChange={(e) => setClientEmail(e.target.value)}
               />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="clientPhone">
-                Client Phone
+                {t("clientPhoneLabel")}
               </label>
               <input
                 id="clientPhone"
                 type="tel"
                 className="form-input"
-                placeholder="(555) 123-4567"
+                placeholder={t("clientPhonePlaceholder")}
                 value={clientPhone}
                 onChange={(e) => setClientPhone(e.target.value)}
               />
@@ -322,56 +324,56 @@ export default function NewProjectPage() {
 
         {/* Location */}
         <div className="project-form-section">
-          <div className="card-title">Project Location</div>
+          <div className="card-title">{t("projectLocation")}</div>
           <div className="form-grid">
             <div className="form-group full-width">
               <label className="form-label" htmlFor="addressLine1">
-                Street Address
+                {t("streetAddress")}
               </label>
               <input
                 id="addressLine1"
                 type="text"
                 className="form-input"
-                placeholder="123 Main Street"
+                placeholder={t("streetAddressPlaceholder")}
                 value={addressLine1}
                 onChange={(e) => setAddressLine1(e.target.value)}
               />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="city">
-                City
+                {t("cityLabel")}
               </label>
               <input
                 id="city"
                 type="text"
                 className="form-input"
-                placeholder="San Francisco"
+                placeholder={t("cityPlaceholder")}
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="state">
-                State
+                {t("stateLabel")}
               </label>
               <input
                 id="state"
                 type="text"
                 className="form-input"
-                placeholder="CA"
+                placeholder={t("statePlaceholder")}
                 value={state}
                 onChange={(e) => setState(e.target.value)}
               />
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="zip">
-                ZIP Code
+                {t("zipLabel")}
               </label>
               <input
                 id="zip"
                 type="text"
                 className="form-input"
-                placeholder="94105"
+                placeholder={t("zipPlaceholder")}
                 value={zip}
                 onChange={(e) => setZip(e.target.value)}
               />
@@ -381,11 +383,11 @@ export default function NewProjectPage() {
 
         {/* Financial */}
         <div className="project-form-section">
-          <div className="card-title">Financial Details</div>
+          <div className="card-title">{t("financialDetails")}</div>
           <div className="form-grid">
             <div className="form-group">
               <label className="form-label" htmlFor="contractAmount">
-                Contract Amount ($)
+                {t("contractAmountLabel")}
               </label>
               <input
                 id="contractAmount"
@@ -400,7 +402,7 @@ export default function NewProjectPage() {
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="estimatedCost">
-                Estimated Cost ($)
+                {t("estimatedCostLabel")}
               </label>
               <input
                 id="estimatedCost"
@@ -418,11 +420,11 @@ export default function NewProjectPage() {
 
         {/* Schedule and Team */}
         <div className="project-form-section">
-          <div className="card-title">Schedule and Team</div>
+          <div className="card-title">{t("scheduleAndTeam")}</div>
           <div className="form-grid">
             <div className="form-group">
               <label className="form-label" htmlFor="startDate">
-                Start Date
+                {t("startDateLabel")}
               </label>
               <input
                 id="startDate"
@@ -434,7 +436,7 @@ export default function NewProjectPage() {
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="estimatedEndDate">
-                Estimated End Date
+                {t("estimatedEndDateLabel")}
               </label>
               <input
                 id="estimatedEndDate"
@@ -446,7 +448,7 @@ export default function NewProjectPage() {
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="projectManager">
-                Project Manager
+                {t("projectManagerLabel")}
               </label>
               <select
                 id="projectManager"
@@ -454,7 +456,7 @@ export default function NewProjectPage() {
                 value={projectManagerId}
                 onChange={(e) => setProjectManagerId(e.target.value)}
               >
-                <option value="">Select PM...</option>
+                <option value="">{t("selectPm")}</option>
                 {members.map((m) => (
                   <option key={m.user_id} value={m.user_id}>
                     {m.user.full_name} ({m.role})
@@ -464,7 +466,7 @@ export default function NewProjectPage() {
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="superintendent">
-                Superintendent
+                {t("superintendentLabel")}
               </label>
               <select
                 id="superintendent"
@@ -472,7 +474,7 @@ export default function NewProjectPage() {
                 value={superintendentId}
                 onChange={(e) => setSuperintendentId(e.target.value)}
               >
-                <option value="">Select superintendent...</option>
+                <option value="">{t("selectSuperintendent")}</option>
                 {members.map((m) => (
                   <option key={m.user_id} value={m.user_id}>
                     {m.user.full_name} ({m.role})
@@ -487,11 +489,11 @@ export default function NewProjectPage() {
         <div className="form-actions">
           <Link href="/projects" className="btn-secondary">
             <X size={14} />
-            Cancel
+            {t("cancel")}
           </Link>
           <button type="submit" className="btn-primary" disabled={loading}>
             <Save size={14} />
-            {loading ? "Creating..." : "Create Project"}
+            {loading ? t("creating") : t("createProject")}
           </button>
         </div>
       </form>

@@ -12,6 +12,7 @@ import {
   Save,
   Send,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils/format";
 
@@ -45,14 +46,16 @@ function defaultDueDateString(): string {
 }
 
 export default function NewInvoicePage() {
+  const t = useTranslations("financial.newInvoicePage");
   return (
-    <Suspense fallback={<div style={{ padding: "40px", textAlign: "center" }}>Loading...</div>}>
+    <Suspense fallback={<div style={{ padding: "40px", textAlign: "center" }}>{t("loading")}</div>}>
       <NewInvoiceForm />
     </Suspense>
   );
 }
 
 function NewInvoiceForm() {
+  const t = useTranslations("financial.newInvoicePage");
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialType = (searchParams.get("type") === "payable" ? "payable" : "receivable") as "payable" | "receivable";
@@ -174,10 +177,10 @@ function NewInvoiceForm() {
             }}
           >
             <ArrowLeft size={14} />
-            Back to Invoices
+            {t("backToInvoices")}
           </Link>
-          <h2>New Invoice</h2>
-          <p className="fin-header-sub">Create a new payable or receivable invoice.</p>
+          <h2>{t("title")}</h2>
+          <p className="fin-header-sub">{t("subtitle")}</p>
         </div>
       </div>
 
@@ -206,7 +209,7 @@ function NewInvoiceForm() {
             onClick={() => setInvoiceType("receivable")}
           >
             <ArrowUpRight size={20} />
-            Accounts Receivable (AR)
+            {t("accountsReceivableAr")}
           </button>
           <button
             type="button"
@@ -214,14 +217,14 @@ function NewInvoiceForm() {
             onClick={() => setInvoiceType("payable")}
           >
             <ArrowDownLeft size={20} />
-            Accounts Payable (AP)
+            {t("accountsPayableAp")}
           </button>
         </div>
 
         {/* Form Fields */}
         <div className="invoice-form-grid">
           <div className="ui-field">
-            <label className="ui-label">Invoice Number</label>
+            <label className="ui-label">{t("invoiceNumber")}</label>
             <input
               type="text"
               className="ui-input"
@@ -232,30 +235,30 @@ function NewInvoiceForm() {
 
           <div className="ui-field">
             <label className="ui-label">
-              {invoiceType === "payable" ? "Vendor Name" : "Client Name"}
+              {invoiceType === "payable" ? t("vendorName") : t("clientNameLabel")}
             </label>
             <input
               type="text"
               className="ui-input"
-              placeholder={invoiceType === "payable" ? "Enter vendor name" : "Enter client name"}
+              placeholder={invoiceType === "payable" ? t("enterVendorName") : t("enterClientName")}
               value={vendorOrClient}
               onChange={(e) => setVendorOrClient(e.target.value)}
             />
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Project ID (optional)</label>
+            <label className="ui-label">{t("projectIdOptional")}</label>
             <input
               type="text"
               className="ui-input"
-              placeholder="Enter project ID"
+              placeholder={t("enterProjectId")}
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
             />
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Tax Rate (%)</label>
+            <label className="ui-label">{t("taxRatePercent")}</label>
             <input
               type="number"
               className="ui-input"
@@ -268,7 +271,7 @@ function NewInvoiceForm() {
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Invoice Date</label>
+            <label className="ui-label">{t("invoiceDate")}</label>
             <input
               type="date"
               className="ui-input"
@@ -278,7 +281,7 @@ function NewInvoiceForm() {
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Due Date</label>
+            <label className="ui-label">{t("dueDate")}</label>
             <input
               type="date"
               className="ui-input"
@@ -288,10 +291,10 @@ function NewInvoiceForm() {
           </div>
 
           <div className="ui-field invoice-form-full">
-            <label className="ui-label">Notes</label>
+            <label className="ui-label">{t("notes")}</label>
             <textarea
               className="ui-textarea"
-              placeholder="Additional notes or payment terms..."
+              placeholder={t("notesPlaceholder")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -300,7 +303,7 @@ function NewInvoiceForm() {
 
           {/* Deferral Fields */}
           <div className="ui-field">
-            <label className="ui-label">Deferral Start Date (optional)</label>
+            <label className="ui-label">{t("deferralStartDate")}</label>
             <input
               type="date"
               className="ui-input"
@@ -310,7 +313,7 @@ function NewInvoiceForm() {
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">Deferral End Date (optional)</label>
+            <label className="ui-label">{t("deferralEndDate")}</label>
             <input
               type="date"
               className="ui-input"
@@ -323,25 +326,25 @@ function NewInvoiceForm() {
         {/* Line Items */}
         <div className="line-items-section">
           <div className="line-items-section-title">
-            <span>Line Items</span>
+            <span>{t("lineItems")}</span>
             <button
               type="button"
               className="ui-btn ui-btn-outline ui-btn-sm"
               onClick={addLineItem}
             >
               <Plus size={14} />
-              Add Line
+              {t("addLine")}
             </button>
           </div>
 
           <table className="line-items-table">
             <thead>
               <tr>
-                <th style={{ width: "35%" }}>Description</th>
-                <th>CSI Code</th>
-                <th>Qty</th>
-                <th>Unit Price</th>
-                <th style={{ textAlign: "right" }}>Amount</th>
+                <th style={{ width: "35%" }}>{t("description")}</th>
+                <th>{t("csiCode")}</th>
+                <th>{t("qty")}</th>
+                <th>{t("unitPrice")}</th>
+                <th style={{ textAlign: "right" }}>{t("amount")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -354,7 +357,7 @@ function NewInvoiceForm() {
                       <input
                         type="text"
                         className="li-input"
-                        placeholder="Item description"
+                        placeholder={t("itemDescriptionPlaceholder")}
                         value={li.description}
                         onChange={(e) =>
                           updateLineItem(li.id, "description", e.target.value)
@@ -412,7 +415,7 @@ function NewInvoiceForm() {
                         type="button"
                         className="li-remove-btn"
                         onClick={() => removeLineItem(li.id)}
-                        title="Remove line item"
+                        title={t("removeLineItem")}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -428,15 +431,15 @@ function NewInvoiceForm() {
         <div className="invoice-totals">
           <div className="invoice-totals-box">
             <div className="totals-row">
-              <span className="totals-label">Subtotal</span>
+              <span className="totals-label">{t("subtotal")}</span>
               <span className="totals-value">{formatCurrency(subtotal)}</span>
             </div>
             <div className="totals-row">
-              <span className="totals-label">Tax ({taxRate}%)</span>
+              <span className="totals-label">{t("taxLabel", { rate: taxRate })}</span>
               <span className="totals-value">{formatCurrency(taxAmount)}</span>
             </div>
             <div className="totals-row total-final">
-              <span className="totals-label">Total</span>
+              <span className="totals-label">{t("total")}</span>
               <span className="totals-value">{formatCurrency(total)}</span>
             </div>
           </div>
@@ -451,7 +454,7 @@ function NewInvoiceForm() {
             disabled={saving}
           >
             {saving ? <span className="ui-btn-spinner" /> : <Save size={16} />}
-            Save as Draft
+            {t("saveAsDraft")}
           </button>
           <button
             type="button"
@@ -460,13 +463,13 @@ function NewInvoiceForm() {
             disabled={saving}
           >
             {saving ? <span className="ui-btn-spinner" /> : <Send size={16} />}
-            Submit
+            {t("submit")}
           </button>
           <Link
             href="/financial/invoices"
             className="ui-btn ui-btn-ghost ui-btn-md"
           >
-            Cancel
+            {t("cancel")}
           </Link>
         </div>
       </div>

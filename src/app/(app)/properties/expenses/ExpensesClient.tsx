@@ -52,37 +52,29 @@ interface ExpensesClientProps {
 // Constants
 // ---------------------------------------------------------------------------
 
-const EXPENSE_TYPE_OPTIONS = [
-  { value: "cam", label: "Common Area Maintenance" },
-  { value: "property_tax", label: "Property Taxes" },
-  { value: "insurance", label: "Insurance" },
-  { value: "utilities", label: "Utilities" },
-  { value: "management_fee", label: "Management Fees" },
-  { value: "capital_expense", label: "Capital Expenditures" },
-  { value: "hoa_fee", label: "HOA / Association Fees" },
-  { value: "marketing", label: "Leasing & Marketing" },
-  { value: "legal", label: "Legal & Professional" },
-  { value: "other", label: "Other" },
+const EXPENSE_TYPE_KEYS: { value: string; labelKey: string }[] = [
+  { value: "cam", labelKey: "typeCam" },
+  { value: "property_tax", labelKey: "typePropertyTax" },
+  { value: "insurance", labelKey: "typeInsurance" },
+  { value: "utilities", labelKey: "typeUtilities" },
+  { value: "management_fee", labelKey: "typeManagementFee" },
+  { value: "capital_expense", labelKey: "typeCapitalExpense" },
+  { value: "hoa_fee", labelKey: "typeHoaFee" },
+  { value: "marketing", labelKey: "typeMarketing" },
+  { value: "legal", labelKey: "typeLegal" },
+  { value: "other", labelKey: "typeOther" },
 ];
 
-const FREQUENCY_OPTIONS = [
-  { value: "monthly", label: "Monthly" },
-  { value: "quarterly", label: "Quarterly" },
-  { value: "semi_annual", label: "Semi-Annual" },
-  { value: "annual", label: "Annual" },
-  { value: "one_time", label: "One-Time" },
+const FREQUENCY_KEYS: { value: string; labelKey: string }[] = [
+  { value: "monthly", labelKey: "freqMonthly" },
+  { value: "quarterly", labelKey: "freqQuarterly" },
+  { value: "semi_annual", labelKey: "freqSemiAnnual" },
+  { value: "annual", labelKey: "freqAnnual" },
+  { value: "one_time", labelKey: "freqOneTime" },
 ];
 
-const TYPE_LABELS: Record<string, string> = Object.fromEntries(
-  EXPENSE_TYPE_OPTIONS.map((o) => [o.value, o.label])
-);
-
-const FREQ_LABELS: Record<string, string> = Object.fromEntries(
-  FREQUENCY_OPTIONS.map((o) => [o.value, o.label])
-);
-
-function getTypeBadge(t: string): string {
-  switch (t) {
+function getTypeBadge(expType: string): string {
+  switch (expType) {
     case "cam": return "badge badge-blue";
     case "property_tax": return "badge badge-red";
     case "insurance": return "badge badge-amber";
@@ -107,22 +99,6 @@ function toMonthly(amount: number, frequency: string): number {
 }
 
 // ---------------------------------------------------------------------------
-// Import columns
-// ---------------------------------------------------------------------------
-
-const IMPORT_COLUMNS: ImportColumn[] = [
-  { key: "property_name", label: "Property Name", required: true },
-  { key: "expense_type", label: "Expense Type", required: true },
-  { key: "description", label: "Description", required: false },
-  { key: "amount", label: "Amount", required: true },
-  { key: "frequency", label: "Frequency", required: false },
-  { key: "effective_date", label: "Effective Date", required: false },
-  { key: "end_date", label: "End Date", required: false },
-  { key: "vendor_name", label: "Vendor Name", required: false },
-  { key: "notes", label: "Notes", required: false },
-];
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -130,10 +106,31 @@ export default function ExpensesClient({
   expenses,
   properties,
 }: ExpensesClientProps) {
-  const t = useTranslations("app");
+  const t = useTranslations("properties.expenses");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
   const router = useRouter();
+
+  // Build translated lookup maps
+  const TYPE_LABEL_MAP: Record<string, string> = Object.fromEntries(
+    EXPENSE_TYPE_KEYS.map((o) => [o.value, t(o.labelKey)])
+  );
+  const FREQ_LABEL_MAP: Record<string, string> = Object.fromEntries(
+    FREQUENCY_KEYS.map((o) => [o.value, t(o.labelKey)])
+  );
+
+  // Import columns (translated)
+  const IMPORT_COLUMNS: ImportColumn[] = [
+    { key: "property_name", label: t("colProperty"), required: true },
+    { key: "expense_type", label: t("colType"), required: true },
+    { key: "description", label: t("descriptionLabel"), required: false },
+    { key: "amount", label: t("colAmount"), required: true },
+    { key: "frequency", label: t("frequencyLabel"), required: false },
+    { key: "effective_date", label: t("effectiveDateLabel"), required: false },
+    { key: "end_date", label: t("endDateLabel"), required: false },
+    { key: "vendor_name", label: t("vendorNameLabel"), required: false },
+    { key: "notes", label: t("notesLabel"), required: false },
+  ];
 
   // Filters
   const [activeType, setActiveType] = useState<string>("all");
@@ -198,7 +195,7 @@ export default function ExpensesClient({
       });
       if (!res.ok) {
         const data = await res.json();
-        setCreateError(data.error || "Failed to create expense.");
+        setCreateError(data.error || t("failedToCreate"));
         return;
       }
       setShowCreate(false);
@@ -215,7 +212,7 @@ export default function ExpensesClient({
       });
       router.refresh();
     } catch {
-      setCreateError("Network error.");
+      setCreateError(t("networkError"));
     } finally {
       setCreating(false);
     }
@@ -251,14 +248,14 @@ export default function ExpensesClient({
       });
       if (!res.ok) {
         const data = await res.json();
-        setEditError(data.error || "Failed to update.");
+        setEditError(data.error || t("failedToUpdate"));
         return;
       }
       setSelected(null);
       setEditing(false);
       router.refresh();
     } catch {
-      setEditError("Network error.");
+      setEditError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -274,14 +271,14 @@ export default function ExpensesClient({
       });
       if (!res.ok) {
         const data = await res.json();
-        setDeleteError(data.error || "Failed to delete.");
+        setDeleteError(data.error || t("failedToDelete"));
         return;
       }
       setDeleteTarget(null);
       setSelected(null);
       router.refresh();
     } catch {
-      setDeleteError("Network error.");
+      setDeleteError(t("networkError"));
     } finally {
       setDeleting(false);
     }
@@ -300,7 +297,7 @@ export default function ExpensesClient({
   }
 
   function formatDate(d: string | null) {
-    if (!d) return "—";
+    if (!d) return "\u2014";
     return new Date(d).toLocaleDateString(dateLocale, {
       month: "short",
       day: "numeric",
@@ -313,17 +310,17 @@ export default function ExpensesClient({
       {/* Header */}
       <div className="fin-header">
         <div>
-          <h2>Property Expenses</h2>
+          <h2>{t("title")}</h2>
           <p className="fin-header-sub">
-            Track operating expenses across all properties: CAM, taxes, insurance, utilities, and more.
+            {t("subtitle")}
           </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn-secondary" onClick={() => setShowImport(true)}>
-            <Upload size={16} /> Import CSV
+            <Upload size={16} /> {t("importCsv")}
           </button>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
-            <Plus size={16} /> New Expense
+            <Plus size={16} /> {t("newExpense")}
           </button>
         </div>
       </div>
@@ -334,28 +331,28 @@ export default function ExpensesClient({
           <div className="fin-kpi-icon" style={{ background: "var(--color-blue-light)", color: "var(--color-blue)" }}>
             <DollarSign size={20} />
           </div>
-          <div className="fin-kpi-label">MONTHLY TOTAL</div>
+          <div className="fin-kpi-label">{t("monthlyTotal")}</div>
           <div className="fin-kpi-value">{formatCurrency(totalMonthly)}</div>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon" style={{ background: "var(--color-green-light)", color: "var(--color-green)" }}>
             <TrendingUp size={20} />
           </div>
-          <div className="fin-kpi-label">ANNUAL TOTAL</div>
+          <div className="fin-kpi-label">{t("annualTotal")}</div>
           <div className="fin-kpi-value">{formatCurrency(totalAnnual)}</div>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon" style={{ background: "var(--color-amber-light)", color: "var(--color-amber)" }}>
             <Building2 size={20} />
           </div>
-          <div className="fin-kpi-label">PROPERTIES</div>
+          <div className="fin-kpi-label">{t("properties")}</div>
           <div className="fin-kpi-value">{uniqueProperties}</div>
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon" style={{ background: "var(--color-red-light)", color: "var(--color-red)" }}>
             <Receipt size={20} />
           </div>
-          <div className="fin-kpi-label">EXPENSE TYPES</div>
+          <div className="fin-kpi-label">{t("expenseTypes")}</div>
           <div className="fin-kpi-value">{uniqueTypes}</div>
         </div>
       </div>
@@ -369,9 +366,9 @@ export default function ExpensesClient({
             value={activeType}
             onChange={(e) => setActiveType(e.target.value)}
           >
-            <option value="all">All Expense Types</option>
-            {EXPENSE_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option value="all">{t("allExpenseTypes")}</option>
+            {EXPENSE_TYPE_KEYS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
             ))}
           </select>
         </div>
@@ -383,7 +380,7 @@ export default function ExpensesClient({
               value={activeProperty}
               onChange={(e) => setActiveProperty(e.target.value)}
             >
-              <option value="all">All Properties</option>
+              <option value="all">{t("allProperties")}</option>
               {properties.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -396,9 +393,9 @@ export default function ExpensesClient({
       <div className="fin-chart-card" style={{ marginTop: 16 }}>
         {filtered.length === 0 ? (
           <div className="fin-empty">
-            <div className="fin-empty-title">No Expenses Found</div>
+            <div className="fin-empty-title">{t("noExpensesTitle")}</div>
             <div className="fin-empty-desc">
-              Add operating expenses to track your property costs.
+              {t("noExpensesDesc")}
             </div>
           </div>
         ) : (
@@ -406,31 +403,31 @@ export default function ExpensesClient({
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Property</th>
-                  <th>Type</th>
-                  <th>Description</th>
-                  <th>Vendor</th>
-                  <th>Frequency</th>
-                  <th style={{ textAlign: "right" }}>Amount</th>
-                  <th style={{ textAlign: "right" }}>Monthly Equiv.</th>
-                  <th>Effective</th>
-                  <th style={{ textAlign: "center" }}>Actions</th>
+                  <th>{t("colProperty")}</th>
+                  <th>{t("colType")}</th>
+                  <th>{t("colDescription")}</th>
+                  <th>{t("colVendor")}</th>
+                  <th>{t("colFrequency")}</th>
+                  <th style={{ textAlign: "right" }}>{t("colAmount")}</th>
+                  <th style={{ textAlign: "right" }}>{t("colMonthlyEquiv")}</th>
+                  <th>{t("colEffective")}</th>
+                  <th style={{ textAlign: "center" }}>{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((exp) => (
                   <tr key={exp.id}>
-                    <td>{exp.properties?.name ?? "—"}</td>
+                    <td>{exp.properties?.name ?? "\u2014"}</td>
                     <td>
                       <span className={getTypeBadge(exp.expense_type)}>
-                        {TYPE_LABELS[exp.expense_type] ?? exp.expense_type}
+                        {TYPE_LABEL_MAP[exp.expense_type] ?? exp.expense_type}
                       </span>
                     </td>
-                    <td>{exp.description || "—"}</td>
-                    <td>{exp.vendor_name || "—"}</td>
+                    <td>{exp.description || "\u2014"}</td>
+                    <td>{exp.vendor_name || "\u2014"}</td>
                     <td>
                       <span className="inv-status inv-status-draft">
-                        {FREQ_LABELS[exp.frequency] ?? exp.frequency}
+                        {FREQ_LABEL_MAP[exp.frequency] ?? exp.frequency}
                       </span>
                     </td>
                     <td className="amount-col">{formatCurrency(exp.amount)}</td>
@@ -440,7 +437,7 @@ export default function ExpensesClient({
                       <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
                         <button
                           className="btn-icon"
-                          title="Edit"
+                          title={t("editTooltip")}
                           onClick={() => openEdit(exp)}
                           style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-blue)", padding: 4 }}
                         >
@@ -448,7 +445,7 @@ export default function ExpensesClient({
                         </button>
                         <button
                           className="btn-icon"
-                          title="Delete"
+                          title={t("deleteTooltip")}
                           onClick={() => setDeleteTarget(exp)}
                           style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-red)", padding: 4 }}
                         >
@@ -469,7 +466,7 @@ export default function ExpensesClient({
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>New Property Expense</h3>
+              <h3>{t("newPropertyExpense")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}>
                 <X size={18} />
               </button>
@@ -477,44 +474,44 @@ export default function ExpensesClient({
             <form className="ticket-form" onSubmit={handleCreate}>
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Property *</label>
+                  <label className="ticket-form-label">{t("propertyRequired")}</label>
                   <select
                     className="ticket-form-select"
                     value={createForm.property_id}
                     onChange={(e) => setCreateForm({ ...createForm, property_id: e.target.value })}
                     required
                   >
-                    <option value="">Select property...</option>
+                    <option value="">{t("selectProperty")}</option>
                     {properties.map((p) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Expense Type *</label>
+                  <label className="ticket-form-label">{t("expenseTypeRequired")}</label>
                   <select
                     className="ticket-form-select"
                     value={createForm.expense_type}
                     onChange={(e) => setCreateForm({ ...createForm, expense_type: e.target.value })}
                   >
-                    {EXPENSE_TYPE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                    {EXPENSE_TYPE_KEYS.map((o) => (
+                      <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Description</label>
+                <label className="ticket-form-label">{t("descriptionLabel")}</label>
                 <input
                   className="ticket-form-input"
                   value={createForm.description}
                   onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                  placeholder="e.g., Annual property insurance premium"
+                  placeholder={t("descriptionPlaceholder")}
                 />
               </div>
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Amount *</label>
+                  <label className="ticket-form-label">{t("amountRequired")}</label>
                   <input
                     className="ticket-form-input"
                     type="number"
@@ -526,21 +523,21 @@ export default function ExpensesClient({
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Frequency</label>
+                  <label className="ticket-form-label">{t("frequencyLabel")}</label>
                   <select
                     className="ticket-form-select"
                     value={createForm.frequency}
                     onChange={(e) => setCreateForm({ ...createForm, frequency: e.target.value })}
                   >
-                    {FREQUENCY_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                    {FREQUENCY_KEYS.map((o) => (
+                      <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Effective Date</label>
+                  <label className="ticket-form-label">{t("effectiveDateLabel")}</label>
                   <input
                     className="ticket-form-input"
                     type="date"
@@ -549,7 +546,7 @@ export default function ExpensesClient({
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">End Date</label>
+                  <label className="ticket-form-label">{t("endDateLabel")}</label>
                   <input
                     className="ticket-form-input"
                     type="date"
@@ -559,16 +556,16 @@ export default function ExpensesClient({
                 </div>
               </div>
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Vendor Name</label>
+                <label className="ticket-form-label">{t("vendorNameLabel")}</label>
                 <input
                   className="ticket-form-input"
                   value={createForm.vendor_name}
                   onChange={(e) => setCreateForm({ ...createForm, vendor_name: e.target.value })}
-                  placeholder="e.g., State Farm Commercial"
+                  placeholder={t("vendorNamePlaceholder")}
                 />
               </div>
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Notes</label>
+                <label className="ticket-form-label">{t("notesLabel")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   rows={2}
@@ -579,10 +576,10 @@ export default function ExpensesClient({
               {createError && <div className="ticket-form-error">{createError}</div>}
               <div className="ticket-form-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button type="submit" className="btn-primary" disabled={creating}>
-                  {creating ? "Creating..." : "Create Expense"}
+                  {creating ? t("creating") : t("createExpense")}
                 </button>
               </div>
             </form>
@@ -595,7 +592,7 @@ export default function ExpensesClient({
         <div className="ticket-modal-overlay" onClick={() => { setEditing(false); setSelected(null); }}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ticket-modal-header">
-              <h3>Edit Expense</h3>
+              <h3>{t("editExpense")}</h3>
               <button className="ticket-modal-close" onClick={() => { setEditing(false); setSelected(null); }}>
                 <X size={18} />
               </button>
@@ -603,7 +600,7 @@ export default function ExpensesClient({
             <form className="ticket-form" onSubmit={handleSaveEdit}>
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Property *</label>
+                  <label className="ticket-form-label">{t("propertyRequired")}</label>
                   <select
                     className="ticket-form-select"
                     value={editForm.property_id}
@@ -616,20 +613,20 @@ export default function ExpensesClient({
                   </select>
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Expense Type *</label>
+                  <label className="ticket-form-label">{t("expenseTypeRequired")}</label>
                   <select
                     className="ticket-form-select"
                     value={editForm.expense_type}
                     onChange={(e) => setEditForm({ ...editForm, expense_type: e.target.value })}
                   >
-                    {EXPENSE_TYPE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                    {EXPENSE_TYPE_KEYS.map((o) => (
+                      <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Description</label>
+                <label className="ticket-form-label">{t("descriptionLabel")}</label>
                 <input
                   className="ticket-form-input"
                   value={editForm.description}
@@ -638,7 +635,7 @@ export default function ExpensesClient({
               </div>
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Amount *</label>
+                  <label className="ticket-form-label">{t("amountRequired")}</label>
                   <input
                     className="ticket-form-input"
                     type="number"
@@ -649,21 +646,21 @@ export default function ExpensesClient({
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Frequency</label>
+                  <label className="ticket-form-label">{t("frequencyLabel")}</label>
                   <select
                     className="ticket-form-select"
                     value={editForm.frequency}
                     onChange={(e) => setEditForm({ ...editForm, frequency: e.target.value })}
                   >
-                    {FREQUENCY_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                    {FREQUENCY_KEYS.map((o) => (
+                      <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">Effective Date</label>
+                  <label className="ticket-form-label">{t("effectiveDateLabel")}</label>
                   <input
                     className="ticket-form-input"
                     type="date"
@@ -672,7 +669,7 @@ export default function ExpensesClient({
                   />
                 </div>
                 <div className="ticket-form-group">
-                  <label className="ticket-form-label">End Date</label>
+                  <label className="ticket-form-label">{t("endDateLabel")}</label>
                   <input
                     className="ticket-form-input"
                     type="date"
@@ -682,7 +679,7 @@ export default function ExpensesClient({
                 </div>
               </div>
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Vendor Name</label>
+                <label className="ticket-form-label">{t("vendorNameLabel")}</label>
                 <input
                   className="ticket-form-input"
                   value={editForm.vendor_name}
@@ -690,7 +687,7 @@ export default function ExpensesClient({
                 />
               </div>
               <div className="ticket-form-group">
-                <label className="ticket-form-label">Notes</label>
+                <label className="ticket-form-label">{t("notesLabel")}</label>
                 <textarea
                   className="ticket-form-textarea"
                   rows={2}
@@ -701,10 +698,10 @@ export default function ExpensesClient({
               {editError && <div className="ticket-form-error">{editError}</div>}
               <div className="ticket-form-actions">
                 <button type="button" className="btn-secondary" onClick={() => { setEditing(false); setSelected(null); }}>
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button type="submit" className="btn-primary" disabled={saving}>
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? t("saving") : t("saveChanges")}
                 </button>
               </div>
             </form>
@@ -717,24 +714,25 @@ export default function ExpensesClient({
         <div className="ticket-modal-overlay" onClick={() => setDeleteTarget(null)}>
           <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
             <div className="ticket-modal-header">
-              <h3>Delete Expense</h3>
+              <h3>{t("deleteExpense")}</h3>
               <button className="ticket-modal-close" onClick={() => setDeleteTarget(null)}>
                 <X size={18} />
               </button>
             </div>
             <div style={{ padding: "16px 24px" }}>
               <p>
-                Are you sure you want to delete this{" "}
-                <strong>{TYPE_LABELS[deleteTarget.expense_type] ?? deleteTarget.expense_type}</strong>{" "}
-                expense of <strong>{formatCurrency(deleteTarget.amount)}</strong>?
+                {t("deleteConfirm", {
+                  type: TYPE_LABEL_MAP[deleteTarget.expense_type] ?? deleteTarget.expense_type,
+                  amount: formatCurrency(deleteTarget.amount),
+                })}
               </p>
               <p style={{ color: "var(--muted)", fontSize: "0.85rem", marginTop: 8 }}>
-                This action cannot be undone.
+                {t("deleteWarning")}
               </p>
               {deleteError && <div className="ticket-form-error" style={{ marginTop: 8 }}>{deleteError}</div>}
               <div className="ticket-form-actions" style={{ marginTop: 16 }}>
                 <button className="btn-secondary" onClick={() => setDeleteTarget(null)}>
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   className="btn-primary"
@@ -742,7 +740,7 @@ export default function ExpensesClient({
                   onClick={handleDelete}
                   disabled={deleting}
                 >
-                  {deleting ? "Deleting..." : "Delete"}
+                  {deleting ? t("deleting") : t("delete")}
                 </button>
               </div>
             </div>

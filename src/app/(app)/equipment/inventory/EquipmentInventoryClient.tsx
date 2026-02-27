@@ -507,8 +507,8 @@ export default function EquipmentInventoryClient({
                 <th>{t("labelCurrentProject")}</th>
                 <th>{t("labelAssignedTo")}</th>
                 <th>{t("labelNextMaintenance")}</th>
-                <th>Cost</th>
-                <th>JE</th>
+                <th>{t("cost")}</th>
+                <th>{t("jeColumnHeader")}</th>
               </tr>
             </thead>
             <tbody>

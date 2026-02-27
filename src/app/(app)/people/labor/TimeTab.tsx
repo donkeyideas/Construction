@@ -535,7 +535,7 @@ export default function TimeTab({
                       <th style={{ textAlign: "left" }}>{t("employee")}</th>
                       <th style={{ textAlign: "left" }}>{t("project")}</th>
                       <th>{t("hours")}</th>
-                      <th>Cost</th>
+                      <th>{t("cost")}</th>
                       <th>{t("costCode")}</th>
                       <th style={{ textAlign: "left", minWidth: 200 }}>{t("description")}</th>
                       <th>{t("status")}</th>

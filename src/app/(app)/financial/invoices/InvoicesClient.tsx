@@ -310,7 +310,7 @@ export default function InvoicesClient({
                   <th style={{ textAlign: "right" }}>{t("amount")}</th>
                   <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
                   <th>{t("status")}</th>
-                  <th>JE</th>
+                  <th>{t("jeColumnHeader")}</th>
                 </tr>
               </thead>
               <tbody>

@@ -254,13 +254,13 @@ export default function ARClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete invoice");
+        throw new Error(data.error || t("failedToDeleteInvoice"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to delete");
+      setSaveError(err instanceof Error ? err.message : t("failedToDelete"));
     } finally {
       setSaving(false);
     }
@@ -347,9 +347,8 @@ export default function ARClient({
         }}>
           <AlertCircle size={16} />
           <span>
-            <strong>GL Mismatch:</strong> The General Ledger shows AR of {formatCurrency(glBalance)} but the invoice subledger shows {formatCurrency(totalArBalance)}.
-            Difference: {formatCurrency(Math.abs(glBalance - totalArBalance))}.
-            <a href="/financial/audit" style={{ marginLeft: "0.5rem", textDecoration: "underline" }}>Run Audit</a>
+            {t("glMismatchAr", { glBalance: formatCurrency(glBalance), subledgerBalance: formatCurrency(totalArBalance), difference: formatCurrency(Math.abs(glBalance - totalArBalance)) })}
+            <a href="/financial/audit" style={{ marginLeft: "0.5rem", textDecoration: "underline" }}>{t("runAudit")}</a>
           </span>
         </div>
       )}
@@ -387,7 +386,7 @@ export default function ARClient({
                   <th style={{ textAlign: "right" }}>{t("amount")}</th>
                   <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
                   <th>{t("status")}</th>
-                  <th>JE</th>
+                  <th>{t("jeColumnHeader")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -506,7 +505,7 @@ export default function ARClient({
                 }}>
                   <p style={{ fontSize: "0.85rem", marginBottom: 12 }}>
                     {deleteMode === "hard"
-                      ? "This will permanently delete this invoice and all associated journal entries. This cannot be undone."
+                      ? t("hardDeleteInvoiceConfirm")
                       : t("voidInvoiceConfirmGeneric")}
                   </p>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
@@ -524,7 +523,7 @@ export default function ARClient({
                       disabled={saving}
                     >
                       {saving ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
-                      {saving ? (deleteMode === "hard" ? "Deleting..." : t("voiding")) : (deleteMode === "hard" ? "Delete Permanently" : t("voidInvoice"))}
+                      {saving ? (deleteMode === "hard" ? t("deleting") : t("voiding")) : (deleteMode === "hard" ? t("deletePermanently") : t("voidInvoice"))}
                     </button>
                   </div>
                 </div>
@@ -610,7 +609,7 @@ export default function ARClient({
                           style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Trash2 size={14} />
-                          Delete
+                          {t("delete")}
                         </button>
                       )}
                     </div>

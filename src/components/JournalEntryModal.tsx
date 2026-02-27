@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { formatCurrency } from "@/lib/utils/format";
 
 interface JELine {
@@ -41,6 +42,7 @@ function formatDate(iso: string): string {
 }
 
 export default function JournalEntryModal({ jeId, jeNumber, isOpen, onClose }: Props) {
+  const t = useTranslations("common");
   const [data, setData] = useState<JEDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -51,7 +53,7 @@ export default function JournalEntryModal({ jeId, jeNumber, isOpen, onClose }: P
     setError("");
     fetch(`/api/financial/journal-entry/${jeId}`)
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to load");
+        if (!res.ok) throw new Error("Failed to load journal entry");
         return res.json();
       })
       .then((d) => setData(d))
@@ -69,11 +71,11 @@ export default function JournalEntryModal({ jeId, jeNumber, isOpen, onClose }: P
       <div className="je-modal" onClick={(e) => e.stopPropagation()}>
         <div className="je-modal-header">
           <div>
-            <h3>Journal Entry {jeNumber}</h3>
+            <h3>{t("journalEntry.title", { number: jeNumber })}</h3>
             {data && (
               <p className="je-modal-sub">
                 {formatDate(data.entry_date)} &bull; {data.status}
-                {data.reference && ` \u2022 Ref: ${data.reference}`}
+                {data.reference && ` \u2022 ${t("journalEntry.ref", { reference: data.reference })}`}
               </p>
             )}
           </div>
@@ -86,18 +88,18 @@ export default function JournalEntryModal({ jeId, jeNumber, isOpen, onClose }: P
           <p className="je-modal-desc">{data.description}</p>
         )}
 
-        {loading && <div className="je-modal-loading">Loading...</div>}
-        {error && <div className="je-modal-error">{error}</div>}
+        {loading && <div className="je-modal-loading">{t("journalEntry.loading")}</div>}
+        {error && <div className="je-modal-error">{t("journalEntry.error")}</div>}
 
         {data && (
           <div className="je-modal-table-wrap">
             <table className="invoice-table je-modal-table">
               <thead>
                 <tr>
-                  <th>Account</th>
-                  <th>Description</th>
-                  <th style={{ textAlign: "right" }}>Debit</th>
-                  <th style={{ textAlign: "right" }}>Credit</th>
+                  <th>{t("journalEntry.account")}</th>
+                  <th>{t("journalEntry.description")}</th>
+                  <th style={{ textAlign: "right" }}>{t("journalEntry.debit")}</th>
+                  <th style={{ textAlign: "right" }}>{t("journalEntry.credit")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,7 +122,7 @@ export default function JournalEntryModal({ jeId, jeNumber, isOpen, onClose }: P
               </tbody>
               <tfoot>
                 <tr className="je-modal-totals">
-                  <td colSpan={2} style={{ fontWeight: 600 }}>Totals</td>
+                  <td colSpan={2} style={{ fontWeight: 600 }}>{t("journalEntry.totals")}</td>
                   <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-red)" }}>
                     {formatCurrency(totalDebit)}
                   </td>

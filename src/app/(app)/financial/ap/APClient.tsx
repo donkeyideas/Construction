@@ -284,13 +284,13 @@ export default function APClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to delete bill");
+        throw new Error(data.error || t("failedToDeleteBill"));
       }
 
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to delete");
+      setSaveError(err instanceof Error ? err.message : t("failedToDelete"));
     } finally {
       setSaving(false);
     }
@@ -377,9 +377,8 @@ export default function APClient({
         }}>
           <AlertCircle size={16} />
           <span>
-            <strong>GL Mismatch:</strong> The General Ledger shows AP of {formatCurrency(glBalance)} but the invoice subledger shows {formatCurrency(totalApBalance)}.
-            Difference: {formatCurrency(Math.abs(glBalance - totalApBalance))}.
-            <a href="/financial/audit" style={{ marginLeft: "0.5rem", textDecoration: "underline" }}>Run Audit</a>
+            {t("glMismatchAp", { glBalance: formatCurrency(glBalance), subledgerBalance: formatCurrency(totalApBalance), difference: formatCurrency(Math.abs(glBalance - totalApBalance)) })}
+            <a href="/financial/audit" style={{ marginLeft: "0.5rem", textDecoration: "underline" }}>{t("runAudit")}</a>
           </span>
         </div>
       )}
@@ -419,7 +418,7 @@ export default function APClient({
                       <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
                       <th>{t("aging")}</th>
                       <th>{t("status")}</th>
-                      <th>JE</th>
+                      <th>{t("jeColumnHeader")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -553,7 +552,7 @@ export default function APClient({
                 }}>
                   <p style={{ fontSize: "0.85rem", marginBottom: 12 }}>
                     {deleteMode === "hard"
-                      ? "This will permanently delete this bill and all associated journal entries. This cannot be undone."
+                      ? t("hardDeleteBillConfirm")
                       : t("voidBillConfirm")}
                   </p>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
@@ -571,7 +570,7 @@ export default function APClient({
                       disabled={saving}
                     >
                       {saving ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
-                      {saving ? (deleteMode === "hard" ? "Deleting..." : t("voiding")) : (deleteMode === "hard" ? "Delete Permanently" : t("voidBill"))}
+                      {saving ? (deleteMode === "hard" ? t("deleting") : t("voiding")) : (deleteMode === "hard" ? t("deletePermanently") : t("voidBill"))}
                     </button>
                   </div>
                 </div>
@@ -661,7 +660,7 @@ export default function APClient({
                           style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
                         >
                           <Trash2 size={14} />
-                          Delete
+                          {t("delete")}
                         </button>
                       )}
                     </div>

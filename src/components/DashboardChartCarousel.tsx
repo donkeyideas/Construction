@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ARAPAgingChart from "@/components/charts/ARAPAgingChart";
@@ -40,27 +41,29 @@ interface Props {
 }
 
 function SafetyKPISummary({ data }: { data: Props["safetyKPIs"] }) {
+  const t = useTranslations("common");
   return (
     <div className="dash-safety-kpi-grid">
       <div className="dash-safety-kpi">
         <span className="dash-safety-kpi-value">{data.incidentsYTD}</span>
-        <span className="dash-safety-kpi-label">Incidents YTD</span>
+        <span className="dash-safety-kpi-label">{t("charts.incidentsYTD")}</span>
       </div>
       <div className="dash-safety-kpi">
         <span className="dash-safety-kpi-value">
-          {data.daysSinceLastIncident >= 999 ? "N/A" : data.daysSinceLastIncident}
+          {data.daysSinceLastIncident >= 999 ? t("charts.na") : data.daysSinceLastIncident}
         </span>
-        <span className="dash-safety-kpi-label">Days Since Last</span>
+        <span className="dash-safety-kpi-label">{t("charts.daysSinceLast")}</span>
       </div>
       <div className="dash-safety-kpi">
         <span className="dash-safety-kpi-value">{data.oshaRecordableCount}</span>
-        <span className="dash-safety-kpi-label">OSHA Recordable</span>
+        <span className="dash-safety-kpi-label">{t("charts.oshaRecordable")}</span>
       </div>
     </div>
   );
 }
 
 export default function DashboardChartCarousel(props: Props) {
+  const t = useTranslations("common");
   const {
     agingData,
     cashFlowData,
@@ -84,25 +87,25 @@ export default function DashboardChartCarousel(props: Props) {
   });
 
   const financialCharts: SubChart[] = [
-    { label: "AR/AP Aging", component: <ARAPAgingChart data={agingData} /> },
-    { label: "Cash Flow", component: <CashFlowChart data={cashFlowData} /> },
-    { label: "Income vs Expenses", component: <IncomeExpensesChart data={monthlyIncomeExpenses} /> },
+    { label: t("charts.arapAging"), component: <ARAPAgingChart data={agingData} /> },
+    { label: t("charts.cashFlow"), component: <CashFlowChart data={cashFlowData} /> },
+    { label: t("charts.incomeVsExpenses"), component: <IncomeExpensesChart data={monthlyIncomeExpenses} /> },
   ];
 
   const schedulingCharts: SubChart[] = [
-    { label: "Budget vs Actual", component: <ProjectBudgetChart data={budgetProjects} height={220} /> },
-    { label: "Completion Rate", component: <ProjectCompletionChart data={projectCompletionData} /> },
+    { label: t("charts.budgetVsActual"), component: <ProjectBudgetChart data={budgetProjects} height={220} /> },
+    { label: t("charts.completionRate"), component: <ProjectCompletionChart data={projectCompletionData} /> },
   ];
 
   const operationsCharts: SubChart[] = [
-    { label: "Incident Trend", component: <IncidentTrendChart data={incidentTrend} /> },
-    { label: "Incident Types", component: <IncidentTypeChart data={incidentTypeBreakdown} /> },
-    { label: "Safety KPIs", component: <SafetyKPISummary data={safetyKPIs} /> },
+    { label: t("charts.incidentTrend"), component: <IncidentTrendChart data={incidentTrend} /> },
+    { label: t("charts.incidentTypes"), component: <IncidentTypeChart data={incidentTypeBreakdown} /> },
+    { label: t("charts.safetyKPIs"), component: <SafetyKPISummary data={safetyKPIs} /> },
   ];
 
   const equipmentCharts: SubChart[] = [
-    { label: "By Type", component: <EquipmentTypeChart data={equipmentTypeBreakdown} /> },
-    { label: "Status", component: <EquipmentStatusChart data={equipmentStatusBreakdown} total={equipmentTotal} /> },
+    { label: t("charts.byType"), component: <EquipmentTypeChart data={equipmentTypeBreakdown} /> },
+    { label: t("charts.status"), component: <EquipmentStatusChart data={equipmentStatusBreakdown} total={equipmentTotal} /> },
   ];
 
   const defaultTab = showFinancials ? "financial" : "scheduling";
@@ -126,7 +129,7 @@ export default function DashboardChartCarousel(props: Props) {
               <button
                 className="dash-subchart-arrow"
                 onClick={() => navigate(tabKey, charts, -1)}
-                aria-label="Previous chart"
+                aria-label={t("charts.previousChart")}
               >
                 <ChevronLeft size={14} />
               </button>
@@ -144,7 +147,7 @@ export default function DashboardChartCarousel(props: Props) {
               <button
                 className="dash-subchart-arrow"
                 onClick={() => navigate(tabKey, charts, 1)}
-                aria-label="Next chart"
+                aria-label={t("charts.nextChart")}
               >
                 <ChevronRight size={14} />
               </button>
@@ -161,10 +164,10 @@ export default function DashboardChartCarousel(props: Props) {
   return (
     <Tabs defaultValue={defaultTab}>
       <TabsList>
-        {showFinancials && <TabsTrigger value="financial">Financial Health</TabsTrigger>}
-        <TabsTrigger value="scheduling">Schedule & Progress</TabsTrigger>
-        <TabsTrigger value="operations">Operations & Risk</TabsTrigger>
-        <TabsTrigger value="equipment">Procurement & Equipment</TabsTrigger>
+        {showFinancials && <TabsTrigger value="financial">{t("charts.financialHealth")}</TabsTrigger>}
+        <TabsTrigger value="scheduling">{t("charts.scheduleProgress")}</TabsTrigger>
+        <TabsTrigger value="operations">{t("charts.operationsRisk")}</TabsTrigger>
+        <TabsTrigger value="equipment">{t("charts.procurementEquipment")}</TabsTrigger>
       </TabsList>
 
       {showFinancials && (

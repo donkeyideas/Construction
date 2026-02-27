@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Upload, X, Download, AlertTriangle, CheckCircle } from "lucide-react";
 import {
   parseCSV,
@@ -39,6 +40,7 @@ export default function ImportModal({
   selectedProjectId,
   onProjectChange,
 }: ImportModalProps) {
+  const t = useTranslations("common");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -63,7 +65,7 @@ export default function ImportModal({
 
   const handleFileSelect = async (file: File) => {
     if (!file.name.toLowerCase().endsWith(".csv")) {
-      setError("Please upload a CSV file (.csv)");
+      setError(t("import.errorNotCsv"));
       return;
     }
 
@@ -73,12 +75,12 @@ export default function ImportModal({
       const parsed = parseCSV(text);
 
       if (parsed.headers.length === 0) {
-        setError("CSV file appears to be empty");
+        setError(t("import.errorEmpty"));
         return;
       }
 
       if (parsed.rows.length === 0) {
-        setError("CSV file has headers but no data rows");
+        setError(t("import.errorNoRows"));
         return;
       }
 
@@ -96,7 +98,7 @@ export default function ImportModal({
 
       setStep("preview");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to read file");
+      setError(err instanceof Error ? err.message : t("import.errorReadFailed"));
     }
   };
 
@@ -127,7 +129,7 @@ export default function ImportModal({
       const { data, errors } = mapRowsToObjects(headers, rows, columns, columnMapping);
 
       if (data.length === 0) {
-        setError("No valid rows to import. Please fix the errors and try again.");
+        setError(t("import.errorNoValidRows"));
         setStep("preview");
         return;
       }
@@ -136,7 +138,7 @@ export default function ImportModal({
       setImportResult(result);
       setStep("done");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Import failed");
+      setError(err instanceof Error ? err.message : t("import.errorImportFailed"));
       setStep("preview");
     }
   };
@@ -166,7 +168,7 @@ export default function ImportModal({
     >
       <div className="ticket-modal" style={{ maxWidth: "680px" }}>
         <div className="ticket-modal-header">
-          <h3>Import {entityName}</h3>
+          <h3>{t("import.title", { entity: entityName })}</h3>
           <button className="ticket-modal-close" onClick={onClose}>
             <X size={18} />
           </button>
@@ -184,7 +186,7 @@ export default function ImportModal({
                 style={{ fontSize: "0.85rem" }}
               >
                 <Download size={14} />
-                Download CSV Template
+                {t("import.downloadTemplate")}
               </button>
             </div>
 
@@ -214,7 +216,7 @@ export default function ImportModal({
                   style={{ color: "var(--muted)", marginBottom: "8px" }}
                 />
                 <div style={{ fontWeight: 500 }}>
-                  Drop CSV file here or click to browse
+                  {t("import.dropFile")}
                 </div>
                 <div
                   style={{
@@ -223,14 +225,14 @@ export default function ImportModal({
                     marginTop: "4px",
                   }}
                 >
-                  Accepts .csv files
+                  {t("import.acceptsCsv")}
                 </div>
               </div>
             </div>
 
             <div className="ticket-form-actions" style={{ marginTop: "16px" }}>
               <button className="btn btn-ghost" onClick={onClose}>
-                Cancel
+                {t("import.cancel")}
               </button>
             </div>
           </div>
@@ -240,15 +242,16 @@ export default function ImportModal({
         {step === "preview" && (
           <div>
             <div style={{ marginBottom: "12px", fontSize: "0.85rem", color: "var(--muted)" }}>
-              File: <strong>{fileName}</strong> — {rows.length} row{rows.length !== 1 ? "s" : ""} found
+              {t("import.fileInfo", { fileName, rowCount: rows.length })}
             </div>
 
             {/* Project Picker (for project-scoped imports) */}
             {projects && projects.length > 0 && onProjectChange && (
               <div style={{ marginBottom: "16px" }}>
                 <div style={{ fontWeight: 600, marginBottom: "8px", fontSize: "0.9rem" }}>
-                  Target Project {csvHasProjectColumn
-                    ? <span style={{ color: "var(--muted)", fontWeight: 400, fontSize: "0.8rem" }}>(optional — CSV has project_name column)</span>
+                  {t("import.targetProject")}{" "}
+                  {csvHasProjectColumn
+                    ? <span style={{ color: "var(--muted)", fontWeight: 400, fontSize: "0.8rem" }}>({t("import.targetProjectOptional")})</span>
                     : <span style={{ color: "var(--color-red)" }}>*</span>}
                 </div>
                 <select
@@ -256,7 +259,7 @@ export default function ImportModal({
                   value={selectedProjectId || ""}
                   onChange={(e) => onProjectChange(e.target.value)}
                 >
-                  <option value="">Select a project...</option>
+                  <option value="">{t("import.selectProject")}</option>
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.code ? `${p.code} - ` : ""}{p.name}
@@ -269,7 +272,7 @@ export default function ImportModal({
             {/* Column Mapping */}
             <div style={{ marginBottom: "16px" }}>
               <div style={{ fontWeight: 600, marginBottom: "8px", fontSize: "0.9rem" }}>
-                Column Mapping
+                {t("import.columnMapping")}
               </div>
               <div className="import-mapping-grid">
                 {columns.map((col) => (
@@ -285,7 +288,7 @@ export default function ImportModal({
                         handleMappingChange(col.key, parseInt(e.target.value))
                       }
                     >
-                      <option value={-1}>— Skip —</option>
+                      <option value={-1}>{t("import.skip")}</option>
                       {headers.map((h, idx) => (
                         <option key={idx} value={idx}>
                           {h}
@@ -300,7 +303,7 @@ export default function ImportModal({
             {/* Data Preview (first 5 rows) */}
             <div style={{ marginBottom: "16px" }}>
               <div style={{ fontWeight: 600, marginBottom: "8px", fontSize: "0.9rem" }}>
-                Preview (first 5 rows)
+                {t("import.previewRows")}
               </div>
               <div style={{ overflowX: "auto" }}>
                 <table className="import-preview-table">
@@ -336,7 +339,7 @@ export default function ImportModal({
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
                   <AlertTriangle size={16} style={{ color: "var(--color-amber)" }} />
                   <span style={{ fontWeight: 600 }}>
-                    {validationErrors.length} validation warning{validationErrors.length !== 1 ? "s" : ""}
+                    {t("import.validationWarnings", { count: validationErrors.length })}
                   </span>
                 </div>
                 <div style={{ maxHeight: "120px", overflowY: "auto", fontSize: "0.85rem" }}>
@@ -347,7 +350,7 @@ export default function ImportModal({
                   ))}
                   {validationErrors.length > 10 && (
                     <div style={{ color: "var(--muted)" }}>
-                      ...and {validationErrors.length - 10} more
+                      {t("import.andMore", { count: validationErrors.length - 10 })}
                     </div>
                   )}
                 </div>
@@ -356,13 +359,13 @@ export default function ImportModal({
 
             {requiredUnmapped.length > 0 && (
               <div className="ticket-form-error">
-                Missing required columns: {requiredUnmapped.map((c) => c.label).join(", ")}
+                {t("import.missingRequired", { columns: requiredUnmapped.map((c) => c.label).join(", ") })}
               </div>
             )}
 
             {projectRequired && (
               <div className="ticket-form-error">
-                Please select a target project above
+                {t("import.selectProjectRequired")}
               </div>
             )}
 
@@ -375,14 +378,14 @@ export default function ImportModal({
                   setRows([]);
                 }}
               >
-                Back
+                {t("import.back")}
               </button>
               <button
                 className="btn btn-primary"
                 onClick={handleImport}
                 disabled={requiredUnmapped.length > 0 || !!projectRequired}
               >
-                Import {rows.length - validationErrors.length} Row{rows.length - validationErrors.length !== 1 ? "s" : ""}
+                {t("import.importRows", { count: rows.length - validationErrors.length })}
               </button>
             </div>
           </div>
@@ -395,9 +398,9 @@ export default function ImportModal({
               className="import-spinner"
               style={{ margin: "0 auto 16px" }}
             />
-            <div style={{ fontWeight: 500 }}>Importing {entityName}...</div>
+            <div style={{ fontWeight: 500 }}>{t("import.importing", { entity: entityName })}</div>
             <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginTop: "4px" }}>
-              Please wait, this may take a moment.
+              {t("import.pleaseWait")}
             </div>
           </div>
         )}
@@ -410,19 +413,16 @@ export default function ImportModal({
               style={{ color: "var(--color-green)", marginBottom: "16px" }}
             />
             <div style={{ fontWeight: 600, fontSize: "1.1rem", marginBottom: "8px" }}>
-              Import Complete
+              {t("import.complete")}
             </div>
             <div style={{ marginBottom: "16px" }}>
-              <span style={{ color: "var(--color-green)", fontWeight: 600 }}>
-                {importResult.success}
-              </span>{" "}
-              {entityName.toLowerCase()} imported successfully.
+              {t("import.successCount", { count: importResult.success, entity: entityName.toLowerCase() })}
             </div>
 
             {importResult.errors.length > 0 && (
               <div className="import-validation-errors" style={{ textAlign: "left" }}>
                 <div style={{ fontWeight: 600, marginBottom: "4px" }}>
-                  {importResult.errors.length} error{importResult.errors.length !== 1 ? "s" : ""}:
+                  {t("import.errorCount", { count: importResult.errors.length })}
                 </div>
                 {importResult.errors.slice(0, 5).map((err, i) => (
                   <div key={i} style={{ fontSize: "0.85rem", color: "var(--color-red)" }}>
@@ -434,7 +434,7 @@ export default function ImportModal({
 
             <div className="ticket-form-actions" style={{ marginTop: "20px" }}>
               <button className="btn btn-primary" onClick={onClose}>
-                Done
+                {t("import.done")}
               </button>
             </div>
           </div>

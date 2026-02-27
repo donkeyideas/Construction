@@ -521,7 +521,7 @@ export default function ContractsClient({
                 <th>{t("status")}</th>
                 <th>{t("startDate")}</th>
                 <th>{t("endDate")}</th>
-                <th>JE</th>
+                <th>{t("jeColumnHeader")}</th>
               </tr>
             </thead>
             <tbody>

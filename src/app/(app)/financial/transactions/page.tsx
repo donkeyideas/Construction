@@ -3,6 +3,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getFinancialTransactions } from "@/lib/queries/section-transactions";
 import { DollarSign } from "lucide-react";
 import SectionTransactions from "@/components/SectionTransactions";
+import { getTranslations } from "next-intl/server";
 
 export const metadata = {
   title: "Financial Transactions - Buildwrk",
@@ -11,13 +12,14 @@ export const metadata = {
 export default async function FinancialTransactionsPage() {
   const supabase = await createClient();
   const userCompany = await getCurrentUserCompany(supabase);
+  const t = await getTranslations("financial");
 
   if (!userCompany) {
     return (
       <div className="fin-empty">
         <div className="fin-empty-icon"><DollarSign size={48} /></div>
-        <div className="fin-empty-title">No Company Found</div>
-        <div className="fin-empty-desc">Please complete registration to access financial transactions.</div>
+        <div className="fin-empty-title">{t("noCompanyFound")}</div>
+        <div className="fin-empty-desc">{t("completeRegistration")}</div>
       </div>
     );
   }
@@ -28,9 +30,9 @@ export default async function FinancialTransactionsPage() {
     <div>
       <div className="fin-header">
         <div>
-          <h2>Financial Transactions</h2>
+          <h2>{t("transactionsTitle")}</h2>
           <p className="fin-header-sub">
-            All posted journal entry lines — the master ledger of every financial movement.
+            {t("transactionsSubtitle")}
           </p>
         </div>
       </div>

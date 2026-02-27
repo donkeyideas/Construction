@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Clock,
   LogIn,
@@ -47,6 +48,7 @@ function fmtCost(hours: number, rate: number | undefined): string {
 }
 
 export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
+  const t = useTranslations("people");
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeActivity | null>(null);
   const [filter, setFilter] = useState<"all" | "clocked_in" | "clocked_out" | "no_activity">("all");
 
@@ -80,21 +82,21 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
         return (
           <span className="inv-status inv-status-paid">
             <CheckCircle size={12} />
-            Clocked In
+            {t("clockedIn")}
           </span>
         );
       case "clocked_out":
         return (
           <span className="inv-status inv-status-pending">
             <MinusCircle size={12} />
-            Clocked Out
+            {t("clockedOut")}
           </span>
         );
       default:
         return (
           <span className="inv-status inv-status-draft">
             <AlertCircle size={12} />
-            No Activity
+            {t("noActivity")}
           </span>
         );
     }
@@ -111,7 +113,7 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
         >
           <div className="fin-kpi-label">
             <Users size={14} />
-            Total Employees
+            {t("totalEmployees")}
           </div>
           <div className="fin-kpi-value">{activities.length}</div>
         </button>
@@ -122,7 +124,7 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
         >
           <div className="fin-kpi-label">
             <LogIn size={14} style={{ color: "var(--color-green)" }} />
-            Clocked In
+            {t("clockedIn")}
           </div>
           <div className="fin-kpi-value" style={{ color: "var(--color-green)" }}>{clockedInCount}</div>
         </button>
@@ -133,7 +135,7 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
         >
           <div className="fin-kpi-label">
             <LogOut size={14} style={{ color: "var(--color-amber)" }} />
-            Clocked Out
+            {t("clockedOut")}
           </div>
           <div className="fin-kpi-value" style={{ color: "var(--color-amber)" }}>{clockedOutCount}</div>
         </button>
@@ -144,7 +146,7 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
         >
           <div className="fin-kpi-label">
             <AlertCircle size={14} style={{ color: "var(--muted)" }} />
-            No Activity
+            {t("noActivity")}
           </div>
           <div className="fin-kpi-value" style={{ color: "var(--muted)" }}>{noActivityCount}</div>
         </button>
@@ -156,15 +158,15 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
           <table className="invoice-table">
             <thead>
               <tr>
-                <th>Employee</th>
-                <th>Job Title</th>
-                <th>Status</th>
-                <th>Last Event</th>
-                <th>Today</th>
-                <th>Today $</th>
-                <th>This Week</th>
-                <th>Week $</th>
-                <th>Details</th>
+                <th>{t("thEmployee")}</th>
+                <th>{t("thJobTitle")}</th>
+                <th>{t("thStatus")}</th>
+                <th>{t("thLastEvent")}</th>
+                <th>{t("thToday")}</th>
+                <th>{t("thTodayCost")}</th>
+                <th>{t("thThisWeek")}</th>
+                <th>{t("thWeekCost")}</th>
+                <th>{t("thDetails")}</th>
               </tr>
             </thead>
             <tbody>
@@ -198,10 +200,10 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
                         onClick={() => setSelectedEmployee(activity)}
                       >
                         <Clock size={13} />
-                        View ({activity.todayEvents.length})
+                        {t("viewEvents", { count: activity.todayEvents.length })}
                       </button>
                     ) : (
-                      <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>No events</span>
+                      <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>{t("noEvents")}</span>
                     )}
                   </td>
                 </tr>
@@ -211,11 +213,11 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
         ) : (
           <div className="fin-empty" style={{ padding: 48 }}>
             <div className="fin-empty-icon"><Users size={48} /></div>
-            <div className="fin-empty-title">No Employees Found</div>
+            <div className="fin-empty-title">{t("noEmployeesFound")}</div>
             <div className="fin-empty-desc">
               {filter !== "all"
-                ? "No employees match this filter. Try selecting a different status."
-                : "No employees with portal access found. Create employee logins from the People Directory."}
+                ? t("noEmployeesMatchFilter")
+                : t("noEmployeesWithAccess")}
             </div>
           </div>
         )}
@@ -232,7 +234,7 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
             <div className="fin-modal-header">
               <h3>
                 <Clock size={18} style={{ marginRight: 8 }} />
-                {selectedEmployee.name} — Today&apos;s Activity
+                {t("todaysActivity", { name: selectedEmployee.name })}
               </h3>
               <button
                 className="ui-btn ui-btn-sm ui-btn-ghost"
@@ -244,11 +246,11 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
             <div className="fin-modal-body">
               <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
                 <div className="fin-chart-card" style={{ flex: 1, padding: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>Status</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>{t("thStatus")}</div>
                   {getStatusBadge(selectedEmployee.currentStatus)}
                 </div>
                 <div className="fin-chart-card" style={{ flex: 1, padding: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>Today</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>{t("thToday")}</div>
                   <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{selectedEmployee.todayHours}h</div>
                   {rateMap[selectedEmployee.userId] && selectedEmployee.todayHours > 0 && (
                     <div style={{ fontSize: "0.82rem", color: "var(--success, #16a34a)", fontWeight: 600, marginTop: 2 }}>
@@ -257,7 +259,7 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
                   )}
                 </div>
                 <div className="fin-chart-card" style={{ flex: 1, padding: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>Week</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: 4 }}>{t("modalWeek")}</div>
                   <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{selectedEmployee.weekHours}h</div>
                   {rateMap[selectedEmployee.userId] && selectedEmployee.weekHours > 0 && (
                     <div style={{ fontSize: "0.82rem", color: "var(--success, #16a34a)", fontWeight: 600, marginTop: 2 }}>
@@ -290,7 +292,7 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
                           <LogOut size={15} style={{ color: "var(--color-red)" }} />
                         )}
                         <span style={{ fontWeight: 600 }}>
-                          {event.event_type === "clock_in" ? "Clock In" : "Clock Out"}
+                          {event.event_type === "clock_in" ? t("clockInEvent") : t("clockOutEvent")}
                         </span>
                         <span style={{ color: "var(--muted)", marginLeft: "auto" }}>
                           {formatTime(event.timestamp)}
@@ -300,7 +302,7 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
                 </div>
               ) : (
                 <div style={{ textAlign: "center", color: "var(--muted)", padding: 24 }}>
-                  No clock events today.
+                  {t("noClockEventsToday")}
                 </div>
               )}
             </div>

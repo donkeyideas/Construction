@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   DollarSign,
@@ -32,6 +33,7 @@ type SortDir = "asc" | "desc";
 const PAGE_SIZE = 25;
 
 export default function SectionTransactions({ data, sectionName }: Props) {
+  const t = useTranslations("common");
   const isTruncated = data.transactions.length > MAX_CLIENT_ROWS;
   const safeTransactions = isTruncated ? data.transactions.slice(0, MAX_CLIENT_ROWS) : data.transactions;
 
@@ -142,7 +144,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
       <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", marginBottom: 20 }}>
         <div className="card kpi">
           <div className="kpi-info">
-            <span className="kpi-label">Total Transactions</span>
+            <span className="kpi-label">{t("transactions.totalTransactions")}</span>
             <span className="kpi-value">{data.totalTransactions}</span>
           </div>
           <div className="kpi-icon">
@@ -151,7 +153,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
         </div>
         <div className="card kpi">
           <div className="kpi-info">
-            <span className="kpi-label">Total Debits</span>
+            <span className="kpi-label">{t("transactions.totalDebits")}</span>
             <span className="kpi-value" style={{ color: "var(--color-red)", fontSize: "1.4rem" }}>
               {formatCurrency(data.totalDebits)}
             </span>
@@ -162,7 +164,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
         </div>
         <div className="card kpi">
           <div className="kpi-info">
-            <span className="kpi-label">Total Credits</span>
+            <span className="kpi-label">{t("transactions.totalCredits")}</span>
             <span className="kpi-value" style={{ color: "var(--color-green)", fontSize: "1.4rem" }}>
               {formatCurrency(data.totalCredits)}
             </span>
@@ -173,7 +175,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
         </div>
         <div className="card kpi">
           <div className="kpi-info">
-            <span className="kpi-label">Net Amount</span>
+            <span className="kpi-label">{t("transactions.netAmount")}</span>
             <span
               className="kpi-value"
               style={{
@@ -194,7 +196,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
       {isTruncated && (
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, marginBottom: 16, fontSize: "0.85rem", color: "#92400e" }}>
           <AlertTriangle size={16} />
-          Showing first {MAX_CLIENT_ROWS.toLocaleString()} of {data.transactions.length.toLocaleString()} transactions. Use filters to narrow results.
+          {t("transactions.truncationNotice", { shown: MAX_CLIENT_ROWS.toLocaleString(), total: data.transactions.length.toLocaleString() })}
         </div>
       )}
 
@@ -203,7 +205,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
         <div className="section-txn-header">
           <div className="card-title" style={{ marginBottom: 0 }}>
             <DollarSign size={16} style={{ color: "var(--color-blue)" }} />
-            {sectionName} Transactions
+            {t("transactions.sectionTransactions", { section: sectionName })}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {sources.length > 1 && (
@@ -214,7 +216,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
                   onChange={(e) => handleFilterChange(e.target.value)}
                   className="section-txn-select"
                 >
-                  <option value="all">All Sources</option>
+                  <option value="all">{t("transactions.allSources")}</option>
                   {sources.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
@@ -231,22 +233,22 @@ export default function SectionTransactions({ data, sectionName }: Props) {
                 <thead>
                   <tr>
                     <th onClick={() => toggleSort("date")} style={{ cursor: "pointer", whiteSpace: "nowrap" }}>
-                      Date <SortIcon field="date" />
+                      {t("transactions.date")} <SortIcon field="date" />
                     </th>
                     <th onClick={() => toggleSort("description")} style={{ cursor: "pointer" }}>
-                      Description <SortIcon field="description" />
+                      {t("transactions.description")} <SortIcon field="description" />
                     </th>
-                    <th>Reference</th>
+                    <th>{t("transactions.reference")}</th>
                     <th onClick={() => toggleSort("source")} style={{ cursor: "pointer" }}>
-                      Source <SortIcon field="source" />
+                      {t("transactions.source")} <SortIcon field="source" />
                     </th>
                     <th onClick={() => toggleSort("debit")} style={{ cursor: "pointer", textAlign: "right" }}>
-                      Debit <SortIcon field="debit" />
+                      {t("transactions.debit")} <SortIcon field="debit" />
                     </th>
                     <th onClick={() => toggleSort("credit")} style={{ cursor: "pointer", textAlign: "right" }}>
-                      Credit <SortIcon field="credit" />
+                      {t("transactions.credit")} <SortIcon field="credit" />
                     </th>
-                    <th>JE</th>
+                    <th>{t("transactions.je")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -257,7 +259,7 @@ export default function SectionTransactions({ data, sectionName }: Props) {
                 <tfoot>
                   <tr className="section-txn-totals">
                     <td colSpan={4} style={{ fontWeight: 600 }}>
-                      Totals ({filtered.length} transactions)
+                      {t("transactions.totals", { count: filtered.length })}
                     </td>
                     <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-red)" }}>
                       {formatCurrency(filteredDebits)}
@@ -302,14 +304,14 @@ export default function SectionTransactions({ data, sectionName }: Props) {
                   <ChevronRight size={14} />
                 </button>
                 <span className="section-txn-page-info">
-                  {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
+                  {t("transactions.pageInfo", { start: (safePage - 1) * PAGE_SIZE + 1, end: Math.min(safePage * PAGE_SIZE, filtered.length), total: filtered.length })}
                 </span>
               </div>
             )}
           </>
         ) : (
           <div className="section-txn-empty">
-            No financial transactions found for {sectionName}.
+            {t("transactions.noTransactionsFound", { section: sectionName })}
           </div>
         )}
       </div>
