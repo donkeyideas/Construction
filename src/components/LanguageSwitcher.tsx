@@ -52,7 +52,7 @@ export default function LanguageSwitcher() {
 
       {open && (
         <>
-          <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+          <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 1 }} />
           <div style={{
             position: "absolute",
             top: "calc(100% + 4px)",
@@ -61,7 +61,7 @@ export default function LanguageSwitcher() {
             border: "1px solid var(--border)",
             borderRadius: "8px",
             boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-            zIndex: 100,
+            zIndex: 2,
             overflow: "hidden auto",
             minWidth: "200px",
             maxHeight: "320px",

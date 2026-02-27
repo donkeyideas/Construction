@@ -198,9 +198,13 @@ export function Topbar({ breadcrumb, onToggleSidebar }: TopbarProps) {
   }, [handleKeyDown]);
 
   async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch {
+      // Even if signOut fails, redirect to login
+    }
+    window.location.href = "/login";
   }
 
   const isTestAccount = userInfo.email === "beltran_alain@yahoo.com";

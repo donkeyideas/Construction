@@ -80,9 +80,13 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
   }, [handleKeyDown]);
 
   async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch {
+      // Even if signOut fails, redirect to login
+    }
+    window.location.href = "/login";
   }
 
   function openSettings() {
