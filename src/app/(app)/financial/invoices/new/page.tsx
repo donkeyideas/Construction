@@ -11,6 +11,8 @@ import {
   ArrowUpRight,
   Save,
   Send,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
@@ -93,6 +95,7 @@ function NewInvoiceForm() {
   const [taxRate, setTaxRate] = useState(0);
   const [deferralStartDate, setDeferralStartDate] = useState("");
   const [deferralEndDate, setDeferralEndDate] = useState("");
+  const [showDeferral, setShowDeferral] = useState(false);
 
   // Load GL accounts and projects on mount
   useEffect(() => {
@@ -411,26 +414,52 @@ function NewInvoiceForm() {
             />
           </div>
 
-          {/* Deferral Fields */}
-          <div className="ui-field">
-            <label className="ui-label">{t("deferralStartDate")}</label>
-            <input
-              type="date"
-              className="ui-input"
-              value={deferralStartDate}
-              onChange={(e) => setDeferralStartDate(e.target.value)}
-            />
-          </div>
+        </div>
 
-          <div className="ui-field">
-            <label className="ui-label">{t("deferralEndDate")}</label>
-            <input
-              type="date"
-              className="ui-input"
-              value={deferralEndDate}
-              onChange={(e) => setDeferralEndDate(e.target.value)}
-            />
-          </div>
+        {/* Deferred Revenue — collapsible */}
+        <div style={{ marginTop: 16, marginBottom: 8 }}>
+          <button
+            type="button"
+            onClick={() => setShowDeferral(!showDeferral)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "6px 0",
+              fontSize: "0.88rem",
+              fontWeight: 600,
+              color: "var(--muted)",
+              fontFamily: "var(--font-sans)",
+            }}
+          >
+            {showDeferral ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            {t("deferredRevenue")}
+          </button>
+          {showDeferral && (
+            <div className="invoice-form-grid" style={{ marginTop: 8 }}>
+              <div className="ui-field">
+                <label className="ui-label">{t("deferralStartDate")}</label>
+                <input
+                  type="date"
+                  className="ui-input"
+                  value={deferralStartDate}
+                  onChange={(e) => setDeferralStartDate(e.target.value)}
+                />
+              </div>
+              <div className="ui-field">
+                <label className="ui-label">{t("deferralEndDate")}</label>
+                <input
+                  type="date"
+                  className="ui-input"
+                  value={deferralEndDate}
+                  onChange={(e) => setDeferralEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Line Items */}
