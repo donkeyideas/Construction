@@ -184,6 +184,8 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
       glBalance={glApBalance}
       agingBuckets={agingBuckets}
       topVendors={topVendors}
+      serverToday={todayStr}
+      invoiceCount={allAp.length}
       bankAccounts={bankAccounts.map((ba) => ({
         id: ba.id,
         name: ba.name,

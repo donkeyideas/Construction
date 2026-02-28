@@ -18,7 +18,6 @@ import {
   Loader2,
   Upload,
   Plus,
-  ChevronRight,
   BookOpen,
   CreditCard,
   Save,
@@ -90,6 +89,8 @@ interface APClientProps {
   agingBuckets: AgingBuckets;
   topVendors: TopVendor[];
   bankAccounts: BankAccount[];
+  serverToday: string;
+  invoiceCount: number;
 }
 
 /* ------------------------------------------------------------------
@@ -109,12 +110,8 @@ function getTermsLabel(terms: string | null): string {
   if (!terms) return "--";
   const labels: Record<string, string> = {
     due_on_receipt: "Due on Receipt",
-    net_10: "Net 10",
-    net_15: "Net 15",
-    net_30: "Net 30",
-    net_45: "Net 45",
-    net_60: "Net 60",
-    net_90: "Net 90",
+    net_10: "Net 10", net_15: "Net 15", net_30: "Net 30",
+    net_45: "Net 45", net_60: "Net 60", net_90: "Net 90",
   };
   return labels[terms] || terms;
 }
@@ -148,20 +145,25 @@ export default function APClient({
   agingBuckets,
   topVendors,
   bankAccounts,
+  serverToday,
+  invoiceCount,
 }: APClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
-  const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
   const [filterStart, setFilterStart] = useState(initialStartDate || "");
   const [filterEnd, setFilterEnd] = useState(initialEndDate || "");
 
   function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
+    return new Date(dateStr + "T00:00:00").toLocaleDateString(dateLocale, {
       month: "short", day: "numeric", year: "numeric",
     });
+  }
+
+  // Use serverToday for all date comparisons to avoid hydration mismatch
+  function isPastDue(dueDate: string, status: string) {
+    return dueDate < serverToday && status !== "paid" && status !== "voided";
   }
 
   const statuses = [
@@ -186,12 +188,10 @@ export default function APClient({
     { key: "vendor_name", label: t("vendorName"), required: false },
     { key: "project_name", label: t("projectName"), required: false },
   ];
-
   const AP_IMPORT_SAMPLE: Record<string, string>[] = [
     { amount: "48500", tax_amount: "4122.50", due_date: "2026-01-30", description: "Hill Country Lumber - January delivery", status: "approved" },
     { amount: "32000", tax_amount: "2720", due_date: "2026-01-30", description: "Texas Ready Mix - 147 CY concrete", status: "paid" },
   ];
-
   const [showImport, setShowImport] = useState(false);
 
   async function handleImport(rows: Record<string, string>[]) {
@@ -208,7 +208,7 @@ export default function APClient({
   }
 
   // ---------------------------------------------------------------
-  // Detail panel state
+  // Detail modal state
   // ---------------------------------------------------------------
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -217,48 +217,34 @@ export default function APClient({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [editData, setEditData] = useState({
-    vendor_name: "",
-    status: "",
-    invoice_date: "",
-    due_date: "",
-    payment_terms: "",
-    subtotal: "",
-    tax_amount: "",
-    notes: "",
+    vendor_name: "", status: "", invoice_date: "", due_date: "",
+    payment_terms: "", subtotal: "", tax_amount: "", notes: "",
   });
 
   // Payment form state
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentData, setPaymentData] = useState({
-    amount: "",
-    payment_date: todayStr,
-    bank_account_id: "",
-    method: "check",
-    reference_number: "",
-    notes: "",
+    amount: "", payment_date: serverToday, bank_account_id: "",
+    method: "check", reference_number: "", notes: "",
   });
   const [savingPayment, setSavingPayment] = useState(false);
 
-  // Payment inline edit/delete state
+  // Payment inline edit/delete
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [editPaymentData, setEditPaymentData] = useState({ method: "", bank_account_id: "", reference_number: "", notes: "" });
   const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
   const [confirmDeletePaymentId, setConfirmDeletePaymentId] = useState<string | null>(null);
 
-  // Invoice detail data (fetched when opening panel)
+  // Invoice detail data (fetched when opening modal)
   const [detailPayments, setDetailPayments] = useState<Array<{
     id: string; payment_date: string; amount: number; method: string;
     reference_number: string | null; bank_account_id: string | null;
     bank_account_name: string | null; notes: string | null;
   }>>([]);
-  const [detailJEs, setDetailJEs] = useState<Array<{
-    id: string; entry_number: string; entry_date: string;
-    description: string; status: string; total_debit: number;
-  }>>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   // ---------------------------------------------------------------
-  // Detail panel actions
+  // Detail modal actions
   // ---------------------------------------------------------------
 
   const openDetail = useCallback(async (inv: InvoiceRow) => {
@@ -270,19 +256,17 @@ export default function APClient({
     setConfirmDeletePaymentId(null);
     setEditingPaymentId(null);
     setLoadingDetail(true);
+    setDetailPayments([]);
 
     try {
-      // Fetch full invoice detail (payments + JEs)
       const res = await fetch(`/api/financial/invoices/${inv.id}`);
       if (res.ok) {
         const data = await res.json();
         const invoice = data.invoice;
         setDetailPayments(Array.isArray(invoice?.payments) ? invoice.payments : []);
       }
-    } catch { /* ignore */ }
+    } catch { /* ignore fetch errors */ }
 
-    // Use linked JEs from server props
-    setDetailJEs([]);
     setLoadingDetail(false);
   }, []);
 
@@ -296,7 +280,6 @@ export default function APClient({
 
   function startEditing() {
     if (!selectedInvoice) return;
-    const sub = selectedInvoice.total_amount - 0; // approx subtotal
     setEditData({
       vendor_name: selectedInvoice.vendor_name || "",
       status: selectedInvoice.status,
@@ -315,7 +298,6 @@ export default function APClient({
     if (!selectedInvoice) return;
     setSaving(true);
     setSaveError("");
-
     try {
       const payload: Record<string, unknown> = {};
       if (editData.vendor_name !== (selectedInvoice.vendor_name || "")) payload.vendor_name = editData.vendor_name || null;
@@ -334,22 +316,17 @@ export default function APClient({
         payload.total_amount = newTotal;
       }
 
-      if (Object.keys(payload).length === 0) {
-        setIsEditing(false);
-        return;
-      }
+      if (Object.keys(payload).length === 0) { setIsEditing(false); return; }
 
       const res = await fetch(`/api/financial/invoices/${selectedInvoice.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || t("failedToUpdateInvoice"));
       }
-
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
@@ -368,7 +345,7 @@ export default function APClient({
     const defaultBank = bankAccounts.find((b) => b.is_default);
     setPaymentData({
       amount: String(selectedInvoice.balance_due > 0 ? selectedInvoice.balance_due : ""),
-      payment_date: todayStr,
+      payment_date: serverToday,
       bank_account_id: defaultBank?.id || "",
       method: "check",
       reference_number: "",
@@ -382,7 +359,6 @@ export default function APClient({
     if (!selectedInvoice) return;
     setSavingPayment(true);
     setSaveError("");
-
     try {
       const amount = parseFloat(paymentData.amount);
       if (isNaN(amount) || amount <= 0) throw new Error("Enter a valid amount");
@@ -401,12 +377,10 @@ export default function APClient({
           notes: paymentData.notes || null,
         }),
       });
-
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Failed to record payment");
       }
-
       closeDetail();
       router.refresh();
     } catch (err: unknown) {
@@ -516,7 +490,7 @@ export default function APClient({
   }
 
   // ---------------------------------------------------------------
-  // Aging chart helpers
+  // Aging chart
   // ---------------------------------------------------------------
 
   const agingTotal = agingBuckets.current + agingBuckets.days30 + agingBuckets.days60 + agingBuckets.days90 + agingBuckets.days90plus;
@@ -528,7 +502,6 @@ export default function APClient({
     { label: "90+", value: agingBuckets.days90plus, color: "var(--color-red, #ef4444)" },
   ];
 
-  // Computed total for edit form
   const editTotal = (parseFloat(editData.subtotal) || 0) + (parseFloat(editData.tax_amount) || 0);
 
   return (
@@ -597,6 +570,11 @@ export default function APClient({
           <div className="fin-kpi-icon blue"><Clock size={18} /></div>
           <span className="fin-kpi-label">{t("pendingApproval")}</span>
           <span className="fin-kpi-value">{pendingApprovalCount}</span>
+          {invoiceCount > 0 && (
+            <span className="fin-kpi-sub" style={{ fontSize: "0.7rem", color: "var(--muted)" }}>
+              {invoiceCount} total bill{invoiceCount !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
         <div className="fin-kpi">
           <div className="fin-kpi-icon green"><CheckCircle size={18} /></div>
@@ -624,7 +602,6 @@ export default function APClient({
       {/* Aging Chart + Top Vendors Row */}
       {agingTotal > 0 && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-          {/* Aging Bar Chart */}
           <div className="fin-chart-card" style={{ padding: "16px 20px" }}>
             <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: 12 }}>AP Aging</div>
             <div style={{ display: "flex", height: 24, borderRadius: 6, overflow: "hidden", marginBottom: 12 }}>
@@ -650,8 +627,6 @@ export default function APClient({
               ))}
             </div>
           </div>
-
-          {/* Top Vendors */}
           <div className="fin-chart-card" style={{ padding: "16px 20px" }}>
             <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: 12 }}>Top Vendors by AP Balance</div>
             {topVendors.length > 0 ? (
@@ -687,8 +662,7 @@ export default function APClient({
             href={buildUrl(s.value, filterStart || undefined, filterEnd || undefined)}
             className={`ui-btn ui-btn-sm ${
               activeStatus === s.value || (!activeStatus && s.value === "active")
-                ? "ui-btn-primary"
-                : "ui-btn-outline"
+                ? "ui-btn-primary" : "ui-btn-outline"
             }`}
           >
             {s.label}
@@ -713,24 +687,17 @@ export default function APClient({
                   <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
                   <th>{t("status")}</th>
                   <th>{t("jeColumnHeader")}</th>
-                  <th style={{ width: 32 }}></th>
                 </tr>
               </thead>
               <tbody>
                 {invoices.map((inv) => {
-                  const dueDate = new Date(inv.due_date);
-                  const isPastDue = dueDate < now && inv.status !== "paid" && inv.status !== "voided";
-                  const isOverdue = isPastDue || inv.status === "overdue";
-                  const isSelected = selectedInvoice?.id === inv.id;
+                  const overdue = isPastDue(inv.due_date, inv.status) || inv.status === "overdue";
 
                   return (
                     <tr
                       key={inv.id}
-                      className={isOverdue ? "invoice-row-overdue" : ""}
-                      style={{
-                        cursor: "pointer",
-                        background: isSelected ? "var(--color-blue-light, rgba(59,130,246,0.08))" : undefined,
-                      }}
+                      className={overdue ? "invoice-row-overdue" : ""}
+                      style={{ cursor: "pointer" }}
                       onClick={() => openDetail(inv)}
                     >
                       <td style={{ fontWeight: 600, color: "var(--color-blue)" }}>
@@ -758,47 +725,35 @@ export default function APClient({
                       <td>{formatDate(inv.invoice_date)}</td>
                       <td>
                         <span style={{
-                          color: isPastDue ? "var(--color-red)" : "var(--text)",
-                          fontWeight: isPastDue ? 600 : 400,
+                          color: isPastDue(inv.due_date, inv.status) ? "var(--color-red)" : "var(--text)",
+                          fontWeight: isPastDue(inv.due_date, inv.status) ? 600 : 400,
                         }}>
                           {formatDate(inv.due_date)}
-                          {isPastDue && <AlertCircle size={12} style={{ marginLeft: 4, verticalAlign: "middle" }} />}
+                          {isPastDue(inv.due_date, inv.status) && <AlertCircle size={12} style={{ marginLeft: 4, verticalAlign: "middle" }} />}
                         </span>
                       </td>
                       <td className="amount-col">{formatCurrency(inv.total_amount)}</td>
                       <td className="amount-col" style={{ color: inv.amount_paid > 0 ? "var(--color-green)" : "var(--muted)" }}>
                         {inv.amount_paid > 0 ? formatCurrency(inv.amount_paid) : "--"}
                       </td>
-                      <td className={`amount-col ${isOverdue ? "overdue" : ""}`}>
+                      <td className={`amount-col ${overdue ? "overdue" : ""}`}>
                         {formatCurrency(inv.balance_due)}
                       </td>
                       <td>
-                        <span className={`inv-status inv-status-${inv.status}`}>
-                          {inv.status}
-                        </span>
+                        <span className={`inv-status inv-status-${inv.status}`}>{inv.status}</span>
                       </td>
                       <td>
                         {linkedJEs[inv.id]?.length ? (
                           linkedJEs[inv.id].map((je) => (
-                            <Link
-                              key={je.id}
-                              href={`/financial/general-ledger?entry=${je.entry_number}`}
-                              className="je-link"
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <Link key={je.id} href={`/financial/general-ledger?entry=${je.entry_number}`} className="je-link" onClick={(e) => e.stopPropagation()}>
                               {je.entry_number}
                             </Link>
                           ))
                         ) : inv.status !== "draft" && inv.status !== "voided" ? (
-                          <span className="je-missing" title="No journal entry found">
-                            <AlertCircle size={12} />
-                          </span>
+                          <span className="je-missing" title="No journal entry found"><AlertCircle size={12} /></span>
                         ) : (
                           <span style={{ color: "var(--muted)" }}>--</span>
                         )}
-                      </td>
-                      <td>
-                        <ChevronRight size={14} style={{ color: "var(--muted)" }} />
                       </td>
                     </tr>
                   );
@@ -824,49 +779,22 @@ export default function APClient({
       )}
 
       {/* ============================================================
-          Slide-out Detail Panel
+          Invoice Detail Modal
           ============================================================ */}
       {selectedInvoice && (
-        <>
-          {/* Backdrop */}
+        <div className="ticket-modal-overlay" onClick={closeDetail}>
           <div
-            style={{
-              position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)",
-              zIndex: 998, transition: "opacity 0.2s",
-            }}
-            onClick={closeDetail}
-          />
-          {/* Panel */}
-          <div style={{
-            position: "fixed", top: 0, right: 0, bottom: 0,
-            width: "100%", maxWidth: 680, background: "var(--card-bg, #fff)",
-            zIndex: 999, boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
-            display: "flex", flexDirection: "column",
-            animation: "slideInRight 0.25s ease-out",
-          }}>
-            {/* Panel Header */}
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "16px 24px", borderBottom: "1px solid var(--border)",
-              flexShrink: 0,
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <h3 style={{ margin: 0, fontSize: "1.1rem" }}>
-                  {selectedInvoice.invoice_number}
-                </h3>
-                <span className={`inv-status inv-status-${selectedInvoice.status}`}>
-                  {selectedInvoice.status}
-                </span>
-              </div>
-              <button
-                onClick={closeDetail}
-                style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  padding: 6, borderRadius: 6, color: "var(--muted)",
-                }}
-              >
-                <X size={20} />
-              </button>
+            className="ticket-modal"
+            style={{ maxWidth: 640, maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="ticket-modal-header">
+              <h3 style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {selectedInvoice.invoice_number}
+                <span className={`inv-status inv-status-${selectedInvoice.status}`}>{selectedInvoice.status}</span>
+              </h3>
+              <button className="ticket-modal-close" onClick={closeDetail}><X size={18} /></button>
             </div>
 
             {/* Error Banner */}
@@ -874,14 +802,14 @@ export default function APClient({
               <div style={{
                 background: "var(--color-red-light, #fef2f2)", color: "var(--color-red, #ef4444)",
                 padding: "10px 24px", fontSize: "0.85rem", fontWeight: 500,
-                borderBottom: "1px solid var(--color-red, #ef4444)",
+                borderBottom: "1px solid var(--color-red)",
               }}>
                 {saveError}
               </div>
             )}
 
-            {/* Scrollable Content */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+            {/* Scrollable Body */}
+            <div className="ticket-detail-body" style={{ flex: 1, overflowY: "auto" }}>
 
               {/* Delete/Void Confirmation */}
               {showDeleteConfirm && (
@@ -924,61 +852,54 @@ export default function APClient({
                 <>
                   {/* ── Section 1: Invoice Details ── */}
                   <div className="fin-chart-card" style={{ padding: "16px 20px", marginBottom: 16 }}>
-                    <div style={{
-                      display: "flex", justifyContent: "space-between", alignItems: "center",
-                      marginBottom: 12,
-                    }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                       <div style={{ fontSize: "0.82rem", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-                        <Receipt size={14} />
-                        Invoice Details
+                        <Receipt size={14} /> Invoice Details
                       </div>
                       {!isEditing && selectedInvoice.status !== "voided" && (
                         <button className="ui-btn ui-btn-ghost ui-btn-sm" onClick={startEditing} style={{ gap: 4 }}>
-                          <Edit3 size={13} />
-                          Edit
+                          <Edit3 size={13} /> Edit
                         </button>
                       )}
                     </div>
 
                     {!isEditing ? (
-                      /* Read-only grid */
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 20px" }}>
                         <div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>Vendor</div>
+                          <div className="ap-field-lbl">Vendor</div>
                           <div style={{ fontWeight: 500 }}>{selectedInvoice.vendor_name || "--"}</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>Project</div>
+                          <div className="ap-field-lbl">Project</div>
                           <div>{selectedInvoice.projects?.name || "--"}</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>Invoice Date</div>
+                          <div className="ap-field-lbl">Invoice Date</div>
                           <div>{formatDate(selectedInvoice.invoice_date)}</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>Due Date</div>
+                          <div className="ap-field-lbl">Due Date</div>
                           <div style={{
-                            color: new Date(selectedInvoice.due_date) < now && selectedInvoice.status !== "paid" && selectedInvoice.status !== "voided"
-                              ? "var(--color-red)" : "var(--text)",
-                            fontWeight: new Date(selectedInvoice.due_date) < now && selectedInvoice.status !== "paid" && selectedInvoice.status !== "voided" ? 600 : 400,
+                            color: isPastDue(selectedInvoice.due_date, selectedInvoice.status) ? "var(--color-red)" : "var(--text)",
+                            fontWeight: isPastDue(selectedInvoice.due_date, selectedInvoice.status) ? 600 : 400,
                           }}>
                             {formatDate(selectedInvoice.due_date)}
                           </div>
                         </div>
                         <div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>Terms</div>
+                          <div className="ap-field-lbl">Terms</div>
                           <div>{getTermsLabel(selectedInvoice.payment_terms)}</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>Status</div>
+                          <div className="ap-field-lbl">Status</div>
                           <span className={`inv-status inv-status-${selectedInvoice.status}`}>{selectedInvoice.status}</span>
                         </div>
                         <div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>Total Amount</div>
+                          <div className="ap-field-lbl">Total Amount</div>
                           <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{formatCurrency(selectedInvoice.total_amount)}</div>
                         </div>
                         <div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>Balance Due</div>
+                          <div className="ap-field-lbl">Balance Due</div>
                           <div style={{
                             fontWeight: 600, fontSize: "1.05rem",
                             color: selectedInvoice.balance_due > 0 ? "var(--color-red)" : "var(--color-green)",
@@ -988,20 +909,19 @@ export default function APClient({
                         </div>
                         {selectedInvoice.notes && (
                           <div style={{ gridColumn: "span 2" }}>
-                            <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.03em", marginBottom: 2 }}>Notes</div>
+                            <div className="ap-field-lbl">Notes</div>
                             <div style={{ fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>{selectedInvoice.notes}</div>
                           </div>
                         )}
                       </div>
                     ) : (
-                      /* Edit form */
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
                         <div>
-                          <label className="ap-field-label">Vendor Name</label>
+                          <label className="ap-field-lbl">Vendor Name</label>
                           <input className="ui-input" value={editData.vendor_name} onChange={(e) => setEditData({ ...editData, vendor_name: e.target.value })} style={{ width: "100%", height: 34, fontSize: "0.85rem" }} />
                         </div>
                         <div>
-                          <label className="ap-field-label">Status</label>
+                          <label className="ap-field-lbl">Status</label>
                           <select className="fin-filter-select" value={editData.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })} style={{ width: "100%", height: 34 }}>
                             <option value="draft">{t("statusDraft")}</option>
                             <option value="pending">{t("statusPending")}</option>
@@ -1010,15 +930,15 @@ export default function APClient({
                           </select>
                         </div>
                         <div>
-                          <label className="ap-field-label">Invoice Date</label>
+                          <label className="ap-field-lbl">Invoice Date</label>
                           <input type="date" className="ui-input" value={editData.invoice_date} onChange={(e) => setEditData({ ...editData, invoice_date: e.target.value })} style={{ width: "100%", height: 34, fontSize: "0.85rem" }} />
                         </div>
                         <div>
-                          <label className="ap-field-label">Due Date</label>
+                          <label className="ap-field-lbl">Due Date</label>
                           <input type="date" className="ui-input" value={editData.due_date} onChange={(e) => setEditData({ ...editData, due_date: e.target.value })} style={{ width: "100%", height: 34, fontSize: "0.85rem" }} />
                         </div>
                         <div>
-                          <label className="ap-field-label">Payment Terms</label>
+                          <label className="ap-field-lbl">Payment Terms</label>
                           <select className="fin-filter-select" value={editData.payment_terms} onChange={(e) => setEditData({ ...editData, payment_terms: e.target.value })} style={{ width: "100%", height: 34 }}>
                             <option value="">--</option>
                             <option value="due_on_receipt">Due on Receipt</option>
@@ -1031,19 +951,19 @@ export default function APClient({
                           </select>
                         </div>
                         <div>
-                          <label className="ap-field-label">Subtotal</label>
+                          <label className="ap-field-lbl">Subtotal</label>
                           <input type="number" className="ui-input" value={editData.subtotal} onChange={(e) => setEditData({ ...editData, subtotal: e.target.value })} step="0.01" min="0" style={{ width: "100%", height: 34, fontSize: "0.85rem" }} />
                         </div>
                         <div>
-                          <label className="ap-field-label">Tax Amount</label>
+                          <label className="ap-field-lbl">Tax Amount</label>
                           <input type="number" className="ui-input" value={editData.tax_amount} onChange={(e) => setEditData({ ...editData, tax_amount: e.target.value })} step="0.01" min="0" style={{ width: "100%", height: 34, fontSize: "0.85rem" }} />
                         </div>
                         <div>
-                          <label className="ap-field-label">Total</label>
+                          <label className="ap-field-lbl">Total</label>
                           <div style={{ fontWeight: 600, lineHeight: "34px", fontSize: "1rem" }}>{formatCurrency(editTotal)}</div>
                         </div>
                         <div style={{ gridColumn: "span 2" }}>
-                          <label className="ap-field-label">Notes</label>
+                          <label className="ap-field-lbl">Notes</label>
                           <textarea className="ui-input" value={editData.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} rows={3} style={{ resize: "vertical", minHeight: 60, width: "100%" }} />
                         </div>
                         <div style={{ gridColumn: "span 2", display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 8 }}>
@@ -1064,18 +984,14 @@ export default function APClient({
                       padding: "12px 20px", borderBottom: "1px solid var(--border)",
                     }}>
                       <div style={{ fontSize: "0.82rem", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-                        <CreditCard size={14} />
-                        Payments
+                        <CreditCard size={14} /> Payments
                         {detailPayments.length > 0 && (
-                          <span style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 400 }}>
-                            ({detailPayments.length})
-                          </span>
+                          <span style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 400 }}>({detailPayments.length})</span>
                         )}
                       </div>
-                      {selectedInvoice.status !== "voided" && selectedInvoice.status !== "paid" && selectedInvoice.balance_due > 0 && !showPaymentForm && (
+                      {selectedInvoice.status !== "voided" && selectedInvoice.balance_due > 0 && !showPaymentForm && (
                         <button className="ui-btn ui-btn-primary ui-btn-sm" onClick={openPaymentForm} style={{ gap: 4 }}>
-                          <Plus size={13} />
-                          Record Payment
+                          <Plus size={13} /> Record Payment
                         </button>
                       )}
                     </div>
@@ -1085,15 +1001,15 @@ export default function APClient({
                       <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface, #f9fafb)" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 16px" }}>
                           <div>
-                            <label className="ap-field-label">Amount</label>
+                            <label className="ap-field-lbl">Amount</label>
                             <input type="number" className="ui-input" value={paymentData.amount} onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })} step="0.01" min="0" style={{ width: "100%", height: 34, fontSize: "0.85rem" }} />
                           </div>
                           <div>
-                            <label className="ap-field-label">Payment Date</label>
+                            <label className="ap-field-lbl">Payment Date</label>
                             <input type="date" className="ui-input" value={paymentData.payment_date} onChange={(e) => setPaymentData({ ...paymentData, payment_date: e.target.value })} style={{ width: "100%", height: 34, fontSize: "0.85rem" }} />
                           </div>
                           <div>
-                            <label className="ap-field-label">Bank Account</label>
+                            <label className="ap-field-lbl">Bank Account</label>
                             <select className="fin-filter-select" value={paymentData.bank_account_id} onChange={(e) => setPaymentData({ ...paymentData, bank_account_id: e.target.value })} style={{ width: "100%", height: 34 }}>
                               <option value="">Select bank account</option>
                               {bankAccounts.map((ba) => (
@@ -1104,19 +1020,17 @@ export default function APClient({
                             </select>
                           </div>
                           <div>
-                            <label className="ap-field-label">Method</label>
+                            <label className="ap-field-lbl">Method</label>
                             <select className="fin-filter-select" value={paymentData.method} onChange={(e) => setPaymentData({ ...paymentData, method: e.target.value })} style={{ width: "100%", height: 34 }}>
-                              {PAYMENT_METHODS.map((m) => (
-                                <option key={m} value={m}>{methodLabel(m)}</option>
-                              ))}
+                              {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{methodLabel(m)}</option>)}
                             </select>
                           </div>
                           <div>
-                            <label className="ap-field-label">Reference #</label>
+                            <label className="ap-field-lbl">Reference #</label>
                             <input className="ui-input" value={paymentData.reference_number} onChange={(e) => setPaymentData({ ...paymentData, reference_number: e.target.value })} placeholder="Check #, ACH ref..." style={{ width: "100%", height: 34, fontSize: "0.85rem" }} />
                           </div>
                           <div>
-                            <label className="ap-field-label">Notes</label>
+                            <label className="ap-field-lbl">Notes</label>
                             <input className="ui-input" value={paymentData.notes} onChange={(e) => setPaymentData({ ...paymentData, notes: e.target.value })} placeholder="Optional" style={{ width: "100%", height: 34, fontSize: "0.85rem" }} />
                           </div>
                         </div>
@@ -1136,41 +1050,38 @@ export default function APClient({
                         {detailPayments.map((p) => (
                           <div key={p.id} style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)" }}>
                             {editingPaymentId === p.id ? (
-                              /* Inline edit */
                               <div>
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 12px", marginBottom: 10 }}>
                                   <div>
-                                    <label className="ap-field-label">Method</label>
+                                    <label className="ap-field-lbl">Method</label>
                                     <select className="fin-filter-select" value={editPaymentData.method} onChange={(e) => setEditPaymentData({ ...editPaymentData, method: e.target.value })} style={{ width: "100%", height: 32 }}>
                                       {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{methodLabel(m)}</option>)}
                                     </select>
                                   </div>
                                   <div>
-                                    <label className="ap-field-label">Bank Account</label>
+                                    <label className="ap-field-lbl">Bank Account</label>
                                     <select className="fin-filter-select" value={editPaymentData.bank_account_id} onChange={(e) => setEditPaymentData({ ...editPaymentData, bank_account_id: e.target.value })} style={{ width: "100%", height: 32 }}>
                                       <option value="">--</option>
                                       {bankAccounts.map((ba) => <option key={ba.id} value={ba.id}>{ba.name}</option>)}
                                     </select>
                                   </div>
                                   <div>
-                                    <label className="ap-field-label">Reference #</label>
+                                    <label className="ap-field-lbl">Reference #</label>
                                     <input className="ui-input" value={editPaymentData.reference_number} onChange={(e) => setEditPaymentData({ ...editPaymentData, reference_number: e.target.value })} style={{ width: "100%", height: 32, fontSize: "0.82rem" }} />
                                   </div>
                                   <div>
-                                    <label className="ap-field-label">Notes</label>
+                                    <label className="ap-field-lbl">Notes</label>
                                     <input className="ui-input" value={editPaymentData.notes} onChange={(e) => setEditPaymentData({ ...editPaymentData, notes: e.target.value })} style={{ width: "100%", height: 32, fontSize: "0.82rem" }} />
                                   </div>
                                 </div>
                                 <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
                                   <button className="ui-btn ui-btn-outline ui-btn-sm" onClick={() => setEditingPaymentId(null)} style={{ fontSize: "0.78rem" }}>{t("cancel")}</button>
                                   <button className="ui-btn ui-btn-primary ui-btn-sm" onClick={() => handleSavePaymentEdit(p.id)} disabled={saving} style={{ fontSize: "0.78rem", gap: 4 }}>
-                                    {saving && <Loader2 size={12} className="spin" />}
-                                    Save
+                                    {saving && <Loader2 size={12} className="spin" />} Save
                                   </button>
                                 </div>
                               </div>
                             ) : confirmDeletePaymentId === p.id ? (
-                              /* Delete confirmation */
                               <div style={{
                                 background: "var(--color-red-light, #fef2f2)", borderRadius: 6, padding: 12,
                                 border: "1px solid var(--color-red, #ef4444)",
@@ -1186,48 +1097,32 @@ export default function APClient({
                                     onClick={() => handleDeletePayment(p.id)}
                                     disabled={deletingPaymentId === p.id}
                                   >
-                                    {deletingPaymentId === p.id && <Loader2 size={12} className="spin" />}
-                                    Delete Payment
+                                    {deletingPaymentId === p.id && <Loader2 size={12} className="spin" />} Delete Payment
                                   </button>
                                 </div>
                               </div>
                             ) : (
-                              /* Payment row */
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <div style={{ display: "flex", gap: 16, alignItems: "center", flex: 1, minWidth: 0 }}>
                                   <div style={{ fontSize: "0.82rem" }}>
-                                    {new Date(p.payment_date).toLocaleDateString(dateLocale, { month: "short", day: "numeric", year: "numeric" })}
+                                    {formatDate(p.payment_date)}
                                   </div>
                                   <div style={{ fontSize: "0.82rem", textTransform: "capitalize", color: "var(--muted)" }}>
                                     {methodLabel(p.method)}
                                   </div>
                                   {p.bank_account_name && (
-                                    <div style={{ fontSize: "0.78rem", color: "var(--color-blue)" }}>
-                                      {p.bank_account_name}
-                                    </div>
+                                    <div style={{ fontSize: "0.78rem", color: "var(--color-blue)" }}>{p.bank_account_name}</div>
                                   )}
                                   {p.reference_number && (
-                                    <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
-                                      Ref: {p.reference_number}
-                                    </div>
+                                    <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>Ref: {p.reference_number}</div>
                                   )}
                                 </div>
                                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <span style={{ fontWeight: 600, color: "var(--color-green)", fontSize: "0.9rem" }}>
-                                    {formatCurrency(p.amount)}
-                                  </span>
-                                  <button
-                                    onClick={() => startEditPayment(p)}
-                                    style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--muted)", borderRadius: 4 }}
-                                    title="Edit payment"
-                                  >
+                                  <span style={{ fontWeight: 600, color: "var(--color-green)", fontSize: "0.9rem" }}>{formatCurrency(p.amount)}</span>
+                                  <button onClick={() => startEditPayment(p)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--muted)" }} title="Edit payment">
                                     <Edit3 size={13} />
                                   </button>
-                                  <button
-                                    onClick={() => setConfirmDeletePaymentId(p.id)}
-                                    style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--muted)", borderRadius: 4 }}
-                                    title="Delete payment"
-                                  >
+                                  <button onClick={() => setConfirmDeletePaymentId(p.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--muted)" }} title="Delete payment">
                                     <Trash2 size={13} />
                                   </button>
                                 </div>
@@ -1249,8 +1144,7 @@ export default function APClient({
                       padding: "12px 20px", borderBottom: "1px solid var(--border)",
                       fontSize: "0.82rem", fontWeight: 600, display: "flex", alignItems: "center", gap: 6,
                     }}>
-                      <BookOpen size={14} />
-                      Journal Entries
+                      <BookOpen size={14} /> Journal Entries
                     </div>
                     {linkedJEs[selectedInvoice.id]?.length ? (
                       <div style={{ padding: "8px 20px" }}>
@@ -1259,11 +1153,7 @@ export default function APClient({
                             display: "flex", justifyContent: "space-between", alignItems: "center",
                             padding: "6px 0", borderBottom: "1px solid var(--border)",
                           }}>
-                            <Link
-                              href={`/financial/general-ledger?entry=${je.entry_number}`}
-                              className="je-link"
-                              style={{ fontWeight: 500 }}
-                            >
+                            <Link href={`/financial/general-ledger?entry=${je.entry_number}`} className="je-link" style={{ fontWeight: 500 }}>
                               {je.entry_number}
                             </Link>
                             <ExternalLink size={12} style={{ color: "var(--muted)" }} />
@@ -1274,7 +1164,7 @@ export default function APClient({
                       <div style={{ padding: "16px 20px", textAlign: "center", color: "var(--muted)", fontSize: "0.82rem" }}>
                         {selectedInvoice.status === "draft" || selectedInvoice.status === "voided"
                           ? "Journal entries are created when an invoice is posted."
-                          : "No journal entries found. This may indicate a posting issue."}
+                          : "No journal entries found."}
                       </div>
                     )}
                   </div>
@@ -1282,11 +1172,10 @@ export default function APClient({
               )}
             </div>
 
-            {/* Panel Footer */}
+            {/* Modal Footer */}
             <div style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "12px 24px", borderTop: "1px solid var(--border)",
-              flexShrink: 0, background: "var(--surface, #f9fafb)",
+              padding: "12px 24px", borderTop: "1px solid var(--border)", flexShrink: 0,
             }}>
               <div style={{ display: "flex", gap: 8 }}>
                 {selectedInvoice.status !== "voided" && (
@@ -1295,32 +1184,27 @@ export default function APClient({
                     onClick={() => { setDeleteMode("void"); setShowDeleteConfirm(true); }}
                     style={{ color: "var(--color-red)", borderColor: "var(--color-red)", gap: 4 }}
                   >
-                    <Ban size={13} />
-                    Void
+                    <Ban size={13} /> Void
                   </button>
                 )}
-                {(selectedInvoice.status === "draft" || selectedInvoice.status === "voided") && (
-                  <button
-                    className="ui-btn ui-btn-outline ui-btn-sm"
-                    onClick={() => { setDeleteMode("hard"); setShowDeleteConfirm(true); }}
-                    style={{ color: "var(--color-red)", borderColor: "var(--color-red)", gap: 4 }}
-                  >
-                    <Trash2 size={13} />
-                    Delete
-                  </button>
-                )}
+                <button
+                  className="ui-btn ui-btn-outline ui-btn-sm"
+                  onClick={() => { setDeleteMode("hard"); setShowDeleteConfirm(true); }}
+                  style={{ color: "var(--color-red)", borderColor: "var(--color-red)", gap: 4 }}
+                >
+                  <Trash2 size={13} /> Delete
+                </button>
               </div>
               <Link
                 href={`/financial/invoices/${selectedInvoice.id}`}
                 className="ui-btn ui-btn-outline ui-btn-sm"
                 style={{ gap: 4 }}
               >
-                <ExternalLink size={13} />
-                View Full Detail
+                <ExternalLink size={13} /> View Full Detail
               </Link>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       <style>{`
@@ -1329,11 +1213,7 @@ export default function APClient({
           to { transform: rotate(360deg); }
         }
         .spin { animation: spin 0.8s linear infinite; }
-        @keyframes slideInRight {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
-        }
-        .ap-field-label {
+        .ap-field-lbl {
           display: block;
           font-size: 0.72rem;
           color: var(--muted);
