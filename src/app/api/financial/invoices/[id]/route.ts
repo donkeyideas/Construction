@@ -106,31 +106,42 @@ export async function PATCH(
       } catch (e) { console.warn("Notification failed:", e); }
     }
 
-    // Auto-generate invoice JE if one doesn't exist yet (idempotent)
+    // Re-generate invoice JE on every edit (forceRegenerate deletes old + creates new).
+    // Passes updated values (gl_account_id, amounts, deferral dates) from the PATCH body.
     const warnings: string[] = [];
     let accountMap: Awaited<ReturnType<typeof buildCompanyAccountMap>> | null = null;
-    if (existing.total_amount && Number(existing.total_amount) > 0 && existing.status !== "voided") {
+
+    // Fetch the updated invoice so JE uses the new field values just written
+    const updatedInvoice = await getInvoiceById(supabase, id);
+    const rawUpdated = updatedInvoice as unknown as Record<string, unknown>;
+    const defStart = (body.deferral_start_date ?? rawUpdated?.deferral_start_date) as string | undefined;
+    const defEnd = (body.deferral_end_date ?? rawUpdated?.deferral_end_date) as string | undefined;
+
+    const newTotalAmount = body.total_amount ? Number(body.total_amount) : Number(existing.total_amount);
+    if (newTotalAmount > 0 && (body.status ?? existing.status) !== "voided") {
       try {
-        // existing comes from select("*") — DB columns beyond InvoiceRow are present at runtime
         const raw = existing as unknown as Record<string, unknown>;
         accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
+        // Use forceRegenerate so edits (GL account change, amount change, deferral toggle) take effect
         const jeResult = await generateInvoiceJournalEntry(supabase, userCompany.companyId, userCompany.userId, {
           id,
           invoice_number: existing.invoice_number ?? "",
           invoice_type: existing.invoice_type ?? "payable",
-          total_amount: Number(existing.total_amount),
-          subtotal: existing.subtotal ? Number(existing.subtotal) : undefined,
-          tax_amount: existing.tax_amount ? Number(existing.tax_amount) : undefined,
-          invoice_date: existing.invoice_date ?? new Date().toISOString().split("T")[0],
+          total_amount: body.total_amount ? Number(body.total_amount) : Number(existing.total_amount),
+          subtotal: body.subtotal ? Number(body.subtotal) : (existing.subtotal ? Number(existing.subtotal) : undefined),
+          tax_amount: body.tax_amount !== undefined ? Number(body.tax_amount) : (existing.tax_amount ? Number(existing.tax_amount) : undefined),
+          invoice_date: body.invoice_date ?? existing.invoice_date ?? new Date().toISOString().split("T")[0],
           status: body.status ?? existing.status,
-          project_id: existing.project_id,
+          project_id: body.project_id !== undefined ? body.project_id : existing.project_id,
           property_id: raw.property_id as string | null | undefined,
-          vendor_name: existing.vendor_name,
-          client_name: existing.client_name,
-          gl_account_id: raw.gl_account_id as string | null | undefined,
+          vendor_name: body.vendor_name !== undefined ? body.vendor_name : existing.vendor_name,
+          client_name: body.client_name !== undefined ? body.client_name : existing.client_name,
+          gl_account_id: body.gl_account_id !== undefined ? body.gl_account_id : (raw.gl_account_id as string | null | undefined),
           retainage_pct: raw.retainage_pct ? Number(raw.retainage_pct) : undefined,
           retainage_held: raw.retainage_held ? Number(raw.retainage_held) : undefined,
-        }, accountMap);
+          deferral_start_date: defStart || null,
+          deferral_end_date: defEnd || null,
+        }, accountMap, { forceRegenerate: true });
         if (!jeResult) {
           const invType = existing.invoice_type ?? "payable";
           const missing = invType === "payable"
@@ -143,12 +154,6 @@ export async function PATCH(
         warnings.push("Journal entry generation failed. Check Chart of Accounts setup.");
       }
     }
-
-    // Generate deferral schedule if deferral dates are present (idempotent)
-    const updatedInvoice = await getInvoiceById(supabase, id);
-    const rawUpdated = updatedInvoice as unknown as Record<string, unknown>;
-    const defStart = (body.deferral_start_date ?? rawUpdated?.deferral_start_date) as string | undefined;
-    const defEnd = (body.deferral_end_date ?? rawUpdated?.deferral_end_date) as string | undefined;
     if (defStart && defEnd && updatedInvoice) {
       try {
         const defAccountMap = accountMap || await buildCompanyAccountMap(supabase, userCompany.companyId);
