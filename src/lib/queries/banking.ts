@@ -345,10 +345,13 @@ export async function getBankAccountGLTransactions(
     };
     const debit = line.debit ?? 0;
     const credit = line.credit ?? 0;
-    const isDebit = debit > credit;
-    const amount = isDebit ? debit : credit;
-    runningBalance += credit - debit; // cash is an asset (debit normal), so credits reduce balance
+    const isJEDebit = debit > credit;
+    const amount = isJEDebit ? debit : credit;
+    // For asset accounts: JE debit = increase (money in), JE credit = decrease (money out)
+    runningBalance += debit - credit;
     const counterAccountId = counterMap.get(je.id) || null;
+    // Banking UI: "credit" = Money In, "debit" = Money Out
+    // Asset account: JE debit = money IN → banking "credit"; JE credit = money OUT → banking "debit"
     return {
       id: `gl-${line.id}`,
       company_id: companyId,
@@ -356,7 +359,7 @@ export async function getBankAccountGLTransactions(
       transaction_date: je.entry_date,
       description: je.description || line.description || "",
       reference: je.reference,
-      transaction_type: isDebit ? "debit" as const : "credit" as const,
+      transaction_type: isJEDebit ? "credit" as const : "debit" as const,
       amount,
       running_balance: runningBalance,
       category: "gl",
