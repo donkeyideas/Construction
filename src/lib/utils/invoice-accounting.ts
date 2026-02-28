@@ -522,7 +522,7 @@ export async function generateInvoiceJournalEntry(
   if (lines.length < 2) return null;
 
   const entryData: JournalEntryCreateData = {
-    entry_number: `JE-INV-${invoice.invoice_number}`,
+    entry_number: `JE-INV-${invoice.invoice_number.replace(/^INV-/i, "")}`,
     entry_date: invoice.invoice_date,
     description,
     reference: `invoice:${invoice.id}`,
@@ -1132,7 +1132,7 @@ export function buildInvoiceJEData(
   if (lines.length < 2) return null;
 
   return {
-    entry_number: `JE-INV-${invoice.invoice_number}`,
+    entry_number: `JE-INV-${invoice.invoice_number.replace(/^INV-/i, "")}`,
     entry_date: invoice.invoice_date,
     description,
     reference: `invoice:${invoice.id}`,
