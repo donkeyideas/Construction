@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
     if (body.deferral_start_date && body.deferral_end_date) {
       try {
         const defAccountMap = accountMap ?? await buildCompanyAccountMap(supabase, userCompany.companyId);
-        await generateInvoiceDeferralSchedule(supabase, userCompany.companyId, userCompany.userId, {
+        const defResult = await generateInvoiceDeferralSchedule(supabase, userCompany.companyId, userCompany.userId, {
           id: result.id,
           invoice_type: body.invoice_type,
           total_amount: body.total_amount,
@@ -165,6 +165,9 @@ export async function POST(request: NextRequest) {
           project_id: body.project_id,
           gl_account_id: body.gl_account_id,
         }, defAccountMap);
+        if (defResult.insertErrors > 0) {
+          warnings.push(`Deferral schedule: ${defResult.insertErrors} month(s) failed to save. Check that migration 065 has been run in Supabase (invoice_deferral_schedule table).`);
+        }
       } catch (defErr) {
         console.warn("Deferral schedule generation failed:", defErr);
         warnings.push("Deferral schedule generation failed.");

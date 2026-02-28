@@ -1359,6 +1359,36 @@
 
 /* Print styles for financial statements */
 @media print {
+  /* Hide navigation, sidebar, and action buttons for all financial pages */
+  nav,
+  aside,
+  [data-sidebar],
+  .fin-header-actions,
+  .fs-date-controls,
+  .fin-header-sub,
+  .inv-print-hide {
+    display: none !important;
+  }
+
+  /* Invoice detail print layout */
+  .inv-print-area {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .invoice-table {
+    font-size: 10pt;
+  }
+
+  .fin-chart-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
   .fs-date-controls,
   .fin-header-actions,
   .fin-header-sub {

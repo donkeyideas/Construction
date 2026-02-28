@@ -157,7 +157,7 @@ export async function PATCH(
     if (defStart && defEnd && updatedInvoice) {
       try {
         const defAccountMap = accountMap || await buildCompanyAccountMap(supabase, userCompany.companyId);
-        await generateInvoiceDeferralSchedule(supabase, userCompany.companyId, userCompany.userId, {
+        const defResult = await generateInvoiceDeferralSchedule(supabase, userCompany.companyId, userCompany.userId, {
           id,
           invoice_type: updatedInvoice.invoice_type as "payable" | "receivable",
           total_amount: Number(updatedInvoice.total_amount),
@@ -166,6 +166,9 @@ export async function PATCH(
           project_id: updatedInvoice.project_id,
           gl_account_id: rawUpdated?.gl_account_id as string | undefined,
         }, defAccountMap, { forceRegenerate: true });
+        if (defResult.insertErrors > 0) {
+          warnings.push(`Deferral schedule: ${defResult.insertErrors} month(s) failed to save. Check that migration 065 has been run in Supabase (invoice_deferral_schedule table).`);
+        }
       } catch (defErr) {
         console.warn("Deferral schedule generation failed:", defErr);
         warnings.push("Deferral schedule generation failed.");

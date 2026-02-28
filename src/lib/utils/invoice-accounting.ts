@@ -2271,9 +2271,9 @@ export async function generateInvoiceDeferralSchedule(
   },
   accountMap: CompanyAccountMap,
   options?: { forceRegenerate?: boolean }
-): Promise<{ scheduledCount: number; jeCount: number }> {
+): Promise<{ scheduledCount: number; jeCount: number; insertErrors: number }> {
   const months = getMonthsBetween(invoice.deferral_start_date, invoice.deferral_end_date);
-  if (months.length === 0) return { scheduledCount: 0, jeCount: 0 };
+  if (months.length === 0) return { scheduledCount: 0, jeCount: 0, insertErrors: 0 };
 
   const baseAmount = invoice.total_amount / months.length;
   const remainder = invoice.total_amount - baseAmount * months.length;
@@ -2309,6 +2309,7 @@ export async function generateInvoiceDeferralSchedule(
 
   let scheduledCount = 0;
   let jeCount = 0;
+  let insertErrors = 0;
   const jeEntries: JournalEntryCreateData[] = [];
 
   for (let i = 0; i < months.length; i++) {
@@ -2337,6 +2338,31 @@ export async function generateInvoiceDeferralSchedule(
 
     if (!debitAccountId || !creditAccountId) continue;
 
+    // Insert schedule row FIRST — only create the JE if the row saves successfully
+    const { error: schedInsertError } = await supabase
+      .from("invoice_deferral_schedule")
+      .insert({
+        company_id: companyId,
+        invoice_id: invoice.id,
+        project_id: invoice.project_id || null,
+        schedule_date: scheduleDate,
+        monthly_amount: amount,
+        status: "scheduled",
+      });
+
+    if (schedInsertError) {
+      console.error(
+        `[deferral] schedule INSERT failed for invoice ${invoice.id} month ${scheduleDate}:`,
+        schedInsertError.message,
+        schedInsertError.details,
+        schedInsertError.hint
+      );
+      // Skip JE creation for this month to avoid orphaned GL entries
+      insertErrors++;
+      continue;
+    }
+
+    scheduledCount++;
     jeEntries.push({
       entry_number: reference,
       entry_date: scheduleDate,
@@ -2347,17 +2373,6 @@ export async function generateInvoiceDeferralSchedule(
         { account_id: creditAccountId, debit: 0, credit: amount },
       ],
     });
-
-    // Insert schedule row
-    await supabase.from("invoice_deferral_schedule").insert({
-      company_id: companyId,
-      invoice_id: invoice.id,
-      project_id: invoice.project_id || null,
-      schedule_date: scheduleDate,
-      monthly_amount: amount,
-      status: "scheduled",
-    });
-    scheduledCount++;
   }
 
   // Batch-create JEs
@@ -2366,5 +2381,5 @@ export async function generateInvoiceDeferralSchedule(
     jeCount = result.ids.length;
   }
 
-  return { scheduledCount, jeCount };
+  return { scheduledCount, jeCount, insertErrors };
 }

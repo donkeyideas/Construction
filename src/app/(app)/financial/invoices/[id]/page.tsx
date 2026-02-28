@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileText, ArrowLeft, Printer, Download, BookOpen, AlertCircle, Pencil } from "lucide-react";
+import { FileText, ArrowLeft, BookOpen, AlertCircle, Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById } from "@/lib/queries/financial";
@@ -12,6 +12,7 @@ import RecordPaymentButton from "./RecordPaymentButton";
 import EditPaymentSection from "./EditPaymentSection";
 import DeleteInvoiceButton from "./DeleteInvoiceButton";
 import DeferralScheduleCard from "./DeferralScheduleCard";
+import PrintExportButtons from "./PrintExportButtons";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -162,14 +163,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               is_default: ba.is_default,
             }))}
           />
-          <button className="ui-btn ui-btn-outline ui-btn-md" type="button">
-            <Printer size={16} />
-            Print
-          </button>
-          <button className="ui-btn ui-btn-outline ui-btn-md" type="button">
-            <Download size={16} />
-            Export PDF
-          </button>
+          <PrintExportButtons />
           <DeleteInvoiceButton invoiceId={id} invoiceType={invoice.invoice_type} />
         </div>
       </div>
