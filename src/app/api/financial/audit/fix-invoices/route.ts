@@ -100,10 +100,55 @@ export async function POST() {
       }
     }
 
+    // --- Step 3: Clean up orphaned AP/AR JEs ---
+    // Find all invoice JEs, then verify the referenced invoice still exists and is non-voided.
+    // Orphaned JEs (invoice deleted or voided) are deleted to fix GL mismatch.
+    let jesDeleted = 0;
+    const { data: allInvoiceJEs } = await supabase
+      .from("journal_entries")
+      .select("id, reference")
+      .eq("company_id", companyId)
+      .like("reference", "invoice:%")
+      .neq("status", "voided");
+
+    if (allInvoiceJEs && allInvoiceJEs.length > 0) {
+      // Extract invoice IDs from references
+      const jeInvoiceIds = allInvoiceJEs
+        .map((je) => je.reference.replace("invoice:", ""))
+        .filter((id) => id.length > 0);
+
+      if (jeInvoiceIds.length > 0) {
+        // Fetch which of these invoices still exist and are non-voided
+        const { data: existingInvoices } = await supabase
+          .from("invoices")
+          .select("id, status")
+          .eq("company_id", companyId)
+          .in("id", jeInvoiceIds);
+
+        const activeInvoiceIds = new Set(
+          (existingInvoices ?? [])
+            .filter((inv) => inv.status !== "voided")
+            .map((inv) => inv.id)
+        );
+
+        // Delete JEs whose invoice no longer exists or is voided
+        for (const je of allInvoiceJEs) {
+          const invId = je.reference.replace("invoice:", "");
+          if (!activeInvoiceIds.has(invId)) {
+            // Delete JE lines first, then the JE
+            await supabase.from("journal_entry_lines").delete().eq("journal_entry_id", je.id);
+            const { error: delErr } = await supabase.from("journal_entries").delete().eq("id", je.id);
+            if (!delErr) jesDeleted++;
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       glMapped,
       jesCreated,
+      jesDeleted,
     });
   } catch (err) {
     console.error("Fix invoices error:", err);

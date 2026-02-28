@@ -30,11 +30,12 @@ export default function RecordPaymentButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const today = new Date().toISOString().split("T")[0];
+  // Lazy-init to avoid hydration mismatch (new Date() differs server vs client)
+  const [today] = useState(() => new Date().toISOString().split("T")[0]);
 
   const defaultBankId = bankAccounts.find((b) => b.is_default)?.id || bankAccounts[0]?.id || "";
   const [amount, setAmount] = useState(balanceDue);
-  const [paymentDate, setPaymentDate] = useState(today);
+  const [paymentDate, setPaymentDate] = useState("");
   const [bankAccountId, setBankAccountId] = useState(defaultBankId);
   const [method, setMethod] = useState("Check");
   const [referenceNumber, setReferenceNumber] = useState("");

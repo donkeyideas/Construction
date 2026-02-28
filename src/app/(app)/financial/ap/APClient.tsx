@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   Receipt,
   AlertCircle,
@@ -150,15 +150,15 @@ export default function APClient({
 }: APClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
-  const locale = useLocale();
-  const dateLocale = locale === "es" ? "es" : "en-US";
   const [filterStart, setFilterStart] = useState(initialStartDate || "");
   const [filterEnd, setFilterEnd] = useState(initialEndDate || "");
 
+  // Deterministic date formatting — same output on server and client (no toLocaleDateString)
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   function formatDate(dateStr: string) {
-    return new Date(dateStr + "T00:00:00").toLocaleDateString(dateLocale, {
-      month: "short", day: "numeric", year: "numeric",
-    });
+    const d = dateStr.split("T")[0];
+    const [y, m, day] = d.split("-");
+    return `${MONTHS[parseInt(m, 10) - 1]} ${parseInt(day, 10)}, ${y}`;
   }
 
   // Use serverToday for all date comparisons to avoid hydration mismatch
@@ -811,21 +811,23 @@ export default function APClient({
             {/* Scrollable Body */}
             <div className="ticket-detail-body" style={{ flex: 1, overflowY: "auto" }}>
 
-              {/* Delete/Void Confirmation */}
+              {/* Delete/Void Confirmation — shown as overlay within the modal */}
               {showDeleteConfirm && (
                 <div style={{
-                  background: "var(--color-red-light, #fef2f2)", borderRadius: 8, padding: 16,
+                  position: "sticky", top: 0, zIndex: 10,
+                  background: "var(--color-red-light, #fef2f2)", borderRadius: 8, padding: "12px 16px",
                   marginBottom: 16, border: "1px solid var(--color-red, #ef4444)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                 }}>
-                  <p style={{ fontSize: "0.85rem", marginBottom: 4, fontWeight: 600, color: "var(--color-red)" }}>
+                  <p style={{ fontSize: "0.82rem", marginBottom: 8, fontWeight: 600, color: "var(--color-red)" }}>
                     {deleteMode === "hard" ? "Permanently Delete Bill?" : "Void This Bill?"}
-                  </p>
-                  <p style={{ fontSize: "0.82rem", marginBottom: 12, color: "var(--text)" }}>
-                    {deleteMode === "hard"
-                      ? "This will permanently delete the invoice, all payments, and journal entries. This cannot be undone."
-                      : detailPayments.length > 0
-                        ? `This will void the invoice, reverse ${detailPayments.length} payment(s) totaling ${formatCurrency(detailPayments.reduce((s, p) => s + p.amount, 0))}, restore bank balances, and void all journal entries.`
-                        : "This will void the invoice and mark all related journal entries as voided."}
+                    <span style={{ fontWeight: 400, color: "var(--text)", display: "block", marginTop: 2 }}>
+                      {deleteMode === "hard"
+                        ? "Deletes the invoice, payments, and journal entries permanently."
+                        : detailPayments.length > 0
+                          ? `Reverses ${detailPayments.length} payment(s) (${formatCurrency(detailPayments.reduce((s, p) => s + p.amount, 0))}), restores bank balances, voids JEs.`
+                          : "Voids the invoice and all related journal entries."}
+                    </span>
                   </p>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button className="ui-btn ui-btn-outline ui-btn-sm" onClick={() => setShowDeleteConfirm(false)} disabled={saving}>
@@ -838,7 +840,7 @@ export default function APClient({
                       disabled={saving}
                     >
                       {saving && <Loader2 size={14} className="spin" />}
-                      {deleteMode === "hard" ? "Delete Permanently" : "Void Bill"}
+                      {deleteMode === "hard" ? "Delete" : "Void"}
                     </button>
                   </div>
                 </div>
