@@ -165,7 +165,7 @@ export async function PATCH(
           deferral_end_date: defEnd,
           project_id: updatedInvoice.project_id,
           gl_account_id: rawUpdated?.gl_account_id as string | undefined,
-        }, defAccountMap);
+        }, defAccountMap, { forceRegenerate: true });
       } catch (defErr) {
         console.warn("Deferral schedule generation failed:", defErr);
         warnings.push("Deferral schedule generation failed.");
@@ -242,8 +242,18 @@ export async function DELETE(
       }
     }
 
+    // Helper: collect deferral recognition JEs for this invoice
+    const { data: deferralJEs } = await supabase
+      .from("journal_entries")
+      .select("id")
+      .eq("company_id", userCompany.companyId)
+      .like("reference", `deferral:${id}:%`);
+    const deferralJEIds = (deferralJEs ?? []).map((je) => je.id);
+
     if (hard) {
-      // Hard delete: remove invoice JE, payments, and the invoice row
+      // Hard delete: remove invoice JE, deferral JEs, payments, and the invoice row
+
+      // Delete main invoice JE
       const { data: invJEs } = await supabase
         .from("journal_entries")
         .select("id")
@@ -255,10 +265,16 @@ export async function DELETE(
         await supabase.from("journal_entries").delete().in("id", jeIds);
       }
 
+      // Delete all deferral recognition JEs
+      if (deferralJEIds.length > 0) {
+        await supabase.from("journal_entry_lines").delete().in("journal_entry_id", deferralJEIds);
+        await supabase.from("journal_entries").delete().in("id", deferralJEIds);
+      }
+
       // Delete payments
       await supabase.from("payments").delete().eq("invoice_id", id);
 
-      // Delete the invoice itself
+      // Delete the invoice itself (cascades invoice_deferral_schedule rows)
       const { error } = await supabase
         .from("invoices")
         .delete()
@@ -271,7 +287,7 @@ export async function DELETE(
         );
       }
     } else {
-      // Soft void: reset amount_paid, void invoice + JEs
+      // Soft void: reset amount_paid, void invoice + all linked JEs
       // Delete payments (already reversed bank balances above)
       if (payments && payments.length > 0) {
         await supabase.from("payments").delete().eq("invoice_id", id);
@@ -283,12 +299,20 @@ export async function DELETE(
         .update({ amount_paid: 0, status: "voided" })
         .eq("id", id);
 
-      // Void linked invoice journal entries
+      // Void main invoice journal entry
       await supabase
         .from("journal_entries")
         .update({ status: "voided" })
         .eq("company_id", userCompany.companyId)
         .eq("reference", `invoice:${id}`);
+
+      // Void all deferral recognition JEs
+      if (deferralJEIds.length > 0) {
+        await supabase
+          .from("journal_entries")
+          .update({ status: "voided" })
+          .in("id", deferralJEIds);
+      }
     }
 
     return NextResponse.json({ success: true });

@@ -2269,7 +2269,8 @@ export async function generateInvoiceDeferralSchedule(
     project_id?: string | null;
     gl_account_id?: string | null;
   },
-  accountMap: CompanyAccountMap
+  accountMap: CompanyAccountMap,
+  options?: { forceRegenerate?: boolean }
 ): Promise<{ scheduledCount: number; jeCount: number }> {
   const months = getMonthsBetween(invoice.deferral_start_date, invoice.deferral_end_date);
   if (months.length === 0) return { scheduledCount: 0, jeCount: 0 };
@@ -2277,7 +2278,28 @@ export async function generateInvoiceDeferralSchedule(
   const baseAmount = invoice.total_amount / months.length;
   const remainder = invoice.total_amount - baseAmount * months.length;
 
-  // Check existing schedule to be idempotent
+  // When forcing regeneration (e.g. after an edit), delete all existing deferral JEs
+  // and schedule rows for non-recognized months so they can be rebuilt cleanly.
+  if (options?.forceRegenerate) {
+    const { data: oldJEs } = await supabase
+      .from("journal_entries")
+      .select("id")
+      .eq("company_id", companyId)
+      .like("reference", `deferral:${invoice.id}:%`);
+    if (oldJEs && oldJEs.length > 0) {
+      const oldIds = oldJEs.map((je) => je.id);
+      await supabase.from("journal_entry_lines").delete().in("journal_entry_id", oldIds);
+      await supabase.from("journal_entries").delete().in("id", oldIds);
+    }
+    // Delete only unrecognized schedule rows; keep recognized rows intact
+    await supabase
+      .from("invoice_deferral_schedule")
+      .delete()
+      .eq("invoice_id", invoice.id)
+      .eq("status", "scheduled");
+  }
+
+  // Check existing schedule to be idempotent (skip months already recognized)
   const { data: existing } = await supabase
     .from("invoice_deferral_schedule")
     .select("schedule_date")
