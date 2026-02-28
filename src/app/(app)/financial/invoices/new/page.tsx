@@ -58,7 +58,9 @@ function NewInvoiceForm() {
   const t = useTranslations("financial.newInvoicePage");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialType = (searchParams.get("type") === "payable" ? "payable" : "receivable") as "payable" | "receivable";
+  const typeParam = searchParams.get("type");
+  const lockedType = typeParam === "payable" || typeParam === "receivable" ? typeParam : null;
+  const initialType = (typeParam === "payable" ? "payable" : "receivable") as "payable" | "receivable";
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -201,25 +203,38 @@ function NewInvoiceForm() {
       )}
 
       <div className="invoice-form">
-        {/* Type Selector */}
-        <div className="invoice-type-selector">
-          <button
-            type="button"
-            className={`invoice-type-option ${invoiceType === "receivable" ? "active" : ""}`}
-            onClick={() => setInvoiceType("receivable")}
-          >
-            <ArrowUpRight size={20} />
-            {t("accountsReceivableAr")}
-          </button>
-          <button
-            type="button"
-            className={`invoice-type-option ${invoiceType === "payable" ? "active" : ""}`}
-            onClick={() => setInvoiceType("payable")}
-          >
-            <ArrowDownLeft size={20} />
-            {t("accountsPayableAp")}
-          </button>
-        </div>
+        {/* Type Selector — hidden when type is locked via URL param */}
+        {lockedType ? (
+          <div className="invoice-type-selector">
+            <button
+              type="button"
+              className="invoice-type-option active"
+              style={{ cursor: "default", flex: 1 }}
+            >
+              {lockedType === "payable" ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
+              {lockedType === "payable" ? t("accountsPayableAp") : t("accountsReceivableAr")}
+            </button>
+          </div>
+        ) : (
+          <div className="invoice-type-selector">
+            <button
+              type="button"
+              className={`invoice-type-option ${invoiceType === "receivable" ? "active" : ""}`}
+              onClick={() => setInvoiceType("receivable")}
+            >
+              <ArrowUpRight size={20} />
+              {t("accountsReceivableAr")}
+            </button>
+            <button
+              type="button"
+              className={`invoice-type-option ${invoiceType === "payable" ? "active" : ""}`}
+              onClick={() => setInvoiceType("payable")}
+            >
+              <ArrowDownLeft size={20} />
+              {t("accountsPayableAp")}
+            </button>
+          </div>
+        )}
 
         {/* Form Fields */}
         <div className="invoice-form-grid">
