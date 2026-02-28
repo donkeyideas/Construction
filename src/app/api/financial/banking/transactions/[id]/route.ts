@@ -5,6 +5,8 @@ import {
   updateBankTransaction,
   deleteBankTransaction,
 } from "@/lib/queries/banking";
+import { generateBankTransactionJournalEntry } from "@/lib/utils/invoice-accounting";
+import { ensureBankAccountGLLink } from "@/lib/utils/bank-gl-linkage";
 
 // ---------------------------------------------------------------------------
 // PATCH /api/financial/banking/transactions/[id] — Update a transaction
@@ -26,10 +28,10 @@ export async function PATCH(
       );
     }
 
-    // Verify the transaction belongs to the company
+    // Verify the transaction belongs to the company (fetch full row for JE regen)
     const { data: existing } = await supabase
       .from("bank_transactions")
-      .select("id, company_id")
+      .select("id, company_id, bank_account_id, transaction_date, transaction_type, amount, description, metadata")
       .eq("id", id)
       .single();
 
@@ -65,6 +67,64 @@ export async function PATCH(
         { error: "Failed to update transaction" },
         { status: 500 }
       );
+    }
+
+    // Regenerate journal entry when GL account or financial fields change
+    if (
+      body.gl_account_id !== undefined ||
+      body.amount !== undefined ||
+      body.transaction_type !== undefined ||
+      body.transaction_date !== undefined
+    ) {
+      try {
+        // Delete old JE
+        const { data: linkedJEs } = await supabase
+          .from("journal_entries")
+          .select("id")
+          .eq("company_id", userCtx.companyId)
+          .eq("reference", `bank_txn:${id}`);
+        if (linkedJEs && linkedJEs.length > 0) {
+          const jeIds = linkedJEs.map((je) => je.id);
+          await supabase.from("journal_entry_lines").delete().in("journal_entry_id", jeIds);
+          await supabase.from("journal_entries").delete().in("id", jeIds);
+        }
+
+        // Generate new JE if GL account is set
+        const newGlAccountId = body.gl_account_id !== undefined
+          ? (body.gl_account_id || null)
+          : (existing.metadata as { gl_account_id?: string } | null)?.gl_account_id || null;
+
+        if (newGlAccountId) {
+          const bankAccountId = existing.bank_account_id;
+          const { data: bankInfo } = await supabase
+            .from("bank_accounts")
+            .select("name, account_type")
+            .eq("id", bankAccountId)
+            .single();
+          await ensureBankAccountGLLink(
+            supabase, userCtx.companyId, bankAccountId,
+            bankInfo?.name || "Bank Account", bankInfo?.account_type || "checking",
+            undefined, userCtx.userId
+          );
+
+          await generateBankTransactionJournalEntry(
+            supabase,
+            userCtx.companyId,
+            userCtx.userId,
+            {
+              id,
+              transaction_date: body.transaction_date ?? existing.transaction_date,
+              transaction_type: body.transaction_type ?? existing.transaction_type,
+              amount: body.amount !== undefined ? Number(body.amount) : existing.amount,
+              description: body.description ?? existing.description,
+              gl_account_id: newGlAccountId,
+              bank_account_id: bankAccountId,
+            }
+          );
+        }
+      } catch (jeErr) {
+        console.warn("JE regeneration failed for bank transaction:", id, jeErr);
+      }
     }
 
     return NextResponse.json({ success: true });
