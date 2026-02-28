@@ -429,7 +429,7 @@ export default function BankTransactionsClient({
               onClick={() => setViewMode(mode)}
             >
               {mode === "all" ? `All (${transactions.length + glTransactions.length})` :
-               mode === "bank" ? `Manual (${transactions.length})` :
+               mode === "bank" ? `Bank (${transactions.length})` :
                `From GL (${glTransactions.length})`}
             </button>
           ))}
