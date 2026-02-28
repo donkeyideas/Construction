@@ -23,6 +23,7 @@ interface Props {
   balanceDue: number;
   lineItems: LineItem[];
   notes: string;
+  glAccountDisplay?: string | null;
 }
 
 function fmt(val: number): string {
@@ -52,6 +53,7 @@ export default function InvoicePrintView({
   balanceDue,
   lineItems,
   notes,
+  glAccountDisplay,
 }: Props) {
   const isPayable = invoiceType === "payable";
   const hasCsiCodes = lineItems.some((l) => l.csi_code);
@@ -93,6 +95,12 @@ export default function InvoicePrintView({
             <span className="ipv-dv">{invoiceDate}</span>
             <span className="ipv-dl">Due Date</span>
             <span className="ipv-dv">{dueDate}</span>
+            {glAccountDisplay && (
+              <>
+                <span className="ipv-dl">{isPayable ? "Expense Acct" : "Revenue Acct"}</span>
+                <span className="ipv-dv">{glAccountDisplay}</span>
+              </>
+            )}
           </div>
         </div>
       </div>

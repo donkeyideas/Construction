@@ -57,6 +57,20 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
     getBankAccounts(supabase, userCompany.companyId),
   ]);
 
+  // Fetch GL account name for this invoice (if assigned)
+  let glAccountDisplay: string | null = null;
+  const glAccountId = (invoice as unknown as Record<string, unknown>)?.gl_account_id as string | undefined;
+  if (glAccountId) {
+    const { data: glAcct } = await supabase
+      .from("chart_of_accounts")
+      .select("account_number, name")
+      .eq("id", glAccountId)
+      .single();
+    if (glAcct) {
+      glAccountDisplay = `${glAcct.account_number} — ${glAcct.name}`;
+    }
+  }
+
   if (!invoice) {
     notFound();
   }
@@ -215,6 +229,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               ["Invoice Date", safeDate(invoice.invoice_date, { long: true })],
               ["Due Date", safeDate(invoice.due_date, { long: true })],
               ["Status", invoice.status],
+              ...(glAccountDisplay ? [[isPayable ? "Expense Account" : "Revenue Account", glAccountDisplay] as [string, string]] : []),
             ].map(([label, value]) => (
               <div key={String(label)} className="info-row">
                 <span className="info-label">{label}</span>
@@ -439,6 +454,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
         balanceDue={Number(rawInv.balance_due ?? invoice.total_amount ?? 0)}
         lineItems={lineItems}
         notes={String(invoice.notes ?? "")}
+        glAccountDisplay={glAccountDisplay}
       />
     </div>
   );
