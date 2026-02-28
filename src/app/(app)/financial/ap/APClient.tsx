@@ -827,7 +827,7 @@ export default function APClient({
                 }}>
                   <p style={{ fontSize: "0.82rem", marginBottom: 8, fontWeight: 600, color: "var(--color-red)" }}>
                     {deleteMode === "hard" ? "Permanently Delete Bill?" : "Void This Bill?"}
-                    <span style={{ fontWeight: 400, color: "var(--text)", display: "block", marginTop: 2 }}>
+                    <span style={{ fontWeight: 400, color: "#44403c", display: "block", marginTop: 2 }}>
                       {deleteMode === "hard"
                         ? "Deletes the invoice, payments, and journal entries permanently."
                         : detailPayments.length > 0
@@ -836,7 +836,7 @@ export default function APClient({
                     </span>
                   </p>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                    <button className="ui-btn ui-btn-outline ui-btn-sm" onClick={() => setShowDeleteConfirm(false)} disabled={saving}>
+                    <button className="ui-btn ui-btn-outline ui-btn-sm" onClick={() => setShowDeleteConfirm(false)} disabled={saving} style={{ color: "#44403c", borderColor: "#a8a29e" }}>
                       {t("cancel")}
                     </button>
                     <button
