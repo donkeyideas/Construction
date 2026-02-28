@@ -184,10 +184,10 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     if (bankIds.length > 0) {
       const { data: banks } = await supabase
         .from("bank_accounts")
-        .select("id, name")
+        .select("id, name, account_number_last4")
         .in("id", bankIds);
       for (const b of banks ?? []) {
-        bankNameMap[b.id] = b.name;
+        bankNameMap[b.id] = b.account_number_last4 ? `${b.name} ****${b.account_number_last4}` : b.name;
       }
     }
     for (const p of allPayments) {
