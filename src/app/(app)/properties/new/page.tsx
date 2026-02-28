@@ -6,6 +6,23 @@ import Link from "next/link";
 import { ArrowLeft, Save } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+const UNIT_TYPES = [
+  { value: "studio", label: "Studio" },
+  { value: "1br", label: "1 Bedroom" },
+  { value: "2br", label: "2 Bedroom" },
+  { value: "3br", label: "3 Bedroom" },
+  { value: "office", label: "Office" },
+  { value: "retail", label: "Retail" },
+  { value: "warehouse", label: "Warehouse" },
+];
+
+const DEFAULT_UNIT_TYPE_BY_PROPERTY: Record<string, string> = {
+  residential: "1br",
+  commercial: "office",
+  industrial: "warehouse",
+  mixed_use: "1br",
+};
+
 export default function NewPropertyPage() {
   const router = useRouter();
   const t = useTranslations("properties");
@@ -24,7 +41,14 @@ export default function NewPropertyPage() {
     total_units: "",
     purchase_price: "",
     current_value: "",
+    // Unit template fields
+    default_unit_type: "",
+    default_sqft_per_unit: "",
+    default_market_rent: "",
+    floors: "",
   });
+
+  const unitCount = parseInt(form.total_units, 10) || 0;
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -62,12 +86,13 @@ export default function NewPropertyPage() {
         year_built: form.year_built ? parseInt(form.year_built, 10) : null,
         total_sqft: form.total_sqft ? parseInt(form.total_sqft, 10) : null,
         total_units: form.total_units ? parseInt(form.total_units, 10) : 0,
-        purchase_price: form.purchase_price
-          ? parseFloat(form.purchase_price)
-          : null,
-        current_value: form.current_value
-          ? parseFloat(form.current_value)
-          : null,
+        purchase_price: form.purchase_price ? parseFloat(form.purchase_price) : null,
+        current_value: form.current_value ? parseFloat(form.current_value) : null,
+        // Unit template
+        default_unit_type: form.default_unit_type || DEFAULT_UNIT_TYPE_BY_PROPERTY[form.property_type] || "1br",
+        default_sqft_per_unit: form.default_sqft_per_unit ? parseFloat(form.default_sqft_per_unit) : null,
+        default_market_rent: form.default_market_rent ? parseFloat(form.default_market_rent) : null,
+        floors: form.floors ? parseInt(form.floors, 10) : null,
       };
 
       const res = await fetch("/api/properties", {
@@ -323,6 +348,124 @@ export default function NewPropertyPage() {
           </div>
         </div>
 
+        {/* Unit Defaults — shown when total_units > 0 */}
+        {unitCount > 0 && (
+          <div
+            style={{
+              marginTop: "28px",
+              padding: "20px 24px",
+              background: "var(--color-blue-light, rgba(59,130,246,0.06))",
+              border: "1px solid var(--color-blue, #3b82f6)",
+              borderRadius: "10px",
+            }}
+          >
+            <div style={{ marginBottom: "16px" }}>
+              <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: "4px" }}>
+                Unit Defaults
+              </div>
+              <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
+                {unitCount} units will be created automatically. Set defaults here — you can edit each unit individually after creation.
+              </div>
+            </div>
+
+            <div className="property-form-grid">
+              {/* Default Unit Type */}
+              <div className="ui-field">
+                <label className="ui-label" htmlFor="default_unit_type">
+                  Unit Type
+                </label>
+                <select
+                  id="default_unit_type"
+                  name="default_unit_type"
+                  className="ui-input"
+                  value={form.default_unit_type || DEFAULT_UNIT_TYPE_BY_PROPERTY[form.property_type] || "1br"}
+                  onChange={handleChange}
+                >
+                  {UNIT_TYPES.map((u) => (
+                    <option key={u.value} value={u.value}>{u.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Floors */}
+              <div className="ui-field">
+                <label className="ui-label" htmlFor="floors">
+                  Number of Floors
+                </label>
+                <input
+                  id="floors"
+                  name="floors"
+                  type="number"
+                  className="ui-input"
+                  value={form.floors}
+                  onChange={handleChange}
+                  placeholder="e.g. 3 (for 101, 201, 301...)"
+                  min="1"
+                />
+              </div>
+
+              {/* Default Sq Ft per Unit */}
+              <div className="ui-field">
+                <label className="ui-label" htmlFor="default_sqft_per_unit">
+                  Sq Ft Per Unit
+                </label>
+                <input
+                  id="default_sqft_per_unit"
+                  name="default_sqft_per_unit"
+                  type="number"
+                  className="ui-input"
+                  value={form.default_sqft_per_unit}
+                  onChange={handleChange}
+                  placeholder="e.g. 850"
+                  min="0"
+                />
+              </div>
+
+              {/* Default Market Rent */}
+              <div className="ui-field">
+                <label className="ui-label" htmlFor="default_market_rent">
+                  Market Rent Per Unit ($)
+                </label>
+                <input
+                  id="default_market_rent"
+                  name="default_market_rent"
+                  type="number"
+                  className="ui-input"
+                  value={form.default_market_rent}
+                  onChange={handleChange}
+                  placeholder="e.g. 1800"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+            </div>
+
+            {/* Preview of unit numbers */}
+            <div style={{ marginTop: "12px", fontSize: "0.78rem", color: "var(--muted)" }}>
+              Unit numbering preview:{" "}
+              <span style={{ fontFamily: "monospace", color: "var(--text)" }}>
+                {(() => {
+                  const floors = parseInt(form.floors, 10) || 0;
+                  if (floors > 1) {
+                    const perFloor = Math.ceil(unitCount / floors);
+                    const examples = [];
+                    outer: for (let f = 1; f <= floors; f++) {
+                      for (let u = 1; u <= perFloor; u++) {
+                        examples.push(`${f}${String(u).padStart(2, "0")}`);
+                        if (examples.length >= 5) break outer;
+                      }
+                    }
+                    return examples.join(", ") + (unitCount > 5 ? ` ... (${unitCount} total)` : "");
+                  } else {
+                    const examples = Array.from({ length: Math.min(unitCount, 5) }, (_, i) => String(101 + i));
+                    return examples.join(", ") + (unitCount > 5 ? ` ... (${unitCount} total)` : "");
+                  }
+                })()}
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="property-form-actions">
           <button
             type="submit"
@@ -331,7 +474,9 @@ export default function NewPropertyPage() {
           >
             {saving && <span className="ui-btn-spinner" />}
             <Save size={16} />
-            {saving ? t("saving") : t("createProperty")}
+            {saving
+              ? (unitCount > 0 ? `Creating property + ${unitCount} units...` : t("saving"))
+              : t("createProperty")}
           </button>
           <Link href="/properties" className="ui-btn ui-btn-md ui-btn-secondary">
             {t("cancel")}

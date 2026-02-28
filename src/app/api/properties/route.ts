@@ -1,9 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getProperties, createProperty } from "@/lib/queries/properties";
+import { getProperties, createProperty, createUnit } from "@/lib/queries/properties";
 import { checkPlanLimit, planLimitError } from "@/lib/utils/plan-limits";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+
+const DEFAULT_UNIT_TYPE_BY_PROPERTY: Record<string, string> = {
+  residential: "1br",
+  commercial: "office",
+  industrial: "warehouse",
+  mixed_use: "1br",
+};
+
+/**
+ * Generate unit numbers based on total units and optional floor count.
+ * With floors: 101, 102, 201, 202, …  (floor * 100 + unit_on_floor)
+ * Without floors: 101, 102, 103, …
+ */
+function generateUnitNumbers(total: number, floors: number | null): string[] {
+  const numbers: string[] = [];
+
+  if (floors && floors > 1) {
+    const perFloor = Math.ceil(total / floors);
+    outer: for (let f = 1; f <= floors; f++) {
+      for (let u = 1; u <= perFloor; u++) {
+        numbers.push(`${f}${String(u).padStart(2, "0")}`);
+        if (numbers.length >= total) break outer;
+      }
+    }
+  } else {
+    for (let i = 1; i <= total; i++) {
+      numbers.push(String(100 + i)); // 101, 102, 103 …
+    }
+  }
+
+  return numbers;
+}
 
 export async function GET() {
   try {
@@ -59,6 +91,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const totalUnits: number = body.total_units ?? 0;
+
     const property = await createProperty(supabase, ctx.companyId, {
       name: body.name,
       property_type: body.property_type,
@@ -68,10 +102,41 @@ export async function POST(request: NextRequest) {
       zip: body.zip,
       year_built: body.year_built ?? null,
       total_sqft: body.total_sqft ?? null,
-      total_units: body.total_units ?? 0,
+      total_units: totalUnits,
       purchase_price: body.purchase_price ?? null,
       current_value: body.current_value ?? null,
     });
+
+    // ── Auto-create placeholder units ──────────────────────────────
+    if (totalUnits > 0) {
+      const unitType: string =
+        body.default_unit_type ||
+        DEFAULT_UNIT_TYPE_BY_PROPERTY[body.property_type as string] ||
+        "1br";
+      const floors: number | null = body.floors ? Number(body.floors) : null;
+      const sqftPerUnit: number | null = body.default_sqft_per_unit
+        ? Number(body.default_sqft_per_unit)
+        : null;
+      const marketRent: number | null = body.default_market_rent
+        ? Number(body.default_market_rent)
+        : null;
+
+      const unitNumbers = generateUnitNumbers(totalUnits, floors);
+
+      // Create all units — errors are non-fatal (property still returns)
+      await Promise.allSettled(
+        unitNumbers.map((unitNumber, idx) =>
+          createUnit(supabase, ctx.companyId, property.id, {
+            unit_number: unitNumber,
+            unit_type: unitType,
+            sqft: sqftPerUnit,
+            market_rent: marketRent,
+            floor_number: floors && floors > 1 ? Math.floor(idx / Math.ceil(totalUnits / floors)) + 1 : null,
+            status: "vacant",
+          })
+        )
+      );
+    }
 
     return NextResponse.json(property, { status: 201 });
   } catch (err: unknown) {
