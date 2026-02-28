@@ -100,10 +100,16 @@ export async function POST() {
       }
     }
 
-    // --- Step 3: Clean up orphaned AP/AR JEs ---
-    // Find all invoice JEs, then verify the referenced invoice still exists and is non-voided.
-    // Orphaned JEs (invoice deleted or voided) are deleted to fix GL mismatch.
+    // --- Step 3: Clean up orphaned invoice JEs ---
     let jesDeleted = 0;
+
+    async function deleteJE(jeId: string) {
+      await supabase.from("journal_entry_lines").delete().eq("journal_entry_id", jeId);
+      const { error: delErr } = await supabase.from("journal_entries").delete().eq("id", jeId);
+      if (!delErr) jesDeleted++;
+    }
+
+    // 3a. Invoice JEs whose invoice no longer exists or is voided
     const { data: allInvoiceJEs } = await supabase
       .from("journal_entries")
       .select("id, reference")
@@ -112,13 +118,11 @@ export async function POST() {
       .neq("status", "voided");
 
     if (allInvoiceJEs && allInvoiceJEs.length > 0) {
-      // Extract invoice IDs from references
       const jeInvoiceIds = allInvoiceJEs
         .map((je) => je.reference.replace("invoice:", ""))
         .filter((id) => id.length > 0);
 
       if (jeInvoiceIds.length > 0) {
-        // Fetch which of these invoices still exist and are non-voided
         const { data: existingInvoices } = await supabase
           .from("invoices")
           .select("id, status")
@@ -131,14 +135,118 @@ export async function POST() {
             .map((inv) => inv.id)
         );
 
-        // Delete JEs whose invoice no longer exists or is voided
         for (const je of allInvoiceJEs) {
           const invId = je.reference.replace("invoice:", "");
           if (!activeInvoiceIds.has(invId)) {
-            // Delete JE lines first, then the JE
-            await supabase.from("journal_entry_lines").delete().eq("journal_entry_id", je.id);
-            const { error: delErr } = await supabase.from("journal_entries").delete().eq("id", je.id);
-            if (!delErr) jesDeleted++;
+            await deleteJE(je.id);
+          }
+        }
+      }
+    }
+
+    // 3b. Payment JEs whose payment or parent invoice no longer exists
+    const { data: allPaymentJEs } = await supabase
+      .from("journal_entries")
+      .select("id, reference")
+      .eq("company_id", companyId)
+      .like("reference", "payment:%")
+      .neq("status", "voided");
+
+    if (allPaymentJEs && allPaymentJEs.length > 0) {
+      const paymentIds = allPaymentJEs
+        .map((je) => je.reference.replace("payment:", ""))
+        .filter((id) => id.length > 0);
+
+      if (paymentIds.length > 0) {
+        const { data: existingPayments } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("company_id", companyId)
+          .in("id", paymentIds);
+
+        const activePaymentIds = new Set((existingPayments ?? []).map((p) => p.id));
+
+        for (const je of allPaymentJEs) {
+          const pId = je.reference.replace("payment:", "");
+          if (!activePaymentIds.has(pId)) {
+            await deleteJE(je.id);
+          }
+        }
+      }
+    }
+
+    // 3c. Nuclear cleanup: find ALL posted JEs hitting AP accounts that reference
+    // non-existent entities (covers deferral:, change_order:, etc.)
+    const { data: apAccounts } = await supabase
+      .from("chart_of_accounts")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("account_type", "liability")
+      .or("name.ilike.%accounts payable%,name.ilike.%accts payable%,name.ilike.%a/p%,name.ilike.%trade payable%,name.ilike.%retainage payable%");
+
+    if (apAccounts && apAccounts.length > 0) {
+      const apAccountIds = apAccounts.map((a) => a.id);
+
+      // Find distinct JE IDs with lines on AP accounts
+      const { data: apJELines } = await supabase
+        .from("journal_entry_lines")
+        .select("journal_entry_id")
+        .eq("company_id", companyId)
+        .in("account_id", apAccountIds);
+
+      if (apJELines && apJELines.length > 0) {
+        const apJEIds = [...new Set(apJELines.map((l) => l.journal_entry_id))];
+
+        // Get those JEs with their references
+        const CHUNK = 200;
+        for (let i = 0; i < apJEIds.length; i += CHUNK) {
+          const chunk = apJEIds.slice(i, i + CHUNK);
+          const { data: jes } = await supabase
+            .from("journal_entries")
+            .select("id, reference, status")
+            .eq("company_id", companyId)
+            .in("id", chunk)
+            .neq("status", "voided");
+
+          for (const je of jes ?? []) {
+            if (!je.reference) continue;
+
+            // Check each reference pattern
+            if (je.reference.startsWith("invoice:")) {
+              const invId = je.reference.replace("invoice:", "");
+              const { data: inv } = await supabase
+                .from("invoices")
+                .select("id, status")
+                .eq("id", invId)
+                .single();
+              if (!inv || inv.status === "voided") {
+                await deleteJE(je.id);
+              }
+            } else if (je.reference.startsWith("payment:")) {
+              const pId = je.reference.replace("payment:", "");
+              const { data: pmt } = await supabase
+                .from("payments")
+                .select("id")
+                .eq("id", pId)
+                .single();
+              if (!pmt) {
+                await deleteJE(je.id);
+              }
+            } else if (je.reference.startsWith("deferral:")) {
+              // deferral:{invoiceId}:{yyyy-mm}
+              const parts = je.reference.split(":");
+              const invId = parts[1] || "";
+              if (invId) {
+                const { data: inv } = await supabase
+                  .from("invoices")
+                  .select("id, status")
+                  .eq("id", invId)
+                  .single();
+                if (!inv || inv.status === "voided") {
+                  await deleteJE(je.id);
+                }
+              }
+            }
           }
         }
       }

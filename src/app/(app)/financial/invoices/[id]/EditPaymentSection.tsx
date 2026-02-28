@@ -28,6 +28,14 @@ interface EditPaymentSectionProps {
   bankAccounts: BankOption[];
 }
 
+// Deterministic date formatting — same output on server and client (no toLocaleDateString)
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDate(dateStr: string) {
+  const d = (dateStr || "").split("T")[0];
+  const [y, m, day] = d.split("-");
+  return `${MONTHS[parseInt(m, 10) - 1]} ${parseInt(day, 10)}, ${y}`;
+}
+
 export default function EditPaymentSection({
   payments,
   invoiceId,
@@ -171,7 +179,7 @@ export default function EditPaymentSection({
                 }}
               >
                 <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-                  Payment on {new Date(p.payment_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  Payment on {fmtDate(p.payment_date)}
                   {" — "}${p.amount.toFixed(2)} via {p.method}
                   {p.bank_account_name ? ` (${p.bank_account_name})` : ""}
                 </span>
@@ -245,7 +253,7 @@ export default function EditPaymentSection({
             }}
           >
             <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 12 }}>
-              Edit Payment — ${p.amount.toFixed(2)} on {new Date(p.payment_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              Edit Payment — ${p.amount.toFixed(2)} on {fmtDate(p.payment_date)}
             </div>
 
             {error && (
