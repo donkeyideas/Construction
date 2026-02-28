@@ -19,6 +19,7 @@ import type {
   ReportType,
 } from "@/types/authoritative-reports";
 import { REPORT_TYPE_LABELS } from "@/types/authoritative-reports";
+import { formatMonthYear, toDateStr } from "@/lib/utils/format";
 
 /* =========================================================
    Shared PDF Components
@@ -63,10 +64,7 @@ function CoverPage({
           style={[styles.coverAccentLine, { backgroundColor: theme.accent, opacity: 0.5 }]}
         />
         <Text style={[styles.coverMeta, { marginTop: 12 }]}>
-          {new Date().toLocaleDateString("en-US", {
-            month: "long",
-            year: "numeric",
-          })}
+          {formatMonthYear(toDateStr(new Date()))}
         </Text>
       </View>
     </Page>

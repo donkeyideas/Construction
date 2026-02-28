@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Wrench, X, Pencil } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface MaintenanceRequest {
   id: string;
@@ -284,14 +285,7 @@ export default function MaintenanceClient({
                     <span>
                       {t("submittedDate", {
                         date: request.created_at
-                          ? new Date(request.created_at).toLocaleDateString(
-                              dateLocale,
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              }
-                            )
+                          ? formatDateSafe(request.created_at)
                           : "--",
                       })}
                     </span>
@@ -594,17 +588,7 @@ export default function MaintenanceClient({
                   <span className="tenant-detail-label">{t("submitted")}</span>
                   <span>
                     {selected.created_at
-                      ? new Date(selected.created_at).toLocaleDateString(
-                          dateLocale,
-                          {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "numeric",
-                            minute: "2-digit",
-                          }
-                        )
+                      ? formatDateSafe(selected.created_at)
                       : "--"}
                   </span>
                 </div>
@@ -613,17 +597,7 @@ export default function MaintenanceClient({
                     <div className="tenant-detail-row">
                       <span className="tenant-detail-label">{t("lastUpdated")}</span>
                       <span>
-                        {new Date(selected.updated_at).toLocaleDateString(
-                          dateLocale,
-                          {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "numeric",
-                            minute: "2-digit",
-                          }
-                        )}
+                        {formatDateSafe(selected.updated_at)}
                       </span>
                     </div>
                   )}

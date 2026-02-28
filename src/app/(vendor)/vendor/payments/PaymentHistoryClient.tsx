@@ -9,7 +9,7 @@ import {
   AlertCircle,
   FileText,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 
 interface PaymentRow {
   id: string;
@@ -81,11 +81,7 @@ export default function PaymentHistoryClient({
   const dateLocale = locale === "es" ? "es" : "en-US";
 
   function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   const now = new Date();

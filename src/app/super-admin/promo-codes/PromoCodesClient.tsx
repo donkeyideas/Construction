@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Tag, Plus, X, Pencil, Trash2, Copy, RefreshCw } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface PromoCode {
   id: string;
@@ -24,11 +25,7 @@ interface Props {
 }
 
 function formatDate(dateStr: string, loc: string): string {
-  return new Date(dateStr).toLocaleDateString(loc, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function generateCode(): string {

@@ -17,7 +17,7 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -147,11 +147,7 @@ export default function RfisClient({
   ];
 
   function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   // Create modal state
@@ -513,7 +509,7 @@ export default function RfisClient({
                       <td>
                         {rfi.due_date ? (
                           <span style={{ color: overdue ? "var(--color-red)" : "var(--text)", fontWeight: overdue ? 600 : 400 }}>
-                            {new Date(rfi.due_date).toLocaleDateString(dateLocale, { month: "short", day: "numeric", year: "numeric" })}
+                            {formatDateSafe(rfi.due_date)}
                             {overdue && <AlertCircle size={12} style={{ marginLeft: 4, verticalAlign: "middle" }} />}
                           </span>
                         ) : "--"}

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getTranslations, getLocale } from "next-intl/server";
 import PhotosClient from "./PhotosClient";
+import { formatDateShort, formatDateSafe, toDateStr } from "@/lib/utils/format";
 
 export const metadata = {
   title: "Photos - Buildwrk",
@@ -62,11 +63,7 @@ export default async function PhotosPage() {
         <div>
           <h2>{t("title")}</h2>
           <div className="mobile-header-date">
-            {new Date().toLocaleDateString(dateLocale, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
+            {formatDateSafe(toDateStr(new Date()))}
           </div>
         </div>
       </div>
@@ -109,10 +106,7 @@ export default async function PhotosPage() {
                       : t("untagged")}
                   </div>
                   <div className="photo-thumb-meta">
-                    {new Date(photo.createdAt).toLocaleDateString(dateLocale, {
-                      month: "short",
-                      day: "numeric",
-                    })}
+                    {formatDateShort(photo.createdAt)}
                   </div>
                 </div>
               </div>

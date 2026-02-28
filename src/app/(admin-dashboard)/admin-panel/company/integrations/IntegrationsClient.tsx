@@ -20,6 +20,7 @@ import {
   type IntegrationProvider,
 } from "@/lib/integrations/providers";
 import type { IntegrationRow, IntegrationStats } from "@/lib/queries/integrations";
+import { formatDateTimeSafe } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -252,12 +253,7 @@ export default function IntegrationsClient({
 
   function formatSyncTime(ts: string | null): string {
     if (!ts) return "Never";
-    return new Date(ts).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return formatDateTimeSafe(ts);
   }
 
   // -----------------------------------------------------------------------

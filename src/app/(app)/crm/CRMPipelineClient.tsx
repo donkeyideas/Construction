@@ -17,11 +17,7 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import {
-  formatCurrency,
-  formatCompactCurrency,
-  formatPercent,
-} from "@/lib/utils/format";
+import { formatCurrency, formatCompactCurrency, formatPercent, formatDateShort, formatDateSafe } from "@/lib/utils/format";
 import type { OpportunityStage } from "@/lib/queries/crm";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -740,7 +736,7 @@ export default function CRMPipelineClient({
                 <div className="ticket-detail-row">
                   <span className="ticket-detail-label">{t("expectedCloseDate")}</span>
                   <span>
-                    {new Date(selectedOpp.expected_close_date).toLocaleDateString(dateLocale)}
+                    {formatDateSafe(selectedOpp.expected_close_date)}
                   </span>
                 </div>
               )}
@@ -1088,10 +1084,7 @@ function PipelineCard({
           <div className="pipeline-card-date">
             <Calendar size={12} />
             <span>
-              {new Date(opportunity.expected_close_date).toLocaleDateString(
-                dateLocale,
-                { month: "short", day: "numeric" }
-              )}
+              {formatDateShort(opportunity.expected_close_date)}
             </span>
           </div>
         )}

@@ -6,6 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getSavedReports } from "@/lib/queries/authoritative-reports";
 import { REPORT_TYPE_LABELS } from "@/types/authoritative-reports";
 import type { ReportType } from "@/types/authoritative-reports";
+import { formatDateSafe } from "@/lib/utils/format";
 
 export const metadata = {
   title: "Authoritative Reports - Buildwrk",
@@ -39,11 +40,7 @@ const reportTypes = [
 ];
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 export default async function AuthoritativeReportsPage() {

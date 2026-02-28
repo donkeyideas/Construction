@@ -26,6 +26,7 @@ import type {
   EquipmentType,
 } from "@/lib/queries/equipment";
 import type { CompanyMember } from "@/lib/queries/tickets";
+import { formatDateSafe, formatDateShort } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -116,19 +117,12 @@ export default function EquipmentInventoryClient({
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   function formatDateShort(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateShort(dateStr);
   }
 
   // Import modal state

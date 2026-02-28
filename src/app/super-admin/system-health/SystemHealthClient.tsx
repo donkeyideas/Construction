@@ -15,6 +15,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import type { SystemHealthData } from "@/lib/queries/system-health";
+import { formatDateTimeSafe } from "@/lib/utils/format";
 
 /* ------------------------------------------------------------------
    Props
@@ -29,13 +30,7 @@ interface Props {
    ------------------------------------------------------------------ */
 
 function formatDateTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return formatDateTimeSafe(dateStr);
 }
 
 function formatBytes(bytes: number): string {

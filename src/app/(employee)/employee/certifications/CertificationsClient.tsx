@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import type { EmployeeCertification } from "@/lib/queries/employee-portal";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface CertificationsClientProps {
   certifications: EmployeeCertification[];
@@ -88,11 +89,7 @@ export default function CertificationsClient({
 
   function formatDate(dateStr: string | null): string {
     if (!dateStr) return "--";
-    return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr + "T00:00:00");
   }
 
   // Summary counts

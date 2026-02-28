@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateSafe, toDateStr } from "@/lib/utils/format";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -115,11 +116,7 @@ export default function ProjectDetailClient({
     if (!dateStr) return "--";
     const [year, month, day] = dateStr.slice(0, 10).split("-").map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(toDateStr(date));
   }
 
   function formatDateTime(dateStr: string | null) {
@@ -2378,7 +2375,7 @@ function DailyLogsTab({
       {logs.map((log) => {
         const d = new Date(log.log_date);
         const day = d.getDate();
-        const month = d.toLocaleDateString(dateLocale, { month: "short" });
+        const month = formatDateSafe(toDateStr(d));
 
         return (
           <div

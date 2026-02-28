@@ -2,6 +2,7 @@ import { Key } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAllTenants } from "@/lib/queries/admin-dashboard";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 export const metadata = { title: "All Tenants - Buildwrk" };
 
@@ -61,11 +62,11 @@ export default async function AllTenantsPage() {
                     </td>
                     <td style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
                       {lease.start_date
-                        ? new Date(lease.start_date as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                        ? formatDateSafe(lease.start_date as string)
                         : "--"}
                       {" - "}
                       {lease.end_date
-                        ? new Date(lease.end_date as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                        ? formatDateSafe(lease.end_date as string)
                         : "Ongoing"}
                     </td>
                   </tr>

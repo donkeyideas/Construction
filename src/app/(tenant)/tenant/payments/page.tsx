@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTenantPayments } from "@/lib/queries/tenant-portal";
 import { getCompanyGateway } from "@/lib/payments";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import { getTranslations, getLocale } from "next-intl/server";
 import Stripe from "stripe";
 import {
@@ -235,11 +235,7 @@ export default async function TenantPaymentsPage({
                   <tr key={payment.id}>
                     <td>
                       {payment.payment_date
-                        ? new Date(payment.payment_date).toLocaleDateString(dateLocale, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                        ? formatDateSafe(payment.payment_date)
                         : "--"}
                     </td>
                     <td className="amount-col">

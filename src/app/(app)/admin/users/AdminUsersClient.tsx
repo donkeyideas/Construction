@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { CompanyMember, MemberRole } from "@/lib/queries/admin";
+import { formatDateSafe, formatDateTimeSafe } from "@/lib/utils/format";
 
 // Role keys kept outside component (no translation needed for keys)
 // Labels and descriptions are translated inside the component via useMemo
@@ -104,22 +105,12 @@ export default function AdminUsersClient({
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   function formatDateTime(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    return formatDateTimeSafe(dateStr);
   }
 
   function getMemberStatus(member: CompanyMember): { label: string; dotClass: string } {

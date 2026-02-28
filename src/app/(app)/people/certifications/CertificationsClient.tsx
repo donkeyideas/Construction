@@ -18,6 +18,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
+import { formatDateSafe } from "@/lib/utils/format";
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { cert_name: "OSHA 30-Hour", cert_type: "safety", issuing_authority: "OSHA", cert_number: "OSH-2026-001", issued_date: "2025-06-15", expiry_date: "2028-06-15" },
@@ -492,11 +493,7 @@ export default function CertificationsClient({
                       </td>
                       <td>
                         {cert.issued_date
-                          ? new Date(cert.issued_date).toLocaleDateString(dateLocale, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? formatDateSafe(cert.issued_date)
                           : "--"}
                       </td>
                       <td>
@@ -511,11 +508,7 @@ export default function CertificationsClient({
                           }}
                         >
                           {cert.expiry_date
-                            ? new Date(cert.expiry_date).toLocaleDateString(dateLocale, {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })
+                            ? formatDateSafe(cert.expiry_date)
                             : t("noExpiry")}
                           {isExpiringSoon && (
                             <AlertTriangle
@@ -815,11 +808,7 @@ export default function CertificationsClient({
                       <span>
                         <strong>{t("issued")}:</strong>{" "}
                         {selectedCert.issued_date
-                          ? new Date(selectedCert.issued_date).toLocaleDateString(dateLocale, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? formatDateSafe(selectedCert.issued_date)
                           : "--"}
                       </span>
                     </div>
@@ -828,11 +817,7 @@ export default function CertificationsClient({
                       <span>
                         <strong>{t("expires")}:</strong>{" "}
                         {selectedCert.expiry_date
-                          ? new Date(selectedCert.expiry_date).toLocaleDateString(dateLocale, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? formatDateSafe(selectedCert.expiry_date)
                           : t("noExpiry")}
                       </span>
                     </div>

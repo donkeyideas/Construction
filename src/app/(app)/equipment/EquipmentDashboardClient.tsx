@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import type { EquipmentRow, EquipmentStats } from "@/lib/queries/equipment";
+import { formatDateSafe } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -77,11 +78,7 @@ export default function EquipmentDashboardClient({
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   return (

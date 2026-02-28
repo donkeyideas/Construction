@@ -13,17 +13,14 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { CompanyOnboardingStatus } from "@/lib/queries/onboarding";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface Props {
   statuses: CompanyOnboardingStatus[];
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function getPlanBadgeClass(plan: string): string {

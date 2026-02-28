@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { SecuritySettingsRow } from "@/lib/queries/security";
 import type { AuditLogEntry } from "@/lib/queries/admin";
+import { formatDateTimeSafe } from "@/lib/utils/format";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -334,13 +335,7 @@ function SettingsPanel({
 
 function AuditPanel({ logs, t, dateLocale }: { logs: AuditLogEntry[]; t: ReturnType<typeof useTranslations>; dateLocale: string }) {
   function formatDate(d: string): string {
-    return new Date(d).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    return formatDateTimeSafe(d);
   }
 
   return (
@@ -396,13 +391,7 @@ function SessionsPanel({ isAdmin, t, dateLocale }: { isAdmin: boolean; t: Return
   const [revoking, setRevoking] = useState<string | null>(null);
 
   function formatDate(d: string): string {
-    return new Date(d).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    return formatDateTimeSafe(d);
   }
 
   function parseUA(ua: string | null): string {
@@ -525,13 +514,7 @@ function LoginHistoryPanel({ t, dateLocale }: { t: ReturnType<typeof useTranslat
   const [loading, setLoading] = useState(true);
 
   function formatDate(d: string): string {
-    return new Date(d).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    return formatDateTimeSafe(d);
   }
 
   const fetchHistory = useCallback(async () => {

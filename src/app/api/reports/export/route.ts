@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 /**
  * POST /api/reports/export
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     const cols = columns || (data.length > 0 ? Object.keys(data[0]).map((k: string) => ({ key: k, label: k })) : []);
-    const now = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const now = formatDateLong(toDateStr(new Date()));
 
     // Generate simple HTML for PDF
     const html = `

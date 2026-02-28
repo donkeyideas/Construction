@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
+import { formatDateSafe } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -157,11 +158,7 @@ export default function InspectionsClient({
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   // Filters

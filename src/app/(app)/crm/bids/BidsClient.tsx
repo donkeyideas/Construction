@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { FileText, Plus, AlertTriangle, X, Edit3, Trash2, Upload } from "lucide-react";
-import { formatCurrency, formatPercent } from "@/lib/utils/format";
+import { formatCurrency, formatPercent, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -371,14 +371,7 @@ export default function BidsClient({
                               fontWeight: dueSoon ? 600 : 400,
                             }}
                           >
-                            {new Date(bid.due_date).toLocaleDateString(
-                              dateLocale,
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              }
-                            )}
+                            {formatDateSafe(bid.due_date)}
                           </span>
                         ) : (
                           "--"
@@ -658,14 +651,7 @@ export default function BidsClient({
                     <span className="ticket-detail-label">{t("dueDate")}</span>
                     <span>
                       {selectedBid.due_date
-                        ? new Date(selectedBid.due_date).toLocaleDateString(
-                            dateLocale,
-                            {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            }
-                          )
+                        ? formatDateSafe(selectedBid.due_date)
                         : "--"}
                     </span>
                   </div>
@@ -680,14 +666,7 @@ export default function BidsClient({
                   <div className="ticket-detail-row">
                     <span className="ticket-detail-label">{t("created")}</span>
                     <span>
-                      {new Date(selectedBid.created_at).toLocaleDateString(
-                        dateLocale,
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        }
-                      )}
+                      {formatDateSafe(selectedBid.created_at)}
                     </span>
                   </div>
                 </div>

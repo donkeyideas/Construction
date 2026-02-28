@@ -24,6 +24,7 @@ import { createClient } from "@/lib/supabase/client";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type { TimeEntry } from "@/lib/queries/people";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 const IMPORT_SAMPLE: Record<string, string>[] = [
   { entry_date: "2026-01-15", hours: "8", overtime_hours: "2", description: "Foundation work", cost_code: "03-100" },
@@ -98,7 +99,7 @@ export default function TimeTab({
 
   function formatDateShort(iso: string): string {
     const d = new Date(iso + "T00:00:00");
-    return d.toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
+    return formatDateShort(toDateStr(d));
   }
 
   // Create modal state
@@ -561,11 +562,7 @@ export default function TimeTab({
                           style={{ cursor: "pointer" }}
                         >
                           <td style={{ textAlign: "left", whiteSpace: "nowrap" }}>
-                            {new Date(entry.entry_date + "T00:00:00").toLocaleDateString(dateLocale, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })}
+                            {formatDateSafe(entry.entry_date + "T00:00:00")}
                           </td>
                           <td style={{ textAlign: "left" }}>
                             <div className="timesheet-person">
@@ -875,12 +872,7 @@ export default function TimeTab({
                 <div className="people-detail-row">
                   <Calendar size={16} />
                   <span>
-                    {new Date(selectedEntry.entry_date + "T00:00:00").toLocaleDateString(dateLocale, {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {formatDateFull(selectedEntry.entry_date + "T00:00:00")}
                   </span>
                 </div>
                 <div className="people-detail-row">
@@ -1062,11 +1054,7 @@ export default function TimeTab({
               <p style={{ fontSize: "0.875rem", color: "var(--muted)", marginTop: "0.5rem" }}>
                 <strong>{Number(selectedEntry.hours || 0).toFixed(1)} {t("hours")}</strong> {t("on")}{" "}
                 <strong>
-                  {new Date(selectedEntry.entry_date + "T00:00:00").toLocaleDateString(dateLocale, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {formatDateSafe(selectedEntry.entry_date + "T00:00:00")}
                 </strong>
               </p>
             </div>

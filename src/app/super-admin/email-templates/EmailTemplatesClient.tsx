@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { formatDateSafe } from "@/lib/utils/format";
 import {
   Mail,
   FileText,
@@ -69,11 +70,7 @@ const SAMPLE_VALUES: Record<string, string> = {
 /* ------------------------------------------------------------------ */
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function formatName(name: string): string {

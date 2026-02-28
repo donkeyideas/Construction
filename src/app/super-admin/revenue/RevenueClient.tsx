@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { RevenueStats, SubscriptionEvent } from "@/lib/queries/revenue";
 import "@/styles/revenue.css";
+import { formatDateTimeSafe } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -40,13 +41,7 @@ function formatCurrency(amount: number): string {
 }
 
 function formatDateTime(dateStr: string, locale: string): string {
-  return new Date(dateStr).toLocaleDateString(locale, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return formatDateTimeSafe(dateStr);
 }
 
 function capitalize(s: string): string {

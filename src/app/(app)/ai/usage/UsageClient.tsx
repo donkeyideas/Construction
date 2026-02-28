@@ -20,7 +20,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { formatRelativeTime } from "@/lib/utils/format";
+import { formatRelativeTime, formatDateShort, toDateStr } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -106,7 +106,7 @@ function formatCost(cost: number): string {
 /** Format a date string to short date label (e.g., "Feb 5"). */
 function shortDateLabel(dateStr: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatDateShort(toDateStr(d));
 }
 
 /** Get YYYY-MM-DD key from a date string. */

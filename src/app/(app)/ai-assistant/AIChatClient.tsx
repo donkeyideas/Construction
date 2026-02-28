@@ -6,7 +6,8 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import {
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr, formatTimeSafe } from "@/lib/utils/format";
+import { 
   Sparkles,
   Send,
   ChevronRight,
@@ -987,7 +988,7 @@ function TypingIndicator() {
 // ---------------------------------------------------------------------------
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return formatTimeSafe(date.toISOString?.() ?? String(date));
 }
 
 function formatDate(dateStr: string): string {
@@ -1001,7 +1002,7 @@ function formatDate(dateStr: string): string {
   if (diffHours < 24) return `${diffHours}h`;
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays}d`;
-  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+  return formatDateShort(toDateStr(d));
 }
 
 function formatCurrency(n: number): string {

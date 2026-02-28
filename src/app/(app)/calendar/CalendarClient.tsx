@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { CalendarEvent, CalendarModule } from "@/lib/queries/calendar";
+import { formatDateSafe, formatDateFull, formatMonthLong, formatWeekdayShort, toDateStr } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -70,12 +71,7 @@ function isSameDay(a: string, b: string): boolean {
 
 function formatEventDate(dateStr: string, dateLocale: string): string {
   const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString(dateLocale, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(toDateStr(d));
 }
 
 function typeLabel(type: string): string {
@@ -533,16 +529,11 @@ export default function CalendarClient({
             const first = weekDates[0];
             const last = weekDates[6];
             if (first.getMonth() === last.getMonth()) {
-              return `${first.toLocaleDateString(dateLocale, { month: "long" })} ${first.getDate()}-${last.getDate()}, ${first.getFullYear()}`;
+              return `${formatMonthLong(toDateStr(first))} ${first.getDate()}-${last.getDate()}, ${first.getFullYear()}`;
             }
-            return `${first.toLocaleDateString(dateLocale, { month: "short" })} ${first.getDate()} - ${last.toLocaleDateString(dateLocale, { month: "short" })} ${last.getDate()}, ${last.getFullYear()}`;
+            return `${formatDateSafe(toDateStr(first)).split(",")[0]} - ${formatDateSafe(toDateStr(last)).split(",")[0]}, ${last.getFullYear()}`;
           })()
-        : currentDate.toLocaleDateString(dateLocale, {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          });
+        : formatDateFull(toDateStr(currentDate));
 
   // Month grid cells
   const monthCells = useMemo(() => buildMonthGrid(year, month), [year, month]);
@@ -716,7 +707,7 @@ export default function CalendarClient({
                   className={`calendar-weekday-cell week-view-header ${isToday ? "today" : ""}`}
                 >
                   <span className="calendar-week-dow">
-                    {d.toLocaleDateString(dateLocale, { weekday: "short" })}
+                    {formatWeekdayShort(toDateStr(d))}
                   </span>
                   <span className={`calendar-week-date ${isToday ? "calendar-today-badge" : ""}`}>
                     {d.getDate()}
@@ -762,12 +753,7 @@ export default function CalendarClient({
           <div className="calendar-day-view-header">
             <CalendarIcon size={20} />
             <span>
-              {currentDate.toLocaleDateString(dateLocale, {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
+              {formatDateFull(toDateStr(currentDate))}
             </span>
           </div>
           <div className="calendar-day-view-events">

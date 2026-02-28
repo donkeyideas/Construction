@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { VendorProjectDetail } from "@/lib/queries/vendor-portal";
 import "@/styles/vendor-detail.css";
+import { formatDateSafe } from "@/lib/utils/format";
 
 export default function ProjectDetailClient({ project }: { project: VendorProjectDetail }) {
   const locale = useLocale();
@@ -15,7 +16,7 @@ export default function ProjectDetailClient({ project }: { project: VendorProjec
     new Intl.NumberFormat(dateLocale, { style: "currency", currency: "USD" }).format(n);
 
   const fmtDate = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString(dateLocale) : "\u2014";
+    d ? formatDateSafe(d) : "\u2014";
 
   const totalInvoiced = project.invoices.reduce((sum, inv) => sum + inv.total_amount, 0);
   const totalOwed = project.invoices.reduce((sum, inv) => sum + inv.balance_due, 0);

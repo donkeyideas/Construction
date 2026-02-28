@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getTranslations, getLocale } from "next-intl/server";
 import DailyLogClient from "./DailyLogClient";
+import { formatDateShort, formatDateSafe, toDateStr } from "@/lib/utils/format";
 
 export const metadata = {
   title: "Daily Log - Buildwrk",
@@ -73,11 +74,7 @@ export default async function DailyLogPage() {
         <div>
           <h2>{t("title")}</h2>
           <div className="mobile-header-date">
-            {new Date().toLocaleDateString(dateLocale, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
+            {formatDateSafe(toDateStr(new Date()))}
           </div>
         </div>
       </div>
@@ -118,13 +115,7 @@ export default async function DailyLogPage() {
                       color: "var(--muted)",
                     }}
                   >
-                    {new Date(log.logDate + "T00:00:00").toLocaleDateString(
-                      dateLocale,
-                      {
-                        month: "short",
-                        day: "numeric",
-                      }
-                    )}
+                    {formatDateShort(log.logDate + "T00:00:00")}
                   </span>
                 </div>
                 {log.weatherCondition && (

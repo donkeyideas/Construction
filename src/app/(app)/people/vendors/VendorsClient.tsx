@@ -25,7 +25,7 @@ import {
   Loader2,
   Users,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import type { APPaymentRow, VendorPaymentSummary } from "@/lib/queries/financial";
 import ImportModal from "@/components/ImportModal";
 import PrequalificationChecklist from "@/components/PrequalificationChecklist";
@@ -800,8 +800,8 @@ export default function VendorsClient({
                               {c.status}
                             </span>
                           </td>
-                          <td>{c.start_date ? new Date(c.start_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
-                          <td>{c.end_date ? new Date(c.end_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
+                          <td>{c.start_date ? formatDateSafe(c.start_date) : "\u2014"}</td>
+                          <td>{c.end_date ? formatDateSafe(c.end_date) : "\u2014"}</td>
                         </tr>
                       );
                     })
@@ -865,7 +865,7 @@ export default function VendorsClient({
                               color: isPastDue ? "var(--color-red)" : "var(--text)",
                               fontWeight: isPastDue ? 600 : 400,
                             }}>
-                              {new Date(inv.due_date).toLocaleDateString(dateLocale, { month: "short", day: "numeric", year: "numeric" })}
+                              {formatDateSafe(inv.due_date)}
                               {isPastDue && <AlertCircle size={12} style={{ marginLeft: 4, verticalAlign: "middle" }} />}
                             </span>
                           </td>
@@ -927,7 +927,7 @@ export default function VendorsClient({
                   <tbody>
                     {paymentHistory.map((pmt) => (
                       <tr key={pmt.id}>
-                        <td>{new Date(pmt.payment_date).toLocaleDateString(dateLocale, { month: "short", day: "numeric", year: "numeric" })}</td>
+                        <td>{formatDateSafe(pmt.payment_date)}</td>
                         <td style={{ fontWeight: 500 }}>{pmt.vendor_name}</td>
                         <td style={{ fontWeight: 600, color: "var(--color-blue)" }}>
                           {pmt.invoice_number}
@@ -1004,7 +1004,7 @@ export default function VendorsClient({
                         <td style={{ textAlign: "center" }}>{vs.invoice_count}</td>
                         <td>
                           {vs.last_payment_date
-                            ? new Date(vs.last_payment_date).toLocaleDateString(dateLocale, { month: "short", day: "numeric", year: "numeric" })
+                            ? formatDateSafe(vs.last_payment_date)
                             : <span style={{ color: "var(--muted)" }}>--</span>
                           }
                         </td>

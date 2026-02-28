@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 // ============================================================
 // Seed API - Creates test accounts and realistic demo data
@@ -853,7 +854,7 @@ export async function POST(request: Request) {
         company_id: companyId,
         property_id: i < 6 ? domainId : bartonId,
         title: desc,
-        description: `${desc}. Tenant reported the issue on ${new Date(2026, 0, 15 + i).toLocaleDateString()}.`,
+        description: `${desc}. Tenant reported the issue on ${formatDateSafe(toDateStr(new Date(2026, 0, 15 + i)))}.`,
         category: maintCategories[i % maintCategories.length],
         priority: i < 2 ? "emergency" : i < 5 ? "high" : "medium",
         status: maintStatuses[i % maintStatuses.length],

@@ -3,6 +3,7 @@
 import type { ReportType, SectionConfig, SectionData } from "@/types/authoritative-reports";
 import { REPORT_THEMES, REPORT_TYPE_LABELS } from "@/types/authoritative-reports";
 import { Clock } from "lucide-react";
+import { formatDateSafe, formatMonthYear, toDateStr } from "@/lib/utils/format";
 
 interface ReportPreviewProps {
   reportType: ReportType;
@@ -45,10 +46,7 @@ export function ReportPreview({
           <div className="report-cover-meta">
             <div>{companyName}</div>
             <div style={{ marginTop: "0.25rem" }}>
-              {new Date().toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric",
-              })}
+              {formatMonthYear(toDateStr(new Date()))}
             </div>
           </div>
         </div>
@@ -73,11 +71,7 @@ export function ReportPreview({
               <span className="data-freshness-badge">
                 <Clock size={10} />
                 Data as of{" "}
-                {new Date(generatedAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                {formatDateSafe(generatedAt)}
               </span>
             )}
           </div>

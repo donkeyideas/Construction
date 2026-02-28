@@ -4,6 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getTranslations, getLocale } from "next-intl/server";
 import { getTzToday, toTzDateStr } from "@/lib/utils/timezone";
 import ClockClient from "./ClockClient";
+import { formatDateTimeSafe, formatTimeSafe } from "@/lib/utils/format";
 
 export const metadata = {
   title: "Clock In/Out - Buildwrk",
@@ -112,11 +113,7 @@ export default async function ClockPage() {
         <div>
           <h2>{t("title")}</h2>
           <div className="mobile-header-date">
-            {now.toLocaleDateString(dateLocale, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
+            {formatDateTimeSafe(now.toISOString())}
           </div>
         </div>
       </div>
@@ -179,17 +176,11 @@ export default async function ClockPage() {
                 <div>
                   <div style={{ fontWeight: 500 }}>
                     {entry.clockIn
-                      ? new Date(entry.clockIn).toLocaleTimeString(dateLocale, {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })
+                      ? formatTimeSafe(entry.clockIn)
                       : "--"}{" "}
                     -{" "}
                     {entry.clockOut
-                      ? new Date(entry.clockOut).toLocaleTimeString(dateLocale, {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })
+                      ? formatTimeSafe(entry.clockOut)
                       : t("active")}
                   </div>
                   {entry.projectName && (

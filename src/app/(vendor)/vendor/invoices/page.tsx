@@ -3,7 +3,7 @@ import { Receipt } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getVendorInvoices } from "@/lib/queries/vendor-portal";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = { title: "My Invoices - Buildwrk" };
@@ -54,11 +54,7 @@ export default async function VendorInvoicesPage() {
                     </td>
                     <td>
                       {inv.invoice_date
-                        ? new Date(inv.invoice_date as string).toLocaleDateString(dateLocale, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                        ? formatDateSafe(inv.invoice_date as string)
                         : "--"}
                     </td>
                     <td className="amount-col">

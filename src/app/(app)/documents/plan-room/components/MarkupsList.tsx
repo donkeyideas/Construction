@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import type { AnnotationRow } from "../hooks/useAnnotations";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface MarkupsListProps {
   annotations: AnnotationRow[];
@@ -13,11 +14,7 @@ interface MarkupsListProps {
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 export default function MarkupsList({

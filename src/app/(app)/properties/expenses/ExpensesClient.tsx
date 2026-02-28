@@ -15,7 +15,7 @@ import {
   Upload,
   Filter,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -298,11 +298,7 @@ export default function ExpensesClient({
 
   function formatDate(d: string | null) {
     if (!d) return "\u2014";
-    return new Date(d).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(d);
   }
 
   return (

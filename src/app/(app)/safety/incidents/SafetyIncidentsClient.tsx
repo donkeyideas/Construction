@@ -25,6 +25,7 @@ import type {
 } from "@/lib/queries/safety";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
+import { formatDateSafe, formatDateShort } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Component
@@ -102,19 +103,12 @@ export default function SafetyIncidentsClient({
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   function formatDateShort(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateShort(dateStr);
   }
 
   function getUserName(

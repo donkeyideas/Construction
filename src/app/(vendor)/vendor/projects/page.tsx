@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getVendorProjects } from "@/lib/queries/vendor-portal";
 import { getTranslations, getLocale } from "next-intl/server";
+import { formatDateSafe } from "@/lib/utils/format";
 
 export const metadata = { title: "My Projects - Buildwrk" };
 
@@ -67,20 +68,12 @@ export default async function VendorProjectsPage() {
                       </td>
                       <td>
                         {project.start_date
-                          ? new Date(project.start_date).toLocaleDateString(dateLocale, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? formatDateSafe(project.start_date)
                           : "--"}
                       </td>
                       <td>
                         {project.end_date
-                          ? new Date(project.end_date).toLocaleDateString(dateLocale, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? formatDateSafe(project.end_date)
                           : "--"}
                       </td>
                     </tr>

@@ -11,7 +11,7 @@ import {
   Minus,
 } from "lucide-react";
 import type { EmployeePayslip } from "@/lib/queries/employee-portal";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe, formatDateShort } from "@/lib/utils/format";
 
 interface PayslipsClientProps {
   payslips: EmployeePayslip[];
@@ -26,23 +26,12 @@ export default function PayslipsClient({ payslips }: PayslipsClientProps) {
   }
 
   function formatDate(dateStr: string): string {
-    return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr + "T00:00:00");
   }
 
   function formatPeriod(start: string, end: string): string {
-    const s = new Date(start + "T00:00:00").toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    const e = new Date(end + "T00:00:00").toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    const s = formatDateShort(start + "T00:00:00");
+    const e = formatDateSafe(end + "T00:00:00");
     return `${s} - ${e}`;
   }
 

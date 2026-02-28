@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
+import { formatDateSafe, formatDateTimeSafe } from "@/lib/utils/format";
+import { 
   CreditCard,
   Building2,
   TrendingUp,
@@ -38,21 +39,11 @@ interface Props {
 }
 
 function formatDate(dateStr: string, locale: string): string {
-  return new Date(dateStr).toLocaleDateString(locale, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function formatDateTime(dateStr: string, locale: string): string {
-  return new Date(dateStr).toLocaleDateString(locale, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return formatDateTimeSafe(dateStr);
 }
 
 const PLAN_COLORS: Record<string, string> = {

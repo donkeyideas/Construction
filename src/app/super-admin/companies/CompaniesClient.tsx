@@ -19,6 +19,7 @@ import {
   Mail,
 } from "lucide-react";
 import type { PlatformCompany, CompanyMember } from "@/lib/queries/super-admin";
+import { formatDateSafe } from "@/lib/utils/format";
 
 type CompanyRow = PlatformCompany & { member_count: number };
 
@@ -28,11 +29,7 @@ interface Props {
 }
 
 function formatDate(dateStr: string, loc: string): string {
-  return new Date(dateStr).toLocaleDateString(loc, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function formatAddress(c: PlatformCompany): string | null {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { IntegrationConnection } from "./page";
 import "@/styles/integrations.css";
+import { formatDateSafe } from "@/lib/utils/format";
 
 type CategoryKey =
   | "accounting"
@@ -119,11 +120,7 @@ export default function IntegrationsClient({ connections, userRole }: Props) {
 
   function formatDate(dateStr: string | null): string {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   return (

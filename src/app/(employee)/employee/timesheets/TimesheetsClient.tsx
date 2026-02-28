@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Calendar, Clock, Send, ChevronDown, ChevronRight } from "lucide-react";
 import type { EmployeeTimesheet } from "@/lib/queries/employee-portal";
+import { formatDateSafe, formatDateTimeSafe, toDateStr, formatTimeSafe } from "@/lib/utils/format";
 
 interface TimesheetsClientProps {
   timesheets: EmployeeTimesheet[];
@@ -31,15 +32,8 @@ function formatWeekLabel(mondayStr: string): string {
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
 
-  const fmtOpts: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-  };
-  const monLabel = monday.toLocaleDateString("en-US", fmtOpts);
-  const sunLabel = sunday.toLocaleDateString("en-US", {
-    ...fmtOpts,
-    year: "numeric",
-  });
+  const monLabel = formatDateSafe(toDateStr(monday));
+  const sunLabel = formatDateSafe(toDateStr(sunday));
   return `${monLabel} - ${sunLabel}`;
 }
 
@@ -108,27 +102,14 @@ export default function TimesheetsClient({ timesheets }: TimesheetsClientProps) 
   }
 
   function formatDate(dateStr: string): string {
-    const d = new Date(dateStr + "T00:00:00");
-    return d.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   function formatTimeRange(clockIn: string | null, clockOut: string | null): string {
     if (!clockIn) return "--";
-    const inTime = new Date(clockIn).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+    const inTime = formatTimeSafe(clockIn);
     if (!clockOut) return `${inTime} - ongoing`;
-    const outTime = new Date(clockOut).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+    const outTime = formatTimeSafe(clockOut);
     return `${inTime} - ${outTime}`;
   }
 

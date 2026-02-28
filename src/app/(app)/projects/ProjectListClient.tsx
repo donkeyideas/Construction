@@ -18,6 +18,7 @@ import {
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type { ProjectRow } from "@/lib/queries/projects";
+import { formatDateSafe, toDateStr } from "@/lib/utils/format";
 
 const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "name", label: "Project Name", required: true },
@@ -101,11 +102,7 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
     if (!dateStr) return "--";
     const [year, month, day] = dateStr.slice(0, 10).split("-").map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(toDateStr(date));
   }
 
   function statusLabel(status: string) {

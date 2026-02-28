@@ -13,6 +13,7 @@ import type { AccrualRow, WageAccountSummary } from "./page";
 
 import "@/styles/financial.css";
 import "@/styles/payroll.css";
+import { formatDateSafe } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -36,11 +37,7 @@ function fmtMoney(n: number): string {
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso + "T00:00:00").toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(iso + "T00:00:00");
 }
 
 // Parse hours/rate from description like "Labor accrual — Name — 8h @ $45/h"

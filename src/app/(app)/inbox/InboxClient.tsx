@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateSafe, formatDateShort } from "@/lib/utils/format";
 import { useState, useMemo, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRealtimeSubscription } from "@/lib/supabase/realtime";
@@ -44,21 +45,11 @@ function formatRelativeTime(dateStr: string, dateLocale: string): string {
   if (diffHr < 24) return `${diffHr}h ago`;
   if (diffDay < 7) return `${diffDay}d ago`;
 
-  return new Date(dateStr).toLocaleDateString(dateLocale, {
-    month: "short",
-    day: "numeric",
-  });
+  return formatDateShort(dateStr);
 }
 
 function formatFullDate(dateStr: string, dateLocale: string): string {
-  return new Date(dateStr).toLocaleDateString(dateLocale, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return formatDateSafe(dateStr);
 }
 
 type TabFilter = "all" | "messages" | "notifications" | "announcements" | "support";

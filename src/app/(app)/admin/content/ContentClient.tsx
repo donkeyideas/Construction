@@ -12,6 +12,7 @@ import {
   FileText,
 } from "lucide-react";
 import type { CmsPageRow } from "@/lib/queries/content";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface ContentClientProps {
   pages: CmsPageRow[];
@@ -30,11 +31,7 @@ export default function ContentClient({ pages }: ContentClientProps) {
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   async function handleTogglePublish(page: CmsPageRow) {

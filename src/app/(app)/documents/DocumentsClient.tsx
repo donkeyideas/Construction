@@ -19,6 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { DocumentRow } from "@/lib/queries/documents";
+import { formatDateSafe, formatDateTimeSafe } from "@/lib/utils/format";
 
 interface Project {
   id: string;
@@ -687,13 +688,7 @@ export default function DocumentsClient({
               <div className="ticket-detail-row">
                 <span className="ticket-detail-label">{t("uploadDate")}</span>
                 <span>
-                  {new Date(selectedDoc.created_at).toLocaleDateString(dateLocale, {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {formatDateTimeSafe(selectedDoc.created_at)}
                 </span>
               </div>
 
@@ -844,11 +839,7 @@ function DocumentCard({
         <div className="doc-card-detail">
           <span className="doc-card-label">{t("date")}</span>
           <span>
-            {new Date(doc.created_at).toLocaleDateString(dateLocale, {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {formatDateSafe(doc.created_at)}
           </span>
         </div>
         {projectInfo && (

@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import type { TenantDashboard } from "@/lib/queries/tenant-portal";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe, toDateStr } from "@/lib/utils/format";
 import { useTranslations, useLocale } from "next-intl";
 
 function formatFileSize(bytes: number | null): string {
@@ -184,11 +184,7 @@ export default function TenantDashboardClient({
   }
 
   function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   useEffect(() => {
@@ -199,11 +195,7 @@ export default function TenantDashboardClient({
       next = new Date(now.getFullYear(), now.getMonth() + 1, day);
     }
     setNextDueDate(
-      next.toLocaleDateString(dateLocale, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
+      formatDateSafe(toDateStr(next))
     );
   }, [dateLocale]);
 

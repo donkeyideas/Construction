@@ -24,7 +24,7 @@ import {
   Eye,
   Image,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import type {
   VendorDashboardFull,
   VendorActiveProject,
@@ -702,11 +702,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                           <td>{formatCurrency(inv.total_amount)}</td>
                           <td>
                             {inv.invoice_date
-                              ? new Date(inv.invoice_date).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })
+                              ? formatDateSafe(inv.invoice_date)
                               : "—"}
                           </td>
                           <td>
@@ -755,17 +751,9 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                         <div className="vendor-compliance-name">{cert.cert_name}</div>
                         <div className="vendor-compliance-date">
                           {cert.expiry_date
-                            ? `Expires: ${new Date(cert.expiry_date).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}`
+                            ? `Expires: ${formatDateSafe(cert.expiry_date)}`
                             : cert.created_at
-                              ? `Submitted: ${new Date(cert.created_at).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })}`
+                              ? `Submitted: ${formatDateSafe(cert.created_at)}`
                               : "On File"}
                         </div>
                       </div>
@@ -849,11 +837,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                         <div className="vendor-doc-meta">
                           {doc.file_type || "Document"}
                           {doc.shared_at &&
-                            ` · Shared ${new Date(doc.shared_at).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })}`}
+                            ` · Shared ${formatDateSafe(doc.shared_at)}`}
                         </div>
                       </div>
                     </div>
@@ -1187,9 +1171,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                   <span className="vendor-invoice-detail-label">Submitted</span>
                   <span>
                     {selectedInvoice.invoice_date
-                      ? new Date(selectedInvoice.invoice_date).toLocaleDateString("en-US", {
-                          month: "short", day: "numeric", year: "numeric",
-                        })
+                      ? formatDateSafe(selectedInvoice.invoice_date)
                       : "—"}
                   </span>
                 </div>
@@ -1218,9 +1200,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                       {invoicePayments.map((pmt) => (
                         <tr key={pmt.id}>
                           <td>
-                            {new Date(pmt.payment_date).toLocaleDateString("en-US", {
-                              month: "short", day: "numeric", year: "numeric",
-                            })}
+                            {formatDateSafe(pmt.payment_date)}
                           </td>
                           <td style={{ fontWeight: 600 }}>{formatCurrency(pmt.amount)}</td>
                           <td style={{ textTransform: "capitalize" }}>{pmt.method}</td>
@@ -1277,9 +1257,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                   <span className="vendor-invoice-detail-label">Uploaded</span>
                   <span>
                     {previewDoc.shared_at
-                      ? new Date(previewDoc.shared_at).toLocaleDateString("en-US", {
-                          month: "short", day: "numeric", year: "numeric",
-                        })
+                      ? formatDateSafe(previewDoc.shared_at)
                       : "—"}
                   </span>
                 </div>

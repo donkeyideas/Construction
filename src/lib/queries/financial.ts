@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { paginatedQuery } from "@/lib/utils/paginated-query";
+import { formatDateShort, toDateStr, formatDateSafe } from "@/lib/utils/format";
 
 /* ------------------------------------------------------------------
    Types
@@ -130,6 +131,75 @@ export interface AccountCreateData {
   parent_id?: string;
   description?: string;
   normal_balance: string;
+}
+
+export interface JournalEntryLineData {
+  account_id: string;
+  debit?: number;
+  credit?: number;
+  description?: string;
+  project_id?: string;
+  property_id?: string;
+}
+
+export interface JournalEntryCreateData {
+  entry_number: string;
+  entry_date: string;
+  description: string;
+  reference?: string;
+  project_id?: string;
+  lines: JournalEntryLineData[];
+}
+
+export interface JournalEntryRow {
+  id: string;
+  entry_number: string;
+  entry_date: string;
+  description: string;
+  reference: string | null;
+  project_id: string | null;
+  status: string;
+  created_by: string | null;
+  posted_by: string | null;
+  posted_at: string | null;
+  created_at: string;
+  lines?: JournalEntryLineRow[];
+  /** Computed sum of line debits (populated by getJournalEntries) */
+  total_debit?: number;
+  /** Computed sum of line credits (populated by getJournalEntries) */
+  total_credit?: number;
+}
+
+export interface JournalEntryLineRow {
+  id: string;
+  account_id: string;
+  debit: number;
+  credit: number;
+  description: string | null;
+  project_id: string | null;
+  property_id: string | null;
+  account_number?: string;
+  account_name?: string;
+}
+
+/** Alias for JournalEntryRow with lines populated (used in detail views) */
+export type JournalEntryDetail = JournalEntryRow & { lines: JournalEntryLineRow[] };
+
+export interface PaymentCreateData {
+  invoice_id: string;
+  payment_date: string;
+  amount: number;
+  method: string;
+  reference_number?: string;
+  bank_account_id?: string | null;
+  notes?: string;
+}
+
+export interface ProjectRow {
+  id: string;
+  name: string;
+  status: string;
+  project_number: string | null;
 }
 
 /* ------------------------------------------------------------------
@@ -281,7 +351,7 @@ export async function getFinancialOverview(
       if (rev > 0 || exp > 0) {
         revenueThisMonth = rev;
         expensesThisMonth = exp;
-        periodLabel = pastMonth.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+        periodLabel = formatDateShort(toDateStr(pastMonth));
         break;
       }
     }
@@ -838,7 +908,7 @@ export async function getMonthlyIncomeExpenses(
   const months: MonthlyFinancial[] = [];
   for (let i = 5; i >= 0; i--) {
     const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const label = monthDate.toLocaleDateString("en-US", { month: "short" });
+    const label = formatDateSafe(toDateStr(monthDate));
     const key = `${monthDate.getFullYear()}-${monthDate.getMonth()}`;
     months.push({
       month: label,
@@ -848,350 +918,6 @@ export async function getMonthlyIncomeExpenses(
   }
 
   return months;
-}
-
-/* ------------------------------------------------------------------
-   Projects list (for dropdowns)
-   ------------------------------------------------------------------ */
-
-export interface ProjectOption {
-  id: string;
-  name: string;
-}
-
-export async function getProjects(
-  supabase: SupabaseClient,
-  companyId: string
-): Promise<ProjectOption[]> {
-  const { data, error } = await supabase
-    .from("projects")
-    .select("id, name")
-    .eq("company_id", companyId)
-    .order("name", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching projects:", error);
-    return [];
-  }
-
-  return (data ?? []) as ProjectOption[];
-}
-
-/* ==================================================================
-   PAYMENT TYPES & FUNCTIONS
-   ================================================================== */
-
-export interface PaymentCreateData {
-  invoice_id: string;
-  payment_date: string;
-  amount: number;
-  method: string;
-  reference_number?: string;
-  bank_account_id?: string;
-  notes?: string;
-}
-
-export async function recordPayment(
-  supabase: SupabaseClient,
-  companyId: string,
-  data: PaymentCreateData
-): Promise<{ id: string } | null> {
-  // Insert the payment
-  const { data: payment, error: payError } = await supabase
-    .from("payments")
-    .insert({
-      company_id: companyId,
-      invoice_id: data.invoice_id,
-      payment_date: data.payment_date,
-      amount: data.amount,
-      method: data.method,
-      reference_number: data.reference_number ?? null,
-      bank_account_id: data.bank_account_id ?? null,
-      notes: data.notes ?? null,
-    })
-    .select("id")
-    .single();
-
-  if (payError) {
-    console.error("Error recording payment:", payError);
-    return null;
-  }
-
-  // Update invoice amount_paid
-  const { data: invoice } = await supabase
-    .from("invoices")
-    .select("amount_paid, total_amount")
-    .eq("id", data.invoice_id)
-    .single();
-
-  if (invoice) {
-    const newAmountPaid = (invoice.amount_paid ?? 0) + data.amount;
-    const updatePayload: Record<string, unknown> = {
-      amount_paid: newAmountPaid,
-    };
-
-    // Auto-set status to paid when fully paid
-    if (newAmountPaid >= invoice.total_amount) {
-      updatePayload.status = "paid";
-    }
-
-    await supabase
-      .from("invoices")
-      .update(updatePayload)
-      .eq("id", data.invoice_id);
-  }
-
-  return payment as { id: string };
-}
-
-export async function getPayments(
-  supabase: SupabaseClient,
-  companyId: string,
-  filters?: { invoiceId?: string; startDate?: string; endDate?: string }
-): Promise<PaymentRow[]> {
-  let query = supabase
-    .from("payments")
-    .select("id, payment_date, amount, method, reference_number")
-    .eq("company_id", companyId)
-    .order("payment_date", { ascending: false });
-
-  if (filters?.invoiceId) {
-    query = query.eq("invoice_id", filters.invoiceId);
-  }
-  if (filters?.startDate) {
-    query = query.gte("payment_date", filters.startDate);
-  }
-  if (filters?.endDate) {
-    query = query.lte("payment_date", filters.endDate);
-  }
-
-  const { data, error } = await query;
-  if (error) {
-    console.error("Error fetching payments:", error);
-    return [];
-  }
-  return (data ?? []) as PaymentRow[];
-}
-
-/* ==================================================================
-   JOURNAL ENTRY TYPES & FUNCTIONS
-   ================================================================== */
-
-export interface JournalEntryRow {
-  id: string;
-  entry_number: string;
-  entry_date: string;
-  description: string;
-  reference: string | null;
-  project_id: string | null;
-  status: string;
-  posted_by: string | null;
-  posted_at: string | null;
-  created_by: string | null;
-  created_at: string;
-  total_debit?: number;
-  total_credit?: number;
-}
-
-export interface JournalEntryLineRow {
-  id: string;
-  account_id: string;
-  debit: number;
-  credit: number;
-  description: string | null;
-  project_id: string | null;
-  property_id: string | null;
-  account_number?: string;
-  account_name?: string;
-}
-
-export interface JournalEntryDetail extends JournalEntryRow {
-  lines: JournalEntryLineRow[];
-}
-
-export interface JournalEntryLineCreateData {
-  account_id: string;
-  debit: number;
-  credit: number;
-  description?: string;
-  project_id?: string;
-  property_id?: string;
-}
-
-export interface JournalEntryCreateData {
-  entry_number: string;
-  entry_date: string;
-  description: string;
-  reference?: string;
-  project_id?: string;
-  lines: JournalEntryLineCreateData[];
-}
-
-export async function getJournalEntries(
-  supabase: SupabaseClient,
-  companyId: string,
-  filters?: { status?: string; startDate?: string; endDate?: string }
-): Promise<JournalEntryRow[]> {
-  let query = supabase
-    .from("journal_entries")
-    .select("*")
-    .eq("company_id", companyId)
-    .order("entry_date", { ascending: false });
-
-  if (filters?.status && filters.status !== "all") {
-    query = query.eq("status", filters.status);
-  }
-  if (filters?.startDate) {
-    query = query.gte("entry_date", filters.startDate);
-  }
-  if (filters?.endDate) {
-    query = query.lte("entry_date", filters.endDate);
-  }
-
-  const { data, error } = await query;
-  if (error) {
-    console.error("Error fetching journal entries:", error);
-    return [];
-  }
-
-  const entries = (data ?? []) as JournalEntryRow[];
-
-  // Fetch line totals for each entry — batch in chunks to avoid URL-length limits
-  if (entries.length > 0) {
-    const entryIds = entries.map((e) => e.id);
-    const totals = new Map<string, { debit: number; credit: number }>();
-    const BATCH_SIZE = 100;
-    for (let i = 0; i < entryIds.length; i += BATCH_SIZE) {
-      const batch = entryIds.slice(i, i + BATCH_SIZE);
-      const lines = await paginatedQuery<{ journal_entry_id: string; debit: number; credit: number }>((from, to) =>
-        supabase
-          .from("journal_entry_lines")
-          .select("journal_entry_id, debit, credit")
-          .in("journal_entry_id", batch)
-          .range(from, to)
-      );
-      for (const line of lines) {
-        const existing = totals.get(line.journal_entry_id) ?? { debit: 0, credit: 0 };
-        existing.debit += line.debit ?? 0;
-        existing.credit += line.credit ?? 0;
-        totals.set(line.journal_entry_id, existing);
-      }
-    }
-
-    for (const entry of entries) {
-      const t = totals.get(entry.id);
-      entry.total_debit = t?.debit ?? 0;
-      entry.total_credit = t?.credit ?? 0;
-    }
-  }
-
-  return entries;
-}
-
-export async function getJournalEntryById(
-  supabase: SupabaseClient,
-  entryId: string
-): Promise<JournalEntryDetail | null> {
-  const { data: entry, error: entryErr } = await supabase
-    .from("journal_entries")
-    .select("*")
-    .eq("id", entryId)
-    .single();
-
-  if (entryErr || !entry) {
-    console.error("Error fetching journal entry:", entryErr);
-    return null;
-  }
-
-  const { data: lines, error: linesErr } = await supabase
-    .from("journal_entry_lines")
-    .select("*, chart_of_accounts(account_number, name)")
-    .eq("journal_entry_id", entryId)
-    .order("created_at", { ascending: true });
-
-  if (linesErr) {
-    console.error("Error fetching journal entry lines:", linesErr);
-  }
-
-  const mappedLines: JournalEntryLineRow[] = (lines ?? []).map((line: Record<string, unknown>) => {
-    const account = line.chart_of_accounts as { account_number: string; name: string } | null;
-    return {
-      id: line.id as string,
-      account_id: line.account_id as string,
-      debit: (line.debit as number) ?? 0,
-      credit: (line.credit as number) ?? 0,
-      description: line.description as string | null,
-      project_id: line.project_id as string | null,
-      property_id: line.property_id as string | null,
-      account_number: account?.account_number,
-      account_name: account?.name,
-    };
-  });
-
-  return {
-    ...(entry as JournalEntryRow),
-    lines: mappedLines,
-  };
-}
-
-export async function createJournalEntry(
-  supabase: SupabaseClient,
-  companyId: string,
-  userId: string,
-  data: JournalEntryCreateData
-): Promise<{ id: string } | null> {
-  // Validate: total debits must equal total credits
-  const totalDebit = data.lines.reduce((sum, l) => sum + (l.debit ?? 0), 0);
-  const totalCredit = data.lines.reduce((sum, l) => sum + (l.credit ?? 0), 0);
-
-  if (Math.abs(totalDebit - totalCredit) > 0.01) {
-    console.error("Journal entry not balanced:", { totalDebit, totalCredit });
-    return null;
-  }
-
-  const { data: entry, error: entryErr } = await supabase
-    .from("journal_entries")
-    .insert({
-      company_id: companyId,
-      entry_number: data.entry_number,
-      entry_date: data.entry_date,
-      description: data.description,
-      reference: data.reference ?? null,
-      project_id: data.project_id ?? null,
-      status: "draft",
-      created_by: userId,
-    })
-    .select("id")
-    .single();
-
-  if (entryErr || !entry) {
-    console.error("Error creating journal entry:", entryErr);
-    return null;
-  }
-
-  const lineInserts = data.lines.map((line) => ({
-    company_id: companyId,
-    journal_entry_id: entry.id,
-    account_id: line.account_id,
-    debit: line.debit ?? 0,
-    credit: line.credit ?? 0,
-    description: line.description ?? null,
-    project_id: line.project_id ?? null,
-    property_id: line.property_id ?? null,
-  }));
-
-  const { error: linesErr } = await supabase
-    .from("journal_entry_lines")
-    .insert(lineInserts);
-
-  if (linesErr) {
-    console.error("Error creating journal entry lines:", linesErr);
-    // Clean up the header entry
-    await supabase.from("journal_entries").delete().eq("id", entry.id);
-    return null;
-  }
-
-  return { id: entry.id };
 }
 
 /**
@@ -2446,4 +2172,335 @@ export async function getAPVendorSummary(
         : null,
     }))
     .sort((a, b) => b.total_owed - a.total_owed);
+}
+
+/* ==================================================================
+   PROJECTS (basic list for cross-module use)
+   ================================================================== */
+
+export async function getProjects(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<ProjectRow[]> {
+  const { data, error } = await supabase
+    .from("projects")
+    .select("id, name, status, project_number")
+    .eq("company_id", companyId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching projects:", error);
+    return [];
+  }
+
+  return (data ?? []) as ProjectRow[];
+}
+
+/* ==================================================================
+   JOURNAL ENTRIES (CRUD)
+   ================================================================== */
+
+export async function getJournalEntries(
+  supabase: SupabaseClient,
+  companyId: string,
+  filters?: { status?: string; startDate?: string; endDate?: string }
+): Promise<JournalEntryRow[]> {
+  let query = supabase
+    .from("journal_entries")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("entry_date", { ascending: false });
+
+  if (filters?.status) {
+    query = query.eq("status", filters.status);
+  }
+  if (filters?.startDate) {
+    query = query.gte("entry_date", filters.startDate);
+  }
+  if (filters?.endDate) {
+    query = query.lte("entry_date", filters.endDate);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Error fetching journal entries:", error);
+    return [];
+  }
+
+  const entries = (data ?? []) as JournalEntryRow[];
+
+  // Fetch lines for all entries (paginated to avoid 1000-row limit)
+  if (entries.length > 0) {
+    const entryIds = entries.map((e) => e.id);
+    try {
+      const allLines = await paginatedQuery<{
+        id: string;
+        journal_entry_id: string;
+        account_id: string;
+        debit: number;
+        credit: number;
+        description: string | null;
+        project_id: string | null;
+        property_id: string | null;
+        chart_of_accounts: { account_number: string; name: string } | null;
+      }>((from, to) =>
+        supabase
+          .from("journal_entry_lines")
+          .select("id, journal_entry_id, account_id, debit, credit, description, project_id, property_id, chart_of_accounts(account_number, name)")
+          .eq("company_id", companyId)
+          .in("journal_entry_id", entryIds)
+          .range(from, to)
+      );
+
+      // Group lines by journal_entry_id
+      const linesByEntry = new Map<string, JournalEntryLineRow[]>();
+      for (const line of allLines) {
+        const account = line.chart_of_accounts;
+        const mapped: JournalEntryLineRow = {
+          id: line.id,
+          account_id: line.account_id,
+          debit: line.debit ?? 0,
+          credit: line.credit ?? 0,
+          description: line.description,
+          project_id: line.project_id,
+          property_id: line.property_id,
+          account_number: account?.account_number,
+          account_name: account?.name,
+        };
+        const existing = linesByEntry.get(line.journal_entry_id) ?? [];
+        existing.push(mapped);
+        linesByEntry.set(line.journal_entry_id, existing);
+      }
+
+      // Attach lines to entries and compute totals
+      for (const entry of entries) {
+        const entryLines = linesByEntry.get(entry.id) ?? [];
+        entry.lines = entryLines;
+        entry.total_debit = entryLines.reduce((s, l) => s + (l.debit ?? 0), 0);
+        entry.total_credit = entryLines.reduce((s, l) => s + (l.credit ?? 0), 0);
+      }
+    } catch (err) {
+      console.error("Error fetching journal entry lines:", err);
+    }
+  }
+
+  return entries;
+}
+
+export async function getJournalEntryById(
+  supabase: SupabaseClient,
+  entryId: string
+): Promise<JournalEntryRow | null> {
+  const { data: entry, error: entryErr } = await supabase
+    .from("journal_entries")
+    .select("*")
+    .eq("id", entryId)
+    .single();
+
+  if (entryErr || !entry) {
+    console.error("Error fetching journal entry:", entryErr);
+    return null;
+  }
+
+  // Fetch lines for this entry
+  const { data: lines, error: linesErr } = await supabase
+    .from("journal_entry_lines")
+    .select("id, account_id, debit, credit, description, project_id, property_id, chart_of_accounts(account_number, name)")
+    .eq("journal_entry_id", entryId)
+    .order("id", { ascending: true });
+
+  if (linesErr) {
+    console.error("Error fetching journal entry lines:", linesErr);
+  }
+
+  const mappedLines: JournalEntryLineRow[] = (lines ?? []).map((line: Record<string, unknown>) => {
+    const account = line.chart_of_accounts as { account_number: string; name: string } | null;
+    return {
+      id: line.id as string,
+      account_id: line.account_id as string,
+      debit: (line.debit as number) ?? 0,
+      credit: (line.credit as number) ?? 0,
+      description: (line.description as string) || null,
+      project_id: (line.project_id as string) || null,
+      property_id: (line.property_id as string) || null,
+      account_number: account?.account_number,
+      account_name: account?.name,
+    };
+  });
+
+  return {
+    ...(entry as JournalEntryRow),
+    lines: mappedLines,
+  };
+}
+
+export async function createJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  data: JournalEntryCreateData
+): Promise<{ id: string } | null> {
+  const { data: entry, error: entryErr } = await supabase
+    .from("journal_entries")
+    .insert({
+      company_id: companyId,
+      entry_number: data.entry_number,
+      entry_date: data.entry_date,
+      description: data.description,
+      reference: data.reference ?? null,
+      project_id: data.project_id ?? null,
+      status: "draft",
+      created_by: userId,
+    })
+    .select("id")
+    .single();
+
+  if (entryErr || !entry) {
+    console.error("Error creating journal entry:", entryErr);
+    return null;
+  }
+
+  const lineInserts = data.lines.map((line) => ({
+    company_id: companyId,
+    journal_entry_id: entry.id,
+    account_id: line.account_id,
+    debit: line.debit ?? 0,
+    credit: line.credit ?? 0,
+    description: line.description ?? null,
+    project_id: line.project_id ?? null,
+    property_id: line.property_id ?? null,
+  }));
+
+  const { error: linesErr } = await supabase
+    .from("journal_entry_lines")
+    .insert(lineInserts);
+
+  if (linesErr) {
+    console.error("Error creating journal entry lines:", linesErr);
+    // Clean up the header entry
+    await supabase.from("journal_entries").delete().eq("id", entry.id);
+    return null;
+  }
+
+  return { id: entry.id };
+}
+
+/* ==================================================================
+   PAYMENTS (CRUD)
+   ================================================================== */
+
+export async function getPayments(
+  supabase: SupabaseClient,
+  companyId: string,
+  filters?: { invoiceId?: string; startDate?: string; endDate?: string }
+): Promise<PaymentRow[]> {
+  let query = supabase
+    .from("payments")
+    .select("id, payment_date, amount, method, reference_number, bank_account_id, notes, invoice_id, invoices(invoice_number)")
+    .eq("company_id", companyId)
+    .order("payment_date", { ascending: false });
+
+  if (filters?.invoiceId) {
+    query = query.eq("invoice_id", filters.invoiceId);
+  }
+  if (filters?.startDate) {
+    query = query.gte("payment_date", filters.startDate);
+  }
+  if (filters?.endDate) {
+    query = query.lte("payment_date", filters.endDate);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Error fetching payments:", error);
+    return [];
+  }
+
+  const payments = data ?? [];
+
+  // Batch lookup bank account names
+  const bankIds = [...new Set(
+    payments
+      .map((p: Record<string, unknown>) => p.bank_account_id as string | null)
+      .filter(Boolean)
+  )] as string[];
+
+  const bankNameMap: Record<string, string> = {};
+  if (bankIds.length > 0) {
+    const { data: banks } = await supabase
+      .from("bank_accounts")
+      .select("id, name")
+      .in("id", bankIds);
+    for (const b of banks ?? []) {
+      bankNameMap[b.id] = b.name;
+    }
+  }
+
+  return payments.map((p: Record<string, unknown>) => ({
+    id: p.id as string,
+    payment_date: p.payment_date as string,
+    amount: p.amount as number,
+    method: (p.method as string) || "check",
+    reference_number: (p.reference_number as string) || null,
+    bank_account_id: (p.bank_account_id as string) || null,
+    bank_account_name: p.bank_account_id ? (bankNameMap[p.bank_account_id as string] || null) : null,
+    notes: (p.notes as string) || null,
+  }));
+}
+
+export async function recordPayment(
+  supabase: SupabaseClient,
+  companyId: string,
+  data: PaymentCreateData
+): Promise<{ id: string } | null> {
+  // Insert the payment record
+  const { data: result, error } = await supabase
+    .from("payments")
+    .insert({
+      company_id: companyId,
+      invoice_id: data.invoice_id,
+      payment_date: data.payment_date,
+      amount: data.amount,
+      method: data.method,
+      reference_number: data.reference_number ?? null,
+      bank_account_id: data.bank_account_id ?? null,
+      notes: data.notes ?? null,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("Error recording payment:", error);
+    return null;
+  }
+
+  // Update the invoice's amount_paid
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("amount_paid, total_amount")
+    .eq("id", data.invoice_id)
+    .single();
+
+  if (invoice) {
+    const newAmountPaid = (invoice.amount_paid ?? 0) + data.amount;
+    const updatePayload: Record<string, unknown> = {
+      amount_paid: newAmountPaid,
+    };
+
+    // Auto-update status to "paid" if fully paid
+    if (newAmountPaid >= (invoice.total_amount ?? 0) - 0.01) {
+      updatePayload.status = "paid";
+    } else {
+      updatePayload.status = "partial";
+    }
+
+    await supabase
+      .from("invoices")
+      .update(updatePayload)
+      .eq("id", data.invoice_id);
+  }
+
+  return result as { id: string };
 }

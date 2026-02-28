@@ -6,6 +6,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getDocumentsOverview } from "@/lib/queries/documents";
 import DocCategoryChart from "@/components/charts/DocCategoryChart";
 import DocUploadTrendChart from "@/components/charts/DocUploadTrendChart";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 
 export const metadata = {
@@ -130,7 +131,7 @@ export default async function DocumentsOverviewPage() {
                       {d.project?.name ?? "—"}
                     </td>
                     <td style={{ fontSize: "0.78rem" }}>
-                      {new Date(d.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {formatDateShort(d.created_at)}
                     </td>
                     <td style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{formatFileSize(d.file_size)}</td>
                   </tr>

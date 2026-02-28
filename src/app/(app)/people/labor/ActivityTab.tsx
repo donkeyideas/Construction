@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import {
+import { formatDateTimeSafe, formatTimeSafe } from "@/lib/utils/format";
+import { 
   Clock,
   LogIn,
   LogOut,
@@ -59,21 +60,11 @@ export default function ActivityTab({ activities, rateMap }: ActivityTabProps) {
   const filtered = filter === "all" ? activities : activities.filter((a) => a.currentStatus === filter);
 
   function formatTime(timestamp: string): string {
-    return new Date(timestamp).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+    return formatTimeSafe(timestamp);
   }
 
   function formatDate(timestamp: string): string {
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+    return formatDateTimeSafe(timestamp);
   }
 
   function getStatusBadge(status: string) {

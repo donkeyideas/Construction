@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateSafe, formatDateShort } from "@/lib/utils/format";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
@@ -94,19 +95,12 @@ export default function TicketListClient({
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   function formatDateShort(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateShort(dateStr);
   }
 
   function getUserName(

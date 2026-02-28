@@ -58,6 +58,7 @@ import type {
   GeoScoresOverview,
 } from "@/lib/queries/super-admin-seo";
 import "@/styles/seo.css";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 /* ──────────────────────────────────────────────
    Types
@@ -957,7 +958,7 @@ export default function SeoClient({
                                 const y = v.slice(0, 4);
                                 const m = v.slice(4, 6);
                                 const d = v.slice(6, 8);
-                                return new Date(`${y}-${m}-${d}`).toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
+                                return formatDateShort(`${y}-${m}-${d}`);
                               }}
                             />
                             <YAxis tick={{ fill: "var(--muted)", fontSize: 11 }} />
@@ -969,7 +970,7 @@ export default function SeoClient({
                                 const y = s.slice(0, 4);
                                 const m = s.slice(4, 6);
                                 const d = s.slice(6, 8);
-                                return new Date(`${y}-${m}-${d}`).toLocaleDateString(dateLocale, { month: "long", day: "numeric", year: "numeric" });
+                                return formatDateLong(`${y}-${m}-${d}`);
                               }}
                             />
                             <Legend />

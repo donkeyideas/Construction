@@ -26,6 +26,7 @@ import type {
   ClockEvent,
 } from "@/lib/queries/employee-portal";
 import { toLocalDateStr } from "@/lib/utils/timezone";
+import { formatDateTimeSafe, formatTimeSafe } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -42,8 +43,7 @@ function formatDuration(ms: number): string {
 }
 
 function formatTime(isoString: string): string {
-  const d = new Date(isoString);
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return formatTimeSafe(isoString);
 }
 
 type TFunc = (key: string, values?: Record<string, string | number>) => string;
@@ -858,16 +858,16 @@ export default function EmployeeDashboardClient({
                 {timecardRows.map((row) => (
                   <tr key={row.dayStr} className={row.isToday ? "emp-timecard-today" : ""}>
                     <td>
-                      {row.date.toLocaleDateString(undefined, { weekday: "short", month: "numeric", day: "numeric" })}
+                      {formatDateTimeSafe(row.date.toISOString())}
                     </td>
                     <td>
                       {row.firstIn
-                        ? new Date(row.firstIn).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+                        ? formatTimeSafe(row.firstIn)
                         : <span className="emp-timecard-dash">&mdash;</span>}
                     </td>
                     <td>
                       {row.lastOut
-                        ? new Date(row.lastOut).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+                        ? formatTimeSafe(row.lastOut)
                         : row.isLive
                           ? <span style={{ color: "var(--color-green)", fontWeight: 500 }}>{t("timecardLive")}</span>
                           : <span className="emp-timecard-dash">&mdash;</span>}

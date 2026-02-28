@@ -27,6 +27,7 @@ import {
   EyeOffIcon,
   ExternalLink,
 } from "lucide-react";
+import { formatDateSafe } from "@/lib/utils/format";
 import {
   DEFAULT_HOMEPAGE_SECTIONS,
   DEFAULT_META_TITLE,
@@ -61,11 +62,7 @@ interface Props {
 }
 
 function formatDate(dateStr: string, locale: string): string {
-  return new Date(dateStr).toLocaleDateString(locale, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function getSectionIcon(type: string) {

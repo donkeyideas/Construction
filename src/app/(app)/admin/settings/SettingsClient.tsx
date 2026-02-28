@@ -30,6 +30,7 @@ import {
 
 import type { CompanyDetails } from "@/lib/queries/admin";
 import type { PricingTier } from "@/lib/queries/pricing";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 type TabKey = "general" | "subscription" | "modules" | "integrations" | "design";
 
@@ -834,9 +835,7 @@ export default function SettingsClient({
                 <div className="subscription-info-row">
                   <span className="subscription-info-label">Renewal Date</span>
                   <span className="subscription-info-value" suppressHydrationWarning>
-                    {new Date(subDetails.currentPeriodEnd).toLocaleDateString(undefined, {
-                      year: "numeric", month: "long", day: "numeric",
-                    })}
+                    {formatDateLong(subDetails.currentPeriodEnd)}
                     {subDetails.interval && (
                       <span style={{ color: "var(--muted)", marginLeft: 6, fontSize: "0.8rem" }}>
                         ({subDetails.interval === "year" ? "Annual" : "Monthly"})
@@ -852,11 +851,9 @@ export default function SettingsClient({
                     Cancels On
                   </span>
                   <span className="subscription-info-value" style={{ color: "var(--color-red)" }} suppressHydrationWarning>
-                    {new Date(
+                    {formatDateLong(
                       subDetails?.currentPeriodEnd || company.subscription_ends_at!
-                    ).toLocaleDateString(undefined, {
-                      year: "numeric", month: "long", day: "numeric",
-                    })}
+                    )}
                   </span>
                 </div>
               )}
@@ -1245,7 +1242,7 @@ export default function SettingsClient({
                           setBillingMessage({
                             type: "success",
                             text: data.effective_at
-                              ? `Plan changed to ${targetPlan}. Effective ${new Date(data.effective_at).toLocaleDateString()}.`
+                              ? `Plan changed to ${targetPlan}. Effective ${formatDateSafe(data.effective_at)}.`
                               : data.message || "Plan downgraded successfully.",
                           });
                           setConfirmDowngrade(false);
@@ -1308,7 +1305,7 @@ export default function SettingsClient({
                           setBillingMessage({
                             type: "success",
                             text: data.current_period_end
-                              ? `Subscription canceled. You have access until ${new Date(data.current_period_end).toLocaleDateString()}.`
+                              ? `Subscription canceled. You have access until ${formatDateSafe(data.current_period_end)}.`
                               : "Subscription canceled. You have access until the end of your billing period.",
                           });
                           setConfirmCancel(false);

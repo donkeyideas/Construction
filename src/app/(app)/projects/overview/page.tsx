@@ -12,7 +12,7 @@ import {
   getCurrentUserCompany,
   getProjectsOverview,
 } from "@/lib/queries/projects";
-import { formatCompactCurrency, formatPercent } from "@/lib/utils/format";
+import { formatCompactCurrency, formatPercent, formatDateSafe } from "@/lib/utils/format";
 import ProjectStatusChart from "@/components/charts/ProjectStatusChart";
 import ProjectBudgetChart from "@/components/charts/ProjectBudgetChart";
 import { getTranslations } from "next-intl/server";
@@ -202,7 +202,7 @@ export default async function ProjectsOverviewPage() {
                           {m.project_name}
                         </Link>
                         {" · "}
-                        {new Date(m.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        {formatDateSafe(m.end_date)}
                       </div>
                     </div>
                   </div>

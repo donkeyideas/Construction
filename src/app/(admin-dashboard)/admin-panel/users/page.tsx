@@ -2,6 +2,7 @@ import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getTeamMembers } from "@/lib/queries/admin-dashboard";
+import { formatDateSafe } from "@/lib/utils/format";
 
 export const metadata = { title: "Team Members - Buildwrk" };
 
@@ -69,11 +70,7 @@ export default async function TeamMembersPage() {
                     </td>
                     <td style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
                       {member.joined_at
-                        ? new Date(member.joined_at as string).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                        ? formatDateSafe(member.joined_at as string)
                         : "--"}
                     </td>
                   </tr>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FolderOpen, FileText, Download, X, ExternalLink, Upload } from "lucide-react";
 import type { TenantDocument } from "@/lib/queries/tenant-portal";
 import { useTranslations, useLocale } from "next-intl";
+import { formatDateSafe } from "@/lib/utils/format";
 
 function formatFileSize(bytes: number | null): string {
   if (!bytes) return "--";
@@ -54,11 +55,7 @@ export default function DocumentsClient({
 
   function formatDate(dateStr: string | null): string {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   function getCategoryLabel(cat: string | null): string {
@@ -474,12 +471,7 @@ export default function DocumentsClient({
               <span className="tenant-detail-label">{t("sharedOn")}</span>
               <span>
                 {selected.shared_at
-                  ? new Date(selected.shared_at).toLocaleDateString(dateLocale, {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
+                  ? formatDateSafe(selected.shared_at)
                   : "--"}
               </span>
             </div>

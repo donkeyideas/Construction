@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import type { PlatformStats, PlatformCompany } from "@/lib/queries/super-admin";
 import { useTranslations, useLocale } from "next-intl";
+import { formatDateSafe, formatDateFull, toDateStr } from "@/lib/utils/format";
 
 interface Props {
   stats: PlatformStats;
@@ -32,11 +33,7 @@ interface Props {
 }
 
 function formatDate(dateStr: string, loc: string): string {
-  return new Date(dateStr).toLocaleDateString(loc, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function getPlanBadgeClass(plan: string): string {
@@ -100,12 +97,7 @@ export default function SuperAdminDashboardClient({
         </div>
         <div className="admin-header-actions">
           <span style={{ fontSize: "0.85rem", color: "var(--muted)" }} suppressHydrationWarning>
-            {new Date().toLocaleDateString(dateLocale, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {formatDateFull(toDateStr(new Date()))}
           </span>
         </div>
       </div>

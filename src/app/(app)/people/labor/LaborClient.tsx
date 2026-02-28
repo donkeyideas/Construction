@@ -24,6 +24,7 @@ import type { TimeEntry } from "@/lib/queries/people";
 import ActivityTab from "./ActivityTab";
 import type { EmployeeActivity } from "./ActivityTab";
 import TimeTab from "./TimeTab";
+import { formatDateSafe } from "@/lib/utils/format";
 
 /* ------------------------------------------------------------------
    Types
@@ -100,11 +101,7 @@ function fmt(n: number): string {
 
 function fmtDate(d: string | null): string {
   if (!d) return "--";
-  return new Date(d + "T00:00:00").toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(d + "T00:00:00");
 }
 
 function fmtNum(n: number, decimals = 1): string {

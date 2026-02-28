@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { FileText, FileSpreadsheet, Image, File, CheckSquare, Square } from "lucide-react";
 import type { DocumentRow } from "@/lib/queries/documents";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface ThumbnailGridProps {
   documents: DocumentRow[];
@@ -24,11 +25,7 @@ function getFileIcon(fileType: string) {
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function getFileTypeBadge(fileType: string): string {

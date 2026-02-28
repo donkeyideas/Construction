@@ -12,6 +12,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import type { ClockEvent } from "@/lib/queries/employee-portal";
+import { formatTimeSafe } from "@/lib/utils/format";
 
 interface ClockClientProps {
   isClockedIn: boolean;
@@ -130,11 +131,7 @@ export default function ClockClient({
   const totalWeekHours = Object.values(weeklyHours).reduce((s, h) => s + h, 0);
 
   function formatTime(timestamp: string): string {
-    return new Date(timestamp).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+    return formatTimeSafe(timestamp);
   }
 
   return (

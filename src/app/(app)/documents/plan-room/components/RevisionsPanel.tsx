@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import type { DocumentRow } from "@/lib/queries/documents";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface RevisionsPanelProps {
   versions: DocumentRow[];
@@ -11,11 +12,7 @@ interface RevisionsPanelProps {
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 export default function RevisionsPanel({

@@ -3,6 +3,7 @@ import { Megaphone } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantAnnouncements } from "@/lib/queries/tenant-portal";
 import { getTranslations, getLocale } from "next-intl/server";
+import { formatDateLong } from "@/lib/utils/format";
 
 export const metadata = {
   title: "Announcements - Buildwrk",
@@ -86,11 +87,7 @@ export default async function TenantAnnouncementsPage() {
               <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
                 {t("published", {
                   date: announcement.published_at
-                    ? new Date(announcement.published_at).toLocaleDateString(dateLocale, {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })
+                    ? formatDateLong(announcement.published_at)
                     : "--",
                 })}
               </div>

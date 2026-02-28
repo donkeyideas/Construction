@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getVendorCertifications } from "@/lib/queries/vendor-portal";
 import { getTranslations, getLocale } from "next-intl/server";
+import { formatDateSafe } from "@/lib/utils/format";
 
 export const metadata = { title: "Compliance - Buildwrk" };
 
@@ -69,11 +70,7 @@ export default async function VendorCompliancePage() {
                       </td>
                       <td>
                         {cert.expiry_date
-                          ? new Date(cert.expiry_date as string).toLocaleDateString(dateLocale, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? formatDateSafe(cert.expiry_date as string)
                           : "--"}
                       </td>
                       <td>

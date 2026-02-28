@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
             amount: data.amount,
             payment_date: data.payment_date,
             method: data.method,
-            bank_account_id: data.bank_account_id,
+            bank_account_id: data.bank_account_id ?? undefined,
           },
           {
             id: invoice.id,

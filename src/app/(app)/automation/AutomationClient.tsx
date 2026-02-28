@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 import {
   ClipboardList,
   CheckCircle,
@@ -257,7 +258,7 @@ export default function AutomationClient({
     if (diffHours < 24) return t("automationHoursAgo", { count: diffHours });
     if (diffDays === 0) return t("automationToday");
     if (diffDays === 1) return t("automationYesterday");
-    return d.toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
+    return formatDateShort(toDateStr(d));
   };
 
   return (

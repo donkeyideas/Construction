@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getVendorDocuments } from "@/lib/queries/vendor-portal";
 import { getTranslations, getLocale } from "next-intl/server";
+import { formatDateSafe } from "@/lib/utils/format";
 
 export const metadata = { title: "Documents - Buildwrk" };
 
@@ -69,11 +70,7 @@ export default async function VendorDocumentsPage() {
                       </td>
                       <td>
                         {doc.shared_at
-                          ? new Date(doc.shared_at as string).toLocaleDateString(dateLocale, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? formatDateSafe(doc.shared_at as string)
                           : "--"}
                       </td>
                     </tr>

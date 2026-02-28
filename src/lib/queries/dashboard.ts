@@ -53,6 +53,9 @@ export interface RecentActivityItem {
   entityId: string | null;
 }
 
+// Month abbreviations for chart labels (deterministic, no locale dependency)
+const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
 // ---------------------------------------------------------------------------
 // KPI Queries
 // ---------------------------------------------------------------------------
@@ -211,7 +214,7 @@ export async function getCashFlow(
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     cashInMap.set(key, 0);
     cashOutMap.set(key, 0);
-    monthLabels.set(key, d.toLocaleDateString("en-US", { month: "short" }));
+    monthLabels.set(key, MONTH_SHORT[d.getMonth()]);
   }
 
   // Sum receivable invoices (cash in)

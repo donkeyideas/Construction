@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateSafe, formatDateShort } from "@/lib/utils/format";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -31,19 +32,12 @@ import type {
 
 function formatDateWithLocale(dateStr: string | null, dateLocale: string) {
   if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString(dateLocale, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function formatDateShortWithLocale(dateStr: string | null, dateLocale: string) {
   if (!dateStr) return "--";
-  return new Date(dateStr).toLocaleDateString(dateLocale, {
-    month: "short",
-    day: "numeric",
-  });
+  return formatDateShort(dateStr);
 }
 
 function formatCurrency(amount: number | null) {

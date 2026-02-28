@@ -13,7 +13,7 @@ import {
   Loader2,
   Upload,
 } from "lucide-react";
-import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatCompactCurrency, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -294,7 +294,7 @@ export default function EstimatingClient({
                         <td className={`margin-col ${getMarginClass(est.margin_pct)}`}>
                           {est.margin_pct?.toFixed(1)}%
                         </td>
-                        <td suppressHydrationWarning>{new Date(est.created_at).toLocaleDateString(dateLocale)}</td>
+                        <td suppressHydrationWarning>{formatDateSafe(est.created_at)}</td>
                       </tr>
                     );
                   })}

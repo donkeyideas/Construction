@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getCashFlowStatement } from "@/lib/queries/financial";
 import CashFlowClient from "./CashFlowClient";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 export const metadata = {
   title: "Cash Flow - Buildwrk",
@@ -35,8 +36,8 @@ export default async function CashFlowPage({
 
   const startD = new Date(cfStartDate + "T00:00:00");
   const endD = new Date(cfEndDate + "T00:00:00");
-  const cfDateLabel = startD.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-    + " — " + endD.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const cfDateLabel = formatDateLong(toDateStr(startD))
+    + " — " + formatDateLong(toDateStr(endD));
 
   const [cashFlowStatement, bankAccountsRes] = await Promise.all([
     getCashFlowStatement(supabase, userCompany.companyId, cfStartDate, cfEndDate),
@@ -58,7 +59,7 @@ export default async function CashFlowPage({
   for (let i = 5; i >= 0; i--) {
     const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
-    const label = monthDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    const label = formatDateShort(toDateStr(monthDate));
 
     // Use payments table with payment_date for accurate cash timing
     const [inflowRes, outflowRes] = await Promise.all([

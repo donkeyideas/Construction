@@ -5,6 +5,7 @@ import { ArrowLeft, ShieldCheck, ShieldAlert } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { VendorContractDetail } from "@/lib/queries/vendor-portal";
 import "@/styles/vendor-detail.css";
+import { formatDateSafe } from "@/lib/utils/format";
 
 export default function ContractDetailClient({ contract }: { contract: VendorContractDetail }) {
   const locale = useLocale();
@@ -15,7 +16,7 @@ export default function ContractDetailClient({ contract }: { contract: VendorCon
     new Intl.NumberFormat(dateLocale, { style: "currency", currency: "USD" }).format(n);
 
   const fmtDate = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString(dateLocale) : "\u2014";
+    d ? formatDateSafe(d) : "\u2014";
 
   const totalInvoiced = contract.invoices.reduce((sum, inv) => sum + inv.total_amount, 0);
   const remaining = contract.amount - totalInvoiced;

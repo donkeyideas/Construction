@@ -21,12 +21,7 @@ import { getMonthlyIncomeExpenses } from "@/lib/queries/financial";
 import { getProjectsOverview } from "@/lib/queries/projects";
 import { getSafetyOverview } from "@/lib/queries/safety";
 import { getEquipmentOverview } from "@/lib/queries/equipment";
-import {
-  formatCompactCurrency,
-  formatCurrency,
-  formatPercent,
-  formatRelativeTime,
-} from "@/lib/utils/format";
+import { formatCompactCurrency, formatCurrency, formatPercent, formatRelativeTime, formatDateLong, toDateStr } from "@/lib/utils/format";
 import DashboardFilter from "@/components/DashboardFilter";
 import DashboardChartCarousel from "@/components/DashboardChartCarousel";
 import { getTranslations, getLocale } from "next-intl/server";
@@ -241,11 +236,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             }}
           >
             <span>
-              {new Date().toLocaleDateString(dateLocale, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              {formatDateLong(toDateStr(new Date()))}
             </span>
             <span className="live-dot" />
           </div>

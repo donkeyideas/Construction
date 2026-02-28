@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CompanyMember } from "./tickets";
+import { formatDateSafe, toDateStr } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -678,12 +679,12 @@ export async function getSafetyOverview(
   const monthlyMap = new Map<string, { count: number; oshaCount: number }>();
   for (let m = 11; m >= 0; m--) {
     const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
-    const key = d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+    const key = formatDateSafe(toDateStr(d));
     monthlyMap.set(key, { count: 0, oshaCount: 0 });
   }
   for (const inc of incidents) {
     const d = new Date(inc.incident_date);
-    const key = d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+    const key = formatDateSafe(toDateStr(d));
     const entry = monthlyMap.get(key);
     if (entry) {
       entry.count++;

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { FileText, Clock, CheckCircle, Users } from "lucide-react";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface BetaApplication {
   id: string;
@@ -189,11 +190,7 @@ export default function BetaApplicationsClient({
                       </span>
                     </td>
                     <td>
-                      {new Date(app.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatDateSafe(app.created_at)}
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: "6px" }} onClick={(e) => e.stopPropagation()}>
@@ -243,11 +240,7 @@ export default function BetaApplicationsClient({
                           <div>
                             <strong>{t("betaApps.reviewed")}:</strong>{" "}
                             {app.reviewed_at
-                              ? new Date(app.reviewed_at).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })
+                              ? formatDateSafe(app.reviewed_at)
                               : "—"}
                           </div>
                         </div>

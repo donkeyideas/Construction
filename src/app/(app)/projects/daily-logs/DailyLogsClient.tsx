@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
+import { formatDateSafe } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -528,12 +529,7 @@ export default function DailyLogsClient({
                       style={{ fontWeight: 600, fontSize: "0.95rem" }}
                       suppressHydrationWarning
                     >
-                      {new Date(log.log_date + "T00:00:00").toLocaleDateString(dateLocale, {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatDateSafe(log.log_date + "T00:00:00")}
                     </span>
                     <span
                       className={
@@ -1067,12 +1063,7 @@ export default function DailyLogsClient({
                   <div className="detail-group">
                     <label className="detail-label">{t("date")}</label>
                     <div className="detail-value" suppressHydrationWarning>
-                      {new Date(selectedLog.log_date + "T00:00:00").toLocaleDateString(dateLocale, {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      {formatDateSafe(selectedLog.log_date + "T00:00:00")}
                     </div>
                   </div>
                 </div>

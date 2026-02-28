@@ -34,7 +34,7 @@ import type {
   AnnouncementRow,
   PropertyRentPayment,
 } from "@/lib/queries/properties";
-import { formatCurrency, formatPercent } from "@/lib/utils/format";
+import { formatCurrency, formatPercent, formatDateSafe } from "@/lib/utils/format";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -220,11 +220,7 @@ export default function PropertyDetailClient({
   // Helper
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
-    return new Date(d).toLocaleDateString(dateLocale, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateSafe(d);
   }
 
   function unitTypeLabel(ut: string): string {
@@ -1105,11 +1101,7 @@ function OverviewTabContent({
 
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
-    return new Date(d).toLocaleDateString(dateLocale, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateSafe(d);
   }
 
   // Upcoming lease expirations within 120 days
@@ -1702,11 +1694,7 @@ function LeasesTabContent({
 
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
-    return new Date(d).toLocaleDateString(dateLocale, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateSafe(d);
   }
 
   if (leases.length === 0) {
@@ -1812,11 +1800,7 @@ function MaintenanceTabContent({
 
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
-    return new Date(d).toLocaleDateString(dateLocale, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateSafe(d);
   }
 
   const columns: { key: string; label: string }[] = [
@@ -2003,11 +1987,7 @@ function PaymentsTabContent({ payments }: { payments: PropertyRentPayment[] }) {
                   <tr key={p.id}>
                     <td>
                       {p.payment_date
-                        ? new Date(p.payment_date).toLocaleDateString(dateLocale, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                        ? formatDateSafe(p.payment_date)
                         : "--"}
                     </td>
                     <td>{p.tenant_name || "--"}</td>
@@ -2847,11 +2827,7 @@ function AnnouncementsTabContent({
   }
 
   function formatDate(d: string) {
-    return new Date(d).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(d);
   }
 
   const CATEGORIES = [
@@ -3294,11 +3270,7 @@ function UnitModal({
 
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
-    return new Date(d).toLocaleDateString(dateLocale, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateSafe(d);
   }
 
   function unitTypeLabel(ut: string): string {
@@ -3797,11 +3769,7 @@ function LeaseModal({
 
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
-    return new Date(d).toLocaleDateString(dateLocale, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateSafe(d);
   }
 
   const [form, setForm] = useState({
@@ -4148,11 +4116,7 @@ function MaintenanceModal({
 
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
-    return new Date(d).toLocaleDateString(dateLocale, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateSafe(d);
   }
 
   const [form, setForm] = useState({

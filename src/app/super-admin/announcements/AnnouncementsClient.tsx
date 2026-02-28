@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Megaphone, Plus, X, Pencil, Trash2, Clock, CalendarOff } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface Announcement {
   id: string;
@@ -21,11 +22,7 @@ interface Props {
 }
 
 function formatDate(dateStr: string, loc: string): string {
-  return new Date(dateStr).toLocaleDateString(loc, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 export default function AnnouncementsClient({ announcements }: Props) {

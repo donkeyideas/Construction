@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { formatDateSafe, toDateStr } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -483,19 +484,13 @@ export async function getCRMOverview(
   >();
   for (let m = 5; m >= 0; m--) {
     const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
-    const key = d.toLocaleDateString("en-US", {
-      month: "short",
-      year: "2-digit",
-    });
+    const key = formatDateSafe(toDateStr(d));
     monthlyBidMap.set(key, { won: 0, lost: 0, submitted: 0, in_progress: 0 });
   }
   for (const bid of bids) {
     const d = new Date(bid.created_at);
     if (d.toISOString().slice(0, 10) < sixMonthsAgo) continue;
-    const key = d.toLocaleDateString("en-US", {
-      month: "short",
-      year: "2-digit",
-    });
+    const key = formatDateSafe(toDateStr(d));
     const entry = monthlyBidMap.get(key);
     if (entry && bid.status in entry) {
       (entry as Record<string, number>)[bid.status]++;

@@ -86,19 +86,18 @@ export function formatRelativeTime(date: string | Date): string {
   if (months === 1) return "1 month ago";
   if (months < 12) return `${months} months ago`;
 
-  return new Date(then).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return formatDateSafe(new Date(then).toISOString());
 }
 
 /**
  * Short month label from a date string (e.g., "Jan", "Feb").
  */
 export function shortMonth(date: string | Date): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", { month: "short" });
+  const s = typeof date === "string" ? date : date.toISOString();
+  const parts = s.split("T")[0].split("-");
+  const mi = parseInt(parts[1], 10) - 1;
+  if (mi < 0 || mi > 11) return "--";
+  return MONTH_ABBR[mi];
 }
 
 /**
@@ -136,4 +135,136 @@ export function formatDateLong(dateStr: string | null | undefined): string {
   const mi = parseInt(m, 10) - 1;
   if (mi < 0 || mi > 11) return "--";
   return `${MONTH_FULL[mi]} ${parseInt(day, 10)}, ${y}`;
+}
+
+/**
+ * Short date without year (e.g., "Feb 15").
+ */
+export function formatDateShort(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const d = String(dateStr).split("T")[0];
+  const parts = d.split("-");
+  if (parts.length !== 3) return "--";
+  const mi = parseInt(parts[1], 10) - 1;
+  if (mi < 0 || mi > 11) return "--";
+  return `${MONTH_ABBR[mi]} ${parseInt(parts[2], 10)}`;
+}
+
+/**
+ * Month and year (e.g., "February 2026").
+ */
+export function formatMonthYear(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const d = String(dateStr).split("T")[0];
+  const parts = d.split("-");
+  if (parts.length < 2) return "--";
+  const mi = parseInt(parts[1], 10) - 1;
+  if (mi < 0 || mi > 11) return "--";
+  return `${MONTH_FULL[mi]} ${parts[0]}`;
+}
+
+const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+/**
+ * Full date with weekday (e.g., "Thursday, February 15, 2026").
+ */
+export function formatDateFull(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const s = String(dateStr).split("T")[0];
+  const [y, m, day] = s.split("-");
+  const mi = parseInt(m, 10) - 1;
+  const di = parseInt(day, 10);
+  if (mi < 0 || mi > 11 || isNaN(di)) return "--";
+  const dt = new Date(parseInt(y, 10), mi, di);
+  return `${WEEKDAY_LONG[dt.getDay()]}, ${MONTH_FULL[mi]} ${di}, ${y}`;
+}
+
+/**
+ * Short weekday name (e.g., "Thu").
+ */
+export function formatWeekdayShort(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const s = String(dateStr).split("T")[0];
+  const [y, m, day] = s.split("-");
+  const dt = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(day, 10));
+  return WEEKDAY_SHORT[dt.getDay()];
+}
+
+/**
+ * Long weekday name (e.g., "Thursday").
+ */
+export function formatWeekdayLong(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const s = String(dateStr).split("T")[0];
+  const [y, m, day] = s.split("-");
+  const dt = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(day, 10));
+  return WEEKDAY_LONG[dt.getDay()];
+}
+
+/**
+ * Long month name (e.g., "February").
+ */
+export function formatMonthLong(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const parts = String(dateStr).split("T")[0].split("-");
+  const mi = parseInt(parts[1], 10) - 1;
+  if (mi < 0 || mi > 11) return "--";
+  return MONTH_FULL[mi];
+}
+
+/**
+ * Format a Date object to ISO date string (YYYY-MM-DD) for use with deterministic formatters.
+ */
+export function toDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Deterministic datetime formatter (e.g., "Feb 15, 2026, 3:45 PM").
+ * Handles ISO timestamps and date-only strings.
+ */
+export function formatDateTimeSafe(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const d = new Date(String(dateStr));
+  if (isNaN(d.getTime())) return "--";
+  const mi = d.getMonth();
+  const day = d.getDate();
+  const yr = d.getFullYear();
+  let h = d.getHours();
+  const min = String(d.getMinutes()).padStart(2, "0");
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${MONTH_ABBR[mi]} ${day}, ${yr}, ${h}:${min} ${ampm}`;
+}
+
+/**
+ * Deterministic time formatter (e.g., "3:45 PM").
+ */
+export function formatTimeSafe(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const d = new Date(String(dateStr));
+  if (isNaN(d.getTime())) return "--";
+  let h = d.getHours();
+  const min = String(d.getMinutes()).padStart(2, "0");
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${min} ${ampm}`;
+}
+
+/**
+ * Short weekday + short month + day (e.g., "Thu, Feb 15").
+ */
+export function formatWeekdayDateShort(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const s = String(dateStr).split("T")[0];
+  const [y, m, day] = s.split("-");
+  const mi = parseInt(m, 10) - 1;
+  const di = parseInt(day, 10);
+  if (mi < 0 || mi > 11 || isNaN(di)) return "--";
+  const dt = new Date(parseInt(y, 10), mi, di);
+  return `${WEEKDAY_SHORT[dt.getDay()]}, ${MONTH_ABBR[mi]} ${di}`;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateTimeSafe } from "@/lib/utils/format";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -287,12 +288,7 @@ export default function AutomationClient({
 
   function formatDate(ts: string | null): string {
     if (!ts) return "Never";
-    return new Date(ts).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return formatDateTimeSafe(ts);
   }
 
   // Count failed today for stats

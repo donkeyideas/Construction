@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { formatDateSafe } from "@/lib/utils/format";
 import {
   Headphones,
   MessageSquare,
@@ -70,11 +71,7 @@ interface Props {
 /* ------------------------------------------------------------------ */
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateSafe(dateStr);
 }
 
 function formatDateTime(dateStr: string): string {

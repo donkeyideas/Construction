@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Plus, X, Save, Globe } from "lucide-react";
 import type { CmsPageRow } from "@/lib/queries/content";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface ContentSection {
   heading: string;
@@ -326,20 +327,12 @@ export default function ContentEditorClient({
                 {page.published_at && (
                   <p>
                     {t("publishedLabel")}{" "}
-                    {new Date(page.published_at).toLocaleDateString(dateLocale, {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {formatDateSafe(page.published_at)}
                   </p>
                 )}
                 <p>
                   {t("lastUpdatedLabel")}{" "}
-                  {new Date(page.updated_at).toLocaleDateString(dateLocale, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {formatDateSafe(page.updated_at)}
                 </p>
               </div>
             )}

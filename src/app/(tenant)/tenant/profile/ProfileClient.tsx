@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { TenantProfile } from "@/lib/queries/tenant-portal";
 import { useTranslations, useLocale } from "next-intl";
+import { formatDateLong } from "@/lib/utils/format";
 
 export default function ProfileClient({
   profile,
@@ -26,11 +27,7 @@ export default function ProfileClient({
   const dateLocale = locale === "es" ? "es" : "en-US";
 
   function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateLong(dateStr);
   }
 
   function formatCurrency(amount: number): string {

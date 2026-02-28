@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getCmsPages } from "@/lib/queries/content";
 import ContentClient from "./ContentClient";
+import { formatDateSafe } from "@/lib/utils/format";
 
 export const metadata = {
   title: "Content Manager - Buildwrk",
@@ -44,11 +45,7 @@ export default async function ContentManagerPage() {
   const draftCount = pages.filter((p) => !p.is_published).length;
 
   const lastUpdated = pages.length > 0
-    ? new Date(pages[0].updated_at).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
+    ? formatDateSafe(pages[0].updated_at)
     : "--";
 
   return (

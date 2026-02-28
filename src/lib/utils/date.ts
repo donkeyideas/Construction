@@ -6,7 +6,8 @@
  * with toLocaleDateString in a different timezone. This causes hydration
  * error #418 when SSR timezone differs from the client.
  *
- * Fix: parse date-only strings (YYYY-MM-DD) as local dates.
+ * Fix: parse date-only strings (YYYY-MM-DD) as local dates, and use
+ * deterministic string-based formatting (no toLocaleDateString).
  */
 
 /**
@@ -25,18 +26,35 @@ export function parseLocalDate(value: string | Date): Date {
   return new Date(value);
 }
 
+const _MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const _MONTHS_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
 /**
- * Format a date string for display, avoiding UTC timezone issues.
- *
- * Usage:
- *   formatLocalDate("2024-03-15", { month: "short", day: "numeric" })
- *   // → "Mar 15" (consistent on server and client)
+ * Deterministic date formatter — produces identical output on server and client.
+ * Replaces toLocaleDateString() which causes React hydration error #418.
  */
 export function formatLocalDate(
   value: string | Date | null | undefined,
   opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" },
-  locale = "en-US",
 ): string {
   if (!value) return "—";
-  return parseLocalDate(value).toLocaleDateString(locale, opts);
+  const d = parseLocalDate(value);
+  const mi = d.getMonth();
+  const day = d.getDate();
+  const yr = d.getFullYear();
+  if (isNaN(mi) || isNaN(day) || isNaN(yr)) return "—";
+
+  const months = opts.month === "long" ? _MONTHS_LONG : _MONTHS_SHORT;
+  const monthStr = months[mi];
+
+  if (opts.year === "numeric" && opts.day === "numeric") {
+    return `${monthStr} ${day}, ${yr}`;
+  }
+  if (opts.day === "numeric") {
+    return `${monthStr} ${day}`;
+  }
+  if (opts.year === "numeric") {
+    return `${monthStr} ${yr}`;
+  }
+  return monthStr;
 }

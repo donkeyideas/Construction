@@ -14,6 +14,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getUserDisplayName } from "@/lib/queries/user";
 import { getTranslations, getLocale } from "next-intl/server";
 import { getTzToday } from "@/lib/utils/timezone";
+import { formatDateTimeSafe, formatTimeSafe } from "@/lib/utils/format";
 
 export const metadata = {
   title: "Mobile Home - Buildwrk",
@@ -36,11 +37,7 @@ export default async function MobileHomePage() {
 
   const today = getTzToday();
   const now = new Date();
-  const dateDisplay = now.toLocaleDateString(dateLocale, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+  const dateDisplay = formatDateTimeSafe(now.toISOString());
 
   // Fetch today's data in parallel
   const [timeEntriesRes, projectsRes, tasksRes, activityRes] =
@@ -124,10 +121,7 @@ export default async function MobileHomePage() {
         {isClockedIn && openEntry ? (
           <p style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
             {t("clockedInAt", {
-              time: new Date(openEntry.clock_in).toLocaleTimeString(dateLocale, {
-                hour: "numeric",
-                minute: "2-digit",
-              }),
+              time: formatTimeSafe(openEntry.clock_in),
             })}
           </p>
         ) : (
@@ -280,10 +274,7 @@ export default async function MobileHomePage() {
                         {item.action.replace(/_/g, " ")} {refName}
                       </div>
                       <div className="mobile-notif-time">
-                        {new Date(item.created_at).toLocaleTimeString(dateLocale, {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
+                        {formatTimeSafe(item.created_at)}
                       </div>
                     </div>
                   </div>

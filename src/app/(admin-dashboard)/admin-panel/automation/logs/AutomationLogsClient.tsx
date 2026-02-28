@@ -13,6 +13,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import type { AutomationLogRow } from "@/lib/queries/automation";
+import { formatDateTimeSafe } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -65,13 +66,7 @@ export default function AutomationLogsClient({
   // Helpers
   // -----------------------------------------------------------------------
   function formatDate(ts: string): string {
-    return new Date(ts).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return formatDateTimeSafe(ts);
   }
 
   function getStatusIcon(status: string) {

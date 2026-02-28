@@ -376,7 +376,8 @@ export async function generateInvoiceJournalEntry(
       console.warn(
         `[invoice-accounting] No Sales Tax Payable account found. Tax of $${taxAmount.toFixed(2)} on ${invoice.invoice_number} added to revenue. Add a Sales Tax Payable account to fix.`
       );
-      lines[lines.length - 1].credit += taxAmount;
+      const lastLine = lines[lines.length - 1];
+      if (lastLine) lastLine.credit = (lastLine.credit ?? 0) + taxAmount;
     }
 
   } else {
@@ -415,7 +416,7 @@ export async function generateInvoiceJournalEntry(
       });
     } else if (taxAmount > 0) {
       // No tax receivable account — expense the tax (common for construction)
-      lines[0].debit += taxAmount;
+      if (lines[0]) lines[0].debit = (lines[0].debit ?? 0) + taxAmount;
     }
 
     // CR: Accounts Payable (total amount less retainage held)
@@ -936,7 +937,8 @@ export function buildInvoiceJEData(
         project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
       });
     } else if (taxAmount > 0) {
-      lines[lines.length - 1].credit += taxAmount;
+      const lastLine = lines[lines.length - 1];
+      if (lastLine) lastLine.credit = (lastLine.credit ?? 0) + taxAmount;
     }
 
   } else {
@@ -959,7 +961,7 @@ export function buildInvoiceJEData(
         project_id: invoice.project_id ?? undefined, property_id: invoice.property_id ?? undefined,
       });
     } else if (taxAmount > 0) {
-      lines[0].debit += taxAmount;
+      if (lines[0]) lines[0].debit = (lines[0].debit ?? 0) + taxAmount;
     }
 
     const apAmount = invoice.total_amount - retainageHeld;
@@ -1480,7 +1482,7 @@ export async function generateRentPaymentJournalEntry(
     });
   } else if (lateFee > 0) {
     // No late fee account — include in rent receivable credit
-    lines[1].credit += lateFee;
+    if (lines[1]) lines[1].credit = (lines[1].credit ?? 0) + lateFee;
   }
 
   const shortId = payment.id.substring(0, 8);
@@ -1932,13 +1934,13 @@ export async function generatePayrollRunJournalEntry(
   });
 
   // Balance check — if missing payable accounts, lump into Cash credit
-  const totalDebits = lines.reduce((s, l) => s + l.debit, 0);
-  const totalCredits = lines.reduce((s, l) => s + l.credit, 0);
+  const totalDebits = lines.reduce((s, l) => s + (l.debit ?? 0), 0);
+  const totalCredits = lines.reduce((s, l) => s + (l.credit ?? 0), 0);
   const imbalance = totalDebits - totalCredits;
   if (Math.abs(imbalance) > 0.01) {
-    const cashLine = lines.find((l) => l.account_id === accountMap.cashId && l.credit > 0);
+    const cashLine = lines.find((l) => l.account_id === accountMap.cashId && (l.credit ?? 0) > 0);
     if (cashLine) {
-      cashLine.credit = Math.round((cashLine.credit + imbalance) * 100) / 100;
+      cashLine.credit = Math.round(((cashLine.credit ?? 0) + imbalance) * 100) / 100;
     }
   }
 

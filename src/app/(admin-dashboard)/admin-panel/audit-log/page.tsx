@@ -2,6 +2,7 @@ import { ScrollText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAuditLog } from "@/lib/queries/admin-dashboard";
+import { formatDateTimeSafe } from "@/lib/utils/format";
 
 export const metadata = { title: "Audit Log - Buildwrk" };
 
@@ -47,13 +48,7 @@ export default async function AuditLogPage() {
                 <tr key={log.id as string}>
                   <td className="audit-timestamp">
                     {log.created_at
-                      ? new Date(log.created_at as string).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                      ? formatDateTimeSafe(log.created_at as string)
                       : "--"}
                   </td>
                   <td className="audit-user">

@@ -14,7 +14,7 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe, formatDateTimeSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -642,14 +642,7 @@ export default function MaintenanceClient({
                       <td>{memberName(req.assigned_to)}</td>
                       <td>
                         {req.scheduled_date
-                          ? new Date(req.scheduled_date).toLocaleDateString(
-                              dateLocale,
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              }
-                            )
+                          ? formatDateSafe(req.scheduled_date)
                           : "--"}
                       </td>
                       <td className="amount-col">
@@ -1209,13 +1202,9 @@ export default function MaintenanceClient({
                     <label className="detail-label">{t("scheduledDate")}</label>
                     <div className="detail-value">
                       {selectedRequest.scheduled_date
-                        ? new Date(
+                        ? formatDateSafe(
                             selectedRequest.scheduled_date
-                          ).toLocaleDateString(dateLocale, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                          )
                         : "--"}
                     </div>
                   </div>
@@ -1245,15 +1234,9 @@ export default function MaintenanceClient({
                   <div className="detail-group">
                     <label className="detail-label">{t("completedAt")}</label>
                     <div className="detail-value">
-                      {new Date(
+                      {formatDateTimeSafe(
                         selectedRequest.completed_at
-                      ).toLocaleDateString(dateLocale, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}
+                      )}
                     </div>
                   </div>
                 )}

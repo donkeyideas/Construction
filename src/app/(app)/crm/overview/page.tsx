@@ -4,7 +4,7 @@ import { DollarSign, TrendingUp, Target, BarChart3, FileText, Clock, Plus } from
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getCRMOverview } from "@/lib/queries/crm";
-import { formatCompactCurrency, formatPercent } from "@/lib/utils/format";
+import { formatCompactCurrency, formatPercent, formatDateShort } from "@/lib/utils/format";
 import PipelineFunnelChart from "@/components/charts/PipelineFunnelChart";
 import BidPerformanceChart from "@/components/charts/BidPerformanceChart";
 
@@ -132,7 +132,7 @@ export default async function CRMOverviewPage() {
                       </td>
                       <td style={{ fontSize: "0.78rem" }}>
                         {o.expected_close_date
-                          ? new Date(o.expected_close_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                          ? formatDateShort(o.expected_close_date)
                           : "—"}
                       </td>
                     </tr>
@@ -165,7 +165,7 @@ export default async function CRMOverviewPage() {
                         {b.client_name ?? "No client"} · Due{" "}
                         <span style={{ color: daysLeft <= 7 ? "var(--color-red)" : "var(--color-amber)", fontWeight: 600 }}>
                           {b.due_date
-                            ? new Date(b.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                            ? formatDateShort(b.due_date)
                             : "TBD"}
                           {daysLeft <= 30 && ` (${daysLeft}d)`}
                         </span>

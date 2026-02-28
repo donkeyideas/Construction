@@ -14,11 +14,7 @@ import {
   getProjectStatusBreakdown,
   getPendingApprovals,
 } from "@/lib/queries/dashboard";
-import {
-  formatCompactCurrency,
-  formatCurrency,
-  formatPercent,
-} from "@/lib/utils/format";
+import { formatCompactCurrency, formatCurrency, formatPercent, formatDateSafe, toDateStr } from "@/lib/utils/format";
 import { getTranslations, getLocale } from "next-intl/server";
 import ExecutiveAiInput from "./ExecutiveAiInput";
 
@@ -53,11 +49,7 @@ export default async function ExecutiveMobilePage() {
         <div>
           <h2>{t("title")}</h2>
           <div className="mobile-header-date">
-            {new Date().toLocaleDateString(dateLocale, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
+            {formatDateSafe(toDateStr(new Date()))}
           </div>
         </div>
         <Link

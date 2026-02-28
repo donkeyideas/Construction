@@ -25,6 +25,7 @@ import type {
 } from "@/lib/queries/equipment";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
+import { formatDateSafe, formatDateShort } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -102,19 +103,12 @@ export default function EquipmentMaintenanceClient({
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   function formatDateShort(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateShort(dateStr);
   }
 
   // Filters

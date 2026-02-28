@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Save, ShieldCheck, AlertTriangle, XCircle } from "lucide-react";
 import "@/styles/vendor-detail.css";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface ContactData {
   id: string;
@@ -189,7 +190,7 @@ export default function ProfileClient({
                   <tr key={cert.id}>
                     <td style={{ fontWeight: 500 }}>{cert.cert_name}</td>
                     <td style={{ textTransform: "capitalize" }}>{cert.cert_type || "\u2014"}</td>
-                    <td>{cert.expiry_date ? new Date(cert.expiry_date).toLocaleDateString(dateLocale) : "\u2014"}</td>
+                    <td>{cert.expiry_date ? formatDateSafe(cert.expiry_date) : "\u2014"}</td>
                     <td>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: st.color, fontWeight: 600, fontSize: "0.8rem" }}>
                         <st.Icon size={14} />

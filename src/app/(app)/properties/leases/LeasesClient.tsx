@@ -19,7 +19,7 @@ import {
   Check,
   Copy,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -108,11 +108,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
   function fmtDate(date: string | null): string {
     if (!date) return "--";
-    return new Date(date).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(date);
   }
 
   // ---- State ----

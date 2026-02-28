@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { paginatedQuery } from "@/lib/utils/paginated-query";
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 export interface AuditCheckResult {
   id: string;
@@ -747,7 +748,7 @@ async function checkUnpostedEntries(
       status: "warn",
       summary: `${allDrafts.length} draft journal entries exist, but none are older than 7 days`,
       details: allDrafts.slice(0, 10).map(
-        (d) => `${d.entry_number} — created ${new Date(d.created_at).toLocaleDateString()}`
+        (d) => `${d.entry_number} — created ${formatDateSafe(d.created_at)}`
       ),
     };
   }
@@ -755,7 +756,7 @@ async function checkUnpostedEntries(
   const details = oldDrafts
     .slice(0, 10)
     .map(
-      (d) => `${d.entry_number} — created ${new Date(d.created_at).toLocaleDateString()} (older than 7 days)`
+      (d) => `${d.entry_number} — created ${formatDateSafe(d.created_at)} (older than 7 days)`
     );
 
   if (oldDrafts.length > 10) {

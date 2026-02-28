@@ -4,7 +4,7 @@ import { FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getVendorContracts } from "@/lib/queries/vendor-portal";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = { title: "My Contracts - Buildwrk" };
@@ -64,11 +64,7 @@ export default async function VendorContractsPage() {
                       </td>
                       <td>
                         {contract.start_date
-                          ? new Date(contract.start_date as string).toLocaleDateString(dateLocale, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? formatDateSafe(contract.start_date as string)
                           : "--"}
                       </td>
                     </tr>

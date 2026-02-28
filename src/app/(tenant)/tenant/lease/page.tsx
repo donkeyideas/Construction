@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { FileText, Building2, CalendarDays, DollarSign } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantLease } from "@/lib/queries/tenant-portal";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateLong } from "@/lib/utils/format";
 import { getTranslations, getLocale } from "next-intl/server";
 
 export const metadata = {
@@ -104,7 +104,7 @@ export default async function TenantLeasePage() {
                     <span style={{ color: "var(--muted)" }}>{t("startLabel")}</span>
                     <span style={{ fontWeight: 600 }}>
                       {lease.lease_start
-                        ? new Date(lease.lease_start).toLocaleDateString(dateLocale, { month: "long", day: "numeric", year: "numeric" })
+                        ? formatDateLong(lease.lease_start)
                         : "--"}
                     </span>
                   </div>
@@ -112,7 +112,7 @@ export default async function TenantLeasePage() {
                     <span style={{ color: "var(--muted)" }}>{t("endLabel")}</span>
                     <span style={{ fontWeight: 600 }}>
                       {lease.lease_end
-                        ? new Date(lease.lease_end).toLocaleDateString(dateLocale, { month: "long", day: "numeric", year: "numeric" })
+                        ? formatDateLong(lease.lease_end)
                         : "--"}
                     </span>
                   </div>

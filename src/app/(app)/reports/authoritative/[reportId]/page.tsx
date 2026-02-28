@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { REPORT_TYPE_LABELS } from "@/types/authoritative-reports";
 import type { ReportType, SectionConfig, SectionData } from "@/types/authoritative-reports";
+import { formatDateLong } from "@/lib/utils/format";
 
 export const metadata = {
   title: "View Report - Buildwrk",
@@ -84,11 +85,7 @@ export default async function SavedReportPage({
           <p style={{ color: "var(--muted)", fontSize: "0.85rem", marginTop: "0.5rem" }}>
             <Clock size={12} style={{ marginRight: 4 }} />
             Last updated{" "}
-            {new Date(report.updated_at).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {formatDateLong(report.updated_at)}
           </p>
         </div>
       </div>

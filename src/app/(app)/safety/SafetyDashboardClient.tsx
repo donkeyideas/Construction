@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateSafe, formatDateShort } from "@/lib/utils/format";
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
@@ -93,19 +94,12 @@ export default function SafetyDashboardClient({
 
   function formatDateShort(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-    });
+    return formatDateShort(dateStr);
   }
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   function getUserName(

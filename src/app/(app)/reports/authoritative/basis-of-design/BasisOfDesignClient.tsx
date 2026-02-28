@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { HardHat, MapPin, DollarSign, Percent, ArrowLeft, X } from "lucide-react";
@@ -157,8 +158,8 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
           { field: t("basisOfDesign.type"), value: p.project_type ?? t("na") },
           { field: t("basisOfDesign.projectManager"), value: p.project_manager ?? t("na") },
           { field: t("basisOfDesign.superintendent"), value: p.superintendent ?? t("na") },
-          { field: t("basisOfDesign.startDate"), value: p.start_date ? new Date(p.start_date).toLocaleDateString() : t("na") },
-          { field: t("basisOfDesign.estEndDate"), value: p.estimated_end_date ? new Date(p.estimated_end_date).toLocaleDateString() : t("na") },
+          { field: t("basisOfDesign.startDate"), value: p.start_date ? formatDateSafe(p.start_date) : t("na") },
+          { field: t("basisOfDesign.estEndDate"), value: p.estimated_end_date ? formatDateSafe(p.estimated_end_date) : t("na") },
         ],
       };
     }
@@ -210,8 +211,8 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
       tableData: data.tasks.filter((tk) => tk.is_milestone || tk.is_critical_path).slice(0, 15).map((tk) => ({
         name: tk.name,
         phase: tk.phase_name ?? "—",
-        start: tk.start_date ? new Date(tk.start_date).toLocaleDateString() : "—",
-        end: tk.end_date ? new Date(tk.end_date).toLocaleDateString() : "—",
+        start: tk.start_date ? formatDateSafe(tk.start_date) : "—",
+        end: tk.end_date ? formatDateSafe(tk.end_date) : "—",
         completion: `${tk.completion_pct}%`,
         critical: tk.is_critical_path ? t("yes") : "",
       })),
@@ -232,7 +233,7 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
         amount: c.amount,
         status: c.status,
         impact: c.schedule_impact_days != null ? `${c.schedule_impact_days} days` : "—",
-        date: new Date(c.created_at).toLocaleDateString(),
+        date: formatDateSafe(c.created_at),
       })),
       tableColumns: [
         { key: "title", label: t("basisOfDesign.description") },
@@ -267,7 +268,7 @@ export function BasisOfDesignClient({ projects, companyId, companyName }: Props)
     newData.quality_safety = {
       tableData: data.safetyInspections.map((i) => ({
         type: i.inspection_type.replace(/_/g, " "),
-        date: new Date(i.inspection_date).toLocaleDateString(),
+        date: formatDateSafe(i.inspection_date),
         status: i.status,
         findings: i.findings_count,
       })),

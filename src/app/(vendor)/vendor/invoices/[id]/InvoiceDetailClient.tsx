@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { VendorInvoiceDetail } from "@/lib/queries/vendor-portal";
 import "@/styles/vendor-detail.css";
+import { formatDateSafe } from "@/lib/utils/format";
 
 interface LineItem {
   description?: string;
@@ -22,7 +23,7 @@ export default function InvoiceDetailClient({ invoice }: { invoice: VendorInvoic
     new Intl.NumberFormat(dateLocale, { style: "currency", currency: "USD" }).format(n);
 
   const fmtDate = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString(dateLocale) : "\u2014";
+    d ? formatDateSafe(d) : "\u2014";
 
   const paidAmount = invoice.total_amount - invoice.balance_due;
   const lineItems: LineItem[] = Array.isArray(invoice.line_items) ? invoice.line_items : [];

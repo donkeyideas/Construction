@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatDateShort, toDateStr } from "@/lib/utils/format";
 
 /* ------------------------------------------------------------------
    Types
@@ -698,10 +699,7 @@ export async function getDocumentsOverview(
   const weeklyMap = new Map<string, number>();
   for (let w = 11; w >= 0; w--) {
     const weekStart = new Date(now.getTime() - w * 7 * 24 * 60 * 60 * 1000);
-    const label = weekStart.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
+    const label = formatDateShort(toDateStr(weekStart));
     weeklyMap.set(label, 0);
   }
   const weekLabels = Array.from(weeklyMap.keys());
