@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback } from "react";
+import { Suspense, useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -15,6 +15,19 @@ import {
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils/format";
+
+interface GLAccount {
+  id: string;
+  account_number: string;
+  name: string;
+  account_type: string;
+}
+
+interface ProjectOption {
+  id: string;
+  name: string;
+  project_number: string | null;
+}
 
 interface LineItemRow {
   id: string;
@@ -64,17 +77,56 @@ function NewInvoiceForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Lookup data
+  const [glAccounts, setGlAccounts] = useState<GLAccount[]>([]);
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
+
   // Form state
   const [invoiceType, setInvoiceType] = useState<"payable" | "receivable">(initialType);
   const [invoiceNumber, setInvoiceNumber] = useState(generateInvoiceNumber);
   const [vendorOrClient, setVendorOrClient] = useState("");
   const [projectId, setProjectId] = useState("");
+  const [glAccountId, setGlAccountId] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(todayString);
   const [dueDate, setDueDate] = useState(defaultDueDateString);
   const [notes, setNotes] = useState("");
   const [taxRate, setTaxRate] = useState(0);
   const [deferralStartDate, setDeferralStartDate] = useState("");
   const [deferralEndDate, setDeferralEndDate] = useState("");
+
+  // Load GL accounts and projects on mount
+  useEffect(() => {
+    const supabase = createClient();
+    async function loadData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: membership } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .single();
+      if (!membership) return;
+      const companyId = membership.company_id;
+
+      const [acctRes, projRes] = await Promise.all([
+        supabase
+          .from("chart_of_accounts")
+          .select("id, account_number, name, account_type")
+          .eq("company_id", companyId)
+          .eq("is_active", true)
+          .order("account_number"),
+        supabase
+          .from("projects")
+          .select("id, name, project_number")
+          .eq("company_id", companyId)
+          .order("name"),
+      ]);
+      if (acctRes.data) setGlAccounts(acctRes.data);
+      if (projRes.data) setProjects(projRes.data);
+    }
+    loadData();
+  }, []);
 
   // Line items
   const [lineItems, setLineItems] = useState<LineItemRow[]>([
@@ -136,6 +188,7 @@ function NewInvoiceForm() {
         })),
         notes: notes || undefined,
         status,
+        gl_account_id: glAccountId || undefined,
         deferral_start_date: deferralStartDate || undefined,
         deferral_end_date: deferralEndDate || undefined,
       };
@@ -262,14 +315,56 @@ function NewInvoiceForm() {
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">{t("projectIdOptional")}</label>
-            <input
-              type="text"
+            <label className="ui-label">{t("glAccount")}</label>
+            <select
               className="ui-input"
-              placeholder={t("enterProjectId")}
+              value={glAccountId}
+              onChange={(e) => setGlAccountId(e.target.value)}
+            >
+              <option value="">{t("selectGlAccount")}</option>
+              {glAccounts
+                .filter((a) =>
+                  invoiceType === "payable"
+                    ? a.account_type === "expense" || a.account_type === "asset" || a.account_type === "cost_of_goods_sold"
+                    : a.account_type === "revenue" || a.account_type === "asset"
+                )
+                .map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.account_number} — {a.name}
+                  </option>
+                ))}
+              {glAccounts.length > 0 && (
+                <optgroup label={t("allAccounts")}>
+                  {glAccounts
+                    .filter((a) =>
+                      invoiceType === "payable"
+                        ? a.account_type !== "expense" && a.account_type !== "asset" && a.account_type !== "cost_of_goods_sold"
+                        : a.account_type !== "revenue" && a.account_type !== "asset"
+                    )
+                    .map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.account_number} — {a.name} ({a.account_type})
+                      </option>
+                    ))}
+                </optgroup>
+              )}
+            </select>
+          </div>
+
+          <div className="ui-field">
+            <label className="ui-label">{t("projectOptional")}</label>
+            <select
+              className="ui-input"
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-            />
+            >
+              <option value="">{t("selectProject")}</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.project_number ? `${p.project_number} — ` : ""}{p.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="ui-field">
