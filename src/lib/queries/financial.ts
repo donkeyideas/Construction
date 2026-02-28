@@ -522,13 +522,46 @@ export async function createInvoice(
       gl_account_id: data.gl_account_id ?? null,
       retainage_pct: data.retainage_pct ?? 0,
       retainage_held: data.retainage_held ?? 0,
-      deferral_start_date: data.deferral_start_date ?? null,
-      deferral_end_date: data.deferral_end_date ?? null,
+      ...(data.deferral_start_date ? { deferral_start_date: data.deferral_start_date } : {}),
+      ...(data.deferral_end_date ? { deferral_end_date: data.deferral_end_date } : {}),
     })
     .select("id")
     .single();
 
   if (error) {
+    // If deferral columns don't exist yet, retry without them
+    if (error.message?.includes("deferral_") && (data.deferral_start_date || data.deferral_end_date)) {
+      const { data: retryResult, error: retryError } = await supabase
+        .from("invoices")
+        .insert({
+          company_id: companyId,
+          invoice_number: data.invoice_number,
+          invoice_type: data.invoice_type,
+          vendor_name: data.vendor_name ?? null,
+          client_name: data.client_name ?? null,
+          project_id: data.project_id ?? null,
+          property_id: data.property_id ?? null,
+          invoice_date: data.invoice_date,
+          due_date: data.due_date,
+          subtotal: data.subtotal,
+          tax_amount: data.tax_amount,
+          total_amount: data.total_amount,
+          amount_paid: 0,
+          line_items: data.line_items,
+          notes: data.notes ?? null,
+          status: data.status ?? "draft",
+          gl_account_id: data.gl_account_id ?? null,
+          retainage_pct: data.retainage_pct ?? 0,
+          retainage_held: data.retainage_held ?? 0,
+        })
+        .select("id")
+        .single();
+      if (retryError) {
+        console.error("Error creating invoice (retry):", retryError);
+        return null;
+      }
+      return retryResult as { id: string };
+    }
     console.error("Error creating invoice:", error);
     return null;
   }
@@ -540,7 +573,7 @@ export async function updateInvoice(
   supabase: SupabaseClient,
   invoiceId: string,
   data: Partial<InvoiceCreateData> & { status?: string }
-): Promise<boolean> {
+): Promise<boolean | string> {
   const updatePayload: Record<string, unknown> = {};
 
   if (data.invoice_number !== undefined) updatePayload.invoice_number = data.invoice_number;
@@ -557,9 +590,14 @@ export async function updateInvoice(
   if (data.line_items !== undefined) updatePayload.line_items = data.line_items;
   if (data.notes !== undefined) updatePayload.notes = data.notes;
   if (data.status !== undefined) updatePayload.status = data.status;
+  if (data.gl_account_id !== undefined) updatePayload.gl_account_id = data.gl_account_id || null;
+  if (data.retainage_pct !== undefined) updatePayload.retainage_pct = data.retainage_pct;
+  if (data.retainage_held !== undefined) updatePayload.retainage_held = data.retainage_held;
   if (data.deferral_start_date !== undefined) updatePayload.deferral_start_date = data.deferral_start_date || null;
   if (data.deferral_end_date !== undefined) updatePayload.deferral_end_date = data.deferral_end_date || null;
   // Note: balance_due is a Postgres GENERATED COLUMN — never include it in updates
+
+  if (Object.keys(updatePayload).length === 0) return true; // nothing to update
 
   const { error } = await supabase
     .from("invoices")
@@ -567,8 +605,19 @@ export async function updateInvoice(
     .eq("id", invoiceId);
 
   if (error) {
-    console.error("Error updating invoice:", error);
-    return false;
+    console.error("Error updating invoice:", error.message, error.details, error.hint);
+    // If deferral columns don't exist, retry without them
+    if (error.message?.includes("deferral_")) {
+      delete updatePayload.deferral_start_date;
+      delete updatePayload.deferral_end_date;
+      const { error: retryError } = await supabase
+        .from("invoices")
+        .update(updatePayload)
+        .eq("id", invoiceId);
+      if (!retryError) return true;
+      return retryError.message || "Update failed";
+    }
+    return error.message || "Update failed";
   }
 
   return true;

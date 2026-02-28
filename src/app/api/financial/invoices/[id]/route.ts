@@ -83,11 +83,11 @@ export async function PATCH(
     // It auto-recomputes when total_amount or amount_paid change. Do NOT set it directly.
     delete body.balance_due;
 
-    const success = await updateInvoice(supabase, id, body);
+    const result = await updateInvoice(supabase, id, body);
 
-    if (!success) {
+    if (result !== true) {
       return NextResponse.json(
-        { error: "Failed to update invoice" },
+        { error: typeof result === "string" ? `Failed to update invoice: ${result}` : "Failed to update invoice" },
         { status: 500 }
       );
     }
