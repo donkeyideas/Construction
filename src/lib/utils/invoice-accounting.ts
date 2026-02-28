@@ -358,6 +358,40 @@ export async function generateInvoiceJournalEntry(
     let creditAccountId: string | null = null;
     if (isDeferred) {
       creditAccountId = accountMap.deferredRevenueId || accountMap.deferredRentalRevenueId || null;
+      // Auto-create "Deferred Revenue" account if missing — so deferred invoices always post correctly
+      if (!creditAccountId) {
+        try {
+          const { data: newAcct } = await supabase
+            .from("chart_of_accounts")
+            .insert({
+              company_id: companyId,
+              account_number: "2460",
+              name: "Deferred Revenue",
+              account_type: "liability",
+              sub_type: "deferred_revenue",
+              normal_balance: "credit",
+              is_active: true,
+            })
+            .select("id")
+            .single();
+          if (newAcct?.id) {
+            creditAccountId = newAcct.id;
+            accountMap.deferredRevenueId = newAcct.id;
+          }
+        } catch {
+          // If 2460 is already taken (conflict), try to look it up
+          const { data: existing } = await supabase
+            .from("chart_of_accounts")
+            .select("id")
+            .eq("company_id", companyId)
+            .eq("account_number", "2460")
+            .single();
+          if (existing?.id) {
+            creditAccountId = existing.id;
+            accountMap.deferredRevenueId = existing.id;
+          }
+        }
+      }
     }
     if (!creditAccountId) {
       creditAccountId = invoice.gl_account_id || findDefaultRevenueAccount(accountMap);

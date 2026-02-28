@@ -66,7 +66,11 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
     .order("schedule_date", { ascending: true });
 
   const rawInv = invoice as unknown as Record<string, unknown>;
-  const hasDeferral = !!(rawInv.deferral_start_date || (deferralSchedule && deferralSchedule.length > 0));
+  const hasDeferralDates = !!(rawInv.deferral_start_date && rawInv.deferral_end_date);
+  const hasDeferralSchedule = !!(deferralSchedule && deferralSchedule.length > 0);
+  // Show deferral section for any receivable invoice (so users know the feature exists and can enable it)
+  const showDeferralSection = invoice.invoice_type === "receivable" || hasDeferralDates || hasDeferralSchedule;
+  const hasDeferral = hasDeferralDates || hasDeferralSchedule;
 
   const isPayable = invoice.invoice_type === "payable";
   const statusClass = `inv-status inv-status-${invoice.status}`;
@@ -283,17 +287,24 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
         )}
       </div>
 
-      {/* Deferral Schedule */}
-      {hasDeferral && (
+      {/* Deferral Schedule — shown for all receivable invoices */}
+      {showDeferralSection && (
         <div className="fin-chart-card" style={{ padding: 0, marginBottom: 24 }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
             <CalendarRange size={16} style={{ color: "var(--color-blue)" }} />
             <div className="card-title" style={{ marginBottom: 0 }}>Deferred Revenue Schedule</div>
-            {rawInv.deferral_start_date && rawInv.deferral_end_date ? (
+            {hasDeferralDates ? (
               <span style={{ marginLeft: "auto", fontSize: "0.78rem", color: "var(--muted)" }}>
                 {safeDate(rawInv.deferral_start_date)} — {safeDate(rawInv.deferral_end_date)}
               </span>
-            ) : null}
+            ) : (
+              <Link
+                href={`/financial/invoices/${id}/edit`}
+                style={{ marginLeft: "auto", fontSize: "0.78rem", color: "var(--color-blue)", textDecoration: "none", fontWeight: 500 }}
+              >
+                Enable on Edit →
+              </Link>
+            )}
           </div>
           {deferralSchedule && deferralSchedule.length > 0 ? (
             <div style={{ overflowX: "auto" }}>
@@ -344,9 +355,23 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                 </tfoot>
               </table>
             </div>
-          ) : (
+          ) : hasDeferralDates ? (
             <div style={{ padding: "24px 20px", textAlign: "center", color: "var(--muted)", fontSize: "0.85rem" }}>
-              Deferral dates are set but no schedule has been generated yet. Save the invoice to generate the schedule.
+              Deferral dates are set but no schedule has been generated yet. Edit and save the invoice to generate the schedule.
+            </div>
+          ) : (
+            <div style={{ padding: "20px", display: "flex", alignItems: "flex-start", gap: 12, background: "rgba(59,130,246,0.04)", borderRadius: "0 0 8px 8px" }}>
+              <CalendarRange size={20} style={{ color: "var(--color-blue)", flexShrink: 0, marginTop: 2 }} />
+              <div>
+                <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 4 }}>Deferred Revenue Treatment Not Enabled</div>
+                <div style={{ fontSize: "0.82rem", color: "var(--muted)", lineHeight: 1.5 }}>
+                  This invoice is posting revenue immediately. To spread recognition over time (e.g., for retainers or prepaid contracts),{" "}
+                  <Link href={`/financial/invoices/${id}/edit`} style={{ color: "var(--color-blue)", textDecoration: "none", fontWeight: 500 }}>
+                    edit the invoice
+                  </Link>
+                  {" "}and check <strong>Deferred Revenue</strong>, then set start and end dates.
+                </div>
+              </div>
             </div>
           )}
         </div>

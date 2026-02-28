@@ -10,8 +10,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Save,
-  ChevronDown,
-  ChevronRight,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatCurrency } from "@/lib/utils/format";
@@ -368,30 +366,39 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
           </div>
         </div>
 
-        {/* Deferred Revenue — collapsible */}
-        <div style={{ marginTop: 16, marginBottom: 8 }}>
-          <button
-            type="button"
-            onClick={() => setShowDeferral(!showDeferral)}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "6px 0",
-              fontSize: "0.88rem",
-              fontWeight: 600,
-              color: "var(--muted)",
-              fontFamily: "var(--font-sans)",
-            }}
-          >
-            {showDeferral ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            {t("deferredRevenue")}
-          </button>
+        {/* Deferred Revenue — checkbox toggle */}
+        <div style={{
+          marginTop: 16,
+          marginBottom: 8,
+          padding: "12px 16px",
+          border: showDeferral ? "1px solid var(--color-blue)" : "1px solid var(--border)",
+          borderRadius: 8,
+          background: showDeferral ? "var(--color-blue-light, rgba(59,130,246,0.06))" : "var(--bg-subtle, var(--surface))",
+          transition: "border-color 0.15s, background 0.15s",
+        }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", userSelect: "none" }}>
+            <input
+              type="checkbox"
+              checked={showDeferral}
+              onChange={(e) => {
+                setShowDeferral(e.target.checked);
+                if (!e.target.checked) { setDeferralStartDate(""); setDeferralEndDate(""); }
+              }}
+              style={{ width: 16, height: 16, accentColor: "var(--color-blue)", cursor: "pointer", flexShrink: 0 }}
+            />
+            <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontSize: "0.88rem", fontWeight: 600 }}>
+                {t("deferredRevenue")}
+              </span>
+              {!showDeferral && (
+                <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+                  Check to spread revenue recognition over a period (e.g., retainers, prepaid contracts)
+                </span>
+              )}
+            </span>
+          </label>
           {showDeferral && (
-            <div className="invoice-form-grid" style={{ marginTop: 8 }}>
+            <div className="invoice-form-grid" style={{ marginTop: 12 }}>
               <div className="ui-field">
                 <label className="ui-label">{t("deferralStartDate")}</label>
                 <input
@@ -409,6 +416,11 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
                   value={deferralEndDate}
                   onChange={(e) => setDeferralEndDate(e.target.value)}
                 />
+              </div>
+              <div className="ui-field invoice-form-full" style={{ margin: 0 }}>
+                <p style={{ fontSize: "0.78rem", color: "var(--muted)", margin: 0 }}>
+                  Saving will regenerate the journal entry to credit <strong>Deferred Revenue</strong> (liability) and rebuild the monthly recognition schedule.
+                </p>
               </div>
             </div>
           )}
