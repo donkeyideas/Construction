@@ -698,47 +698,48 @@ export default function BankTransactionsClient({
                     required
                   />
                 </div>
-                <div className="banking-form-group">
-                  <label className="banking-form-label">{t("glAccount")}</label>
-                  <select
-                    className="banking-form-select"
-                    value={formData.gl_account_id}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        gl_account_id: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="">{t("selectGlAccount")}</option>
-                    {glAccounts
-                      .filter((a) =>
-                        formData.transaction_type === "debit"
-                          ? a.account_type === "expense" || a.account_type === "asset" || a.account_type === "cost_of_goods_sold"
-                          : a.account_type === "revenue" || a.account_type === "asset"
-                      )
-                      .map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.account_number} — {a.name}
-                        </option>
-                      ))}
-                    {glAccounts.length > 0 && (
-                      <optgroup label={t("allAccounts")}>
-                        {glAccounts
-                          .filter((a) =>
-                            formData.transaction_type === "debit"
-                              ? a.account_type !== "expense" && a.account_type !== "asset" && a.account_type !== "cost_of_goods_sold"
-                              : a.account_type !== "revenue" && a.account_type !== "asset"
-                          )
-                          .map((a) => (
-                            <option key={a.id} value={a.id}>
-                              {a.account_number} — {a.name} ({a.account_type})
-                            </option>
-                          ))}
-                      </optgroup>
-                    )}
-                  </select>
-                </div>
+              </div>
+
+              <div className="banking-form-group">
+                <label className="banking-form-label">{t("glAccount")}</label>
+                <select
+                  className="banking-form-select"
+                  value={formData.gl_account_id}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      gl_account_id: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">{t("selectGlAccount")}</option>
+                  {glAccounts
+                    .filter((a) =>
+                      formData.transaction_type === "debit"
+                        ? a.account_type === "expense" || a.account_type === "asset" || a.account_type === "cost_of_goods_sold"
+                        : a.account_type === "revenue" || a.account_type === "asset"
+                    )
+                    .map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.account_number} — {a.name}
+                      </option>
+                    ))}
+                  {glAccounts.length > 0 && (
+                    <optgroup label={t("allAccounts")}>
+                      {glAccounts
+                        .filter((a) =>
+                          formData.transaction_type === "debit"
+                            ? a.account_type !== "expense" && a.account_type !== "asset" && a.account_type !== "cost_of_goods_sold"
+                            : a.account_type !== "revenue" && a.account_type !== "asset"
+                        )
+                        .map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.account_number} — {a.name} ({a.account_type})
+                          </option>
+                        ))}
+                    </optgroup>
+                  )}
+                </select>
               </div>
 
               <div className="banking-form-group">
@@ -1092,65 +1093,64 @@ export default function BankTransactionsClient({
                   />
                 </div>
 
-                <div className="banking-form-row">
-                  <div className="banking-form-group">
-                    <label className="banking-form-label">{t("amountRequired")}</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      className="banking-form-input"
-                      value={(editData.amount as string) || ""}
-                      onChange={(e) =>
-                        setEditData({
-                          ...editData,
-                          amount: e.target.value,
-                        })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="banking-form-group">
-                    <label className="banking-form-label">{t("glAccount")}</label>
-                    <select
-                      className="banking-form-select"
-                      value={(editData.gl_account_id as string) || ""}
-                      onChange={(e) =>
-                        setEditData({
-                          ...editData,
-                          gl_account_id: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">{t("selectGlAccount")}</option>
-                      {glAccounts
-                        .filter((a) =>
-                          (editData.transaction_type as string) === "debit"
-                            ? a.account_type === "expense" || a.account_type === "asset" || a.account_type === "cost_of_goods_sold"
-                            : a.account_type === "revenue" || a.account_type === "asset"
-                        )
-                        .map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.account_number} — {a.name}
-                          </option>
-                        ))}
-                      {glAccounts.length > 0 && (
-                        <optgroup label={t("allAccounts")}>
-                          {glAccounts
-                            .filter((a) =>
-                              (editData.transaction_type as string) === "debit"
-                                ? a.account_type !== "expense" && a.account_type !== "asset" && a.account_type !== "cost_of_goods_sold"
-                                : a.account_type !== "revenue" && a.account_type !== "asset"
-                            )
-                            .map((a) => (
-                              <option key={a.id} value={a.id}>
-                                {a.account_number} — {a.name} ({a.account_type})
-                              </option>
-                            ))}
-                        </optgroup>
-                      )}
-                    </select>
-                  </div>
+                <div className="banking-form-group">
+                  <label className="banking-form-label">{t("amountRequired")}</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    className="banking-form-input"
+                    value={(editData.amount as string) || ""}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        amount: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="banking-form-group">
+                  <label className="banking-form-label">{t("glAccount")}</label>
+                  <select
+                    className="banking-form-select"
+                    value={(editData.gl_account_id as string) || ""}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        gl_account_id: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="">{t("selectGlAccount")}</option>
+                    {glAccounts
+                      .filter((a) =>
+                        (editData.transaction_type as string) === "debit"
+                          ? a.account_type === "expense" || a.account_type === "asset" || a.account_type === "cost_of_goods_sold"
+                          : a.account_type === "revenue" || a.account_type === "asset"
+                      )
+                      .map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.account_number} — {a.name}
+                        </option>
+                      ))}
+                    {glAccounts.length > 0 && (
+                      <optgroup label={t("allAccounts")}>
+                        {glAccounts
+                          .filter((a) =>
+                            (editData.transaction_type as string) === "debit"
+                              ? a.account_type !== "expense" && a.account_type !== "asset" && a.account_type !== "cost_of_goods_sold"
+                              : a.account_type !== "revenue" && a.account_type !== "asset"
+                          )
+                          .map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.account_number} — {a.name} ({a.account_type})
+                            </option>
+                          ))}
+                      </optgroup>
+                    )}
+                  </select>
                 </div>
 
                 <div className="banking-form-group">

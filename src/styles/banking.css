@@ -646,7 +646,7 @@
 
 .banking-modal {
   width: calc(100% - 32px);
-  max-width: 560px;
+  max-width: 640px;
   max-height: 85vh;
   overflow-y: auto;
   background: var(--bg);
