@@ -429,7 +429,7 @@ export default function BankTransactionsClient({
               onClick={() => setViewMode(mode)}
             >
               {mode === "all" ? `All (${transactions.length + glTransactions.length})` :
-               mode === "bank" ? `Imported (${transactions.length})` :
+               mode === "bank" ? `Manual (${transactions.length})` :
                `From GL (${glTransactions.length})`}
             </button>
           ))}
@@ -535,7 +535,7 @@ export default function BankTransactionsClient({
                 <th>{t("date")}</th>
                 <th>{t("description")}</th>
                 <th>{t("reference")}</th>
-                <th>{t("category")}</th>
+                <th>{t("glAccount")}</th>
                 <th>{t("debit")}</th>
                 <th>{t("creditType")}</th>
                 <th>{t("balance")}</th>
@@ -557,13 +557,22 @@ export default function BankTransactionsClient({
                     {txn.reference || "--"}
                   </td>
                   <td className="banking-category-cell">
-                    {txn.category ? (
-                      <span className="banking-category-badge">
-                        {txn.category}
-                      </span>
-                    ) : (
-                      "--"
-                    )}
+                    {(() => {
+                      const meta = txn.metadata as { gl_account_id?: string } | null;
+                      const glAcct = meta?.gl_account_id
+                        ? glAccounts.find((a) => a.id === meta.gl_account_id)
+                        : null;
+                      if (glAcct) {
+                        return (
+                          <span className="banking-category-badge">
+                            {glAcct.account_number} — {glAcct.name}
+                          </span>
+                        );
+                      }
+                      return txn.category && txn.category !== "gl"
+                        ? <span className="banking-category-badge">{txn.category}</span>
+                        : "--";
+                    })()}
                   </td>
                   <td className="banking-amount-cell banking-debit">
                     {txn.transaction_type === "debit" ? (

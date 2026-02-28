@@ -309,8 +309,16 @@ export async function getBankAccountGLTransactions(
 
   if (!lines || lines.length === 0) return [];
 
+  // Exclude JEs that originated from bank transactions (they already show in the bank tab)
+  const filteredLines = lines.filter((l) => {
+    const je = l.journal_entries as unknown as { reference: string | null };
+    return !je.reference?.startsWith("bank_txn:");
+  });
+
+  if (filteredLines.length === 0) return [];
+
   // Fetch counter-account lines (the other side of each JE, e.g. the expense/revenue account)
-  const jeIds = [...new Set(lines.map((l) => {
+  const jeIds = [...new Set(filteredLines.map((l) => {
     const je = l.journal_entries as unknown as { id: string };
     return je.id;
   }))];
@@ -330,7 +338,7 @@ export async function getBankAccountGLTransactions(
 
   // Convert to BankTransactionRow-like shape
   let runningBalance = 0;
-  return lines.map((line) => {
+  return filteredLines.map((line) => {
     const je = line.journal_entries as unknown as {
       id: string; entry_number: string; entry_date: string;
       description: string; reference: string | null; status: string;
