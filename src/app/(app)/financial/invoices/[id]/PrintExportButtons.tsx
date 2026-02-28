@@ -1,40 +1,21 @@
 "use client";
 
-import { Printer, Download } from "lucide-react";
+import { Printer } from "lucide-react";
 
 interface Props {
   invoiceId: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function PrintExportButtons({ invoiceId }: Props) {
-  const printUrl = `/financial/invoices/${invoiceId}/print`;
-
-  function handlePrint() {
-    window.open(printUrl, "_blank");
-  }
-
-  function handleExportPdf() {
-    window.open(`${printUrl}?autoPrint=1`, "_blank");
-  }
-
   return (
-    <>
-      <button
-        className="ui-btn ui-btn-outline ui-btn-md"
-        type="button"
-        onClick={handlePrint}
-      >
-        <Printer size={16} />
-        Print
-      </button>
-      <button
-        className="ui-btn ui-btn-outline ui-btn-md"
-        type="button"
-        onClick={handleExportPdf}
-      >
-        <Download size={16} />
-        Export PDF
-      </button>
-    </>
+    <button
+      className="ui-btn ui-btn-outline ui-btn-md"
+      type="button"
+      onClick={() => window.print()}
+    >
+      <Printer size={16} />
+      Print
+    </button>
   );
 }

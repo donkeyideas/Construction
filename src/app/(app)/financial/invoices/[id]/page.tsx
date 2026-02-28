@@ -13,6 +13,7 @@ import EditPaymentSection from "./EditPaymentSection";
 import DeleteInvoiceButton from "./DeleteInvoiceButton";
 import DeferralScheduleCard from "./DeferralScheduleCard";
 import PrintExportButtons from "./PrintExportButtons";
+import InvoicePrintView from "./InvoicePrintView";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -118,6 +119,8 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
 
   return (
     <div>
+      {/* ── Screen content (hidden when printing) ── */}
+      <div className="inv-screen-only">
       {/* Header */}
       <div className="fin-header">
         <div>
@@ -417,6 +420,25 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           bank_name: ba.bank_name,
           account_number_last4: ba.account_number_last4,
         }))}
+      />
+      </div>{/* end inv-screen-only */}
+
+      {/* ── Print-only invoice view (hidden on screen, shown when printing) ── */}
+      <InvoicePrintView
+        companyName={userCompany.companyName}
+        invoiceNumber={invoice.invoice_number ?? ""}
+        invoiceType={(invoice.invoice_type ?? "receivable") as "payable" | "receivable"}
+        partyName={isPayable ? (invoice.vendor_name ?? "") : (invoice.client_name ?? "")}
+        invoiceDate={safeDate(rawInv.invoice_date, { long: true })}
+        dueDate={safeDate(rawInv.due_date, { long: true })}
+        status={invoice.status ?? "pending"}
+        subtotal={Number(rawInv.subtotal ?? invoice.total_amount ?? 0)}
+        taxAmount={Number(rawInv.tax_amount ?? 0)}
+        total={Number(invoice.total_amount ?? 0)}
+        amountPaid={Number(rawInv.amount_paid ?? 0)}
+        balanceDue={Number(rawInv.balance_due ?? invoice.total_amount ?? 0)}
+        lineItems={lineItems}
+        notes={String(invoice.notes ?? "")}
       />
     </div>
   );

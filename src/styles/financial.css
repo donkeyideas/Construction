@@ -1358,43 +1358,227 @@
 }
 
 /* Print styles for financial statements */
+/* Invoice print view — always in DOM, hidden on screen */
+.inv-print-view { display: none; }
+
 @media print {
-  /* Hide navigation, sidebar, and action buttons for all financial pages */
+  /* ── Hide all app chrome ─────────────────────────────────────── */
+  .sidebar,
+  .topbar,
   nav,
   aside,
   [data-sidebar],
   .fin-header-actions,
   .fs-date-controls,
   .fin-header-sub,
-  .inv-print-hide {
+  .inv-screen-only {
     display: none !important;
   }
 
-  /* Invoice detail print layout */
-  .inv-print-area {
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
-    box-shadow: none !important;
-    border: none !important;
+  /* Reset layout so print view fills the page */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  .main {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
   }
 
-  .invoice-table {
+  /* ── Invoice print view ──────────────────────────────────────── */
+  .inv-print-view {
+    display: block !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #1e293b;
+  }
+
+  .ipv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 32px 40px 24px;
+    background: #0f172a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .ipv-title {
+    font-size: 26pt;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.04em;
+  }
+
+  .ipv-invnum {
     font-size: 10pt;
+    color: #94a3b8;
+    margin-top: 3pt;
   }
 
-  .fin-chart-card {
-    break-inside: avoid;
-    box-shadow: none;
-    border: 1px solid #ddd;
+  .ipv-company { text-align: right; }
+
+  .ipv-company-name {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #fff;
   }
 
-  .fs-date-controls,
-  .fin-header-actions,
-  .fin-header-sub {
-    display: none !important;
+  .ipv-status-badge {
+    display: inline-block;
+    margin-top: 6pt;
+    padding: 2pt 10pt;
+    border-radius: 20pt;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    border: 1.5pt solid currentColor;
   }
 
+  .ipv-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1pt solid #e2e8f0;
+  }
+
+  .ipv-meta-block { padding: 20pt 40pt; }
+  .ipv-meta-block:first-child { border-right: 1pt solid #e2e8f0; }
+
+  .ipv-label {
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 6pt;
+  }
+
+  .ipv-party {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .ipv-details-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4pt 20pt;
+  }
+
+  .ipv-dl { font-size: 9pt; color: #64748b; }
+  .ipv-dv { font-size: 9pt; font-weight: 600; color: #1e293b; text-align: right; }
+
+  .ipv-table {
+    width: calc(100% - 80pt);
+    margin: 16pt 40pt 0;
+    border-collapse: collapse;
+  }
+
+  .ipv-table thead tr {
+    background: #f1f5f9 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .ipv-table th {
+    padding: 7pt 10pt;
+    text-align: left;
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1.5pt solid #e2e8f0;
+  }
+
+  .ipv-th-right { text-align: right !important; }
+  .ipv-th-center { text-align: center !important; }
+
+  .ipv-table td {
+    padding: 9pt 10pt;
+    font-size: 9.5pt;
+    border-bottom: 0.5pt solid #f1f5f9;
+    color: #334155;
+  }
+
+  .ipv-td-bold { font-weight: 600; color: #1e293b; }
+  .ipv-td-mono { font-family: monospace; font-size: 8pt; color: #64748b; }
+  .ipv-muted { color: #94a3b8; font-size: 8pt; }
+
+  .ipv-totals {
+    width: 260pt;
+    margin: 16pt 40pt 0 auto;
+  }
+
+  .ipv-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9.5pt;
+    padding: 4pt 0;
+    color: #334155;
+  }
+
+  .ipv-paid { color: #16a34a; }
+
+  .ipv-total-grand {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11pt;
+    font-weight: 700;
+    color: #0f172a;
+    padding: 8pt 0 6pt;
+    border-top: 1pt solid #e2e8f0;
+    margin-top: 4pt;
+  }
+
+  .ipv-balance {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10pt 14pt;
+    border: 1.5pt solid #e2e8f0;
+    border-radius: 5pt;
+    margin-top: 8pt;
+  }
+
+  .ipv-balance span:first-child {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  .ipv-balance span:last-child {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #dc2626;
+  }
+
+  .ipv-balance-paid span:last-child { color: #16a34a; }
+
+  .ipv-notes {
+    margin: 16pt 40pt 0;
+    padding-top: 12pt;
+    border-top: 0.5pt solid #e2e8f0;
+  }
+
+  .ipv-notes p { font-size: 9pt; color: #475569; }
+
+  .ipv-footer {
+    display: flex;
+    justify-content: space-between;
+    margin: 16pt 40pt 24pt;
+    padding-top: 10pt;
+    border-top: 0.5pt solid #f1f5f9;
+    font-size: 8pt;
+    color: #94a3b8;
+  }
+
+  /* ── Financial statements (Income Statement, Balance Sheet) ──── */
   .fs-statement-card {
     max-width: 100%;
     border: none;
@@ -1402,13 +1586,8 @@
     padding: 0;
   }
 
-  .fs-table {
-    font-size: 10pt;
-  }
-
-  .fs-title-block {
-    margin-bottom: 20px;
-  }
+  .fs-table { font-size: 10pt; }
+  .fs-title-block { margin-bottom: 20px; }
 }
 
 /* ===== KPI Dashboard ===== */
