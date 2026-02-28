@@ -136,6 +136,8 @@ export async function POST(request: NextRequest) {
           gl_account_id: data.gl_account_id,
           retainage_pct: data.retainage_pct,
           retainage_held: data.retainage_held,
+          deferral_start_date: data.deferral_start_date,
+          deferral_end_date: data.deferral_end_date,
         },
         accountMap
       );

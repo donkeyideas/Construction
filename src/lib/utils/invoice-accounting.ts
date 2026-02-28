@@ -234,15 +234,15 @@ export async function buildCompanyAccountMap(
     }
 
     // Deferred Revenue (general, not rental-specific): liability with "deferred" and "revenue"
-    if (!map.deferredRevenueId && a.account_type === "liability" &&
-      nameLower.includes("deferred") && nameLower.includes("revenue") &&
-      !nameLower.includes("rental") && !nameLower.includes("rent")
-    ) {
+    // OR account_type/sub_type = "deferred_revenue"
+    if (!map.deferredRevenueId && (
+      a.account_type === "deferred_revenue" ||
+      (a as unknown as Record<string, unknown>).sub_type === "deferred_revenue" ||
+      (a.account_type === "liability" &&
+        nameLower.includes("deferred") && nameLower.includes("revenue") &&
+        !nameLower.includes("rental") && !nameLower.includes("rent"))
+    )) {
       map.deferredRevenueId = a.id;
-    }
-    // Fall back: use rental deferred revenue if no general one exists
-    if (!map.deferredRevenueId && map.deferredRentalRevenueId) {
-      map.deferredRevenueId = map.deferredRentalRevenueId;
     }
 
     // Prepaid Expenses: asset with "prepaid"
@@ -251,6 +251,11 @@ export async function buildCompanyAccountMap(
     ) {
       map.prepaidExpenseId = a.id;
     }
+  }
+
+  // Fallback: if no general Deferred Revenue account, use rental deferred revenue
+  if (!map.deferredRevenueId && map.deferredRentalRevenueId) {
+    map.deferredRevenueId = map.deferredRentalRevenueId;
   }
 
   return map;
