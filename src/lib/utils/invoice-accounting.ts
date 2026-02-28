@@ -557,6 +557,80 @@ export async function generatePaymentJournalEntry(
 }
 
 /**
+ * Generate a double-entry journal entry for a manual bank transaction.
+ *
+ * Debit (Money Out): DR selected GL account, CR bank's GL account
+ * Credit (Money In): DR bank's GL account, CR selected GL account
+ */
+export async function generateBankTransactionJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  transaction: {
+    id: string;
+    transaction_date: string;
+    transaction_type: "debit" | "credit";
+    amount: number;
+    description: string;
+    gl_account_id: string;
+    bank_account_id: string;
+  }
+): Promise<{ journalEntryId: string } | null> {
+  if (transaction.amount <= 0) return null;
+
+  // Resolve bank account's GL account (the cash side)
+  const { data: bankRow } = await supabase
+    .from("bank_accounts")
+    .select("gl_account_id, name")
+    .eq("id", transaction.bank_account_id)
+    .single();
+
+  if (!bankRow?.gl_account_id) {
+    console.warn("Bank account has no linked GL account; skipping JE for txn:", transaction.id);
+    return null;
+  }
+
+  const bankGlAccountId = bankRow.gl_account_id;
+  let debitAccountId: string;
+  let creditAccountId: string;
+
+  if (transaction.transaction_type === "debit") {
+    // Money Out: DR selected account (e.g., expense), CR bank GL account
+    debitAccountId = transaction.gl_account_id;
+    creditAccountId = bankGlAccountId;
+  } else {
+    // Money In: DR bank GL account, CR selected account (e.g., revenue)
+    debitAccountId = bankGlAccountId;
+    creditAccountId = transaction.gl_account_id;
+  }
+
+  const shortId = transaction.id.substring(0, 8);
+  const entryData: JournalEntryCreateData = {
+    entry_number: `JE-BT-${shortId}`,
+    entry_date: transaction.transaction_date,
+    description: transaction.description,
+    reference: `bank_txn:${transaction.id}`,
+    lines: [
+      {
+        account_id: debitAccountId,
+        debit: transaction.amount,
+        credit: 0,
+        description: transaction.description,
+      },
+      {
+        account_id: creditAccountId,
+        debit: 0,
+        credit: transaction.amount,
+        description: transaction.description,
+      },
+    ],
+  };
+
+  const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+  return result ? { journalEntryId: result.id } : null;
+}
+
+/**
  * Generate a journal entry for a change order approval.
  *
  * Uses WIP (Work-in-Progress) accounts to track contract scope changes without

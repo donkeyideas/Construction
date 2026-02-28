@@ -55,6 +55,8 @@ export async function PATCH(
     if (body.is_reconciled !== undefined)
       updates.is_reconciled = body.is_reconciled;
     if (body.notes !== undefined) updates.notes = body.notes;
+    if (body.gl_account_id !== undefined)
+      updates.metadata = { gl_account_id: body.gl_account_id || null };
 
     const success = await updateBankTransaction(supabase, id, updates);
 
@@ -107,6 +109,22 @@ export async function DELETE(
         { error: "Transaction not found" },
         { status: 404 }
       );
+    }
+
+    // Clean up linked journal entry (if any)
+    try {
+      const { data: linkedJEs } = await supabase
+        .from("journal_entries")
+        .select("id")
+        .eq("company_id", userCtx.companyId)
+        .eq("reference", `bank_txn:${id}`);
+      if (linkedJEs && linkedJEs.length > 0) {
+        const jeIds = linkedJEs.map((je) => je.id);
+        await supabase.from("journal_entry_lines").delete().in("journal_entry_id", jeIds);
+        await supabase.from("journal_entries").delete().in("id", jeIds);
+      }
+    } catch (jeErr) {
+      console.warn("Failed to clean up JE for bank transaction:", id, jeErr);
     }
 
     const success = await deleteBankTransaction(

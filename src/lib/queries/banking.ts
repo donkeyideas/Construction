@@ -33,6 +33,7 @@ export interface BankTransactionRow {
   is_reconciled: boolean;
   reconciliation_id: string | null;
   notes: string | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at?: string;
 }
@@ -71,6 +72,7 @@ export interface CreateTransactionData {
   amount: number;
   category?: string;
   notes?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CreateReconciliationData {
@@ -333,6 +335,7 @@ export async function getBankAccountGLTransactions(
       is_reconciled: false,
       reconciliation_id: null,
       notes: `From GL: ${je.entry_number}`,
+      metadata: null,
       created_at: je.entry_date,
     };
   });
@@ -376,6 +379,7 @@ export async function createBankTransaction(
       category: txnData.category ?? null,
       is_reconciled: false,
       notes: txnData.notes ?? null,
+      metadata: txnData.metadata ?? {},
     })
     .select("id")
     .single();

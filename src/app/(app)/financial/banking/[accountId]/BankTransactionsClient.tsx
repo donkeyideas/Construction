@@ -23,6 +23,7 @@ import type {
   BankTransactionRow,
   TransactionCategory,
 } from "@/lib/queries/banking";
+import type { GLAccountLite } from "@/lib/queries/financial";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -74,6 +75,7 @@ interface BankTransactionsClientProps {
   transactions: BankTransactionRow[];
   glTransactions?: BankTransactionRow[];
   companyId: string;
+  glAccounts: GLAccountLite[];
 }
 
 export default function BankTransactionsClient({
@@ -81,6 +83,7 @@ export default function BankTransactionsClient({
   transactions,
   glTransactions = [],
   companyId,
+  glAccounts,
 }: BankTransactionsClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
@@ -115,7 +118,7 @@ export default function BankTransactionsClient({
     description: "",
     transaction_type: "debit" as "debit" | "credit",
     amount: "",
-    category: "",
+    gl_account_id: "",
     reference: "",
     notes: "",
   });
@@ -200,7 +203,7 @@ export default function BankTransactionsClient({
           description: formData.description.trim(),
           transaction_type: formData.transaction_type,
           amount: parseFloat(formData.amount),
-          category: formData.category || undefined,
+          gl_account_id: formData.gl_account_id || undefined,
           reference: formData.reference.trim() || undefined,
           notes: formData.notes.trim() || undefined,
         }),
@@ -216,7 +219,7 @@ export default function BankTransactionsClient({
         description: "",
         transaction_type: "debit",
         amount: "",
-        category: "",
+        gl_account_id: "",
         reference: "",
         notes: "",
       });
@@ -250,12 +253,13 @@ export default function BankTransactionsClient({
 
   function startEditing() {
     if (!selectedTxn) return;
+    const meta = selectedTxn.metadata as { gl_account_id?: string } | null;
     setEditData({
       transaction_date: selectedTxn.transaction_date,
       description: selectedTxn.description,
       transaction_type: selectedTxn.transaction_type,
       amount: selectedTxn.amount.toString(),
-      category: selectedTxn.category || "",
+      gl_account_id: meta?.gl_account_id || "",
       reference: selectedTxn.reference || "",
       notes: selectedTxn.notes || "",
     });
@@ -284,8 +288,9 @@ export default function BankTransactionsClient({
         payload.transaction_type = editData.transaction_type;
       const newAmount = parseFloat(editData.amount as string) || 0;
       if (newAmount !== selectedTxn.amount) payload.amount = newAmount;
-      if (editData.category !== (selectedTxn.category || ""))
-        payload.category = (editData.category as string) || null;
+      const oldMeta = selectedTxn.metadata as { gl_account_id?: string } | null;
+      if (editData.gl_account_id !== (oldMeta?.gl_account_id || ""))
+        payload.gl_account_id = (editData.gl_account_id as string) || null;
       if (editData.reference !== (selectedTxn.reference || ""))
         payload.reference = (editData.reference as string) || null;
       if (editData.notes !== (selectedTxn.notes || ""))
@@ -694,23 +699,44 @@ export default function BankTransactionsClient({
                   />
                 </div>
                 <div className="banking-form-group">
-                  <label className="banking-form-label">{t("category")}</label>
+                  <label className="banking-form-label">{t("glAccount")}</label>
                   <select
                     className="banking-form-select"
-                    value={formData.category}
+                    value={formData.gl_account_id}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        category: e.target.value,
+                        gl_account_id: e.target.value,
                       })
                     }
                   >
-                    <option value="">{t("selectCategory")}</option>
-                    {CATEGORY_KEYS.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {t(c.key)}
-                      </option>
-                    ))}
+                    <option value="">{t("selectGlAccount")}</option>
+                    {glAccounts
+                      .filter((a) =>
+                        formData.transaction_type === "debit"
+                          ? a.account_type === "expense" || a.account_type === "asset" || a.account_type === "cost_of_goods_sold"
+                          : a.account_type === "revenue" || a.account_type === "asset"
+                      )
+                      .map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.account_number} — {a.name}
+                        </option>
+                      ))}
+                    {glAccounts.length > 0 && (
+                      <optgroup label={t("allAccounts")}>
+                        {glAccounts
+                          .filter((a) =>
+                            formData.transaction_type === "debit"
+                              ? a.account_type !== "expense" && a.account_type !== "asset" && a.account_type !== "cost_of_goods_sold"
+                              : a.account_type !== "revenue" && a.account_type !== "asset"
+                          )
+                          .map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.account_number} — {a.name} ({a.account_type})
+                            </option>
+                          ))}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
               </div>
@@ -926,7 +952,15 @@ export default function BankTransactionsClient({
                         cursor: "default",
                       }}
                     >
-                      {selectedTxn.category || "--"}
+                      {(() => {
+                        const meta = selectedTxn.metadata as { gl_account_id?: string } | null;
+                        const glAcct = meta?.gl_account_id
+                          ? glAccounts.find((a) => a.id === meta.gl_account_id)
+                          : null;
+                        return glAcct
+                          ? `${glAcct.account_number} — ${glAcct.name}`
+                          : selectedTxn.category || "--";
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1077,23 +1111,44 @@ export default function BankTransactionsClient({
                     />
                   </div>
                   <div className="banking-form-group">
-                    <label className="banking-form-label">{t("category")}</label>
+                    <label className="banking-form-label">{t("glAccount")}</label>
                     <select
                       className="banking-form-select"
-                      value={(editData.category as string) || ""}
+                      value={(editData.gl_account_id as string) || ""}
                       onChange={(e) =>
                         setEditData({
                           ...editData,
-                          category: e.target.value,
+                          gl_account_id: e.target.value,
                         })
                       }
                     >
-                      <option value="">{t("selectCategory")}</option>
-                      {CATEGORY_KEYS.map((c) => (
-                        <option key={c.value} value={c.value}>
-                          {t(c.key)}
-                        </option>
-                      ))}
+                      <option value="">{t("selectGlAccount")}</option>
+                      {glAccounts
+                        .filter((a) =>
+                          (editData.transaction_type as string) === "debit"
+                            ? a.account_type === "expense" || a.account_type === "asset" || a.account_type === "cost_of_goods_sold"
+                            : a.account_type === "revenue" || a.account_type === "asset"
+                        )
+                        .map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.account_number} — {a.name}
+                          </option>
+                        ))}
+                      {glAccounts.length > 0 && (
+                        <optgroup label={t("allAccounts")}>
+                          {glAccounts
+                            .filter((a) =>
+                              (editData.transaction_type as string) === "debit"
+                                ? a.account_type !== "expense" && a.account_type !== "asset" && a.account_type !== "cost_of_goods_sold"
+                                : a.account_type !== "revenue" && a.account_type !== "asset"
+                            )
+                            .map((a) => (
+                              <option key={a.id} value={a.id}>
+                                {a.account_number} — {a.name} ({a.account_type})
+                              </option>
+                            ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                 </div>

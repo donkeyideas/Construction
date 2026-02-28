@@ -569,7 +569,36 @@ export async function updateInvoice(
 }
 
 /* ------------------------------------------------------------------
-   Chart of Accounts
+   Chart of Accounts — Lite (for dropdowns, no balance calc)
+   ------------------------------------------------------------------ */
+
+export interface GLAccountLite {
+  id: string;
+  account_number: string;
+  name: string;
+  account_type: string;
+}
+
+export async function getGLAccountsLite(
+  supabase: SupabaseClient,
+  companyId: string
+): Promise<GLAccountLite[]> {
+  const { data, error } = await supabase
+    .from("chart_of_accounts")
+    .select("id, account_number, name, account_type")
+    .eq("company_id", companyId)
+    .eq("is_active", true)
+    .order("account_number", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching GL accounts lite:", error);
+    return [];
+  }
+  return (data ?? []) as GLAccountLite[];
+}
+
+/* ------------------------------------------------------------------
+   Chart of Accounts — Full (with balance calculations)
    ------------------------------------------------------------------ */
 
 export async function getChartOfAccounts(

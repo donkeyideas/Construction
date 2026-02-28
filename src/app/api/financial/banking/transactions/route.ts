@@ -6,6 +6,8 @@ import {
   createBankTransaction,
 } from "@/lib/queries/banking";
 import type { CreateTransactionData } from "@/lib/queries/banking";
+import { generateBankTransactionJournalEntry } from "@/lib/utils/invoice-accounting";
+import { ensureBankAccountGLLink } from "@/lib/utils/bank-gl-linkage";
 
 // ---------------------------------------------------------------------------
 // GET /api/financial/banking/transactions — List transactions
@@ -104,6 +106,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const glAccountId = body.gl_account_id || undefined;
+
     const data: CreateTransactionData = {
       bank_account_id: body.bank_account_id,
       transaction_date: body.transaction_date,
@@ -113,6 +117,7 @@ export async function POST(request: NextRequest) {
       amount: body.amount,
       category: body.category || undefined,
       notes: body.notes?.trim() || undefined,
+      metadata: glAccountId ? { gl_account_id: glAccountId } : undefined,
     };
 
     const result = await createBankTransaction(
@@ -126,6 +131,40 @@ export async function POST(request: NextRequest) {
         { error: "Failed to create transaction" },
         { status: 500 }
       );
+    }
+
+    // Auto-generate journal entry if GL account was selected (non-blocking)
+    if (glAccountId) {
+      try {
+        // Ensure bank account has a GL link
+        const { data: bankInfo } = await supabase
+          .from("bank_accounts")
+          .select("name, account_type")
+          .eq("id", body.bank_account_id)
+          .single();
+        await ensureBankAccountGLLink(
+          supabase, userCtx.companyId, body.bank_account_id,
+          bankInfo?.name || "Bank Account", bankInfo?.account_type || "checking",
+          undefined, userCtx.userId
+        );
+
+        await generateBankTransactionJournalEntry(
+          supabase,
+          userCtx.companyId,
+          userCtx.userId,
+          {
+            id: result.id,
+            transaction_date: body.transaction_date,
+            transaction_type: body.transaction_type,
+            amount: body.amount,
+            description: body.description.trim(),
+            gl_account_id: glAccountId,
+            bank_account_id: body.bank_account_id,
+          }
+        );
+      } catch (jeErr) {
+        console.warn("JE generation failed for bank transaction:", result.id, jeErr);
+      }
     }
 
     return NextResponse.json(result, { status: 201 });
