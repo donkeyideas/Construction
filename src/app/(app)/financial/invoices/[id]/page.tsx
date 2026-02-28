@@ -163,7 +163,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               is_default: ba.is_default,
             }))}
           />
-          <PrintExportButtons />
+          <PrintExportButtons invoiceId={id} />
           <DeleteInvoiceButton invoiceId={id} invoiceType={invoice.invoice_type} />
         </div>
       </div>

@@ -2,13 +2,27 @@
 
 import { Printer, Download } from "lucide-react";
 
-export default function PrintExportButtons() {
+interface Props {
+  invoiceId: string;
+}
+
+export default function PrintExportButtons({ invoiceId }: Props) {
+  const printUrl = `/financial/invoices/${invoiceId}/print`;
+
+  function handlePrint() {
+    window.open(printUrl, "_blank");
+  }
+
+  function handleExportPdf() {
+    window.open(`${printUrl}?autoPrint=1`, "_blank");
+  }
+
   return (
     <>
       <button
         className="ui-btn ui-btn-outline ui-btn-md"
         type="button"
-        onClick={() => window.print()}
+        onClick={handlePrint}
       >
         <Printer size={16} />
         Print
@@ -16,10 +30,7 @@ export default function PrintExportButtons() {
       <button
         className="ui-btn ui-btn-outline ui-btn-md"
         type="button"
-        onClick={() => {
-          // Opens browser print dialog — user can choose "Save as PDF" destination
-          window.print();
-        }}
+        onClick={handleExportPdf}
       >
         <Download size={16} />
         Export PDF
