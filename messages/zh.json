@@ -2293,7 +2293,8 @@
       "total": "合计",
       "revenue": "收入",
       "expense": "费用",
-      "recognize": "确认"
+      "recognize": "确认",
+      "scheduleTitle": "递延计划"
     },
     "newInvoicePage": {
       "backToInvoices": "返回发票列表",

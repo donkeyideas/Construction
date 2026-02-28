@@ -2293,7 +2293,8 @@
       "total": "Total",
       "revenue": "Revenu",
       "expense": "Charge",
-      "recognize": "Reconnaître"
+      "recognize": "Reconnaître",
+      "scheduleTitle": "Calendrier des Reports"
     },
     "newInvoicePage": {
       "backToInvoices": "Retour aux Factures",

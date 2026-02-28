@@ -1845,7 +1845,8 @@
       "total": "Total",
       "revenue": "Ingreso",
       "expense": "Gasto",
-      "recognize": "Reconocer"
+      "recognize": "Reconocer",
+      "scheduleTitle": "Programa de Diferimientos"
     },
     "newInvoicePage": {
       "backToInvoices": "Volver a Facturas",

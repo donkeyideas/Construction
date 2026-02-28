@@ -2294,7 +2294,8 @@
       "total": "Total",
       "revenue": "Receita",
       "expense": "Despesa",
-      "recognize": "Reconhecer"
+      "recognize": "Reconhecer",
+      "scheduleTitle": "Cronograma de Diferimentos"
     },
     "newInvoicePage": {
       "backToInvoices": "Voltar para Faturas",

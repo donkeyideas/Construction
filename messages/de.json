@@ -2293,7 +2293,8 @@
       "total": "Gesamt",
       "revenue": "Ertrag",
       "expense": "Aufwand",
-      "recognize": "Erfassen"
+      "recognize": "Erfassen",
+      "scheduleTitle": "Abgrenzungsplan"
     },
     "newInvoicePage": {
       "backToInvoices": "Zurück zu Rechnungen",

@@ -2293,7 +2293,8 @@
       "total": "Total",
       "revenue": "Revenue",
       "expense": "Expense",
-      "recognize": "Recognize"
+      "recognize": "Recognize",
+      "scheduleTitle": "Deferral Schedule"
     },
     "newInvoicePage": {
       "backToInvoices": "Back to Invoices",

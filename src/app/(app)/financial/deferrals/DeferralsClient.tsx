@@ -10,6 +10,7 @@ import {
   DollarSign,
   Play,
   ArrowRight,
+  Filter,
 } from "lucide-react";
 
 /* ───── types ───── */
@@ -155,7 +156,6 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
   }
 
   /* Determine visible month window (show ±3 months from current) */
-  // Use ISO string slicing to avoid locale-dependent new Date() on render
   const currentMonth = new Date().toISOString().slice(0, 7);
   const visibleMonths = useMemo(() => {
     if (monthColumns.length <= 12) return monthColumns;
@@ -174,149 +174,181 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
           <h2>{t("deferrals.title")}</h2>
           <p className="fin-header-sub">{t("deferrals.subtitle")}</p>
         </div>
-        <div className="fin-header-actions">
-          <select
-            className="inv-filter-select"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as "all" | "revenue" | "expense")}
-          >
-            <option value="all">{t("deferrals.allTypes")}</option>
-            <option value="revenue">{t("deferrals.revenueOnly")}</option>
-            <option value="expense">{t("deferrals.expenseOnly")}</option>
-          </select>
+      </div>
+
+      {/* KPI Cards — matches Transactions page pattern */}
+      <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)", marginBottom: 20 }}>
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">{t("deferrals.deferredInvoices")}</span>
+            <span className="kpi-value">{kpis.invoiceCount}</span>
+          </div>
+          <div className="kpi-icon" style={{ color: "var(--color-blue)" }}>
+            <CalendarRange size={22} />
+          </div>
+        </div>
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">{t("deferrals.totalScheduled")}</span>
+            <span className="kpi-value" style={{ color: "var(--color-amber)", fontSize: "1.4rem" }}>
+              {fmtCurrency(kpis.totalDeferred)}
+            </span>
+          </div>
+          <div className="kpi-icon" style={{ color: "var(--color-amber)" }}>
+            <DollarSign size={22} />
+          </div>
+        </div>
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">{t("deferrals.recognized")}</span>
+            <span className="kpi-value" style={{ color: "var(--color-green)", fontSize: "1.4rem" }}>
+              {fmtCurrency(kpis.totalRecognized)}
+            </span>
+          </div>
+          <div className="kpi-icon" style={{ color: "var(--color-green)" }}>
+            <CheckCircle2 size={22} />
+          </div>
+        </div>
+        <div className="card kpi">
+          <div className="kpi-info">
+            <span className="kpi-label">{t("deferrals.pending")}</span>
+            <span className="kpi-value" style={{ color: "var(--color-amber)", fontSize: "1.4rem" }}>
+              {fmtCurrency(kpis.totalPending)}
+            </span>
+          </div>
+          <div className="kpi-icon" style={{ color: "var(--color-amber)" }}>
+            <Clock size={22} />
+          </div>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="financial-kpi-row" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-        <div className="fin-kpi">
-          <span className="fin-kpi-label">{t("deferrals.deferredInvoices")}</span>
-          <span className="fin-kpi-value">{kpis.invoiceCount}</span>
-          <span className="fin-kpi-icon" style={{ color: "var(--color-blue)" }}><CalendarRange size={18} /></span>
+      {/* Waterfall Table — wrapped in card like Transactions page */}
+      <div className="card" style={{ padding: 0 }}>
+        <div className="section-txn-header">
+          <div className="card-title" style={{ marginBottom: 0 }}>
+            <CalendarRange size={16} style={{ color: "var(--color-blue)" }} />
+            {t("deferrals.scheduleTitle")}
+          </div>
+          <div className="section-txn-filter">
+            <Filter size={13} />
+            <select
+              className="section-txn-select"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as "all" | "revenue" | "expense")}
+            >
+              <option value="all">{t("deferrals.allTypes")}</option>
+              <option value="revenue">{t("deferrals.revenueOnly")}</option>
+              <option value="expense">{t("deferrals.expenseOnly")}</option>
+            </select>
+          </div>
         </div>
-        <div className="fin-kpi">
-          <span className="fin-kpi-label">{t("deferrals.totalScheduled")}</span>
-          <span className="fin-kpi-value">{fmtCurrency(kpis.totalDeferred)}</span>
-          <span className="fin-kpi-icon" style={{ color: "var(--color-amber)" }}><DollarSign size={18} /></span>
-        </div>
-        <div className="fin-kpi">
-          <span className="fin-kpi-label">{t("deferrals.recognized")}</span>
-          <span className="fin-kpi-value" style={{ color: "var(--color-green)" }}>{fmtCurrency(kpis.totalRecognized)}</span>
-          <span className="fin-kpi-icon" style={{ color: "var(--color-green)" }}><CheckCircle2 size={18} /></span>
-        </div>
-        <div className="fin-kpi">
-          <span className="fin-kpi-label">{t("deferrals.pending")}</span>
-          <span className="fin-kpi-value" style={{ color: "var(--color-amber)" }}>{fmtCurrency(kpis.totalPending)}</span>
-          <span className="fin-kpi-icon" style={{ color: "var(--color-amber)" }}><Clock size={18} /></span>
-        </div>
+
+        {filteredInvoices.length === 0 ? (
+          <div className="section-txn-empty">
+            <CalendarRange size={40} style={{ color: "var(--muted)", marginBottom: 12 }} />
+            <p style={{ margin: 0 }}>{t("deferrals.emptyDesc")}</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table className="invoice-table section-txn-table" style={{ minWidth: visibleMonths.length * 100 + 320 }}>
+              <thead>
+                <tr>
+                  <th style={{ position: "sticky", left: 0, background: "var(--bg)", zIndex: 2, minWidth: 200 }}>{t("deferrals.invoice")}</th>
+                  <th style={{ position: "sticky", left: 200, background: "var(--bg)", zIndex: 2, minWidth: 120 }}>{t("deferrals.total")}</th>
+                  {visibleMonths.map((m) => (
+                    <th
+                      key={m}
+                      style={{
+                        textAlign: "center",
+                        minWidth: 100,
+                        background: m === currentMonth ? "rgba(29, 78, 216, 0.08)" : undefined,
+                      }}
+                    >
+                      {fmtMonth(m)}
+                      {m === currentMonth && <ArrowRight size={12} style={{ marginLeft: 4, verticalAlign: "middle" }} />}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInvoices.map(([invoiceId, data]) => {
+                  const inv = data.invoice;
+                  const name = inv?.invoice_type === "receivable" ? inv.client_name : inv?.vendor_name;
+                  return (
+                    <tr key={invoiceId}>
+                      <td style={{ position: "sticky", left: 0, background: "var(--bg)", zIndex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: "0.85rem" }}>{inv?.invoice_number ?? "\u2014"}</div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                          {name ?? "\u2014"}
+                          <span
+                            className="section-txn-source-badge"
+                            style={{ marginLeft: 6, fontSize: "0.65rem" }}
+                          >
+                            {inv?.invoice_type === "receivable" ? t("deferrals.revenue") : t("deferrals.expense")}
+                          </span>
+                        </div>
+                      </td>
+                      <td style={{ position: "sticky", left: 200, background: "var(--bg)", zIndex: 1, fontWeight: 600 }}>
+                        {fmtCurrency(inv?.total_amount ?? 0)}
+                      </td>
+                      {visibleMonths.map((m) => {
+                        const cell = data.rows.get(m);
+                        if (!cell) {
+                          return <td key={m} style={{ textAlign: "center", color: "var(--muted)", fontSize: "0.8rem" }}>{"\u2014"}</td>;
+                        }
+
+                        const isRecognized = cell.status === "recognized";
+                        const isCurrent = m === currentMonth && !isRecognized;
+
+                        return (
+                          <td
+                            key={m}
+                            style={{
+                              textAlign: "center",
+                              background: isRecognized
+                                ? "rgba(22, 163, 74, 0.08)"
+                                : isCurrent
+                                  ? "rgba(180, 83, 9, 0.08)"
+                                  : undefined,
+                              borderRadius: 4,
+                            }}
+                          >
+                            <div style={{ fontSize: "0.85rem", fontWeight: 500 }}>
+                              {fmtCurrency(cell.monthly_amount)}
+                            </div>
+                            {isRecognized ? (
+                              <CheckCircle2 size={13} style={{ color: "var(--color-green)", marginTop: 2 }} />
+                            ) : isCurrent ? (
+                              <button
+                                className="ui-btn ui-btn-primary ui-btn-sm"
+                                style={{
+                                  fontSize: "0.65rem",
+                                  padding: "2px 8px",
+                                  marginTop: 2,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 3,
+                                }}
+                                disabled={recognizing === cell.id}
+                                onClick={() => handleRecognize(cell.id)}
+                              >
+                                <Play size={10} />
+                                {recognizing === cell.id ? "..." : t("deferrals.recognize")}
+                              </button>
+                            ) : (
+                              <Clock size={11} style={{ color: "var(--muted)", marginTop: 2 }} />
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-
-      {/* Waterfall Table */}
-      {filteredInvoices.length === 0 ? (
-        <div className="fin-empty-state">
-          <CalendarRange size={40} style={{ color: "var(--muted)", marginBottom: 12 }} />
-          <p style={{ color: "var(--muted)" }}>{t("deferrals.emptyDesc")}</p>
-        </div>
-      ) : (
-        <div className="fin-card" style={{ overflowX: "auto" }}>
-          <table className="fin-table" style={{ minWidth: visibleMonths.length * 100 + 320 }}>
-            <thead>
-              <tr>
-                <th style={{ position: "sticky", left: 0, background: "var(--card-bg)", zIndex: 2, minWidth: 200 }}>{t("deferrals.invoice")}</th>
-                <th style={{ position: "sticky", left: 200, background: "var(--card-bg)", zIndex: 2, minWidth: 120 }}>{t("deferrals.total")}</th>
-                {visibleMonths.map((m) => (
-                  <th
-                    key={m}
-                    style={{
-                      textAlign: "center",
-                      minWidth: 100,
-                      background: m === currentMonth ? "var(--color-blue-light)" : undefined,
-                    }}
-                  >
-                    {fmtMonth(m)}
-                    {m === currentMonth && <ArrowRight size={12} style={{ marginLeft: 4, verticalAlign: "middle" }} />}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredInvoices.map(([invoiceId, data]) => {
-                const inv = data.invoice;
-                const name = inv?.invoice_type === "receivable" ? inv.client_name : inv?.vendor_name;
-                return (
-                  <tr key={invoiceId}>
-                    <td style={{ position: "sticky", left: 0, background: "var(--card-bg)", zIndex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: "0.85rem" }}>{inv?.invoice_number ?? "\u2014"}</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
-                        {name ?? "\u2014"}
-                        <span
-                          className={`inv-status ${inv?.invoice_type === "receivable" ? "approved" : "pending"}`}
-                          style={{ marginLeft: 6, fontSize: "0.65rem" }}
-                        >
-                          {inv?.invoice_type === "receivable" ? t("deferrals.revenue") : t("deferrals.expense")}
-                        </span>
-                      </div>
-                    </td>
-                    <td style={{ position: "sticky", left: 200, background: "var(--card-bg)", zIndex: 1, fontWeight: 600 }}>
-                      {fmtCurrency(inv?.total_amount ?? 0)}
-                    </td>
-                    {visibleMonths.map((m) => {
-                      const cell = data.rows.get(m);
-                      if (!cell) {
-                        return <td key={m} style={{ textAlign: "center", color: "var(--muted)", fontSize: "0.8rem" }}>{"\u2014"}</td>;
-                      }
-
-                      const isRecognized = cell.status === "recognized";
-                      const isCurrent = m === currentMonth && !isRecognized;
-
-                      return (
-                        <td
-                          key={m}
-                          style={{
-                            textAlign: "center",
-                            background: isRecognized
-                              ? "var(--color-green-light)"
-                              : isCurrent
-                                ? "var(--color-amber-light)"
-                                : undefined,
-                            borderRadius: 4,
-                          }}
-                        >
-                          <div style={{ fontSize: "0.85rem", fontWeight: 500 }}>
-                            {fmtCurrency(cell.monthly_amount)}
-                          </div>
-                          {isRecognized ? (
-                            <CheckCircle2 size={13} style={{ color: "var(--color-green)", marginTop: 2 }} />
-                          ) : isCurrent ? (
-                            <button
-                              className="btn-small"
-                              style={{
-                                fontSize: "0.65rem",
-                                padding: "2px 6px",
-                                marginTop: 2,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 3,
-                              }}
-                              disabled={recognizing === cell.id}
-                              onClick={() => handleRecognize(cell.id)}
-                            >
-                              <Play size={10} />
-                              {recognizing === cell.id ? "..." : t("deferrals.recognize")}
-                            </button>
-                          ) : (
-                            <Clock size={11} style={{ color: "var(--muted)", marginTop: 2 }} />
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 }

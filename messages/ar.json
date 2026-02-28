@@ -2293,7 +2293,8 @@
       "total": "المجموع",
       "revenue": "إيراد",
       "expense": "مصروف",
-      "recognize": "اعتراف"
+      "recognize": "اعتراف",
+      "scheduleTitle": "جدول التأجيل"
     },
     "newInvoicePage": {
       "backToInvoices": "العودة إلى الفواتير",
