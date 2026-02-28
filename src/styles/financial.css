@@ -1364,6 +1364,7 @@
 @media print {
   /* ── Hide all app chrome ─────────────────────────────────────── */
   .sidebar,
+  .sidebar-toggle,
   .topbar,
   nav,
   aside,
