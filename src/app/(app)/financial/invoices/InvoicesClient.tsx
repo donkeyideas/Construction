@@ -121,6 +121,7 @@ export default function InvoicesClient({
   const [selectedInv, setSelectedInv] = useState<InvoiceRow | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showHardDeleteConfirm, setShowHardDeleteConfirm] = useState(false);
   const [editData, setEditData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -142,6 +143,7 @@ export default function InvoicesClient({
     setSelectedInv(inv);
     setIsEditing(false);
     setShowDeleteConfirm(false);
+    setShowHardDeleteConfirm(false);
     setSaveError("");
   }
 
@@ -149,6 +151,7 @@ export default function InvoicesClient({
     setSelectedInv(null);
     setIsEditing(false);
     setShowDeleteConfirm(false);
+    setShowHardDeleteConfirm(false);
     setEditData({});
     setSaveError("");
   }
@@ -227,6 +230,30 @@ export default function InvoicesClient({
       router.refresh();
     } catch (err: unknown) {
       setSaveError(err instanceof Error ? err.message : t("failedToVoidInvoice"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleHardDelete() {
+    if (!selectedInv) return;
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch(`/api/financial/invoices/${selectedInv.id}?hard=true`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || t("failedToDeleteInvoice"));
+      }
+
+      closeDetail();
+      router.refresh();
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : t("failedToDeleteInvoice"));
     } finally {
       setSaving(false);
     }
@@ -445,7 +472,23 @@ export default function InvoicesClient({
               </div>
             )}
 
-            <div style={{ pointerEvents: showDeleteConfirm ? "none" : "auto" }}>
+            {showHardDeleteConfirm && (
+              <div className="ticket-delete-confirm">
+                <p>
+                  {t("deleteInvoiceConfirm", { number: selectedInv.invoice_number })}
+                </p>
+                <div className="ticket-delete-actions">
+                  <button className="btn-secondary" onClick={() => setShowHardDeleteConfirm(false)} disabled={saving}>
+                    {t("cancel")}
+                  </button>
+                  <button className="btn-danger" onClick={handleHardDelete} disabled={saving}>
+                    {saving ? t("deleting") : t("deleteInvoice")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div style={{ pointerEvents: showDeleteConfirm || showHardDeleteConfirm ? "none" : "auto" }}>
               {!isEditing ? (
                 /* Read-only detail */
                 <div className="ticket-detail-body">
@@ -508,8 +551,13 @@ export default function InvoicesClient({
                     <button className="btn-secondary" onClick={startEditing}>
                       <Edit3 size={14} /> {t("edit")}
                     </button>
-                    <button className="btn-danger-outline" onClick={() => setShowDeleteConfirm(true)}>
-                      <Trash2 size={14} /> {t("void")}
+                    {selectedInv.status !== "voided" && (
+                      <button className="btn-danger" onClick={() => setShowDeleteConfirm(true)}>
+                        <Trash2 size={14} /> {t("void")}
+                      </button>
+                    )}
+                    <button className="btn-danger" onClick={() => setShowHardDeleteConfirm(true)} style={{ background: "var(--color-red)", color: "#fff", borderColor: "var(--color-red)" }}>
+                      <Trash2 size={14} /> {t("deleteInvoice")}
                     </button>
                   </div>
                 </div>
