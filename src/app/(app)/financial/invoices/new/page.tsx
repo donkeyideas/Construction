@@ -26,7 +26,7 @@ interface GLAccount {
 interface ProjectOption {
   id: string;
   name: string;
-  project_number: string | null;
+  code: string;
 }
 
 interface LineItemRow {
@@ -118,7 +118,7 @@ function NewInvoiceForm() {
           .order("account_number"),
         supabase
           .from("projects")
-          .select("id, name, project_number")
+          .select("id, name, code")
           .eq("company_id", companyId)
           .order("name"),
       ]);
@@ -361,7 +361,7 @@ function NewInvoiceForm() {
               <option value="">{t("selectProject")}</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.project_number ? `${p.project_number} — ` : ""}{p.name}
+                  {p.code ? `${p.code} — ` : ""}{p.name}
                 </option>
               ))}
             </select>
