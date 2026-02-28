@@ -175,8 +175,9 @@ export async function POST() {
       }
     }
 
-    // 3c. Nuclear cleanup: find ALL posted JEs hitting AP accounts that reference
-    // non-existent entities (covers deferral:, change_order:, etc.)
+    // 3c. Nuclear cleanup: find ALL posted JEs hitting AP accounts.
+    // Delete any JE whose referenced entity no longer exists, is voided,
+    // or has no reference at all (orphaned manual/import entries).
     const { data: apAccounts } = await supabase
       .from("chart_of_accounts")
       .select("id")
@@ -197,7 +198,30 @@ export async function POST() {
       if (apJELines && apJELines.length > 0) {
         const apJEIds = [...new Set(apJELines.map((l) => l.journal_entry_id))];
 
-        // Get those JEs with their references
+        // Get ALL active payable invoice IDs for cross-reference
+        const { data: activePayableInvoices } = await supabase
+          .from("invoices")
+          .select("id")
+          .eq("company_id", companyId)
+          .eq("invoice_type", "payable")
+          .not("status", "in", '("voided","draft")');
+        const activeInvSet = new Set((activePayableInvoices ?? []).map((i) => i.id));
+
+        // Get ALL active payment IDs
+        const { data: activePayments } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("company_id", companyId);
+        const activePaySet = new Set((activePayments ?? []).map((p) => p.id));
+
+        // Get ALL active change order IDs
+        const { data: activeCOs } = await supabase
+          .from("change_orders")
+          .select("id")
+          .eq("company_id", companyId)
+          .neq("status", "voided");
+        const activeCOSet = new Set((activeCOs ?? []).map((c) => c.id));
+
         const CHUNK = 200;
         for (let i = 0; i < apJEIds.length; i += CHUNK) {
           const chunk = apJEIds.slice(i, i + CHUNK);
@@ -209,48 +233,35 @@ export async function POST() {
             .neq("status", "voided");
 
           for (const je of jes ?? []) {
-            if (!je.reference) continue;
+            const ref = je.reference || "";
+            let orphaned = false;
 
-            // Check each reference pattern
-            if (je.reference.startsWith("invoice:")) {
-              const invId = je.reference.replace("invoice:", "");
-              const { data: inv } = await supabase
-                .from("invoices")
-                .select("id, status")
-                .eq("id", invId)
-                .single();
-              if (!inv || inv.status === "voided") {
-                await deleteJE(je.id);
-              }
-            } else if (je.reference.startsWith("payment:")) {
-              const pId = je.reference.replace("payment:", "");
-              const { data: pmt } = await supabase
-                .from("payments")
-                .select("id")
-                .eq("id", pId)
-                .single();
-              if (!pmt) {
-                await deleteJE(je.id);
-              }
-            } else if (je.reference.startsWith("deferral:")) {
-              // deferral:{invoiceId}:{yyyy-mm}
-              const parts = je.reference.split(":");
-              const invId = parts[1] || "";
-              if (invId) {
-                const { data: inv } = await supabase
-                  .from("invoices")
-                  .select("id, status")
-                  .eq("id", invId)
-                  .single();
-                if (!inv || inv.status === "voided") {
-                  await deleteJE(je.id);
-                }
-              }
+            if (!ref) {
+              // No reference = orphaned manual/import entry hitting AP
+              orphaned = true;
+            } else if (ref.startsWith("invoice:")) {
+              orphaned = !activeInvSet.has(ref.replace("invoice:", ""));
+            } else if (ref.startsWith("payment:")) {
+              orphaned = !activePaySet.has(ref.replace("payment:", ""));
+            } else if (ref.startsWith("deferral:")) {
+              const invId = ref.split(":")[1] || "";
+              orphaned = !invId || !activeInvSet.has(invId);
+            } else if (ref.startsWith("change_order:")) {
+              orphaned = !activeCOSet.has(ref.replace("change_order:", ""));
+            } else {
+              // Unknown reference pattern hitting AP = orphaned
+              orphaned = true;
+            }
+
+            if (orphaned) {
+              await deleteJE(je.id);
             }
           }
         }
       }
     }
+
+    console.log(`[financial] fix-invoices: glMapped=${glMapped}, jesCreated=${jesCreated}, jesDeleted=${jesDeleted}`);
 
     return NextResponse.json({
       success: true,
