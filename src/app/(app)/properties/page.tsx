@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProperties } from "@/lib/queries/properties";
 import { formatCurrency, formatPercent } from "@/lib/utils/format";
-import PropertiesImport from "./PropertiesImport";
 import { getTranslations } from "next-intl/server";
 
 export const metadata = {
@@ -108,7 +107,6 @@ export default async function PropertiesPage() {
           <p>{t("listSubtitle")}</p>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <PropertiesImport />
           <Link href="/properties/new" className="ui-btn ui-btn-md ui-btn-primary">
             <Plus size={16} />
             {t("addProperty")}

@@ -18,6 +18,9 @@ export function useRealtimeSubscription<T extends Record<string, unknown>>(
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
+    // Don't subscribe if filter value is empty (e.g. userId not yet loaded)
+    if (filter && !filter.value) return;
+
     const supabase = createClient();
 
     let channelConfig = `realtime:${table}`;

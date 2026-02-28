@@ -157,8 +157,14 @@ export default function PropertyDetailClient({
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
 
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [saving, setSaving] = useState(false);
+
+  // Delete property
+  const [deletePropertyConfirm, setDeletePropertyConfirm] = useState(false);
+  const [deletingProperty, setDeletingProperty] = useState(false);
 
   // Edit property modal
   const [editPropertyOpen, setEditPropertyOpen] = useState(false);
@@ -335,6 +341,26 @@ export default function PropertyDetailClient({
     }
   }
 
+  // Delete property
+  async function handleDeleteProperty() {
+    setDeletingProperty(true);
+    try {
+      const res = await fetch(`/api/properties/${property.id}`, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/properties");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete property.");
+        setDeletePropertyConfirm(false);
+      }
+    } catch {
+      alert("Failed to delete property.");
+      setDeletePropertyConfirm(false);
+    } finally {
+      setDeletingProperty(false);
+    }
+  }
+
   // Tab labels with counts
   const TABS = [
     { key: "overview" as TabKey, label: t("propTabOverview") },
@@ -383,6 +409,14 @@ export default function PropertyDetailClient({
           >
             <Pencil size={14} />
             {t("editProperty")}
+          </button>
+          <button
+            className="ui-btn ui-btn-md ui-btn-outline"
+            style={{ color: "var(--color-red)", borderColor: "var(--color-red)" }}
+            onClick={() => setDeletePropertyConfirm(true)}
+          >
+            <Trash2 size={14} />
+            Delete Property
           </button>
         </div>
       </div>
@@ -551,6 +585,40 @@ export default function PropertyDetailClient({
             setDeleteTarget({ type: "maintenance", id, name })
           }
         />
+      )}
+
+      {/* Delete Property Confirmation */}
+      {deletePropertyConfirm && (
+        <div className="modal-overlay" onClick={() => setDeletePropertyConfirm(false)}>
+          <div className="modal-content" style={{ maxWidth: 440 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Delete Property</h3>
+              <button className="modal-close" onClick={() => setDeletePropertyConfirm(false)}><X size={18} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.88rem", marginBottom: 12 }}>
+                Are you sure you want to delete <strong>{property.name}</strong>?
+              </p>
+              <p style={{ fontSize: "0.82rem", color: "var(--color-red)" }}>
+                This will permanently delete the property and all associated units, leases, and data. This action cannot be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="ui-btn ui-btn-md ui-btn-secondary" onClick={() => setDeletePropertyConfirm(false)}>
+                Cancel
+              </button>
+              <button
+                className="ui-btn ui-btn-md"
+                style={{ background: "var(--color-red)", color: "#fff", border: "none" }}
+                onClick={handleDeleteProperty}
+                disabled={deletingProperty}
+              >
+                <Trash2 size={14} />
+                {deletingProperty ? "Deleting..." : "Delete Property"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}

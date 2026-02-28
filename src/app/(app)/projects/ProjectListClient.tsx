@@ -14,6 +14,7 @@ import {
   Users,
   X,
   CheckSquare,
+  Trash2,
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -79,6 +80,10 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
   const [bulkField, setBulkField] = useState<"project_manager_id" | "superintendent_id">("project_manager_id");
   const [bulkUserId, setBulkUserId] = useState("");
   const [bulkSaving, setBulkSaving] = useState(false);
+
+  // Delete project
+  const [deleteProject, setDeleteProject] = useState<ProjectRow | null>(null);
+  const [deletingProject, setDeletingProject] = useState(false);
 
   const STATUS_LABELS: Record<string, string> = {
     all: t("statusAll"),
@@ -166,6 +171,25 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
     if (!res.ok) throw new Error(data.error || t("importFailed"));
     router.refresh();
     return { success: data.success, errors: data.errors };
+  }
+
+  async function handleDeleteProject() {
+    if (!deleteProject) return;
+    setDeletingProject(true);
+    try {
+      const res = await fetch(`/api/projects/${deleteProject.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setDeleteProject(null);
+        router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete project.");
+      }
+    } catch {
+      alert("Failed to delete project.");
+    } finally {
+      setDeletingProject(false);
+    }
   }
 
   const filtered = useMemo(() => {
@@ -298,12 +322,22 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
       {filtered.length > 0 && view === "card" && (
         <div className="projects-grid">
           {filtered.map((project) => (
-              <Link
-                key={project.id}
-                href={`/projects/${project.id}`}
-                className="project-card"
-              >
-                <div className="project-card-header">
+              <div key={project.id} className="project-card" style={{ position: "relative" }}>
+                {/* Delete button */}
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteProject(project); }}
+                  style={{
+                    position: "absolute", top: 10, right: 10,
+                    background: "transparent", border: "none", cursor: "pointer",
+                    color: "var(--muted)", padding: "4px", borderRadius: "4px",
+                    display: "flex", alignItems: "center",
+                  }}
+                  title="Delete project"
+                >
+                  <Trash2 size={14} />
+                </button>
+                <Link href={`/projects/${project.id}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+                <div className="project-card-header" style={{ paddingRight: 28 }}>
                   <div>
                     <div className="project-card-name">{project.name}</div>
                     <div className="project-card-code">{project.code}</div>
@@ -340,7 +374,8 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
                     )}
                   </div>
                 </div>
-              </Link>
+                </Link>
+              </div>
           ))}
         </div>
       )}
@@ -366,6 +401,7 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
                 <th>{t("columnCompletion")}</th>
                 <th>{t("columnPm")}</th>
                 <th>{t("columnEndDate")}</th>
+                <th style={{ width: 40 }}></th>
               </tr>
             </thead>
             <tbody>
@@ -412,10 +448,53 @@ export default function ProjectListClient({ projects, memberOptions }: ProjectLi
                   <td style={{ whiteSpace: "nowrap", fontSize: "0.82rem" }}>
                     {formatDate(project.estimated_end_date)}
                   </td>
+                  <td>
+                    <button
+                      onClick={() => setDeleteProject(project)}
+                      style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--muted)", padding: "4px", display: "flex", alignItems: "center" }}
+                      title="Delete project"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Delete Project Confirmation */}
+      {deleteProject && (
+        <div className="modal-overlay" onClick={() => setDeleteProject(null)}>
+          <div className="modal-content" style={{ maxWidth: 440 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Delete Project</h3>
+              <button className="modal-close" onClick={() => setDeleteProject(null)}><X size={18} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.88rem", marginBottom: 12 }}>
+                Are you sure you want to delete <strong>{deleteProject.name}</strong>?
+              </p>
+              <p style={{ fontSize: "0.82rem", color: "var(--color-red)" }}>
+                This will permanently delete the project and all associated data. This action cannot be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setDeleteProject(null)}>
+                Cancel
+              </button>
+              <button
+                className="btn-primary"
+                style={{ background: "var(--color-red)", border: "none" }}
+                onClick={handleDeleteProject}
+                disabled={deletingProject}
+              >
+                <Trash2 size={14} />
+                {deletingProject ? "Deleting..." : "Delete Project"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
