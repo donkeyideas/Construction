@@ -562,8 +562,8 @@ export default function BankTransactionsClient({
                   </td>
                   <td className="banking-amount-cell banking-debit">
                     {txn.transaction_type === "debit" ? (
-                      <span className="banking-amount-debit">
-                        <ArrowDownRight size={14} />
+                      <span className="banking-amount-credit">
+                        <ArrowUpRight size={14} />
                         {formatCurrency(txn.amount)}
                       </span>
                     ) : (
@@ -572,8 +572,8 @@ export default function BankTransactionsClient({
                   </td>
                   <td className="banking-amount-cell banking-credit">
                     {txn.transaction_type === "credit" ? (
-                      <span className="banking-amount-credit">
-                        <ArrowUpRight size={14} />
+                      <span className="banking-amount-debit">
+                        <ArrowDownRight size={14} />
                         {formatCurrency(txn.amount)}
                       </span>
                     ) : (

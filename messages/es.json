@@ -2030,6 +2030,8 @@
     "invoiceNumber": "Factura #",
     "vendorClient": "Proveedor / Cliente",
     "project": "Proyecto",
+    "paid": "Pagado",
+    "paidFrom": "Pagado Desde",
     "balanceDue": "Saldo Pendiente",
     "ap": "CxP",
     "ar": "CxC",

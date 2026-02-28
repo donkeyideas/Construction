@@ -162,6 +162,26 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
     linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
   }
 
+  // Fetch payment bank accounts for each invoice (for "Paid From" column)
+  const paidFromMap: Record<string, string> = {};
+  if (invoiceIds.length > 0) {
+    const CHUNK = 200;
+    for (let i = 0; i < invoiceIds.length; i += CHUNK) {
+      const chunk = invoiceIds.slice(i, i + CHUNK);
+      const { data: pmts } = await supabase
+        .from("payments")
+        .select("invoice_id, bank_account_id, bank_accounts(name)")
+        .in("invoice_id", chunk);
+      for (const p of pmts ?? []) {
+        const ba = p.bank_accounts as unknown as { name: string } | { name: string }[] | null;
+        const bankName = Array.isArray(ba) ? ba[0]?.name : ba?.name;
+        if (bankName && p.invoice_id) {
+          paidFromMap[p.invoice_id as string] = bankName;
+        }
+      }
+    }
+  }
+
   // GL balance for AP accounts
   const [apBase, apRetainage] = await Promise.all([
     getGLBalanceForAccountType(supabase, userCompany.companyId, "liability", "%accounts payable%", "credit-debit"),
@@ -193,6 +213,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
         account_number_last4: ba.account_number_last4,
         is_default: ba.is_default,
       }))}
+      paidFromMap={paidFromMap}
     />
   );
 }

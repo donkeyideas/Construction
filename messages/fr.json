@@ -1884,6 +1884,8 @@
     "invoiceNumber": "N° facture",
     "vendorClient": "Fournisseur / Client",
     "project": "Projet",
+    "paid": "Payé",
+    "paidFrom": "Payé Depuis",
     "balanceDue": "Solde dû",
     "ap": "AP",
     "ar": "AR",

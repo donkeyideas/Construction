@@ -1884,6 +1884,8 @@
     "invoiceNumber": "Invoice #",
     "vendorClient": "Vendor / Client",
     "project": "Project",
+    "paid": "Paid",
+    "paidFrom": "Paid From",
     "balanceDue": "Balance Due",
     "ap": "AP",
     "ar": "AR",

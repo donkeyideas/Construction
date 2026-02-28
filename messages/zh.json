@@ -1884,6 +1884,8 @@
     "invoiceNumber": "发票号",
     "vendorClient": "供应商/客户",
     "project": "项目",
+    "paid": "已付",
+    "paidFrom": "付款账户",
     "balanceDue": "应付余额",
     "ap": "AP",
     "ar": "AR",

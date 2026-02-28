@@ -1885,6 +1885,8 @@
     "invoiceNumber": "Fatura #",
     "vendorClient": "Fornecedor / Cliente",
     "project": "Projeto",
+    "paid": "Pago",
+    "paidFrom": "Pago De",
     "balanceDue": "Saldo Devedor",
     "ap": "CP",
     "ar": "CR",

@@ -1964,6 +1964,8 @@
     "invoiceNumber": "चालान #",
     "vendorClient": "विक्रेता / ग्राहक",
     "project": "परियोजना",
+    "paid": "भुगतान",
+    "paidFrom": "भुगतान खाता",
     "balanceDue": "देय शेष",
     "ap": "AP",
     "ar": "AR",

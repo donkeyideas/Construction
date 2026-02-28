@@ -1884,6 +1884,8 @@
     "invoiceNumber": "Rechnungs-Nr.",
     "vendorClient": "Lieferant / Kunde",
     "project": "Projekt",
+    "paid": "Bezahlt",
+    "paidFrom": "Bezahlt Von",
     "balanceDue": "Offener Betrag",
     "ap": "KR",
     "ar": "DR",

@@ -89,6 +89,7 @@ interface APClientProps {
   agingBuckets: AgingBuckets;
   topVendors: TopVendor[];
   bankAccounts: BankAccount[];
+  paidFromMap: Record<string, string>;
   serverToday: string;
   invoiceCount: number;
 }
@@ -145,6 +146,7 @@ export default function APClient({
   agingBuckets,
   topVendors,
   bankAccounts,
+  paidFromMap,
   serverToday,
   invoiceCount,
 }: APClientProps) {
@@ -683,7 +685,8 @@ export default function APClient({
                   <th>{t("date")}</th>
                   <th>{t("dueDate")}</th>
                   <th style={{ textAlign: "right" }}>{t("amount")}</th>
-                  <th style={{ textAlign: "right" }}>Paid</th>
+                  <th style={{ textAlign: "right" }}>{t("paid")}</th>
+                  <th>{t("paidFrom")}</th>
                   <th style={{ textAlign: "right" }}>{t("balanceDue")}</th>
                   <th>{t("status")}</th>
                   <th>{t("jeColumnHeader")}</th>
@@ -735,6 +738,9 @@ export default function APClient({
                       <td className="amount-col">{formatCurrency(inv.total_amount)}</td>
                       <td className="amount-col" style={{ color: inv.amount_paid > 0 ? "var(--color-green)" : "var(--muted)" }}>
                         {inv.amount_paid > 0 ? formatCurrency(inv.amount_paid) : "--"}
+                      </td>
+                      <td style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                        {paidFromMap[inv.id] || "--"}
                       </td>
                       <td className={`amount-col ${overdue ? "overdue" : ""}`}>
                         {formatCurrency(inv.balance_due)}
