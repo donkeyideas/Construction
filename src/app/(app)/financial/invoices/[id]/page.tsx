@@ -10,6 +10,7 @@ import { findLinkedJournalEntries } from "@/lib/utils/je-linkage";
 import type { LineItem, PaymentRow } from "@/lib/queries/financial";
 import RecordPaymentButton from "./RecordPaymentButton";
 import EditPaymentSection from "./EditPaymentSection";
+import DeleteInvoiceButton from "./DeleteInvoiceButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -151,6 +152,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             <Download size={16} />
             Export PDF
           </button>
+          <DeleteInvoiceButton invoiceId={id} invoiceType={invoice.invoice_type} />
         </div>
       </div>
 

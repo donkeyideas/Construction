@@ -597,16 +597,14 @@ export default function ARClient({
                           {t("void")}
                         </button>
                       )}
-                      {selectedInvoice.status === "draft" && (
-                        <button
-                          className="ui-btn ui-btn-outline ui-btn-sm"
-                          onClick={() => { setDeleteMode("hard"); setShowDeleteConfirm(true); }}
-                          style={{ color: "var(--color-red)", display: "inline-flex", alignItems: "center", gap: 4 }}
-                        >
-                          <Trash2 size={14} />
-                          {t("delete")}
-                        </button>
-                      )}
+                      <button
+                        className="ui-btn ui-btn-danger ui-btn-sm"
+                        onClick={() => { setDeleteMode("hard"); setShowDeleteConfirm(true); }}
+                        style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                      >
+                        <Trash2 size={14} />
+                        {t("delete")}
+                      </button>
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
                       <Link
