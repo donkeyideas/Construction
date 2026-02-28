@@ -194,7 +194,11 @@ export default function AccountTransactionsModal({
   );
 }
 
+const _MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const s = (dateStr || "").split("T")[0];
+  const [y, m, day] = s.split("-");
+  const mi = parseInt(m, 10) - 1;
+  if (mi < 0 || mi > 11) return "--";
+  return `${_MONTHS[mi]} ${parseInt(day, 10)}, ${y}`;
 }

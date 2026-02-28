@@ -1155,12 +1155,12 @@ async function checkNegativeBalanceAccounts(
   }
 
   // Get all posted JE lines grouped by account
-  let allLines: { account_id: string; debit_amount: number; credit_amount: number }[];
+  let allLines: { account_id: string; debit: number; credit: number }[];
   try {
-    allLines = await paginatedQuery<{ account_id: string; debit_amount: number; credit_amount: number }>((from, to) =>
+    allLines = await paginatedQuery<{ account_id: string; debit: number; credit: number }>((from, to) =>
       supabase
         .from("journal_entry_lines")
-        .select("account_id, debit_amount, credit_amount, journal_entries!inner(status, company_id)")
+        .select("account_id, debit, credit, journal_entries!inner(status, company_id)")
         .eq("journal_entries.company_id", companyId)
         .eq("journal_entries.status", "posted")
         .range(from, to)
@@ -1173,8 +1173,8 @@ async function checkNegativeBalanceAccounts(
   const balanceMap = new Map<string, { debits: number; credits: number }>();
   for (const line of allLines) {
     const existing = balanceMap.get(line.account_id) || { debits: 0, credits: 0 };
-    existing.debits += Number(line.debit_amount) || 0;
-    existing.credits += Number(line.credit_amount) || 0;
+    existing.debits += Number(line.debit) || 0;
+    existing.credits += Number(line.credit) || 0;
     balanceMap.set(line.account_id, existing);
   }
 
