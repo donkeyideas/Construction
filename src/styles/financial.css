@@ -1360,27 +1360,54 @@
 /* Print styles for financial statements */
 /* Invoice print view — always in DOM, hidden on screen */
 .inv-print-view { display: none; }
+/* Cash flow dashboard sections — visible on screen, hidden in print */
+.cf-screen-only { display: block; }
+
+@page {
+  size: letter;
+  margin: 0.55in;
+}
 
 @media print {
-  /* ── Hide all app chrome ─────────────────────────────────────── */
+  /* ── Hide all app chrome & screen-only UI ─────────────────────── */
   .sidebar,
   .sidebar-toggle,
   .topbar,
   nav,
   aside,
   [data-sidebar],
+  /* Page header (h2 + subtitle) — statement has its own title block */
+  .fin-header,
   .fin-header-actions,
-  .fs-date-controls,
   .fin-header-sub,
+  /* Date controls, filter bars */
+  .fs-date-controls,
+  .fin-filters,
+  /* Modals and overlays */
+  .acct-txn-overlay,
+  .fin-modal-overlay,
+  [class*="-modal-overlay"],
+  /* Balance warning banner on Balance Sheet */
+  .fs-balance-indicator,
+  /* Cash flow dashboard sections (KPI card, bank cards, bar chart) */
+  .cf-screen-only,
+  .financial-kpi-row,
+  .fin-bar-chart,
+  .fin-chart-legend,
+  .fin-chart-title,
+  /* KPI dashboard */
+  .kpi-section,
+  /* Invoice page — screen layout hidden, print view takes over */
   .inv-screen-only {
     display: none !important;
   }
 
-  /* Reset layout so print view fills the page */
+  /* Reset layout */
   html, body {
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
+    color: #000 !important;
   }
   .main {
     margin: 0 !important;
@@ -1579,16 +1606,116 @@
     color: #94a3b8;
   }
 
-  /* ── Financial statements (Income Statement, Balance Sheet) ──── */
+  /* ── Financial statements (Income Statement, Balance Sheet, Cash Flow) ── */
   .fs-statement-card {
     max-width: 100%;
-    border: none;
-    box-shadow: none;
-    padding: 0;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  .fs-table { font-size: 10pt; }
-  .fs-title-block { margin-bottom: 20px; }
+  /* Allow table to break across pages without clipping */
+  .fs-statement-card > div,
+  .fin-chart-card > div[style*="overflow"] {
+    overflow: visible !important;
+  }
+
+  .fs-title-block {
+    margin-bottom: 24pt;
+    text-align: center;
+    padding-bottom: 12pt;
+    border-bottom: 1pt solid #e2e8f0;
+  }
+
+  .fs-company-name {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4pt;
+  }
+
+  .fs-statement-name {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 3pt;
+  }
+
+  .fs-date-range {
+    font-size: 9pt;
+    color: #64748b;
+  }
+
+  .fs-table {
+    font-size: 10pt;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .fs-table th {
+    font-size: 8pt;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1.5pt solid #0f172a;
+    padding: 6pt 8pt;
+  }
+
+  .fs-table td { padding: 5pt 8pt; }
+
+  .fs-section-header td {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    padding-top: 12pt !important;
+    padding-bottom: 4pt !important;
+    border-bottom: none;
+  }
+
+  .fs-account-row td { border-bottom: 0.5pt solid #f1f5f9; }
+
+  .fs-section-total td {
+    font-weight: 700;
+    border-top: 1pt solid #cbd5e1;
+    border-bottom: none;
+    padding-top: 5pt !important;
+  }
+
+  .fs-grand-total td {
+    font-size: 11pt;
+    font-weight: 700;
+    border-top: 2pt solid #0f172a;
+    border-bottom: 2pt solid #0f172a;
+    padding: 6pt 8pt !important;
+  }
+
+  .fs-net-income td {
+    font-size: 11pt;
+    font-weight: 700;
+    border-top: 2pt solid #0f172a;
+    border-bottom: 3pt double #0f172a;
+    padding: 7pt 8pt !important;
+  }
+
+  .fs-positive { color: #16a34a !important; }
+  .fs-negative { color: #dc2626 !important; }
+
+  .fs-spacer { height: 6pt; }
+
+  /* Keep totals together — don't split across pages */
+  .fs-grand-total,
+  .fs-net-income,
+  .fs-section-total {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Remove hover styling from clickable rows */
+  .fs-account-row.fs-clickable td { cursor: default; }
+  .fs-account-row.fs-clickable:hover td { background: transparent !important; }
 }
 
 /* ===== KPI Dashboard ===== */

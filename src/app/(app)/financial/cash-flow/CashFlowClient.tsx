@@ -218,6 +218,9 @@ export default function CashFlowClient({
         </div>
       </div>
 
+      {/* ── Screen-only dashboard sections (hidden when printing) ── */}
+      <div className="cf-screen-only">
+
       {/* Total Cash Position KPI */}
       <div className="financial-kpi-row" style={{ gridTemplateColumns: "1fr", maxWidth: "320px", marginBottom: "24px" }}>
         <div className="fin-kpi">
@@ -338,6 +341,8 @@ export default function CashFlowClient({
           </div>
         )}
       </div>
+
+      </div>{/* end cf-screen-only */}
 
       {/* Account Transactions Drill-Down Modal */}
       {selectedAccount?.account_id && (
