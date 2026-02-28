@@ -163,21 +163,36 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
   }
 
   // Fetch payment bank accounts for each invoice (for "Paid From" column)
+  // Note: payments.bank_account_id has no FK to bank_accounts, so we do a two-step lookup
   const paidFromMap: Record<string, string> = {};
   if (invoiceIds.length > 0) {
     const CHUNK = 200;
+    const allPayments: { invoice_id: string; bank_account_id: string | null }[] = [];
     for (let i = 0; i < invoiceIds.length; i += CHUNK) {
       const chunk = invoiceIds.slice(i, i + CHUNK);
       const { data: pmts } = await supabase
         .from("payments")
-        .select("invoice_id, bank_account_id, bank_accounts(name)")
+        .select("invoice_id, bank_account_id")
         .in("invoice_id", chunk);
       for (const p of pmts ?? []) {
-        const ba = p.bank_accounts as unknown as { name: string } | { name: string }[] | null;
-        const bankName = Array.isArray(ba) ? ba[0]?.name : ba?.name;
-        if (bankName && p.invoice_id) {
-          paidFromMap[p.invoice_id as string] = bankName;
-        }
+        allPayments.push({ invoice_id: p.invoice_id as string, bank_account_id: p.bank_account_id as string | null });
+      }
+    }
+    // Resolve bank account names
+    const bankIds = [...new Set(allPayments.map((p) => p.bank_account_id).filter(Boolean))] as string[];
+    const bankNameMap: Record<string, string> = {};
+    if (bankIds.length > 0) {
+      const { data: banks } = await supabase
+        .from("bank_accounts")
+        .select("id, name")
+        .in("id", bankIds);
+      for (const b of banks ?? []) {
+        bankNameMap[b.id] = b.name;
+      }
+    }
+    for (const p of allPayments) {
+      if (p.bank_account_id && bankNameMap[p.bank_account_id]) {
+        paidFromMap[p.invoice_id] = bankNameMap[p.bank_account_id];
       }
     }
   }
