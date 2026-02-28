@@ -7,6 +7,7 @@ import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 import {
   buildCompanyAccountMap,
   generateInvoiceJournalEntry,
+  generateInvoiceDeferralSchedule,
 } from "@/lib/utils/invoice-accounting";
 
 interface RouteContext {
@@ -107,11 +108,12 @@ export async function PATCH(
 
     // Auto-generate invoice JE if one doesn't exist yet (idempotent)
     const warnings: string[] = [];
+    let accountMap: Awaited<ReturnType<typeof buildCompanyAccountMap>> | null = null;
     if (existing.total_amount && Number(existing.total_amount) > 0 && existing.status !== "voided") {
       try {
         // existing comes from select("*") — DB columns beyond InvoiceRow are present at runtime
         const raw = existing as unknown as Record<string, unknown>;
-        const accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
+        accountMap = await buildCompanyAccountMap(supabase, userCompany.companyId);
         const jeResult = await generateInvoiceJournalEntry(supabase, userCompany.companyId, userCompany.userId, {
           id,
           invoice_number: existing.invoice_number ?? "",
@@ -139,6 +141,29 @@ export async function PATCH(
       } catch (jeErr) {
         console.warn("Invoice JE generation failed (non-blocking):", jeErr);
         warnings.push("Journal entry generation failed. Check Chart of Accounts setup.");
+      }
+    }
+
+    // Generate deferral schedule if deferral dates are present (idempotent)
+    const updatedInvoice = await getInvoiceById(supabase, id);
+    const rawUpdated = updatedInvoice as unknown as Record<string, unknown>;
+    const defStart = (body.deferral_start_date ?? rawUpdated?.deferral_start_date) as string | undefined;
+    const defEnd = (body.deferral_end_date ?? rawUpdated?.deferral_end_date) as string | undefined;
+    if (defStart && defEnd && updatedInvoice) {
+      try {
+        const defAccountMap = accountMap || await buildCompanyAccountMap(supabase, userCompany.companyId);
+        await generateInvoiceDeferralSchedule(supabase, userCompany.companyId, userCompany.userId, {
+          id,
+          invoice_type: updatedInvoice.invoice_type as "payable" | "receivable",
+          total_amount: Number(updatedInvoice.total_amount),
+          deferral_start_date: defStart,
+          deferral_end_date: defEnd,
+          project_id: updatedInvoice.project_id,
+          gl_account_id: rawUpdated?.gl_account_id as string | undefined,
+        }, defAccountMap);
+      } catch (defErr) {
+        console.warn("Deferral schedule generation failed:", defErr);
+        warnings.push("Deferral schedule generation failed.");
       }
     }
 

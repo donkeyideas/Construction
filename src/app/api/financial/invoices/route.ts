@@ -98,6 +98,8 @@ export async function POST(request: NextRequest) {
       gl_account_id: body.gl_account_id,
       retainage_pct: body.retainage_pct ?? 0,
       retainage_held: body.retainage_held ?? 0,
+      deferral_start_date: body.deferral_start_date,
+      deferral_end_date: body.deferral_end_date,
     };
 
     const result = await createInvoice(supabase, userCompany.companyId, data);

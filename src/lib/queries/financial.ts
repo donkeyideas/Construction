@@ -121,6 +121,8 @@ export interface InvoiceCreateData {
   gl_account_id?: string;
   retainage_pct?: number;
   retainage_held?: number;
+  deferral_start_date?: string;
+  deferral_end_date?: string;
 }
 
 export interface AccountCreateData {
@@ -520,6 +522,8 @@ export async function createInvoice(
       gl_account_id: data.gl_account_id ?? null,
       retainage_pct: data.retainage_pct ?? 0,
       retainage_held: data.retainage_held ?? 0,
+      deferral_start_date: data.deferral_start_date ?? null,
+      deferral_end_date: data.deferral_end_date ?? null,
     })
     .select("id")
     .single();
@@ -553,6 +557,8 @@ export async function updateInvoice(
   if (data.line_items !== undefined) updatePayload.line_items = data.line_items;
   if (data.notes !== undefined) updatePayload.notes = data.notes;
   if (data.status !== undefined) updatePayload.status = data.status;
+  if (data.deferral_start_date !== undefined) updatePayload.deferral_start_date = data.deferral_start_date || null;
+  if (data.deferral_end_date !== undefined) updatePayload.deferral_end_date = data.deferral_end_date || null;
   // Note: balance_due is a Postgres GENERATED COLUMN — never include it in updates
 
   const { error } = await supabase

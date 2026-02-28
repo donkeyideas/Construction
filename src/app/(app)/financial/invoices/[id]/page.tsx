@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileText, ArrowLeft, Printer, Download, BookOpen, AlertCircle } from "lucide-react";
+import { FileText, ArrowLeft, Printer, Download, BookOpen, AlertCircle, Pencil, CalendarRange, CheckCircle2, Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById } from "@/lib/queries/financial";
@@ -57,6 +57,16 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
   if (!invoice) {
     notFound();
   }
+
+  // Fetch deferral schedule for this invoice
+  const { data: deferralSchedule } = await supabase
+    .from("invoice_deferral_schedule")
+    .select("id, schedule_date, monthly_amount, status")
+    .eq("invoice_id", id)
+    .order("schedule_date", { ascending: true });
+
+  const rawInv = invoice as unknown as Record<string, unknown>;
+  const hasDeferral = !!(rawInv.deferral_start_date || (deferralSchedule && deferralSchedule.length > 0));
 
   const isPayable = invoice.invoice_type === "payable";
   const statusClass = `inv-status inv-status-${invoice.status}`;
@@ -132,6 +142,10 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           </p>
         </div>
         <div className="fin-header-actions">
+          <Link href={`/financial/invoices/${id}/edit`} className="ui-btn ui-btn-outline ui-btn-md" style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
+            <Pencil size={16} />
+            Edit
+          </Link>
           <RecordPaymentButton
             invoiceId={id}
             balanceDue={Number(invoice.balance_due) || 0}
@@ -268,6 +282,75 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           </div>
         )}
       </div>
+
+      {/* Deferral Schedule */}
+      {hasDeferral && (
+        <div className="fin-chart-card" style={{ padding: 0, marginBottom: 24 }}>
+          <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+            <CalendarRange size={16} style={{ color: "var(--color-blue)" }} />
+            <div className="card-title" style={{ marginBottom: 0 }}>Deferred Revenue Schedule</div>
+            {rawInv.deferral_start_date && rawInv.deferral_end_date ? (
+              <span style={{ marginLeft: "auto", fontSize: "0.78rem", color: "var(--muted)" }}>
+                {safeDate(rawInv.deferral_start_date)} — {safeDate(rawInv.deferral_end_date)}
+              </span>
+            ) : null}
+          </div>
+          {deferralSchedule && deferralSchedule.length > 0 ? (
+            <div style={{ overflowX: "auto" }}>
+              <table className="invoice-table">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th style={{ textAlign: "right" }}>Amount</th>
+                    <th style={{ textAlign: "center" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deferralSchedule.map((row) => {
+                    const isRecognized = row.status === "recognized";
+                    return (
+                      <tr key={row.id}>
+                        <td>{safeDate(row.schedule_date, { long: true })}</td>
+                        <td style={{ textAlign: "right", fontWeight: 600 }}>
+                          {safeCurrency(row.monthly_amount)}
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          {isRecognized ? (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-green)", fontSize: "0.82rem", fontWeight: 600 }}>
+                              <CheckCircle2 size={14} />
+                              Recognized
+                            </span>
+                          ) : (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--color-amber)", fontSize: "0.82rem" }}>
+                              <Clock size={14} />
+                              Scheduled
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr style={{ borderTop: "2px solid var(--border)" }}>
+                    <td style={{ fontWeight: 600 }}>Total ({deferralSchedule.length} months)</td>
+                    <td style={{ textAlign: "right", fontWeight: 700 }}>
+                      {safeCurrency(deferralSchedule.reduce((s, r) => s + Number(r.monthly_amount), 0))}
+                    </td>
+                    <td style={{ textAlign: "center", fontSize: "0.78rem", color: "var(--muted)" }}>
+                      {deferralSchedule.filter((r) => r.status === "recognized").length} of {deferralSchedule.length} recognized
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          ) : (
+            <div style={{ padding: "24px 20px", textAlign: "center", color: "var(--muted)", fontSize: "0.85rem" }}>
+              Deferral dates are set but no schedule has been generated yet. Save the invoice to generate the schedule.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Line Items */}
       {lineItems.length > 0 && (
