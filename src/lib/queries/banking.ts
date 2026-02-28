@@ -309,6 +309,25 @@ export async function getBankAccountGLTransactions(
 
   if (!lines || lines.length === 0) return [];
 
+  // Fetch counter-account lines (the other side of each JE, e.g. the expense/revenue account)
+  const jeIds = [...new Set(lines.map((l) => {
+    const je = l.journal_entries as unknown as { id: string };
+    return je.id;
+  }))];
+  const counterMap = new Map<string, string>();
+  if (jeIds.length > 0) {
+    const { data: counterLines } = await supabase
+      .from("journal_entry_lines")
+      .select("journal_entry_id, account_id")
+      .in("journal_entry_id", jeIds)
+      .neq("account_id", bankAccount.gl_account_id);
+    counterLines?.forEach((cl) => {
+      if (!counterMap.has(cl.journal_entry_id)) {
+        counterMap.set(cl.journal_entry_id, cl.account_id);
+      }
+    });
+  }
+
   // Convert to BankTransactionRow-like shape
   let runningBalance = 0;
   return lines.map((line) => {
@@ -321,6 +340,7 @@ export async function getBankAccountGLTransactions(
     const isDebit = debit > credit;
     const amount = isDebit ? debit : credit;
     runningBalance += credit - debit; // cash is an asset (debit normal), so credits reduce balance
+    const counterAccountId = counterMap.get(je.id) || null;
     return {
       id: `gl-${line.id}`,
       company_id: companyId,
@@ -335,7 +355,7 @@ export async function getBankAccountGLTransactions(
       is_reconciled: false,
       reconciliation_id: null,
       notes: `From GL: ${je.entry_number}`,
-      metadata: null,
+      metadata: counterAccountId ? { gl_account_id: counterAccountId } : null,
       created_at: je.entry_date,
     };
   });

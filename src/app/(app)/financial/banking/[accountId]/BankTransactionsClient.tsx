@@ -945,7 +945,7 @@ export default function BankTransactionsClient({
                     </div>
                   </div>
                   <div className="banking-form-group">
-                    <label className="banking-form-label">{t("category")}</label>
+                    <label className="banking-form-label">{t("glAccount")}</label>
                     <div
                       className="banking-form-input"
                       style={{
@@ -960,7 +960,9 @@ export default function BankTransactionsClient({
                           : null;
                         return glAcct
                           ? `${glAcct.account_number} — ${glAcct.name}`
-                          : selectedTxn.category || "--";
+                          : selectedTxn.category && selectedTxn.category !== "gl"
+                            ? selectedTxn.category
+                            : "--";
                       })()}
                     </div>
                   </div>
