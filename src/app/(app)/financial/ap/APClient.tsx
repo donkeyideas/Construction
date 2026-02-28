@@ -1188,17 +1188,17 @@ export default function APClient({
               <div style={{ display: "flex", gap: 8 }}>
                 {selectedInvoice.status !== "voided" && (
                   <button
-                    className="ui-btn ui-btn-outline ui-btn-sm"
+                    className="ui-btn ui-btn-sm"
                     onClick={() => { setDeleteMode("void"); setShowDeleteConfirm(true); }}
-                    style={{ color: "var(--color-red)", borderColor: "var(--color-red)", gap: 4 }}
+                    style={{ background: "transparent", color: "var(--color-red)", borderColor: "var(--color-red)", gap: 4, fontWeight: 600 }}
                   >
                     <Ban size={13} /> Void
                   </button>
                 )}
                 <button
-                  className="ui-btn ui-btn-outline ui-btn-sm"
+                  className="ui-btn ui-btn-danger ui-btn-sm"
                   onClick={() => { setDeleteMode("hard"); setShowDeleteConfirm(true); }}
-                  style={{ color: "var(--color-red)", borderColor: "var(--color-red)", gap: 4 }}
+                  style={{ gap: 4 }}
                 >
                   <Trash2 size={13} /> Delete
                 </button>

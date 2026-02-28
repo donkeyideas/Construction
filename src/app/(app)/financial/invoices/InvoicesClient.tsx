@@ -552,11 +552,11 @@ export default function InvoicesClient({
                       <Edit3 size={14} /> {t("edit")}
                     </button>
                     {selectedInv.status !== "voided" && (
-                      <button className="btn-danger" onClick={() => setShowDeleteConfirm(true)}>
+                      <button className="btn-danger" onClick={() => setShowDeleteConfirm(true)} style={{ fontWeight: 600 }}>
                         <Trash2 size={14} /> {t("void")}
                       </button>
                     )}
-                    <button className="btn-danger" onClick={() => setShowHardDeleteConfirm(true)} style={{ background: "var(--color-red)", color: "#fff", borderColor: "var(--color-red)" }}>
+                    <button className="ui-btn ui-btn-danger ui-btn-md" onClick={() => setShowHardDeleteConfirm(true)}>
                       <Trash2 size={14} /> {t("deleteInvoice")}
                     </button>
                   </div>
