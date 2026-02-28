@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Plus,
@@ -14,6 +14,7 @@ import {
   Landmark,
   FileCheck,
 } from "lucide-react";
+import { formatDateSafe } from "@/lib/utils/format";
 import type {
   BankReconciliationRow,
   BankAccountRow,
@@ -50,16 +51,9 @@ export default function ReconciliationClient({
 }: ReconciliationClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
-  const locale = useLocale();
-  const dateLocale = locale === "es" ? "es" : "en-US";
 
   function formatDate(dateStr: string | null) {
-    if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   // Create modal

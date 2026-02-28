@@ -181,13 +181,17 @@ export default function AuditClient({ audit, companyName }: Props) {
   const failCount = audit.checks.filter((c) => c.status === "fail").length;
   const totalChecks = audit.checks.length;
 
-  const runDate = new Date(audit.runAt).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  // Deterministic date+time formatting to avoid hydration mismatch
+  const runDateObj = new Date(audit.runAt);
+  const MONTHS_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const runMonth = MONTHS_LONG[runDateObj.getMonth()];
+  const runDay = runDateObj.getDate();
+  const runYear = runDateObj.getFullYear();
+  const runHour = runDateObj.getHours();
+  const runMin = String(runDateObj.getMinutes()).padStart(2, "0");
+  const runAmPm = runHour >= 12 ? "PM" : "AM";
+  const runH12 = runHour % 12 || 12;
+  const runDate = `${runMonth} ${runDay}, ${runYear} at ${runH12}:${runMin} ${runAmPm}`;
 
   const gradeColor = GRADE_COLORS[audit.grade] || "var(--muted)";
 

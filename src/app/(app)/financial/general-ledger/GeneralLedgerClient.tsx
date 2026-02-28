@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { getLocalToday } from "@/lib/utils/timezone";
 import {
   Plus,
@@ -15,7 +15,7 @@ import {
   Upload,
   Eye,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 import type {
@@ -132,17 +132,11 @@ export default function GeneralLedgerClient({
 }: GeneralLedgerClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
-  const locale = useLocale();
-  const dateLocale = locale === "es" ? "es" : "en-US";
   const [filterStartDate, setFilterStartDate] = useState(initialStartDate || "");
   const [filterEndDate, setFilterEndDate] = useState(initialEndDate || "");
 
   function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   /* ---- State ---- */

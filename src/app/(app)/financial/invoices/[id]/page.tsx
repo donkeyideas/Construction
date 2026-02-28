@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getInvoiceById } from "@/lib/queries/financial";
 import { getBankAccounts } from "@/lib/queries/banking";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe, formatDateLong } from "@/lib/utils/format";
 import { findLinkedJournalEntries } from "@/lib/utils/je-linkage";
 import type { LineItem, PaymentRow } from "@/lib/queries/financial";
 import RecordPaymentButton from "./RecordPaymentButton";
@@ -93,13 +93,11 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
     return isNaN(num) ? "$0" : formatCurrency(num);
   };
 
-  // Safe date formatting
-  const safeDate = (val: unknown, opts?: Intl.DateTimeFormatOptions) => {
-    try {
-      return new Date(String(val)).toLocaleDateString("en-US", opts ?? { month: "short", day: "numeric", year: "numeric" });
-    } catch {
-      return "--";
-    }
+  // Safe date formatting — deterministic to avoid hydration mismatch
+  const safeDate = (val: unknown, opts?: { long?: boolean }) => {
+    const str = String(val ?? "");
+    if (!str || str === "undefined" || str === "null") return "--";
+    return opts?.long ? formatDateLong(str) : formatDateSafe(str);
   };
 
   return (
@@ -197,8 +195,8 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
               ["Type", isPayable ? "Accounts Payable (AP)" : "Accounts Receivable (AR)"],
               ["Invoice Number", invoice.invoice_number],
               [isPayable ? "Vendor" : "Client", isPayable ? invoice.vendor_name : invoice.client_name],
-              ["Invoice Date", safeDate(invoice.invoice_date, { month: "long", day: "numeric", year: "numeric" })],
-              ["Due Date", safeDate(invoice.due_date, { month: "long", day: "numeric", year: "numeric" })],
+              ["Invoice Date", safeDate(invoice.invoice_date, { long: true })],
+              ["Due Date", safeDate(invoice.due_date, { long: true })],
               ["Status", invoice.status],
             ].map(([label, value]) => (
               <div key={String(label)} className="info-row">

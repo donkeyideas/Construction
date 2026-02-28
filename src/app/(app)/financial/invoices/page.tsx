@@ -59,12 +59,15 @@ export default async function InvoicesPage({ searchParams }: PageProps) {
     linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
   }
 
+  const serverToday = new Date().toISOString().split("T")[0];
+
   return (
     <InvoicesClient
       invoices={invoices}
       activeType={activeType}
       activeStatus={activeStatus}
       linkedJEs={linkedJEs}
+      serverToday={serverToday}
     />
   );
 }

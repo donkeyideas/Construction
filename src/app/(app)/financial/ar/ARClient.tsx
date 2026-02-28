@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   HandCoins,
   AlertCircle,
@@ -17,7 +17,7 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
-import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatCompactCurrency, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
 import { Upload } from "lucide-react";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
@@ -57,6 +57,7 @@ interface ARClientProps {
   initialStartDate?: string;
   initialEndDate?: string;
   glBalance?: number;
+  serverToday?: string;
 }
 
 /* ------------------------------------------------------------------
@@ -87,21 +88,16 @@ export default function ARClient({
   initialStartDate,
   initialEndDate,
   glBalance,
+  serverToday,
 }: ARClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
-  const locale = useLocale();
-  const dateLocale = locale === "es" ? "es" : "en-US";
-  const now = new Date();
   const [filterStart, setFilterStart] = useState(initialStartDate || "");
   const [filterEnd, setFilterEnd] = useState(initialEndDate || "");
+  const today = serverToday || new Date().toISOString().split("T")[0];
 
   function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   const statuses = [
@@ -391,8 +387,7 @@ export default function ARClient({
               </thead>
               <tbody>
                 {invoices.map((inv) => {
-                  const dueDate = new Date(inv.due_date);
-                  const isPastDue = dueDate < now && inv.status !== "paid" && inv.status !== "voided";
+                  const isPastDue = inv.due_date < today && inv.status !== "paid" && inv.status !== "voided";
                   const isOverdue = isPastDue || inv.status === "overdue";
 
                   return (
@@ -550,9 +545,9 @@ export default function ARClient({
                     <div>
                       <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 4 }}>{t("dueDate")}</div>
                       <div style={{
-                        color: new Date(selectedInvoice.due_date) < now && selectedInvoice.status !== "paid"
+                        color: selectedInvoice.due_date < today && selectedInvoice.status !== "paid"
                           ? "var(--color-red)" : "var(--text)",
-                        fontWeight: new Date(selectedInvoice.due_date) < now && selectedInvoice.status !== "paid" ? 600 : 400,
+                        fontWeight: selectedInvoice.due_date < today && selectedInvoice.status !== "paid" ? 600 : 400,
                       }}>
                         {formatDate(selectedInvoice.due_date)}
                       </div>

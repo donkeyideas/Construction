@@ -155,8 +155,8 @@ export default function DeferralsClient({ schedule, deferredInvoices }: Deferral
   }
 
   /* Determine visible month window (show ±3 months from current) */
-  const now = new Date();
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  // Use ISO string slicing to avoid locale-dependent new Date() on render
+  const currentMonth = new Date().toISOString().slice(0, 7);
   const visibleMonths = useMemo(() => {
     if (monthColumns.length <= 12) return monthColumns;
     const idx = monthColumns.indexOf(currentMonth);

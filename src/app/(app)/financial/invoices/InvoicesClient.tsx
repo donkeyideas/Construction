@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   FileText,
   Plus,
@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,6 +51,7 @@ interface InvoicesClientProps {
   activeType: string | undefined;
   activeStatus: string | undefined;
   linkedJEs?: Record<string, LinkedJE[]>;
+  serverToday: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,20 +75,12 @@ export default function InvoicesClient({
   activeType,
   activeStatus,
   linkedJEs = {},
+  serverToday,
 }: InvoicesClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
-  const locale = useLocale();
-  const dateLocale = locale === "es" ? "es" : "en-US";
-  const now = new Date();
-
   function formatDate(dateStr: string | null) {
-    if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   const tabs = [
@@ -315,8 +308,7 @@ export default function InvoicesClient({
               </thead>
               <tbody>
                 {invoices.map((inv) => {
-                  const dueDate = new Date(inv.due_date);
-                  const isPastDue = dueDate < now && inv.status !== "paid" && inv.status !== "voided";
+                  const isPastDue = inv.due_date < serverToday && inv.status !== "paid" && inv.status !== "voided";
                   const isOverdue = isPastDue || inv.status === "overdue";
                   return (
                     <tr

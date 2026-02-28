@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Printer } from "lucide-react";
-import { formatCurrency } from "@/lib/utils/format";
+import { formatCurrency, formatDateLong } from "@/lib/utils/format";
 import type { IncomeStatementData, IncomeStatementSection, IncomeStatementLine } from "@/lib/queries/financial";
 import AccountTransactionsModal from "@/components/financial/AccountTransactionsModal";
 
@@ -64,15 +64,12 @@ function StatementSection({
 export default function IncomeStatementClient({ data, companyName }: Props) {
   const router = useRouter();
   const t = useTranslations("financial");
-  const locale = useLocale();
-  const dateLocale = locale === "es" ? "es" : "en-US";
   const [startDate, setStartDate] = useState(data.startDate);
   const [endDate, setEndDate] = useState(data.endDate);
   const [selectedAccount, setSelectedAccount] = useState<IncomeStatementLine | null>(null);
 
   function formatDateLabel(dateStr: string): string {
-    const d = new Date(dateStr + "T00:00:00");
-    return d.toLocaleDateString(dateLocale, { month: "long", day: "numeric", year: "numeric" });
+    return formatDateLong(dateStr);
   }
 
   function handleApply() {

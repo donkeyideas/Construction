@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Search,
@@ -17,6 +17,7 @@ import {
   DollarSign,
   CreditCard,
 } from "lucide-react";
+import { formatDateSafe } from "@/lib/utils/format";
 import type {
   BankAccountRow,
   BankTransactionRow,
@@ -83,16 +84,9 @@ export default function BankTransactionsClient({
 }: BankTransactionsClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
-  const locale = useLocale();
-  const dateLocale = locale === "es" ? "es" : "en-US";
 
   function formatDate(dateStr: string | null) {
-    if (!dateStr) return "--";
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatDateSafe(dateStr);
   }
 
   // View mode: bank-imported, GL-derived, or all

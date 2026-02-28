@@ -149,6 +149,7 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
       initialStartDate={filterStartDate}
       initialEndDate={filterEndDate}
       glBalance={glArBalance}
+      serverToday={todayStr}
     />
   );
 }

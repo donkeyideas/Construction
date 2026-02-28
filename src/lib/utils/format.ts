@@ -100,3 +100,40 @@ export function shortMonth(date: string | Date): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return d.toLocaleDateString("en-US", { month: "short" });
 }
+
+/**
+ * Deterministic date formatter — produces identical output on server and client.
+ * Avoids toLocaleDateString() which differs by runtime/locale and causes React
+ * hydration error #418.
+ *
+ * @example formatDateSafe("2026-02-15") → "Feb 15, 2026"
+ * @example formatDateSafe("2026-02-15T00:00:00") → "Feb 15, 2026"
+ */
+const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+export function formatDateSafe(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const d = String(dateStr).split("T")[0];
+  const parts = d.split("-");
+  if (parts.length !== 3) return "--";
+  const [y, m, day] = parts;
+  const mi = parseInt(m, 10) - 1;
+  if (mi < 0 || mi > 11) return "--";
+  return `${MONTH_ABBR[mi]} ${parseInt(day, 10)}, ${y}`;
+}
+
+/**
+ * Deterministic long date formatter (e.g., "February 15, 2026").
+ */
+const MONTH_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+export function formatDateLong(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--";
+  const d = String(dateStr).split("T")[0];
+  const parts = d.split("-");
+  if (parts.length !== 3) return "--";
+  const [y, m, day] = parts;
+  const mi = parseInt(m, 10) - 1;
+  if (mi < 0 || mi > 11) return "--";
+  return `${MONTH_FULL[mi]} ${parseInt(day, 10)}, ${y}`;
+}
