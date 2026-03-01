@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
         insurance_required: body.insurance_required ?? false,
         bond_required: body.bond_required ?? false,
         project_id: body.project_id || undefined,
+        property_id: body.property_id || undefined,
       }
     );
 

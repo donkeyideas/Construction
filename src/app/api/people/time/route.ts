@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         company_id: userCtx.companyId,
         user_id: userCtx.userId,
         project_id: body.project_id || null,
+        property_id: body.property_id || null,
         entry_date: body.entry_date,
         hours: Number(body.hours),
         work_type: body.work_type === "overtime" || Number(body.hours) > 8 ? "overtime" : "regular",

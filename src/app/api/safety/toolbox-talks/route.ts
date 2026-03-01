@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
         topic: body.topic?.trim() || undefined,
         scheduled_date: body.scheduled_date || undefined,
         project_id: body.project_id || undefined,
+        property_id: body.property_id || undefined,
         attendees_count: body.attendees_count || undefined,
         attendees: body.attendees?.trim() || undefined,
         notes: body.notes?.trim() || undefined,

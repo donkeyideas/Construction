@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
       {
         equipment_id: body.equipment_id,
         project_id: body.project_id || undefined,
+        property_id: body.property_id || undefined,
         assigned_to: body.assigned_to || undefined,
         notes: body.notes?.trim() || undefined,
       }

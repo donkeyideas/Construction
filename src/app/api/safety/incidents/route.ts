@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
         incident_type: body.incident_type || undefined,
         severity: body.severity || undefined,
         project_id: body.project_id || undefined,
+        property_id: body.property_id || undefined,
         assigned_to: body.assigned_to || undefined,
         incident_date: body.incident_date || undefined,
         location: body.location?.trim() || undefined,

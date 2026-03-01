@@ -28,6 +28,7 @@ export interface SafetyIncidentRow {
   severity: IncidentSeverity;
   status: IncidentStatus;
   project_id: string | null;
+  property_id: string | null;
   reported_by: string;
   assigned_to: string | null;
   incident_date: string;
@@ -42,6 +43,7 @@ export interface SafetyIncidentRow {
   reporter?: { id: string; full_name: string; email: string } | null;
   assignee?: { id: string; full_name: string; email: string } | null;
   project?: { id: string; name: string } | null;
+  property?: { id: string; name: string } | null;
 }
 
 export interface ToolboxTalkRow {
@@ -54,6 +56,7 @@ export interface ToolboxTalkRow {
   status: ToolboxTalkStatus;
   conducted_by: string;
   project_id: string | null;
+  property_id: string | null;
   conducted_date: string;
   scheduled_date: string | null;
   attendee_count: number;
@@ -64,6 +67,7 @@ export interface ToolboxTalkRow {
   // Joined fields
   conductor?: { id: string; full_name: string; email: string } | null;
   project?: { id: string; name: string } | null;
+  property?: { id: string; name: string } | null;
 }
 
 export interface SafetyStats {
@@ -93,6 +97,7 @@ export interface CreateIncidentData {
   incident_type?: IncidentType;
   severity?: IncidentSeverity;
   project_id?: string;
+  property_id?: string;
   assigned_to?: string;
   incident_date?: string;
   location?: string;
@@ -106,6 +111,7 @@ export interface UpdateIncidentData {
   severity?: IncidentSeverity;
   status?: IncidentStatus;
   project_id?: string | null;
+  property_id?: string | null;
   assigned_to?: string | null;
   incident_date?: string;
   location?: string;
@@ -121,6 +127,7 @@ export interface CreateToolboxTalkData {
   topic?: string;
   scheduled_date?: string;
   project_id?: string;
+  property_id?: string;
   attendees_count?: number;
   attendees?: string;
   notes?: string;
@@ -133,6 +140,7 @@ export interface UpdateToolboxTalkData {
   status?: ToolboxTalkStatus;
   scheduled_date?: string;
   project_id?: string | null;
+  property_id?: string | null;
   attendees_count?: number;
   attendees?: string;
   notes?: string;
@@ -332,6 +340,7 @@ export async function createIncident(
       severity: data.severity ?? "medium",
       status: "reported",
       project_id: data.project_id ?? null,
+      property_id: data.property_id ?? null,
       assigned_to: data.assigned_to ?? null,
       incident_date: data.incident_date ?? new Date().toISOString(),
       location: data.location ?? null,
@@ -522,6 +531,7 @@ export async function createToolboxTalk(
       scheduled_date: dateVal,
       conducted_date: dateVal,
       project_id: data.project_id ?? null,
+      property_id: data.property_id ?? null,
       attendee_count: data.attendees_count ?? 0,
       attendees: data.attendees ?? null,
       notes: data.notes ?? null,

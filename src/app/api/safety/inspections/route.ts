@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
         company_id: userCtx.companyId,
         inspector_id: userCtx.userId,
         project_id: body.project_id || null,
+        property_id: body.property_id || null,
         inspection_type: body.inspection_type,
         inspection_date: body.inspection_date || new Date().toISOString(),
         score: body.score ? Number(body.score) : null,

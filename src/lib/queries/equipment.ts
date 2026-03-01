@@ -87,6 +87,7 @@ export interface EquipmentAssignmentRow {
   company_id: string;
   equipment_id: string;
   project_id: string | null;
+  property_id: string | null;
   assigned_to: string | null;
   assigned_by: string | null;
   assigned_date: string;
@@ -153,6 +154,7 @@ export interface CreateMaintenanceData {
 export interface CreateAssignmentData {
   equipment_id: string;
   project_id?: string;
+  property_id?: string;
   assigned_to?: string;
   notes?: string;
 }
@@ -578,6 +580,7 @@ export async function createAssignment(
       company_id: companyId,
       equipment_id: data.equipment_id,
       project_id: data.project_id ?? null,
+      property_id: data.property_id ?? null,
       assigned_to: data.assigned_to ?? null,
       assigned_by: userId,
       assigned_date: new Date().toISOString(),

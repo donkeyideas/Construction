@@ -105,6 +105,7 @@ export default function TimeClient({
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [properties, setProperties] = useState<{ id: string; name: string }[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [showImport, setShowImport] = useState(false);
 
@@ -113,8 +114,15 @@ export default function TimeClient({
 
   const today = getLocalToday();
 
+  function parseContext(v: string): { project_id: string | null; property_id: string | null } {
+    if (!v) return { project_id: null, property_id: null };
+    if (v.startsWith("proj:")) return { project_id: v.slice(5), property_id: null };
+    if (v.startsWith("prop:")) return { project_id: null, property_id: v.slice(5) };
+    return { project_id: null, property_id: null };
+  }
+
   const [formData, setFormData] = useState({
-    project_id: "",
+    context_id: "",
     entry_date: today,
     hours: "",
     overtime_hours: "0",
@@ -138,25 +146,25 @@ export default function TimeClient({
     status: "pending" as string,
   });
 
-  // Fetch projects when create modal opens
+  // Fetch projects + properties when create modal opens
   useEffect(() => {
     if (!showCreate) return;
     setLoadingProjects(true);
     const supabase = createClient();
-    supabase
-      .from("projects")
-      .select("id, name, code")
-      .order("name", { ascending: true })
-      .then(({ data }) => {
-        setProjects(
-          (data ?? []).map((p: Record<string, unknown>) => ({
-            id: p.id as string,
-            name: p.name as string,
-            code: (p.code as string) || null,
-          }))
-        );
-        setLoadingProjects(false);
-      });
+    Promise.all([
+      supabase.from("projects").select("id, name, code").order("name", { ascending: true }),
+      fetch("/api/properties").then((r) => r.ok ? r.json() : []),
+    ]).then(([projRes, props]) => {
+      setProjects(
+        (projRes.data ?? []).map((p: Record<string, unknown>) => ({
+          id: p.id as string,
+          name: p.name as string,
+          code: (p.code as string) || null,
+        }))
+      );
+      if (Array.isArray(props)) setProperties(props);
+      setLoadingProjects(false);
+    }).catch(() => { setLoadingProjects(false); });
   }, [showCreate]);
 
   async function handleCreate(e: React.FormEvent) {
@@ -169,7 +177,7 @@ export default function TimeClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          project_id: formData.project_id || undefined,
+          ...parseContext(formData.context_id),
           entry_date: formData.entry_date,
           hours: Number(formData.hours),
           overtime_hours: Number(formData.overtime_hours || 0),
@@ -184,7 +192,7 @@ export default function TimeClient({
       }
 
       setFormData({
-        project_id: "",
+        context_id: "",
         entry_date: today,
         hours: "",
         overtime_hours: "0",
@@ -650,20 +658,31 @@ export default function TimeClient({
 
             <form onSubmit={handleCreate} className="ticket-form">
               <div className="ticket-form-group">
-                <label className="ticket-form-label">{t("project")}</label>
+                <label className="ticket-form-label">Project / Property</label>
                 <select
                   className="ticket-form-select"
-                  value={formData.project_id}
-                  onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+                  value={formData.context_id}
+                  onChange={(e) => setFormData({ ...formData, context_id: e.target.value })}
                 >
                   <option value="">
-                    {loadingProjects ? t("loadingProjects") : t("selectProject")}
+                    {loadingProjects ? t("loadingProjects") : "— None —"}
                   </option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.code ? `${p.code} - ` : ""}{p.name}
-                    </option>
-                  ))}
+                  {projects.length > 0 && (
+                    <optgroup label="Projects">
+                      {projects.map((p) => (
+                        <option key={p.id} value={`proj:${p.id}`}>
+                          {p.code ? `${p.code} - ` : ""}{p.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {properties.length > 0 && (
+                    <optgroup label="Properties">
+                      {properties.map((p) => (
+                        <option key={p.id} value={`prop:${p.id}`}>{p.name}</option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
 

@@ -118,16 +118,25 @@ export default function SafetyIncidentsClient({
     return user.full_name || user.email || t("unknown");
   }
 
-  // Projects - initialize from SSR prop, then refresh client-side for freshness
+  // Projects + Properties - refresh client-side for freshness
   const [projectList, setProjectList] = useState<{ id: string; name: string }[]>(projects);
+  const [propertyList, setPropertyList] = useState<{ id: string; name: string }[]>([]);
   useEffect(() => {
-    fetch("/api/projects")
-      .then((r) => r.ok ? r.json() : [])
-      .then((data: { id: string; name: string }[]) => {
-        if (Array.isArray(data) && data.length > 0) setProjectList(data);
-      })
-      .catch(() => {/* keep SSR prop */});
+    Promise.all([
+      fetch("/api/projects").then((r) => r.ok ? r.json() : []),
+      fetch("/api/properties").then((r) => r.ok ? r.json() : []),
+    ]).then(([projs, props]) => {
+      if (Array.isArray(projs) && projs.length > 0) setProjectList(projs);
+      if (Array.isArray(props)) setPropertyList(props);
+    }).catch(() => {});
   }, []);
+
+  function parseContext(v: string): { project_id: string | null; property_id: string | null } {
+    if (!v) return { project_id: null, property_id: null };
+    if (v.startsWith("proj:")) return { project_id: v.slice(5), property_id: null };
+    if (v.startsWith("prop:")) return { project_id: null, property_id: v.slice(5) };
+    return { project_id: null, property_id: null };
+  }
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<IncidentStatus | "all">("all");
@@ -144,7 +153,7 @@ export default function SafetyIncidentsClient({
     description: "",
     incident_type: "near_miss" as IncidentType,
     severity: "medium" as IncidentSeverity,
-    project_id: "",
+    context_id: "",
     assigned_to: "",
     incident_date: new Date().toISOString().split("T")[0],
     location: "",
@@ -207,7 +216,7 @@ export default function SafetyIncidentsClient({
           description: formData.description || undefined,
           incident_type: formData.incident_type,
           severity: formData.severity,
-          project_id: formData.project_id || undefined,
+          ...parseContext(formData.context_id),
           assigned_to: formData.assigned_to || undefined,
           incident_date: formData.incident_date || undefined,
           location: formData.location || undefined,
@@ -226,7 +235,7 @@ export default function SafetyIncidentsClient({
         description: "",
         incident_type: "near_miss",
         severity: "medium",
-        project_id: "",
+        context_id: "",
         assigned_to: "",
         incident_date: new Date().toISOString().split("T")[0],
         location: "",
@@ -268,7 +277,8 @@ export default function SafetyIncidentsClient({
       status: selectedIncident.status,
       severity: selectedIncident.severity,
       incident_type: selectedIncident.incident_type,
-      project_id: selectedIncident.project_id || "",
+      context_id: selectedIncident.project_id ? `proj:${selectedIncident.project_id}`
+        : selectedIncident.property_id ? `prop:${selectedIncident.property_id}` : "",
       assigned_to: selectedIncident.assigned_to || "",
       incident_date: selectedIncident.incident_date
         ? selectedIncident.incident_date.split("T")[0]
@@ -306,8 +316,13 @@ export default function SafetyIncidentsClient({
         payload.severity = editData.severity;
       if (editData.incident_type !== selectedIncident.incident_type)
         payload.incident_type = editData.incident_type;
-      if (editData.project_id !== (selectedIncident.project_id || ""))
-        payload.project_id = editData.project_id || null;
+      const ctx = parseContext(editData.context_id as string || "");
+      const existingCtx = selectedIncident.project_id ? `proj:${selectedIncident.project_id}`
+        : selectedIncident.property_id ? `prop:${selectedIncident.property_id}` : "";
+      if ((editData.context_id as string || "") !== existingCtx) {
+        payload.project_id = ctx.project_id;
+        payload.property_id = ctx.property_id;
+      }
       if (editData.assigned_to !== (selectedIncident.assigned_to || ""))
         payload.assigned_to = editData.assigned_to || null;
       if (editData.location !== (selectedIncident.location || ""))
@@ -667,20 +682,29 @@ export default function SafetyIncidentsClient({
 
               <div className="safety-form-row">
                 <div className="safety-form-group">
-                  <label className="safety-form-label">{t("project")}</label>
+                  <label className="safety-form-label">Project / Property</label>
                   <select
                     className="safety-form-select"
-                    value={formData.project_id}
+                    value={formData.context_id}
                     onChange={(e) =>
-                      setFormData({ ...formData, project_id: e.target.value })
+                      setFormData({ ...formData, context_id: e.target.value })
                     }
                   >
-                    <option value="">{t("noProject")}</option>
-                    {projectList.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
+                    <option value="">— None —</option>
+                    {projectList.length > 0 && (
+                      <optgroup label="Projects">
+                        {projectList.map((p) => (
+                          <option key={p.id} value={`proj:${p.id}`}>{p.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {propertyList.length > 0 && (
+                      <optgroup label="Properties">
+                        {propertyList.map((p) => (
+                          <option key={p.id} value={`prop:${p.id}`}>{p.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
 
@@ -1040,20 +1064,29 @@ export default function SafetyIncidentsClient({
                     </select>
                   </div>
                   <div className="safety-form-group">
-                    <label className="safety-form-label">{t("project")}</label>
+                    <label className="safety-form-label">Project / Property</label>
                     <select
                       className="safety-form-select"
-                      value={(editData.project_id as string) || ""}
+                      value={(editData.context_id as string) || ""}
                       onChange={(e) =>
-                        setEditData({ ...editData, project_id: e.target.value })
+                        setEditData({ ...editData, context_id: e.target.value })
                       }
                     >
-                      <option value="">{t("noProject")}</option>
-                      {projectList.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
+                      <option value="">— None —</option>
+                      {projectList.length > 0 && (
+                        <optgroup label="Projects">
+                          {projectList.map((p) => (
+                            <option key={p.id} value={`proj:${p.id}`}>{p.name}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {propertyList.length > 0 && (
+                        <optgroup label="Properties">
+                          {propertyList.map((p) => (
+                            <option key={p.id} value={`prop:${p.id}`}>{p.name}</option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                 </div>

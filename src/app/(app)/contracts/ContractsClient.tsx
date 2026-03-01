@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDateSafe, formatDateShort } from "@/lib/utils/format";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
@@ -114,6 +114,26 @@ export default function ContractsClient({
     { key: "payment_terms", label: t("paymentTerms"), required: false },
   ];
 
+  // Projects + Properties - refresh client-side for freshness
+  const [projectList, setProjectList] = useState<{ id: string; name: string }[]>(projects);
+  const [propertyList, setPropertyList] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/projects").then((r) => r.ok ? r.json() : []),
+      fetch("/api/properties").then((r) => r.ok ? r.json() : []),
+    ]).then(([projs, props]) => {
+      if (Array.isArray(projs) && projs.length > 0) setProjectList(projs);
+      if (Array.isArray(props)) setPropertyList(props);
+    }).catch(() => {});
+  }, []);
+
+  function parseContext(v: string): { project_id: string | null; property_id: string | null } {
+    if (!v) return { project_id: null, property_id: null };
+    if (v.startsWith("proj:")) return { project_id: v.slice(5), property_id: null };
+    if (v.startsWith("prop:")) return { project_id: null, property_id: v.slice(5) };
+    return { project_id: null, property_id: null };
+  }
+
   // Filters
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<ContractType | "all">("all");
@@ -136,7 +156,7 @@ export default function ContractsClient({
     payment_terms: "",
     scope_of_work: "",
     insurance_required: false,
-    project_id: "",
+    context_id: "",
   });
 
   // Detail / Edit / Delete modal state
@@ -207,7 +227,7 @@ export default function ContractsClient({
           payment_terms: formData.payment_terms || undefined,
           scope_of_work: formData.scope_of_work || undefined,
           insurance_required: formData.insurance_required,
-          project_id: formData.project_id || undefined,
+          ...parseContext(formData.context_id),
         }),
       });
 
@@ -228,7 +248,7 @@ export default function ContractsClient({
         payment_terms: "",
         scope_of_work: "",
         insurance_required: false,
-        project_id: "",
+        context_id: "",
       });
       setShowCreate(false);
       router.refresh();
@@ -274,7 +294,8 @@ export default function ContractsClient({
       scope_of_work: selectedContract.scope_of_work || "",
       insurance_required: selectedContract.insurance_required ?? false,
       bond_required: selectedContract.bond_required ?? false,
-      project_id: selectedContract.project_id || "",
+      context_id: selectedContract.project_id ? `proj:${selectedContract.project_id}`
+        : selectedContract.property_id ? `prop:${selectedContract.property_id}` : "",
     });
     setIsEditing(true);
     setSaveError("");
@@ -323,8 +344,13 @@ export default function ContractsClient({
         payload.insurance_required = editData.insurance_required;
       if (editData.bond_required !== selectedContract.bond_required)
         payload.bond_required = editData.bond_required;
-      if (editData.project_id !== (selectedContract.project_id || ""))
-        payload.project_id = editData.project_id || null;
+      const ctx = parseContext(editData.context_id as string || "");
+      const existingCtx = selectedContract.project_id ? `proj:${selectedContract.project_id}`
+        : selectedContract.property_id ? `prop:${selectedContract.property_id}` : "";
+      if ((editData.context_id as string || "") !== existingCtx) {
+        payload.project_id = ctx.project_id;
+        payload.property_id = ctx.property_id;
+      }
 
       if (Object.keys(payload).length === 0) {
         // Nothing changed
@@ -627,20 +653,29 @@ export default function ContractsClient({
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">{t("project")}</label>
+                  <label className="contracts-form-label">Project / Property</label>
                   <select
                     className="contracts-form-select"
-                    value={formData.project_id}
+                    value={formData.context_id}
                     onChange={(e) =>
-                      setFormData({ ...formData, project_id: e.target.value })
+                      setFormData({ ...formData, context_id: e.target.value })
                     }
                   >
-                    <option value="">{t("noProject")}</option>
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
+                    <option value="">— None —</option>
+                    {projectList.length > 0 && (
+                      <optgroup label="Projects">
+                        {projectList.map((p) => (
+                          <option key={p.id} value={`proj:${p.id}`}>{p.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {propertyList.length > 0 && (
+                      <optgroup label="Properties">
+                        {propertyList.map((p) => (
+                          <option key={p.id} value={`prop:${p.id}`}>{p.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
               </div>
@@ -953,11 +988,11 @@ export default function ContractsClient({
                   </div>
                 </div>
 
-                {selectedContract.project && (
+                {(selectedContract.project || selectedContract.property) && (
                   <div className="contracts-form-group">
-                    <label className="contracts-form-label">{t("project")}</label>
+                    <label className="contracts-form-label">Project / Property</label>
                     <div className="contracts-detail-value">
-                      {selectedContract.project.name}
+                      {selectedContract.project?.name || selectedContract.property?.name}
                     </div>
                   </div>
                 )}
@@ -1165,20 +1200,29 @@ export default function ContractsClient({
                 </div>
 
                 <div className="contracts-form-group">
-                  <label className="contracts-form-label">{t("project")}</label>
+                  <label className="contracts-form-label">Project / Property</label>
                   <select
                     className="contracts-form-select"
-                    value={(editData.project_id as string) || ""}
+                    value={(editData.context_id as string) || ""}
                     onChange={(e) =>
-                      setEditData({ ...editData, project_id: e.target.value })
+                      setEditData({ ...editData, context_id: e.target.value })
                     }
                   >
-                    <option value="">{t("noProject")}</option>
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
+                    <option value="">— None —</option>
+                    {projectList.length > 0 && (
+                      <optgroup label="Projects">
+                        {projectList.map((p) => (
+                          <option key={p.id} value={`proj:${p.id}`}>{p.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {propertyList.length > 0 && (
+                      <optgroup label="Properties">
+                        {propertyList.map((p) => (
+                          <option key={p.id} value={`prop:${p.id}`}>{p.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
 

@@ -33,12 +33,14 @@ export interface ContractRow {
   insurance_required: boolean;
   bond_required: boolean;
   project_id: string | null;
+  property_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
   metadata: Record<string, unknown>;
   // Joined fields
   project?: { id: string; name: string } | null;
+  property?: { id: string; name: string } | null;
   creator?: { id: string; full_name: string; email: string } | null;
 }
 
@@ -87,6 +89,7 @@ export interface CreateContractData {
   insurance_required?: boolean;
   bond_required?: boolean;
   project_id?: string;
+  property_id?: string;
 }
 
 export interface UpdateContractData {
@@ -105,6 +108,7 @@ export interface UpdateContractData {
   insurance_required?: boolean;
   bond_required?: boolean;
   project_id?: string | null;
+  property_id?: string | null;
 }
 
 export interface CreateMilestoneData {
@@ -318,6 +322,7 @@ export async function createContract(
       insurance_required: data.insurance_required ?? false,
       bond_required: data.bond_required ?? false,
       project_id: data.project_id ?? null,
+      property_id: data.property_id ?? null,
       metadata: {},
     })
     .select()

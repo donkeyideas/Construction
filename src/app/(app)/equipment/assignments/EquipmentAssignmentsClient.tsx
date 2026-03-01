@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -80,6 +80,26 @@ export default function EquipmentAssignmentsClient({
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
 
+  // Projects + Properties - refresh client-side for freshness
+  const [projectList, setProjectList] = useState<{ id: string; name: string }[]>(projects);
+  const [propertyList, setPropertyList] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/projects").then((r) => r.ok ? r.json() : []),
+      fetch("/api/properties").then((r) => r.ok ? r.json() : []),
+    ]).then(([projs, props]) => {
+      if (Array.isArray(projs) && projs.length > 0) setProjectList(projs);
+      if (Array.isArray(props)) setPropertyList(props);
+    }).catch(() => {});
+  }, []);
+
+  function parseContext(v: string): { project_id: string | null; property_id: string | null } {
+    if (!v) return { project_id: null, property_id: null };
+    if (v.startsWith("proj:")) return { project_id: v.slice(5), property_id: null };
+    if (v.startsWith("prop:")) return { project_id: null, property_id: v.slice(5) };
+    return { project_id: null, property_id: null };
+  }
+
   const ASSIGNMENT_STATUS_LABELS: Record<string, string> = {
     active: t("assignmentStatusActive"),
     returned: t("assignmentStatusReturned"),
@@ -101,7 +121,7 @@ export default function EquipmentAssignmentsClient({
   const [createError, setCreateError] = useState("");
   const [formData, setFormData] = useState({
     equipment_id: "",
-    project_id: "",
+    context_id: "",
     assigned_to: "",
     notes: "",
   });
@@ -112,7 +132,7 @@ export default function EquipmentAssignmentsClient({
   const [editError, setEditError] = useState("");
   const [editData, setEditData] = useState({
     equipment_id: "",
-    project_id: "",
+    context_id: "",
     assigned_to: "",
     assigned_date: "",
     returned_date: "",
@@ -152,7 +172,7 @@ export default function EquipmentAssignmentsClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             equipment_id: toAssign[i].id,
-            project_id: projects.length > 0 ? projects[i % projects.length].id : undefined,
+            project_id: projectList.length > 0 ? projectList[i % projectList.length].id : undefined,
             assigned_to: members.length > 0 ? members[i % members.length].user_id : undefined,
             notes: sampleNotes[i % sampleNotes.length],
           }),
@@ -207,7 +227,7 @@ export default function EquipmentAssignmentsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           equipment_id: formData.equipment_id,
-          project_id: formData.project_id || undefined,
+          ...parseContext(formData.context_id),
           assigned_to: formData.assigned_to || undefined,
           notes: formData.notes || undefined,
         }),
@@ -220,7 +240,7 @@ export default function EquipmentAssignmentsClient({
 
       setFormData({
         equipment_id: "",
-        project_id: "",
+        context_id: "",
         assigned_to: "",
         notes: "",
       });
@@ -239,7 +259,8 @@ export default function EquipmentAssignmentsClient({
     setEditError("");
     setEditData({
       equipment_id: assignment.equipment_id,
-      project_id: assignment.project_id || "",
+      context_id: assignment.project_id ? `proj:${assignment.project_id}`
+        : assignment.property_id ? `prop:${assignment.property_id}` : "",
       assigned_to: assignment.assigned_to || "",
       assigned_date: assignment.assigned_date?.split("T")[0] || "",
       returned_date: assignment.returned_date?.split("T")[0] || "",
@@ -261,7 +282,7 @@ export default function EquipmentAssignmentsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           equipment_id: editData.equipment_id,
-          project_id: editData.project_id || null,
+          ...parseContext(editData.context_id),
           assigned_to: editData.assigned_to || null,
           assigned_date: editData.assigned_date,
           returned_date: editData.returned_date || null,
@@ -436,7 +457,7 @@ export default function EquipmentAssignmentsClient({
           onChange={(e) => setProjectFilter(e.target.value)}
         >
           <option value="all">{t("allProjects")}</option>
-          {projects.map((p) => (
+          {projectList.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
@@ -608,20 +629,29 @@ export default function EquipmentAssignmentsClient({
               </div>
 
               <div className="equipment-form-group">
-                <label className="equipment-form-label">{t("columnProject")}</label>
+                <label className="equipment-form-label">Project / Property</label>
                 <select
                   className="equipment-form-select"
-                  value={formData.project_id}
+                  value={formData.context_id}
                   onChange={(e) =>
-                    setFormData({ ...formData, project_id: e.target.value })
+                    setFormData({ ...formData, context_id: e.target.value })
                   }
                 >
-                  <option value="">{t("noProject")}</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
+                  <option value="">— None —</option>
+                  {projectList.length > 0 && (
+                    <optgroup label="Projects">
+                      {projectList.map((p) => (
+                        <option key={p.id} value={`proj:${p.id}`}>{p.name}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {propertyList.length > 0 && (
+                    <optgroup label="Properties">
+                      {propertyList.map((p) => (
+                        <option key={p.id} value={`prop:${p.id}`}>{p.name}</option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
 
@@ -713,16 +743,27 @@ export default function EquipmentAssignmentsClient({
               </div>
 
               <div className="equipment-form-group">
-                <label className="equipment-form-label">{t("columnProject")}</label>
+                <label className="equipment-form-label">Project / Property</label>
                 <select
                   className="equipment-form-select"
-                  value={editData.project_id}
-                  onChange={(e) => setEditData({ ...editData, project_id: e.target.value })}
+                  value={editData.context_id}
+                  onChange={(e) => setEditData({ ...editData, context_id: e.target.value })}
                 >
-                  <option value="">{t("noProject")}</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
+                  <option value="">— None —</option>
+                  {projectList.length > 0 && (
+                    <optgroup label="Projects">
+                      {projectList.map((p) => (
+                        <option key={p.id} value={`proj:${p.id}`}>{p.name}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {propertyList.length > 0 && (
+                    <optgroup label="Properties">
+                      {propertyList.map((p) => (
+                        <option key={p.id} value={`prop:${p.id}`}>{p.name}</option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
 
