@@ -358,50 +358,54 @@ export default function NewPropertyPage() {
             style={{
               marginTop: "20px",
               padding: "16px 20px",
-              background: "var(--color-amber-light, rgba(245,158,11,0.08))",
-              border: "1px solid var(--color-amber, #f59e0b)",
+              background: "var(--card)",
+              border: "1px solid var(--border)",
               borderRadius: "10px",
             }}
           >
-            <div style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: "4px" }}>
+            <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--text)", marginBottom: "4px" }}>
               Financing Method
             </div>
             <div style={{ fontSize: "0.8rem", color: "var(--muted)", marginBottom: "14px" }}>
-              How was this property acquired? This determines the accounting entry (DR Building / CR Cash or Mortgage Payable).
+              How was this property acquired? Determines the accounting entry (DR Building / CR Cash or Mortgage Payable).
             </div>
-            <div style={{ display: "flex", gap: "20px" }}>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               {[
                 { value: "mortgage", label: "Mortgage / Financed", desc: "CR Mortgage Payable" },
                 { value: "cash", label: "Cash Purchase", desc: "CR Cash" },
-              ].map((opt) => (
-                <label
-                  key={opt.value}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    cursor: "pointer",
-                    padding: "10px 16px",
-                    borderRadius: "8px",
-                    border: `2px solid ${form.financing_method === opt.value ? "var(--color-amber, #f59e0b)" : "var(--border)"}`,
-                    background: form.financing_method === opt.value ? "var(--color-amber-light, rgba(245,158,11,0.08))" : "var(--card)",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="financing_method"
-                    value={opt.value}
-                    checked={form.financing_method === opt.value}
-                    onChange={handleChange}
-                    style={{ accentColor: "var(--color-amber, #f59e0b)" }}
-                  />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: "0.87rem" }}>{opt.label}</div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontFamily: "monospace" }}>{opt.desc}</div>
-                  </div>
-                </label>
-              ))}
+              ].map((opt) => {
+                const selected = form.financing_method === opt.value;
+                return (
+                  <label
+                    key={opt.value}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      cursor: "pointer",
+                      padding: "10px 16px",
+                      borderRadius: "8px",
+                      border: `2px solid ${selected ? "var(--color-primary, #6366f1)" : "var(--border)"}`,
+                      background: selected ? "var(--color-primary-light, rgba(99,102,241,0.08))" : "var(--bg)",
+                      transition: "border-color 0.15s, background 0.15s",
+                      minWidth: "180px",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="financing_method"
+                      value={opt.value}
+                      checked={selected}
+                      onChange={handleChange}
+                      style={{ accentColor: "var(--color-primary, #6366f1)", flexShrink: 0 }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: "0.87rem", color: "var(--text)" }}>{opt.label}</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontFamily: "monospace", marginTop: "2px" }}>{opt.desc}</div>
+                    </div>
+                  </label>
+                );
+              })}
             </div>
           </div>
         )}
