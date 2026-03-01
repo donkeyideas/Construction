@@ -57,9 +57,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const updateData: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
+    const updateData: Record<string, unknown> = {};
 
     if (body.cert_name !== undefined) updateData.cert_name = body.cert_name;
     if (body.cert_type !== undefined) updateData.cert_type = body.cert_type;

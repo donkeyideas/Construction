@@ -450,6 +450,61 @@
   cursor: not-allowed;
 }
 
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: var(--color-red, #dc2626);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-danger-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--color-red, #dc2626);
+  border: 1px solid var(--color-red, #dc2626);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-danger-outline:hover {
+  background: var(--color-red, #dc2626);
+  color: #fff;
+}
+
+.btn-danger-outline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ===== Create Modal ===== */
 .ticket-modal-overlay {
   position: fixed;
