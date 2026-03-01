@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -181,17 +181,20 @@ export default function AuditClient({ audit, companyName }: Props) {
   const failCount = audit.checks.filter((c) => c.status === "fail").length;
   const totalChecks = audit.checks.length;
 
-  // Deterministic date+time formatting to avoid hydration mismatch
-  const runDateObj = new Date(audit.runAt);
-  const MONTHS_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  const runMonth = MONTHS_LONG[runDateObj.getMonth()];
-  const runDay = runDateObj.getDate();
-  const runYear = runDateObj.getFullYear();
-  const runHour = runDateObj.getHours();
-  const runMin = String(runDateObj.getMinutes()).padStart(2, "0");
-  const runAmPm = runHour >= 12 ? "PM" : "AM";
-  const runH12 = runHour % 12 || 12;
-  const runDate = `${runMonth} ${runDay}, ${runYear} at ${runH12}:${runMin} ${runAmPm}`;
+  // Client-only date formatting to avoid SSR/client timezone mismatch (hydration error #418)
+  const [runDate, setRunDate] = useState("");
+  useEffect(() => {
+    const d = new Date(audit.runAt);
+    const MONTHS_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const month = MONTHS_LONG[d.getMonth()];
+    const day = d.getDate();
+    const year = d.getFullYear();
+    const hour = d.getHours();
+    const min = String(d.getMinutes()).padStart(2, "0");
+    const amPm = hour >= 12 ? "PM" : "AM";
+    const h12 = hour % 12 || 12;
+    setRunDate(`${month} ${day}, ${year} at ${h12}:${min} ${amPm}`);
+  }, [audit.runAt]);
 
   const gradeColor = GRADE_COLORS[audit.grade] || "var(--muted)";
 

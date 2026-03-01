@@ -619,23 +619,35 @@ async function checkARReconciliation(
   }
 
   // If invoice subledger is $0 but GL AR is positive, check whether the GL AR
-  // is explained by lease accrual JEs. This is a valid property-management workflow
-  // where rent receivables post directly to GL (no invoice records created).
+  // is explained by lease/rent accrual JEs. This is a valid property-management
+  // workflow where rent receivables post directly to GL (no invoice records created).
+  // Two reference formats exist:
+  //   rent:accrual:{leaseId}:{YYYY-MM}  (lease-accounting.ts)
+  //   lease_accrual:{leaseId}:{YYYY-MM} (invoice-accounting.ts)
   if (invoiceARBalance === 0 && glARBalance > 0) {
-    const { count: leaseAccrualCount } = await supabase
-      .from("journal_entries")
-      .select("id", { count: "exact", head: true })
-      .eq("company_id", companyId)
-      .like("reference", "lease_accrual:%")
-      .eq("status", "posted");
+    const [{ count: rentAccrualCount }, { count: leaseAccrualCount }] = await Promise.all([
+      supabase
+        .from("journal_entries")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyId)
+        .like("reference", "rent:accrual:%")
+        .eq("status", "posted"),
+      supabase
+        .from("journal_entries")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyId)
+        .like("reference", "lease_accrual:%")
+        .eq("status", "posted"),
+    ]);
+    const totalAccrualJEs = (rentAccrualCount ?? 0) + (leaseAccrualCount ?? 0);
 
-    if ((leaseAccrualCount ?? 0) > 0) {
+    if (totalAccrualJEs > 0) {
       return {
         id, name, status: "warn",
         summary: `AR (${fmt(glARBalance)}) is tracked via lease accrual journal entries — no invoice subledger expected`,
         details: [
           ...diffDetails,
-          `Note: ${leaseAccrualCount} lease accrual JE(s) post rent receivables directly to the GL.`,
+          `Note: ${totalAccrualJEs} lease/rent accrual JE(s) post rent receivables directly to the GL.`,
           "This is expected for property management workflows. No action needed.",
         ],
       };
