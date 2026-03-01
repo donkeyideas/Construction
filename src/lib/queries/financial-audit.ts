@@ -617,6 +617,31 @@ async function checkARReconciliation(
   if (diffPct <= 1 || difference <= 100) {
     return { id, name, status: "pass", summary: `GL AR matches invoice subledger — ${fmt(glARBalance)}`, details: difference <= 1 ? [] : diffDetails };
   }
+
+  // If invoice subledger is $0 but GL AR is positive, check whether the GL AR
+  // is explained by lease accrual JEs. This is a valid property-management workflow
+  // where rent receivables post directly to GL (no invoice records created).
+  if (invoiceARBalance === 0 && glARBalance > 0) {
+    const { count: leaseAccrualCount } = await supabase
+      .from("journal_entries")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .like("reference", "lease_accrual:%")
+      .eq("status", "posted");
+
+    if ((leaseAccrualCount ?? 0) > 0) {
+      return {
+        id, name, status: "warn",
+        summary: `AR (${fmt(glARBalance)}) is tracked via lease accrual journal entries — no invoice subledger expected`,
+        details: [
+          ...diffDetails,
+          `Note: ${leaseAccrualCount} lease accrual JE(s) post rent receivables directly to the GL.`,
+          "This is expected for property management workflows. No action needed.",
+        ],
+      };
+    }
+  }
+
   if (diffPct <= 5) {
     return { id, name, status: "warn", summary: `GL AR and invoices differ by ${diffPct.toFixed(1)}% (${fmt(difference)})`, details: diffDetails };
   }
