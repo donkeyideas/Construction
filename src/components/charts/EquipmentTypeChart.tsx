@@ -72,7 +72,7 @@ export default function EquipmentTypeChart({ data }: Props) {
     <ResponsiveContainer width="100%" height={220}>
       <BarChart
         data={chartData}
-        margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+        margin={{ top: 10, right: 10, left: -10, bottom: 15 }}
       >
         <CartesianGrid
           strokeDasharray="3 3"
@@ -88,7 +88,7 @@ export default function EquipmentTypeChart({ data }: Props) {
           interval={0}
           angle={-20}
           textAnchor="end"
-          height={50}
+          height={45}
         />
         <YAxis
           tick={{ fontSize: 11, fill: "var(--muted)" }}

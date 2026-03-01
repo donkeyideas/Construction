@@ -71,7 +71,7 @@ export default function ProjectBudgetChart({ data, height = 240 }: Props) {
     <ResponsiveContainer width="100%" height={height}>
       <BarChart
         data={data}
-        margin={{ top: 10, right: 10, left: 5, bottom: 0 }}
+        margin={{ top: 10, right: 10, left: 5, bottom: 20 }}
         barGap={2}
       >
         <CartesianGrid
@@ -88,7 +88,8 @@ export default function ProjectBudgetChart({ data, height = 240 }: Props) {
           interval={0}
           angle={-35}
           textAnchor="end"
-          height={70}
+          height={60}
+          tickFormatter={(v: string) => v.length > 16 ? v.slice(0, 16) + "\u2026" : v}
         />
         <YAxis
           tickFormatter={formatCompact}
