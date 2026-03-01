@@ -17,13 +17,16 @@ interface PricingTier {
 }
 
 const COMPANY_TYPES = [
-  "General Contractor",
-  "Developer",
-  "Property Manager",
-  "Owner-Builder",
-  "Subcontractor",
+  "General Contracting",
+  "Residential Construction",
+  "Commercial Construction",
+  "Heavy Civil",
   "Specialty Trade",
-  "Architecture / Engineering",
+  "Real Estate Development",
+  "Property Management",
+  "Engineering",
+  "Architecture",
+  "Owner-Builder",
   "Other",
 ] as const;
 

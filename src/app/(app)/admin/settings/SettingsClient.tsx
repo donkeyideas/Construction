@@ -41,8 +41,10 @@ const INDUSTRY_KEYS = [
   "Heavy Civil",
   "Specialty Trade",
   "Real Estate Development",
+  "Property Management",
   "Engineering",
   "Architecture",
+  "Owner-Builder",
   "Other",
 ] as const;
 
