@@ -48,7 +48,12 @@ export function useRealtimeSubscription<T extends Record<string, unknown>>(
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          // Silently ignore subscription errors (e.g. table not in realtime publication)
+          console.debug(`Realtime subscription error [${table}]:`, err);
+        }
+      });
 
     channelRef.current = channel;
 

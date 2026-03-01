@@ -109,7 +109,7 @@ export default function SettingsClient({
     { key: "general", label: t("general"), icon: <Settings size={15} /> },
     { key: "subscription", label: t("subscription"), icon: <CreditCard size={15} /> },
     { key: "modules", label: t("modules"), icon: <LayoutGrid size={15} /> },
-    { key: "integrations", label: t("integrations"), icon: <Plug size={15} /> },
+    { key: "integrations", label: t("integrations.title"), icon: <Plug size={15} /> },
     { key: "design", label: t("design"), icon: <Palette size={15} /> },
   ];
 

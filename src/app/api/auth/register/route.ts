@@ -91,7 +91,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient();
 
-    // Check if company slug is already taken
+    // Check if company slug is already taken — auto-increment if so (e.g. acme-co → acme-co-2)
+    let resolvedSlug = company_slug;
     const { data: existingCompany } = await supabase
       .from("companies")
       .select("id")
@@ -99,10 +100,26 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingCompany) {
-      return NextResponse.json(
-        { error: "This company URL slug is already taken. Please choose a different one." },
-        { status: 409 }
-      );
+      let found = false;
+      for (let suffix = 2; suffix <= 20; suffix++) {
+        const candidate = `${company_slug}-${suffix}`;
+        const { data: taken } = await supabase
+          .from("companies")
+          .select("id")
+          .eq("slug", candidate)
+          .single();
+        if (!taken) {
+          resolvedSlug = candidate;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        return NextResponse.json(
+          { error: "This company URL slug is already taken. Please choose a different one." },
+          { status: 409 }
+        );
+      }
     }
 
     // Step 1: Create the user in Supabase Auth
@@ -164,7 +181,7 @@ export async function POST(request: NextRequest) {
       .from("companies")
       .insert({
         name: company_name,
-        slug: company_slug,
+        slug: resolvedSlug,
         industry_type: industry_type || null,
         created_by: userId,
         company_size: body.company_size || null,
