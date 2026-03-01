@@ -1140,10 +1140,10 @@ export async function getProjectTransactionsById(
     ),
     paginatedQuery<{
       id: string; co_number: string; created_at: string;
-      description: string; total_amount: number; status: string; change_type: string;
+      description: string | null; amount: number; status: string;
     }>((from, to) =>
       supabase.from("change_orders")
-        .select("id, co_number, created_at, description, total_amount, status, change_type")
+        .select("id, co_number, created_at, description, amount, status")
         .eq("company_id", companyId).eq("project_id", projectId).eq("status", "approved").range(from, to)
     ),
   ]);
@@ -1175,10 +1175,10 @@ export async function getProjectTransactionsById(
     });
   }
 
-  // Approved change orders
+  // Approved change orders — positive amount = contract increase (credit/revenue)
   for (const co of changeOrdersRes) {
     const je = coJeMap.get(`change_order:${co.id}`);
-    const isOwner = co.change_type !== "cost";
+    const amt = Number(co.amount) || 0;
     txns.push({
       id: `co-${co.id}`,
       date: co.created_at.slice(0, 10),
@@ -1186,8 +1186,8 @@ export async function getProjectTransactionsById(
       reference: co.co_number,
       source: "Change Orders",
       sourceHref: `/projects/${projectId}`,
-      debit: isOwner ? 0 : Number(co.total_amount) || 0,
-      credit: isOwner ? Number(co.total_amount) || 0 : 0,
+      debit: amt < 0 ? Math.abs(amt) : 0,
+      credit: amt >= 0 ? amt : 0,
       jeNumber: je?.entry_number ?? null,
       jeId: je?.id ?? null,
       jeExpected: true,

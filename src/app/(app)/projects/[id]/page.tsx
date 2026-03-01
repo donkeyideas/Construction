@@ -49,11 +49,15 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
-  const [stats, companyMembers, transactions] = await Promise.all([
+  const [stats, companyMembers, rawTransactions] = await Promise.all([
     getProjectStats(supabase, id),
     getCompanyMembers(supabase, userCtx.companyId),
-    getProjectTransactionsById(supabase, userCtx.companyId, id),
+    getProjectTransactionsById(supabase, userCtx.companyId, id).catch((err) => {
+      console.error("getProjectTransactionsById failed:", err);
+      return { totalTransactions: 0, totalDebits: 0, totalCredits: 0, netAmount: 0, transactions: [] };
+    }),
   ]);
+  const transactions = rawTransactions;
 
   // Build userMap for resolving UUIDs to names
   const userIds = new Set<string>();

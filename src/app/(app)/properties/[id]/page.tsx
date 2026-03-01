@@ -51,12 +51,16 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  let [financials, announcements, rentPayments, transactions] = await Promise.all([
+  let [financials, announcements, rentPayments, rawTransactions] = await Promise.all([
     getPropertyFinancials(supabase, id),
     getPropertyAnnouncements(supabase, id),
     getPropertyRentPayments(supabase, id),
-    getPropertyTransactionsById(supabase, ctx.companyId, id),
+    getPropertyTransactionsById(supabase, ctx.companyId, id).catch((err) => {
+      console.error("getPropertyTransactionsById failed:", err);
+      return { totalTransactions: 0, totalDebits: 0, totalCredits: 0, netAmount: 0, transactions: [] };
+    }),
   ]);
+  let transactions = rawTransactions;
 
   // Auto-backfill: generate missing JEs for rent payments that don't have one
   const paymentsWithoutJE = rentPayments.filter((p) => !p.je_id && p.amount > 0);
