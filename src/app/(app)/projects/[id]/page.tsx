@@ -7,6 +7,7 @@ import {
   getCompanyMembers,
 } from "@/lib/queries/projects";
 import ProjectDetailClient from "./ProjectDetailClient";
+import { getProjectTransactionsById } from "@/lib/queries/section-transactions";
 
 export async function generateMetadata({
   params,
@@ -48,9 +49,10 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
-  const [stats, companyMembers] = await Promise.all([
+  const [stats, companyMembers, transactions] = await Promise.all([
     getProjectStats(supabase, id),
     getCompanyMembers(supabase, userCtx.companyId),
+    getProjectTransactionsById(supabase, userCtx.companyId, id),
   ]);
 
   // Build userMap for resolving UUIDs to names
@@ -101,6 +103,7 @@ export default async function ProjectDetailPage({
       stats={stats}
       userMap={userMap}
       memberOptions={memberOptions}
+      transactions={transactions}
     />
   );
 }

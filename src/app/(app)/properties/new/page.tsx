@@ -41,6 +41,7 @@ export default function NewPropertyPage() {
     total_units: "",
     purchase_price: "",
     current_value: "",
+    financing_method: "mortgage" as "cash" | "mortgage",
     // Unit template fields
     default_unit_type: "",
     default_sqft_per_unit: "",
@@ -49,6 +50,8 @@ export default function NewPropertyPage() {
   });
 
   const unitCount = parseInt(form.total_units, 10) || 0;
+
+  const hasPurchasePrice = parseFloat(form.purchase_price) > 0;
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -88,6 +91,7 @@ export default function NewPropertyPage() {
         total_units: form.total_units ? parseInt(form.total_units, 10) : 0,
         purchase_price: form.purchase_price ? parseFloat(form.purchase_price) : null,
         current_value: form.current_value ? parseFloat(form.current_value) : null,
+        financing_method: form.financing_method,
         // Unit template
         default_unit_type: form.default_unit_type || DEFAULT_UNIT_TYPE_BY_PROPERTY[form.property_type] || "1br",
         default_sqft_per_unit: form.default_sqft_per_unit ? parseFloat(form.default_sqft_per_unit) : null,
@@ -347,6 +351,60 @@ export default function NewPropertyPage() {
             />
           </div>
         </div>
+
+        {/* Financing Method — shown when purchase_price > 0 */}
+        {hasPurchasePrice && (
+          <div
+            style={{
+              marginTop: "20px",
+              padding: "16px 20px",
+              background: "var(--color-amber-light, rgba(245,158,11,0.08))",
+              border: "1px solid var(--color-amber, #f59e0b)",
+              borderRadius: "10px",
+            }}
+          >
+            <div style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: "4px" }}>
+              Financing Method
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "var(--muted)", marginBottom: "14px" }}>
+              How was this property acquired? This determines the accounting entry (DR Building / CR Cash or Mortgage Payable).
+            </div>
+            <div style={{ display: "flex", gap: "20px" }}>
+              {[
+                { value: "mortgage", label: "Mortgage / Financed", desc: "CR Mortgage Payable" },
+                { value: "cash", label: "Cash Purchase", desc: "CR Cash" },
+              ].map((opt) => (
+                <label
+                  key={opt.value}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    cursor: "pointer",
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    border: `2px solid ${form.financing_method === opt.value ? "var(--color-amber, #f59e0b)" : "var(--border)"}`,
+                    background: form.financing_method === opt.value ? "var(--color-amber-light, rgba(245,158,11,0.08))" : "var(--card)",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="financing_method"
+                    value={opt.value}
+                    checked={form.financing_method === opt.value}
+                    onChange={handleChange}
+                    style={{ accentColor: "var(--color-amber, #f59e0b)" }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "0.87rem" }}>{opt.label}</div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontFamily: "monospace" }}>{opt.desc}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Unit Defaults — shown when total_units > 0 */}
         {unitCount > 0 && (

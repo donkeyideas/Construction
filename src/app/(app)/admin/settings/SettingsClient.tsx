@@ -163,7 +163,7 @@ export default function SettingsClient({
 
   // General form state
   const [name, setName] = useState(company.name || "");
-  const [industry, setIndustry] = useState(company.industry || "");
+  const [industry, setIndustry] = useState(company.industry_type || "");
   const [address, setAddress] = useState(company.address || "");
   const [city, setCity] = useState(company.city || "");
   const [state, setState] = useState(company.state || "");
@@ -452,7 +452,7 @@ export default function SettingsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
-          industry: industry || null,
+          industry_type: industry || null,
           address: address || null,
           city: city || null,
           state: state || null,

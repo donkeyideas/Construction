@@ -74,7 +74,7 @@ export async function PATCH(request: NextRequest) {
 
     const allowedFields = [
       "name",
-      "industry",
+      "industry_type",
       "address",
       "city",
       "state",

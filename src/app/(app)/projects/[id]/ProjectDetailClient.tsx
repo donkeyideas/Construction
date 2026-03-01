@@ -26,6 +26,8 @@ import type {
   ProjectStats,
   ProjectStatus,
 } from "@/lib/queries/projects";
+import type { SectionTransactionSummary } from "@/lib/queries/section-transactions";
+import SectionTransactions from "@/components/SectionTransactions";
 
 // ---------------------------------------------------------------------------
 // Helpers (locale-aware versions are inside components)
@@ -46,7 +48,7 @@ function completionClass(pct: number) {
 // Tab definitions
 // ---------------------------------------------------------------------------
 
-type TabKey = "overview" | "tasks" | "daily-logs" | "rfis" | "change-orders";
+type TabKey = "overview" | "tasks" | "daily-logs" | "rfis" | "change-orders" | "transactions";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -68,6 +70,7 @@ interface ProjectDetailClientProps {
   stats: ProjectStats;
   userMap: Record<string, string>;
   memberOptions: MemberOption[];
+  transactions: SectionTransactionSummary;
 }
 
 // ---------------------------------------------------------------------------
@@ -84,6 +87,7 @@ export default function ProjectDetailClient({
   stats,
   userMap,
   memberOptions,
+  transactions,
 }: ProjectDetailClientProps) {
   const t = useTranslations("projects");
   const locale = useLocale();
@@ -156,6 +160,7 @@ export default function ProjectDetailClient({
     { key: "daily-logs" as TabKey, label: t("tabDailyLogs") },
     { key: "rfis" as TabKey, label: t("tabRfis") },
     { key: "change-orders" as TabKey, label: t("tabChangeOrders") },
+    { key: "transactions" as TabKey, label: "Transactions" },
   ];
 
   async function handleDelete() {
@@ -279,6 +284,11 @@ export default function ProjectDetailClient({
         )}
         {activeTab === "change-orders" && (
           <ChangeOrdersTab changeOrders={changeOrders} onSelect={setSelectedCo} formatCurrency={formatCurrency} formatDate={formatDate} statusLabel={statusLabel} t={t} />
+        )}
+        {activeTab === "transactions" && (
+          <div style={{ marginTop: "24px" }}>
+            <SectionTransactions data={transactions} sectionName="Project" />
+          </div>
         )}
       </div>
 

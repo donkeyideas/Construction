@@ -2383,3 +2383,103 @@ export async function generateInvoiceDeferralSchedule(
 
   return { scheduledCount, jeCount, insertErrors };
 }
+
+// ---------------------------------------------------------------------------
+// generatePropertyPurchaseJournalEntry
+// Auto-generates a double-entry JE when a property is created with a purchase
+// price. DR Building/Property asset, CR Cash (cash purchase) or Mortgage
+// Payable (financed).
+// ---------------------------------------------------------------------------
+
+export async function generatePropertyPurchaseJournalEntry(
+  supabase: SupabaseClient,
+  companyId: string,
+  userId: string,
+  property: {
+    id: string;
+    name: string;
+    purchase_price: number;
+  },
+  financingMethod: "cash" | "mortgage" = "mortgage"
+): Promise<{ journalEntryId: string } | null> {
+  if (!property.purchase_price || property.purchase_price <= 0) return null;
+
+  // Prevent duplicate JEs (idempotency)
+  const reference = `property_purchase:${property.id}`;
+  const { data: existing } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("reference", reference)
+    .maybeSingle();
+  if (existing) return { journalEntryId: existing.id };
+
+  // Find building/property asset account
+  const { data: buildingAccts } = await supabase
+    .from("chart_of_accounts")
+    .select("id, name")
+    .eq("company_id", companyId)
+    .eq("account_type", "asset")
+    .or("name.ilike.%building%,name.ilike.%property%,name.ilike.%real estate%,name.ilike.%land%")
+    .order("name", { ascending: true })
+    .limit(5);
+
+  const buildingAccountId = buildingAccts?.[0]?.id ?? null;
+  if (!buildingAccountId) {
+    console.warn(`[property-JE] No building/property asset account found for company ${companyId} — skipping JE`);
+    return null;
+  }
+
+  // Find credit account: Cash or Mortgage Payable
+  let creditAccountId: string | null = null;
+  if (financingMethod === "cash") {
+    const accountMap = await buildCompanyAccountMap(supabase, companyId);
+    creditAccountId = accountMap.cashId;
+  } else {
+    // Look for Mortgage Payable / Notes Payable / Loan Payable
+    const { data: mortgageAccts } = await supabase
+      .from("chart_of_accounts")
+      .select("id, name")
+      .eq("company_id", companyId)
+      .eq("account_type", "liability")
+      .or("name.ilike.%mortgage%,name.ilike.%note%,name.ilike.%loan%")
+      .order("name", { ascending: true })
+      .limit(5);
+    creditAccountId = mortgageAccts?.[0]?.id ?? null;
+    if (!creditAccountId) {
+      // Fall back to cash if no mortgage account
+      const accountMap = await buildCompanyAccountMap(supabase, companyId);
+      creditAccountId = accountMap.cashId;
+    }
+  }
+
+  if (!creditAccountId) {
+    console.warn(`[property-JE] No credit account found for company ${companyId} — skipping JE`);
+    return null;
+  }
+
+  const result = await createPostedJournalEntry(supabase, companyId, userId, {
+    entry_number: `JE-PROP-${property.id.slice(0, 8).toUpperCase()}`,
+    entry_date: new Date().toISOString().slice(0, 10),
+    description: `Property acquisition: ${property.name}`,
+    reference,
+    lines: [
+      {
+        account_id: buildingAccountId,
+        debit: property.purchase_price,
+        credit: 0,
+        description: property.name,
+        property_id: property.id,
+      },
+      {
+        account_id: creditAccountId,
+        debit: 0,
+        credit: property.purchase_price,
+        description: financingMethod === "mortgage" ? "Mortgage / Notes Payable" : "Cash disbursement",
+        property_id: property.id,
+      },
+    ],
+  });
+
+  return result ? { journalEntryId: result.id } : null;
+}

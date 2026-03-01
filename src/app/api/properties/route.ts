@@ -4,6 +4,7 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getProperties, createProperty, createUnit } from "@/lib/queries/properties";
 import { checkPlanLimit, planLimitError } from "@/lib/utils/plan-limits";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { generatePropertyPurchaseJournalEntry } from "@/lib/utils/invoice-accounting";
 
 const DEFAULT_UNIT_TYPE_BY_PROPERTY: Record<string, string> = {
   residential: "1br",
@@ -106,6 +107,21 @@ export async function POST(request: NextRequest) {
       purchase_price: body.purchase_price ?? null,
       current_value: body.current_value ?? null,
     });
+
+    // ── Auto-generate purchase journal entry ───────────────────────
+    const purchasePrice = body.purchase_price ? Number(body.purchase_price) : 0;
+    if (purchasePrice > 0) {
+      const financingMethod: "cash" | "mortgage" =
+        body.financing_method === "cash" ? "cash" : "mortgage";
+      // Non-blocking — JE failure doesn't block property creation
+      generatePropertyPurchaseJournalEntry(supabase, ctx.companyId, ctx.userId, {
+        id: property.id,
+        name: property.name,
+        purchase_price: purchasePrice,
+      }, financingMethod).catch((err) =>
+        console.warn("[property-JE] Failed to generate purchase JE:", err)
+      );
+    }
 
     // ── Auto-create placeholder units ──────────────────────────────
     if (totalUnits > 0) {

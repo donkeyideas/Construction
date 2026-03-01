@@ -34,6 +34,8 @@ import type {
   AnnouncementRow,
   PropertyRentPayment,
 } from "@/lib/queries/properties";
+import type { SectionTransactionSummary } from "@/lib/queries/section-transactions";
+import SectionTransactions from "@/components/SectionTransactions";
 import { formatCurrency, formatPercent, formatDateSafe } from "@/lib/utils/format";
 
 /* ------------------------------------------------------------------ */
@@ -48,6 +50,7 @@ interface PropertyDetailClientProps {
   financials: PropertyFinancials;
   announcements: AnnouncementRow[];
   rentPayments: PropertyRentPayment[];
+  transactions: SectionTransactionSummary;
 }
 
 /* ------------------------------------------------------------------ */
@@ -137,7 +140,7 @@ function MaintenanceStatusBadge({ status }: { status: string }) {
 /*  Tab Definitions                                                     */
 /* ------------------------------------------------------------------ */
 
-const TAB_KEYS = ["overview", "units", "leases", "maintenance", "payments", "financials", "announcements"] as const;
+const TAB_KEYS = ["overview", "units", "leases", "maintenance", "payments", "financials", "announcements", "transactions"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
 /* ------------------------------------------------------------------ */
@@ -152,6 +155,7 @@ export default function PropertyDetailClient({
   financials,
   announcements,
   rentPayments,
+  transactions,
 }: PropertyDetailClientProps) {
   const t = useTranslations("app");
   const locale = useLocale();
@@ -370,6 +374,7 @@ export default function PropertyDetailClient({
     { key: "payments" as TabKey, label: t("propTabPaymentsCount", { count: rentPayments.length }) },
     { key: "financials" as TabKey, label: t("propTabFinancials") },
     { key: "announcements" as TabKey, label: t("propTabAnnouncementsCount", { count: announcements.length }) },
+    { key: "transactions" as TabKey, label: "Transactions" },
   ];
 
   return (
@@ -507,6 +512,12 @@ export default function PropertyDetailClient({
           announcements={announcements}
           propertyId={property.id}
         />
+      )}
+
+      {activeTab === "transactions" && (
+        <div style={{ marginTop: "24px" }}>
+          <SectionTransactions data={transactions} sectionName="Property" />
+        </div>
       )}
 
       {/* ===== MODALS ===== */}

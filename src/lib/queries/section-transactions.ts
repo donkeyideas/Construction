@@ -989,3 +989,208 @@ export async function getCRMTransactions(
 
   return buildSummary(txns);
 }
+
+// ---------------------------------------------------------------------------
+// getPropertyTransactionsById
+// Targeted transactions for a single property: rent payments, maintenance
+// costs, property purchase JE, and any invoices linked to the property.
+// ---------------------------------------------------------------------------
+
+export async function getPropertyTransactionsById(
+  supabase: SupabaseClient,
+  companyId: string,
+  propertyId: string
+): Promise<SectionTransactionSummary> {
+  const txns: SectionTransaction[] = [];
+
+  // Parallel fetch: rent payments, maintenance, purchase JE, invoices
+  const [rentPaymentsRes, maintenanceRes, purchaseJERes, invoicesRes] = await Promise.all([
+    supabase
+      .from("rent_payments")
+      .select("id, amount, payment_date, tenant_name")
+      .eq("company_id", companyId)
+      .eq("property_id", propertyId)
+      .order("payment_date", { ascending: false }),
+    supabase
+      .from("maintenance_requests")
+      .select("id, title, actual_cost, updated_at")
+      .eq("company_id", companyId)
+      .eq("property_id", propertyId)
+      .gt("actual_cost", 0),
+    supabase
+      .from("journal_entries")
+      .select("id, entry_number, entry_date, description")
+      .eq("company_id", companyId)
+      .eq("reference", `property_purchase:${propertyId}`)
+      .maybeSingle(),
+    supabase
+      .from("invoices")
+      .select("id, invoice_number, invoice_date, invoice_type, total_amount, vendor_name, client_name")
+      .eq("company_id", companyId)
+      .eq("property_id", propertyId)
+      .order("invoice_date", { ascending: false }),
+  ]);
+
+  // Build JE reference maps for rent payments and invoices
+  const rentRefs = (rentPaymentsRes.data ?? []).map((p) => `rent_payment:${p.id}`);
+  const invRefs = (invoicesRes.data ?? []).map((inv) => `invoice:${inv.id}`);
+  const [jeMap, invJeMap] = await Promise.all([
+    getJEMap(supabase, companyId, rentRefs),
+    getJEMap(supabase, companyId, invRefs),
+  ]);
+
+  // Property purchase JE
+  if (purchaseJERes.data) {
+    const je = purchaseJERes.data;
+    txns.push({
+      id: `purchase-${propertyId}`,
+      date: je.entry_date,
+      description: je.description,
+      reference: je.entry_number,
+      source: "Property Purchase",
+      sourceHref: `/financial/journal-entries`,
+      debit: 0,
+      credit: 0,
+      jeNumber: je.entry_number,
+      jeId: je.id,
+      jeExpected: true,
+    });
+  }
+
+  // Rent payments (income → credit)
+  for (const pmt of rentPaymentsRes.data ?? []) {
+    const je = jeMap.get(`rent_payment:${pmt.id}`);
+    txns.push({
+      id: `rent-${pmt.id}`,
+      date: pmt.payment_date ?? new Date().toISOString().slice(0, 10),
+      description: `Rent payment — ${pmt.tenant_name ?? "Tenant"}`,
+      reference: pmt.id.slice(0, 8).toUpperCase(),
+      source: "Rent Payments",
+      sourceHref: `/properties/${propertyId}`,
+      debit: 0,
+      credit: Number(pmt.amount) || 0,
+      jeNumber: je?.entry_number ?? null,
+      jeId: je?.id ?? null,
+      jeExpected: true,
+    });
+  }
+
+  // Maintenance costs (expense → debit)
+  for (const maint of maintenanceRes.data ?? []) {
+    txns.push({
+      id: `maint-${maint.id}`,
+      date: (maint.updated_at ?? new Date().toISOString()).slice(0, 10),
+      description: `Maintenance: ${maint.title}`,
+      reference: maint.id.slice(0, 8).toUpperCase(),
+      source: "Maintenance",
+      sourceHref: `/properties/${propertyId}`,
+      debit: Number(maint.actual_cost) || 0,
+      credit: 0,
+      jeNumber: null,
+      jeId: null,
+      jeExpected: false,
+    });
+  }
+
+  // Invoices linked to this property
+  for (const inv of invoicesRes.data ?? []) {
+    const je = invJeMap.get(`invoice:${inv.id}`);
+    const isPayable = inv.invoice_type === "payable";
+    txns.push({
+      id: `inv-${inv.id}`,
+      date: inv.invoice_date,
+      description: `${inv.invoice_number} — ${isPayable ? (inv.vendor_name ?? "Vendor") : (inv.client_name ?? "Client")}`,
+      reference: inv.invoice_number,
+      source: isPayable ? "Vendor Invoices" : "Client Invoices",
+      sourceHref: `/financial/invoices/${inv.id}`,
+      debit: isPayable ? Number(inv.total_amount) || 0 : 0,
+      credit: isPayable ? 0 : Number(inv.total_amount) || 0,
+      jeNumber: je?.entry_number ?? null,
+      jeId: je?.id ?? null,
+      jeExpected: true,
+    });
+  }
+
+  return buildSummary(txns);
+}
+
+// ---------------------------------------------------------------------------
+// getProjectTransactionsById
+// Targeted transactions for a single project: invoices and approved change
+// orders with their linked JEs.
+// ---------------------------------------------------------------------------
+
+export async function getProjectTransactionsById(
+  supabase: SupabaseClient,
+  companyId: string,
+  projectId: string
+): Promise<SectionTransactionSummary> {
+  const txns: SectionTransaction[] = [];
+
+  // Parallel fetch: invoices + change orders
+  const [invoicesRes, changeOrdersRes] = await Promise.all([
+    paginatedQuery<{
+      id: string; invoice_number: string; invoice_date: string;
+      invoice_type: string; total_amount: number;
+      vendor_name: string | null; client_name: string | null;
+    }>(supabase, "invoices",
+      "id, invoice_number, invoice_date, invoice_type, total_amount, vendor_name, client_name",
+      (q) => q.eq("company_id", companyId).eq("project_id", projectId)
+    ),
+    paginatedQuery<{
+      id: string; co_number: string; created_at: string;
+      description: string; total_amount: number; status: string; change_type: string;
+    }>(supabase, "change_orders",
+      "id, co_number, created_at, description, total_amount, status, change_type",
+      (q) => q.eq("company_id", companyId).eq("project_id", projectId).eq("status", "approved")
+    ),
+  ]);
+
+  // Build JE reference maps
+  const invRefs = invoicesRes.map((inv) => `invoice:${inv.id}`);
+  const coRefs = changeOrdersRes.map((co) => `change_order:${co.id}`);
+  const [invJeMap, coJeMap] = await Promise.all([
+    getJEMap(supabase, companyId, invRefs),
+    getJEMap(supabase, companyId, coRefs),
+  ]);
+
+  // Invoices
+  for (const inv of invoicesRes) {
+    const je = invJeMap.get(`invoice:${inv.id}`);
+    const isPayable = inv.invoice_type === "payable";
+    txns.push({
+      id: `inv-${inv.id}`,
+      date: inv.invoice_date,
+      description: `${inv.invoice_number} — ${isPayable ? (inv.vendor_name ?? "Vendor") : (inv.client_name ?? "Client")}`,
+      reference: inv.invoice_number,
+      source: isPayable ? "Vendor Invoices" : "Client Invoices",
+      sourceHref: `/financial/invoices/${inv.id}`,
+      debit: isPayable ? Number(inv.total_amount) || 0 : 0,
+      credit: isPayable ? 0 : Number(inv.total_amount) || 0,
+      jeNumber: je?.entry_number ?? null,
+      jeId: je?.id ?? null,
+      jeExpected: true,
+    });
+  }
+
+  // Approved change orders
+  for (const co of changeOrdersRes) {
+    const je = coJeMap.get(`change_order:${co.id}`);
+    const isOwner = co.change_type !== "cost";
+    txns.push({
+      id: `co-${co.id}`,
+      date: co.created_at.slice(0, 10),
+      description: `${co.co_number} — ${co.description ?? "Change Order"}`,
+      reference: co.co_number,
+      source: "Change Orders",
+      sourceHref: `/projects/${projectId}`,
+      debit: isOwner ? 0 : Number(co.total_amount) || 0,
+      credit: isOwner ? Number(co.total_amount) || 0 : 0,
+      jeNumber: je?.entry_number ?? null,
+      jeId: je?.id ?? null,
+      jeExpected: true,
+    });
+  }
+
+  return buildSummary(txns);
+}

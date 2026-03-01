@@ -12,6 +12,7 @@ import {
   generateRentPaymentJournalEntry,
 } from "@/lib/utils/invoice-accounting";
 import PropertyDetailClient from "./PropertyDetailClient";
+import { getPropertyTransactionsById } from "@/lib/queries/section-transactions";
 
 export const metadata = {
   title: "Property Detail - Buildwrk",
@@ -50,10 +51,11 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  let [financials, announcements, rentPayments] = await Promise.all([
+  let [financials, announcements, rentPayments, transactions] = await Promise.all([
     getPropertyFinancials(supabase, id),
     getPropertyAnnouncements(supabase, id),
     getPropertyRentPayments(supabase, id),
+    getPropertyTransactionsById(supabase, ctx.companyId, id),
   ]);
 
   // Auto-backfill: generate missing JEs for rent payments that don't have one
@@ -88,6 +90,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       financials={financials}
       announcements={announcements}
       rentPayments={rentPayments}
+      transactions={transactions}
     />
   );
 }

@@ -36,7 +36,7 @@ export interface CompanyDetails {
   id: string;
   name: string;
   slug: string | null;
-  industry: string | null;
+  industry_type: string | null;
   address: string | null;
   city: string | null;
   state: string | null;
@@ -153,7 +153,7 @@ export async function updateCompanySettings(
     Pick<
       CompanyDetails,
       | "name"
-      | "industry"
+      | "industry_type"
       | "address"
       | "city"
       | "state"
