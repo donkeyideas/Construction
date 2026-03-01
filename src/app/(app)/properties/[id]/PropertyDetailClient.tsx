@@ -37,6 +37,13 @@ import type {
 import type { SectionTransactionSummary } from "@/lib/queries/section-transactions";
 import SectionTransactions from "@/components/SectionTransactions";
 import { formatCurrency, formatPercent, formatDateSafe } from "@/lib/utils/format";
+import {
+  getDefaultUsefulLife,
+  getDepreciableBasis,
+  getMonthlyDepreciation,
+  getEstimatedLandValue,
+  buildYearlySchedule,
+} from "@/lib/utils/property-depreciation";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -51,6 +58,7 @@ interface PropertyDetailClientProps {
   announcements: AnnouncementRow[];
   rentPayments: PropertyRentPayment[];
   transactions: SectionTransactionSummary;
+  depreciationAccumulated: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -140,7 +148,7 @@ function MaintenanceStatusBadge({ status }: { status: string }) {
 /*  Tab Definitions                                                     */
 /* ------------------------------------------------------------------ */
 
-const TAB_KEYS = ["overview", "units", "leases", "maintenance", "payments", "financials", "announcements", "transactions"] as const;
+const TAB_KEYS = ["overview", "units", "leases", "maintenance", "payments", "financials", "announcements", "transactions", "depreciation"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
 /* ------------------------------------------------------------------ */
@@ -156,6 +164,7 @@ export default function PropertyDetailClient({
   announcements,
   rentPayments,
   transactions,
+  depreciationAccumulated,
 }: PropertyDetailClientProps) {
   const t = useTranslations("app");
   const locale = useLocale();
@@ -200,6 +209,85 @@ export default function PropertyDetailClient({
   const [loginError, setLoginError] = useState("");
   const [loginSuccess, setLoginSuccess] = useState<{ email: string; password: string } | null>(null);
   const [copiedLoginField, setCopiedLoginField] = useState<string | null>(null);
+
+  // Depreciation schedule setup
+  const [depLandValue, setDepLandValue] = useState(
+    property.land_value != null ? String(property.land_value) : ""
+  );
+  const [depUsefulLife, setDepUsefulLife] = useState(
+    property.useful_life_years != null
+      ? String(property.useful_life_years)
+      : String(getDefaultUsefulLife(property.property_type))
+  );
+  const [depStartDate, setDepStartDate] = useState(
+    property.depreciation_start_date || new Date().toISOString().slice(0, 10)
+  );
+  const [depGenerating, setDepGenerating] = useState(false);
+  const [depError, setDepError] = useState("");
+  const [depResult, setDepResult] = useState<{ created: number; skipped: number; monthlyAmount: number } | null>(null);
+  const [depResetting, setDepResetting] = useState(false);
+  const [depIsSetUp, setDepIsSetUp] = useState(!!property.depreciation_start_date);
+
+  async function handleGenerateDepreciation() {
+    setDepGenerating(true);
+    setDepError("");
+    setDepResult(null);
+    try {
+      const res = await fetch(`/api/properties/${property.id}/depreciation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          land_value: depLandValue !== "" ? Number(depLandValue) : null,
+          useful_life_years: Number(depUsefulLife),
+          depreciation_start_date: depStartDate,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setDepError(data.error || "Failed to generate depreciation schedule.");
+      } else {
+        setDepResult({ created: data.created, skipped: data.skipped, monthlyAmount: data.monthlyAmount });
+        setDepIsSetUp(true);
+        router.refresh();
+      }
+    } catch {
+      setDepError("Network error — please try again.");
+    } finally {
+      setDepGenerating(false);
+    }
+  }
+
+  async function handleResetDepreciation() {
+    if (!confirm(`Delete all ${Math.round(Number(depUsefulLife) * 12)} depreciation JEs and reset the schedule? This cannot be undone.`)) return;
+    setDepResetting(true);
+    setDepError("");
+    try {
+      const res = await fetch(`/api/properties/${property.id}/depreciation`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        setDepError(data.error || "Failed to reset depreciation schedule.");
+      } else {
+        setDepIsSetUp(false);
+        setDepResult(null);
+        setDepLandValue("");
+        setDepUsefulLife(String(getDefaultUsefulLife(property.property_type)));
+        setDepStartDate(new Date().toISOString().slice(0, 10));
+        router.refresh();
+      }
+    } catch {
+      setDepError("Network error — please try again.");
+    } finally {
+      setDepResetting(false);
+    }
+  }
+
+  // Depreciation preview calculations (live, for setup form)
+  const depPurchasePrice = Number(property.purchase_price) || 0;
+  const depLandNum = depLandValue !== "" ? Number(depLandValue) : null;
+  const depBasis = getDepreciableBasis(depPurchasePrice, depLandNum);
+  const depLifeNum = Number(depUsefulLife) || getDefaultUsefulLife(property.property_type);
+  const depMonthly = getMonthlyDepreciation(depBasis, depLifeNum);
+  const depTotalMonths = Math.round(depLifeNum * 12);
 
   // Purchase JE backfill
   const [jeGenerating, setJeGenerating] = useState(false);
@@ -404,6 +492,7 @@ export default function PropertyDetailClient({
     { key: "financials" as TabKey, label: t("propTabFinancials") },
     { key: "announcements" as TabKey, label: t("propTabAnnouncementsCount", { count: announcements.length }) },
     { key: "transactions" as TabKey, label: "Transactions" },
+    { key: "depreciation" as TabKey, label: "Depreciation" },
   ];
 
   return (
@@ -609,6 +698,196 @@ export default function PropertyDetailClient({
             </div>
           )}
           <SectionTransactions data={transactions} sectionName="Property" />
+        </div>
+      )}
+
+      {activeTab === "depreciation" && (
+        <div style={{ marginTop: "24px" }}>
+          {depError && (
+            <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid #ef4444", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px", color: "#ef4444", fontSize: "14px" }}>
+              {depError}
+            </div>
+          )}
+
+          {!depIsSetUp ? (
+            /* ── Setup Form ── */
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", padding: "24px" }}>
+                <div style={{ fontWeight: 700, fontSize: "16px", marginBottom: "4px", color: "var(--text)" }}>Set Up Depreciation Schedule</div>
+                <div style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "20px" }}>
+                  GAAP straight-line depreciation. All monthly journal entries (DR Depreciation Expense / CR Accumulated Depreciation) will be generated upfront for the full useful life.
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "20px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: 600, marginBottom: "6px", color: "var(--text)" }}>
+                      Land Value (optional)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder={`Auto-estimate: ${formatCurrency(getEstimatedLandValue(depPurchasePrice))} (20%)`}
+                      value={depLandValue}
+                      onChange={(e) => setDepLandValue(e.target.value)}
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: "14px" }}
+                    />
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>Non-depreciable land portion. Leave blank to auto-estimate 20%.</div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: 600, marginBottom: "6px", color: "var(--text)" }}>
+                      Useful Life (years)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      value={depUsefulLife}
+                      onChange={(e) => setDepUsefulLife(e.target.value)}
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: "14px" }}
+                    />
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>GAAP default: Residential 27.5yr, Commercial/Industrial 39yr, Mixed-Use 30yr</div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: 600, marginBottom: "6px", color: "var(--text)" }}>
+                      Depreciation Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={depStartDate}
+                      onChange={(e) => setDepStartDate(e.target.value)}
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: "14px" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Live preview */}
+                <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "6px", padding: "16px", marginBottom: "20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
+                  {[
+                    { label: "Cost Basis", value: formatCurrency(depPurchasePrice) },
+                    { label: depLandNum != null ? "Land Value" : "Land (estimated 20%)", value: formatCurrency(depLandNum ?? getEstimatedLandValue(depPurchasePrice)) },
+                    { label: "Depreciable Basis", value: formatCurrency(depBasis) },
+                    { label: "Monthly Depreciation", value: formatCurrency(depMonthly) },
+                    { label: "Annual Depreciation", value: formatCurrency(depMonthly * 12) },
+                    { label: "Total JEs to Generate", value: `${depTotalMonths} months` },
+                  ].map((item) => (
+                    <div key={item.label}>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "2px" }}>{item.label}</div>
+                      <div style={{ fontSize: "15px", fontWeight: 600, color: "var(--text)" }}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleGenerateDepreciation}
+                  disabled={depGenerating || depPurchasePrice <= 0}
+                  className="btn btn-primary"
+                  style={{ fontSize: "14px" }}
+                >
+                  {depGenerating
+                    ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite", display: "inline", marginRight: "6px" }} />Generating {depTotalMonths} JEs…</>
+                    : `Generate Full Depreciation Schedule (${depTotalMonths} months)`}
+                </button>
+                {depPurchasePrice <= 0 && (
+                  <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "8px" }}>Add a purchase price to this property to enable depreciation.</div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* ── Schedule Summary (set up) ── */
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              {depResult && (
+                <div style={{ background: "rgba(34,197,94,0.1)", border: "1px solid #22c55e", borderRadius: "8px", padding: "12px 16px", color: "#22c55e", fontSize: "14px" }}>
+                  Schedule generated: {depResult.created} JEs created, {depResult.skipped} skipped. Monthly amount: {formatCurrency(depResult.monthlyAmount)}.
+                </div>
+              )}
+
+              {/* Summary cards */}
+              {(() => {
+                const purchasePrice = Number(property.purchase_price) || 0;
+                const landVal = property.land_value;
+                const basis = getDepreciableBasis(purchasePrice, landVal);
+                const usefulLife = Number(property.useful_life_years) || getDefaultUsefulLife(property.property_type);
+                const monthly = getMonthlyDepreciation(basis, usefulLife);
+                const netBookValue = Math.max(0, basis - depreciationAccumulated);
+                const monthsElapsed = depreciationAccumulated > 0 && monthly > 0 ? Math.round(depreciationAccumulated / monthly) : 0;
+                const yearsRemaining = Math.max(0, usefulLife - monthsElapsed / 12);
+                const startDate = property.depreciation_start_date || "";
+
+                const summaryItems = [
+                  { label: "Cost Basis", value: formatCurrency(purchasePrice) },
+                  { label: landVal != null ? "Land Value" : "Land Value (est. 20%)", value: formatCurrency(landVal ?? purchasePrice * 0.2) },
+                  { label: "Depreciable Basis", value: formatCurrency(basis) },
+                  { label: "Monthly Depreciation", value: formatCurrency(monthly) },
+                  { label: "Annual Depreciation", value: formatCurrency(monthly * 12) },
+                  { label: "Accumulated to Date", value: formatCurrency(depreciationAccumulated) },
+                  { label: "Net Book Value", value: formatCurrency(netBookValue), highlight: true },
+                  { label: "Useful Life", value: `${usefulLife} years` },
+                  { label: "Years Remaining", value: yearsRemaining.toFixed(1) },
+                  { label: "Method", value: property.depreciation_method || "Straight-Line" },
+                  { label: "Start Date", value: startDate ? formatDateSafe(startDate) : "—" },
+                ];
+
+                const yearlyRows = startDate ? buildYearlySchedule(basis, usefulLife, startDate) : [];
+
+                return (
+                  <>
+                    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", padding: "24px" }}>
+                      <div style={{ fontWeight: 700, fontSize: "16px", marginBottom: "16px", color: "var(--text)" }}>Depreciation Summary</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px" }}>
+                        {summaryItems.map((item) => (
+                          <div key={item.label} style={{ padding: "12px", background: item.highlight ? "rgba(99,102,241,0.08)" : "var(--bg)", borderRadius: "6px", border: `1px solid ${item.highlight ? "var(--color-primary, #6366f1)" : "var(--border)"}` }}>
+                            <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "4px" }}>{item.label}</div>
+                            <div style={{ fontSize: "16px", fontWeight: 700, color: item.highlight ? "var(--color-primary, #6366f1)" : "var(--text)" }}>{item.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {yearlyRows.length > 0 && (
+                      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", padding: "24px" }}>
+                        <div style={{ fontWeight: 700, fontSize: "16px", marginBottom: "16px", color: "var(--text)" }}>Year-by-Year Schedule</div>
+                        <div style={{ overflowX: "auto" }}>
+                          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                            <thead>
+                              <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textAlign: "left" }}>
+                                {["Year", "Annual Depreciation", "Cumulative Depreciation", "Net Book Value"].map((h) => (
+                                  <th key={h} style={{ padding: "8px 12px", fontWeight: 600 }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {yearlyRows.map((row, idx) => (
+                                <tr key={row.year} style={{ borderBottom: "1px solid var(--border)", background: idx % 2 === 0 ? "transparent" : "var(--bg)" }}>
+                                  <td style={{ padding: "8px 12px", color: "var(--text)", fontWeight: 600 }}>{row.year}</td>
+                                  <td style={{ padding: "8px 12px", color: "var(--text-muted)" }}>{formatCurrency(row.annualAmount)}</td>
+                                  <td style={{ padding: "8px 12px", color: "var(--text-muted)" }}>{formatCurrency(row.cumulative)}</td>
+                                  <td style={{ padding: "8px 12px", color: "var(--text)" }}>{formatCurrency(row.bookValue)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <button
+                        onClick={handleResetDepreciation}
+                        disabled={depResetting}
+                        className="btn btn-secondary"
+                        style={{ fontSize: "13px", color: "var(--color-danger, #ef4444)", borderColor: "var(--color-danger, #ef4444)" }}
+                      >
+                        {depResetting ? "Resetting…" : "Reset Depreciation Schedule"}
+                      </button>
+                      <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "6px" }}>
+                        Deletes all {Math.round(Number(property.useful_life_years || 39) * 12)} depreciation JEs and clears the setup so you can reconfigure.
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
         </div>
       )}
 

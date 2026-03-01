@@ -105,6 +105,7 @@ export async function POST(request: NextRequest) {
       total_sqft: body.total_sqft ?? null,
       total_units: totalUnits,
       purchase_price: body.purchase_price ?? null,
+      land_value: body.land_value ?? null,
       current_value: body.current_value ?? null,
     });
 

@@ -2392,7 +2392,7 @@ export async function generateInvoiceDeferralSchedule(
 // ---------------------------------------------------------------------------
 
 // Helper: find or auto-create a COA account for a company
-async function findOrCreateCOAAccount(
+export async function findOrCreateCOAAccount(
   supabase: SupabaseClient,
   companyId: string,
   accountNumber: string,

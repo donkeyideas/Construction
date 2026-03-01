@@ -62,6 +62,20 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   ]);
   let transactions = rawTransactions;
 
+  // Fetch accumulated depreciation to date for this property
+  let depreciationAccumulated = 0;
+  try {
+    const { data: depLines } = await supabase
+      .from("journal_entry_lines")
+      .select("credit, journal_entries!inner(company_id, reference, entry_date)")
+      .eq("journal_entries.company_id", ctx.companyId)
+      .like("journal_entries.reference", `depreciation:${id}:%`)
+      .lte("journal_entries.entry_date", new Date().toISOString().slice(0, 10));
+    depreciationAccumulated = (depLines ?? []).reduce((sum, row) => sum + (Number(row.credit) || 0), 0);
+  } catch {
+    depreciationAccumulated = 0;
+  }
+
   // Auto-backfill: generate missing JEs for rent payments that don't have one
   const paymentsWithoutJE = rentPayments.filter((p) => !p.je_id && p.amount > 0);
   if (paymentsWithoutJE.length > 0) {
@@ -95,6 +109,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       announcements={announcements}
       rentPayments={rentPayments}
       transactions={transactions}
+      depreciationAccumulated={depreciationAccumulated}
     />
   );
 }

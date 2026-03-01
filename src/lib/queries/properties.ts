@@ -28,6 +28,11 @@ export interface PropertyRow {
   metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  // Depreciation fields (added in migration 067)
+  land_value: number | null;
+  useful_life_years: number | null;
+  depreciation_method: string | null;
+  depreciation_start_date: string | null;
 }
 
 export interface UnitRow {
@@ -578,6 +583,7 @@ export interface CreatePropertyData {
   total_sqft?: number | null;
   total_units?: number;
   purchase_price?: number | null;
+  land_value?: number | null;
   current_value?: number | null;
 }
 

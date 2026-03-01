@@ -70,12 +70,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       "total_sqft",
       "total_units",
       "purchase_price",
+      "land_value",
       "current_value",
       "monthly_revenue",
       "monthly_expenses",
       "manager_id",
       "photos",
       "metadata",
+      "useful_life_years",
+      "depreciation_method",
+      "depreciation_start_date",
     ];
 
     const updates: Record<string, unknown> = {};

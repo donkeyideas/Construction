@@ -40,6 +40,7 @@ export default function NewPropertyPage() {
     total_sqft: "",
     total_units: "",
     purchase_price: "",
+    land_value: "",
     current_value: "",
     financing_method: "mortgage" as "cash" | "mortgage",
     // Unit template fields
@@ -90,6 +91,7 @@ export default function NewPropertyPage() {
         total_sqft: form.total_sqft ? parseInt(form.total_sqft, 10) : null,
         total_units: form.total_units ? parseInt(form.total_units, 10) : 0,
         purchase_price: form.purchase_price ? parseFloat(form.purchase_price) : null,
+        land_value: form.land_value ? parseFloat(form.land_value) : null,
         current_value: form.current_value ? parseFloat(form.current_value) : null,
         financing_method: form.financing_method,
         // Unit template
@@ -332,6 +334,29 @@ export default function NewPropertyPage() {
               step="0.01"
             />
           </div>
+
+          {/* Land Value — shown when purchase_price > 0 */}
+          {hasPurchasePrice && (
+            <div className="ui-field">
+              <label className="ui-label" htmlFor="land_value">
+                Land Value <span style={{ fontWeight: 400, color: "var(--muted)" }}>(optional)</span>
+              </label>
+              <input
+                id="land_value"
+                name="land_value"
+                type="number"
+                className="ui-input"
+                value={form.land_value}
+                onChange={handleChange}
+                placeholder={`e.g. ${form.purchase_price ? Math.round(parseFloat(form.purchase_price) * 0.2).toLocaleString() : "500000"} (leave blank for 20% auto-estimate)`}
+                min="0"
+                step="0.01"
+              />
+              <div style={{ fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
+                Non-depreciable land portion. If blank, 20% of purchase price is assumed for depreciation.
+              </div>
+            </div>
+          )}
 
           {/* Current Value */}
           <div className="ui-field">
