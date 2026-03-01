@@ -689,8 +689,8 @@ export async function getCompanyMembers(
     .select("id, first_name, last_name, job_title")
     .eq("company_id", companyId)
     .eq("is_active", true)
-    .order("last_name", { ascending: true })
-    .order("first_name", { ascending: true });
+    .order("first_name", { ascending: true })
+    .order("last_name", { ascending: true });
 
   if (error) {
     console.error("getCompanyMembers error:", error);
