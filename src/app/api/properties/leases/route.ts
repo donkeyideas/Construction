@@ -6,6 +6,7 @@ import {
   generateLeaseRevenueSchedule,
   generateSecurityDepositJournalEntry,
 } from "@/lib/utils/invoice-accounting";
+import { generateAllRentAccrualJEs } from "@/lib/utils/lease-accounting";
 
 // ---------------------------------------------------------------------------
 // POST /api/properties/leases - Create a new lease
@@ -130,6 +131,17 @@ export async function POST(request: NextRequest) {
       console.warn("Lease JE generation failed (non-blocking):", jeErr);
     }
 
+    // Auto-generate full-term rent accrual JEs (non-blocking)
+    generateAllRentAccrualJEs(supabase, userCtx.companyId, userCtx.userId, [{
+      id: lease.id,
+      tenant_name: body.tenant_name.trim(),
+      monthly_rent: Number(body.monthly_rent),
+      lease_start: body.lease_start,
+      lease_end: body.lease_end,
+      property_id: unit.property_id,
+      auto_renew: body.auto_renew === true,
+    }]).catch((err) => console.warn("[rent-accrual] JE generation failed:", err));
+
     return NextResponse.json(lease, { status: 201 });
   } catch (err) {
     console.error("POST /api/properties/leases error:", err);
@@ -213,6 +225,19 @@ export async function PATCH(request: NextRequest) {
     if (error) {
       console.error("Update lease error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // If lease_end, lease_start, or auto_renew changed, backfill any new months (non-blocking)
+    if (updates.lease_end !== undefined || updates.lease_start !== undefined || updates.auto_renew !== undefined) {
+      generateAllRentAccrualJEs(supabase, userCtx.companyId, userCtx.userId, [{
+        id: updated.id,
+        tenant_name: updated.tenant_name,
+        monthly_rent: Number(updated.monthly_rent),
+        lease_start: updated.lease_start,
+        lease_end: updated.lease_end,
+        property_id: updated.property_id,
+        auto_renew: updated.auto_renew ?? false,
+      }]).catch((err) => console.warn("[rent-accrual] PATCH JE generation failed:", err));
     }
 
     return NextResponse.json(updated);

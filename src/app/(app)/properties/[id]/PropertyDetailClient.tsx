@@ -2146,52 +2146,23 @@ function LeasesTabContent({
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
 
-  // Rent accrual state
-  const [accrualGenerating, setAccrualGenerating] = useState(false);
-  const [accrualResetting, setAccrualResetting] = useState(false);
-  const [accrualResult, setAccrualResult] = useState<{ totalCreated: number; totalSkipped: number; leases: { tenantName: string; created: number; months: number }[] } | null>(null);
-  const [accrualError, setAccrualError] = useState("");
+  const activeLeases = leases.filter((l) => l.status === "active" || l.status === "expired");
 
-  async function handleGenerateAccruals() {
-    setAccrualGenerating(true);
-    setAccrualError("");
-    setAccrualResult(null);
-    try {
-      const res = await fetch(`/api/properties/${propertyId}/rent-accrual`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) { setAccrualError(data.error || "Failed to generate JEs"); return; }
-      setAccrualResult(data);
-    } catch {
-      setAccrualError("Network error");
-    } finally {
-      setAccrualGenerating(false);
+  // Silently backfill any missing rent accrual JEs when the Leases tab mounts.
+  // This handles leases created before auto-generation was added. Fire-and-forget.
+  const accrualBackfillRan = useRef(false);
+  useEffect(() => {
+    if (activeLeases.length > 0 && !accrualBackfillRan.current) {
+      accrualBackfillRan.current = true;
+      fetch(`/api/properties/${propertyId}/rent-accrual`, { method: "POST" })
+        .catch(() => {});
     }
-  }
-
-  async function handleResetAccruals() {
-    if (!confirm("Delete all rent accrual JEs for this property? This will remove all DR Rent Receivable / CR Rental Income entries.")) return;
-    setAccrualResetting(true);
-    setAccrualError("");
-    try {
-      const res = await fetch(`/api/properties/${propertyId}/rent-accrual`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok) { setAccrualError(data.error || "Failed to reset"); return; }
-      setAccrualResult(null);
-      alert(`Deleted ${data.deleted} journal entries.`);
-    } catch {
-      setAccrualError("Network error");
-    } finally {
-      setAccrualResetting(false);
-    }
-  }
+  }, [activeLeases.length, propertyId]);
 
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
     return formatDateSafe(d);
   }
-
-  const activeLeases = leases.filter((l) => l.status === "active" || l.status === "expired");
-  const totalMonthlyRent = activeLeases.reduce((s, l) => s + l.monthly_rent, 0);
 
   if (leases.length === 0) {
     return (
@@ -2210,55 +2181,7 @@ function LeasesTabContent({
   }
 
   return (
-    <div>
-      {/* Rent Revenue Accrual Banner */}
-      {activeLeases.length > 0 && (
-        <div style={{ margin: "16px 16px 0", padding: "14px 16px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
-          <div style={{ flex: 1, minWidth: "200px" }}>
-            <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: "2px" }}>Rent Revenue Recognition</div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-              {activeLeases.length} lease{activeLeases.length !== 1 ? "s" : ""} · {formatCurrency(totalMonthlyRent)}/mo total
-              {" — "}generates <strong>DR Rent Receivable / CR Rental Income</strong> for each month earned
-            </div>
-            {accrualResult && (
-              <div style={{ marginTop: "6px", fontSize: "12px", color: "var(--color-success, #22c55e)" }}>
-                {accrualResult.totalCreated > 0
-                  ? `✓ Created ${accrualResult.totalCreated} JEs (${accrualResult.totalSkipped} already existed)`
-                  : `✓ All up to date — ${accrualResult.totalSkipped} JEs already exist`}
-                {accrualResult.leases.map((l) => (
-                  <span key={l.tenantName} style={{ display: "block", color: "var(--text-muted)", fontSize: "11px" }}>
-                    {l.tenantName}: {l.created} new, {l.months - l.created} existing
-                  </span>
-                ))}
-              </div>
-            )}
-            {accrualError && (
-              <div style={{ marginTop: "4px", fontSize: "12px", color: "var(--color-danger, #ef4444)" }}>{accrualError}</div>
-            )}
-          </div>
-          <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-            <button
-              className="ui-btn ui-btn-sm ui-btn-primary"
-              onClick={handleGenerateAccruals}
-              disabled={accrualGenerating}
-              style={{ display: "flex", alignItems: "center", gap: "6px" }}
-            >
-              {accrualGenerating ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <DollarSign size={13} />}
-              {accrualGenerating ? "Generating…" : "Generate Rent JEs"}
-            </button>
-            <button
-              className="ui-btn ui-btn-sm"
-              onClick={handleResetAccruals}
-              disabled={accrualResetting}
-              style={{ fontSize: "12px", color: "var(--text-muted)" }}
-            >
-              {accrualResetting ? "Resetting…" : "Reset"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div style={{ overflowX: "auto" }}>
+    <div style={{ overflowX: "auto" }}>
       <table className="lease-table">
         <thead>
           <tr>
@@ -2323,7 +2246,6 @@ function LeasesTabContent({
           })}
         </tbody>
       </table>
-      </div>
     </div>
   );
 }

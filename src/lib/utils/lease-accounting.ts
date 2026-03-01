@@ -43,19 +43,49 @@ function parseLocalDate(dateStr: string): { year: number; month: number } {
   return { year: y, month: m - 1 }; // month is 0-based
 }
 
-function getTodayStr(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-}
-
 // ---------------------------------------------------------------------------
 // JE generation
 // ---------------------------------------------------------------------------
 
 /**
+ * Calculate the JE generation end date for a lease.
+ * - Regular lease: use lease_end as-is.
+ * - Auto-renew lease: extend by one additional full term (same duration),
+ *   so JEs exist for the next renewal cycle without any manual action.
+ *   Capped at 15 years from lease_start to avoid runaway JE counts.
+ */
+function getAccrualEndDate(leaseStart: string, leaseEnd: string, autoRenew: boolean): string {
+  if (!autoRenew) return leaseEnd;
+
+  const { year: startYr, month: startMo } = parseLocalDate(leaseStart);
+  const { year: endYr, month: endMo } = parseLocalDate(leaseEnd);
+
+  // Term length in months (0-based months)
+  const termMonths = (endYr - startYr) * 12 + (endMo - startMo);
+  if (termMonths <= 0) return leaseEnd;
+
+  // Cap at 15 years from start
+  const maxMo = startMo + 15 * 12; // 0-based
+  const maxYr = startYr + Math.floor(maxMo / 12);
+  const maxMonth = maxMo % 12;
+
+  // Extend by another full term
+  const extTotalMo = endMo + termMonths; // 0-based
+  const extYr = endYr + Math.floor(extTotalMo / 12);
+  const extMo = extTotalMo % 12; // 0-based
+
+  // Apply cap
+  if (extYr > maxYr || (extYr === maxYr && extMo > maxMonth)) {
+    return `${maxYr}-${String(maxMonth + 1).padStart(2, "0")}-01`;
+  }
+  return `${extYr}-${String(extMo + 1).padStart(2, "0")}-01`;
+}
+
+/**
  * Generate monthly rent accrual JEs for a list of leases.
- * For each lease, generates DR Rent Receivable / CR Rental Income
- * for every month from lease_start up to min(lease_end, today).
+ * For each lease: DR Rent Receivable / CR Rental Income for every month
+ * from lease_start through lease_end (full term, including future months).
+ * Auto-renew leases get an extra cycle pre-generated automatically.
  *
  * Idempotent: skips any month where the reference JE already exists.
  */
@@ -70,6 +100,7 @@ export async function generateAllRentAccrualJEs(
     lease_start: string;  // YYYY-MM-DD
     lease_end: string;    // YYYY-MM-DD
     property_id: string;
+    auto_renew?: boolean;
   }>
 ): Promise<GenerateAllRentAccrualsResult> {
   if (leases.length === 0) {
@@ -103,7 +134,6 @@ export async function generateAllRentAccrualJEs(
     throw new Error("Could not resolve Rent Receivable or Rental Income accounts.");
   }
 
-  const todayStr = getTodayStr();
   const results: RentAccrualResult[] = [];
   let totalCreated = 0;
   let totalSkipped = 0;
@@ -115,8 +145,8 @@ export async function generateAllRentAccrualJEs(
       continue;
     }
 
-    // Accrue up to min(lease_end, today) — don't recognize future revenue
-    const endStr = lease.lease_end < todayStr ? lease.lease_end : todayStr;
+    // Generate for the full term. Auto-renew leases get an extra cycle.
+    const endStr = getAccrualEndDate(lease.lease_start, lease.lease_end, lease.auto_renew ?? false);
 
     const { year: startYr, month: startMo } = parseLocalDate(lease.lease_start);
     const { year: endYr, month: endMo } = parseLocalDate(endStr);
