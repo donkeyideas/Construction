@@ -71,32 +71,39 @@ export interface DepreciationScheduleRow {
   bookValue: number;
 }
 
+/** Parse a YYYY-MM-DD string as a local date (avoids UTC timezone offset shifting the month) */
+function parseLocalDate(dateStr: string): { year: number; month: number } {
+  const [y, m] = dateStr.split("-").map(Number);
+  return { year: y, month: m - 1 }; // month is 0-based
+}
+
 export function buildYearlySchedule(
   depreciableBasis: number,
   usefulLifeYears: number,
   startDate: string,   // YYYY-MM-DD
 ): DepreciationScheduleRow[] {
   const monthly = getMonthlyDepreciation(depreciableBasis, usefulLifeYears);
-  const startYear = new Date(startDate).getFullYear();
   const totalMonths = Math.round(usefulLifeYears * 12);
-  const endDate = new Date(startDate);
-  endDate.setMonth(endDate.getMonth() + totalMonths);
-  const endYear = endDate.getFullYear();
+
+  // Parse start as local date to avoid UTC offset shifting month
+  const { year: startYear, month: startMonth } = parseLocalDate(startDate);
+
+  // Compute end year/month by advancing totalMonths
+  let endYear = startYear;
+  let endMonth = startMonth + totalMonths;
+  endYear += Math.floor(endMonth / 12);
+  endMonth = endMonth % 12;
 
   const rows: DepreciationScheduleRow[] = [];
   let cumulative = 0;
 
   for (let yr = startYear; yr <= endYear; yr++) {
-    // Count months in this year that fall within the schedule
     let monthsInYear = 0;
     for (let mo = 0; mo < 12; mo++) {
-      const d = new Date(yr, mo, 1);
-      const start = new Date(startDate);
-      const startFirstOfMonth = new Date(start.getFullYear(), start.getMonth(), 1);
-      const endFirstOfMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-      if (d >= startFirstOfMonth && d < endFirstOfMonth) {
-        monthsInYear++;
-      }
+      // Is this month >= start and < end?
+      const afterStart = yr > startYear || (yr === startYear && mo >= startMonth);
+      const beforeEnd  = yr < endYear  || (yr === endYear  && mo < endMonth);
+      if (afterStart && beforeEnd) monthsInYear++;
     }
     if (monthsInYear === 0) continue;
     const annualAmount = Math.round(monthly * monthsInYear * 100) / 100;
@@ -166,18 +173,16 @@ export async function generateAllDepreciationJEs(
     throw new Error("Could not resolve Depreciation Expense or Accumulated Depreciation accounts.");
   }
 
-  // Build list of months
+  // Build list of months — parse as local date to avoid UTC offset shifting month
   const months: { year: number; month: number; entryDate: string }[] = [];
-  const cursor = new Date(property.depreciation_start_date + "T00:00:00");
-  // Normalise to 1st of month
-  cursor.setDate(1);
-
+  const { year: startYr, month: startMo } = parseLocalDate(property.depreciation_start_date);
+  // Use a plain counter to avoid Date rolling issues
   for (let i = 0; i < totalMonths; i++) {
-    const year  = cursor.getFullYear();
-    const month = cursor.getMonth() + 1; // 1-based
+    const totalMonth = startMo + i;
+    const year  = startYr + Math.floor(totalMonth / 12);
+    const month = (totalMonth % 12) + 1; // 1-based
     const entryDate = `${year}-${String(month).padStart(2, "0")}-01`;
     months.push({ year, month, entryDate });
-    cursor.setMonth(cursor.getMonth() + 1);
   }
 
   // Fetch all existing references for this property in one query

@@ -823,7 +823,7 @@ export default function PropertyDetailClient({
                   { label: "Net Book Value", value: formatCurrency(netBookValue), highlight: true },
                   { label: "Useful Life", value: `${usefulLife} years` },
                   { label: "Years Remaining", value: yearsRemaining.toFixed(1) },
-                  { label: "Method", value: property.depreciation_method || "Straight-Line" },
+                  { label: "Method", value: (property.depreciation_method || "straight_line").replace(/_/g, "-").replace(/\b\w/g, (c) => c.toUpperCase()) },
                   { label: "Start Date", value: startDate ? formatDateSafe(startDate) : "—" },
                 ];
 
