@@ -1133,16 +1133,18 @@ export async function getProjectTransactionsById(
       id: string; invoice_number: string; invoice_date: string;
       invoice_type: string; total_amount: number;
       vendor_name: string | null; client_name: string | null;
-    }>(supabase, "invoices",
-      "id, invoice_number, invoice_date, invoice_type, total_amount, vendor_name, client_name",
-      (q) => q.eq("company_id", companyId).eq("project_id", projectId)
+    }>((from, to) =>
+      supabase.from("invoices")
+        .select("id, invoice_number, invoice_date, invoice_type, total_amount, vendor_name, client_name")
+        .eq("company_id", companyId).eq("project_id", projectId).range(from, to)
     ),
     paginatedQuery<{
       id: string; co_number: string; created_at: string;
       description: string; total_amount: number; status: string; change_type: string;
-    }>(supabase, "change_orders",
-      "id, co_number, created_at, description, total_amount, status, change_type",
-      (q) => q.eq("company_id", companyId).eq("project_id", projectId).eq("status", "approved")
+    }>((from, to) =>
+      supabase.from("change_orders")
+        .select("id, co_number, created_at, description, total_amount, status, change_type")
+        .eq("company_id", companyId).eq("project_id", projectId).eq("status", "approved").range(from, to)
     ),
   ]);
 
