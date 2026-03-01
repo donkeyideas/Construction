@@ -18,6 +18,10 @@ import {
   KeyRound,
   Check,
   Copy,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  TrendingDown,
 } from "lucide-react";
 import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
@@ -57,6 +61,45 @@ interface LeasesClientProps {
   leases: Lease[];
   properties: { id: string; name: string }[];
   units: UnitOption[];
+}
+
+// ---------------------------------------------------------------------------
+// Aging Analysis types (mirrors server-side AgingAnalysis)
+// ---------------------------------------------------------------------------
+
+interface AgingBucketDef {
+  label: string;
+  rate: number;
+}
+
+const AGING_BUCKET_DEFS: AgingBucketDef[] = [
+  { label: "Current",     rate: 0.00 },
+  { label: "1–30 Days",   rate: 0.02 },
+  { label: "31–60 Days",  rate: 0.10 },
+  { label: "61–90 Days",  rate: 0.25 },
+  { label: "91–120 Days", rate: 0.50 },
+  { label: "121+ Days",   rate: 0.90 },
+];
+
+interface AgingLeaseDetail {
+  leaseId: string;
+  tenantName: string;
+  propertyName: string;
+  bucketAmounts: number[];
+  bucketReserves: number[];
+  totalReceivable: number;
+  requiredReserve: number;
+}
+
+interface AgingAnalysisResult {
+  asOfDate: string;
+  bucketTotals: number[];
+  bucketReserves: number[];
+  totalReceivable: number;
+  requiredAllowance: number;
+  currentAllowance: number;
+  adjustmentNeeded: number;
+  leases: AgingLeaseDetail[];
 }
 
 // ---------------------------------------------------------------------------
@@ -176,6 +219,15 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
   });
   const [recordingPayment, setRecordingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+
+  // Aging Analysis panel
+  const [agingData, setAgingData] = useState<AgingAnalysisResult | null>(null);
+  const [agingLoading, setAgingLoading] = useState(false);
+  const [agingPosting, setAgingPosting] = useState(false);
+  const [agingExpanded, setAgingExpanded] = useState(false);
+  const [agingResetting, setAgingResetting] = useState(false);
+  const [agingError, setAgingError] = useState("");
+  const [showTenantDetail, setShowTenantDetail] = useState(false);
 
   // ---- Derived data ----
   const now = useMemo(() => new Date(), []);
@@ -492,6 +544,61 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
     { label: t("statusTerminated"), value: "terminated" },
   ];
 
+  // ---- Aging Analysis handlers ----
+
+  async function loadAgingData() {
+    setAgingLoading(true);
+    setAgingError("");
+    try {
+      const res = await fetch("/api/properties/leases/allowance");
+      if (!res.ok) throw new Error(await res.text());
+      const data: AgingAnalysisResult = await res.json();
+      setAgingData(data);
+    } catch (err) {
+      setAgingError(err instanceof Error ? err.message : "Failed to load aging data");
+    } finally {
+      setAgingLoading(false);
+    }
+  }
+
+  async function handlePostAllowance() {
+    setAgingPosting(true);
+    setAgingError("");
+    try {
+      const res = await fetch("/api/properties/leases/allowance", { method: "POST" });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setAgingData(data.analysis);
+    } catch (err) {
+      setAgingError(err instanceof Error ? err.message : "Failed to post allowance entry");
+    } finally {
+      setAgingPosting(false);
+    }
+  }
+
+  async function handleResetAllowance() {
+    if (!confirm("Reset all allowance JEs? This will zero out the Allowance for Doubtful Accounts balance.")) return;
+    setAgingResetting(true);
+    setAgingError("");
+    try {
+      const res = await fetch("/api/properties/leases/allowance", { method: "DELETE" });
+      if (!res.ok) throw new Error(await res.text());
+      // Reload analysis with zero current balance
+      await loadAgingData();
+    } catch (err) {
+      setAgingError(err instanceof Error ? err.message : "Failed to reset allowance");
+    } finally {
+      setAgingResetting(false);
+    }
+  }
+
+  function handleToggleAging() {
+    if (!agingExpanded && !agingData) {
+      loadAgingData();
+    }
+    setAgingExpanded((prev) => !prev);
+  }
+
   // ---- Render ----
   return (
     <div>
@@ -678,6 +785,209 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
           </div>
         </div>
       )}
+
+      {/* AGING ANALYSIS PANEL */}
+      <div className="fin-chart-card" style={{ marginTop: "24px", padding: 0 }}>
+        {/* Header row — always visible */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 20px",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+          onClick={handleToggleAging}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <TrendingDown size={18} style={{ color: "var(--color-red)" }} />
+            <span style={{ fontWeight: 600, fontSize: "0.92rem" }}>
+              Accounts Receivable Aging Analysis
+            </span>
+            {agingData && (
+              <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+                — As of {agingData.asOfDate}
+              </span>
+            )}
+            {agingData && Math.abs(agingData.adjustmentNeeded) >= 0.01 && (
+              <span style={{
+                fontSize: "0.75rem",
+                background: "rgba(239,68,68,0.12)",
+                color: "var(--color-red)",
+                borderRadius: "4px",
+                padding: "2px 8px",
+                fontWeight: 600,
+              }}>
+                Adjustment needed
+              </span>
+            )}
+          </div>
+          {agingExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </div>
+
+        {/* Expandable body */}
+        {agingExpanded && (
+          <div style={{ borderTop: "1px solid var(--border)", padding: "20px" }}>
+            {agingLoading && (
+              <div style={{ color: "var(--muted)", fontSize: "0.85rem" }}>Loading aging data…</div>
+            )}
+
+            {agingError && (
+              <div className="form-error" style={{ marginBottom: "12px" }}>{agingError}</div>
+            )}
+
+            {agingData && !agingLoading && (
+              <>
+                {/* Aging Bucket Table */}
+                <div style={{ overflowX: "auto", marginBottom: "20px" }}>
+                  <table className="invoice-table">
+                    <thead>
+                      <tr>
+                        <th>Bucket</th>
+                        <th style={{ textAlign: "right" }}>Receivable</th>
+                        <th style={{ textAlign: "right" }}>Reserve %</th>
+                        <th style={{ textAlign: "right" }}>Reserve</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {AGING_BUCKET_DEFS.map((bucket, i) => (
+                        <tr key={bucket.label} style={{ opacity: agingData.bucketTotals[i] === 0 ? 0.45 : 1 }}>
+                          <td>{bucket.label}</td>
+                          <td className="amount-col">{formatCurrency(agingData.bucketTotals[i])}</td>
+                          <td className="amount-col" style={{ color: "var(--muted)" }}>
+                            {(bucket.rate * 100).toFixed(0)}%
+                          </td>
+                          <td className="amount-col" style={{ color: agingData.bucketReserves[i] > 0 ? "var(--color-red)" : "inherit" }}>
+                            {formatCurrency(agingData.bucketReserves[i])}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border)" }}>
+                        <td>Total</td>
+                        <td className="amount-col">{formatCurrency(agingData.totalReceivable)}</td>
+                        <td />
+                        <td className="amount-col" style={{ color: "var(--color-red)" }}>
+                          {formatCurrency(agingData.requiredAllowance)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
+                {/* Summary Row */}
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: "12px",
+                  marginBottom: "16px",
+                }}>
+                  {[
+                    { label: "Required Allowance", value: formatCurrency(agingData.requiredAllowance), color: "var(--color-red)" },
+                    { label: "Current Balance (1230)", value: formatCurrency(agingData.currentAllowance), color: "var(--text)" },
+                    {
+                      label: "Adjustment Needed",
+                      value: agingData.adjustmentNeeded >= 0
+                        ? `+${formatCurrency(agingData.adjustmentNeeded)}`
+                        : formatCurrency(agingData.adjustmentNeeded),
+                      color: Math.abs(agingData.adjustmentNeeded) < 0.01 ? "var(--color-green)" : "var(--color-amber)",
+                    },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} style={{
+                      background: "var(--surface-2, rgba(255,255,255,0.04))",
+                      borderRadius: "8px",
+                      padding: "12px 16px",
+                      border: "1px solid var(--border)",
+                    }}>
+                      <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>
+                        {label}
+                      </div>
+                      <div style={{ fontSize: "1.1rem", fontWeight: 700, color }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action buttons */}
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
+                  <button
+                    className="btn-secondary"
+                    onClick={loadAgingData}
+                    disabled={agingLoading}
+                    style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <RefreshCw size={14} />
+                    Refresh
+                  </button>
+                  <button
+                    className="btn-primary"
+                    onClick={handlePostAllowance}
+                    disabled={agingPosting || Math.abs(agingData.adjustmentNeeded) < 0.01}
+                    style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    {agingPosting ? "Posting…" : `Post Allowance Entry (${agingData.adjustmentNeeded >= 0 ? "+" : ""}${formatCurrency(agingData.adjustmentNeeded)})`}
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={handleResetAllowance}
+                    disabled={agingResetting || agingData.currentAllowance === 0}
+                    style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--color-red)" }}
+                  >
+                    {agingResetting ? "Resetting…" : "Reset All"}
+                  </button>
+                </div>
+
+                {/* Tenant Detail (collapsible) */}
+                {agingData.leases.length > 0 && (
+                  <div>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setShowTenantDetail((p) => !p)}
+                      style={{ fontSize: "0.8rem", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}
+                    >
+                      {showTenantDetail ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      Tenant Detail ({agingData.leases.length} {agingData.leases.length === 1 ? "tenant" : "tenants"})
+                    </button>
+                    {showTenantDetail && (
+                      <div style={{ overflowX: "auto" }}>
+                        <table className="invoice-table">
+                          <thead>
+                            <tr>
+                              <th>Tenant</th>
+                              <th>Property</th>
+                              {AGING_BUCKET_DEFS.map((b) => (
+                                <th key={b.label} style={{ textAlign: "right" }}>{b.label}</th>
+                              ))}
+                              <th style={{ textAlign: "right" }}>Reserve</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {agingData.leases.map((lDetail) => (
+                              <tr key={lDetail.leaseId}>
+                                <td style={{ fontWeight: 600 }}>{lDetail.tenantName}</td>
+                                <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>{lDetail.propertyName}</td>
+                                {lDetail.bucketAmounts.map((amt, i) => (
+                                  <td key={i} className="amount-col" style={{ color: amt > 0 ? "inherit" : "var(--muted)", opacity: amt === 0 ? 0.35 : 1 }}>
+                                    {amt > 0 ? formatCurrency(amt) : "—"}
+                                  </td>
+                                ))}
+                                <td className="amount-col" style={{ fontWeight: 600, color: "var(--color-red)" }}>
+                                  {formatCurrency(lDetail.requiredReserve)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* CREATE MODAL */}
       {showCreate && (

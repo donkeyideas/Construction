@@ -30,6 +30,9 @@ export interface CompanyAccountMap {
   // General deferral accounts
   deferredRevenueId: string | null;   // "Deferred Revenue" (liability, not rental-specific)
   prepaidExpenseId: string | null;    // "Prepaid Expenses" (asset)
+  // Credit loss / doubtful accounts
+  allowanceForDoubtfulAccountsId: string | null; // "Allowance for Doubtful Accounts" (contra-asset)
+  badDebtExpenseId: string | null;               // "Bad Debt Expense" (expense)
   // Lookup by account number for GL account resolution
   byNumber: Record<string, string>;
   // Lookup by account_type → first account id (last-resort fallback)
@@ -75,6 +78,8 @@ export async function buildCompanyAccountMap(
     billingsInExcessId: null,
     deferredRevenueId: null,
     prepaidExpenseId: null,
+    allowanceForDoubtfulAccountsId: null,
+    badDebtExpenseId: null,
     byNumber: {},
     byType: {},
   };
@@ -250,6 +255,21 @@ export async function buildCompanyAccountMap(
       nameLower.includes("prepaid")
     ) {
       map.prepaidExpenseId = a.id;
+    }
+
+    // Allowance for Doubtful Accounts: contra-asset with "allowance" or "bad debt" + "doubtful"/"uncollectible"
+    if (!map.allowanceForDoubtfulAccountsId && a.account_type === "asset" &&
+      (nameLower.includes("allowance") || nameLower.includes("bad debt")) &&
+      (nameLower.includes("doubtful") || nameLower.includes("uncollectible") || nameLower.includes("bad debt"))
+    ) {
+      map.allowanceForDoubtfulAccountsId = a.id;
+    }
+
+    // Bad Debt Expense: expense with "bad debt", "doubtful", or "credit loss"
+    if (!map.badDebtExpenseId && a.account_type === "expense" &&
+      (nameLower.includes("bad debt") || nameLower.includes("doubtful") || nameLower.includes("credit loss"))
+    ) {
+      map.badDebtExpenseId = a.id;
     }
   }
 
