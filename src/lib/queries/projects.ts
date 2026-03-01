@@ -216,19 +216,22 @@ export async function getProjects(
 
   const projects = (data ?? []) as ProjectRow[];
 
-  // Batch-fetch user profiles for project_manager and superintendent
-  const profileIds = new Set<string>();
+  // Batch-fetch contacts for project_manager and superintendent
+  const contactIds = new Set<string>();
   for (const p of projects) {
-    if (p.project_manager_id) profileIds.add(p.project_manager_id);
-    if (p.superintendent_id) profileIds.add(p.superintendent_id);
+    if (p.project_manager_id) contactIds.add(p.project_manager_id);
+    if (p.superintendent_id) contactIds.add(p.superintendent_id);
   }
-  if (profileIds.size > 0) {
-    const { data: profiles } = await supabase
-      .from("user_profiles")
-      .select("id, full_name")
-      .in("id", [...profileIds]);
+  if (contactIds.size > 0) {
+    const { data: contactRows } = await supabase
+      .from("contacts")
+      .select("id, first_name, last_name")
+      .in("id", [...contactIds]);
     const profileMap = new Map(
-      (profiles ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
+      (contactRows ?? []).map((c: { id: string; first_name: string; last_name: string }) => [
+        c.id,
+        { id: c.id, full_name: `${c.first_name} ${c.last_name}`.trim() },
+      ])
     );
     for (const p of projects) {
       p.project_manager = p.project_manager_id ? profileMap.get(p.project_manager_id) ?? null : null;
@@ -324,16 +327,19 @@ export async function getProjectById(
     return null;
   }
 
-  // Batch-fetch profiles for PM and superintendent
-  const projProfileIds = [project.project_manager_id, project.superintendent_id].filter(Boolean) as string[];
+  // Batch-fetch contacts for PM and superintendent
+  const projContactIds = [project.project_manager_id, project.superintendent_id].filter(Boolean) as string[];
   let projProfileMap = new Map<string, { id: string; full_name: string }>();
-  if (projProfileIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("user_profiles")
-      .select("id, full_name")
-      .in("id", projProfileIds);
+  if (projContactIds.length > 0) {
+    const { data: contactRows } = await supabase
+      .from("contacts")
+      .select("id, first_name, last_name")
+      .in("id", projContactIds);
     projProfileMap = new Map(
-      (profiles ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
+      (contactRows ?? []).map((c: { id: string; first_name: string; last_name: string }) => [
+        c.id,
+        { id: c.id, full_name: `${c.first_name} ${c.last_name}`.trim() },
+      ])
     );
   }
   (project as ProjectRow).project_manager = project.project_manager_id ? projProfileMap.get(project.project_manager_id) ?? null : null;
@@ -679,32 +685,26 @@ export async function getCompanyMembers(
   companyId: string
 ) {
   const { data, error } = await supabase
-    .from("company_members")
-    .select("user_id, role")
+    .from("contacts")
+    .select("id, first_name, last_name, job_title")
     .eq("company_id", companyId)
-    .order("role", { ascending: true });
+    .eq("is_active", true)
+    .order("last_name", { ascending: true })
+    .order("first_name", { ascending: true });
 
   if (error) {
     console.error("getCompanyMembers error:", error);
     return [];
   }
 
-  const members = data ?? [];
-  const memberUserIds = members.map((m) => m.user_id).filter(Boolean);
-  let memberProfileMap = new Map<string, { id: string; full_name: string; email: string }>();
-  if (memberUserIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("user_profiles")
-      .select("id, full_name, email")
-      .in("id", memberUserIds);
-    memberProfileMap = new Map(
-      (profiles ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p])
-    );
-  }
-
-  return members.map((m) => ({
-    ...m,
-    user: m.user_id ? memberProfileMap.get(m.user_id) ?? null : null,
+  return (data ?? []).map((c: { id: string; first_name: string; last_name: string; job_title: string | null }) => ({
+    user_id: c.id,
+    role: c.job_title ?? "employee",
+    user: {
+      id: c.id,
+      full_name: `${c.first_name} ${c.last_name}`.trim(),
+      email: "",
+    },
   }));
 }
 
