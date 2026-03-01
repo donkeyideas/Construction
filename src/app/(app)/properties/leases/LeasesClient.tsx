@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { getLocalToday } from "@/lib/utils/timezone";
@@ -91,6 +91,22 @@ interface AgingLeaseDetail {
   requiredReserve: number;
 }
 
+interface AllowanceJELine {
+  debit: number;
+  credit: number;
+  description: string | null;
+  chart_of_accounts: { account_number: string; name: string } | null;
+}
+
+interface AllowanceJE {
+  id: string;
+  entry_number: string;
+  entry_date: string;
+  description: string;
+  reference: string;
+  journal_entry_lines: AllowanceJELine[];
+}
+
 interface AgingAnalysisResult {
   asOfDate: string;
   bucketTotals: number[];
@@ -100,6 +116,7 @@ interface AgingAnalysisResult {
   currentAllowance: number;
   adjustmentNeeded: number;
   leases: AgingLeaseDetail[];
+  allowanceJEs?: AllowanceJE[];
 }
 
 // ---------------------------------------------------------------------------
@@ -228,9 +245,12 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
   const [agingResetting, setAgingResetting] = useState(false);
   const [agingError, setAgingError] = useState("");
   const [showTenantDetail, setShowTenantDetail] = useState(false);
+  const [showJEsDetail, setShowJEsDetail] = useState(false);
 
   // ---- Derived data ----
-  const now = useMemo(() => new Date(), []);
+  // Use state + effect to avoid hydration mismatch from new Date() on server vs client
+  const [now, setNow] = useState<Date>(() => new Date(0));
+  useEffect(() => { setNow(new Date()); }, []);
   const in30Days = useMemo(() => new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000), [now]);
   const in60Days = useMemo(() => new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000), [now]);
 
@@ -940,7 +960,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
                 {/* Tenant Detail (collapsible) */}
                 {agingData.leases.length > 0 && (
-                  <div>
+                  <div style={{ marginBottom: "16px" }}>
                     <button
                       className="btn-secondary"
                       onClick={() => setShowTenantDetail((p) => !p)}
@@ -979,6 +999,92 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                             ))}
                           </tbody>
                         </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Posted Journal Entries (collapsible) */}
+                {(agingData.allowanceJEs ?? []).length > 0 && (
+                  <div>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setShowJEsDetail((p) => !p)}
+                      style={{ fontSize: "0.8rem", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}
+                    >
+                      {showJEsDetail ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      Posted Journal Entries ({(agingData.allowanceJEs ?? []).length})
+                    </button>
+                    {showJEsDetail && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        {(agingData.allowanceJEs ?? []).map((je) => (
+                          <div key={je.id} style={{
+                            border: "1px solid var(--border)",
+                            borderRadius: "8px",
+                            overflow: "hidden",
+                          }}>
+                            {/* JE Header */}
+                            <div style={{
+                              background: "var(--surface-2, rgba(255,255,255,0.04))",
+                              padding: "10px 14px",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              flexWrap: "wrap",
+                              gap: "8px",
+                            }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                <span style={{ fontWeight: 700, fontSize: "0.85rem" }}>{je.entry_number}</span>
+                                <span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>{je.entry_date}</span>
+                                <span style={{
+                                  fontSize: "0.72rem",
+                                  background: "rgba(34,197,94,0.12)",
+                                  color: "var(--color-green)",
+                                  borderRadius: "4px",
+                                  padding: "2px 7px",
+                                  fontWeight: 600,
+                                }}>Posted</span>
+                              </div>
+                              <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{je.description}</span>
+                            </div>
+                            {/* JE Lines */}
+                            <div style={{ overflowX: "auto" }}>
+                              <table className="invoice-table" style={{ margin: 0 }}>
+                                <thead>
+                                  <tr>
+                                    <th>Account</th>
+                                    <th>Description</th>
+                                    <th style={{ textAlign: "right" }}>Debit</th>
+                                    <th style={{ textAlign: "right" }}>Credit</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {je.journal_entry_lines.map((line, idx) => {
+                                    const acct = Array.isArray(line.chart_of_accounts)
+                                      ? line.chart_of_accounts[0]
+                                      : line.chart_of_accounts;
+                                    return (
+                                      <tr key={idx}>
+                                        <td style={{ fontWeight: 500 }}>
+                                          {acct ? `${acct.account_number} — ${acct.name}` : "—"}
+                                        </td>
+                                        <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
+                                          {line.description ?? ""}
+                                        </td>
+                                        <td className="amount-col">
+                                          {line.debit > 0 ? formatCurrency(line.debit) : ""}
+                                        </td>
+                                        <td className="amount-col">
+                                          {line.credit > 0 ? formatCurrency(line.credit) : ""}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>

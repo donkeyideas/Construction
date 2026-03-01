@@ -12,7 +12,7 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchAgingData(supabase: any, companyId: string) {
-  const [leasesResult, paymentsResult, allowanceBalanceResult] = await Promise.all([
+  const [leasesResult, paymentsResult, allowanceBalanceResult, allowanceJEsResult] = await Promise.all([
     // Active + expired leases with property/unit context
     supabase
       .from("leases")
@@ -33,6 +33,15 @@ async function fetchAgingData(supabase: any, companyId: string) {
       .eq("company_id", companyId)
       .ilike("name", "%allowance%doubtful%")
       .maybeSingle(),
+
+    // Posted allowance journal entries (for display in UI)
+    supabase
+      .from("journal_entries")
+      .select("id, entry_number, entry_date, description, reference, journal_entry_lines(debit, credit, description, chart_of_accounts(account_number, name))")
+      .eq("company_id", companyId)
+      .like("reference", "allowance:%")
+      .eq("status", "posted")
+      .order("entry_date", { ascending: false }),
   ]);
 
   const leases = (leasesResult.data ?? []).map((l: Record<string, unknown>) => {
@@ -69,7 +78,9 @@ async function fetchAgingData(supabase: any, companyId: string) {
     }
   }
 
-  return { leases, payments, currentAllowanceBalance };
+  const allowanceJEs = allowanceJEsResult.data ?? [];
+
+  return { leases, payments, currentAllowanceBalance, allowanceJEs };
 }
 
 // ---------------------------------------------------------------------------
@@ -86,11 +97,11 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { leases, payments, currentAllowanceBalance } = await fetchAgingData(supabase, userCtx.companyId);
+    const { leases, payments, currentAllowanceBalance, allowanceJEs } = await fetchAgingData(supabase, userCtx.companyId);
 
     const analysis = calculateAgingAnalysis(leases, payments, currentAllowanceBalance);
 
-    return NextResponse.json(analysis);
+    return NextResponse.json({ ...analysis, allowanceJEs });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -116,12 +127,14 @@ export async function POST(_request: NextRequest) {
     const analysis = calculateAgingAnalysis(leases, payments, currentAllowanceBalance);
     const postResult = await postAllowanceAdjustment(supabase, userCtx.companyId, userCtx.userId, analysis);
 
-    // Re-fetch updated current balance for the response
+    // Re-fetch updated current balance + JEs for the response
     const updatedBalance = analysis.currentAllowance + postResult.adjustmentAmount;
+    const { allowanceJEs } = await fetchAgingData(supabase, userCtx.companyId);
     const updatedAnalysis = {
       ...analysis,
       currentAllowance: updatedBalance,
       adjustmentNeeded: 0,
+      allowanceJEs,
     };
 
     return NextResponse.json({
