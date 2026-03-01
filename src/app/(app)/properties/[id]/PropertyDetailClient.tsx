@@ -201,6 +201,35 @@ export default function PropertyDetailClient({
   const [loginSuccess, setLoginSuccess] = useState<{ email: string; password: string } | null>(null);
   const [copiedLoginField, setCopiedLoginField] = useState<string | null>(null);
 
+  // Purchase JE backfill
+  const [jeGenerating, setJeGenerating] = useState(false);
+  const [jeError, setJeError] = useState("");
+  const [jeSuccess, setJeSuccess] = useState(false);
+
+  async function handleGenerateJE(financingMethod: "cash" | "mortgage") {
+    setJeGenerating(true);
+    setJeError("");
+    setJeSuccess(false);
+    try {
+      const res = await fetch(`/api/properties/${property.id}/backfill-je`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ financing_method: financingMethod }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setJeError(data.error || "Failed to generate journal entry.");
+      } else {
+        setJeSuccess(true);
+        router.refresh();
+      }
+    } catch {
+      setJeError("Network error — please try again.");
+    } finally {
+      setJeGenerating(false);
+    }
+  }
+
   // Record payment modal
   const [paymentLease, setPaymentLease] = useState<LeaseRow | null>(null);
   const [paymentForm, setPaymentForm] = useState({
@@ -516,6 +545,69 @@ export default function PropertyDetailClient({
 
       {activeTab === "transactions" && (
         <div style={{ marginTop: "24px" }}>
+          {/* Show backfill prompt when no JE exists yet for a property with a purchase price */}
+          {transactions.totalTransactions === 0 && Number(property.purchase_price) > 0 && !jeSuccess && (
+            <div
+              style={{
+                background: "var(--card)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                padding: "20px 24px",
+                marginBottom: "20px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+              }}
+            >
+              <div style={{ fontWeight: 600, color: "var(--text)" }}>
+                No purchase journal entry found
+              </div>
+              <div style={{ fontSize: "14px", color: "var(--text-muted)" }}>
+                This property has a purchase price of{" "}
+                <strong>{formatCurrency(Number(property.purchase_price))}</strong>{" "}
+                but no accounting entry has been recorded yet. Generate the journal entry to have it appear on the Balance Sheet and Cash Flow statement.
+              </div>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <button
+                  onClick={() => handleGenerateJE("mortgage")}
+                  disabled={jeGenerating}
+                  className="btn btn-primary"
+                  style={{ fontSize: "14px" }}
+                >
+                  {jeGenerating ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite", display: "inline" }} /> : null}
+                  {jeGenerating ? " Generating…" : "Generate JE — Mortgage / Financed"}
+                </button>
+                <button
+                  onClick={() => handleGenerateJE("cash")}
+                  disabled={jeGenerating}
+                  className="btn btn-secondary"
+                  style={{ fontSize: "14px" }}
+                >
+                  Generate JE — Cash Purchase
+                </button>
+              </div>
+              {jeError && (
+                <div style={{ color: "var(--color-danger, #ef4444)", fontSize: "14px" }}>
+                  {jeError}
+                </div>
+              )}
+            </div>
+          )}
+          {jeSuccess && (
+            <div
+              style={{
+                background: "var(--color-success-bg, rgba(34,197,94,0.1))",
+                border: "1px solid var(--color-success, #22c55e)",
+                borderRadius: "8px",
+                padding: "12px 16px",
+                marginBottom: "16px",
+                color: "var(--color-success, #22c55e)",
+                fontSize: "14px",
+              }}
+            >
+              Journal entry generated successfully. Refreshing transactions…
+            </div>
+          )}
           <SectionTransactions data={transactions} sectionName="Property" />
         </div>
       )}

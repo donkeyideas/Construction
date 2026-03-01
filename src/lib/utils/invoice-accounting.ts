@@ -2391,6 +2391,41 @@ export async function generateInvoiceDeferralSchedule(
 // Payable (financed).
 // ---------------------------------------------------------------------------
 
+// Helper: find or auto-create a COA account for a company
+async function findOrCreateCOAAccount(
+  supabase: SupabaseClient,
+  companyId: string,
+  accountNumber: string,
+  name: string,
+  accountType: string,
+  subType: string,
+  normalBalance: string,
+  description: string
+): Promise<string | null> {
+  // Check if account_number already exists for this company
+  const { data: existing } = await supabase
+    .from("chart_of_accounts")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("account_number", accountNumber)
+    .maybeSingle();
+
+  if (existing) return existing.id;
+
+  const { data: created, error } = await supabase
+    .from("chart_of_accounts")
+    .insert({ company_id: companyId, account_number: accountNumber, name, account_type: accountType, sub_type: subType, normal_balance: normalBalance, description })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.warn(`[property-JE] Failed to create COA account ${accountNumber}:`, error.message);
+    return null;
+  }
+  console.log(`[property-JE] Auto-created COA account ${accountNumber} "${name}" for company ${companyId}`);
+  return created.id;
+}
+
 export async function generatePropertyPurchaseJournalEntry(
   supabase: SupabaseClient,
   companyId: string,
@@ -2414,7 +2449,9 @@ export async function generatePropertyPurchaseJournalEntry(
     .maybeSingle();
   if (existing) return { journalEntryId: existing.id };
 
-  // Find building/property asset account
+  // ── Find building/property asset account ────────────────────────────────
+  // 1) Try name-pattern match (best match)
+  let buildingAccountId: string | null = null;
   const { data: buildingAccts } = await supabase
     .from("chart_of_accounts")
     .select("id, name")
@@ -2423,20 +2460,53 @@ export async function generatePropertyPurchaseJournalEntry(
     .or("name.ilike.%building%,name.ilike.%property%,name.ilike.%real estate%,name.ilike.%land%")
     .order("name", { ascending: true })
     .limit(5);
+  buildingAccountId = buildingAccts?.[0]?.id ?? null;
 
-  const buildingAccountId = buildingAccts?.[0]?.id ?? null;
+  // 2) Fall back to any fixed_asset account (catches seeded "Fixed Assets" 1500)
   if (!buildingAccountId) {
-    console.warn(`[property-JE] No building/property asset account found for company ${companyId} — skipping JE`);
+    const { data: fixedAssets } = await supabase
+      .from("chart_of_accounts")
+      .select("id, name")
+      .eq("company_id", companyId)
+      .eq("account_type", "asset")
+      .eq("sub_type", "fixed_asset")
+      .order("account_number", { ascending: true })
+      .limit(5);
+    buildingAccountId = fixedAssets?.[0]?.id ?? null;
+  }
+
+  // 3) Auto-create "Real Estate - Buildings" if nothing found
+  if (!buildingAccountId) {
+    buildingAccountId = await findOrCreateCOAAccount(
+      supabase, companyId,
+      "1550", "Real Estate - Buildings", "asset", "fixed_asset", "debit",
+      "Real property and building assets owned by the company"
+    );
+  }
+
+  if (!buildingAccountId) {
+    console.warn(`[property-JE] Could not find or create building asset account for company ${companyId} — skipping JE`);
     return null;
   }
 
-  // Find credit account: Cash or Mortgage Payable
+  // ── Find credit account: Cash or Mortgage Payable ───────────────────────
   let creditAccountId: string | null = null;
+
   if (financingMethod === "cash") {
+    // 1) Try existing cash account
     const accountMap = await buildCompanyAccountMap(supabase, companyId);
     creditAccountId = accountMap.cashId;
+
+    // 2) Auto-create if not found
+    if (!creditAccountId) {
+      creditAccountId = await findOrCreateCOAAccount(
+        supabase, companyId,
+        "1000", "Cash and Cash Equivalents", "asset", "current_asset", "debit",
+        "All cash accounts and liquid equivalents"
+      );
+    }
   } else {
-    // Look for Mortgage Payable / Notes Payable / Loan Payable
+    // 1) Name-pattern match for mortgage/notes/loan
     const { data: mortgageAccts } = await supabase
       .from("chart_of_accounts")
       .select("id, name")
@@ -2446,15 +2516,32 @@ export async function generatePropertyPurchaseJournalEntry(
       .order("name", { ascending: true })
       .limit(5);
     creditAccountId = mortgageAccts?.[0]?.id ?? null;
+
+    // 2) Fall back to any long_term_liability (catches seeded "Long-Term Debt" 2300)
     if (!creditAccountId) {
-      // Fall back to cash if no mortgage account
-      const accountMap = await buildCompanyAccountMap(supabase, companyId);
-      creditAccountId = accountMap.cashId;
+      const { data: ltDebt } = await supabase
+        .from("chart_of_accounts")
+        .select("id, name")
+        .eq("company_id", companyId)
+        .eq("account_type", "liability")
+        .eq("sub_type", "long_term_liability")
+        .order("account_number", { ascending: true })
+        .limit(5);
+      creditAccountId = ltDebt?.[0]?.id ?? null;
+    }
+
+    // 3) Auto-create "Mortgage Payable" if nothing found
+    if (!creditAccountId) {
+      creditAccountId = await findOrCreateCOAAccount(
+        supabase, companyId,
+        "2310", "Mortgage Payable", "liability", "long_term_liability", "credit",
+        "Long-term mortgage notes payable on real property"
+      );
     }
   }
 
   if (!creditAccountId) {
-    console.warn(`[property-JE] No credit account found for company ${companyId} — skipping JE`);
+    console.warn(`[property-JE] Could not find or create credit account for company ${companyId} — skipping JE`);
     return null;
   }
 
