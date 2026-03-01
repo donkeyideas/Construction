@@ -937,6 +937,7 @@ export default function PropertyDetailClient({
           editMode={leaseEditMode}
           saving={saving}
           setSaving={setSaving}
+          rentPayments={rentPayments.filter((p) => p.lease_id === selectedLease.id)}
           onClose={() => {
             setSelectedLease(null);
             setLeaseEditMode(false);
@@ -4196,6 +4197,7 @@ function LeaseModal({
   editMode,
   saving,
   setSaving,
+  rentPayments,
   onClose,
   onToggleEdit,
   onDelete,
@@ -4207,6 +4209,7 @@ function LeaseModal({
   editMode: boolean;
   saving: boolean;
   setSaving: (v: boolean) => void;
+  rentPayments: PropertyRentPayment[];
   onClose: () => void;
   onToggleEdit: () => void;
   onDelete: (id: string, name: string) => void;
@@ -4216,6 +4219,7 @@ function LeaseModal({
   const t = useTranslations("app");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
+  const [modalTab, setModalTab] = useState<"details" | "payments">("details");
 
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
@@ -4477,58 +4481,177 @@ function LeaseModal({
               </div>
             </>
           ) : (
-            /* ---- View Mode ---- */
-            <div style={{ padding: "1.25rem" }}>
-              <div className="detail-row">
-                <div className="detail-group">
-                  <label className="detail-label">{t("unit")}</label>
-                  <div className="detail-value">{lease.units?.unit_number ? t("unitLabel", { number: lease.units.unit_number }) : "--"}</div>
-                </div>
-                <div className="detail-group">
-                  <label className="detail-label">{t("tenantName")}</label>
-                  <div className="detail-value">{lease.tenant_name}</div>
-                </div>
+            /* ---- View Mode with tabs ---- */
+            <div>
+              {/* Tab bar */}
+              <div style={{ display: "flex", gap: "0", borderBottom: "1px solid var(--border)", padding: "0 1.25rem" }}>
+                {(["details", "payments"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setModalTab(tab)}
+                    style={{
+                      padding: "10px 16px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      background: "none",
+                      border: "none",
+                      borderBottom: `2px solid ${modalTab === tab ? "var(--color-primary, #6366f1)" : "transparent"}`,
+                      color: modalTab === tab ? "var(--color-primary, #6366f1)" : "var(--text-muted)",
+                      cursor: "pointer",
+                      marginBottom: "-1px",
+                    }}
+                  >
+                    {tab === "details" ? "Details" : `Payments (${rentPayments.length})`}
+                  </button>
+                ))}
               </div>
-              <div className="detail-row">
-                <div className="detail-group">
-                  <label className="detail-label">{t("email")}</label>
-                  <div className="detail-value">{lease.tenant_email ?? "--"}</div>
+
+              {/* Details tab */}
+              {modalTab === "details" && (
+                <div style={{ padding: "1.25rem" }}>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label className="detail-label">{t("unit")}</label>
+                      <div className="detail-value">{lease.units?.unit_number ? t("unitLabel", { number: lease.units.unit_number }) : "--"}</div>
+                    </div>
+                    <div className="detail-group">
+                      <label className="detail-label">{t("tenantName")}</label>
+                      <div className="detail-value">{lease.tenant_name}</div>
+                    </div>
+                  </div>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label className="detail-label">{t("email")}</label>
+                      <div className="detail-value">{lease.tenant_email ?? "--"}</div>
+                    </div>
+                    <div className="detail-group">
+                      <label className="detail-label">{t("phone")}</label>
+                      <div className="detail-value">{lease.tenant_phone ?? "--"}</div>
+                    </div>
+                  </div>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label className="detail-label">{t("monthlyRent")}</label>
+                      <div className="detail-value">{formatCurrency(lease.monthly_rent)}</div>
+                    </div>
+                    <div className="detail-group">
+                      <label className="detail-label">{t("securityDeposit")}</label>
+                      <div className="detail-value">{lease.security_deposit ? formatCurrency(lease.security_deposit) : "--"}</div>
+                    </div>
+                  </div>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label className="detail-label">{t("leaseStart")}</label>
+                      <div className="detail-value">{formatDate(lease.lease_start)}</div>
+                    </div>
+                    <div className="detail-group">
+                      <label className="detail-label">{t("leaseEnd")}</label>
+                      <div className="detail-value">{formatDate(lease.lease_end)}</div>
+                    </div>
+                  </div>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label className="detail-label">{t("status")}</label>
+                      <div className="detail-value"><LeaseStatusBadge status={lease.status} /></div>
+                    </div>
+                    <div className="detail-group">
+                      <label className="detail-label">{t("autoRenew")}</label>
+                      <div className="detail-value">{lease.auto_renew ? t("yes") : t("no")}</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="detail-group">
-                  <label className="detail-label">{t("phone")}</label>
-                  <div className="detail-value">{lease.tenant_phone ?? "--"}</div>
+              )}
+
+              {/* Payments tab */}
+              {modalTab === "payments" && (
+                <div style={{ padding: "1.25rem" }}>
+                  {rentPayments.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "32px 0", color: "var(--text-muted)", fontSize: "14px" }}>
+                      No payments recorded yet.{" "}
+                      <button
+                        style={{ background: "none", border: "none", color: "var(--color-primary, #6366f1)", cursor: "pointer", fontSize: "14px", textDecoration: "underline" }}
+                        onClick={() => onRecordPayment(lease)}
+                      >
+                        Record a payment
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Summary row */}
+                      <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                        {[
+                          { label: "Total Collected", value: formatCurrency(rentPayments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0)), color: "var(--color-success, #22c55e)" },
+                          { label: "Payments", value: String(rentPayments.filter((p) => p.status === "paid").length) },
+                          { label: "Pending / Late", value: String(rentPayments.filter((p) => p.status === "pending" || p.status === "late").length), color: rentPayments.some((p) => p.status === "late") ? "#f59e0b" : undefined },
+                        ].map((item) => (
+                          <div key={item.label} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "6px", padding: "10px 14px", minWidth: "120px" }}>
+                            <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "2px" }}>{item.label}</div>
+                            <div style={{ fontSize: "16px", fontWeight: 700, color: item.color ?? "var(--text)" }}>{item.value}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Payments table */}
+                      <div style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                          <thead>
+                            <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
+                              {["Payment Date", "Due Date", "Amount", "Method", "Status", "JE"].map((h) => (
+                                <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[...rentPayments].sort((a, b) => {
+                              const da = a.payment_date ?? a.due_date;
+                              const db = b.payment_date ?? b.due_date;
+                              return db.localeCompare(da);
+                            }).map((pmt, idx) => {
+                              const statusColors: Record<string, string> = {
+                                paid: "badge-green",
+                                pending: "badge-amber",
+                                late: "badge-red",
+                                failed: "badge-red",
+                              };
+                              return (
+                                <tr key={pmt.id} style={{ borderBottom: "1px solid var(--border)", background: idx % 2 === 0 ? "transparent" : "var(--bg)" }}>
+                                  <td style={{ padding: "8px 10px", color: "var(--text)" }}>{pmt.payment_date ? formatDateSafe(pmt.payment_date) : "—"}</td>
+                                  <td style={{ padding: "8px 10px", color: "var(--text-muted)" }}>{formatDateSafe(pmt.due_date)}</td>
+                                  <td style={{ padding: "8px 10px", color: "var(--text)", fontWeight: 600 }}>{formatCurrency(pmt.amount)}</td>
+                                  <td style={{ padding: "8px 10px", color: "var(--text-muted)", textTransform: "capitalize" }}>{pmt.method ?? "—"}</td>
+                                  <td style={{ padding: "8px 10px" }}><span className={`badge ${statusColors[pmt.status] ?? "badge-blue"}`}>{pmt.status}</span></td>
+                                  <td style={{ padding: "8px 10px" }}>
+                                    {pmt.je_number
+                                      ? <span style={{ fontSize: "12px", color: "var(--color-primary, #6366f1)", fontFamily: "monospace" }}>{pmt.je_number}</span>
+                                      : <span style={{ color: "var(--text-muted)" }}>—</span>}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                          <tfoot>
+                            <tr style={{ borderTop: "2px solid var(--border)", background: "var(--bg)", fontWeight: 700 }}>
+                              <td colSpan={2} style={{ padding: "8px 10px", color: "var(--text)" }}>Total</td>
+                              <td style={{ padding: "8px 10px", color: "var(--text)" }}>{formatCurrency(rentPayments.reduce((s, p) => s + p.amount, 0))}</td>
+                              <td colSpan={3} />
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+
+                      <div style={{ marginTop: "14px" }}>
+                        <button
+                          className="ui-btn ui-btn-sm ui-btn-outline"
+                          onClick={() => onRecordPayment(lease)}
+                        >
+                          <DollarSign size={13} />
+                          Record Payment
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
-              </div>
-              <div className="detail-row">
-                <div className="detail-group">
-                  <label className="detail-label">{t("monthlyRent")}</label>
-                  <div className="detail-value">{formatCurrency(lease.monthly_rent)}</div>
-                </div>
-                <div className="detail-group">
-                  <label className="detail-label">{t("securityDeposit")}</label>
-                  <div className="detail-value">{lease.security_deposit ? formatCurrency(lease.security_deposit) : "--"}</div>
-                </div>
-              </div>
-              <div className="detail-row">
-                <div className="detail-group">
-                  <label className="detail-label">{t("leaseStart")}</label>
-                  <div className="detail-value">{formatDate(lease.lease_start)}</div>
-                </div>
-                <div className="detail-group">
-                  <label className="detail-label">{t("leaseEnd")}</label>
-                  <div className="detail-value">{formatDate(lease.lease_end)}</div>
-                </div>
-              </div>
-              <div className="detail-row">
-                <div className="detail-group">
-                  <label className="detail-label">{t("status")}</label>
-                  <div className="detail-value"><LeaseStatusBadge status={lease.status} /></div>
-                </div>
-                <div className="detail-group">
-                  <label className="detail-label">{t("autoRenew")}</label>
-                  <div className="detail-value">{lease.auto_renew ? t("yes") : t("no")}</div>
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>
