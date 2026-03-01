@@ -185,6 +185,7 @@ export async function POST(request: NextRequest) {
         industry_type: industry_type || null,
         created_by: userId,
         company_size: body.company_size || null,
+        phone: phone || null,
         website: body.website || null,
         selected_modules: body.selected_modules || [],
         subscription_plan: body.subscription_plan || "starter",
