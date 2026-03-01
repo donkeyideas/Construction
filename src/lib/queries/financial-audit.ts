@@ -8,6 +8,8 @@ export interface AuditCheckResult {
   status: "pass" | "warn" | "fail";
   summary: string;
   details: string[];
+  /** When true, no repair action is available (warning is informational only) */
+  noFix?: boolean;
 }
 
 export interface AuditResult {
@@ -643,7 +645,7 @@ async function checkARReconciliation(
 
     if (totalAccrualJEs > 0) {
       return {
-        id, name, status: "warn",
+        id, name, status: "warn", noFix: true,
         summary: `AR (${fmt(glARBalance)}) is tracked via lease accrual journal entries — no invoice subledger expected`,
         details: [
           ...diffDetails,

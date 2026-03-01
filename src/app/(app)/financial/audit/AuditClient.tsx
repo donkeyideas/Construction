@@ -77,7 +77,7 @@ function AuditCheck({
   const config = STATUS_CONFIG[check.status];
   const Icon = config.icon;
   const hasDetails = check.details.length > 0;
-  const hasFixAction = check.status !== "pass" && FIX_ENDPOINTS[check.id];
+  const hasFixAction = check.status !== "pass" && !check.noFix && FIX_ENDPOINTS[check.id];
   const fixLabel = FIX_LABELS[check.id];
 
   return (
