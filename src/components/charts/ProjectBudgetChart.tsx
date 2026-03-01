@@ -58,6 +58,12 @@ function CustomTooltip({
   );
 }
 
+// Dynamic Y-axis width: longer names need more space, capped at 160px
+function yAxisWidth(data: { name: string }[]): number {
+  const longest = Math.max(...data.map((d) => d.name.length));
+  return Math.min(Math.max(longest * 6, 80), 160);
+}
+
 export default function ProjectBudgetChart({ data, height = 240 }: Props) {
   if (!data.length) {
     return (
@@ -67,36 +73,41 @@ export default function ProjectBudgetChart({ data, height = 240 }: Props) {
     );
   }
 
+  // Horizontal bar layout: project names on Y-axis, values on X-axis.
+  // Eliminates all label rotation/overlap issues regardless of name length.
+  const dynamicHeight = Math.max(height, data.length * 56 + 60);
+  const labelWidth = yAxisWidth(data);
+
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={dynamicHeight}>
       <BarChart
         data={data}
-        margin={{ top: 10, right: 10, left: 5, bottom: 20 }}
-        barGap={2}
+        layout="vertical"
+        margin={{ top: 10, right: 40, left: 0, bottom: 10 }}
+        barGap={3}
+        barCategoryGap="30%"
       >
         <CartesianGrid
           strokeDasharray="3 3"
           stroke="var(--border)"
           opacity={0.4}
-          vertical={false}
+          horizontal={false}
         />
         <XAxis
-          dataKey="name"
-          tick={{ fontSize: 9, fill: "var(--muted)" }}
+          type="number"
+          tickFormatter={formatCompact}
+          tick={{ fontSize: 10, fill: "var(--muted)" }}
           axisLine={{ stroke: "var(--border)" }}
           tickLine={false}
-          interval={0}
-          angle={-35}
-          textAnchor="end"
-          height={60}
-          tickFormatter={(v: string) => v.length > 16 ? v.slice(0, 16) + "\u2026" : v}
         />
         <YAxis
-          tickFormatter={formatCompact}
-          tick={{ fontSize: 11, fill: "var(--muted)" }}
+          type="category"
+          dataKey="name"
+          width={labelWidth}
+          tick={{ fontSize: 10, fill: "var(--muted)" }}
           axisLine={false}
           tickLine={false}
-          width={65}
+          tickFormatter={(v: string) => v.length > 22 ? v.slice(0, 22) + "\u2026" : v}
         />
         <Tooltip content={<CustomTooltip />} />
         <Legend
@@ -108,15 +119,15 @@ export default function ProjectBudgetChart({ data, height = 240 }: Props) {
           dataKey="estimated"
           name="Budget"
           fill="#3b82f6"
-          radius={[3, 3, 0, 0]}
-          maxBarSize={24}
+          radius={[0, 3, 3, 0]}
+          maxBarSize={20}
         />
         <Bar
           dataKey="actual"
           name="Actual"
           fill="#22c55e"
-          radius={[3, 3, 0, 0]}
-          maxBarSize={24}
+          radius={[0, 3, 3, 0]}
+          maxBarSize={20}
         />
       </BarChart>
     </ResponsiveContainer>

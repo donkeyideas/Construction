@@ -68,42 +68,45 @@ export default function EquipmentTypeChart({ data }: Props) {
     label: TYPE_LABELS[d.type] ?? d.type,
   }));
 
+  // Horizontal bar layout: type names on Y-axis, counts on X-axis.
+  const dynamicHeight = Math.max(220, chartData.length * 36 + 40);
+
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height={dynamicHeight}>
       <BarChart
         data={chartData}
-        margin={{ top: 10, right: 10, left: -10, bottom: 15 }}
+        layout="vertical"
+        margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
+        barCategoryGap="30%"
       >
         <CartesianGrid
           strokeDasharray="3 3"
           stroke="var(--border)"
           opacity={0.4}
-          vertical={false}
+          horizontal={false}
         />
         <XAxis
-          dataKey="label"
+          type="number"
           tick={{ fontSize: 10, fill: "var(--muted)" }}
           axisLine={{ stroke: "var(--border)" }}
           tickLine={false}
-          interval={0}
-          angle={-20}
-          textAnchor="end"
-          height={45}
+          allowDecimals={false}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "var(--muted)" }}
+          type="category"
+          dataKey="label"
+          width={80}
+          tick={{ fontSize: 10, fill: "var(--muted)" }}
           axisLine={false}
           tickLine={false}
-          width={30}
-          allowDecimals={false}
         />
         <Tooltip content={<CustomTooltip />} />
         <Bar
           dataKey="count"
           name="Count"
           fill="#3b82f6"
-          radius={[4, 4, 0, 0]}
-          maxBarSize={32}
+          radius={[0, 4, 4, 0]}
+          maxBarSize={24}
         />
       </BarChart>
     </ResponsiveContainer>
