@@ -3845,10 +3845,13 @@ function UnitModal({
   const oneYearISO = `${oneYearDate.getFullYear()}-${String(oneYearDate.getMonth() + 1).padStart(2, "0")}-${String(oneYearDate.getDate()).padStart(2, "0")}`;
   const [leaseForm, setLeaseForm] = useState({
     tenant_name: "",
+    tenant_email: "",
+    tenant_phone: "",
     monthly_rent: unit.market_rent ? String(unit.market_rent) : "",
     security_deposit: "",
     lease_start: todayISO,
     lease_end: oneYearISO,
+    auto_renew: false,
   });
 
   async function handleCreateLease() {
@@ -3861,10 +3864,13 @@ function UnitModal({
         body: JSON.stringify({
           unit_id: unit.id,
           tenant_name: leaseForm.tenant_name,
+          tenant_email: leaseForm.tenant_email || null,
+          tenant_phone: leaseForm.tenant_phone || null,
           monthly_rent: Number(leaseForm.monthly_rent),
           security_deposit: leaseForm.security_deposit ? Number(leaseForm.security_deposit) : null,
           lease_start: leaseForm.lease_start,
           lease_end: leaseForm.lease_end,
+          auto_renew: leaseForm.auto_renew,
         }),
       });
       if (res.ok) {
@@ -4204,6 +4210,25 @@ function UnitModal({
                       />
                     </div>
                     <div className="form-group">
+                      <label className="form-label">{t("tenantEmail")}</label>
+                      <input
+                        className="form-input"
+                        type="email"
+                        value={leaseForm.tenant_email}
+                        onChange={(e) => setLeaseForm({ ...leaseForm, tenant_email: e.target.value })}
+                        placeholder="tenant@email.com"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t("tenantPhone")}</label>
+                      <input
+                        className="form-input"
+                        value={leaseForm.tenant_phone}
+                        onChange={(e) => setLeaseForm({ ...leaseForm, tenant_phone: e.target.value })}
+                        placeholder="(555) 123-4567"
+                      />
+                    </div>
+                    <div className="form-group">
                       <label className="form-label">{t("leaseStart")}</label>
                       <input
                         className="form-input"
@@ -4230,6 +4255,17 @@ function UnitModal({
                         onChange={(e) => setLeaseForm({ ...leaseForm, security_deposit: e.target.value })}
                         placeholder="0"
                       />
+                    </div>
+                    <div className="form-group" style={{ display: "flex", alignItems: "center", gap: "8px", paddingTop: "20px" }}>
+                      <input
+                        type="checkbox"
+                        id="unit-lease-auto-renew"
+                        checked={leaseForm.auto_renew}
+                        onChange={(e) => setLeaseForm({ ...leaseForm, auto_renew: e.target.checked })}
+                      />
+                      <label htmlFor="unit-lease-auto-renew" className="form-label" style={{ margin: 0 }}>
+                        {t("autoRenew")}
+                      </label>
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "12px" }}>
