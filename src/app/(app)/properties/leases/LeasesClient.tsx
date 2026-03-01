@@ -130,6 +130,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
     lease_end: "",
     payment_day: "1",
     terms: "",
+    auto_renew: false,
   });
 
   // Detail / edit modal
@@ -245,6 +246,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
       lease_end: "",
       payment_day: "1",
       terms: "",
+      auto_renew: false,
     });
     setCreateError("");
     setShowCreate(true);
@@ -262,12 +264,13 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
         body: JSON.stringify({
           unit_id: createForm.unit_id,
           tenant_name: createForm.tenant_name,
-          tenant_email: createForm.tenant_email || undefined,
-          tenant_phone: createForm.tenant_phone || undefined,
+          tenant_email: createForm.tenant_email || null,
+          tenant_phone: createForm.tenant_phone || null,
           monthly_rent: createForm.monthly_rent,
           security_deposit: createForm.security_deposit || undefined,
           lease_start: createForm.lease_start,
           lease_end: createForm.lease_end,
+          auto_renew: createForm.auto_renew,
         }),
       });
 
@@ -801,6 +804,18 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                     required
                   />
                 </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}>
+                <input
+                  type="checkbox"
+                  id="create-auto-renew"
+                  checked={createForm.auto_renew}
+                  onChange={(e) => setCreateForm({ ...createForm, auto_renew: e.target.checked })}
+                />
+                <label htmlFor="create-auto-renew" className="ticket-form-label" style={{ margin: 0 }}>
+                  {t("autoRenew")}
+                </label>
               </div>
 
               <div className="ticket-form-actions">

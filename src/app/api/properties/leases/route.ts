@@ -86,10 +86,13 @@ export async function POST(request: NextRequest) {
         property_id: unit.property_id,
         unit_id: body.unit_id,
         tenant_name: body.tenant_name.trim(),
+        tenant_email: body.tenant_email || null,
+        tenant_phone: body.tenant_phone || null,
         lease_start: body.lease_start,
         lease_end: body.lease_end,
         monthly_rent: Number(body.monthly_rent),
         security_deposit: body.security_deposit ? Number(body.security_deposit) : null,
+        auto_renew: body.auto_renew === true,
         status: "active",
       })
       .select()
