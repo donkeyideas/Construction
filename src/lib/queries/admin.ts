@@ -114,10 +114,14 @@ export async function getCompanyMembers(
     );
   }
 
-  return members.map((m: Record<string, unknown>) => ({
+  return (members.map((m: Record<string, unknown>) => ({
     ...m,
     user_profile: m.user_id ? profileMap.get(m.user_id as string) ?? null : null,
-  })) as CompanyMember[];
+  })) as CompanyMember[]).sort((a, b) => {
+    const nameA = a.user_profile?.full_name ?? a.invited_email ?? "";
+    const nameB = b.user_profile?.full_name ?? b.invited_email ?? "";
+    return nameA.localeCompare(nameB);
+  });
 }
 
 // ---------------------------------------------------------------------------
