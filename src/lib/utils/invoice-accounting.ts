@@ -1489,7 +1489,10 @@ export async function recognizeLeaseRevenue(
 /**
  * Generate a journal entry for a rent payment collection.
  *   DR Cash / CR Rent Receivable
- * If late_fee > 0: also DR Rent Receivable / CR Late Fee Revenue
+ * Accrual-aware: if a monthly accrual JE already exists for the payment month,
+ * credits Rent Receivable (clearing the AR). Otherwise credits Rental Income
+ * directly (cash-basis fallback for companies without accrual JEs).
+ * If late_fee > 0: also credits Late Fee Revenue (cash basis only).
  *
  * Updates lease_revenue_schedule status to 'collected'.
  * Reference format: rent_payment:{paymentId}
@@ -1513,22 +1516,21 @@ export async function generateRentPaymentJournalEntry(
   if (payment.amount <= 0) return null;
   if (!accountMap.cashId) return null;
 
-  // Prefer Rental Income (revenue) so the payment hits the P&L.
-  // Fall back to Rent Receivable for accrual-basis setups.
-  let revenueAccountId: string | null = accountMap.rentalIncomeId || accountMap.rentReceivableId;
+  // Resolve Rental Income account for cash-basis fallback
+  let revenueAccountId: string | null = accountMap.rentalIncomeId;
 
-  // Auto-create Rental Income account if neither exists
+  // Auto-create Rental Income account if it doesn't exist
   if (!revenueAccountId) {
     const { data: newRevAccount } = await supabase
       .from("chart_of_accounts")
       .insert({
         company_id: companyId,
-        account_number: "4000",
+        account_number: "4100",
         name: "Rental Income",
         account_type: "revenue",
         sub_type: "operating_revenue",
         is_active: true,
-        description: "Revenue from rental payments received.",
+        description: "Revenue from tenant rent payments.",
         normal_balance: "credit",
       })
       .select("id")
@@ -1537,6 +1539,21 @@ export async function generateRentPaymentJournalEntry(
     if (!newRevAccount) return null;
     revenueAccountId = newRevAccount.id;
   }
+
+  // Check if an accrual JE already exists for this month.
+  // If yes → accrual basis: DR Cash / CR Rent Receivable (clears the receivable).
+  // If no  → cash basis:    DR Cash / CR Rental Income (recognizes revenue on receipt).
+  const paymentMonthStr = payment.payment_date.substring(0, 7); // YYYY-MM
+  const accrualRef = `rent:accrual:${payment.lease_id}:${paymentMonthStr}`;
+  const { data: accrualJE } = await supabase
+    .from("journal_entries")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("reference", accrualRef)
+    .maybeSingle();
+
+  const arAccountId = accountMap.rentReceivableId || accountMap.arId;
+  const useAccrualBasis = !!(accrualJE && arAccountId);
 
   const lines: JournalEntryCreateData["lines"] = [];
   const lateFee = payment.late_fee ?? 0;
@@ -1608,29 +1625,42 @@ export async function generateRentPaymentJournalEntry(
     property_id: payment.property_id,
   });
 
-  // CR Rental Income (rent revenue — shows on P&L)
-  if (rentAmount > 0 && revenueAccountId) {
+  if (useAccrualBasis) {
+    // Accrual basis: revenue was already recognized via monthly accrual JE.
+    // This payment clears the receivable: DR Cash / CR Rent Receivable.
     lines.push({
-      account_id: revenueAccountId,
+      account_id: arAccountId!,
       debit: 0,
-      credit: rentAmount,
+      credit: payment.amount,
       description,
       property_id: payment.property_id,
     });
-  }
+  } else {
+    // Cash basis: recognize revenue on receipt.
+    // CR Rental Income (shows on P&L)
+    if (rentAmount > 0 && revenueAccountId) {
+      lines.push({
+        account_id: revenueAccountId,
+        debit: 0,
+        credit: rentAmount,
+        description,
+        property_id: payment.property_id,
+      });
+    }
 
-  // CR Late Fee Revenue (if applicable)
-  if (lateFee > 0 && accountMap.lateFeeRevenueId) {
-    lines.push({
-      account_id: accountMap.lateFeeRevenueId,
-      debit: 0,
-      credit: lateFee,
-      description: `Late fee - ${payment.tenant_name}`,
-      property_id: payment.property_id,
-    });
-  } else if (lateFee > 0) {
-    // No late fee account — include in rent receivable credit
-    if (lines[1]) lines[1].credit = (lines[1].credit ?? 0) + lateFee;
+    // CR Late Fee Revenue (if applicable)
+    if (lateFee > 0 && accountMap.lateFeeRevenueId) {
+      lines.push({
+        account_id: accountMap.lateFeeRevenueId,
+        debit: 0,
+        credit: lateFee,
+        description: `Late fee - ${payment.tenant_name}`,
+        property_id: payment.property_id,
+      });
+    } else if (lateFee > 0) {
+      // No late fee account — roll into the revenue credit
+      if (lines[1]) lines[1].credit = (lines[1].credit ?? 0) + lateFee;
+    }
   }
 
   const shortId = payment.id.substring(0, 8);
