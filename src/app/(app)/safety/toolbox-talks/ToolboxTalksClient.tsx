@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -133,6 +133,17 @@ export default function ToolboxTalksClient({
     if (!user) return t("unknown");
     return user.full_name || user.email || t("unknown");
   }
+
+  // Projects - initialize from SSR prop, then refresh client-side for freshness
+  const [projectList, setProjectList] = useState<{ id: string; name: string }[]>(projects);
+  useEffect(() => {
+    fetch("/api/projects")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data: { id: string; name: string }[]) => {
+        if (Array.isArray(data) && data.length > 0) setProjectList(data);
+      })
+      .catch(() => {/* keep SSR prop */});
+  }, []);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<ToolboxTalkStatus | "all">("all");
@@ -635,7 +646,7 @@ export default function ToolboxTalksClient({
                     }
                   >
                     <option value="">{t("noProject")}</option>
-                    {projects.map((p) => (
+                    {projectList.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>
@@ -964,7 +975,7 @@ export default function ToolboxTalksClient({
                       }
                     >
                       <option value="">{t("noProject")}</option>
-                      {projects.map((p) => (
+                      {projectList.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
                         </option>
@@ -1043,7 +1054,7 @@ export default function ToolboxTalksClient({
           sampleData={IMPORT_SAMPLE}
           onImport={handleImport}
           onClose={() => { setShowImport(false); setImportProjectId(""); router.refresh(); }}
-          projects={projects}
+          projects={projectList}
           selectedProjectId={importProjectId}
           onProjectChange={setImportProjectId}
         />
