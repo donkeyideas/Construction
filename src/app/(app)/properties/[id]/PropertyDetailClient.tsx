@@ -4271,7 +4271,30 @@ function LeaseModal({
   const t = useTranslations("app");
   const locale = useLocale();
   const dateLocale = locale === "es" ? "es" : "en-US";
-  const [modalTab, setModalTab] = useState<"details" | "payments">("details");
+  const [modalTab, setModalTab] = useState<"details" | "payments" | "schedule">("details");
+
+  // Build month-by-month schedule from lease dates
+  const leaseSchedule = (() => {
+    if (!lease.lease_start || !lease.lease_end) return [];
+    const rows: { year: number; month: number; dueDate: string; amount: number; payment: PropertyRentPayment | null }[] = [];
+    const [startYr, startMo] = lease.lease_start.split("-").map(Number);
+    const [endYr, endMo] = lease.lease_end.split("-").map(Number);
+    let yr = startYr, mo = startMo; // 1-based month
+    while (yr < endYr || (yr === endYr && mo <= endMo)) {
+      const dueDate = `${yr}-${String(mo).padStart(2, "0")}-01`;
+      const monthKey = `${yr}-${String(mo).padStart(2, "0")}`;
+      const matched = rentPayments.find((p) => {
+        const ref = p.payment_date ?? p.due_date;
+        return ref ? ref.startsWith(monthKey) : false;
+      }) ?? null;
+      rows.push({ year: yr, month: mo, dueDate, amount: lease.monthly_rent, payment: matched });
+      mo++;
+      if (mo > 12) { mo = 1; yr++; }
+    }
+    return rows;
+  })();
+
+  const todayISO = getLocalToday();
 
   function formatDate(d: string | null | undefined): string {
     if (!d) return "--";
@@ -4537,25 +4560,30 @@ function LeaseModal({
             <div>
               {/* Tab bar */}
               <div style={{ display: "flex", gap: "0", borderBottom: "1px solid var(--border)", padding: "0 1.25rem" }}>
-                {(["details", "payments"] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setModalTab(tab)}
-                    style={{
-                      padding: "10px 16px",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      background: "none",
-                      border: "none",
-                      borderBottom: `2px solid ${modalTab === tab ? "var(--color-primary, #6366f1)" : "transparent"}`,
-                      color: modalTab === tab ? "var(--color-primary, #6366f1)" : "var(--text-muted)",
-                      cursor: "pointer",
-                      marginBottom: "-1px",
-                    }}
-                  >
-                    {tab === "details" ? "Details" : `Payments (${rentPayments.length})`}
-                  </button>
-                ))}
+                {(["details", "payments", "schedule"] as const).map((tab) => {
+                  const label = tab === "details" ? "Details"
+                    : tab === "payments" ? `Payments (${rentPayments.length})`
+                    : `Schedule (${leaseSchedule.length})`;
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => setModalTab(tab)}
+                      style={{
+                        padding: "10px 16px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        background: "none",
+                        border: "none",
+                        borderBottom: `2px solid ${modalTab === tab ? "var(--color-primary, #6366f1)" : "transparent"}`,
+                        color: modalTab === tab ? "var(--color-primary, #6366f1)" : "var(--text-muted)",
+                        cursor: "pointer",
+                        marginBottom: "-1px",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Details tab */}
@@ -4702,6 +4730,90 @@ function LeaseModal({
                       </div>
                     </>
                   )}
+                </div>
+              )}
+
+              {/* Schedule tab */}
+              {modalTab === "schedule" && (
+                <div style={{ padding: "1.25rem" }}>
+                  {/* Summary bar */}
+                  <div style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
+                    {[
+                      { label: "Total Lease Value", value: formatCurrency(lease.monthly_rent * leaseSchedule.length) },
+                      { label: "Monthly Rent", value: formatCurrency(lease.monthly_rent) },
+                      { label: "Months Paid", value: String(leaseSchedule.filter((r) => r.payment).length), color: "var(--color-success, #22c55e)" },
+                      { label: "Months Remaining", value: String(leaseSchedule.filter((r) => !r.payment && r.dueDate > todayISO).length) },
+                    ].map((item) => (
+                      <div key={item.label} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "6px", padding: "10px 14px", minWidth: "120px", flex: "1" }}>
+                        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.label}</div>
+                        <div style={{ fontWeight: 700, fontSize: "15px", color: item.color }}>{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Month-by-month table */}
+                  <div style={{ overflowX: "auto", maxHeight: "400px", overflowY: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                          {["#", "Month", "Due Date", "Amount", "Status", "Paid On"].map((h) => (
+                            <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leaseSchedule.map((row, idx) => {
+                          const isPaid = !!row.payment;
+                          const isPastDue = !isPaid && row.dueDate < todayISO;
+                          const isCurrent = !isPaid && row.dueDate.slice(0, 7) === todayISO.slice(0, 7);
+                          const statusLabel = isPaid ? "Paid" : isPastDue ? "Past Due" : isCurrent ? "Due Now" : "Upcoming";
+                          const statusColor = isPaid ? "var(--color-success, #22c55e)" : isPastDue ? "#ef4444" : isCurrent ? "#f59e0b" : "var(--text-muted)";
+                          const isCurrentRow = isCurrent || (isPastDue && idx === leaseSchedule.filter((r) => !r.payment && r.dueDate < todayISO).length - 1);
+                          return (
+                            <tr
+                              key={row.dueDate}
+                              style={{
+                                borderBottom: "1px solid var(--border-subtle, rgba(255,255,255,0.06))",
+                                background: isCurrent ? "rgba(99,102,241,0.06)" : undefined,
+                              }}
+                            >
+                              <td style={{ padding: "9px 10px", color: "var(--text-muted)", fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
+                              <td style={{ padding: "9px 10px", fontWeight: 500 }}>
+                                {new Date(row.dueDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                              </td>
+                              <td style={{ padding: "9px 10px", color: "var(--text-muted)" }}>{formatDateSafe(row.dueDate)}</td>
+                              <td style={{ padding: "9px 10px", fontVariantNumeric: "tabular-nums" }}>{formatCurrency(row.amount)}</td>
+                              <td style={{ padding: "9px 10px" }}>
+                                <span style={{
+                                  display: "inline-block",
+                                  padding: "2px 8px",
+                                  borderRadius: "12px",
+                                  fontSize: "11px",
+                                  fontWeight: 600,
+                                  color: statusColor,
+                                  background: isPaid ? "rgba(34,197,94,0.1)" : isPastDue ? "rgba(239,68,68,0.1)" : isCurrent ? "rgba(245,158,11,0.1)" : "transparent",
+                                }}>
+                                  {statusLabel}
+                                </span>
+                              </td>
+                              <td style={{ padding: "9px 10px", color: "var(--text-muted)", fontSize: "12px" }}>
+                                {row.payment?.payment_date ? formatDateSafe(row.payment.payment_date) : "--"}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ borderTop: "2px solid var(--border)", background: "var(--bg)" }}>
+                          <td colSpan={3} style={{ padding: "10px", fontWeight: 600, fontSize: "13px" }}>Total</td>
+                          <td style={{ padding: "10px", fontWeight: 700 }}>{formatCurrency(lease.monthly_rent * leaseSchedule.length)}</td>
+                          <td colSpan={2} style={{ padding: "10px", color: "var(--text-muted)", fontSize: "12px" }}>
+                            {leaseSchedule.filter((r) => r.payment).length} of {leaseSchedule.length} paid
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
