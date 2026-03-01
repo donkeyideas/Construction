@@ -1,6 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { paginatedQuery } from "@/lib/utils/paginated-query";
 import { formatDateShort, toDateStr, formatDateSafe } from "@/lib/utils/format";
+import { getGLBalanceForAccountType } from "@/lib/utils/gl-balance";
 
 /* ------------------------------------------------------------------
    Types
@@ -276,6 +277,16 @@ export async function getFinancialOverview(
     0
   );
 
+  // GL fallback for AR/AP/Cash when no invoice subledger data exists
+  const [glAR, glAP, glCash] = await Promise.all([
+    totalAR === 0 ? getGLBalanceForAccountType(supabase, companyId, "asset", "%receivable%", "debit-credit") : Promise.resolve(0),
+    totalAP === 0 ? getGLBalanceForAccountType(supabase, companyId, "liability", "%payable%", "credit-debit") : Promise.resolve(0),
+    cashPosition === 0 ? getGLBalanceForAccountType(supabase, companyId, "asset", "%cash%", "debit-credit") : Promise.resolve(0),
+  ]);
+  const finalAR = totalAR > 0 ? totalAR : glAR;
+  const finalAP = totalAP > 0 ? totalAP : glAP;
+  const finalCash = cashPosition > 0 ? cashPosition : glCash;
+
   let revenueThisMonth = 0;
   let expensesThisMonth = 0;
   for (const row of paymentsRes.data ?? []) {
@@ -359,10 +370,32 @@ export async function getFinancialOverview(
     }
   }
 
+  // Fallback 3: GL-based when no invoice data exists in any of the past 6 months
+  if (revenueThisMonth === 0 && expensesThisMonth === 0) {
+    for (let i = 0; i <= 6; i++) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+      const startStr = toDateStr(monthStart);
+      const endStr = toDateStr(monthEnd);
+      const tbRows = await getTrialBalanceDateRange(supabase, companyId, startStr, endStr);
+      let rev = 0, exp = 0;
+      for (const row of tbRows) {
+        if (row.account_type === "revenue") rev += (row.credit - row.debit);
+        else if (row.account_type === "expense") exp += (row.debit - row.credit);
+      }
+      if (rev > 0 || exp > 0) {
+        revenueThisMonth = rev;
+        expensesThisMonth = exp;
+        periodLabel = i === 0 ? "This Month" : formatDateShort(toDateStr(monthStart));
+        break;
+      }
+    }
+  }
+
   return {
-    totalAR,
-    totalAP,
-    cashPosition,
+    totalAR: finalAR,
+    totalAP: finalAP,
+    cashPosition: finalCash,
     revenueThisMonth,
     expensesThisMonth,
     netIncome: revenueThisMonth - expensesThisMonth,
@@ -999,6 +1032,51 @@ export async function getMonthlyIncomeExpenses(
       income: incomeByMonth.get(key) ?? 0,
       expenses: expenseByMonth.get(key) ?? 0,
     });
+  }
+
+  // GL fallback: if all invoice-based months are $0, use journal entry lines instead
+  if (months.every((m) => m.income === 0 && m.expenses === 0)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const glLines = await paginatedQuery<any>((from, to) =>
+      supabase
+        .from("journal_entry_lines")
+        .select("debit, credit, chart_of_accounts(account_type), journal_entries!inner(entry_date, status)")
+        .eq("company_id", companyId)
+        .eq("journal_entries.status", "posted")
+        .gte("journal_entries.entry_date", startISO)
+        .range(from, to)
+    );
+
+    const glIncome = new Map<string, number>();
+    const glExpense = new Map<string, number>();
+
+    for (const line of glLines) {
+      const acct = Array.isArray(line.chart_of_accounts)
+        ? line.chart_of_accounts[0]
+        : line.chart_of_accounts;
+      if (!acct) continue;
+      const je = Array.isArray(line.journal_entries)
+        ? line.journal_entries[0]
+        : line.journal_entries;
+      if (!je?.entry_date) continue;
+      const d = new Date(je.entry_date);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (acct.account_type === "revenue") {
+        glIncome.set(key, (glIncome.get(key) ?? 0) + ((line.credit ?? 0) - (line.debit ?? 0)));
+      } else if (acct.account_type === "expense") {
+        glExpense.set(key, (glExpense.get(key) ?? 0) + ((line.debit ?? 0) - (line.credit ?? 0)));
+      }
+    }
+
+    for (let i = 0; i < months.length; i++) {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const key = `${monthDate.getFullYear()}-${monthDate.getMonth()}`;
+      months[i] = {
+        ...months[i],
+        income: glIncome.get(key) ?? 0,
+        expenses: glExpense.get(key) ?? 0,
+      };
+    }
   }
 
   return months;

@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { paginatedQuery } from "@/lib/utils/paginated-query";
+import { getGLBalanceForAccountType } from "@/lib/utils/gl-balance";
 
 // ---------------------------------------------------------------------------
 // Type definitions
@@ -122,9 +123,14 @@ export async function getDashboardKPIs(
     0
   );
 
+  // GL fallback for cash when bank accounts show $0 (no bank accounts configured)
+  const finalCash = cashPosition > 0
+    ? cashPosition
+    : await getGLBalanceForAccountType(supabase, companyId, "asset", "%cash%", "debit-credit");
+
   return {
     activeProjectsValue,
-    cashPosition,
+    cashPosition: finalCash,
     openChangeOrders,
     schedulePerformance,
   };
