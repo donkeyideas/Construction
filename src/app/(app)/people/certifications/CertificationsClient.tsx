@@ -488,7 +488,7 @@ export default function CertificationsClient({
                         </span>
                       </td>
                       <td>{cert.issuing_authority ?? "--"}</td>
-                      <td style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "0.82rem" }}>
+                      <td>
                         {cert.cert_number ?? "--"}
                       </td>
                       <td>
@@ -791,9 +791,7 @@ export default function CertificationsClient({
                     {selectedCert.cert_number && (
                       <div className="people-detail-row">
                         <ShieldCheck size={16} />
-                        <span style={{ fontFamily: "var(--font-mono, monospace)" }}>
-                          {selectedCert.cert_number}
-                        </span>
+                        <span>{selectedCert.cert_number}</span>
                       </div>
                     )}
                   </div>
