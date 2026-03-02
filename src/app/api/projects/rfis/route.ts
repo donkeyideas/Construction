@@ -204,8 +204,9 @@ export async function PATCH(request: NextRequest) {
     // Update cost impact JE when cost_impact changes
     if (body.cost_impact !== undefined) {
       try {
-        // Remove any existing cost impact JE for this RFI
-        await supabase
+        // Remove any existing cost impact JE for this RFI (use admin to bypass RLS)
+        const adminPatch = createAdminClient();
+        await adminPatch
           .from("journal_entries")
           .delete()
           .eq("company_id", userCtx.companyId)
@@ -296,6 +297,14 @@ export async function DELETE(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    // Delete cost impact JE if one exists for this RFI (use admin to bypass RLS)
+    const adminDel = createAdminClient();
+    await adminDel
+      .from("journal_entries")
+      .delete()
+      .eq("company_id", userCtx.companyId)
+      .eq("reference", `rfi:ci:${body.id}`);
 
     const { error } = await supabase
       .from("rfis")

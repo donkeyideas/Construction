@@ -137,7 +137,7 @@ export async function getProjectTransactions(
     ...changeOrders.map((co) => `change_order:${co.id}`),
     ...pmts.map((p) => `payment:${p.id}`),
     ...contracts.map((c) => `contract:${c.id}`),
-    ...rfis.map((r) => `rfi:${r.id}`),
+    ...rfis.map((r) => `rfi:ci:${r.id}`),
   ];
   const jeMap = await getJEMap(supabase, companyId, allRefs);
 
@@ -208,7 +208,7 @@ export async function getProjectTransactions(
 
   // RFIs — processed before JE lines so coveredJeIds is populated
   for (const rfi of rfis) {
-    const je = jeMap.get(`rfi:${rfi.id}`);
+    const je = jeMap.get(`rfi:ci:${rfi.id}`);
     if (je) coveredJeIds.add(je.id);
     const projectName = rfi.project_id ? projectNameMap.get(rfi.project_id) ?? "" : "";
     const impact = Number(rfi.cost_impact) || 0;
@@ -227,6 +227,8 @@ export async function getProjectTransactions(
       description: string; reference: string | null; status: string;
     } | null;
     if (!je || je.status !== "posted" || coveredJeIds.has(je.id)) continue;
+    // RFI cost impact JEs are always shown as part of the RFI source row
+    if (je.reference?.startsWith("rfi:ci:")) continue;
     const projectName = line.project_id ? projectNameMap.get(line.project_id) ?? "" : "";
     txns.push({
       id: `jel-${line.id}`, date: je.entry_date,
