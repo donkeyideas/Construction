@@ -11,6 +11,7 @@ export interface NavItem {
 }
 
 export const appNavigation: NavItem[] = [
+  // ── OVERVIEW ──────────────────────────────────────────────────────────────
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -31,6 +32,19 @@ export const appNavigation: NavItem[] = [
     href: "/tickets",
     icon: "ticket",
   },
+  // ── BUSINESS DEVELOPMENT ──────────────────────────────────────────────────
+  {
+    label: "CRM & Bids",
+    icon: "handshake",
+    children: [
+      { label: "Overview", href: "/crm/overview" },
+      { label: "Transactions", href: "/crm/transactions" },
+      { label: "Pipeline", href: "/crm" },
+      { label: "Bid Management", href: "/crm/bids" },
+      { label: "Estimating", href: "/estimating" },
+    ],
+  },
+  // ── CONSTRUCTION ──────────────────────────────────────────────────────────
   {
     label: "Projects",
     icon: "hard-hat",
@@ -47,18 +61,6 @@ export const appNavigation: NavItem[] = [
     ],
   },
   {
-    label: "Properties",
-    icon: "building-2",
-    children: [
-      { label: "Overview", href: "/properties/overview" },
-      { label: "Transactions", href: "/properties/transactions" },
-      { label: "Portfolio", href: "/properties" },
-      { label: "Leases", href: "/properties/leases" },
-      { label: "Expenses", href: "/properties/expenses" },
-      { label: "Maintenance", href: "/properties/maintenance" },
-    ],
-  },
-  {
     label: "Safety",
     icon: "shield-check",
     children: [
@@ -70,6 +72,34 @@ export const appNavigation: NavItem[] = [
       { label: "Toolbox Talks", href: "/safety/toolbox-talks" },
     ],
   },
+  // ── REAL ESTATE ───────────────────────────────────────────────────────────
+  {
+    label: "Properties",
+    icon: "building-2",
+    children: [
+      { label: "Overview", href: "/properties/overview" },
+      { label: "Transactions", href: "/properties/transactions" },
+      { label: "Portfolio", href: "/properties" },
+      { label: "Leases", href: "/properties/leases" },
+      { label: "Expenses", href: "/properties/expenses" },
+      { label: "Maintenance", href: "/properties/maintenance" },
+    ],
+  },
+  // ── PEOPLE ────────────────────────────────────────────────────────────────
+  {
+    label: "People",
+    icon: "users",
+    children: [
+      { label: "Overview", href: "/people/overview" },
+      { label: "Transactions", href: "/people/transactions" },
+      { label: "Directory", href: "/people" },
+      { label: "Labor & Time", href: "/people/labor" },
+      { label: "Reconcile", href: "/people/reconcile" },
+      { label: "Certifications", href: "/people/certifications" },
+      { label: "Vendors", href: "/people/vendors" },
+    ],
+  },
+  // ── OPERATIONS ────────────────────────────────────────────────────────────
   {
     label: "Equipment",
     icon: "wrench",
@@ -82,6 +112,7 @@ export const appNavigation: NavItem[] = [
       { label: "Maintenance", href: "/equipment/maintenance" },
     ],
   },
+  // ── FINANCIAL ─────────────────────────────────────────────────────────────
   {
     label: "Financial",
     icon: "dollar-sign",
@@ -105,6 +136,7 @@ export const appNavigation: NavItem[] = [
       { label: "Financial Audit", href: "/financial/audit" },
     ],
   },
+  // ── DOCUMENTS ─────────────────────────────────────────────────────────────
   {
     label: "Documents",
     icon: "folder-open",
@@ -114,30 +146,21 @@ export const appNavigation: NavItem[] = [
       { label: "Plan Room", href: "/documents/plan-room" },
     ],
   },
+  // ── REPORTS ───────────────────────────────────────────────────────────────
   {
-    label: "People",
-    icon: "users",
+    label: "Reports",
+    icon: "bar-chart-3",
     children: [
-      { label: "Overview", href: "/people/overview" },
-      { label: "Transactions", href: "/people/transactions" },
-      { label: "Directory", href: "/people" },
-      { label: "Labor & Time", href: "/people/labor" },
-      { label: "Reconcile", href: "/people/reconcile" },
-      { label: "Certifications", href: "/people/certifications" },
-      { label: "Vendors", href: "/people/vendors" },
+      { label: "Reports Center", href: "/reports" },
+      { label: "Authoritative Reports", href: "/reports/authoritative" },
     ],
   },
   {
-    label: "CRM & Bids",
-    icon: "handshake",
-    children: [
-      { label: "Overview", href: "/crm/overview" },
-      { label: "Transactions", href: "/crm/transactions" },
-      { label: "Pipeline", href: "/crm" },
-      { label: "Bid Management", href: "/crm/bids" },
-      { label: "Estimating", href: "/estimating" },
-    ],
+    label: "System Map",
+    href: "/system-map",
+    icon: "map",
   },
+  // ── OTHER ─────────────────────────────────────────────────────────────────
   {
     label: "AI Intelligence",
     icon: "sparkles",
@@ -155,19 +178,7 @@ export const appNavigation: NavItem[] = [
       { label: "Automation", href: "/automation" },
     ],
   },
-  {
-    label: "Reports",
-    icon: "bar-chart-3",
-    children: [
-      { label: "Reports Center", href: "/reports" },
-      { label: "Authoritative Reports", href: "/reports/authoritative" },
-    ],
-  },
-  {
-    label: "System Map",
-    href: "/system-map",
-    icon: "map",
-  },
+  // ── ADMINISTRATION ────────────────────────────────────────────────────────
   {
     label: "Administration",
     icon: "settings",
