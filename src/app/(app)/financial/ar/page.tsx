@@ -43,10 +43,10 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
   const todayStr = now.toISOString().split("T")[0];
 
   const [allAr, billedThisMonthRes, collectedThisMonthRes, invoicesRes] = await Promise.all([
-    paginatedQuery<{ id: string; balance_due: number; status: string; due_date: string }>((from, to) => {
+    paginatedQuery<{ id: string; balance_due: number; status: string; due_date: string; client_name: string | null }>((from, to) => {
       let q = supabase
         .from("invoices")
-        .select("id, balance_due, status, due_date")
+        .select("id, balance_due, status, due_date, client_name")
         .eq("company_id", userCompany.companyId)
         .eq("invoice_type", "receivable")
         .not("status", "eq", "voided");
@@ -121,6 +121,30 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
     projects: inv.projects as { name: string } | null,
   }));
 
+  // AR Aging breakdown
+  const agingBuckets = { current: 0, days30: 0, days60: 0, days90: 0, days90plus: 0 };
+  for (const inv of allAr) {
+    if ((inv.balance_due ?? 0) <= 0 || inv.status === "draft") continue;
+    const daysOverdue = Math.floor((now.getTime() - new Date(inv.due_date).getTime()) / (1000 * 60 * 60 * 24));
+    if (daysOverdue <= 0) agingBuckets.current += inv.balance_due;
+    else if (daysOverdue <= 30) agingBuckets.days30 += inv.balance_due;
+    else if (daysOverdue <= 60) agingBuckets.days60 += inv.balance_due;
+    else if (daysOverdue <= 90) agingBuckets.days90 += inv.balance_due;
+    else agingBuckets.days90plus += inv.balance_due;
+  }
+
+  // Top clients by AR balance
+  const clientMap: Record<string, number> = {};
+  for (const inv of allAr) {
+    if ((inv.balance_due ?? 0) <= 0 || inv.status === "draft") continue;
+    const name = inv.client_name || "Unknown";
+    clientMap[name] = (clientMap[name] || 0) + inv.balance_due;
+  }
+  const topClients = Object.entries(clientMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([name, amount]) => ({ name, amount }));
+
   // Batch-fetch linked journal entries
   const invoiceIds = invoices.map((inv) => inv.id);
   const jeMap = await findLinkedJournalEntriesBatch(supabase, userCompany.companyId, "invoice:", invoiceIds);
@@ -150,6 +174,8 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
       initialEndDate={filterEndDate}
       glBalance={glArBalance}
       serverToday={todayStr}
+      agingBuckets={agingBuckets}
+      topClients={topClients}
     />
   );
 }

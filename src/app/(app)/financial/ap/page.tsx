@@ -133,7 +133,7 @@ export default async function AccountsPayablePage({ searchParams }: PageProps) {
   }
   const topVendors = Object.entries(vendorMap)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
+    .slice(0, 3)
     .map(([name, amount]) => ({ name, amount }));
 
   // --- Map invoice rows ---

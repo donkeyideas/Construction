@@ -46,6 +46,19 @@ interface LinkedJE {
   entry_number: string;
 }
 
+interface AgingBuckets {
+  current: number;
+  days30: number;
+  days60: number;
+  days90: number;
+  days90plus: number;
+}
+
+interface TopClient {
+  name: string;
+  amount: number;
+}
+
 interface ARClientProps {
   invoices: InvoiceRow[];
   totalArBalance: number;
@@ -58,6 +71,8 @@ interface ARClientProps {
   initialEndDate?: string;
   glBalance?: number;
   serverToday?: string;
+  agingBuckets?: AgingBuckets;
+  topClients?: TopClient[];
 }
 
 /* ------------------------------------------------------------------
@@ -89,6 +104,8 @@ export default function ARClient({
   initialEndDate,
   glBalance,
   serverToday,
+  agingBuckets = { current: 0, days30: 0, days60: 0, days90: 0, days90plus: 0 },
+  topClients = [],
 }: ARClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
@@ -348,6 +365,70 @@ export default function ARClient({
           </span>
         </div>
       )}
+
+      {/* AR Aging Chart + Top Clients Row */}
+      {(agingBuckets.current + agingBuckets.days30 + agingBuckets.days60 + agingBuckets.days90 + agingBuckets.days90plus) > 0 && (() => {
+        const agingTotal = agingBuckets.current + agingBuckets.days30 + agingBuckets.days60 + agingBuckets.days90 + agingBuckets.days90plus;
+        const agingSegments = [
+          { label: "Current", value: agingBuckets.current, color: "var(--color-green, #22c55e)" },
+          { label: "1-30", value: agingBuckets.days30, color: "var(--color-blue, #3b82f6)" },
+          { label: "31-60", value: agingBuckets.days60, color: "var(--color-amber, #f59e0b)" },
+          { label: "61-90", value: agingBuckets.days90, color: "var(--color-orange, #f97316)" },
+          { label: "90+", value: agingBuckets.days90plus, color: "var(--color-red, #ef4444)" },
+        ];
+        return (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+            <div className="fin-chart-card" style={{ padding: "16px 20px" }}>
+              <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: 12 }}>AR Aging</div>
+              <div style={{ display: "flex", height: 24, borderRadius: 6, overflow: "hidden", marginBottom: 12 }}>
+                {agingSegments.map((seg) => {
+                  const pct = agingTotal > 0 ? (seg.value / agingTotal) * 100 : 0;
+                  if (pct < 0.5) return null;
+                  return (
+                    <div
+                      key={seg.label}
+                      title={`${seg.label}: ${formatCurrency(seg.value)} (${pct.toFixed(0)}%)`}
+                      style={{ width: `${pct}%`, background: seg.color, minWidth: pct > 0 ? 4 : 0 }}
+                    />
+                  );
+                })}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px" }}>
+                {agingSegments.map((seg) => (
+                  <div key={seg.label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 2, background: seg.color, flexShrink: 0 }} />
+                    <span style={{ color: "var(--muted)" }}>{seg.label}</span>
+                    <span style={{ fontWeight: 600 }}>{formatCompactCurrency(seg.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="fin-chart-card" style={{ padding: "16px 20px" }}>
+              <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: 12 }}>Top Clients by AR Balance</div>
+              {topClients.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {topClients.map((c, i) => {
+                    const pct = totalArBalance > 0 ? (c.amount / totalArBalance) * 100 : 0;
+                    return (
+                      <div key={i}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", marginBottom: 3 }}>
+                          <span style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "60%" }}>{c.name}</span>
+                          <span style={{ fontWeight: 600 }}>{formatCompactCurrency(c.amount)}</span>
+                        </div>
+                        <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ width: `${Math.min(pct, 100)}%`, height: "100%", background: "var(--color-blue, #3b82f6)", borderRadius: 3 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ color: "var(--muted)", fontSize: "0.82rem" }}>No outstanding balances</div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Status Filters */}
       <div className="fin-filters">
