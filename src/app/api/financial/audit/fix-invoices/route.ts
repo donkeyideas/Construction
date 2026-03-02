@@ -3,12 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { buildCompanyAccountMap, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
 import { createPostedJournalEntry } from "@/lib/queries/financial";
+import { paginatedQuery } from "@/lib/utils/paginated-query";
 
 /**
  * POST /api/financial/audit/fix-invoices
  * Fixes two audit warnings:
  *   1. Invoice GL Mappings — assigns default GL account to unmapped invoices
  *   2. Invoice JE Coverage — creates missing journal entries for active invoices
+ *   3. Orphaned JE cleanup — removes JEs hitting AR/AP accounts that no longer
+ *      have a valid backing entity (invoice, payment, change order, etc.)
  */
 export async function POST() {
   try {
@@ -33,7 +36,6 @@ export async function POST() {
       .not("status", "in", '("draft","voided")');
 
     if (unmapped && unmapped.length > 0) {
-      // Find default revenue and expense accounts
       let defaultRevenueId: string | null = null;
       for (const num of ["4000", "4010", "4100", "4200"]) {
         if (accountMap.byNumber[num]) { defaultRevenueId = accountMap.byNumber[num]; break; }
@@ -46,7 +48,6 @@ export async function POST() {
       for (const inv of unmapped) {
         const glId = inv.invoice_type === "receivable" ? defaultRevenueId : defaultExpenseId;
         if (!glId) continue;
-
         const { error } = await supabase
           .from("invoices")
           .update({ gl_account_id: glId })
@@ -64,7 +65,6 @@ export async function POST() {
       .not("total_amount", "is", null);
 
     if (invoices && invoices.length > 0) {
-      // Find which already have JEs
       const invRefs = invoices.map((i) => `invoice:${i.id}`);
       const { data: existingJEs } = await supabase
         .from("journal_entries")
@@ -76,7 +76,6 @@ export async function POST() {
       for (const inv of invoices) {
         if (existingRefs.has(`invoice:${inv.id}`)) continue;
         if (!inv.total_amount || Number(inv.total_amount) === 0) continue;
-        // Skip auto-generated invoices that use batch JE accounting
         const notes = inv.notes ?? "";
         if (notes.startsWith("auto-rent-") || notes.startsWith("auto-maint-") || notes.startsWith("csv-import:")) continue;
 
@@ -110,30 +109,36 @@ export async function POST() {
     }
 
     // 3a. Invoice JEs whose invoice no longer exists or is voided
-    const { data: allInvoiceJEs } = await supabase
-      .from("journal_entries")
-      .select("id, reference")
-      .eq("company_id", companyId)
-      .like("reference", "invoice:%")
-      .neq("status", "voided");
+    // Uses paginatedQuery — a company with many historical invoices can easily exceed 1000 JEs
+    const allInvoiceJEs = await paginatedQuery<{ id: string; reference: string }>((from, to) =>
+      supabase
+        .from("journal_entries")
+        .select("id, reference")
+        .eq("company_id", companyId)
+        .like("reference", "invoice:%")
+        .neq("status", "voided")
+        .range(from, to)
+    );
 
-    if (allInvoiceJEs && allInvoiceJEs.length > 0) {
+    if (allInvoiceJEs.length > 0) {
       const jeInvoiceIds = allInvoiceJEs
         .map((je) => je.reference.replace("invoice:", ""))
         .filter((id) => id.length > 0);
 
       if (jeInvoiceIds.length > 0) {
-        const { data: existingInvoices } = await supabase
-          .from("invoices")
-          .select("id, status")
-          .eq("company_id", companyId)
-          .in("id", jeInvoiceIds);
-
-        const activeInvoiceIds = new Set(
-          (existingInvoices ?? [])
-            .filter((inv) => inv.status !== "voided")
-            .map((inv) => inv.id)
-        );
+        const CHUNK = 200;
+        const activeInvoiceIds = new Set<string>();
+        for (let i = 0; i < jeInvoiceIds.length; i += CHUNK) {
+          const chunk = jeInvoiceIds.slice(i, i + CHUNK);
+          const { data: existing } = await supabase
+            .from("invoices")
+            .select("id, status")
+            .eq("company_id", companyId)
+            .in("id", chunk);
+          for (const inv of existing ?? []) {
+            if (inv.status !== "voided") activeInvoiceIds.add(inv.id);
+          }
+        }
 
         for (const je of allInvoiceJEs) {
           const invId = je.reference.replace("invoice:", "");
@@ -144,27 +149,34 @@ export async function POST() {
       }
     }
 
-    // 3b. Payment JEs whose payment or parent invoice no longer exists
-    const { data: allPaymentJEs } = await supabase
-      .from("journal_entries")
-      .select("id, reference")
-      .eq("company_id", companyId)
-      .like("reference", "payment:%")
-      .neq("status", "voided");
+    // 3b. Payment JEs whose payment no longer exists
+    const allPaymentJEs = await paginatedQuery<{ id: string; reference: string }>((from, to) =>
+      supabase
+        .from("journal_entries")
+        .select("id, reference")
+        .eq("company_id", companyId)
+        .like("reference", "payment:%")
+        .neq("status", "voided")
+        .range(from, to)
+    );
 
-    if (allPaymentJEs && allPaymentJEs.length > 0) {
+    if (allPaymentJEs.length > 0) {
       const paymentIds = allPaymentJEs
         .map((je) => je.reference.replace("payment:", ""))
         .filter((id) => id.length > 0);
 
       if (paymentIds.length > 0) {
-        const { data: existingPayments } = await supabase
-          .from("payments")
-          .select("id")
-          .eq("company_id", companyId)
-          .in("id", paymentIds);
-
-        const activePaymentIds = new Set((existingPayments ?? []).map((p) => p.id));
+        const CHUNK = 200;
+        const activePaymentIds = new Set<string>();
+        for (let i = 0; i < paymentIds.length; i += CHUNK) {
+          const chunk = paymentIds.slice(i, i + CHUNK);
+          const { data: existing } = await supabase
+            .from("payments")
+            .select("id")
+            .eq("company_id", companyId)
+            .in("id", chunk);
+          for (const p of existing ?? []) activePaymentIds.add(p.id);
+        }
 
         for (const je of allPaymentJEs) {
           const pId = je.reference.replace("payment:", "");
@@ -175,175 +187,90 @@ export async function POST() {
       }
     }
 
-    // 3c. Nuclear cleanup: find ALL posted JEs hitting AP accounts.
-    // Delete any JE whose referenced entity no longer exists, is voided,
-    // or has no reference at all (orphaned manual/import entries).
-    const { data: apAccounts } = await supabase
-      .from("chart_of_accounts")
-      .select("id")
-      .eq("company_id", companyId)
-      .eq("account_type", "liability")
-      .or("name.ilike.%accounts payable%,name.ilike.%accts payable%,name.ilike.%a/p%,name.ilike.%trade payable%,name.ilike.%retainage payable%");
+    // Helper: build cross-reference sets for nuclear cleanup
+    const { data: activePayableInvoices } = await supabase
+      .from("invoices").select("id").eq("company_id", companyId)
+      .eq("invoice_type", "payable").not("status", "in", '("voided","draft")');
+    const activeAPInvSet = new Set((activePayableInvoices ?? []).map((i: { id: string }) => i.id));
 
-    if (apAccounts && apAccounts.length > 0) {
-      const apAccountIds = apAccounts.map((a) => a.id);
+    const { data: activeReceivableInvoices } = await supabase
+      .from("invoices").select("id").eq("company_id", companyId)
+      .eq("invoice_type", "receivable").not("status", "in", '("voided","draft")');
+    const activeARInvSet = new Set((activeReceivableInvoices ?? []).map((i: { id: string }) => i.id));
 
-      // Find distinct JE IDs with lines on AP accounts
-      const { data: apJELines } = await supabase
-        .from("journal_entry_lines")
-        .select("journal_entry_id")
-        .eq("company_id", companyId)
-        .in("account_id", apAccountIds);
+    const { data: activePaymentsAll } = await supabase
+      .from("payments").select("id").eq("company_id", companyId);
+    const activePaySet = new Set((activePaymentsAll ?? []).map((p: { id: string }) => p.id));
 
-      if (apJELines && apJELines.length > 0) {
-        const apJEIds = [...new Set(apJELines.map((l) => l.journal_entry_id))];
+    const { data: activeCOs } = await supabase
+      .from("change_orders").select("id").eq("company_id", companyId).neq("status", "voided");
+    const activeCOSet = new Set((activeCOs ?? []).map((c: { id: string }) => c.id));
 
-        // Get ALL active payable invoice IDs for cross-reference
-        const { data: activePayableInvoices } = await supabase
-          .from("invoices")
-          .select("id")
+    // Generic orphan-check for a JE: returns true if it should be deleted.
+    // invSet: the set of valid invoice IDs for the account side being cleaned.
+    function isOrphaned(ref: string, invSet: Set<string>): boolean {
+      if (!ref) return true;
+      if (ref.startsWith("rent:accrual:") || ref.startsWith("lease_accrual:")) return false;
+      if (ref.startsWith("invoice:")) return !invSet.has(ref.replace("invoice:", ""));
+      if (ref.startsWith("payment:")) return !activePaySet.has(ref.replace("payment:", ""));
+      if (ref.startsWith("deferral:")) {
+        const invId = ref.split(":")[1] || "";
+        return !invId || !invSet.has(invId);
+      }
+      if (ref.startsWith("change_order:")) return !activeCOSet.has(ref.replace("change_order:", ""));
+      return true; // unknown reference hitting an AR/AP account = orphaned
+    }
+
+    async function nukeOrphanedJEsForAccounts(
+      accountIds: string[],
+      invSet: Set<string>
+    ) {
+      // paginatedQuery ensures we get ALL JE lines even if >1000
+      const allLines = await paginatedQuery<{ journal_entry_id: string }>((from, to) =>
+        supabase
+          .from("journal_entry_lines")
+          .select("journal_entry_id")
           .eq("company_id", companyId)
-          .eq("invoice_type", "payable")
-          .not("status", "in", '("voided","draft")');
-        const activeInvSet = new Set((activePayableInvoices ?? []).map((i) => i.id));
+          .in("account_id", accountIds)
+          .range(from, to)
+      );
+      if (allLines.length === 0) return;
 
-        // Get ALL active payment IDs
-        const { data: activePayments } = await supabase
-          .from("payments")
-          .select("id")
-          .eq("company_id", companyId);
-        const activePaySet = new Set((activePayments ?? []).map((p) => p.id));
-
-        // Get ALL active change order IDs
-        const { data: activeCOs } = await supabase
-          .from("change_orders")
-          .select("id")
+      const jeIds = [...new Set(allLines.map((l) => l.journal_entry_id))];
+      const CHUNK = 200;
+      for (let i = 0; i < jeIds.length; i += CHUNK) {
+        const chunk = jeIds.slice(i, i + CHUNK);
+        const { data: jes } = await supabase
+          .from("journal_entries")
+          .select("id, reference, status")
           .eq("company_id", companyId)
+          .in("id", chunk)
           .neq("status", "voided");
-        const activeCOSet = new Set((activeCOs ?? []).map((c) => c.id));
 
-        const CHUNK = 200;
-        for (let i = 0; i < apJEIds.length; i += CHUNK) {
-          const chunk = apJEIds.slice(i, i + CHUNK);
-          const { data: jes } = await supabase
-            .from("journal_entries")
-            .select("id, reference, status")
-            .eq("company_id", companyId)
-            .in("id", chunk)
-            .neq("status", "voided");
-
-          for (const je of jes ?? []) {
-            const ref = je.reference || "";
-            let orphaned = false;
-
-            if (!ref) {
-              // No reference = orphaned manual/import entry hitting AP
-              orphaned = true;
-            } else if (ref.startsWith("invoice:")) {
-              orphaned = !activeInvSet.has(ref.replace("invoice:", ""));
-            } else if (ref.startsWith("payment:")) {
-              orphaned = !activePaySet.has(ref.replace("payment:", ""));
-            } else if (ref.startsWith("deferral:")) {
-              const invId = ref.split(":")[1] || "";
-              orphaned = !invId || !activeInvSet.has(invId);
-            } else if (ref.startsWith("change_order:")) {
-              orphaned = !activeCOSet.has(ref.replace("change_order:", ""));
-            } else {
-              // Unknown reference pattern hitting AP = orphaned
-              orphaned = true;
-            }
-
-            if (orphaned) {
-              await deleteJE(je.id);
-            }
+        for (const je of jes ?? []) {
+          if (isOrphaned((je.reference as string) || "", invSet)) {
+            await deleteJE(je.id);
           }
         }
       }
     }
 
-    // 3d. Nuclear cleanup: find ALL posted JEs hitting AR accounts.
-    // Delete any JE whose referenced entity no longer exists, is voided,
-    // or has no reference at all (orphaned manual/import entries).
-    // Preserve lease/rent accrual JEs — valid property-management workflow.
+    // 3c. Nuclear cleanup: AP accounts
+    const { data: apAccounts } = await supabase
+      .from("chart_of_accounts").select("id")
+      .eq("company_id", companyId).eq("account_type", "liability")
+      .or("name.ilike.%accounts payable%,name.ilike.%accts payable%,name.ilike.%a/p%,name.ilike.%trade payable%,name.ilike.%retainage payable%");
+    if (apAccounts && apAccounts.length > 0) {
+      await nukeOrphanedJEsForAccounts(apAccounts.map((a: { id: string }) => a.id), activeAPInvSet);
+    }
+
+    // 3d. Nuclear cleanup: AR accounts (same logic, preserves lease accrual JEs)
     const { data: arAccounts } = await supabase
-      .from("chart_of_accounts")
-      .select("id")
-      .eq("company_id", companyId)
-      .eq("account_type", "asset")
+      .from("chart_of_accounts").select("id")
+      .eq("company_id", companyId).eq("account_type", "asset")
       .or("name.ilike.%accounts receivable%,name.ilike.%accts receivable%,name.ilike.%a/r%,name.ilike.%trade receivable%,name.ilike.%retainage receivable%");
-
     if (arAccounts && arAccounts.length > 0) {
-      const arAccountIds = arAccounts.map((a: { id: string }) => a.id);
-
-      const { data: arJELines } = await supabase
-        .from("journal_entry_lines")
-        .select("journal_entry_id")
-        .eq("company_id", companyId)
-        .in("account_id", arAccountIds);
-
-      if (arJELines && arJELines.length > 0) {
-        const arJEIds = [...new Set(arJELines.map((l: { journal_entry_id: string }) => l.journal_entry_id))];
-
-        const { data: activeReceivableInvoices } = await supabase
-          .from("invoices")
-          .select("id")
-          .eq("company_id", companyId)
-          .eq("invoice_type", "receivable")
-          .not("status", "in", '("voided","draft")');
-        const activeARInvSet = new Set((activeReceivableInvoices ?? []).map((i: { id: string }) => i.id));
-
-        const { data: activePaymentsAR } = await supabase
-          .from("payments")
-          .select("id")
-          .eq("company_id", companyId);
-        const activePaySetAR = new Set((activePaymentsAR ?? []).map((p: { id: string }) => p.id));
-
-        const { data: activeCOsAR } = await supabase
-          .from("change_orders")
-          .select("id")
-          .eq("company_id", companyId)
-          .neq("status", "voided");
-        const activeCOSetAR = new Set((activeCOsAR ?? []).map((c: { id: string }) => c.id));
-
-        const CHUNK_AR = 200;
-        for (let i = 0; i < arJEIds.length; i += CHUNK_AR) {
-          const chunk = arJEIds.slice(i, i + CHUNK_AR);
-          const { data: jes } = await supabase
-            .from("journal_entries")
-            .select("id, reference, status")
-            .eq("company_id", companyId)
-            .in("id", chunk)
-            .neq("status", "voided");
-
-          for (const je of jes ?? []) {
-            const ref = (je.reference as string) || "";
-            let orphaned = false;
-
-            if (!ref) {
-              orphaned = true;
-            } else if (ref.startsWith("rent:accrual:") || ref.startsWith("lease_accrual:")) {
-              // Valid lease/rent accrual — preserve
-              orphaned = false;
-            } else if (ref.startsWith("invoice:")) {
-              orphaned = !activeARInvSet.has(ref.replace("invoice:", ""));
-            } else if (ref.startsWith("payment:")) {
-              orphaned = !activePaySetAR.has(ref.replace("payment:", ""));
-            } else if (ref.startsWith("deferral:")) {
-              const invId = ref.split(":")[1] || "";
-              orphaned = !invId || !activeARInvSet.has(invId);
-            } else if (ref.startsWith("change_order:")) {
-              orphaned = !activeCOSetAR.has(ref.replace("change_order:", ""));
-            } else {
-              // Unknown reference pattern hitting AR = orphaned
-              orphaned = true;
-            }
-
-            if (orphaned) {
-              await deleteJE(je.id);
-            }
-          }
-        }
-      }
+      await nukeOrphanedJEsForAccounts(arAccounts.map((a: { id: string }) => a.id), activeARInvSet);
     }
 
     console.log(`[financial] fix-invoices: glMapped=${glMapped}, jesCreated=${jesCreated}, jesDeleted=${jesDeleted}`);
