@@ -92,14 +92,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create cost impact JE if cost_impact is set
+    // Create cost impact JE if cost_impact is set (positive = DR Expense/CR AP, negative = DR AP/CR Expense)
     const costImpact = body.cost_impact ? Number(body.cost_impact) : 0;
-    if (costImpact > 0) {
+    if (costImpact !== 0) {
       try {
         const accountMap = await buildCompanyAccountMap(admin, userCtx.companyId);
         const expenseAccountId = accountMap.byType["expense"];
         const apAccountId = accountMap.apId;
         if (expenseAccountId && apAccountId) {
+          const absAmt = Math.abs(costImpact);
+          const isNeg = costImpact < 0;
           await createPostedJournalEntry(admin, userCtx.companyId, userCtx.userId, {
             entry_number: `JE-RFI-${rfi_number}`,
             entry_date: new Date().toISOString().split("T")[0],
@@ -107,8 +109,8 @@ export async function POST(request: NextRequest) {
             reference: `rfi:ci:${rfi.id}`,
             project_id: body.project_id,
             lines: [
-              { account_id: expenseAccountId, debit: costImpact, credit: 0, description: `RFI ${rfi_number} cost impact`, project_id: body.project_id },
-              { account_id: apAccountId, debit: 0, credit: costImpact, description: `RFI ${rfi_number} cost impact - AP` },
+              { account_id: expenseAccountId, debit: isNeg ? 0 : absAmt, credit: isNeg ? absAmt : 0, description: `RFI ${rfi_number} cost impact`, project_id: body.project_id },
+              { account_id: apAccountId, debit: isNeg ? absAmt : 0, credit: isNeg ? 0 : absAmt, description: `RFI ${rfi_number} cost impact - AP` },
             ],
           });
         }
@@ -213,20 +215,22 @@ export async function PATCH(request: NextRequest) {
           .eq("reference", `rfi:ci:${rfi.id}`);
 
         const newCostImpact = body.cost_impact ? Number(body.cost_impact) : 0;
-        if (newCostImpact > 0) {
-          const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+        if (newCostImpact !== 0) {
+          const accountMap = await buildCompanyAccountMap(adminPatch, userCtx.companyId);
           const expenseAccountId = accountMap.byType["expense"];
           const apAccountId = accountMap.apId;
           if (expenseAccountId && apAccountId) {
-            await createPostedJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+            const absAmt = Math.abs(newCostImpact);
+            const isNeg = newCostImpact < 0;
+            await createPostedJournalEntry(adminPatch, userCtx.companyId, userCtx.userId, {
               entry_number: `JE-RFI-${rfi.rfi_number}`,
               entry_date: new Date().toISOString().split("T")[0],
               description: `RFI cost impact: ${rfi.subject}`,
               reference: `rfi:ci:${rfi.id}`,
               project_id: rfi.project_id ?? undefined,
               lines: [
-                { account_id: expenseAccountId, debit: newCostImpact, credit: 0, description: `RFI ${rfi.rfi_number} cost impact`, project_id: rfi.project_id ?? undefined },
-                { account_id: apAccountId, debit: 0, credit: newCostImpact, description: `RFI ${rfi.rfi_number} cost impact - AP` },
+                { account_id: expenseAccountId, debit: isNeg ? 0 : absAmt, credit: isNeg ? absAmt : 0, description: `RFI ${rfi.rfi_number} cost impact`, project_id: rfi.project_id ?? undefined },
+                { account_id: apAccountId, debit: isNeg ? absAmt : 0, credit: isNeg ? 0 : absAmt, description: `RFI ${rfi.rfi_number} cost impact - AP` },
               ],
             });
           }
