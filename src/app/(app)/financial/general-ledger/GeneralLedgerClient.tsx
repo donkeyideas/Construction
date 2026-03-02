@@ -14,6 +14,9 @@ import {
   Loader2,
   Upload,
   Eye,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { formatCurrency, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
@@ -142,6 +145,12 @@ export default function GeneralLedgerClient({
   /* ---- State ---- */
   const [activeTab, setActiveTab] = useState<"journal" | "trial">("journal");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 50;
+
+  function handleStatusChange(v: string) { setStatusFilter(v); setCurrentPage(1); }
+  function handleSearchChange(v: string) { setSearchQuery(v); setCurrentPage(1); }
   const [entries, setEntries] = useState<JournalEntryRow[]>(initialEntries);
   const [trialBalance, setTrialBalance] = useState<TrialBalanceRow[]>(initialTrialBalance);
 
@@ -173,9 +182,24 @@ export default function GeneralLedgerClient({
   const flatAccounts = useMemo(() => flattenAccounts(accounts), [accounts]);
 
   const filteredEntries = useMemo(() => {
-    if (statusFilter === "all") return entries;
-    return entries.filter((e) => e.status === statusFilter);
-  }, [entries, statusFilter]);
+    let result = statusFilter === "all" ? entries : entries.filter((e) => e.status === statusFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (e) =>
+          (e.entry_number ?? "").toLowerCase().includes(q) ||
+          (e.description ?? "").toLowerCase().includes(q) ||
+          (e.reference ?? "").toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [entries, statusFilter, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / PAGE_SIZE));
+  const pagedEntries = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredEntries.slice(start, start + PAGE_SIZE);
+  }, [filteredEntries, currentPage, PAGE_SIZE]);
 
   const trialTotals = useMemo(() => {
     const totalDebit = trialBalance.reduce((s, r) => s + r.total_debit, 0);
@@ -461,6 +485,29 @@ export default function GeneralLedgerClient({
         <>
           {/* Filter row + actions */}
           <div className="fin-filters">
+            {/* Search */}
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <Search size={14} style={{ position: "absolute", left: 10, color: "var(--muted)", pointerEvents: "none" }} />
+              <input
+                type="text"
+                placeholder="Search entry #, description, reference…"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                style={{
+                  paddingLeft: 32,
+                  paddingRight: 10,
+                  height: 36,
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  background: "var(--surface)",
+                  color: "var(--text)",
+                  fontSize: "0.83rem",
+                  width: 260,
+                  outline: "none",
+                }}
+              />
+            </div>
+
             <label
               style={{
                 fontSize: "0.82rem",
@@ -473,7 +520,7 @@ export default function GeneralLedgerClient({
             <select
               className="fin-filter-select"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => handleStatusChange(e.target.value)}
             >
               <option value="all">{t("statusAll")}</option>
               <option value="draft">{t("statusDraft")}</option>
@@ -502,6 +549,7 @@ export default function GeneralLedgerClient({
 
           {/* Entries Table */}
           {filteredEntries.length > 0 ? (
+            <>
             <div className="fin-chart-card" style={{ padding: 0 }}>
               <div style={{ overflowX: "auto" }}>
                 <table className="invoice-table">
@@ -518,7 +566,7 @@ export default function GeneralLedgerClient({
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredEntries.map((entry) => {
+                    {pagedEntries.map((entry) => {
                       const loading = actionLoading[entry.id];
                       return (
                         <tr
@@ -636,6 +684,49 @@ export default function GeneralLedgerClient({
                 </table>
               </div>
             </div>
+            {totalPages > 1 && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderTop: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                  {filteredEntries.length} {filteredEntries.length === 1 ? "entry" : "entries"} · Page {currentPage} of {totalPages}
+                </span>
+                <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                  <button
+                    className="ui-btn ui-btn-outline ui-btn-sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    style={{ display: "inline-flex", alignItems: "center" }}
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    let page: number;
+                    if (totalPages <= 7) { page = i + 1; }
+                    else if (currentPage <= 4) { page = i + 1; }
+                    else if (currentPage >= totalPages - 3) { page = totalPages - 6 + i; }
+                    else { page = currentPage - 3 + i; }
+                    return (
+                      <button
+                        key={page}
+                        className="ui-btn ui-btn-outline ui-btn-sm"
+                        onClick={() => setCurrentPage(page)}
+                        style={{ minWidth: 32, fontWeight: currentPage === page ? 700 : 400, background: currentPage === page ? "var(--color-blue)" : undefined, color: currentPage === page ? "#fff" : undefined }}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                  <button
+                    className="ui-btn ui-btn-outline ui-btn-sm"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    style={{ display: "inline-flex", alignItems: "center" }}
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+            </>
           ) : (
             <div className="fin-chart-card">
               <div className="fin-empty">
