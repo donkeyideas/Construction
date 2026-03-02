@@ -189,6 +189,7 @@ export default function DailyLogsClient({
     work_performed: "",
     safety_incidents: "",
     delays: "",
+    materials_received: "",
   });
 
   const [showImport, setShowImport] = useState(false);
@@ -274,6 +275,7 @@ export default function DailyLogsClient({
           work_performed: formData.work_performed || undefined,
           safety_incidents: formData.safety_incidents || undefined,
           delays: formData.delays || undefined,
+          materials_received: formData.materials_received || undefined,
         }),
       });
 
@@ -292,6 +294,7 @@ export default function DailyLogsClient({
         work_performed: "",
         safety_incidents: "",
         delays: "",
+        materials_received: "",
       });
       setShowCreate(false);
       router.refresh();
@@ -321,10 +324,14 @@ export default function DailyLogsClient({
 
   function startEditing() {
     if (!selectedLog) return;
+    const totalHeadcount = selectedLog.workforce
+      ? selectedLog.workforce.reduce((sum, w) => sum + (w.headcount || 0), 0)
+      : 0;
     setEditData({
       status: selectedLog.status || "draft",
       weather_conditions: selectedLog.weather_conditions || "",
       weather_temp_high: selectedLog.weather_temp_high?.toString() || "",
+      workforce_count: totalHeadcount > 0 ? String(totalHeadcount) : "",
       work_performed: selectedLog.work_performed || "",
       safety_incidents: selectedLog.safety_incidents || "",
       delays: selectedLog.delays || "",
@@ -349,6 +356,9 @@ export default function DailyLogsClient({
           weather_conditions: editData.weather_conditions || undefined,
           weather_temp_high: editData.weather_temp_high
             ? Number(editData.weather_temp_high)
+            : undefined,
+          workforce_count: editData.workforce_count !== undefined
+            ? (editData.workforce_count ? Number(editData.workforce_count) : 0)
             : undefined,
           work_performed: editData.work_performed || undefined,
           safety_incidents: editData.safety_incidents || undefined,
@@ -971,6 +981,22 @@ export default function DailyLogsClient({
                 </div>
 
                 <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("workforceCount")}</label>
+                  <input
+                    type="number"
+                    className="ticket-form-input"
+                    value={editData.workforce_count || ""}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        workforce_count: e.target.value,
+                      })
+                    }
+                    placeholder={t("totalHeadcountPlaceholder")}
+                  />
+                </div>
+
+                <div className="ticket-form-group">
                   <label className="ticket-form-label">{t("workPerformed")}</label>
                   <textarea
                     className="ticket-form-textarea"
@@ -1398,6 +1424,24 @@ export default function DailyLogsClient({
                     })
                   }
                   placeholder={t("describeDelays")}
+                  rows={2}
+                />
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">
+                  {t("materialsReceived")}
+                </label>
+                <textarea
+                  className="ticket-form-textarea"
+                  value={formData.materials_received}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      materials_received: e.target.value,
+                    })
+                  }
+                  placeholder={t("describeMaterialsReceived") || "List materials delivered to site..."}
                   rows={2}
                 />
               </div>

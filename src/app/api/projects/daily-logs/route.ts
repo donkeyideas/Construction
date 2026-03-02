@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
         work_performed: body.work_performed?.trim() || null,
         safety_incidents: body.safety_incidents?.trim() || null,
         delays: body.delays?.trim() || null,
+        materials_received: body.materials_received?.trim() || null,
         status: "draft",
       })
       .select("*")
@@ -124,6 +125,11 @@ export async function PATCH(request: NextRequest) {
     if (body.weather_temp_high !== undefined) updateData.weather_temp_high = body.weather_temp_high;
     if (body.weather_temp_low !== undefined) updateData.weather_temp_low = body.weather_temp_low;
     if (body.workforce !== undefined) updateData.workforce = body.workforce;
+    if (body.workforce_count !== undefined) {
+      updateData.workforce = body.workforce_count
+        ? [{ trade: "General", headcount: Number(body.workforce_count), hours: 8 }]
+        : [];
+    }
     if (body.delays !== undefined) updateData.delays = body.delays;
     if (body.safety_incidents !== undefined) updateData.safety_incidents = body.safety_incidents;
     if (body.materials_received !== undefined) updateData.materials_received = body.materials_received;
