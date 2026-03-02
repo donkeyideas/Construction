@@ -118,7 +118,7 @@ export async function getProjectTransactions(
     paginatedQuery<{ id: string; rfi_number: string | null; subject: string | null; cost_impact: number; status: string; created_at: string; project_id: string }>((from, to) =>
       supabase.from("rfis")
         .select("id, rfi_number, subject, cost_impact, status, created_at, project_id")
-        .eq("company_id", companyId).in("project_id", projectIds).not("cost_impact", "is", null).gt("cost_impact", 0)
+        .eq("company_id", companyId).in("project_id", projectIds).not("cost_impact", "is", null).neq("cost_impact", 0)
         .order("created_at", { ascending: false }).range(from, to)),
   ]);
 
@@ -212,11 +212,13 @@ export async function getProjectTransactions(
     if (je) coveredJeIds.add(je.id);
     const projectName = rfi.project_id ? projectNameMap.get(rfi.project_id) ?? "" : "";
     const impact = Number(rfi.cost_impact) || 0;
+    const absImpact = Math.abs(impact);
     txns.push({
       id: `rfi-${rfi.id}`, date: rfi.created_at,
       description: `RFI ${rfi.rfi_number ?? ""} — ${rfi.subject ?? ""}${projectName ? ` (${projectName})` : ""}`.trim(),
       reference: rfi.rfi_number ?? "", source: "RFIs", sourceHref: "/projects/rfis",
-      debit: impact, credit: 0, jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null, jeExpected: false,
+      debit: impact >= 0 ? absImpact : 0, credit: impact < 0 ? absImpact : 0,
+      jeNumber: je?.entry_number ?? null, jeId: je?.id ?? null, jeExpected: false,
     });
   }
 
