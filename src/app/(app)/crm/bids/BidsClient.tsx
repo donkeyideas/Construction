@@ -696,7 +696,7 @@ export default function BidsClient({
               </div>
 
               {/* Line Items */}
-              <div className="bid-line-items" style={{ marginTop: 20 }}>
+              <div className="bid-line-items" style={{ marginTop: 12, marginBottom: 0 }}>
                 <div className="bid-line-items-header">
                   <span>Line Items</span>
                   <button
@@ -709,16 +709,23 @@ export default function BidsClient({
                   </button>
                 </div>
 
-                <div style={{ overflowX: "auto" }}>
-                <table className="bid-line-items-table">
+                <table className="bid-line-items-table" style={{ tableLayout: "fixed", width: "100%" }}>
+                  <colgroup>
+                    <col style={{ width: "auto" }} />
+                    <col style={{ width: 52 }} />
+                    <col style={{ width: 52 }} />
+                    <col style={{ width: 90 }} />
+                    <col style={{ width: 80 }} />
+                    <col style={{ width: 28 }} />
+                  </colgroup>
                   <thead>
                     <tr>
-                      <th style={{ minWidth: 160 }}>Description</th>
-                      <th style={{ width: 60 }}>Qty</th>
-                      <th style={{ width: 60 }}>Unit</th>
-                      <th style={{ width: 90 }}>Unit Cost</th>
-                      <th style={{ width: 100, textAlign: "right" }}>Total</th>
-                      <th style={{ width: 32 }}></th>
+                      <th>Description</th>
+                      <th>Qty</th>
+                      <th>Unit</th>
+                      <th>Unit Cost</th>
+                      <th style={{ textAlign: "right" }}>Total</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -785,11 +792,10 @@ export default function BidsClient({
                     ))}
                   </tbody>
                 </table>
-                </div>
               </div>
 
               {/* Totals */}
-              <div className="bid-totals" style={{ marginTop: 16 }}>
+              <div className="bid-totals" style={{ marginTop: 8 }}>
                 <div className="bid-totals-box">
                   <div className="bid-totals-row">
                     <span className="totals-label">Line Items Total</span>
