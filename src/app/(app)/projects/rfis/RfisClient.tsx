@@ -158,9 +158,13 @@ export default function RfisClient({
     project_id: "",
     subject: "",
     question: "",
+    answer: "",
+    status: "open",
     priority: "medium",
     due_date: "",
     assigned_to: "",
+    cost_impact: "",
+    schedule_impact_days: "",
   });
 
   const [showImport, setShowImport] = useState(false);
@@ -218,9 +222,13 @@ export default function RfisClient({
           project_id: formData.project_id,
           subject: formData.subject,
           question: formData.question,
+          answer: formData.answer || undefined,
+          status: formData.status || "open",
           priority: formData.priority || "medium",
           due_date: formData.due_date || undefined,
           assigned_to: formData.assigned_to || undefined,
+          cost_impact: formData.cost_impact ? Number(formData.cost_impact) : undefined,
+          schedule_impact_days: formData.schedule_impact_days ? Number(formData.schedule_impact_days) : undefined,
         }),
       });
 
@@ -233,9 +241,13 @@ export default function RfisClient({
         project_id: "",
         subject: "",
         question: "",
+        answer: "",
+        status: "open",
         priority: "medium",
         due_date: "",
         assigned_to: "",
+        cost_impact: "",
+        schedule_impact_days: "",
       });
       setShowCreate(false);
       router.refresh();
@@ -564,6 +576,21 @@ export default function RfisClient({
             {createError && <div className="ticket-form-error">{createError}</div>}
 
             <form onSubmit={handleCreate} className="ticket-form">
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("rfiNumber")}</label>
+                  <input type="text" className="ticket-form-input" value="Auto-assigned" disabled style={{ opacity: 0.5 }} />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("columnStatus")}</label>
+                  <select className="ticket-form-select" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div className="ticket-form-group">
                 <label className="ticket-form-label">{t("projectRequired")}</label>
                 <select className="ticket-form-select" value={formData.project_id} onChange={(e) => setFormData({ ...formData, project_id: e.target.value })} required>
@@ -581,7 +608,12 @@ export default function RfisClient({
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">{t("questionRequired")}</label>
-                <textarea className="ticket-form-textarea" value={formData.question} onChange={(e) => setFormData({ ...formData, question: e.target.value })} placeholder={t("rfiQuestionPlaceholder")} rows={4} required />
+                <textarea className="ticket-form-textarea" value={formData.question} onChange={(e) => setFormData({ ...formData, question: e.target.value })} placeholder={t("rfiQuestionPlaceholder")} rows={3} required />
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("answer")}</label>
+                <textarea className="ticket-form-textarea" value={formData.answer} onChange={(e) => setFormData({ ...formData, answer: e.target.value })} placeholder={t("provideAnswerPlaceholder")} rows={2} />
               </div>
 
               <div className="ticket-form-row">
@@ -596,6 +628,17 @@ export default function RfisClient({
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">{t("dueDate")}</label>
                   <input type="date" className="ticket-form-input" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("costImpactDollar")}</label>
+                  <input type="number" className="ticket-form-input" value={formData.cost_impact} onChange={(e) => setFormData({ ...formData, cost_impact: e.target.value })} placeholder="0.00" step="0.01" min="0" />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("scheduleImpactDaysLabel")}</label>
+                  <input type="number" className="ticket-form-input" value={formData.schedule_impact_days} onChange={(e) => setFormData({ ...formData, schedule_impact_days: e.target.value })} placeholder="0" step="1" min="0" />
                 </div>
               </div>
 

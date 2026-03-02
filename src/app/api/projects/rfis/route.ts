@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { createNotifications } from "@/lib/utils/notifications";
+import { buildCompanyAccountMap } from "@/lib/utils/invoice-accounting";
+import { createPostedJournalEntry } from "@/lib/queries/financial";
 
 // ---------------------------------------------------------------------------
 // POST /api/projects/rfis — Create a new RFI
@@ -65,11 +67,14 @@ export async function POST(request: NextRequest) {
         rfi_number,
         subject: body.subject.trim(),
         question: body.question.trim(),
+        answer: body.answer?.trim() || null,
         priority: body.priority || "medium",
         due_date: body.due_date || null,
         assigned_to: body.assigned_to || null,
         submitted_by: userCtx.userId,
-        status: "open",
+        status: body.status || "open",
+        cost_impact: body.cost_impact ? Number(body.cost_impact) : null,
+        schedule_impact_days: body.schedule_impact_days ? Number(body.schedule_impact_days) : null,
       })
       .select("*")
       .single();
@@ -80,6 +85,29 @@ export async function POST(request: NextRequest) {
         { error: error.message },
         { status: 400 }
       );
+    }
+
+    // Create cost impact JE if cost_impact is set
+    const costImpact = body.cost_impact ? Number(body.cost_impact) : 0;
+    if (costImpact > 0) {
+      try {
+        const accountMap = await buildCompanyAccountMap(admin, userCtx.companyId);
+        const expenseAccountId = accountMap.byType["expense"];
+        const apAccountId = accountMap.apId;
+        if (expenseAccountId && apAccountId) {
+          await createPostedJournalEntry(admin, userCtx.companyId, userCtx.userId, {
+            entry_number: `JE-RFI-${rfi_number}`,
+            entry_date: new Date().toISOString().split("T")[0],
+            description: `RFI cost impact: ${body.subject.trim()}`,
+            reference: `rfi:ci:${rfi.id}`,
+            project_id: body.project_id,
+            lines: [
+              { account_id: expenseAccountId, debit: costImpact, credit: 0, description: `RFI ${rfi_number} cost impact`, project_id: body.project_id },
+              { account_id: apAccountId, debit: 0, credit: costImpact, description: `RFI ${rfi_number} cost impact - AP` },
+            ],
+          });
+        }
+      } catch (e) { console.warn("RFI cost impact JE failed:", e); }
     }
 
     try {
@@ -165,6 +193,38 @@ export async function PATCH(request: NextRequest) {
         { error: error.message },
         { status: 400 }
       );
+    }
+
+    // Update cost impact JE when cost_impact changes
+    if (body.cost_impact !== undefined) {
+      try {
+        // Remove any existing cost impact JE for this RFI
+        await supabase
+          .from("journal_entries")
+          .delete()
+          .eq("company_id", userCtx.companyId)
+          .eq("reference", `rfi:ci:${rfi.id}`);
+
+        const newCostImpact = body.cost_impact ? Number(body.cost_impact) : 0;
+        if (newCostImpact > 0) {
+          const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+          const expenseAccountId = accountMap.byType["expense"];
+          const apAccountId = accountMap.apId;
+          if (expenseAccountId && apAccountId) {
+            await createPostedJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
+              entry_number: `JE-RFI-${rfi.rfi_number}`,
+              entry_date: new Date().toISOString().split("T")[0],
+              description: `RFI cost impact: ${rfi.subject}`,
+              reference: `rfi:ci:${rfi.id}`,
+              project_id: rfi.project_id ?? undefined,
+              lines: [
+                { account_id: expenseAccountId, debit: newCostImpact, credit: 0, description: `RFI ${rfi.rfi_number} cost impact`, project_id: rfi.project_id ?? undefined },
+                { account_id: apAccountId, debit: 0, credit: newCostImpact, description: `RFI ${rfi.rfi_number} cost impact - AP` },
+              ],
+            });
+          }
+        }
+      } catch (e) { console.warn("RFI cost impact JE update failed:", e); }
     }
 
     if (body.status === "closed") {
