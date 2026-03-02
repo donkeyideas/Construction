@@ -16,6 +16,9 @@ import {
   Trash2,
   ExternalLink,
   Loader2,
+  CheckSquare,
+  CreditCard,
+  CheckCircle,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency, formatDateSafe } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
@@ -46,6 +49,14 @@ interface LinkedJE {
   entry_number: string;
 }
 
+interface BankAccount {
+  id: string;
+  name: string;
+  bank_name: string | null;
+  account_number_last4: string | null;
+  is_default: boolean;
+}
+
 interface AgingBuckets {
   current: number;
   days30: number;
@@ -73,6 +84,7 @@ interface ARClientProps {
   serverToday?: string;
   agingBuckets?: AgingBuckets;
   topClients?: TopClient[];
+  bankAccounts?: BankAccount[];
 }
 
 /* ------------------------------------------------------------------
@@ -106,6 +118,7 @@ export default function ARClient({
   serverToday,
   agingBuckets = { current: 0, days30: 0, days60: 0, days90: 0, days90plus: 0 },
   topClients = [],
+  bankAccounts = [],
 }: ARClientProps) {
   const router = useRouter();
   const t = useTranslations("financial");
@@ -145,6 +158,25 @@ export default function ARClient({
 
   // Import modal state
   const [showImport, setShowImport] = useState(false);
+
+  // Bulk selection + bulk receive state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkReceive, setShowBulkReceive] = useState(false);
+  const [bulkReceiveData, setBulkReceiveData] = useState({
+    payment_date: today,
+    bank_account_id: "",
+    method: "check",
+    reference_number: "",
+    notes: "",
+  });
+  const [bulkReceiveProcessing, setBulkReceiveProcessing] = useState(false);
+  const [bulkReceiveResults, setBulkReceiveResults] = useState<Array<{
+    invoice_number: string;
+    amount: number;
+    success: boolean;
+    error?: string;
+  }>>([]);
+  const [bulkReceiveDone, setBulkReceiveDone] = useState(false);
 
   async function handleImport(rows: Record<string, string>[]) {
     // Force all rows to receivable type
@@ -276,6 +308,55 @@ export default function ARClient({
       setSaveError(err instanceof Error ? err.message : t("failedToDelete"));
     } finally {
       setSaving(false);
+    }
+  }
+
+  // Bulk selection helpers
+  const selectableInvoices = invoices.filter(
+    (inv) => inv.balance_due > 0 && inv.status !== "paid" && inv.status !== "voided"
+  );
+  const allSelected = selectableInvoices.length > 0 && selectableInvoices.every((inv) => selectedIds.has(inv.id));
+  const someSelected = !allSelected && selectableInvoices.some((inv) => selectedIds.has(inv.id));
+  const selectedList = invoices.filter((inv) => selectedIds.has(inv.id));
+  const selectedTotal = selectedList.reduce((sum, inv) => sum + inv.balance_due, 0);
+
+  async function handleBulkReceive() {
+    if (selectedIds.size === 0 || bulkReceiveProcessing) return;
+    setBulkReceiveProcessing(true);
+    setBulkReceiveResults([]);
+    const selected = invoices.filter((inv) => selectedIds.has(inv.id));
+    const results: Array<{ invoice_number: string; amount: number; success: boolean; error?: string }> = [];
+    for (const inv of selected) {
+      try {
+        const res = await fetch("/api/financial/payments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            invoice_id: inv.id,
+            payment_date: bulkReceiveData.payment_date,
+            amount: inv.balance_due,
+            method: bulkReceiveData.method,
+            bank_account_id: bulkReceiveData.bank_account_id || undefined,
+            reference_number: bulkReceiveData.reference_number || undefined,
+            notes: bulkReceiveData.notes || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          results.push({ invoice_number: inv.invoice_number, amount: inv.balance_due, success: false, error: data.error || "Failed" });
+        } else {
+          results.push({ invoice_number: inv.invoice_number, amount: inv.balance_due, success: true });
+        }
+      } catch {
+        results.push({ invoice_number: inv.invoice_number, amount: inv.balance_due, success: false, error: "Network error" });
+      }
+    }
+    setBulkReceiveResults(results);
+    setBulkReceiveProcessing(false);
+    setBulkReceiveDone(true);
+    if (results.some((r) => r.success)) {
+      setSelectedIds(new Set());
+      router.refresh();
     }
   }
 
@@ -448,6 +529,51 @@ export default function ARClient({
         ))}
       </div>
 
+      {/* Bulk Selection Action Bar */}
+      {selectedIds.size > 0 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "10px 16px", marginBottom: 8,
+          background: "rgba(59,130,246,0.08)",
+          borderRadius: "var(--radius-md, 8px)",
+          border: "1px solid var(--color-blue, #3b82f6)",
+          fontSize: "0.85rem",
+        }}>
+          <CheckSquare size={16} style={{ color: "var(--color-blue)", flexShrink: 0 }} />
+          <span style={{ fontWeight: 600, color: "var(--color-blue)" }}>
+            {selectedIds.size} invoice{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <span style={{ color: "var(--muted)" }}>—</span>
+          <span style={{ fontWeight: 600 }}>Total: {formatCurrency(selectedTotal)}</span>
+          <div style={{ flex: 1 }} />
+          <button
+            className="ui-btn ui-btn-sm ui-btn-outline"
+            onClick={() => setSelectedIds(new Set())}
+          >
+            Clear
+          </button>
+          <button
+            className="ui-btn ui-btn-sm ui-btn-primary"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            onClick={() => {
+              setBulkReceiveDone(false);
+              setBulkReceiveResults([]);
+              setBulkReceiveData({
+                payment_date: today,
+                bank_account_id: bankAccounts.find((b) => b.is_default)?.id || bankAccounts[0]?.id || "",
+                method: "check",
+                reference_number: "",
+                notes: "",
+              });
+              setShowBulkReceive(true);
+            }}
+          >
+            <CreditCard size={14} />
+            Receive Payment ({selectedIds.size})
+          </button>
+        </div>
+      )}
+
       {/* Invoice Table */}
       {invoices.length > 0 ? (
         <div className="fin-chart-card" style={{ padding: 0 }}>
@@ -455,6 +581,21 @@ export default function ARClient({
             <table className="invoice-table">
               <thead>
                 <tr>
+                  <th style={{ width: 36, padding: "8px 4px 8px 16px" }}>
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={() => {
+                        if (allSelected || someSelected) {
+                          setSelectedIds(new Set());
+                        } else {
+                          setSelectedIds(new Set(selectableInvoices.map((inv) => inv.id)));
+                        }
+                      }}
+                      style={{ cursor: "pointer", accentColor: "var(--color-blue)" }}
+                      title={allSelected ? "Deselect all" : "Select all outstanding invoices"}
+                    />
+                  </th>
                   <th>{t("invoiceNumber")}</th>
                   <th>{t("clientName")}</th>
                   <th>{t("project")}</th>
@@ -475,9 +616,29 @@ export default function ARClient({
                     <tr
                       key={inv.id}
                       className={isOverdue ? "invoice-row-overdue" : ""}
-                      style={{ cursor: "pointer" }}
+                      style={{
+                        cursor: "pointer",
+                        background: selectedIds.has(inv.id) ? "rgba(59,130,246,0.07)" : undefined,
+                      }}
                       onClick={() => openDetail(inv)}
                     >
+                      <td style={{ width: 36, padding: "8px 4px 8px 16px" }} onClick={(e) => e.stopPropagation()}>
+                        {inv.balance_due > 0 && inv.status !== "paid" && inv.status !== "voided" && (
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(inv.id)}
+                            onChange={() => {
+                              setSelectedIds((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(inv.id)) next.delete(inv.id);
+                                else next.add(inv.id);
+                                return next;
+                              });
+                            }}
+                            style={{ cursor: "pointer", accentColor: "var(--color-blue)" }}
+                          />
+                        )}
+                      </td>
                       <td style={{ fontWeight: 600, color: "var(--color-blue)" }}>
                         {inv.invoice_number}
                       </td>
@@ -773,6 +934,190 @@ export default function ARClient({
                     </button>
                   </div>
                 </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Receive Payment Modal */}
+      {showBulkReceive && (
+        <div className="ticket-modal-overlay" onClick={bulkReceiveDone ? () => setShowBulkReceive(false) : undefined}>
+          <div
+            className="ticket-modal"
+            style={{ maxWidth: 560, maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ticket-modal-header">
+              <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <CreditCard size={18} />
+                Receive Payment — {selectedList.length} Invoice{selectedList.length !== 1 ? "s" : ""}
+              </h3>
+              <button className="ticket-modal-close" onClick={() => setShowBulkReceive(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="ticket-detail-body" style={{ flex: 1, overflowY: "auto" }}>
+              {!bulkReceiveDone ? (
+                <>
+                  {/* Selected invoices list */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600, marginBottom: 8 }}>
+                      Invoices to Collect
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 180, overflowY: "auto" }}>
+                      {selectedList.map((inv) => (
+                        <div key={inv.id} style={{
+                          display: "flex", justifyContent: "space-between", alignItems: "center",
+                          padding: "6px 10px", background: "var(--surface)", borderRadius: 6, fontSize: "0.82rem",
+                        }}>
+                          <div>
+                            <span style={{ fontWeight: 600, color: "var(--color-blue)" }}>{inv.invoice_number}</span>
+                            <span style={{ color: "var(--muted)", marginLeft: 8 }}>{inv.client_name || "--"}</span>
+                          </div>
+                          <span style={{ fontWeight: 600 }}>{formatCurrency(inv.balance_due)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{
+                      display: "flex", justifyContent: "space-between",
+                      padding: "8px 10px", marginTop: 4,
+                      borderTop: "1px solid var(--border)", fontSize: "0.85rem", fontWeight: 700,
+                    }}>
+                      <span>Total to Receive</span>
+                      <span style={{ color: "var(--color-green)" }}>{formatCurrency(selectedTotal)}</span>
+                    </div>
+                  </div>
+
+                  {/* Payment fields */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div style={{ gridColumn: "span 2" }}>
+                      <label style={{ display: "block", fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600, marginBottom: 4 }}>
+                        Deposit To (Bank Account)
+                      </label>
+                      <select
+                        className="fin-filter-select"
+                        style={{ width: "100%" }}
+                        value={bulkReceiveData.bank_account_id}
+                        onChange={(e) => setBulkReceiveData((p) => ({ ...p, bank_account_id: e.target.value }))}
+                      >
+                        <option value="">— Use Default Bank —</option>
+                        {bankAccounts.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.name}{b.bank_name ? ` — ${b.bank_name}` : ""}{b.account_number_last4 ? ` (...${b.account_number_last4})` : ""}{b.is_default ? " ★" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600, marginBottom: 4 }}>
+                        Payment Date
+                      </label>
+                      <input
+                        type="date"
+                        className="ui-input"
+                        value={bulkReceiveData.payment_date}
+                        onChange={(e) => setBulkReceiveData((p) => ({ ...p, payment_date: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600, marginBottom: 4 }}>
+                        Method
+                      </label>
+                      <select
+                        className="fin-filter-select"
+                        style={{ width: "100%" }}
+                        value={bulkReceiveData.method}
+                        onChange={(e) => setBulkReceiveData((p) => ({ ...p, method: e.target.value }))}
+                      >
+                        {["check", "ach", "wire", "credit_card", "cash"].map((m) => (
+                          <option key={m} value={m}>
+                            {{ check: "Check", ach: "ACH", wire: "Wire", credit_card: "Credit Card", cash: "Cash" }[m] || m}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600, marginBottom: 4 }}>
+                        Reference #
+                      </label>
+                      <input
+                        type="text"
+                        className="ui-input"
+                        placeholder="Optional"
+                        value={bulkReceiveData.reference_number}
+                        onChange={(e) => setBulkReceiveData((p) => ({ ...p, reference_number: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600, marginBottom: 4 }}>
+                        Notes
+                      </label>
+                      <input
+                        type="text"
+                        className="ui-input"
+                        placeholder="Optional"
+                        value={bulkReceiveData.notes}
+                        onChange={(e) => setBulkReceiveData((p) => ({ ...p, notes: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 12 }}>Payment Results</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {bulkReceiveResults.map((r, i) => (
+                      <div key={i} style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        padding: "8px 12px", borderRadius: 6, fontSize: "0.82rem",
+                        background: r.success ? "rgba(34,197,94,0.08)" : "var(--color-red-light, #fef2f2)",
+                        border: `1px solid ${r.success ? "var(--color-green, #22c55e)" : "var(--color-red, #ef4444)"}`,
+                      }}>
+                        <div>
+                          <span style={{ fontWeight: 600 }}>{r.invoice_number}</span>
+                          {r.error && <span style={{ color: "var(--color-red)", marginLeft: 8 }}>{r.error}</span>}
+                        </div>
+                        <span style={{ fontWeight: 600, color: r.success ? "var(--color-green)" : "var(--color-red)" }}>
+                          {r.success ? `✓ ${formatCurrency(r.amount)} received` : "✗ Failed"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{
+              display: "flex", justifyContent: "flex-end", gap: 8,
+              padding: "12px 24px", borderTop: "1px solid var(--border)", flexShrink: 0,
+            }}>
+              {!bulkReceiveDone ? (
+                <>
+                  <button
+                    className="ui-btn ui-btn-outline ui-btn-sm"
+                    onClick={() => setShowBulkReceive(false)}
+                    disabled={bulkReceiveProcessing}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="ui-btn ui-btn-primary ui-btn-sm"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                    onClick={handleBulkReceive}
+                    disabled={bulkReceiveProcessing}
+                  >
+                    {bulkReceiveProcessing
+                      ? <><Loader2 size={14} className="spin" /> Processing ({bulkReceiveResults.length}/{selectedList.length})…</>
+                      : <><CheckCircle size={14} /> Record {selectedList.length} Payment{selectedList.length !== 1 ? "s" : ""}</>
+                    }
+                  </button>
+                </>
+              ) : (
+                <button className="ui-btn ui-btn-primary ui-btn-sm" onClick={() => setShowBulkReceive(false)}>
+                  Done
+                </button>
               )}
             </div>
           </div>

@@ -22,6 +22,7 @@ import {
   CreditCard,
   Save,
   Ban,
+  CheckSquare,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
@@ -236,6 +237,25 @@ export default function APClient({
   const [editPaymentData, setEditPaymentData] = useState({ method: "", bank_account_id: "", reference_number: "", notes: "" });
   const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
   const [confirmDeletePaymentId, setConfirmDeletePaymentId] = useState<string | null>(null);
+
+  // Bulk selection + bulk pay state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkPay, setShowBulkPay] = useState(false);
+  const [bulkPayData, setBulkPayData] = useState({
+    payment_date: serverToday,
+    bank_account_id: "",
+    method: "check",
+    reference_number: "",
+    notes: "",
+  });
+  const [bulkPayProcessing, setBulkPayProcessing] = useState(false);
+  const [bulkPayResults, setBulkPayResults] = useState<Array<{
+    invoice_number: string;
+    amount: number;
+    success: boolean;
+    error?: string;
+  }>>([]);
+  const [bulkPayDone, setBulkPayDone] = useState(false);
 
   // Invoice detail data (fetched when opening modal)
   const [detailPayments, setDetailPayments] = useState<Array<{
@@ -492,6 +512,50 @@ export default function APClient({
   }
 
   // ---------------------------------------------------------------
+  // Bulk pay handler
+  // ---------------------------------------------------------------
+
+  async function handleBulkPay() {
+    if (selectedIds.size === 0 || bulkPayProcessing) return;
+    setBulkPayProcessing(true);
+    setBulkPayResults([]);
+    const selected = invoices.filter((inv) => selectedIds.has(inv.id));
+    const results: Array<{ invoice_number: string; amount: number; success: boolean; error?: string }> = [];
+    for (const inv of selected) {
+      try {
+        const res = await fetch("/api/financial/payments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            invoice_id: inv.id,
+            payment_date: bulkPayData.payment_date,
+            amount: inv.balance_due,
+            method: bulkPayData.method,
+            bank_account_id: bulkPayData.bank_account_id || undefined,
+            reference_number: bulkPayData.reference_number || undefined,
+            notes: bulkPayData.notes || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          results.push({ invoice_number: inv.invoice_number, amount: inv.balance_due, success: false, error: data.error || "Failed" });
+        } else {
+          results.push({ invoice_number: inv.invoice_number, amount: inv.balance_due, success: true });
+        }
+      } catch {
+        results.push({ invoice_number: inv.invoice_number, amount: inv.balance_due, success: false, error: "Network error" });
+      }
+    }
+    setBulkPayResults(results);
+    setBulkPayProcessing(false);
+    setBulkPayDone(true);
+    if (results.some((r) => r.success)) {
+      setSelectedIds(new Set());
+      router.refresh();
+    }
+  }
+
+  // ---------------------------------------------------------------
   // Aging chart
   // ---------------------------------------------------------------
 
@@ -505,6 +569,15 @@ export default function APClient({
   ];
 
   const editTotal = (parseFloat(editData.subtotal) || 0) + (parseFloat(editData.tax_amount) || 0);
+
+  // Bulk selection helpers
+  const selectableInvoices = invoices.filter(
+    (inv) => inv.balance_due > 0 && inv.status !== "paid" && inv.status !== "voided"
+  );
+  const allSelected = selectableInvoices.length > 0 && selectableInvoices.every((inv) => selectedIds.has(inv.id));
+  const someSelected = !allSelected && selectableInvoices.some((inv) => selectedIds.has(inv.id));
+  const selectedList = invoices.filter((inv) => selectedIds.has(inv.id));
+  const selectedTotal = selectedList.reduce((sum, inv) => sum + inv.balance_due, 0);
 
   return (
     <div>
@@ -672,6 +745,51 @@ export default function APClient({
         ))}
       </div>
 
+      {/* Bulk Selection Action Bar */}
+      {selectedIds.size > 0 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "10px 16px", marginBottom: 8,
+          background: "rgba(59,130,246,0.08)",
+          borderRadius: "var(--radius-md, 8px)",
+          border: "1px solid var(--color-blue, #3b82f6)",
+          fontSize: "0.85rem",
+        }}>
+          <CheckSquare size={16} style={{ color: "var(--color-blue)", flexShrink: 0 }} />
+          <span style={{ fontWeight: 600, color: "var(--color-blue)" }}>
+            {selectedIds.size} bill{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <span style={{ color: "var(--muted)" }}>—</span>
+          <span style={{ fontWeight: 600 }}>Total: {formatCurrency(selectedTotal)}</span>
+          <div style={{ flex: 1 }} />
+          <button
+            className="ui-btn ui-btn-sm ui-btn-outline"
+            onClick={() => setSelectedIds(new Set())}
+          >
+            Clear
+          </button>
+          <button
+            className="ui-btn ui-btn-sm ui-btn-primary"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            onClick={() => {
+              setBulkPayDone(false);
+              setBulkPayResults([]);
+              setBulkPayData({
+                payment_date: serverToday,
+                bank_account_id: bankAccounts.find((b) => b.is_default)?.id || bankAccounts[0]?.id || "",
+                method: "check",
+                reference_number: "",
+                notes: "",
+              });
+              setShowBulkPay(true);
+            }}
+          >
+            <CreditCard size={14} />
+            Pay Selected ({selectedIds.size})
+          </button>
+        </div>
+      )}
+
       {/* Invoice Table */}
       {invoices.length > 0 ? (
         <div className="fin-chart-card" style={{ padding: 0 }}>
@@ -679,6 +797,21 @@ export default function APClient({
             <table className="invoice-table">
               <thead>
                 <tr>
+                  <th style={{ width: 36, padding: "8px 4px 8px 16px" }}>
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={() => {
+                        if (allSelected || someSelected) {
+                          setSelectedIds(new Set());
+                        } else {
+                          setSelectedIds(new Set(selectableInvoices.map((inv) => inv.id)));
+                        }
+                      }}
+                      style={{ cursor: "pointer", accentColor: "var(--color-blue)" }}
+                      title={allSelected ? "Deselect all" : "Select all payable bills"}
+                    />
+                  </th>
                   <th>{t("invoiceNumber")}</th>
                   <th>{t("vendorName")}</th>
                   <th>{t("project")}</th>
@@ -700,9 +833,29 @@ export default function APClient({
                     <tr
                       key={inv.id}
                       className={overdue ? "invoice-row-overdue" : ""}
-                      style={{ cursor: "pointer" }}
+                      style={{
+                        cursor: "pointer",
+                        background: selectedIds.has(inv.id) ? "rgba(59,130,246,0.07)" : undefined,
+                      }}
                       onClick={() => openDetail(inv)}
                     >
+                      <td style={{ width: 36, padding: "8px 4px 8px 16px" }} onClick={(e) => e.stopPropagation()}>
+                        {inv.balance_due > 0 && inv.status !== "paid" && inv.status !== "voided" && (
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(inv.id)}
+                            onChange={() => {
+                              setSelectedIds((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(inv.id)) next.delete(inv.id);
+                                else next.add(inv.id);
+                                return next;
+                              });
+                            }}
+                            style={{ cursor: "pointer", accentColor: "var(--color-blue)" }}
+                          />
+                        )}
+                      </td>
                       <td style={{ fontWeight: 600, color: "var(--color-blue)" }}>
                         {inv.invoice_number}
                       </td>
@@ -1210,6 +1363,179 @@ export default function APClient({
               >
                 <ExternalLink size={13} /> View Full Detail
               </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Pay Modal */}
+      {showBulkPay && (
+        <div className="ticket-modal-overlay" onClick={bulkPayDone ? () => setShowBulkPay(false) : undefined}>
+          <div
+            className="ticket-modal"
+            style={{ maxWidth: 560, maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ticket-modal-header">
+              <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <CreditCard size={18} />
+                Pay {selectedList.length} Bill{selectedList.length !== 1 ? "s" : ""}
+              </h3>
+              <button className="ticket-modal-close" onClick={() => setShowBulkPay(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="ticket-detail-body" style={{ flex: 1, overflowY: "auto" }}>
+              {!bulkPayDone ? (
+                <>
+                  {/* Selected bills list */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: "0.72rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600, marginBottom: 8 }}>
+                      Bills to Pay
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 180, overflowY: "auto" }}>
+                      {selectedList.map((inv) => (
+                        <div key={inv.id} style={{
+                          display: "flex", justifyContent: "space-between", alignItems: "center",
+                          padding: "6px 10px", background: "var(--surface)", borderRadius: 6, fontSize: "0.82rem",
+                        }}>
+                          <div>
+                            <span style={{ fontWeight: 600, color: "var(--color-blue)" }}>{inv.invoice_number}</span>
+                            <span style={{ color: "var(--muted)", marginLeft: 8 }}>{inv.vendor_name || "--"}</span>
+                          </div>
+                          <span style={{ fontWeight: 600 }}>{formatCurrency(inv.balance_due)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{
+                      display: "flex", justifyContent: "space-between",
+                      padding: "8px 10px", marginTop: 4,
+                      borderTop: "1px solid var(--border)", fontSize: "0.85rem", fontWeight: 700,
+                    }}>
+                      <span>Total Payment</span>
+                      <span style={{ color: "var(--color-green)" }}>{formatCurrency(selectedTotal)}</span>
+                    </div>
+                  </div>
+
+                  {/* Payment fields */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div style={{ gridColumn: "span 2" }}>
+                      <label className="ap-field-lbl">Pay From (Bank Account)</label>
+                      <select
+                        className="fin-filter-select"
+                        style={{ width: "100%" }}
+                        value={bulkPayData.bank_account_id}
+                        onChange={(e) => setBulkPayData((p) => ({ ...p, bank_account_id: e.target.value }))}
+                      >
+                        <option value="">— Use Default Bank —</option>
+                        {bankAccounts.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.name}{b.bank_name ? ` — ${b.bank_name}` : ""}{b.account_number_last4 ? ` (...${b.account_number_last4})` : ""}{b.is_default ? " ★" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="ap-field-lbl">Payment Date</label>
+                      <input
+                        type="date"
+                        className="ui-input"
+                        value={bulkPayData.payment_date}
+                        onChange={(e) => setBulkPayData((p) => ({ ...p, payment_date: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="ap-field-lbl">Method</label>
+                      <select
+                        className="fin-filter-select"
+                        style={{ width: "100%" }}
+                        value={bulkPayData.method}
+                        onChange={(e) => setBulkPayData((p) => ({ ...p, method: e.target.value }))}
+                      >
+                        {PAYMENT_METHODS.map((m) => (
+                          <option key={m} value={m}>{methodLabel(m)}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="ap-field-lbl">Reference / Check #</label>
+                      <input
+                        type="text"
+                        className="ui-input"
+                        placeholder="Optional"
+                        value={bulkPayData.reference_number}
+                        onChange={(e) => setBulkPayData((p) => ({ ...p, reference_number: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="ap-field-lbl">Notes</label>
+                      <input
+                        type="text"
+                        className="ui-input"
+                        placeholder="Optional"
+                        value={bulkPayData.notes}
+                        onChange={(e) => setBulkPayData((p) => ({ ...p, notes: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Results view */
+                <div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 600, marginBottom: 12 }}>Payment Results</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {bulkPayResults.map((r, i) => (
+                      <div key={i} style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        padding: "8px 12px", borderRadius: 6, fontSize: "0.82rem",
+                        background: r.success ? "rgba(34,197,94,0.08)" : "var(--color-red-light, #fef2f2)",
+                        border: `1px solid ${r.success ? "var(--color-green, #22c55e)" : "var(--color-red, #ef4444)"}`,
+                      }}>
+                        <div>
+                          <span style={{ fontWeight: 600 }}>{r.invoice_number}</span>
+                          {r.error && <span style={{ color: "var(--color-red)", marginLeft: 8 }}>{r.error}</span>}
+                        </div>
+                        <span style={{ fontWeight: 600, color: r.success ? "var(--color-green)" : "var(--color-red)" }}>
+                          {r.success ? `✓ ${formatCurrency(r.amount)} paid` : "✗ Failed"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{
+              display: "flex", justifyContent: "flex-end", gap: 8,
+              padding: "12px 24px", borderTop: "1px solid var(--border)", flexShrink: 0,
+            }}>
+              {!bulkPayDone ? (
+                <>
+                  <button
+                    className="ui-btn ui-btn-outline ui-btn-sm"
+                    onClick={() => setShowBulkPay(false)}
+                    disabled={bulkPayProcessing}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="ui-btn ui-btn-primary ui-btn-sm"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                    onClick={handleBulkPay}
+                    disabled={bulkPayProcessing}
+                  >
+                    {bulkPayProcessing
+                      ? <><Loader2 size={14} className="spin" /> Processing ({bulkPayResults.length}/{selectedList.length})…</>
+                      : <><CheckCircle size={14} /> Process {selectedList.length} Payment{selectedList.length !== 1 ? "s" : ""}</>
+                    }
+                  </button>
+                </>
+              ) : (
+                <button className="ui-btn ui-btn-primary ui-btn-sm" onClick={() => setShowBulkPay(false)}>
+                  Done
+                </button>
+              )}
             </div>
           </div>
         </div>

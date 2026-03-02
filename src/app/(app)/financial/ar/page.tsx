@@ -1,6 +1,7 @@
 import { HandCoins } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { getBankAccounts } from "@/lib/queries/banking";
 import { findLinkedJournalEntriesBatch } from "@/lib/utils/je-linkage";
 import { getGLBalanceForAccountType } from "@/lib/utils/gl-balance";
 import { paginatedQuery } from "@/lib/utils/paginated-query";
@@ -41,6 +42,8 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
   const endOfMonth = filterEndDate || new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
   const todayStr = now.toISOString().split("T")[0];
+
+  const bankAccounts = await getBankAccounts(supabase, userCompany.companyId);
 
   const [allAr, billedThisMonthRes, collectedThisMonthRes, invoicesRes] = await Promise.all([
     paginatedQuery<{ id: string; balance_due: number; status: string; due_date: string; client_name: string | null }>((from, to) => {
@@ -176,6 +179,7 @@ export default async function AccountsReceivablePage({ searchParams }: PageProps
       serverToday={todayStr}
       agingBuckets={agingBuckets}
       topClients={topClients}
+      bankAccounts={bankAccounts}
     />
   );
 }
