@@ -406,7 +406,7 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
           </div>
         </div>
 
-        {/* Deferred Revenue — checkbox toggle */}
+        {/* Deferred / Prepaid — checkbox toggle */}
         <div style={{
           marginTop: 16,
           marginBottom: 8,
@@ -428,11 +428,13 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
             />
             <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <span style={{ fontSize: "0.88rem", fontWeight: 600 }}>
-                {t("deferredRevenue")}
+                {invoiceType === "payable" ? "Prepaid Expense" : t("deferredRevenue")}
               </span>
               {!showDeferral && (
                 <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
-                  Check to spread revenue recognition over a period (e.g., retainers, prepaid contracts)
+                  {invoiceType === "payable"
+                    ? "Check to spread this expense over a period (e.g., insurance, subscriptions, retainers)"
+                    : "Check to spread revenue recognition over a period (e.g., retainers, prepaid contracts)"}
                 </span>
               )}
             </span>
@@ -459,7 +461,9 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
               </div>
               <div className="ui-field invoice-form-full" style={{ margin: 0 }}>
                 <p style={{ fontSize: "0.78rem", color: "var(--muted)", margin: 0 }}>
-                  Saving will regenerate the journal entry to credit <strong>Deferred Revenue</strong> (liability) and rebuild the monthly recognition schedule.
+                  {invoiceType === "payable"
+                    ? <>Saving will regenerate the journal entry to debit <strong>Prepaid Expenses</strong> (asset) and rebuild the monthly amortization schedule.</>
+                    : <>Saving will regenerate the journal entry to credit <strong>Deferred Revenue</strong> (liability) and rebuild the monthly recognition schedule.</>}
                 </p>
               </div>
             </div>

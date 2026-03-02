@@ -444,7 +444,7 @@ function NewInvoiceForm() {
 
         </div>
 
-        {/* Deferred Revenue — checkbox toggle */}
+        {/* Deferred / Prepaid — checkbox toggle */}
         <div style={{
           marginTop: 16,
           marginBottom: 8,
@@ -466,11 +466,13 @@ function NewInvoiceForm() {
             />
             <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <span style={{ fontSize: "0.88rem", fontWeight: 600 }}>
-                {t("deferredRevenue")}
+                {invoiceType === "payable" ? "Prepaid Expense" : t("deferredRevenue")}
               </span>
               {!showDeferral && (
                 <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
-                  Check to spread revenue recognition over a period (e.g., retainers, prepaid contracts)
+                  {invoiceType === "payable"
+                    ? "Check to spread this expense over a period (e.g., insurance, subscriptions, retainers)"
+                    : "Check to spread revenue recognition over a period (e.g., retainers, prepaid contracts)"}
                 </span>
               )}
             </span>
@@ -497,7 +499,9 @@ function NewInvoiceForm() {
               </div>
               <div className="ui-field invoice-form-full" style={{ margin: 0 }}>
                 <p style={{ fontSize: "0.78rem", color: "var(--muted)", margin: 0 }}>
-                  The initial invoice JE will credit <strong>Deferred Revenue</strong> (liability). Monthly recognition entries will transfer the balance to Revenue over the period above.
+                  {invoiceType === "payable"
+                    ? <>The initial JE will debit <strong>Prepaid Expenses</strong> (asset). Monthly entries will transfer the balance to the expense account over the period above.</>
+                    : <>The initial invoice JE will credit <strong>Deferred Revenue</strong> (liability). Monthly recognition entries will transfer the balance to Revenue over the period above.</>}
                 </p>
               </div>
             </div>
