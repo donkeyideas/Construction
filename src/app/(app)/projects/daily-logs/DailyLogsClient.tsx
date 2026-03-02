@@ -1324,7 +1324,7 @@ export default function DailyLogsClient({
                     className="ticket-form-input"
                     value={formData.workforce_count}
                     onChange={(e) => setFormData({ ...formData, workforce_count: e.target.value })}
-                    placeholder={t("totalHeadcount")}
+                    placeholder="Total headcount"
                     min="0"
                   />
                 </div>
