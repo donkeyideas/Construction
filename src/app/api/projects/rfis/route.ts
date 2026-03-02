@@ -49,15 +49,19 @@ export async function POST(request: NextRequest) {
     // Use admin client for insert to bypass RLS (auth already verified above)
     const admin = createAdminClient();
 
-    // Auto-generate RFI number: count existing RFIs for this project + 1
-    const { count } = await admin
-      .from("rfis")
-      .select("id", { count: "exact", head: true })
-      .eq("company_id", userCtx.companyId)
-      .eq("project_id", body.project_id);
-
-    const rfiNum = (count ?? 0) + 1;
-    const rfi_number = `RFI-${String(rfiNum).padStart(3, "0")}`;
+    // Use provided RFI number or auto-generate
+    let rfi_number: string;
+    if (body.rfi_number && typeof body.rfi_number === "string" && body.rfi_number.trim()) {
+      rfi_number = body.rfi_number.trim();
+    } else {
+      const { count } = await admin
+        .from("rfis")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", userCtx.companyId)
+        .eq("project_id", body.project_id);
+      const rfiNum = (count ?? 0) + 1;
+      rfi_number = `RFI-${String(rfiNum).padStart(3, "0")}`;
+    }
 
     const { data: rfi, error } = await admin
       .from("rfis")
@@ -71,6 +75,7 @@ export async function POST(request: NextRequest) {
         priority: body.priority || "medium",
         due_date: body.due_date || null,
         assigned_to: body.assigned_to || null,
+        assigned_to_contact_id: body.assigned_to_contact_id || null,
         submitted_by: userCtx.userId,
         status: body.status || "open",
         cost_impact: body.cost_impact ? Number(body.cost_impact) : null,
@@ -170,6 +175,7 @@ export async function PATCH(request: NextRequest) {
     if (body.answered_by !== undefined) updateData.answered_by = body.answered_by;
     if (body.answered_at !== undefined) updateData.answered_at = body.answered_at;
     if (body.assigned_to !== undefined) updateData.assigned_to = body.assigned_to;
+    if (body.assigned_to_contact_id !== undefined) updateData.assigned_to_contact_id = body.assigned_to_contact_id;
     if (body.due_date !== undefined) updateData.due_date = body.due_date;
     if (body.cost_impact !== undefined) updateData.cost_impact = body.cost_impact;
     if (body.schedule_impact_days !== undefined) updateData.schedule_impact_days = body.schedule_impact_days;

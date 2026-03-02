@@ -35,6 +35,7 @@ interface Rfi {
   priority: string | null;
   submitted_by: string | null;
   assigned_to: string | null;
+  assigned_to_contact_id: string | null;
   due_date: string | null;
   answered_at: string | null;
   cost_impact: number | null;
@@ -55,6 +56,14 @@ interface CompanyMember {
   user: { full_name: string | null; email: string | null } | null;
 }
 
+interface PeopleContact {
+  id: string;
+  first_name: string;
+  last_name: string;
+  job_title: string | null;
+  contact_type: string;
+}
+
 interface KpiData {
   totalCount: number;
   openCount: number;
@@ -68,6 +77,7 @@ interface RfisClientProps {
   userMap: Record<string, string>;
   projects: Project[];
   members: CompanyMember[];
+  peopleContacts: PeopleContact[];
   activeStatus: string | undefined;
 }
 
@@ -117,6 +127,7 @@ export default function RfisClient({
   userMap,
   projects,
   members,
+  peopleContacts,
   activeStatus,
 }: RfisClientProps) {
   const t = useTranslations("projects");
@@ -155,6 +166,7 @@ export default function RfisClient({
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [formData, setFormData] = useState({
+    rfi_number: "",
     project_id: "",
     subject: "",
     question: "",
@@ -162,7 +174,7 @@ export default function RfisClient({
     status: "open",
     priority: "medium",
     due_date: "",
-    assigned_to: "",
+    assignee: "",        // "u:{user_id}" or "c:{contact_id}"
     cost_impact: "",
     schedule_impact_days: "",
   });
@@ -215,10 +227,15 @@ export default function RfisClient({
     setCreateError("");
 
     try {
+      const assignee = formData.assignee;
+      const assigned_to = assignee.startsWith("u:") ? assignee.slice(2) : undefined;
+      const assigned_to_contact_id = assignee.startsWith("c:") ? assignee.slice(2) : undefined;
+
       const res = await fetch("/api/projects/rfis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          rfi_number: formData.rfi_number.trim() || undefined,
           project_id: formData.project_id,
           subject: formData.subject,
           question: formData.question,
@@ -226,7 +243,8 @@ export default function RfisClient({
           status: formData.status || "open",
           priority: formData.priority || "medium",
           due_date: formData.due_date || undefined,
-          assigned_to: formData.assigned_to || undefined,
+          assigned_to: assigned_to || undefined,
+          assigned_to_contact_id: assigned_to_contact_id || undefined,
           cost_impact: formData.cost_impact ? Number(formData.cost_impact) : undefined,
           schedule_impact_days: formData.schedule_impact_days ? Number(formData.schedule_impact_days) : undefined,
         }),
@@ -238,6 +256,7 @@ export default function RfisClient({
       }
 
       setFormData({
+        rfi_number: "",
         project_id: "",
         subject: "",
         question: "",
@@ -245,7 +264,7 @@ export default function RfisClient({
         status: "open",
         priority: "medium",
         due_date: "",
-        assigned_to: "",
+        assignee: "",
         cost_impact: "",
         schedule_impact_days: "",
       });
@@ -280,13 +299,18 @@ export default function RfisClient({
     if (!selectedRfi) return;
     setIsEditing(true);
     setSaveError("");
+    const assignee = selectedRfi.assigned_to
+      ? `u:${selectedRfi.assigned_to}`
+      : selectedRfi.assigned_to_contact_id
+        ? `c:${selectedRfi.assigned_to_contact_id}`
+        : "";
     setEditData({
       subject: selectedRfi.subject,
       question: selectedRfi.question,
       answer: selectedRfi.answer ?? "",
       status: selectedRfi.status,
       priority: selectedRfi.priority ?? "medium",
-      assigned_to: selectedRfi.assigned_to ?? "",
+      assignee,
       due_date: selectedRfi.due_date ?? "",
       cost_impact: selectedRfi.cost_impact ?? "",
       schedule_impact_days: selectedRfi.schedule_impact_days ?? "",
@@ -312,8 +336,17 @@ export default function RfisClient({
       if ((editData.answer ?? "") !== (selectedRfi.answer ?? "")) changes.answer = editData.answer || null;
       if (editData.status !== selectedRfi.status) changes.status = editData.status;
       if (editData.priority !== (selectedRfi.priority ?? "medium")) changes.priority = editData.priority;
-      if ((editData.assigned_to ?? "") !== (selectedRfi.assigned_to ?? "")) changes.assigned_to = editData.assigned_to || null;
       if ((editData.due_date ?? "") !== (selectedRfi.due_date ?? "")) changes.due_date = editData.due_date || null;
+
+      // Parse assignee
+      const assigneeVal = (editData.assignee as string) ?? "";
+      const newAssignedTo = assigneeVal.startsWith("u:") ? assigneeVal.slice(2) : null;
+      const newAssignedToContact = assigneeVal.startsWith("c:") ? assigneeVal.slice(2) : null;
+      const oldAssignee = selectedRfi.assigned_to ? `u:${selectedRfi.assigned_to}` : selectedRfi.assigned_to_contact_id ? `c:${selectedRfi.assigned_to_contact_id}` : "";
+      if (assigneeVal !== oldAssignee) {
+        changes.assigned_to = newAssignedTo;
+        changes.assigned_to_contact_id = newAssignedToContact;
+      }
 
       const costVal = editData.cost_impact === "" || editData.cost_impact === null ? null : Number(editData.cost_impact);
       if (costVal !== selectedRfi.cost_impact) changes.cost_impact = costVal;
@@ -516,7 +549,11 @@ export default function RfisClient({
                         {rfi.submitted_by ? userMap[rfi.submitted_by] ?? "--" : "--"}
                       </td>
                       <td style={{ fontSize: "0.82rem" }}>
-                        {rfi.assigned_to ? userMap[rfi.assigned_to] ?? "--" : "--"}
+                        {rfi.assigned_to
+                          ? userMap[rfi.assigned_to] ?? "--"
+                          : rfi.assigned_to_contact_id
+                            ? userMap[rfi.assigned_to_contact_id] ?? "--"
+                            : "--"}
                       </td>
                       <td>
                         {rfi.due_date ? (
@@ -579,7 +616,13 @@ export default function RfisClient({
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">{t("rfiNumber")}</label>
-                  <input type="text" className="ticket-form-input" value="Auto-assigned" disabled style={{ opacity: 0.5 }} />
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={formData.rfi_number}
+                    onChange={(e) => setFormData({ ...formData, rfi_number: e.target.value })}
+                    placeholder="e.g. RFI-001 (auto if blank)"
+                  />
                 </div>
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">{t("columnStatus")}</label>
@@ -644,13 +687,27 @@ export default function RfisClient({
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">{t("assignedTo")}</label>
-                <select className="ticket-form-select" value={formData.assigned_to} onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}>
+                <select className="ticket-form-select" value={formData.assignee} onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}>
                   <option value="">{t("unassigned")}</option>
-                  {members.map((m) => (
-                    <option key={m.user_id} value={m.user_id}>
-                      {m.user?.full_name || m.user?.email || t("unknown")} ({m.role})
-                    </option>
-                  ))}
+                  {members.length > 0 && (
+                    <optgroup label="System Users">
+                      {members.map((m) => (
+                        <option key={m.user_id} value={`u:${m.user_id}`}>
+                          {m.user?.full_name || m.user?.email || t("unknown")} ({m.role})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {peopleContacts.length > 0 && (
+                    <optgroup label="People Directory">
+                      {peopleContacts.map((c) => (
+                        <option key={c.id} value={`c:${c.id}`}>
+                          {[c.first_name, c.last_name].filter(Boolean).join(" ")}
+                          {c.job_title ? ` — ${c.job_title}` : ""}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
 
@@ -742,9 +799,27 @@ export default function RfisClient({
                 <div className="ticket-form-row">
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">{t("assignedTo")}</label>
-                    <select className="ticket-form-select" value={(editData.assigned_to as string) ?? ""} onChange={(e) => setEditData({ ...editData, assigned_to: e.target.value })}>
+                    <select className="ticket-form-select" value={(editData.assignee as string) ?? ""} onChange={(e) => setEditData({ ...editData, assignee: e.target.value })}>
                       <option value="">{t("unassigned")}</option>
-                      {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.user?.full_name || m.user?.email || t("unknown")} ({m.role})</option>)}
+                      {members.length > 0 && (
+                        <optgroup label="System Users">
+                          {members.map((m) => (
+                            <option key={m.user_id} value={`u:${m.user_id}`}>
+                              {m.user?.full_name || m.user?.email || t("unknown")} ({m.role})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {peopleContacts.length > 0 && (
+                        <optgroup label="People Directory">
+                          {peopleContacts.map((c) => (
+                            <option key={c.id} value={`c:${c.id}`}>
+                              {[c.first_name, c.last_name].filter(Boolean).join(" ")}
+                              {c.job_title ? ` — ${c.job_title}` : ""}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                   <div className="ticket-form-group">
@@ -812,7 +887,13 @@ export default function RfisClient({
                   </div>
                   <div className="detail-group">
                     <label className="detail-label">{t("assignedTo")}</label>
-                    <div className="detail-value">{selectedRfi.assigned_to ? userMap[selectedRfi.assigned_to] ?? "--" : "--"}</div>
+                    <div className="detail-value">
+                      {selectedRfi.assigned_to
+                        ? userMap[selectedRfi.assigned_to] ?? "--"
+                        : selectedRfi.assigned_to_contact_id
+                          ? userMap[selectedRfi.assigned_to_contact_id] ?? "--"
+                          : "--"}
+                    </div>
                   </div>
                 </div>
                 <div className="detail-row">

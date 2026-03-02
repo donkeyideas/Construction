@@ -41,8 +41,8 @@ export default async function RfisPage({ searchParams }: PageProps) {
     query = query.eq("status", activeStatus);
   }
 
-  // Fetch RFIs, KPI data, projects, and company members in parallel
-  const [rfisResult, allRfisResult, projectsResult, membersResult] =
+  // Fetch RFIs, KPI data, projects, company members, and people directory contacts in parallel
+  const [rfisResult, allRfisResult, projectsResult, membersResult, contactsResult] =
     await Promise.all([
       query,
       supabase
@@ -59,11 +59,20 @@ export default async function RfisPage({ searchParams }: PageProps) {
         .select("user_id, role")
         .eq("company_id", userCompany.companyId)
         .eq("is_active", true),
+      // Fetch employees and subcontractors from People directory
+      supabase
+        .from("contacts")
+        .select("id, first_name, last_name, job_title, contact_type")
+        .eq("company_id", userCompany.companyId)
+        .eq("is_active", true)
+        .in("contact_type", ["employee", "subcontractor"])
+        .order("first_name"),
     ]);
 
   const rows = rfisResult.data ?? [];
   const all = allRfisResult.data ?? [];
   const projects = projectsResult.data ?? [];
+  const peopleContacts = contactsResult.data ?? [];
 
   // Batch-fetch user profiles for members
   const rfiMemberData = membersResult.data ?? [];
@@ -90,7 +99,7 @@ export default async function RfisPage({ searchParams }: PageProps) {
   const answeredCount = all.filter((r) => r.status === "answered").length;
   const closedCount = all.filter((r) => r.status === "closed").length;
 
-  // User name lookup
+  // User name lookup (for system users assigned_to / submitted_by)
   const userIds = new Set<string>();
   for (const rfi of rows) {
     if (rfi.submitted_by) userIds.add(rfi.submitted_by);
@@ -109,6 +118,12 @@ export default async function RfisPage({ searchParams }: PageProps) {
     }
   }
 
+  // Also add contacts to userMap by their id so assigned_to_contact_id lookups work
+  for (const c of peopleContacts) {
+    const name = [c.first_name, c.last_name].filter(Boolean).join(" ") || "Unknown";
+    userMap[c.id] = name;
+  }
+
   return (
     <RfisClient
       rows={rows}
@@ -116,6 +131,7 @@ export default async function RfisPage({ searchParams }: PageProps) {
       userMap={userMap}
       projects={projects}
       members={members}
+      peopleContacts={peopleContacts}
       activeStatus={activeStatus}
     />
   );
