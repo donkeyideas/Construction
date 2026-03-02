@@ -261,6 +261,91 @@ export async function POST() {
       }
     }
 
+    // 3d. Nuclear cleanup: find ALL posted JEs hitting AR accounts.
+    // Delete any JE whose referenced entity no longer exists, is voided,
+    // or has no reference at all (orphaned manual/import entries).
+    // Preserve lease/rent accrual JEs — valid property-management workflow.
+    const { data: arAccounts } = await supabase
+      .from("chart_of_accounts")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("account_type", "asset")
+      .or("name.ilike.%accounts receivable%,name.ilike.%accts receivable%,name.ilike.%a/r%,name.ilike.%trade receivable%,name.ilike.%retainage receivable%");
+
+    if (arAccounts && arAccounts.length > 0) {
+      const arAccountIds = arAccounts.map((a: { id: string }) => a.id);
+
+      const { data: arJELines } = await supabase
+        .from("journal_entry_lines")
+        .select("journal_entry_id")
+        .eq("company_id", companyId)
+        .in("account_id", arAccountIds);
+
+      if (arJELines && arJELines.length > 0) {
+        const arJEIds = [...new Set(arJELines.map((l: { journal_entry_id: string }) => l.journal_entry_id))];
+
+        const { data: activeReceivableInvoices } = await supabase
+          .from("invoices")
+          .select("id")
+          .eq("company_id", companyId)
+          .eq("invoice_type", "receivable")
+          .not("status", "in", '("voided","draft")');
+        const activeARInvSet = new Set((activeReceivableInvoices ?? []).map((i: { id: string }) => i.id));
+
+        const { data: activePaymentsAR } = await supabase
+          .from("payments")
+          .select("id")
+          .eq("company_id", companyId);
+        const activePaySetAR = new Set((activePaymentsAR ?? []).map((p: { id: string }) => p.id));
+
+        const { data: activeCOsAR } = await supabase
+          .from("change_orders")
+          .select("id")
+          .eq("company_id", companyId)
+          .neq("status", "voided");
+        const activeCOSetAR = new Set((activeCOsAR ?? []).map((c: { id: string }) => c.id));
+
+        const CHUNK_AR = 200;
+        for (let i = 0; i < arJEIds.length; i += CHUNK_AR) {
+          const chunk = arJEIds.slice(i, i + CHUNK_AR);
+          const { data: jes } = await supabase
+            .from("journal_entries")
+            .select("id, reference, status")
+            .eq("company_id", companyId)
+            .in("id", chunk)
+            .neq("status", "voided");
+
+          for (const je of jes ?? []) {
+            const ref = (je.reference as string) || "";
+            let orphaned = false;
+
+            if (!ref) {
+              orphaned = true;
+            } else if (ref.startsWith("rent:accrual:") || ref.startsWith("lease_accrual:")) {
+              // Valid lease/rent accrual — preserve
+              orphaned = false;
+            } else if (ref.startsWith("invoice:")) {
+              orphaned = !activeARInvSet.has(ref.replace("invoice:", ""));
+            } else if (ref.startsWith("payment:")) {
+              orphaned = !activePaySetAR.has(ref.replace("payment:", ""));
+            } else if (ref.startsWith("deferral:")) {
+              const invId = ref.split(":")[1] || "";
+              orphaned = !invId || !activeARInvSet.has(invId);
+            } else if (ref.startsWith("change_order:")) {
+              orphaned = !activeCOSetAR.has(ref.replace("change_order:", ""));
+            } else {
+              // Unknown reference pattern hitting AR = orphaned
+              orphaned = true;
+            }
+
+            if (orphaned) {
+              await deleteJE(je.id);
+            }
+          }
+        }
+      }
+    }
+
     console.log(`[financial] fix-invoices: glMapped=${glMapped}, jesCreated=${jesCreated}, jesDeleted=${jesDeleted}`);
 
     return NextResponse.json({
