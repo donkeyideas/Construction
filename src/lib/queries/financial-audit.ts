@@ -571,11 +571,14 @@ async function checkARReconciliation(
     return { id, name, status: "pass", summary: "No AR GL accounts found — nothing to reconcile", details: [] };
   }
 
-  // GL AR balance from posted journal entries
-  const arLines = await paginatedQuery<{ debit: number; credit: number; journal_entries: { id: string } }>((from, to) =>
+  // GL AR balance from posted journal entries.
+  // Exclude lease/rent accrual JEs — those post rent receivables directly to GL
+  // without creating invoice records, so they should not be compared to the
+  // invoice subledger. They are a valid property-management workflow.
+  const arLines = await paginatedQuery<{ debit: number; credit: number; journal_entries: { id: string; reference: string | null } }>((from, to) =>
     supabase
       .from("journal_entry_lines")
-      .select("debit, credit, journal_entries!inner(id)")
+      .select("debit, credit, journal_entries!inner(id, reference)")
       .eq("company_id", companyId)
       .in("account_id", arAccountIds)
       .eq("journal_entries.status", "posted")
@@ -583,8 +586,15 @@ async function checkARReconciliation(
   );
 
   let glARBalance = 0;
+  let leaseAccrualARBalance = 0;
   for (const line of arLines) {
-    glARBalance += (Number(line.debit) || 0) - (Number(line.credit) || 0);
+    const ref = (line.journal_entries as { id: string; reference: string | null }).reference ?? "";
+    const net = (Number(line.debit) || 0) - (Number(line.credit) || 0);
+    if (ref.startsWith("rent:accrual:") || ref.startsWith("lease_accrual:")) {
+      leaseAccrualARBalance += net;
+    } else {
+      glARBalance += net;
+    }
   }
 
   // Invoice subledger: sum balance_due for all receivables with outstanding balances.
@@ -610,50 +620,18 @@ async function checkARReconciliation(
   const diffPct = (difference / largerBalance) * 100;
 
   const fmt = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  const leaseNote = leaseAccrualARBalance > 0
+    ? `Note: ${fmt(leaseAccrualARBalance)} in lease/rent accrual AR is excluded (valid property-management workflow).`
+    : null;
   const diffDetails = [
-    `GL AR balance (journal entries): ${fmt(glARBalance)}`,
+    `GL AR balance (invoice-related JEs only): ${fmt(glARBalance)}`,
     `Invoice subledger (unpaid receivables): ${fmt(invoiceARBalance)}`,
     `Difference: ${fmt(difference)} (${diffPct.toFixed(1)}%)`,
+    ...(leaseNote ? [leaseNote] : []),
   ];
 
   if (diffPct <= 1 || difference <= 100) {
     return { id, name, status: "pass", summary: `GL AR matches invoice subledger — ${fmt(glARBalance)}`, details: difference <= 1 ? [] : diffDetails };
-  }
-
-  // If invoice subledger is $0 but GL AR is positive, check whether the GL AR
-  // is explained by lease/rent accrual JEs. This is a valid property-management
-  // workflow where rent receivables post directly to GL (no invoice records created).
-  // Two reference formats exist:
-  //   rent:accrual:{leaseId}:{YYYY-MM}  (lease-accounting.ts)
-  //   lease_accrual:{leaseId}:{YYYY-MM} (invoice-accounting.ts)
-  if (invoiceARBalance === 0 && glARBalance > 0) {
-    const [{ count: rentAccrualCount }, { count: leaseAccrualCount }] = await Promise.all([
-      supabase
-        .from("journal_entries")
-        .select("id", { count: "exact", head: true })
-        .eq("company_id", companyId)
-        .like("reference", "rent:accrual:%")
-        .eq("status", "posted"),
-      supabase
-        .from("journal_entries")
-        .select("id", { count: "exact", head: true })
-        .eq("company_id", companyId)
-        .like("reference", "lease_accrual:%")
-        .eq("status", "posted"),
-    ]);
-    const totalAccrualJEs = (rentAccrualCount ?? 0) + (leaseAccrualCount ?? 0);
-
-    if (totalAccrualJEs > 0) {
-      return {
-        id, name, status: "warn", noFix: true,
-        summary: `AR (${fmt(glARBalance)}) is tracked via lease accrual journal entries — no invoice subledger expected`,
-        details: [
-          ...diffDetails,
-          `Note: ${totalAccrualJEs} lease/rent accrual JE(s) post rent receivables directly to the GL.`,
-          "This is expected for property management workflows. No action needed.",
-        ],
-      };
-    }
   }
 
   if (diffPct <= 5) {
