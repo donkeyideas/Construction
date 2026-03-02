@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { FileText, Plus, AlertTriangle, X, Edit3, Trash2, Upload } from "lucide-react";
 import { formatCurrency, formatPercent, formatDateSafe } from "@/lib/utils/format";
+import { getLocalToday } from "@/lib/utils/timezone";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 
@@ -30,6 +31,15 @@ export interface Bid {
   created_at: string;
 }
 
+interface LineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  unit_cost: number;
+  total: number;
+}
+
 interface BidsClientProps {
   bids: Bid[];
   statusFilter: string | undefined;
@@ -41,6 +51,14 @@ const IMPORT_SAMPLE: Record<string, string>[] = [
   { project_name: "Highway Bridge Repair", client_name: "State DOT", bid_amount: "3200000", due_date: "2026-03-15", bid_type: "public", notes: "Prevailing wage required" },
   { project_name: "Retail Storefront Build-Out", client_name: "Sunrise Shops LLC", bid_amount: "425000", due_date: "2026-04-01", bid_type: "negotiated", notes: "Repeat client, design-build" },
 ];
+
+function generateId(): string {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function blankLineItems(): LineItem[] {
+  return [{ id: generateId(), description: "", quantity: 1, unit: "LS", unit_cost: 0, total: 0 }];
+}
 
 export default function BidsClient({
   bids,
@@ -69,6 +87,7 @@ export default function BidsClient({
     { key: "notes", label: t("notes"), required: false },
   ];
 
+  // Detail / edit modal state
   const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -76,6 +95,134 @@ export default function BidsClient({
   const [formData, setFormData] = useState<Partial<Bid>>({});
   const [showImport, setShowImport] = useState(false);
 
+  // Create modal state
+  const [showCreate, setShowCreate] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [bidNumber, setBidNumber] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [bidDate, setBidDate] = useState(getLocalToday);
+  const [dueDate, setDueDate] = useState("");
+  const [estimatedCost, setEstimatedCost] = useState("");
+  const [bidAmount, setBidAmount] = useState("");
+  const [scopeDescription, setScopeDescription] = useState("");
+  const [createStatus, setCreateStatus] = useState<BidStatus>("in_progress");
+  const [lineItems, setLineItems] = useState<LineItem[]>(blankLineItems());
+
+  // Line item helpers
+  const addLineItem = useCallback(() => {
+    setLineItems((prev) => [
+      ...prev,
+      { id: generateId(), description: "", quantity: 1, unit: "LS", unit_cost: 0, total: 0 },
+    ]);
+  }, []);
+
+  const removeLineItem = useCallback((id: string) => {
+    setLineItems((prev) => prev.filter((li) => li.id !== id));
+  }, []);
+
+  const updateLineItem = useCallback(
+    (id: string, field: keyof LineItem, value: string | number) => {
+      setLineItems((prev) =>
+        prev.map((li) => {
+          if (li.id !== id) return li;
+          const updated = { ...li, [field]: value };
+          if (field === "quantity" || field === "unit_cost") {
+            updated.total = Number(updated.quantity) * Number(updated.unit_cost);
+          }
+          return updated;
+        })
+      );
+    },
+    []
+  );
+
+  // Calculated totals for create form
+  const lineItemsTotal = lineItems.reduce((sum, li) => sum + li.total, 0);
+  const parsedBidAmount = parseFloat(bidAmount) || 0;
+  const parsedEstimatedCost = parseFloat(estimatedCost) || 0;
+  const marginPct =
+    parsedBidAmount > 0
+      ? ((parsedBidAmount - parsedEstimatedCost) / parsedBidAmount) * 100
+      : 0;
+
+  function openCreate() {
+    setBidNumber("");
+    setProjectName("");
+    setClientName("");
+    setBidDate(getLocalToday());
+    setDueDate("");
+    setEstimatedCost("");
+    setBidAmount("");
+    setScopeDescription("");
+    setCreateStatus("in_progress");
+    setLineItems(blankLineItems());
+    setCreateError(null);
+    setSaving(false);
+    setShowCreate(true);
+  }
+
+  function closeCreate() {
+    setShowCreate(false);
+    setCreateError(null);
+  }
+
+  async function submitCreate() {
+    if (!bidNumber.trim()) {
+      setCreateError("Bid number is required.");
+      return;
+    }
+    if (!projectName.trim()) {
+      setCreateError("Project name is required.");
+      return;
+    }
+
+    setSaving(true);
+    setCreateError(null);
+
+    try {
+      const res = await fetch("/api/crm/bids", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bid_number: bidNumber.trim(),
+          project_name: projectName.trim(),
+          client_name: clientName.trim() || null,
+          bid_date: bidDate || null,
+          due_date: dueDate || null,
+          estimated_cost: parsedEstimatedCost || null,
+          bid_amount: parsedBidAmount || null,
+          scope_description: scopeDescription.trim() || null,
+          line_items: lineItems
+            .filter((li) => li.description.trim())
+            .map((li) => ({
+              description: li.description,
+              quantity: li.quantity,
+              unit: li.unit,
+              unit_cost: li.unit_cost,
+              total: li.total,
+            })),
+          status: createStatus,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setCreateError(data.error || "Failed to create bid.");
+        setSaving(false);
+        return;
+      }
+
+      router.refresh();
+      closeCreate();
+    } catch {
+      setCreateError("Network error. Please try again.");
+      setSaving(false);
+    }
+  }
+
+  // Detail / edit helpers
   const now = new Date();
   const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -197,13 +344,13 @@ export default function BidsClient({
             <Upload size={16} />
             {t("importCsv")}
           </button>
-          <Link
-            href="/crm/bids/new"
+          <button
             className="ui-btn ui-btn-md ui-btn-primary"
+            onClick={openCreate}
           >
             <Plus size={16} />
             {t("newBid")}
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -295,13 +442,13 @@ export default function BidsClient({
               : t("createYourFirstBid")}
           </p>
           {!statusFilter && (
-            <Link
-              href="/crm/bids/new"
+            <button
               className="ui-btn ui-btn-md ui-btn-primary"
+              onClick={openCreate}
             >
               <Plus size={16} />
               {t("createBid")}
-            </Link>
+            </button>
           )}
         </div>
       ) : (
@@ -394,6 +541,313 @@ export default function BidsClient({
           onImport={handleImport}
           onClose={() => { setShowImport(false); router.refresh(); }}
         />
+      )}
+
+      {/* ── Create Bid Modal ── */}
+      {showCreate && (
+        <div className="ticket-modal-overlay" onClick={closeCreate}>
+          <div
+            className="ticket-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 780, maxHeight: "90vh", overflowY: "auto" }}
+          >
+            {/* Header */}
+            <div className="ticket-modal-header">
+              <div>
+                <h3 style={{ fontSize: "1.1rem", marginBottom: 4 }}>{t("newBid")}</h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--muted)" }}>
+                  {t("trackBidsFromPreparationThroughAward")}
+                </p>
+              </div>
+              <button
+                className="ticket-modal-close"
+                onClick={closeCreate}
+                aria-label={t("close")}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "0 24px 8px" }}>
+              {createError && (
+                <div
+                  style={{
+                    padding: "10px 14px",
+                    background: "color-mix(in srgb, var(--color-red) 10%, var(--bg))",
+                    border: "1px solid var(--color-red)",
+                    borderRadius: 8,
+                    marginBottom: 16,
+                    fontSize: "0.85rem",
+                    color: "var(--color-red)",
+                    fontWeight: 500,
+                  }}
+                >
+                  {createError}
+                </div>
+              )}
+
+              {/* Basic info grid */}
+              <div className="bid-form-grid" style={{ marginBottom: 0 }}>
+                <div className="ui-field">
+                  <label className="ui-label">Bid Number *</label>
+                  <input
+                    type="text"
+                    className="ui-input"
+                    placeholder="e.g., BID-2026-001"
+                    value={bidNumber}
+                    onChange={(e) => setBidNumber(e.target.value)}
+                  />
+                </div>
+
+                <div className="ui-field">
+                  <label className="ui-label">Project Name *</label>
+                  <input
+                    type="text"
+                    className="ui-input"
+                    placeholder="Project name"
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                  />
+                </div>
+
+                <div className="ui-field">
+                  <label className="ui-label">Client Name</label>
+                  <input
+                    type="text"
+                    className="ui-input"
+                    placeholder="Client or owner name"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                  />
+                </div>
+
+                <div className="ui-field">
+                  <label className="ui-label">Bid Date</label>
+                  <input
+                    type="date"
+                    className="ui-input"
+                    value={bidDate}
+                    onChange={(e) => setBidDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="ui-field">
+                  <label className="ui-label">Due Date</label>
+                  <input
+                    type="date"
+                    className="ui-input"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="ui-field">
+                  <label className="ui-label">Estimated Cost</label>
+                  <input
+                    type="number"
+                    className="ui-input"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    value={estimatedCost}
+                    onChange={(e) => setEstimatedCost(e.target.value)}
+                  />
+                </div>
+
+                <div className="ui-field">
+                  <label className="ui-label">Bid Amount</label>
+                  <input
+                    type="number"
+                    className="ui-input"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                  />
+                </div>
+
+                <div className="ui-field">
+                  <label className="ui-label">Status</label>
+                  <select
+                    className="ui-input"
+                    value={createStatus}
+                    onChange={(e) => setCreateStatus(e.target.value as BidStatus)}
+                  >
+                    <option value="in_progress">{t("bidStatusInProgress")}</option>
+                    <option value="submitted">{t("bidStatusSubmitted")}</option>
+                    <option value="won">{t("bidStatusWon")}</option>
+                    <option value="lost">{t("bidStatusLost")}</option>
+                    <option value="no_bid">{t("bidStatusNoBid")}</option>
+                  </select>
+                </div>
+
+                <div className="ui-field bid-form-full">
+                  <label className="ui-label">Scope Description</label>
+                  <textarea
+                    className="ui-textarea"
+                    placeholder="Describe the scope of work for this bid..."
+                    value={scopeDescription}
+                    onChange={(e) => setScopeDescription(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              {/* Line Items */}
+              <div className="bid-line-items" style={{ marginTop: 20 }}>
+                <div className="bid-line-items-header">
+                  <span>Line Items</span>
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn-sm ui-btn-secondary"
+                    onClick={addLineItem}
+                  >
+                    <Plus size={14} />
+                    Add Item
+                  </button>
+                </div>
+
+                <table className="bid-line-items-table">
+                  <thead>
+                    <tr>
+                      <th style={{ minWidth: 180 }}>Description</th>
+                      <th style={{ width: 70 }}>Qty</th>
+                      <th style={{ width: 70 }}>Unit</th>
+                      <th style={{ width: 100 }}>Unit Cost</th>
+                      <th style={{ width: 100, textAlign: "right" }}>Total</th>
+                      <th style={{ width: 32 }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lineItems.map((li) => (
+                      <tr key={li.id}>
+                        <td>
+                          <input
+                            type="text"
+                            className="li-input"
+                            placeholder="Line item description"
+                            value={li.description}
+                            onChange={(e) =>
+                              updateLineItem(li.id, "description", e.target.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="li-input li-input-sm"
+                            min="0"
+                            step="1"
+                            value={li.quantity}
+                            onChange={(e) =>
+                              updateLineItem(li.id, "quantity", parseFloat(e.target.value) || 0)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="li-input li-input-sm"
+                            value={li.unit}
+                            onChange={(e) =>
+                              updateLineItem(li.id, "unit", e.target.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="li-input li-input-sm"
+                            min="0"
+                            step="0.01"
+                            value={li.unit_cost}
+                            onChange={(e) =>
+                              updateLineItem(li.id, "unit_cost", parseFloat(e.target.value) || 0)
+                            }
+                          />
+                        </td>
+                        <td className="li-amount">{formatCurrency(li.total)}</td>
+                        <td>
+                          {lineItems.length > 1 && (
+                            <button
+                              type="button"
+                              className="li-remove-btn"
+                              onClick={() => removeLineItem(li.id)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Totals */}
+              <div className="bid-totals" style={{ marginTop: 16 }}>
+                <div className="bid-totals-box">
+                  <div className="bid-totals-row">
+                    <span className="totals-label">Line Items Total</span>
+                    <span className="totals-value">{formatCurrency(lineItemsTotal)}</span>
+                  </div>
+                  <div className="bid-totals-row">
+                    <span className="totals-label">Estimated Cost</span>
+                    <span className="totals-value">{formatCurrency(parsedEstimatedCost)}</span>
+                  </div>
+                  <div className="bid-totals-row">
+                    <span className="totals-label">Bid Amount</span>
+                    <span className="totals-value">{formatCurrency(parsedBidAmount)}</span>
+                  </div>
+                  <div className="bid-totals-row total-final">
+                    <span className="totals-label">Margin</span>
+                    <span
+                      className="totals-value"
+                      style={{
+                        color:
+                          marginPct >= 15
+                            ? "var(--color-green)"
+                            : marginPct >= 5
+                              ? "var(--color-amber)"
+                              : marginPct > 0
+                                ? "var(--color-red)"
+                                : "var(--text)",
+                      }}
+                    >
+                      {marginPct > 0 ? `${marginPct.toFixed(1)}%` : "--"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer actions */}
+            <div
+              className="ticket-form-actions"
+              style={{ borderTop: "1px solid var(--border)", padding: "16px 24px", marginTop: 8 }}
+            >
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={closeCreate}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="ui-btn ui-btn-md ui-btn-primary"
+                onClick={() => submitCreate()}
+                disabled={saving}
+              >
+                {saving ? <span className="ui-btn-spinner" /> : null}
+                Create Bid
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Detail/Edit Modal */}
