@@ -75,6 +75,16 @@ interface TopVendor {
   amount: number;
 }
 
+interface GLSourceEntry {
+  id: string;
+  entry_number: string;
+  entry_date: string;
+  description: string;
+  reference: string | null;
+  debit: number;
+  credit: number;
+}
+
 interface APClientProps {
   invoices: InvoiceRow[];
   totalApBalance: number;
@@ -256,6 +266,23 @@ export default function APClient({
     error?: string;
   }>>([]);
   const [bulkPayDone, setBulkPayDone] = useState(false);
+
+  // GL sources toggle — shows JE-sourced AP entries not in the invoice subledger
+  const [showGLSources, setShowGLSources] = useState(false);
+  const [glSourceEntries, setGLSourceEntries] = useState<GLSourceEntry[]>([]);
+  const [glSourcesLoading, setGLSourcesLoading] = useState(false);
+
+  async function handleToggleGLSources() {
+    if (!showGLSources && glSourceEntries.length === 0) {
+      setGLSourcesLoading(true);
+      try {
+        const res = await fetch("/api/financial/gl-sources?type=ap");
+        if (res.ok) setGLSourceEntries(await res.json());
+      } catch { /* silent */ }
+      setGLSourcesLoading(false);
+    }
+    setShowGLSources((prev) => !prev);
+  }
 
   // Invoice detail data (fetched when opening modal)
   const [detailPayments, setDetailPayments] = useState<Array<{
@@ -622,10 +649,17 @@ export default function APClient({
         <div className="fin-kpi">
           <div className="fin-kpi-icon amber"><DollarSign size={18} /></div>
           <span className="fin-kpi-label">{t("totalApBalance")}</span>
-          <span className="fin-kpi-value">{formatCompactCurrency(totalApBalance)}</span>
-          {glBalance != null && (
+          <span className="fin-kpi-value">
+            {formatCompactCurrency(showGLSources && glBalance != null ? glBalance : totalApBalance)}
+          </span>
+          {glBalance != null && !showGLSources && (
             <span className="fin-kpi-sub" style={{ fontSize: "0.7rem", color: "var(--muted)" }}>
               GL: {formatCompactCurrency(glBalance)}
+            </span>
+          )}
+          {showGLSources && (
+            <span className="fin-kpi-sub" style={{ fontSize: "0.7rem", color: "var(--color-green, #22c55e)" }}>
+              All sources included
             </span>
           )}
         </div>
@@ -658,19 +692,52 @@ export default function APClient({
         </div>
       </div>
 
-      {/* GL Reconciliation Warning */}
-      {glBalance != null && Math.abs(glBalance - totalApBalance) > 1 && (
+      {/* GL Reconciliation Warning — shown when GL ≠ subledger and GL sources are hidden */}
+      {glBalance != null && Math.abs(glBalance - totalApBalance) > 1 && !showGLSources && (
         <div style={{
           display: "flex", alignItems: "center", gap: "0.5rem",
           padding: "0.75rem 1rem", borderRadius: "var(--radius-md, 8px)",
           background: "var(--warning-bg, #fff3cd)", border: "1px solid var(--warning-border, #ffc107)",
           color: "var(--warning-text, #856404)", fontSize: "0.82rem", marginBottom: "0.75rem",
         }}>
-          <AlertCircle size={16} />
-          <span>
+          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1 }}>
             {t("glMismatchAp", { glBalance: formatCurrency(glBalance), subledgerBalance: formatCurrency(totalApBalance), difference: formatCurrency(Math.abs(glBalance - totalApBalance)) })}
             <a href="/financial/audit" style={{ marginLeft: "0.5rem", textDecoration: "underline" }}>{t("runAudit")}</a>
           </span>
+          <button
+            className="ui-btn ui-btn-sm ui-btn-outline"
+            style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, borderColor: "var(--warning-border, #ffc107)", color: "var(--warning-text, #856404)" }}
+            onClick={handleToggleGLSources}
+            disabled={glSourcesLoading}
+          >
+            {glSourcesLoading ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <BookOpen size={13} />}
+            Include Project &amp; Property AP
+          </button>
+        </div>
+      )}
+
+      {/* GL Sources active banner */}
+      {showGLSources && glBalance != null && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: "0.5rem",
+          padding: "0.75rem 1rem", borderRadius: "var(--radius-md, 8px)",
+          background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.3)",
+          color: "var(--color-green, #22c55e)", fontSize: "0.82rem", marginBottom: "0.75rem",
+        }}>
+          <BookOpen size={16} style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1 }}>
+            Showing all AP sources — invoice subledger ({formatCurrency(totalApBalance)}) plus{" "}
+            {glSourceEntries.length} GL journal entr{glSourceEntries.length === 1 ? "y" : "ies"}{" "}
+            from projects &amp; properties ({formatCurrency(glBalance - totalApBalance)}). Total: {formatCurrency(glBalance)}.
+          </span>
+          <button
+            className="ui-btn ui-btn-sm ui-btn-outline"
+            style={{ flexShrink: 0 }}
+            onClick={() => setShowGLSources(false)}
+          >
+            Subledger Only
+          </button>
         </div>
       )}
 
@@ -791,7 +858,7 @@ export default function APClient({
       )}
 
       {/* Invoice Table */}
-      {invoices.length > 0 ? (
+      {(invoices.length > 0 || (showGLSources && glSourceEntries.length > 0)) ? (
         <div className="fin-chart-card" style={{ padding: 0 }}>
           <div style={{ overflowX: "auto" }}>
             <table className="invoice-table">
@@ -913,6 +980,55 @@ export default function APClient({
                         ) : (
                           <span style={{ color: "var(--muted)" }}>--</span>
                         )}
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {/* GL-sourced AP rows — entries not backed by invoices */}
+                {showGLSources && glSourceEntries.map((entry) => {
+                  const net = entry.credit - entry.debit; // AP: credit = liability increase
+                  return (
+                    <tr key={`gl-${entry.id}`} style={{ background: "rgba(59,130,246,0.04)", borderLeft: "3px solid var(--color-blue, #3b82f6)" }}>
+                      <td style={{ width: 36, padding: "8px 4px 8px 16px" }} />
+                      <td style={{ fontWeight: 600, color: "var(--color-blue)" }}>
+                        <Link href={`/financial/general-ledger?entry=${entry.entry_number}`} className="je-link" onClick={(e) => e.stopPropagation()}>
+                          {entry.entry_number}
+                        </Link>
+                      </td>
+                      <td>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{
+                            width: 26, height: 26, borderRadius: "50%",
+                            background: "rgba(59,130,246,0.12)", color: "var(--color-blue)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: "0.72rem", fontWeight: 700, flexShrink: 0,
+                          }}>GL</span>
+                          <span style={{ color: "var(--muted)", fontSize: "0.82rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 140 }}>
+                            {entry.description || "Journal Entry"}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ fontSize: "0.72rem", background: "rgba(59,130,246,0.12)", color: "var(--color-blue)", padding: "2px 7px", borderRadius: 4, fontWeight: 600 }}>
+                          GL Entry
+                        </span>
+                      </td>
+                      <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>{entry.entry_date.slice(0, 10)}</td>
+                      <td style={{ color: "var(--muted)" }}>—</td>
+                      <td className="amount-col">{formatCurrency(Math.abs(net))}</td>
+                      <td style={{ color: "var(--muted)" }}>--</td>
+                      <td style={{ color: "var(--muted)" }}>--</td>
+                      <td className="amount-col" style={{ color: "var(--color-blue)" }}>{formatCurrency(net > 0 ? net : 0)}</td>
+                      <td>
+                        <span style={{ fontSize: "0.72rem", background: "rgba(59,130,246,0.12)", color: "var(--color-blue)", padding: "2px 7px", borderRadius: 4, fontWeight: 600 }}>
+                          posted
+                        </span>
+                      </td>
+                      <td>
+                        <Link href={`/financial/general-ledger?entry=${entry.entry_number}`} className="je-link" onClick={(e) => e.stopPropagation()}>
+                          {entry.entry_number}
+                        </Link>
                       </td>
                     </tr>
                   );
