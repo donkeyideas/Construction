@@ -271,7 +271,7 @@ export default function ARClient({
           <p className="fin-header-sub">{t("accountsReceivableDesc")}</p>
         </div>
         <div className="fin-header-actions">
-          <button className="ui-btn ui-btn-ghost ui-btn-md" onClick={() => setShowImport(true)}>
+          <button className="ui-btn ui-btn-secondary ui-btn-md" onClick={() => setShowImport(true)}>
             <Upload size={16} />
             {t("importCsv")}
           </button>

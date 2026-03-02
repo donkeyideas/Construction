@@ -628,6 +628,12 @@ function NewInvoiceForm() {
 
         {/* Actions */}
         <div className="invoice-form-actions">
+          <Link
+            href="/financial/invoices"
+            className="ui-btn ui-btn-secondary ui-btn-md"
+          >
+            {t("cancel")}
+          </Link>
           <button
             type="button"
             className="ui-btn ui-btn-secondary ui-btn-md"
@@ -646,12 +652,6 @@ function NewInvoiceForm() {
             {saving ? <span className="ui-btn-spinner" /> : <Send size={16} />}
             {t("submit")}
           </button>
-          <Link
-            href="/financial/invoices"
-            className="ui-btn ui-btn-ghost ui-btn-md"
-          >
-            {t("cancel")}
-          </Link>
         </div>
       </div>
     </div>

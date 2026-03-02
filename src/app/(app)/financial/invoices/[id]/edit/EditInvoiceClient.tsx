@@ -590,6 +590,12 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
 
         {/* Actions */}
         <div className="invoice-form-actions">
+          <Link
+            href={`/financial/invoices/${invoiceId}`}
+            className="ui-btn ui-btn-secondary ui-btn-md"
+          >
+            Cancel
+          </Link>
           <button
             type="button"
             className="ui-btn ui-btn-primary ui-btn-md"
@@ -599,12 +605,6 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
             {saving ? <span className="ui-btn-spinner" /> : <Save size={16} />}
             Save Changes
           </button>
-          <Link
-            href={`/financial/invoices/${invoiceId}`}
-            className="ui-btn ui-btn-ghost ui-btn-md"
-          >
-            Cancel
-          </Link>
         </div>
       </div>
     </div>
