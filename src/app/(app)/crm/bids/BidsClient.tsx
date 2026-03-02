@@ -549,7 +549,7 @@ export default function BidsClient({
           <div
             className="ticket-modal"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 780, maxHeight: "90vh", overflowY: "auto" }}
+            style={{ maxWidth: 780, maxHeight: "90vh", overflowY: "auto", overflowX: "hidden" }}
           >
             {/* Header */}
             <div className="ticket-modal-header">
@@ -709,13 +709,14 @@ export default function BidsClient({
                   </button>
                 </div>
 
+                <div style={{ overflowX: "auto" }}>
                 <table className="bid-line-items-table">
                   <thead>
                     <tr>
-                      <th style={{ minWidth: 180 }}>Description</th>
-                      <th style={{ width: 70 }}>Qty</th>
-                      <th style={{ width: 70 }}>Unit</th>
-                      <th style={{ width: 100 }}>Unit Cost</th>
+                      <th style={{ minWidth: 160 }}>Description</th>
+                      <th style={{ width: 60 }}>Qty</th>
+                      <th style={{ width: 60 }}>Unit</th>
+                      <th style={{ width: 90 }}>Unit Cost</th>
                       <th style={{ width: 100, textAlign: "right" }}>Total</th>
                       <th style={{ width: 32 }}></th>
                     </tr>
@@ -784,6 +785,7 @@ export default function BidsClient({
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
 
               {/* Totals */}
