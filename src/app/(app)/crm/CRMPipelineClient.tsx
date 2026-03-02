@@ -30,6 +30,9 @@ interface Opportunity {
   id: string;
   name: string;
   client_name: string | null;
+  client_phone: string | null;
+  client_email: string | null;
+  project_type: string | null;
   stage: OpportunityStage;
   estimated_value: number | null;
   probability_pct: number | null;
@@ -135,6 +138,9 @@ export default function CRMPipelineClient({
   const [createFormData, setCreateFormData] = useState({
     name: "",
     client_name: "",
+    client_phone: "",
+    client_email: "",
+    project_type: "",
     stage: "lead" as OpportunityStage,
     estimated_value: "",
     probability_pct: "50",
@@ -153,6 +159,9 @@ export default function CRMPipelineClient({
   const [editFormData, setEditFormData] = useState({
     name: "",
     client_name: "",
+    client_phone: "",
+    client_email: "",
+    project_type: "",
     stage: "lead" as OpportunityStage,
     estimated_value: "",
     probability_pct: "",
@@ -185,6 +194,9 @@ export default function CRMPipelineClient({
     setCreateFormData({
       name: "",
       client_name: "",
+      client_phone: "",
+      client_email: "",
+      project_type: "",
       stage: "lead",
       estimated_value: "",
       probability_pct: "50",
@@ -207,6 +219,9 @@ export default function CRMPipelineClient({
         body: JSON.stringify({
           name: createFormData.name,
           client_name: createFormData.client_name || undefined,
+          client_phone: createFormData.client_phone || undefined,
+          client_email: createFormData.client_email || undefined,
+          project_type: createFormData.project_type || undefined,
           stage: createFormData.stage,
           estimated_value: createFormData.estimated_value
             ? Number(createFormData.estimated_value)
@@ -258,6 +273,9 @@ export default function CRMPipelineClient({
     setEditFormData({
       name: opp.name,
       client_name: opp.client_name || "",
+      client_phone: opp.client_phone || "",
+      client_email: opp.client_email || "",
+      project_type: opp.project_type || "",
       stage: opp.stage,
       estimated_value: opp.estimated_value?.toString() || "",
       probability_pct: opp.probability_pct?.toString() || "",
@@ -288,6 +306,9 @@ export default function CRMPipelineClient({
         body: JSON.stringify({
           name: editFormData.name,
           client_name: editFormData.client_name || null,
+          client_phone: editFormData.client_phone || null,
+          client_email: editFormData.client_email || null,
+          project_type: editFormData.project_type || null,
           stage: editFormData.stage,
           estimated_value: editFormData.estimated_value
             ? Number(editFormData.estimated_value)
@@ -552,6 +573,46 @@ export default function CRMPipelineClient({
                 />
               </div>
 
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Client Phone</label>
+                  <input
+                    type="tel"
+                    className="ticket-form-input"
+                    value={createFormData.client_phone}
+                    onChange={(e) =>
+                      setCreateFormData({ ...createFormData, client_phone: e.target.value })
+                    }
+                    placeholder="(555) 000-0000"
+                  />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Client Email</label>
+                  <input
+                    type="email"
+                    className="ticket-form-input"
+                    value={createFormData.client_email}
+                    onChange={(e) =>
+                      setCreateFormData({ ...createFormData, client_email: e.target.value })
+                    }
+                    placeholder="client@company.com"
+                  />
+                </div>
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Project Type</label>
+                <input
+                  type="text"
+                  className="ticket-form-input"
+                  value={createFormData.project_type}
+                  onChange={(e) =>
+                    setCreateFormData({ ...createFormData, project_type: e.target.value })
+                  }
+                  placeholder="e.g. Commercial, Residential, Industrial"
+                />
+              </div>
+
               <div className="ticket-form-group">
                 <label className="ticket-form-label">{t("notes")}</label>
                 <textarea
@@ -711,6 +772,27 @@ export default function CRMPipelineClient({
                 </div>
               )}
 
+              {selectedOpp.client_phone && (
+                <div className="ticket-detail-row">
+                  <span className="ticket-detail-label">Client Phone</span>
+                  <span>{selectedOpp.client_phone}</span>
+                </div>
+              )}
+
+              {selectedOpp.client_email && (
+                <div className="ticket-detail-row">
+                  <span className="ticket-detail-label">Client Email</span>
+                  <span>{selectedOpp.client_email}</span>
+                </div>
+              )}
+
+              {selectedOpp.project_type && (
+                <div className="ticket-detail-row">
+                  <span className="ticket-detail-label">Project Type</span>
+                  <span>{selectedOpp.project_type}</span>
+                </div>
+              )}
+
               {selectedOpp.notes && (
                 <div className="ticket-detail-row">
                   <span className="ticket-detail-label">{t("notes")}</span>
@@ -826,6 +908,46 @@ export default function CRMPipelineClient({
                     setEditFormData({ ...editFormData, client_name: e.target.value })
                   }
                   placeholder={t("clientOrCompanyNamePlaceholder")}
+                />
+              </div>
+
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Client Phone</label>
+                  <input
+                    type="tel"
+                    className="ticket-form-input"
+                    value={editFormData.client_phone}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, client_phone: e.target.value })
+                    }
+                    placeholder="(555) 000-0000"
+                  />
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">Client Email</label>
+                  <input
+                    type="email"
+                    className="ticket-form-input"
+                    value={editFormData.client_email}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, client_email: e.target.value })
+                    }
+                    placeholder="client@company.com"
+                  />
+                </div>
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">Project Type</label>
+                <input
+                  type="text"
+                  className="ticket-form-input"
+                  value={editFormData.project_type}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, project_type: e.target.value })
+                  }
+                  placeholder="e.g. Commercial, Residential, Industrial"
                 />
               </div>
 
