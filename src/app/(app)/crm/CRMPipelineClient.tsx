@@ -116,6 +116,7 @@ export default function CRMPipelineClient({
     { value: "cold_call", label: t("sourceColdCall") },
     { value: "trade_show", label: t("sourceTradeShow") },
     { value: "existing_client", label: t("sourceExistingClient") },
+    { value: "repeat_client", label: "Repeat Client" },
     { value: "other", label: t("sourceOther") },
   ];
 
