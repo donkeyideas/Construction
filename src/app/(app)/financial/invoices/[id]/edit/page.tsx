@@ -54,6 +54,7 @@ export default async function EditInvoicePage({ params }: PageProps) {
         vendor_name: invoice.vendor_name ?? "",
         client_name: invoice.client_name ?? "",
         project_id: invoice.project_id ?? "",
+        property_id: (raw.property_id as string) ?? "",
         gl_account_id: (raw.gl_account_id as string) ?? "",
         invoice_date: invoice.invoice_date ?? "",
         due_date: invoice.due_date ?? "",

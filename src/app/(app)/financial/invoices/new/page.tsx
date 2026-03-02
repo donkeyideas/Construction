@@ -29,6 +29,18 @@ interface ProjectOption {
   code: string;
 }
 
+interface PropertyOption {
+  id: string;
+  name: string;
+}
+
+function parseContext(v: string): { project_id: string | undefined; property_id: string | undefined } {
+  if (!v) return { project_id: undefined, property_id: undefined };
+  if (v.startsWith("proj:")) return { project_id: v.slice(5), property_id: undefined };
+  if (v.startsWith("prop:")) return { project_id: undefined, property_id: v.slice(5) };
+  return { project_id: undefined, property_id: undefined };
+}
+
 interface LineItemRow {
   id: string;
   description: string;
@@ -80,12 +92,13 @@ function NewInvoiceForm() {
   // Lookup data
   const [glAccounts, setGlAccounts] = useState<GLAccount[]>([]);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [properties, setProperties] = useState<PropertyOption[]>([]);
 
   // Form state
   const [invoiceType, setInvoiceType] = useState<"payable" | "receivable">(initialType);
   const [invoiceNumber, setInvoiceNumber] = useState(generateInvoiceNumber);
   const [vendorOrClient, setVendorOrClient] = useState("");
-  const [projectId, setProjectId] = useState("");
+  const [contextId, setContextId] = useState("");
   const [glAccountId, setGlAccountId] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(todayString);
   const [dueDate, setDueDate] = useState(defaultDueDateString);
@@ -110,7 +123,7 @@ function NewInvoiceForm() {
       if (!membership) return;
       const companyId = membership.company_id;
 
-      const [acctRes, projRes] = await Promise.all([
+      const [acctRes, projRes, propData] = await Promise.all([
         supabase
           .from("chart_of_accounts")
           .select("id, account_number, name, account_type")
@@ -122,9 +135,11 @@ function NewInvoiceForm() {
           .select("id, name, code")
           .eq("company_id", companyId)
           .order("name"),
+        fetch("/api/properties").then((r) => r.ok ? r.json() : []),
       ]);
       if (acctRes.data) setGlAccounts(acctRes.data);
       if (projRes.data) setProjects(projRes.data);
+      if (Array.isArray(propData)) setProperties(propData);
     }
     loadData();
   }, []);
@@ -169,12 +184,14 @@ function NewInvoiceForm() {
     try {
       const supabase = createClient();
 
+      const { project_id, property_id } = parseContext(contextId);
       const payload = {
         invoice_number: invoiceNumber,
         invoice_type: invoiceType,
         vendor_name: invoiceType === "payable" ? vendorOrClient : undefined,
         client_name: invoiceType === "receivable" ? vendorOrClient : undefined,
-        project_id: projectId || undefined,
+        project_id,
+        property_id,
         invoice_date: invoiceDate,
         due_date: dueDate,
         subtotal,
@@ -353,18 +370,31 @@ function NewInvoiceForm() {
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">{t("projectOptional")}</label>
+            <label className="ui-label">Project / Property (optional)</label>
             <select
               className="ui-input"
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
+              value={contextId}
+              onChange={(e) => setContextId(e.target.value)}
             >
-              <option value="">{t("selectProject")}</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.code ? `${p.code} — ` : ""}{p.name}
-                </option>
-              ))}
+              <option value="">— None —</option>
+              {projects.length > 0 && (
+                <optgroup label="Projects">
+                  {projects.map((p) => (
+                    <option key={p.id} value={`proj:${p.id}`}>
+                      {p.code ? `${p.code} — ` : ""}{p.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {properties.length > 0 && (
+                <optgroup label="Properties">
+                  {properties.map((p) => (
+                    <option key={p.id} value={`prop:${p.id}`}>
+                      {p.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </div>
 

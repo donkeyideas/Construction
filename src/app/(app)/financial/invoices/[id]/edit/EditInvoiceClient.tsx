@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -27,6 +27,18 @@ interface ProjectOption {
   code: string;
 }
 
+interface PropertyOption {
+  id: string;
+  name: string;
+}
+
+function parseContext(v: string): { project_id: string | null; property_id: string | null } {
+  if (!v) return { project_id: null, property_id: null };
+  if (v.startsWith("proj:")) return { project_id: v.slice(5), property_id: null };
+  if (v.startsWith("prop:")) return { project_id: null, property_id: v.slice(5) };
+  return { project_id: null, property_id: null };
+}
+
 interface LineItemData {
   description: string;
   quantity: number;
@@ -49,6 +61,7 @@ interface InvoiceData {
   vendor_name: string;
   client_name: string;
   project_id: string;
+  property_id?: string;
   gl_account_id: string;
   invoice_date: string;
   due_date: string;
@@ -67,17 +80,25 @@ interface Props {
   invoice: InvoiceData;
   glAccounts: GLAccount[];
   projects: ProjectOption[];
+  properties?: PropertyOption[];
 }
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 11);
 }
 
-export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, projects }: Props) {
+export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, projects, properties: initialProperties = [] }: Props) {
   const t = useTranslations("financial.newInvoicePage");
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [properties, setProperties] = useState<PropertyOption[]>(initialProperties);
+
+  useEffect(() => {
+    fetch("/api/properties").then((r) => r.ok ? r.json() : []).then((data) => {
+      if (Array.isArray(data)) setProperties(data);
+    }).catch(() => {});
+  }, []);
 
   // Form state — pre-filled from invoice
   const [invoiceType] = useState<"payable" | "receivable">(invoice.invoice_type);
@@ -85,7 +106,11 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
   const [vendorOrClient, setVendorOrClient] = useState(
     invoice.invoice_type === "payable" ? invoice.vendor_name : invoice.client_name
   );
-  const [projectId, setProjectId] = useState(invoice.project_id);
+  const [contextId, setContextId] = useState(
+    invoice.project_id ? `proj:${invoice.project_id}`
+    : invoice.property_id ? `prop:${invoice.property_id}`
+    : ""
+  );
   const [glAccountId, setGlAccountId] = useState(invoice.gl_account_id);
   const [invoiceDate, setInvoiceDate] = useState(invoice.invoice_date);
   const [dueDate, setDueDate] = useState(invoice.due_date);
@@ -143,11 +168,13 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
     setSaving(true);
 
     try {
+      const { project_id, property_id } = parseContext(contextId);
       const payload: Record<string, unknown> = {
         invoice_number: invoiceNumber,
         vendor_name: invoiceType === "payable" ? vendorOrClient : undefined,
         client_name: invoiceType === "receivable" ? vendorOrClient : undefined,
-        project_id: projectId || null,
+        project_id,
+        property_id,
         gl_account_id: glAccountId || null,
         invoice_date: invoiceDate,
         due_date: dueDate,
@@ -306,18 +333,31 @@ export default function EditInvoiceClient({ invoiceId, invoice, glAccounts, proj
           </div>
 
           <div className="ui-field">
-            <label className="ui-label">{t("projectOptional")}</label>
+            <label className="ui-label">Project / Property (optional)</label>
             <select
               className="ui-input"
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
+              value={contextId}
+              onChange={(e) => setContextId(e.target.value)}
             >
-              <option value="">{t("selectProject")}</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.code ? `${p.code} — ` : ""}{p.name}
-                </option>
-              ))}
+              <option value="">— None —</option>
+              {projects.length > 0 && (
+                <optgroup label="Projects">
+                  {projects.map((p) => (
+                    <option key={p.id} value={`proj:${p.id}`}>
+                      {p.code ? `${p.code} — ` : ""}{p.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {properties.length > 0 && (
+                <optgroup label="Properties">
+                  {properties.map((p) => (
+                    <option key={p.id} value={`prop:${p.id}`}>
+                      {p.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </div>
 
