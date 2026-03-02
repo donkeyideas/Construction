@@ -183,6 +183,7 @@ export default function DailyLogsClient({
   const [formData, setFormData] = useState({
     project_id: "",
     log_date: getTodayString(),
+    status: "draft",
     weather_conditions: "",
     temperature: "",
     workforce_count: "",
@@ -267,6 +268,7 @@ export default function DailyLogsClient({
         body: JSON.stringify({
           project_id: formData.project_id,
           log_date: formData.log_date,
+          status: formData.status || "draft",
           weather_conditions: formData.weather_conditions || undefined,
           temperature: formData.temperature || undefined,
           workforce_count: formData.workforce_count
@@ -288,6 +290,7 @@ export default function DailyLogsClient({
       setFormData({
         project_id: "",
         log_date: getTodayString(),
+        status: "draft",
         weather_conditions: "",
         temperature: "",
         workforce_count: "",
@@ -1303,6 +1306,32 @@ export default function DailyLogsClient({
 
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("columnStatus")}</label>
+                  <select
+                    className="ticket-form-select"
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  >
+                    <option value="draft">{t("statusDraft")}</option>
+                    <option value="submitted">{t("statusSubmitted")}</option>
+                    <option value="approved">{t("statusApproved")}</option>
+                  </select>
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("workforceCount")}</label>
+                  <input
+                    type="number"
+                    className="ticket-form-input"
+                    value={formData.workforce_count}
+                    onChange={(e) => setFormData({ ...formData, workforce_count: e.target.value })}
+                    placeholder={t("totalHeadcount")}
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
                   <label className="ticket-form-label">{t("weather")}</label>
                   <div style={{ display: "flex", gap: 8 }}>
                     <select
@@ -1354,24 +1383,6 @@ export default function DailyLogsClient({
                     placeholder={t("tempPlaceholder")}
                   />
                 </div>
-              </div>
-
-              <div className="ticket-form-group">
-                <label className="ticket-form-label">
-                  {t("workforceCount")}
-                </label>
-                <input
-                  type="number"
-                  className="ticket-form-input"
-                  value={formData.workforce_count}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      workforce_count: e.target.value,
-                    })
-                  }
-                  placeholder={t("totalHeadcountPlaceholder")}
-                />
               </div>
 
               <div className="ticket-form-group">
@@ -1441,7 +1452,7 @@ export default function DailyLogsClient({
                       materials_received: e.target.value,
                     })
                   }
-                  placeholder={t("describeMaterialsReceived") || "List materials delivered to site..."}
+                  placeholder="List materials delivered to site..."
                   rows={2}
                 />
               </div>

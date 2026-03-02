@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         safety_incidents: body.safety_incidents?.trim() || null,
         delays: body.delays?.trim() || null,
         materials_received: body.materials_received?.trim() || null,
-        status: "draft",
+        status: body.status || "draft",
       })
       .select("*")
       .single();
