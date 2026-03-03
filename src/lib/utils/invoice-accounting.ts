@@ -33,6 +33,15 @@ export interface CompanyAccountMap {
   // Credit loss / doubtful accounts
   allowanceForDoubtfulAccountsId: string | null; // "Allowance for Doubtful Accounts" (contra-asset)
   badDebtExpenseId: string | null;               // "Bad Debt Expense" (expense)
+  // Property operating expense accounts
+  propertyTaxExpenseId: string | null;   // "Property Tax Expense" (6400)
+  camExpenseId: string | null;           // "Common Area Maintenance" (6410)
+  propertyUtilitiesId: string | null;    // "Property Utilities" (6420)
+  managementFeesId: string | null;       // "Property Management Fees" (6430)
+  leasingMarketingId: string | null;     // "Leasing & Marketing" (6440)
+  capitalImprovementsId: string | null;  // "Capital Improvements" (1560, asset)
+  insuranceExpenseId: string | null;     // "Insurance Expense" (6300)
+  legalExpenseId: string | null;         // "Legal & Professional Fees"
   // Lookup by account number for GL account resolution
   byNumber: Record<string, string>;
   // Lookup by account_type → first account id (last-resort fallback)
@@ -80,6 +89,14 @@ export async function buildCompanyAccountMap(
     prepaidExpenseId: null,
     allowanceForDoubtfulAccountsId: null,
     badDebtExpenseId: null,
+    propertyTaxExpenseId: null,
+    camExpenseId: null,
+    propertyUtilitiesId: null,
+    managementFeesId: null,
+    leasingMarketingId: null,
+    capitalImprovementsId: null,
+    insuranceExpenseId: null,
+    legalExpenseId: null,
     byNumber: {},
     byType: {},
   };
@@ -270,6 +287,65 @@ export async function buildCompanyAccountMap(
       (nameLower.includes("bad debt") || nameLower.includes("doubtful") || nameLower.includes("credit loss"))
     ) {
       map.badDebtExpenseId = a.id;
+    }
+
+    // --- Property operating expense accounts ---
+
+    // Property Tax Expense: expense with "property" and "tax"
+    if (!map.propertyTaxExpenseId && a.account_type === "expense" &&
+      nameLower.includes("property") && nameLower.includes("tax")
+    ) {
+      map.propertyTaxExpenseId = a.id;
+    }
+
+    // Common Area Maintenance: expense with "common area"
+    if (!map.camExpenseId && a.account_type === "expense" &&
+      nameLower.includes("common area")
+    ) {
+      map.camExpenseId = a.id;
+    }
+
+    // Property Utilities: expense with "utilit" (matches utilities, utility)
+    if (!map.propertyUtilitiesId && a.account_type === "expense" &&
+      nameLower.includes("utilit")
+    ) {
+      map.propertyUtilitiesId = a.id;
+    }
+
+    // Property Management Fees: expense with "management" and "fee"
+    if (!map.managementFeesId && a.account_type === "expense" &&
+      nameLower.includes("management") && nameLower.includes("fee")
+    ) {
+      map.managementFeesId = a.id;
+    }
+
+    // Leasing & Marketing: expense with "leasing" or "marketing"
+    if (!map.leasingMarketingId && a.account_type === "expense" &&
+      (nameLower.includes("leasing") || nameLower.includes("marketing"))
+    ) {
+      map.leasingMarketingId = a.id;
+    }
+
+    // Capital Improvements: asset with "capital" and "improvement" or "expenditure"
+    if (!map.capitalImprovementsId && a.account_type === "asset" &&
+      nameLower.includes("capital") &&
+      (nameLower.includes("improvement") || nameLower.includes("expenditure"))
+    ) {
+      map.capitalImprovementsId = a.id;
+    }
+
+    // Insurance Expense: expense with "insurance"
+    if (!map.insuranceExpenseId && a.account_type === "expense" &&
+      nameLower.includes("insurance")
+    ) {
+      map.insuranceExpenseId = a.id;
+    }
+
+    // Legal / Professional Fees: expense with "legal" or "professional"
+    if (!map.legalExpenseId && a.account_type === "expense" &&
+      (nameLower.includes("legal") || nameLower.includes("professional"))
+    ) {
+      map.legalExpenseId = a.id;
     }
   }
 
@@ -1948,14 +2024,53 @@ export async function generateMaintenanceCostJournalEntry(
 
 // ==========================================================================
 // Property Expense JE (CAM, property tax, insurance, utilities, etc.)
+// GAAP ASC 340-10 — Prepaid Expense Amortization
 // ==========================================================================
 
 /**
- * Generate a journal entry for a property expense.
- *   DR Operating Expense (Repairs & Maintenance or generic expense account)
- *   CR Accounts Payable
+ * Resolve the appropriate GL expense/asset account for a property expense type.
+ */
+function resolvePropertyExpenseAccount(
+  expenseType: string,
+  accountMap: CompanyAccountMap
+): string | null {
+  switch (expenseType) {
+    case "cam":
+      return accountMap.camExpenseId || accountMap.repairsMaintenanceId;
+    case "property_tax":
+      return accountMap.propertyTaxExpenseId || accountMap.repairsMaintenanceId;
+    case "insurance":
+      return accountMap.insuranceExpenseId || accountMap.repairsMaintenanceId;
+    case "utilities":
+      return accountMap.propertyUtilitiesId || accountMap.repairsMaintenanceId;
+    case "management_fee":
+      return accountMap.managementFeesId || accountMap.repairsMaintenanceId;
+    case "capital_expense":
+      return accountMap.capitalImprovementsId || accountMap.equipmentAssetId || null;
+    case "hoa_fee":
+      return accountMap.repairsMaintenanceId;
+    case "marketing":
+      return accountMap.leasingMarketingId || accountMap.repairsMaintenanceId;
+    case "legal":
+      return accountMap.legalExpenseId || accountMap.repairsMaintenanceId;
+    case "other":
+    default:
+      return accountMap.repairsMaintenanceId;
+  }
+}
+
+/**
+ * Generate GAAP-compliant journal entries for a property expense.
  *
- * Reference format: prop_expense:{expenseId}
+ * Monthly / one-time (non-capital): DR Expense / CR AP          (single JE)
+ * One-time capital:                 DR Capital Improvements / CR AP (capitalize)
+ * Quarterly:   DR Prepaid / CR AP + 3 monthly DR Expense / CR Prepaid
+ * Semi-annual: DR Prepaid / CR AP + 6 monthly DR Expense / CR Prepaid
+ * Annual:      DR Prepaid / CR AP + 12 monthly DR Expense / CR Prepaid
+ *
+ * Reference formats:
+ *   Initial:      prop_expense:{id}
+ *   Amortization: prop_expense_amort:{id}:{YYYY-MM}
  */
 export async function generatePropertyExpenseJournalEntry(
   supabase: SupabaseClient,
@@ -1963,57 +2078,144 @@ export async function generatePropertyExpenseJournalEntry(
   userId: string,
   expense: {
     id: string;
+    expense_type: string;
+    frequency: string;
     description: string;
     amount: number;
     date: string;
     property_id?: string | null;
   },
   accountMap: CompanyAccountMap
-): Promise<{ journalEntryId: string } | null> {
+): Promise<{ journalEntryId: string; amortizationCount: number } | null> {
   if (expense.amount <= 0) return null;
-  if (!accountMap.repairsMaintenanceId) return null;
+
   const creditAccountId = accountMap.apId || accountMap.cashId;
   if (!creditAccountId) return null;
 
-  // Idempotency: skip if JE already exists for this expense
+  const expenseAccountId = resolvePropertyExpenseAccount(expense.expense_type, accountMap);
+  if (!expenseAccountId) return null;
+
+  const shortId = expense.id.substring(0, 8);
+  const desc = expense.description || `${expense.expense_type}: Property expense`;
   const refStr = `prop_expense:${expense.id}`;
-  const { data: existingJE } = await supabase
+
+  const isCapital = expense.expense_type === "capital_expense";
+  const needsPrepaid = !isCapital && ["quarterly", "semi_annual", "annual"].includes(expense.frequency);
+
+  // ── Path 1 & 2: Monthly / one-time — immediate expense or capitalize ──
+  if (!needsPrepaid) {
+    const { data: existingJE } = await supabase
+      .from("journal_entries")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("reference", refStr)
+      .limit(1)
+      .maybeSingle();
+    if (existingJE) return { journalEntryId: existingJE.id, amortizationCount: 0 };
+
+    const entryData: JournalEntryCreateData = {
+      entry_number: `JE-PEXP-${shortId}`,
+      entry_date: expense.date,
+      description: desc,
+      reference: refStr,
+      lines: [
+        { account_id: expenseAccountId, debit: expense.amount, credit: 0, description: desc, property_id: expense.property_id ?? undefined },
+        { account_id: creditAccountId, debit: 0, credit: expense.amount, description: desc, property_id: expense.property_id ?? undefined },
+      ],
+    };
+
+    const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+    return result ? { journalEntryId: result.id, amortizationCount: 0 } : null;
+  }
+
+  // ── Path 3: Prepaid + monthly amortization (quarterly/semi_annual/annual) ──
+  if (!accountMap.prepaidExpenseId) return null;
+
+  const amortMonths: Record<string, number> = { quarterly: 3, semi_annual: 6, annual: 12 };
+  const months = amortMonths[expense.frequency] || 12;
+
+  // Step A: Create initial prepaid JE — DR Prepaid Expense / CR AP
+  const { data: existingInitial } = await supabase
     .from("journal_entries")
     .select("id")
     .eq("company_id", companyId)
     .eq("reference", refStr)
     .limit(1)
     .maybeSingle();
-  if (existingJE) return { journalEntryId: existingJE.id };
 
-  const shortId = expense.id.substring(0, 8);
-  const desc = expense.description || "Property expense";
+  let initialJeId: string;
+  if (existingInitial) {
+    initialJeId = existingInitial.id;
+  } else {
+    const prepaidDesc = `Prepaid ${desc}`;
+    const initialEntry: JournalEntryCreateData = {
+      entry_number: `JE-PEXP-${shortId}`,
+      entry_date: expense.date,
+      description: prepaidDesc,
+      reference: refStr,
+      lines: [
+        { account_id: accountMap.prepaidExpenseId, debit: expense.amount, credit: 0, description: prepaidDesc, property_id: expense.property_id ?? undefined },
+        { account_id: creditAccountId, debit: 0, credit: expense.amount, description: prepaidDesc, property_id: expense.property_id ?? undefined },
+      ],
+    };
+    const initialResult = await createPostedJournalEntry(supabase, companyId, userId, initialEntry);
+    if (!initialResult) return null;
+    initialJeId = initialResult.id;
+  }
 
-  const entryData: JournalEntryCreateData = {
-    entry_number: `JE-PEXP-${shortId}`,
-    entry_date: expense.date,
-    description: desc,
-    reference: refStr,
-    lines: [
-      {
-        account_id: accountMap.repairsMaintenanceId,
-        debit: expense.amount,
-        credit: 0,
-        description: desc,
-        property_id: expense.property_id ?? undefined,
-      },
-      {
-        account_id: creditAccountId,
-        debit: 0,
-        credit: expense.amount,
-        description: desc,
-        property_id: expense.property_id ?? undefined,
-      },
-    ],
-  };
+  // Step B: Generate monthly amortization JEs — DR Expense / CR Prepaid
+  const startDate = new Date(expense.date);
+  startDate.setDate(1);
+  const endDate = new Date(startDate);
+  endDate.setMonth(endDate.getMonth() + months - 1);
+  const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-01`;
 
-  const result = await createPostedJournalEntry(supabase, companyId, userId, entryData);
-  return result ? { journalEntryId: result.id } : null;
+  const monthList = getMonthsBetween(expense.date, endDateStr);
+  if (monthList.length === 0) return { journalEntryId: initialJeId, amortizationCount: 0 };
+
+  // Even distribution with remainder on last month
+  const baseMonthly = Math.floor((expense.amount / monthList.length) * 100) / 100;
+  const remainder = Math.round((expense.amount - baseMonthly * monthList.length) * 100) / 100;
+
+  // Batch idempotency: check which amortization JEs already exist
+  const amortRefs = monthList.map((m) => `prop_expense_amort:${expense.id}:${m.substring(0, 7)}`);
+  const { data: existingAmortJEs } = await supabase
+    .from("journal_entries")
+    .select("reference")
+    .eq("company_id", companyId)
+    .in("reference", amortRefs);
+  const existingAmortSet = new Set((existingAmortJEs || []).map((j: { reference: string }) => j.reference));
+
+  const jeEntries: JournalEntryCreateData[] = [];
+  for (let i = 0; i < monthList.length; i++) {
+    const monthDate = monthList[i];
+    const ym = monthDate.substring(0, 7);
+    const amortRef = `prop_expense_amort:${expense.id}:${ym}`;
+    if (existingAmortSet.has(amortRef)) continue;
+
+    const isLast = i === monthList.length - 1;
+    const monthAmount = Math.round((baseMonthly + (isLast ? remainder : 0)) * 100) / 100;
+    const amortDesc = `Amortize prepaid ${expense.expense_type} — ${expense.description || "Property expense"} (${ym})`;
+
+    jeEntries.push({
+      entry_number: `JE-PAMRT-${shortId}-${ym}`,
+      entry_date: monthDate,
+      description: amortDesc,
+      reference: amortRef,
+      lines: [
+        { account_id: expenseAccountId, debit: monthAmount, credit: 0, description: amortDesc, property_id: expense.property_id ?? undefined },
+        { account_id: accountMap.prepaidExpenseId!, debit: 0, credit: monthAmount, description: amortDesc, property_id: expense.property_id ?? undefined },
+      ],
+    });
+  }
+
+  let amortizationCount = 0;
+  if (jeEntries.length > 0) {
+    const bulkResult = await createBulkPostedJournalEntries(supabase, companyId, userId, jeEntries);
+    amortizationCount = bulkResult.ids.length;
+  }
+
+  return { journalEntryId: initialJeId, amortizationCount };
 }
 
 // ==========================================================================

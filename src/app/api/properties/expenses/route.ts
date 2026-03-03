@@ -5,6 +5,7 @@ import {
   buildCompanyAccountMap,
   generatePropertyExpenseJournalEntry,
 } from "@/lib/utils/invoice-accounting";
+import { ensureRequiredAccounts } from "@/lib/utils/backfill-journal-entries";
 
 const VALID_TYPES = [
   "cam", "property_tax", "insurance", "utilities",
@@ -72,12 +73,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // Auto-generate property expense JE — non-blocking
+    // Auto-generate property expense JE(s) with GAAP prepaid amortization — non-blocking
     if (data && Number(body.amount) > 0) {
       try {
+        await ensureRequiredAccounts(supabase, userCtx.companyId);
         const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
         await generatePropertyExpenseJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
           id: data.id,
+          expense_type: body.expense_type,
+          frequency,
           description: `${body.expense_type}: ${body.description?.trim() || "Property expense"}`,
           amount: Number(body.amount),
           date: body.effective_date || new Date().toISOString().split("T")[0],
@@ -148,12 +152,39 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // Auto-generate property expense JE if none exists yet (idempotent)
+    // Regenerate JEs when frequency, amount, or type changed
     if (data && Number(data.amount) > 0) {
       try {
+        // If key fields changed, clear old JEs first so they regenerate correctly
+        if (body.frequency !== undefined || body.amount !== undefined || body.expense_type !== undefined) {
+          const { data: oldAmortJEs } = await supabase
+            .from("journal_entries")
+            .select("id")
+            .eq("company_id", userCtx.companyId)
+            .like("reference", `prop_expense_amort:${body.id}:%`);
+          if (oldAmortJEs && oldAmortJEs.length > 0) {
+            const oldIds = oldAmortJEs.map((j: { id: string }) => j.id);
+            await supabase.from("journal_entry_lines").delete().in("journal_entry_id", oldIds);
+            await supabase.from("journal_entries").delete().in("id", oldIds);
+          }
+          const { data: oldInitialJE } = await supabase
+            .from("journal_entries")
+            .select("id")
+            .eq("company_id", userCtx.companyId)
+            .eq("reference", `prop_expense:${body.id}`);
+          if (oldInitialJE && oldInitialJE.length > 0) {
+            const oldIds = oldInitialJE.map((j: { id: string }) => j.id);
+            await supabase.from("journal_entry_lines").delete().in("journal_entry_id", oldIds);
+            await supabase.from("journal_entries").delete().in("id", oldIds);
+          }
+        }
+
+        await ensureRequiredAccounts(supabase, userCtx.companyId);
         const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
         await generatePropertyExpenseJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
           id: data.id,
+          expense_type: data.expense_type,
+          frequency: data.frequency || "monthly",
           description: `${data.expense_type}: ${data.description || "Property expense"}`,
           amount: Number(data.amount),
           date: data.effective_date || new Date().toISOString().split("T")[0],

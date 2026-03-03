@@ -11,6 +11,7 @@ import {
   generateDepreciationJournalEntries,
   generateMaintenanceCostJournalEntry,
   generatePayrollRunJournalEntry,
+  generatePropertyExpenseJournalEntry,
 } from "@/lib/utils/invoice-accounting";
 import { createPostedJournalEntry, createBulkPostedJournalEntries } from "@/lib/queries/financial";
 
@@ -42,6 +43,7 @@ export interface BackfillResult {
   depreciationGenerated: number;
   payrollGenerated: number;
   maintenanceGenerated: number;
+  propertyExpenseGenerated: number;
   draftsPosted: number;
   banksSynced: number;
 }
@@ -76,6 +78,14 @@ export async function ensureRequiredAccounts(
     { number: "4200", name: "Rental Income", type: "revenue", sub: "operating_revenue", balance: "credit", desc: "Revenue from property leases and rentals" },
     { number: "6250", name: "Repairs & Maintenance", type: "expense", sub: "operating_expense", balance: "debit", desc: "Property and equipment repair costs" },
     { number: "6700", name: "Depreciation Expense", type: "expense", sub: "operating_expense", balance: "debit", desc: "Periodic depreciation of fixed assets" },
+    // Property operating expense accounts
+    { number: "6300", name: "Insurance", type: "expense", sub: "operating_expense", balance: "debit", desc: "Business insurance premiums" },
+    { number: "6400", name: "Property Tax Expense", type: "expense", sub: "operating_expense", balance: "debit", desc: "Property tax assessments" },
+    { number: "6410", name: "Common Area Maintenance", type: "expense", sub: "operating_expense", balance: "debit", desc: "CAM charges for common areas" },
+    { number: "6420", name: "Property Utilities", type: "expense", sub: "operating_expense", balance: "debit", desc: "Electric, water, gas, sewer, trash for properties" },
+    { number: "6430", name: "Property Management Fees", type: "expense", sub: "operating_expense", balance: "debit", desc: "Property management company fees" },
+    { number: "6440", name: "Leasing & Marketing", type: "expense", sub: "operating_expense", balance: "debit", desc: "Leasing commissions and marketing costs" },
+    { number: "1560", name: "Capital Improvements", type: "asset", sub: "fixed_asset", balance: "debit", desc: "Building and property capital improvements" },
   ];
 
   // Filter to only accounts that don't already exist (fuzzy match on name)
@@ -136,6 +146,7 @@ export async function backfillMissingJournalEntries(
     depreciationGenerated: 0,
     payrollGenerated: 0,
     maintenanceGenerated: 0,
+    propertyExpenseGenerated: 0,
     draftsPosted: 0,
     banksSynced: 0,
   };
@@ -496,6 +507,42 @@ export async function backfillMissingJournalEntries(
         }, accountMap);
         if (r) result.maintenanceGenerated++;
       } catch (err) { console.warn("Backfill equipment maintenance JE failed:", m.id, err); }
+    }
+  }
+
+  // --- Property Expenses (GAAP prepaid amortization) ---
+  {
+    const { data: propExpenses } = await supabase
+      .from("property_expenses")
+      .select("id, expense_type, description, amount, frequency, effective_date, property_id")
+      .eq("company_id", companyId)
+      .gt("amount", 0);
+
+    if (propExpenses && propExpenses.length > 0) {
+      const initialRefs = propExpenses.map((pe) => `prop_expense:${pe.id}`);
+      const existingInitialJEs = await chunkedInRefs(
+        (refs) => supabase.from("journal_entries").select("reference").eq("company_id", companyId).in("reference", refs),
+        initialRefs
+      );
+      const existingInitialSet = new Set(existingInitialJEs.map((j: { reference: string }) => j.reference));
+
+      for (const pe of propExpenses) {
+        if (existingInitialSet.has(`prop_expense:${pe.id}`)) continue;
+        try {
+          const r = await generatePropertyExpenseJournalEntry(supabase, companyId, userId, {
+            id: pe.id,
+            expense_type: pe.expense_type,
+            frequency: pe.frequency || "monthly",
+            description: `${pe.expense_type}: ${pe.description || "Property expense"}`,
+            amount: Number(pe.amount),
+            date: pe.effective_date || new Date().toISOString().split("T")[0],
+            property_id: pe.property_id,
+          }, accountMap);
+          if (r) result.propertyExpenseGenerated++;
+        } catch (err) {
+          console.warn("Backfill property expense JE failed:", pe.id, err);
+        }
+      }
     }
   }
 
