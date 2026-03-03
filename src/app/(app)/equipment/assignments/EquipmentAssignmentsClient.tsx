@@ -227,13 +227,16 @@ export default function EquipmentAssignmentsClient({
     setCreateError("");
 
     try {
+      const assignee = formData.assigned_to;
+      const isContact = assignee.startsWith("contact:");
       const res = await fetch("/api/equipment/assignments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           equipment_id: formData.equipment_id,
           ...parseContext(formData.context_id),
-          assigned_to: formData.assigned_to || undefined,
+          assigned_to: isContact ? undefined : (assignee || undefined),
+          assigned_to_contact_id: isContact ? assignee.slice(8) : undefined,
           assigned_date: formData.assigned_date || undefined,
           status: formData.status || "active",
           notes: formData.notes || undefined,
@@ -266,11 +269,18 @@ export default function EquipmentAssignmentsClient({
   function openEdit(assignment: EquipmentAssignmentRow) {
     setEditingAssignment(assignment);
     setEditError("");
+    // Determine assignee dropdown value: user_id or contact:{id}
+    let assigneeValue = "";
+    if (assignment.assigned_to) {
+      assigneeValue = assignment.assigned_to;
+    } else if (assignment.assigned_to_contact_id) {
+      assigneeValue = `contact:${assignment.assigned_to_contact_id}`;
+    }
     setEditData({
       equipment_id: assignment.equipment_id,
       context_id: assignment.project_id ? `proj:${assignment.project_id}`
         : assignment.property_id ? `prop:${assignment.property_id}` : "",
-      assigned_to: assignment.assigned_to || "",
+      assigned_to: assigneeValue,
       assigned_date: assignment.assigned_date?.split("T")[0] || "",
       returned_date: assignment.returned_date?.split("T")[0] || "",
       notes: assignment.notes || "",
@@ -286,13 +296,16 @@ export default function EquipmentAssignmentsClient({
     setEditError("");
 
     try {
+      const editAssignee = editData.assigned_to;
+      const editIsContact = editAssignee.startsWith("contact:");
       const res = await fetch(`/api/equipment/assignments/${editingAssignment.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           equipment_id: editData.equipment_id,
           ...parseContext(editData.context_id),
-          assigned_to: editData.assigned_to || null,
+          assigned_to: editIsContact ? null : (editAssignee || null),
+          assigned_to_contact_id: editIsContact ? editAssignee.slice(8) : null,
           assigned_date: editData.assigned_date,
           returned_date: editData.returned_date || null,
           notes: editData.notes || null,
@@ -688,7 +701,7 @@ export default function EquipmentAssignmentsClient({
                       {contacts
                         .filter((c) => c.is_active)
                         .map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={`contact:${c.id}`}>
                             {c.first_name} {c.last_name}{c.contact_type ? ` (${c.contact_type})` : ""}
                           </option>
                         ))}
@@ -841,7 +854,7 @@ export default function EquipmentAssignmentsClient({
                       {contacts
                         .filter((c) => c.is_active)
                         .map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.id} value={`contact:${c.id}`}>
                             {c.first_name} {c.last_name}{c.contact_type ? ` (${c.contact_type})` : ""}
                           </option>
                         ))}

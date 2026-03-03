@@ -37,6 +37,7 @@ export async function PUT(
     if (body.project_id !== undefined) updates.project_id = body.project_id || null;
     if (body.property_id !== undefined) updates.property_id = body.property_id || null;
     if (body.assigned_to !== undefined) updates.assigned_to = body.assigned_to || null;
+    if (body.assigned_to_contact_id !== undefined) updates.assigned_to_contact_id = body.assigned_to_contact_id || null;
     if (body.assigned_date !== undefined) updates.assigned_date = body.assigned_date;
     if (body.returned_date !== undefined) updates.returned_date = body.returned_date || null;
     if (body.notes !== undefined) updates.notes = body.notes || null;

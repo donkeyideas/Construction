@@ -89,6 +89,7 @@ export interface EquipmentAssignmentRow {
   project_id: string | null;
   property_id: string | null;
   assigned_to: string | null;
+  assigned_to_contact_id: string | null;
   assigned_by: string | null;
   assigned_date: string;
   returned_date: string | null;
@@ -157,6 +158,7 @@ export interface CreateAssignmentData {
   project_id?: string;
   property_id?: string;
   assigned_to?: string;
+  assigned_to_contact_id?: string;
   assigned_date?: string;
   status?: AssignmentStatus;
   notes?: string;
@@ -551,13 +553,15 @@ export async function getAssignments(
   const aEqIds = new Set<string>();
   const aProjIds = new Set<string>();
   const aAssigneeIds = new Set<string>();
+  const aContactIds = new Set<string>();
   for (const a of assignments) {
     if (a.equipment_id) aEqIds.add(a.equipment_id);
     if (a.project_id) aProjIds.add(a.project_id);
     if (a.assigned_to) aAssigneeIds.add(a.assigned_to);
+    if (a.assigned_to_contact_id) aContactIds.add(a.assigned_to_contact_id);
   }
 
-  const [aEqRes, aProjRes, aAssigneeRes] = await Promise.all([
+  const [aEqRes, aProjRes, aAssigneeRes, aContactRes] = await Promise.all([
     aEqIds.size > 0
       ? supabase.from("equipment").select("id, name").in("id", [...aEqIds])
       : Promise.resolve({ data: null }),
@@ -567,32 +571,36 @@ export async function getAssignments(
     aAssigneeIds.size > 0
       ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...aAssigneeIds])
       : Promise.resolve({ data: null }),
+    aContactIds.size > 0
+      ? supabase.from("contacts").select("id, first_name, last_name, email").in("id", [...aContactIds])
+      : Promise.resolve({ data: null }),
   ]);
 
   const aEqMap = new Map((aEqRes.data ?? []).map((e: { id: string; name: string }) => [e.id, e]));
   const aProjMap = new Map((aProjRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
   const aAssigneeMap = new Map((aAssigneeRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
 
-  // For any assigned_to IDs not found in user_profiles, also check contacts table
-  const unresolvedIds = [...aAssigneeIds].filter((id) => !aAssigneeMap.has(id));
-  if (unresolvedIds.length > 0) {
-    const { data: contactRows } = await supabase
-      .from("contacts")
-      .select("id, first_name, last_name, email")
-      .in("id", unresolvedIds);
-    for (const c of contactRows ?? []) {
-      aAssigneeMap.set(c.id, {
-        id: c.id,
-        full_name: `${c.first_name} ${c.last_name}`.trim(),
-        email: c.email ?? "",
-      });
-    }
+  // Build contact assignee map
+  const aContactMap = new Map<string, { id: string; full_name: string; email: string }>();
+  for (const c of aContactRes.data ?? []) {
+    aContactMap.set(c.id, {
+      id: c.id,
+      full_name: `${c.first_name} ${c.last_name}`.trim(),
+      email: c.email ?? "",
+    });
   }
 
   for (const a of assignments) {
     a.equipment = a.equipment_id ? aEqMap.get(a.equipment_id) ?? null : null;
     a.project = a.project_id ? aProjMap.get(a.project_id) ?? null : null;
-    a.assignee = a.assigned_to ? aAssigneeMap.get(a.assigned_to) ?? null : null;
+    // Resolve assignee: user_profiles first, then contacts
+    if (a.assigned_to) {
+      a.assignee = aAssigneeMap.get(a.assigned_to) ?? null;
+    } else if (a.assigned_to_contact_id) {
+      a.assignee = aContactMap.get(a.assigned_to_contact_id) ?? null;
+    } else {
+      a.assignee = null;
+    }
   }
 
   return assignments;
@@ -617,6 +625,7 @@ export async function createAssignment(
       project_id: data.project_id ?? null,
       property_id: data.property_id ?? null,
       assigned_to: data.assigned_to ?? null,
+      assigned_to_contact_id: data.assigned_to_contact_id ?? null,
       assigned_by: userId,
       assigned_date: data.assigned_date || new Date().toISOString(),
       status: data.status || "active",
@@ -631,14 +640,16 @@ export async function createAssignment(
   }
 
   // Update equipment status, project, and assignee
+  const equipUpdate: Record<string, unknown> = {
+    status: "in_use",
+    current_project_id: data.project_id ?? null,
+    assigned_to: data.assigned_to ?? null,
+    assigned_to_contact_id: data.assigned_to_contact_id ?? null,
+    updated_at: new Date().toISOString(),
+  };
   const { error: updateError } = await supabase
     .from("equipment")
-    .update({
-      status: "in_use",
-      current_project_id: data.project_id ?? null,
-      assigned_to: data.assigned_to ?? null,
-      updated_at: new Date().toISOString(),
-    })
+    .update(equipUpdate)
     .eq("id", data.equipment_id);
 
   if (updateError) {
