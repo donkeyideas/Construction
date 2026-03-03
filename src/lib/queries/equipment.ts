@@ -37,6 +37,7 @@ export interface EquipmentRow {
   status: EquipmentStatus;
   current_project_id: string | null;
   assigned_to: string | null;
+  assigned_to_contact_id: string | null;
   purchase_date: string | null;
   purchase_cost: number | null;
   hourly_rate: number | null;
@@ -221,45 +222,48 @@ export async function getEquipmentList(
 
   const items = (data ?? []) as EquipmentRow[];
 
-  // Batch-fetch related projects and assignee profiles
+  // Batch-fetch related projects, user assignees, and contact assignees
   const eqProjectIds = new Set<string>();
   const eqAssigneeIds = new Set<string>();
+  const eqContactIds = new Set<string>();
   for (const e of items) {
     if (e.current_project_id) eqProjectIds.add(e.current_project_id);
     if (e.assigned_to) eqAssigneeIds.add(e.assigned_to);
+    if (e.assigned_to_contact_id) eqContactIds.add(e.assigned_to_contact_id);
   }
 
-  const [eqProjRes, eqAssigneeRes] = await Promise.all([
+  const [eqProjRes, eqAssigneeRes, eqContactRes] = await Promise.all([
     eqProjectIds.size > 0
       ? supabase.from("projects").select("id, name").in("id", [...eqProjectIds])
       : Promise.resolve({ data: null }),
     eqAssigneeIds.size > 0
       ? supabase.from("user_profiles").select("id, full_name, email").in("id", [...eqAssigneeIds])
       : Promise.resolve({ data: null }),
+    eqContactIds.size > 0
+      ? supabase.from("contacts").select("id, first_name, last_name, email").in("id", [...eqContactIds])
+      : Promise.resolve({ data: null }),
   ]);
 
   const eqProjMap = new Map((eqProjRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
   const eqAssigneeMap = new Map((eqAssigneeRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
-
-  // For any assigned_to IDs not found in user_profiles, also check contacts table
-  const eqUnresolvedIds = [...eqAssigneeIds].filter((id) => !eqAssigneeMap.has(id));
-  if (eqUnresolvedIds.length > 0) {
-    const { data: contactRows } = await supabase
-      .from("contacts")
-      .select("id, first_name, last_name, email")
-      .in("id", eqUnresolvedIds);
-    for (const c of contactRows ?? []) {
-      eqAssigneeMap.set(c.id, {
-        id: c.id,
-        full_name: `${c.first_name} ${c.last_name}`.trim(),
-        email: c.email ?? "",
-      });
-    }
+  const eqContactMap = new Map<string, { id: string; full_name: string; email: string }>();
+  for (const c of eqContactRes.data ?? []) {
+    eqContactMap.set(c.id, {
+      id: c.id,
+      full_name: `${c.first_name} ${c.last_name}`.trim(),
+      email: c.email ?? "",
+    });
   }
 
   for (const e of items) {
     e.project = e.current_project_id ? eqProjMap.get(e.current_project_id) ?? null : null;
-    e.assignee = e.assigned_to ? eqAssigneeMap.get(e.assigned_to) ?? null : null;
+    if (e.assigned_to) {
+      e.assignee = eqAssigneeMap.get(e.assigned_to) ?? null;
+    } else if (e.assigned_to_contact_id) {
+      e.assignee = eqContactMap.get(e.assigned_to_contact_id) ?? null;
+    } else {
+      e.assignee = null;
+    }
   }
 
   return items;
