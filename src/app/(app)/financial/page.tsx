@@ -26,6 +26,7 @@ import {
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/format";
 import { formatLocalDate } from "@/lib/utils/date";
 import { getTranslations } from "next-intl/server";
+import { useGLForArAp } from "@/lib/utils/gl-preference";
 
 
 export const metadata = {
@@ -54,8 +55,9 @@ export default async function FinancialDashboardPage() {
     );
   }
 
+  const useGL = await useGLForArAp();
   const [overview, recentInvoices, aging, monthlyData, kpis] = await Promise.all([
-    getFinancialOverview(supabase, userCompany.companyId),
+    getFinancialOverview(supabase, userCompany.companyId, useGL),
     getRecentInvoices(supabase, userCompany.companyId, 10),
     getAgingBuckets(supabase, userCompany.companyId),
     getMonthlyIncomeExpenses(supabase, userCompany.companyId),

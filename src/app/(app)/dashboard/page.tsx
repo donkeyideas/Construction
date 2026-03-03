@@ -18,6 +18,8 @@ import {
   getRecentActivity,
 } from "@/lib/queries/dashboard";
 import { getMonthlyIncomeExpenses } from "@/lib/queries/financial";
+import { getGLBalanceForAccountType } from "@/lib/utils/gl-balance";
+import { useGLForArAp } from "@/lib/utils/gl-preference";
 import { getProjectsOverview } from "@/lib/queries/projects";
 import { getSafetyOverview } from "@/lib/queries/safety";
 import { getEquipmentOverview } from "@/lib/queries/equipment";
@@ -90,7 +92,14 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     name: p.name as string,
   }));
 
-  // Build AP/AR queries with optional project + date filter
+  // Check if user wants GL-based AR/AP (from "Include Project & Property AR/AP" toggle)
+  const useGL = await useGLForArAp();
+
+  // When useGL is true and no project/date filter, use GL balance for AR/AP
+  // GL doesn't support project-level filtering, so fall back to subledger when filtered
+  const useGLForDashboard = useGL && !selectedProjectId && !filterStartDate && !filterEndDate;
+
+  // Build AP/AR queries with optional project + date filter (subledger path)
   let apQuery = supabase
     .from("invoices")
     .select("balance_due")
@@ -123,12 +132,28 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       arQuery,
     ]);
 
-  const outstandingAP = (outstandingAPRes.data ?? []).reduce(
-    (sum, r) => sum + (Number(r.balance_due) || 0), 0
-  );
-  const outstandingAR = (outstandingARRes.data ?? []).reduce(
-    (sum, r) => sum + (Number(r.balance_due) || 0), 0
-  );
+  let outstandingAP: number;
+  let outstandingAR: number;
+
+  if (useGLForDashboard) {
+    // GL-based: includes project/property JEs (RFIs, change orders, leases, etc.)
+    const [arBase, arRet, apBase, apRet] = await Promise.all([
+      getGLBalanceForAccountType(supabase, companyId, "asset", "%accounts receivable%", "debit-credit"),
+      getGLBalanceForAccountType(supabase, companyId, "asset", "%retainage receivable%", "debit-credit"),
+      getGLBalanceForAccountType(supabase, companyId, "liability", "%accounts payable%", "credit-debit"),
+      getGLBalanceForAccountType(supabase, companyId, "liability", "%retainage payable%", "credit-debit"),
+    ]);
+    outstandingAR = arBase + arRet;
+    outstandingAP = apBase + apRet;
+  } else {
+    // Subledger-based (default, or when project/date filters are active)
+    outstandingAP = (outstandingAPRes.data ?? []).reduce(
+      (sum, r) => sum + (Number(r.balance_due) || 0), 0
+    );
+    outstandingAR = (outstandingARRes.data ?? []).reduce(
+      (sum, r) => sum + (Number(r.balance_due) || 0), 0
+    );
+  }
 
   const { items: pendingApprovals, totalCount: pendingApprovalsTotal } = pendingApprovalsResult;
 

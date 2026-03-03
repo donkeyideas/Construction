@@ -1,7 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { paginatedQuery } from "@/lib/utils/paginated-query";
 import { formatDateShort, toDateStr, formatDateSafe } from "@/lib/utils/format";
-import { getGLBalanceForAccountType } from "@/lib/utils/gl-balance";
+import { getGLBalanceForAccountType, getGLBalanceAsOfDate } from "@/lib/utils/gl-balance";
 
 /* ------------------------------------------------------------------
    Types
@@ -211,7 +211,8 @@ export interface ProjectRow {
 
 export async function getFinancialOverview(
   supabase: SupabaseClient,
-  companyId: string
+  companyId: string,
+  useGL = false
 ): Promise<FinancialOverview> {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -277,14 +278,27 @@ export async function getFinancialOverview(
     0
   );
 
-  // GL fallback for AR/AP/Cash when no invoice subledger data exists
+  // When useGL is true (user toggled "Include Project & Property AR/AP"), always use GL balance
+  // Otherwise, fall back to GL only when subledger is empty
+  const needGLAR = useGL || totalAR === 0;
+  const needGLAP = useGL || totalAP === 0;
   const [glAR, glAP, glCash] = await Promise.all([
-    totalAR === 0 ? getGLBalanceForAccountType(supabase, companyId, "asset", "%receivable%", "debit-credit") : Promise.resolve(0),
-    totalAP === 0 ? getGLBalanceForAccountType(supabase, companyId, "liability", "%payable%", "credit-debit") : Promise.resolve(0),
+    needGLAR
+      ? Promise.all([
+          getGLBalanceForAccountType(supabase, companyId, "asset", "%accounts receivable%", "debit-credit"),
+          getGLBalanceForAccountType(supabase, companyId, "asset", "%retainage receivable%", "debit-credit"),
+        ]).then(([base, ret]) => base + ret)
+      : Promise.resolve(0),
+    needGLAP
+      ? Promise.all([
+          getGLBalanceForAccountType(supabase, companyId, "liability", "%accounts payable%", "credit-debit"),
+          getGLBalanceForAccountType(supabase, companyId, "liability", "%retainage payable%", "credit-debit"),
+        ]).then(([base, ret]) => base + ret)
+      : Promise.resolve(0),
     cashPosition === 0 ? getGLBalanceForAccountType(supabase, companyId, "asset", "%cash%", "debit-credit") : Promise.resolve(0),
   ]);
-  const finalAR = totalAR > 0 ? totalAR : glAR;
-  const finalAP = totalAP > 0 ? totalAP : glAP;
+  const finalAR = needGLAR ? glAR : totalAR;
+  const finalAP = needGLAP ? glAP : totalAP;
   const finalCash = cashPosition > 0 ? cashPosition : glCash;
 
   let revenueThisMonth = 0;
@@ -1674,36 +1688,64 @@ export async function getCashFlowStatement(
   supabase: SupabaseClient,
   companyId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  useGL = false
 ): Promise<CashFlowStatementData> {
   // Calculate net income for the period
   const incomeStatement = await getIncomeStatement(supabase, companyId, startDate, endDate);
   const netIncome = incomeStatement.netIncome;
 
-  // Get AR/AP changes during the period (paginated to avoid 1000-row limit)
-  // AR at start vs AR at end
-  const [arStartRows, arEndRows, apStartRows, apEndRows] = await Promise.all([
-    paginatedQuery<{ balance_due: number }>((from, to) =>
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-        .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", startDate).range(from, to)),
-    paginatedQuery<{ balance_due: number }>((from, to) =>
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-        .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", endDate).range(from, to)),
-    paginatedQuery<{ balance_due: number }>((from, to) =>
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-        .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", startDate).range(from, to)),
-    paginatedQuery<{ balance_due: number }>((from, to) =>
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-        .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", endDate).range(from, to)),
-  ]);
+  // Get AR/AP changes during the period
+  let arChange: number;
+  let apChange: number;
 
-  const arStart = arStartRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
-  const arEnd = arEndRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
-  const apStart = apStartRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
-  const apEnd = apEndRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
+  if (useGL) {
+    // GL-based: compute AR/AP balances at start and end of period from posted JE lines
+    const [arStart, arEnd, apStart, apEnd] = await Promise.all([
+      Promise.all([
+        getGLBalanceAsOfDate(supabase, companyId, "asset", "%accounts receivable%", "debit-credit", startDate),
+        getGLBalanceAsOfDate(supabase, companyId, "asset", "%retainage receivable%", "debit-credit", startDate),
+      ]).then(([a, b]) => a + b),
+      Promise.all([
+        getGLBalanceAsOfDate(supabase, companyId, "asset", "%accounts receivable%", "debit-credit", endDate),
+        getGLBalanceAsOfDate(supabase, companyId, "asset", "%retainage receivable%", "debit-credit", endDate),
+      ]).then(([a, b]) => a + b),
+      Promise.all([
+        getGLBalanceAsOfDate(supabase, companyId, "liability", "%accounts payable%", "credit-debit", startDate),
+        getGLBalanceAsOfDate(supabase, companyId, "liability", "%retainage payable%", "credit-debit", startDate),
+      ]).then(([a, b]) => a + b),
+      Promise.all([
+        getGLBalanceAsOfDate(supabase, companyId, "liability", "%accounts payable%", "credit-debit", endDate),
+        getGLBalanceAsOfDate(supabase, companyId, "liability", "%retainage payable%", "credit-debit", endDate),
+      ]).then(([a, b]) => a + b),
+    ]);
+    arChange = -(arEnd - arStart);
+    apChange = apEnd - apStart;
+  } else {
+    // Subledger-based: AR/AP from invoice balance_due (paginated to avoid 1000-row limit)
+    const [arStartRows, arEndRows, apStartRows, apEndRows] = await Promise.all([
+      paginatedQuery<{ balance_due: number }>((from, to) =>
+        supabase.from("invoices").select("balance_due").eq("company_id", companyId)
+          .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", startDate).range(from, to)),
+      paginatedQuery<{ balance_due: number }>((from, to) =>
+        supabase.from("invoices").select("balance_due").eq("company_id", companyId)
+          .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", endDate).range(from, to)),
+      paginatedQuery<{ balance_due: number }>((from, to) =>
+        supabase.from("invoices").select("balance_due").eq("company_id", companyId)
+          .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", startDate).range(from, to)),
+      paginatedQuery<{ balance_due: number }>((from, to) =>
+        supabase.from("invoices").select("balance_due").eq("company_id", companyId)
+          .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", endDate).range(from, to)),
+    ]);
 
-  const arChange = -(arEnd - arStart); // Decrease in AR = cash inflow
-  const apChange = apEnd - apStart; // Increase in AP = cash inflow
+    const arStart = arStartRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
+    const arEnd = arEndRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
+    const apStart = apStartRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
+    const apEnd = apEndRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
+
+    arChange = -(arEnd - arStart);
+    apChange = apEnd - apStart;
+  }
 
   const operating: CashFlowSection[] = [
     { label: "Net Income", amount: netIncome },
