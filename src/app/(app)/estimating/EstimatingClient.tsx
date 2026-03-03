@@ -370,7 +370,7 @@ export default function EstimatingClient({
       {/* Create Modal - matches ticket modal pattern */}
       {showCreate && (
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
-          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600, overflowX: "hidden", padding: 20 }}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600, padding: 20 }}>
             <div className="ticket-modal-header" style={{ marginBottom: 12 }}>
               <h3>{t("estimatingNewEstimate")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}><X size={18} /></button>
