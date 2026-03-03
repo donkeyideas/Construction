@@ -140,6 +140,7 @@ export default function EquipmentInventoryClient({
   const [formData, setFormData] = useState({
     name: "",
     equipment_type: "" as string,
+    status: "available" as string,
     make: "",
     model: "",
     serial_number: "",
@@ -198,6 +199,7 @@ export default function EquipmentInventoryClient({
         body: JSON.stringify({
           name: formData.name,
           equipment_type: formData.equipment_type,
+          status: formData.status || "available",
           make: formData.make || undefined,
           model: formData.model || undefined,
           serial_number: formData.serial_number || undefined,
@@ -218,6 +220,7 @@ export default function EquipmentInventoryClient({
       setFormData({
         name: "",
         equipment_type: "",
+        status: "available",
         make: "",
         model: "",
         serial_number: "",
@@ -648,6 +651,23 @@ export default function EquipmentInventoryClient({
                     placeholder={t("placeholderSerialNumber")}
                   />
                 </div>
+              </div>
+
+              <div className="equipment-form-group">
+                <label className="equipment-form-label">{t("columnStatus")}</label>
+                <select
+                  className="equipment-form-select"
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
+                >
+                  {(Object.keys(STATUS_LABELS) as EquipmentStatus[]).map((s) => (
+                    <option key={s} value={s}>
+                      {STATUS_LABELS[s]}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="equipment-form-row">

@@ -105,6 +105,7 @@ export interface EquipmentAssignmentRow {
 export interface CreateEquipmentData {
   name: string;
   equipment_type: string;
+  status?: EquipmentStatus;
   make?: string;
   model?: string;
   serial_number?: string;
@@ -306,7 +307,7 @@ export async function createEquipment(
       salvage_value: data.salvage_value ?? null,
       depreciation_start_date: data.depreciation_start_date ?? null,
       depreciation_method: data.useful_life_months ? "straight_line" : null,
-      status: "available",
+      status: data.status || "available",
     })
     .select()
     .single();

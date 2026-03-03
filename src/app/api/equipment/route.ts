@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
       {
         name: body.name.trim(),
         equipment_type: body.equipment_type,
+        status: body.status || undefined,
         make: body.make?.trim() || undefined,
         model: body.model?.trim() || undefined,
         serial_number: body.serial_number?.trim() || undefined,
