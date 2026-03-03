@@ -814,7 +814,9 @@ export async function getProjectsOverview(
     }
   }
 
-  const activeProjects = projects.filter((p) => p.status === "active");
+  // "Active" for KPI purposes = anything not completed or closed
+  const liveStatuses: Set<string> = new Set(["pre_construction", "active", "on_hold"]);
+  const activeProjects = projects.filter((p) => liveStatuses.has(p.status));
   const activeCount = activeProjects.length;
   const totalContractValue = activeProjects.reduce(
     (sum, p) => sum + (p.contract_amount ?? 0),
