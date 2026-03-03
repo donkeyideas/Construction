@@ -102,6 +102,7 @@ export default function EstimatingClient({
   const [createError, setCreateError] = useState("");
   const [formData, setFormData] = useState({
     title: "",
+    estimate_number: "",
     description: "",
     project_id: "",
     status: "draft",
@@ -130,7 +131,7 @@ export default function EstimatingClient({
     setCreateError("");
 
     try {
-      const number = `EST-${String(totalEstimates + 1).padStart(4, "0")}`;
+      const autoNumber = `EST-${String(totalEstimates + 1).padStart(4, "0")}`;
       const cost = parseFloat(formData.total_cost) || 0;
       const price = parseFloat(formData.total_price) || 0;
       const margin = price > 0 ? ((price - cost) / price) * 100 : 0;
@@ -138,7 +139,7 @@ export default function EstimatingClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          estimate_number: number,
+          estimate_number: formData.estimate_number.trim() || autoNumber,
           title: formData.title,
           description: formData.description || null,
           project_id: formData.project_id || null,
@@ -158,7 +159,7 @@ export default function EstimatingClient({
       }
 
       setShowCreate(false);
-      setFormData({ title: "", description: "", project_id: "", status: "draft", tax_pct: "0", total_cost: "0", total_price: "0", overhead_pct: "10", profit_pct: "10" });
+      setFormData({ title: "", estimate_number: "", description: "", project_id: "", status: "draft", tax_pct: "0", total_cost: "0", total_price: "0", overhead_pct: "10", profit_pct: "10" });
       router.refresh();
     } catch (err: unknown) {
       setCreateError(err instanceof Error ? err.message : t("estimatingCreateFailed"));
@@ -360,8 +361,8 @@ export default function EstimatingClient({
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate}>
-              <div className="ticket-modal-content">
-                {createError && <div className="settings-form-message error">{createError}</div>}
+              <div className="ticket-form">
+                {createError && <div className="ticket-form-error">{createError}</div>}
                 <div className="ticket-form-row">
                   <div className="ticket-form-group" style={{ flex: 2 }}>
                     <label className="ticket-form-label">{t("estimatingFormTitle")} *</label>
@@ -369,7 +370,12 @@ export default function EstimatingClient({
                   </div>
                   <div className="ticket-form-group" style={{ flex: 1 }}>
                     <label className="ticket-form-label">Estimate #</label>
-                    <input className="ticket-form-input" value={`EST-${String(totalEstimates + 1).padStart(4, "0")}`} readOnly style={{ opacity: 0.7 }} />
+                    <input
+                      className="ticket-form-input"
+                      value={formData.estimate_number}
+                      onChange={(e) => setFormData((p) => ({ ...p, estimate_number: e.target.value }))}
+                      placeholder={`EST-${String(totalEstimates + 1).padStart(4, "0")}`}
+                    />
                   </div>
                 </div>
                 <div className="ticket-form-group">
@@ -394,7 +400,7 @@ export default function EstimatingClient({
                     </select>
                   </div>
                 </div>
-                <div className="ticket-form-row">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Total Cost ($)</label>
                     <input className="ticket-form-input" type="number" min="0" step="0.01" value={formData.total_cost} onChange={(e) => setFormData((p) => ({ ...p, total_cost: e.target.value }))} />
@@ -408,7 +414,7 @@ export default function EstimatingClient({
                     <input className="ticket-form-input" value={`${formMargin.toFixed(1)}%`} readOnly style={{ opacity: 0.7 }} />
                   </div>
                 </div>
-                <div className="ticket-form-row">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Tax %</label>
                     <input className="ticket-form-input" type="number" min="0" step="0.25" value={formData.tax_pct} onChange={(e) => setFormData((p) => ({ ...p, tax_pct: e.target.value }))} />
@@ -422,13 +428,13 @@ export default function EstimatingClient({
                     <input className="ticket-form-input" type="number" min="0" step="0.5" value={formData.profit_pct} onChange={(e) => setFormData((p) => ({ ...p, profit_pct: e.target.value }))} />
                   </div>
                 </div>
-              </div>
-              <div className="ticket-modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
-                <button type="submit" className="btn-primary" disabled={creating}>
-                  {creating ? <Loader2 size={14} className="spin-icon" /> : <Plus size={14} />}
-                  {creating ? t("estimatingCreating") : t("estimatingCreateEstimate")}
-                </button>
+                <div className="ticket-form-actions">
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
+                  <button type="submit" className="btn btn-primary" disabled={creating}>
+                    {creating ? <Loader2 size={14} className="spin-icon" /> : <Plus size={14} />}
+                    {creating ? t("estimatingCreating") : t("estimatingCreateEstimate")}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
