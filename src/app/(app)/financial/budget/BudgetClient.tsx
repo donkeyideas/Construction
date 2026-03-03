@@ -552,9 +552,10 @@ export default function BudgetClient({
                   Auto-synced from invoices on page load. Override here if needed.
                 </span>
               </div>
-              <div className="ticket-form-actions">
-                <button className="btn btn-ghost" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
-                <button className="btn btn-primary" onClick={handleCreate} disabled={creating}>
+              <div className="ticket-form-actions" style={{ borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 8 }}>
+                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
+                <button type="button" className="ui-btn ui-btn-md ui-btn-primary" onClick={handleCreate} disabled={creating}>
+                  {creating ? <span className="ui-btn-spinner" /> : <Plus size={14} />}
                   {creating ? t("creating") : t("addBudgetLine")}
                 </button>
               </div>
@@ -654,9 +655,10 @@ export default function BudgetClient({
                   Auto-synced from invoices on page load. Override here if needed.
                 </span>
               </div>
-              <div className="ticket-form-actions">
-                <button className="btn btn-ghost" onClick={() => setEditLine(null)}>{t("cancel")}</button>
-                <button className="btn btn-primary" onClick={handleEdit} disabled={editing}>
+              <div className="ticket-form-actions" style={{ borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 8 }}>
+                <button type="button" className="btn-secondary" onClick={() => setEditLine(null)}>{t("cancel")}</button>
+                <button type="button" className="ui-btn ui-btn-md ui-btn-primary" onClick={handleEdit} disabled={editing}>
+                  {editing ? <span className="ui-btn-spinner" /> : null}
                   {editing ? t("saving") : t("saveChanges")}
                 </button>
               </div>
