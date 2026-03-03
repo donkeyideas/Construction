@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -194,8 +194,23 @@ export default function ARClient({
   const [glSourceEntries, setGLSourceEntries] = useState<GLSourceEntry[]>([]);
   const [glSourcesLoading, setGLSourcesLoading] = useState(false);
 
+  // Restore persisted GL sources preference on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("buildwrk_ar_gl_sources");
+    if (saved !== "true") return;
+    setShowGLSources(true);
+    setGLSourcesLoading(true);
+    fetch("/api/financial/gl-sources?type=ar")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setGLSourceEntries(data))
+      .catch(() => {})
+      .finally(() => setGLSourcesLoading(false));
+  }, []);
+
   async function handleToggleGLSources() {
-    if (!showGLSources && glSourceEntries.length === 0) {
+    const next = !showGLSources;
+    if (next && glSourceEntries.length === 0) {
       setGLSourcesLoading(true);
       try {
         const res = await fetch("/api/financial/gl-sources?type=ar");
@@ -203,7 +218,11 @@ export default function ARClient({
       } catch { /* silent */ }
       setGLSourcesLoading(false);
     }
-    setShowGLSources((prev) => !prev);
+    setShowGLSources(next);
+    if (typeof window !== "undefined") {
+      if (next) localStorage.setItem("buildwrk_ar_gl_sources", "true");
+      else localStorage.removeItem("buildwrk_ar_gl_sources");
+    }
   }
 
   async function handleImport(rows: Record<string, string>[]) {
@@ -501,14 +520,24 @@ export default function ARClient({
         }}>
           <BookOpen size={16} style={{ flexShrink: 0 }} />
           <span style={{ flex: 1 }}>
-            Showing all AR sources — invoice subledger ({formatCurrency(totalArBalance)}) plus{" "}
-            {glSourceEntries.length} GL journal entr{glSourceEntries.length === 1 ? "y" : "ies"}{" "}
-            from projects &amp; properties ({formatCurrency(glBalance - totalArBalance)}). Total: {formatCurrency(glBalance)}.
+            {glSourceEntries.length > 0
+              ? (() => {
+                  const glSourcesTotal = glSourceEntries.reduce((sum, e) => sum + ((e.debit || 0) - (e.credit || 0)), 0);
+                  return <>
+                    Including {glSourceEntries.length} GL entr{glSourceEntries.length === 1 ? "y" : "ies"}{" "}
+                    from projects &amp; properties ({formatCurrency(Math.abs(glSourcesTotal))}). GL balance: {formatCurrency(glBalance)}.
+                  </>;
+                })()
+              : <>No additional GL entries found. GL balance: {formatCurrency(glBalance)}.</>
+            }
           </span>
           <button
             className="ui-btn ui-btn-sm ui-btn-outline"
             style={{ flexShrink: 0 }}
-            onClick={() => setShowGLSources(false)}
+            onClick={() => {
+              setShowGLSources(false);
+              if (typeof window !== "undefined") localStorage.removeItem("buildwrk_ar_gl_sources");
+            }}
           >
             Subledger Only
           </button>
