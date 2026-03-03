@@ -36,21 +36,34 @@ export async function POST(request: NextRequest) {
     const num = (count ?? 0) + 1;
     const submittal_number = `SUB-${String(num).padStart(3, "0")}`;
 
-    const { data, error } = await supabase
+    const insertData: Record<string, unknown> = {
+      company_id: userCtx.companyId,
+      project_id: body.project_id,
+      submittal_number,
+      title: body.title.trim(),
+      spec_section: body.spec_section?.trim() || null,
+      due_date: body.due_date || null,
+      reviewer_id: body.reviewer_id || null,
+      submitted_by: userCtx.userId,
+      status: body.status || "pending",
+      review_comments: body.review_comments?.trim() || null,
+    };
+
+    let { data, error } = await supabase
       .from("submittals")
-      .insert({
-        company_id: userCtx.companyId,
-        project_id: body.project_id,
-        submittal_number,
-        title: body.title.trim(),
-        spec_section: body.spec_section?.trim() || null,
-        due_date: body.due_date || null,
-        reviewer_id: body.reviewer_id || null,
-        submitted_by: userCtx.userId,
-        status: "pending",
-      })
+      .insert(insertData)
       .select("*")
       .single();
+
+    // If reviewer_id FK fails (contact without auth.users account), retry without it
+    if (error && error.message?.includes("reviewer_id") && insertData.reviewer_id) {
+      insertData.reviewer_id = null;
+      ({ data, error } = await supabase
+        .from("submittals")
+        .insert(insertData)
+        .select("*")
+        .single());
+    }
 
     if (error) {
       console.error("Insert submittal error:", error);
@@ -111,13 +124,25 @@ export async function PATCH(request: NextRequest) {
       updateData.reviewed_at = new Date().toISOString();
     }
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("submittals")
       .update(updateData)
       .eq("id", body.id)
       .eq("company_id", userCtx.companyId)
       .select("*")
       .single();
+
+    // If reviewer_id FK fails (contact without auth.users account), retry without it
+    if (error && error.message?.includes("reviewer_id") && updateData.reviewer_id) {
+      delete updateData.reviewer_id;
+      ({ data, error } = await supabase
+        .from("submittals")
+        .update(updateData)
+        .eq("id", body.id)
+        .eq("company_id", userCtx.companyId)
+        .select("*")
+        .single());
+    }
 
     if (error) {
       console.error("Update submittal error:", error);

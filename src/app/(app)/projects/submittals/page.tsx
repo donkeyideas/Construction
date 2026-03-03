@@ -38,7 +38,7 @@ export default async function SubmittalsPage({ searchParams }: PageProps) {
   }
 
   // Fetch data in parallel
-  const [submittalsResult, allSubmittalsResult, projectsResult, membersResult] =
+  const [submittalsResult, allSubmittalsResult, projectsResult, membersResult, contactsResult] =
     await Promise.all([
       query,
       supabase
@@ -55,6 +55,12 @@ export default async function SubmittalsPage({ searchParams }: PageProps) {
         .select("user_id, role")
         .eq("company_id", userCompany.companyId)
         .eq("is_active", true),
+      supabase
+        .from("contacts")
+        .select("id, first_name, last_name, email, job_title, contact_type, company_name, user_id")
+        .eq("company_id", userCompany.companyId)
+        .eq("is_active", true)
+        .order("first_name"),
     ]);
 
   const rows = submittalsResult.data ?? [];
@@ -78,6 +84,17 @@ export default async function SubmittalsPage({ searchParams }: PageProps) {
     user_id: m.user_id,
     role: m.role,
     user: m.user_id ? subMemberProfileMap.get(m.user_id) ?? null : null,
+  }));
+
+  const contacts = (contactsResult.data ?? []).map((c) => ({
+    id: c.id as string,
+    first_name: c.first_name as string,
+    last_name: c.last_name as string,
+    email: c.email as string | null,
+    job_title: c.job_title as string | null,
+    contact_type: c.contact_type as string,
+    company_name: c.company_name as string | null,
+    user_id: c.user_id as string | null,
   }));
 
   // KPIs
@@ -106,6 +123,19 @@ export default async function SubmittalsPage({ searchParams }: PageProps) {
     }
   }
 
+  // Also add contacts to userMap for table display
+  for (const c of contacts) {
+    const name = `${c.first_name} ${c.last_name}`.trim();
+    // Map by user_id (for contacts linked to auth.users)
+    if (c.user_id && !userMap[c.user_id]) {
+      userMap[c.user_id] = name;
+    }
+    // Map by contact id (for contacts without auth.users link)
+    if (!userMap[c.id]) {
+      userMap[c.id] = name;
+    }
+  }
+
   return (
     <SubmittalsClient
       rows={rows}
@@ -113,6 +143,7 @@ export default async function SubmittalsPage({ searchParams }: PageProps) {
       userMap={userMap}
       projects={projects}
       members={members}
+      contacts={contacts}
       activeStatus={activeStatus}
     />
   );

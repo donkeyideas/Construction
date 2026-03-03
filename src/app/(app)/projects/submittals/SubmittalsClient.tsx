@@ -52,6 +52,17 @@ interface CompanyMember {
   user: { full_name: string | null; email: string | null } | null;
 }
 
+interface Contact {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  job_title: string | null;
+  contact_type: string;
+  company_name: string | null;
+  user_id: string | null;
+}
+
 interface KpiData {
   totalCount: number;
   pendingCount: number;
@@ -66,6 +77,7 @@ interface Props {
   userMap: Record<string, string>;
   projects: Project[];
   members: CompanyMember[];
+  contacts: Contact[];
   activeStatus: string | undefined;
 }
 
@@ -109,6 +121,7 @@ export default function SubmittalsClient({
   userMap,
   projects,
   members,
+  contacts,
   activeStatus,
 }: Props) {
   const t = useTranslations("projects");
@@ -117,6 +130,29 @@ export default function SubmittalsClient({
 
   const router = useRouter();
   const now = new Date();
+
+  // Build reviewer options from company members + contacts
+  const reviewerOptions: { value: string; label: string; group: string }[] = [];
+  const seenIds = new Set<string>();
+
+  // Company members (system users)
+  for (const m of members) {
+    if (seenIds.has(m.user_id)) continue;
+    seenIds.add(m.user_id);
+    const name = m.user?.full_name ?? m.user?.email ?? m.user_id;
+    reviewerOptions.push({ value: m.user_id, label: name, group: "Team" });
+  }
+
+  // Contacts (employees, subcontractors, etc.)
+  for (const c of contacts) {
+    // Use user_id if linked to a system account, otherwise use contact id
+    const val = c.user_id ?? c.id;
+    if (seenIds.has(val)) continue;
+    seenIds.add(val);
+    const name = `${c.first_name} ${c.last_name}`.trim();
+    const detail = c.job_title || c.company_name || c.contact_type.replace(/_/g, " ");
+    reviewerOptions.push({ value: val, label: `${name}${detail ? ` — ${detail}` : ""}`, group: "Contacts" });
+  }
 
   const statuses = [
     { label: t("statusAll"), value: "all" },
@@ -148,6 +184,8 @@ export default function SubmittalsClient({
     spec_section: "",
     due_date: "",
     reviewer_id: "",
+    status: "pending",
+    review_comments: "",
   });
 
   const [showImport, setShowImport] = useState(false);
@@ -198,6 +236,8 @@ export default function SubmittalsClient({
           spec_section: formData.spec_section || undefined,
           due_date: formData.due_date || undefined,
           reviewer_id: formData.reviewer_id || undefined,
+          status: formData.status || "pending",
+          review_comments: formData.review_comments || undefined,
         }),
       });
 
@@ -206,7 +246,7 @@ export default function SubmittalsClient({
         throw new Error(data.error || t("failedToCreateSubmittal"));
       }
 
-      setFormData({ project_id: "", title: "", spec_section: "", due_date: "", reviewer_id: "" });
+      setFormData({ project_id: "", title: "", spec_section: "", due_date: "", reviewer_id: "", status: "pending", review_comments: "" });
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
@@ -369,12 +409,13 @@ export default function SubmittalsClient({
               <th>{t("dueDate")}</th>
               <th>{t("daysOpen")}</th>
               <th>{t("columnStatus")}</th>
+              <th>{t("reviewComments")}</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={9} style={{ textAlign: "center", padding: "2rem", color: "var(--muted)" }}>
+                <td colSpan={10} style={{ textAlign: "center", padding: "2rem", color: "var(--muted)" }}>
                   {t("noSubmittalsFound")}
                 </td>
               </tr>
@@ -399,6 +440,9 @@ export default function SubmittalsClient({
                       <span className={statusBadge[sub.status] ?? "inv-status"}>
                         {sub.status.replace(/_/g, " ")}
                       </span>
+                    </td>
+                    <td style={{ maxWidth: 200, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "var(--muted)" }}>
+                      {sub.review_comments ?? "\u2014"}
                     </td>
                   </tr>
                 );
@@ -440,12 +484,24 @@ export default function SubmittalsClient({
                   <input type="date" className="ticket-form-input" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} />
                 </div>
               </div>
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("reviewer")}</label>
+                  <select className="ticket-form-select" value={formData.reviewer_id} onChange={(e) => setFormData({ ...formData, reviewer_id: e.target.value })}>
+                    <option value="">{t("selectReviewer")}</option>
+                    {reviewerOptions.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                  </select>
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("columnStatus")}</label>
+                  <select className="ticket-form-select" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>
+                    {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  </select>
+                </div>
+              </div>
               <div className="ticket-form-group">
-                <label className="ticket-form-label">{t("reviewer")}</label>
-                <select className="ticket-form-select" value={formData.reviewer_id} onChange={(e) => setFormData({ ...formData, reviewer_id: e.target.value })}>
-                  <option value="">{t("selectReviewer")}</option>
-                  {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.user?.full_name ?? m.user?.email ?? m.user_id}</option>)}
-                </select>
+                <label className="ticket-form-label">{t("reviewComments")}</label>
+                <textarea className="ticket-form-textarea" rows={2} placeholder="Optional review notes..." value={formData.review_comments} onChange={(e) => setFormData({ ...formData, review_comments: e.target.value })} />
               </div>
               <div className="ticket-form-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
@@ -524,7 +580,7 @@ export default function SubmittalsClient({
                     <label className="ticket-form-label">{t("reviewer")}</label>
                     <select className="ticket-form-select" value={editData.reviewer_id as string ?? ""} onChange={(e) => setEditData({ ...editData, reviewer_id: e.target.value })}>
                       <option value="">{t("selectReviewer")}</option>
-                      {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.user?.full_name ?? m.user?.email ?? m.user_id}</option>)}
+                      {reviewerOptions.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                     </select>
                   </div>
                 </div>
