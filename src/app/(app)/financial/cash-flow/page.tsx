@@ -4,7 +4,6 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getCashFlowStatement } from "@/lib/queries/financial";
 import CashFlowClient from "./CashFlowClient";
 import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
-import { useGLForArAp } from "@/lib/utils/gl-preference";
 
 export const metadata = {
   title: "Cash Flow - Buildwrk",
@@ -40,9 +39,8 @@ export default async function CashFlowPage({
   const cfDateLabel = formatDateLong(toDateStr(startD))
     + " — " + formatDateLong(toDateStr(endD));
 
-  const useGL = await useGLForArAp();
   const [cashFlowStatement, bankAccountsRes] = await Promise.all([
-    getCashFlowStatement(supabase, userCompany.companyId, cfStartDate, cfEndDate, useGL),
+    getCashFlowStatement(supabase, userCompany.companyId, cfStartDate, cfEndDate),
     supabase
       .from("bank_accounts")
       .select("id, name, bank_name, account_number_last4, account_type, current_balance, is_default")

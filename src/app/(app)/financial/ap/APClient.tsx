@@ -279,8 +279,6 @@ export default function APClient({
     if (saved !== "true") return;
     setShowGLSources(true);
     setGLSourcesLoading(true);
-    // Sync cookie for server-side pages (Financial Overview, Dashboard, Cash Flow)
-    document.cookie = "buildwrk_use_gl_ar_ap=true;path=/;max-age=31536000";
     fetch("/api/financial/gl-sources?type=ap")
       .then((r) => r.ok ? r.json() : [])
       .then((data) => setGLSourceEntries(data))
@@ -300,16 +298,8 @@ export default function APClient({
     }
     setShowGLSources(next);
     if (typeof window !== "undefined") {
-      if (next) {
-        localStorage.setItem("buildwrk_ap_gl_sources", "true");
-        document.cookie = "buildwrk_use_gl_ar_ap=true;path=/;max-age=31536000";
-      } else {
-        localStorage.removeItem("buildwrk_ap_gl_sources");
-        // Only clear cookie if AR toggle is also off
-        if (!localStorage.getItem("buildwrk_ar_gl_sources")) {
-          document.cookie = "buildwrk_use_gl_ar_ap=;path=/;max-age=0";
-        }
-      }
+      if (next) localStorage.setItem("buildwrk_ap_gl_sources", "true");
+      else localStorage.removeItem("buildwrk_ap_gl_sources");
     }
   }
 
