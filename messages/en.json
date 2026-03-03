@@ -4859,6 +4859,7 @@
     "noRequestsSubmittedYet": "No maintenance requests have been submitted yet.",
     "newMaintenanceRequest": "New Maintenance Request",
     "selectAProperty": "Select a property...",
+    "selectUnit": "Select Unit",
     "briefDescriptionOfIssue": "Brief description of the issue",
     "provideMoreDetailsAboutMaintenance": "Provide more details about the maintenance issue...",
     "createRequest": "Create Request",

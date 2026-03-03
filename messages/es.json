@@ -4251,6 +4251,7 @@
     "noRequestsSubmittedYet": "Aún no se han enviado solicitudes de mantenimiento.",
     "newMaintenanceRequest": "Nueva solicitud de mantenimiento",
     "selectAProperty": "Seleccione una propiedad...",
+    "selectUnit": "Seleccionar Unidad",
     "briefDescriptionOfIssue": "Breve descripción del problema",
     "provideMoreDetailsAboutMaintenance": "Proporcione más detalles sobre el problema de mantenimiento...",
     "createRequest": "Crear solicitud",

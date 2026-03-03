@@ -47,6 +47,12 @@ interface PropertyOption {
   name: string;
 }
 
+interface UnitOption {
+  id: string;
+  property_id: string;
+  unit_number: string;
+}
+
 interface MemberOption {
   user_id: string;
   role: string;
@@ -58,6 +64,7 @@ interface MaintenanceClientProps {
   requests: MaintenanceRequest[];
   properties: PropertyOption[];
   members: MemberOption[];
+  units: UnitOption[];
 }
 
 // ---------------------------------------------------------------------------
@@ -125,6 +132,7 @@ export default function MaintenanceClient({
   requests,
   properties,
   members,
+  units,
 }: MaintenanceClientProps) {
   const router = useRouter();
   const t = useTranslations("app");
@@ -206,12 +214,15 @@ export default function MaintenanceClient({
   const [createError, setCreateError] = useState("");
   const [createForm, setCreateForm] = useState({
     property_id: "",
+    unit_id: "",
     title: "",
     description: "",
     priority: "medium",
     category: "",
+    status: "submitted",
     scheduled_date: "",
     estimated_cost: "",
+    actual_cost: "",
   });
 
   // Detail / Edit modal
@@ -281,12 +292,15 @@ export default function MaintenanceClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           property_id: createForm.property_id,
+          unit_id: createForm.unit_id || undefined,
           title: createForm.title,
           description: createForm.description || undefined,
           priority: createForm.priority,
           category: createForm.category || undefined,
+          status: createForm.status || "submitted",
           scheduled_date: createForm.scheduled_date || undefined,
           estimated_cost: createForm.estimated_cost || undefined,
+          actual_cost: createForm.actual_cost || undefined,
         }),
       });
 
@@ -297,12 +311,15 @@ export default function MaintenanceClient({
 
       setCreateForm({
         property_id: "",
+        unit_id: "",
         title: "",
         description: "",
         priority: "medium",
         category: "",
+        status: "submitted",
         scheduled_date: "",
         estimated_cost: "",
+        actual_cost: "",
       });
       setShowCreate(false);
       router.refresh();
@@ -711,6 +728,7 @@ export default function MaintenanceClient({
                     setCreateForm({
                       ...createForm,
                       property_id: e.target.value,
+                      unit_id: "",
                     })
                   }
                   required
@@ -723,6 +741,29 @@ export default function MaintenanceClient({
                   ))}
                 </select>
               </div>
+
+              {/* Unit dropdown — filtered by selected property */}
+              {createForm.property_id && units.filter((u) => u.property_id === createForm.property_id).length > 0 && (
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("unit")}</label>
+                  <select
+                    className="ticket-form-select"
+                    value={createForm.unit_id}
+                    onChange={(e) =>
+                      setCreateForm({ ...createForm, unit_id: e.target.value })
+                    }
+                  >
+                    <option value="">-- {t("selectUnit")} --</option>
+                    {units
+                      .filter((u) => u.property_id === createForm.property_id)
+                      .map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.unit_number}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
 
               <div className="ticket-form-group">
                 <label className="ticket-form-label">{t("title")} *</label>
@@ -796,6 +837,23 @@ export default function MaintenanceClient({
                 </div>
               </div>
 
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("status")}</label>
+                <select
+                  className="ticket-form-select"
+                  value={createForm.status}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, status: e.target.value })
+                  }
+                >
+                  {statusOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="ticket-form-row">
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">{t("scheduledDate")}</label>
@@ -829,6 +887,24 @@ export default function MaintenanceClient({
                     step="0.01"
                   />
                 </div>
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("actualCost")}</label>
+                <input
+                  type="number"
+                  className="ticket-form-input"
+                  value={createForm.actual_cost}
+                  onChange={(e) =>
+                    setCreateForm({
+                      ...createForm,
+                      actual_cost: e.target.value,
+                    })
+                  }
+                  placeholder="0.00"
+                  min={0}
+                  step="0.01"
+                />
               </div>
 
               <div className="ticket-form-actions">

@@ -73,10 +73,11 @@ export async function POST(request: NextRequest) {
         description: body.description?.trim() || null,
         priority,
         category: body.category || null,
-        status: "submitted",
+        status: body.status || "submitted",
         requested_by: userCtx.userId,
         scheduled_date: body.scheduled_date || null,
         estimated_cost: body.estimated_cost ? Number(body.estimated_cost) : null,
+        actual_cost: body.actual_cost ? Number(body.actual_cost) : null,
       })
       .select()
       .single();

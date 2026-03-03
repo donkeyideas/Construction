@@ -21,7 +21,7 @@ export default async function MaintenancePage() {
 
   const { companyId } = userCompany;
 
-  const [requestsResult, propertiesResult, membersResult] = await Promise.all([
+  const [requestsResult, propertiesResult, membersResult, unitsResult] = await Promise.all([
     supabase
       .from("maintenance_requests")
       .select("*, properties(name), units(unit_number)")
@@ -37,12 +37,22 @@ export default async function MaintenancePage() {
       .select("user_id, role")
       .eq("company_id", companyId)
       .eq("is_active", true),
+    supabase
+      .from("units")
+      .select("id, property_id, unit_number")
+      .eq("company_id", companyId)
+      .order("unit_number"),
   ]);
 
   const requests = requestsResult.data ?? [];
   const properties = (propertiesResult.data ?? []).map((p: any) => ({
     id: p.id,
     name: p.name,
+  }));
+  const units = (unitsResult.data ?? []).map((u: any) => ({
+    id: u.id as string,
+    property_id: u.property_id as string,
+    unit_number: u.unit_number as string,
   }));
 
   // Batch-fetch user profiles for members
@@ -70,6 +80,7 @@ export default async function MaintenancePage() {
       requests={requests}
       properties={properties}
       members={members}
+      units={units}
     />
   );
 }
