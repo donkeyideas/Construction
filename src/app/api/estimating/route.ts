@@ -49,16 +49,26 @@ export async function POST(req: NextRequest) {
       profit_pct: body.profit_pct ?? 10,
       created_by: userCompany.userId,
     };
-    // Only include opportunity_id if provided (column may not exist before migration 072)
+
+    // Try with opportunity_id first; if column doesn't exist yet, retry without it
     if (body.opportunity_id) {
       insertRow.opportunity_id = body.opportunity_id;
     }
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("estimates")
       .insert(insertRow)
       .select()
       .single();
+
+    if (error && error.message.includes("opportunity_id") && insertRow.opportunity_id) {
+      delete insertRow.opportunity_id;
+      ({ data, error } = await supabase
+        .from("estimates")
+        .insert(insertRow)
+        .select()
+        .single());
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
