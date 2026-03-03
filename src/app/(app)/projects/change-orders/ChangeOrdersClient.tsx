@@ -159,6 +159,7 @@ export default function ChangeOrdersClient({
   const [createError, setCreateError] = useState("");
   const [formData, setFormData] = useState({
     project_id: "",
+    co_number: "",
     title: "",
     description: "",
     reason: "",
@@ -303,6 +304,7 @@ export default function ChangeOrdersClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           project_id: formData.project_id,
+          co_number: formData.co_number || undefined,
           title: formData.title,
           description: formData.description || undefined,
           reason: formData.reason || undefined,
@@ -323,6 +325,7 @@ export default function ChangeOrdersClient({
       // Reset form and close modal
       setFormData({
         project_id: "",
+        co_number: "",
         title: "",
         description: "",
         reason: "",
@@ -652,18 +655,32 @@ export default function ChangeOrdersClient({
                 </select>
               </div>
 
-              <div className="ticket-form-group">
-                <label className="ticket-form-label">{t("changeOrders.titleRequired")}</label>
-                <input
-                  type="text"
-                  className="ticket-form-input"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder={t("changeOrders.titlePlaceholder")}
-                  required
-                />
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("changeOrders.coNumber")}</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={formData.co_number}
+                    onChange={(e) =>
+                      setFormData({ ...formData, co_number: e.target.value })
+                    }
+                    placeholder="e.g. CO-001 (auto if blank)"
+                  />
+                </div>
+                <div className="ticket-form-group" style={{ flex: 2 }}>
+                  <label className="ticket-form-label">{t("changeOrders.titleRequired")}</label>
+                  <input
+                    type="text"
+                    className="ticket-form-input"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    placeholder={t("changeOrders.titlePlaceholder")}
+                    required
+                  />
+                </div>
               </div>
 
               <div className="ticket-form-group">

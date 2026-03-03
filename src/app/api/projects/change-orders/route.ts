@@ -38,15 +38,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Auto-generate CO number: count existing COs for this project + 1
-    const { count } = await supabase
-      .from("change_orders")
-      .select("id", { count: "exact", head: true })
-      .eq("company_id", userCtx.companyId)
-      .eq("project_id", body.project_id);
+    // Use provided CO number or auto-generate
+    let co_number = body.co_number?.trim();
+    if (!co_number) {
+      const { count } = await supabase
+        .from("change_orders")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", userCtx.companyId)
+        .eq("project_id", body.project_id);
 
-    const coNum = (count ?? 0) + 1;
-    const co_number = `CO-${String(coNum).padStart(3, "0")}`;
+      const coNum = (count ?? 0) + 1;
+      co_number = `CO-${String(coNum).padStart(3, "0")}`;
+    }
 
     const { data: changeOrder, error } = await supabase
       .from("change_orders")
