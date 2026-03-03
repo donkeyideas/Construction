@@ -34,24 +34,29 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    const insertRow: Record<string, unknown> = {
+      company_id: userCompany.companyId,
+      estimate_number: body.estimate_number,
+      title: body.title,
+      description: body.description || null,
+      project_id: body.project_id || null,
+      status: body.status || "draft",
+      tax_pct: body.tax_pct ?? 0,
+      total_cost: body.total_cost ?? 0,
+      total_price: body.total_price ?? 0,
+      margin_pct: body.margin_pct ?? 0,
+      overhead_pct: body.overhead_pct ?? 10,
+      profit_pct: body.profit_pct ?? 10,
+      created_by: userCompany.userId,
+    };
+    // Only include opportunity_id if provided (column may not exist before migration 072)
+    if (body.opportunity_id) {
+      insertRow.opportunity_id = body.opportunity_id;
+    }
+
     const { data, error } = await supabase
       .from("estimates")
-      .insert({
-        company_id: userCompany.companyId,
-        estimate_number: body.estimate_number,
-        title: body.title,
-        description: body.description || null,
-        project_id: body.project_id || null,
-        opportunity_id: body.opportunity_id || null,
-        status: body.status || "draft",
-        tax_pct: body.tax_pct ?? 0,
-        total_cost: body.total_cost ?? 0,
-        total_price: body.total_price ?? 0,
-        margin_pct: body.margin_pct ?? 0,
-        overhead_pct: body.overhead_pct ?? 10,
-        profit_pct: body.profit_pct ?? 10,
-        created_by: userCompany.userId,
-      })
+      .insert(insertRow)
       .select()
       .single();
 

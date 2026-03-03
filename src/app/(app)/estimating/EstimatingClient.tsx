@@ -370,7 +370,7 @@ export default function EstimatingClient({
       {/* Create Modal - matches ticket modal pattern */}
       {showCreate && (
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
-          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "600px" }}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600, overflowX: "hidden" }}>
             <div className="ticket-modal-header">
               <h3>{t("estimatingNewEstimate")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}><X size={18} /></button>
@@ -452,7 +452,7 @@ export default function EstimatingClient({
                     <input className="ticket-form-input" type="number" min="0" step="0.5" value={formData.profit_pct} onChange={(e) => setFormData((p) => ({ ...p, profit_pct: e.target.value }))} />
                   </div>
                 </div>
-                <div className="ticket-form-actions" style={{ borderTop: "1px solid var(--border)", padding: "16px 24px", marginTop: 8 }}>
+                <div className="ticket-form-actions" style={{ borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 8 }}>
                   <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
                   <button type="submit" className="ui-btn ui-btn-md ui-btn-primary" disabled={creating}>
                     {creating ? <span className="ui-btn-spinner" /> : <Plus size={14} />}
