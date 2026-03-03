@@ -162,6 +162,7 @@ export default function ChangeOrdersClient({
     title: "",
     description: "",
     reason: "",
+    status: "draft",
     amount: "",
     schedule_impact_days: "",
   });
@@ -305,6 +306,7 @@ export default function ChangeOrdersClient({
           title: formData.title,
           description: formData.description || undefined,
           reason: formData.reason || undefined,
+          status: formData.status || "draft",
           amount: formData.amount !== "" ? Number(formData.amount) : 0,
           schedule_impact_days:
             formData.schedule_impact_days !== ""
@@ -324,6 +326,7 @@ export default function ChangeOrdersClient({
         title: "",
         description: "",
         reason: "",
+        status: "draft",
         amount: "",
         schedule_impact_days: "",
       });
@@ -694,6 +697,22 @@ export default function ChangeOrdersClient({
                       {r.label}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              <div className="ticket-form-group">
+                <label className="ticket-form-label">{t("changeOrders.status")}</label>
+                <select
+                  className="ticket-form-select"
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
+                >
+                  <option value="draft">{t("changeOrders.statusDraft")}</option>
+                  <option value="submitted">{t("changeOrders.statusSubmitted")}</option>
+                  <option value="approved">{t("changeOrders.statusApproved")}</option>
+                  <option value="rejected">{t("changeOrders.statusRejected")}</option>
                 </select>
               </div>
 

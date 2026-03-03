@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         amount: body.amount != null ? Number(body.amount) : 0,
         schedule_impact_days: body.schedule_impact_days != null ? Number(body.schedule_impact_days) : 0,
         requested_by: userCtx.userId,
-        status: "draft",
+        status: body.status || "draft",
       })
       .select("*")
       .single();

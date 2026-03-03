@@ -77,9 +77,12 @@ export interface ContractFilters {
 export interface CreateContractData {
   title: string;
   description?: string;
+  contract_number?: string;
   contract_type?: ContractType;
+  status?: ContractStatus;
   party_name?: string;
   party_email?: string;
+  party_contact_id?: string;
   contract_amount?: number;
   retention_pct?: number;
   start_date?: string;
@@ -87,6 +90,7 @@ export interface CreateContractData {
   payment_terms?: string;
   scope_of_work?: string;
   insurance_required?: boolean;
+  insurance_expiry?: string;
   bond_required?: boolean;
   project_id?: string;
   property_id?: string;
@@ -282,49 +286,59 @@ export async function createContract(
   userId: string,
   data: CreateContractData
 ) {
-  // Get the next contract number for this company
-  const { data: lastContract } = await supabase
-    .from("contracts")
-    .select("contract_number")
-    .eq("company_id", companyId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+  // Use provided contract number or auto-generate
+  let contractNumber = data.contract_number?.trim();
+  if (!contractNumber) {
+    const { data: lastContract } = await supabase
+      .from("contracts")
+      .select("contract_number")
+      .eq("company_id", companyId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
 
-  let nextNumber = 1;
-  if (lastContract?.contract_number) {
-    const match = lastContract.contract_number.match(/CTR-(\d+)/);
-    if (match) {
-      nextNumber = parseInt(match[1], 10) + 1;
+    let nextNumber = 1;
+    if (lastContract?.contract_number) {
+      const match = lastContract.contract_number.match(/CTR-(\d+)/);
+      if (match) {
+        nextNumber = parseInt(match[1], 10) + 1;
+      }
     }
+    contractNumber = `CTR-${String(nextNumber).padStart(3, "0")}`;
   }
 
-  const contractNumber = `CTR-${String(nextNumber).padStart(3, "0")}`;
+  const insertData: Record<string, unknown> = {
+    company_id: companyId,
+    created_by: userId,
+    contract_number: contractNumber,
+    title: data.title,
+    description: data.description ?? null,
+    status: data.status ?? "draft",
+    contract_type: data.contract_type ?? "subcontractor",
+    party_name: data.party_name ?? null,
+    party_email: data.party_email ?? null,
+    contract_amount: data.contract_amount ?? null,
+    retention_pct: data.retention_pct ?? null,
+    start_date: data.start_date ?? null,
+    end_date: data.end_date ?? null,
+    payment_terms: data.payment_terms ?? null,
+    scope_of_work: data.scope_of_work ?? null,
+    insurance_required: data.insurance_required ?? false,
+    insurance_expiry: data.insurance_expiry ?? null,
+    bond_required: data.bond_required ?? false,
+    project_id: data.project_id ?? null,
+    property_id: data.property_id ?? null,
+    metadata: {},
+  };
+
+  // Only set party_contact_id if provided (FK to contacts table)
+  if (data.party_contact_id) {
+    insertData.party_contact_id = data.party_contact_id;
+  }
 
   const { data: contract, error } = await supabase
     .from("contracts")
-    .insert({
-      company_id: companyId,
-      created_by: userId,
-      contract_number: contractNumber,
-      title: data.title,
-      description: data.description ?? null,
-      status: "draft",
-      contract_type: data.contract_type ?? "subcontractor",
-      party_name: data.party_name ?? null,
-      party_email: data.party_email ?? null,
-      contract_amount: data.contract_amount ?? null,
-      retention_pct: data.retention_pct ?? null,
-      start_date: data.start_date ?? null,
-      end_date: data.end_date ?? null,
-      payment_terms: data.payment_terms ?? null,
-      scope_of_work: data.scope_of_work ?? null,
-      insurance_required: data.insurance_required ?? false,
-      bond_required: data.bond_required ?? false,
-      project_id: data.project_id ?? null,
-      property_id: data.property_id ?? null,
-      metadata: {},
-    })
+    .insert(insertData)
     .select()
     .single();
 

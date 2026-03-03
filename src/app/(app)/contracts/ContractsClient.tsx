@@ -55,6 +55,20 @@ const IMPORT_SAMPLE: Record<string, string>[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface Contact {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  job_title: string | null;
+  contact_type: string;
+  company_name: string | null;
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -62,6 +76,7 @@ interface ContractsClientProps {
   contracts: ContractRow[];
   stats: ContractStats;
   projects: { id: string; name: string }[];
+  contacts: Contact[];
   userId: string;
   companyId: string;
   linkedJEs?: Record<string, { id: string; entry_number: string }[]>;
@@ -71,6 +86,7 @@ export default function ContractsClient({
   contracts,
   stats,
   projects,
+  contacts,
   userId,
   companyId,
   linkedJEs = {},
@@ -147,15 +163,20 @@ export default function ContractsClient({
   const [createError, setCreateError] = useState("");
   const [formData, setFormData] = useState({
     title: "",
+    contract_number: "",
     contract_type: "subcontractor" as ContractType,
+    status: "draft" as ContractStatus,
+    vendor_id: "",
     party_name: "",
     party_email: "",
     contract_amount: "",
+    retention_pct: "",
     start_date: "",
     end_date: "",
     payment_terms: "",
     scope_of_work: "",
     insurance_required: false,
+    insurance_expiry: "",
     context_id: "",
   });
 
@@ -216,17 +237,24 @@ export default function ContractsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: formData.title,
+          contract_number: formData.contract_number || undefined,
           contract_type: formData.contract_type,
+          status: formData.status || "draft",
           party_name: formData.party_name || undefined,
           party_email: formData.party_email || undefined,
+          party_contact_id: formData.vendor_id || undefined,
           contract_amount: formData.contract_amount
             ? Number(formData.contract_amount)
+            : undefined,
+          retention_pct: formData.retention_pct !== ""
+            ? Number(formData.retention_pct)
             : undefined,
           start_date: formData.start_date || undefined,
           end_date: formData.end_date || undefined,
           payment_terms: formData.payment_terms || undefined,
           scope_of_work: formData.scope_of_work || undefined,
           insurance_required: formData.insurance_required,
+          insurance_expiry: formData.insurance_expiry || undefined,
           ...parseContext(formData.context_id),
         }),
       });
@@ -239,15 +267,20 @@ export default function ContractsClient({
       // Reset form and close modal
       setFormData({
         title: "",
+        contract_number: "",
         contract_type: "subcontractor",
+        status: "draft",
+        vendor_id: "",
         party_name: "",
         party_email: "",
         contract_amount: "",
+        retention_pct: "",
         start_date: "",
         end_date: "",
         payment_terms: "",
         scope_of_work: "",
         insurance_required: false,
+        insurance_expiry: "",
         context_id: "",
       });
       setShowCreate(false);
@@ -617,18 +650,32 @@ export default function ContractsClient({
             )}
 
             <form onSubmit={handleCreate} className="contracts-form">
-              <div className="contracts-form-group">
-                <label className="contracts-form-label">{t("titleRequired")}</label>
-                <input
-                  type="text"
-                  className="contracts-form-input"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder={t("contractTitlePlaceholder")}
-                  required
-                />
+              <div className="contracts-form-row">
+                <div className="contracts-form-group">
+                  <label className="contracts-form-label">{t("contractNumber")}</label>
+                  <input
+                    type="text"
+                    className="contracts-form-input"
+                    value={formData.contract_number}
+                    onChange={(e) =>
+                      setFormData({ ...formData, contract_number: e.target.value })
+                    }
+                    placeholder="e.g. CTR-001 (auto if blank)"
+                  />
+                </div>
+                <div className="contracts-form-group" style={{ flex: 2 }}>
+                  <label className="contracts-form-label">{t("titleRequired")}</label>
+                  <input
+                    type="text"
+                    className="contracts-form-input"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    placeholder={t("contractTitlePlaceholder")}
+                    required
+                  />
+                </div>
               </div>
 
               <div className="contracts-form-row">
@@ -676,6 +723,56 @@ export default function ContractsClient({
                         ))}
                       </optgroup>
                     )}
+                  </select>
+                </div>
+              </div>
+
+              <div className="contracts-form-row">
+                <div className="contracts-form-group">
+                  <label className="contracts-form-label">{t("vendor")}</label>
+                  <select
+                    className="contracts-form-select"
+                    value={formData.vendor_id}
+                    onChange={(e) => {
+                      const vendorId = e.target.value;
+                      const contact = contacts.find((c) => c.id === vendorId);
+                      setFormData({
+                        ...formData,
+                        vendor_id: vendorId,
+                        party_name: contact
+                          ? `${contact.first_name} ${contact.last_name}`.trim()
+                          : formData.party_name,
+                        party_email: contact?.email || formData.party_email,
+                      });
+                    }}
+                  >
+                    <option value="">{t("selectVendorPlaceholder")}</option>
+                    {contacts.map((c) => {
+                      const name = `${c.first_name} ${c.last_name}`.trim();
+                      const detail = c.company_name || c.job_title || c.contact_type.replace(/_/g, " ");
+                      return (
+                        <option key={c.id} value={c.id}>
+                          {name}{detail ? ` — ${detail}` : ""}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div className="contracts-form-group">
+                  <label className="contracts-form-label">{t("status")}</label>
+                  <select
+                    className="contracts-form-select"
+                    value={formData.status}
+                    onChange={(e) =>
+                      setFormData({ ...formData, status: e.target.value as ContractStatus })
+                    }
+                  >
+                    {(Object.keys(STATUS_LABELS) as ContractStatus[]).map((s) => (
+                      <option key={s} value={s}>
+                        {STATUS_LABELS[s]}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -740,6 +837,36 @@ export default function ContractsClient({
                       </option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              <div className="contracts-form-row">
+                <div className="contracts-form-group">
+                  <label className="contracts-form-label">{t("retentionPct")}</label>
+                  <input
+                    type="number"
+                    className="contracts-form-input"
+                    value={formData.retention_pct}
+                    onChange={(e) =>
+                      setFormData({ ...formData, retention_pct: e.target.value })
+                    }
+                    placeholder="0"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+
+                <div className="contracts-form-group">
+                  <label className="contracts-form-label">{t("insuranceExpiry")}</label>
+                  <input
+                    type="date"
+                    className="contracts-form-input"
+                    value={formData.insurance_expiry}
+                    onChange={(e) =>
+                      setFormData({ ...formData, insurance_expiry: e.target.value })
+                    }
+                  />
                 </div>
               </div>
 
